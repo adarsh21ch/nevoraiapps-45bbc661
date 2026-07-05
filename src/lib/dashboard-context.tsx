@@ -94,7 +94,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }
 
   if (profileQ.isLoading || tenantQ.isLoading) return <FullPage>Loading your academy…</FullPage>;
-  if (!profileQ.data)
+  if (!profileQ.data) {
+    // Platform admins won't have a tenant profile — send them to their control room.
+    if (typeof window !== "undefined") {
+      supabase.from("platform_admins").select("user_id").eq("user_id", session.user.id).maybeSingle().then(({ data }) => {
+        if (data) window.location.href = "/platform-admin";
+      });
+    }
     return (
       <FullPage>
         <div className="max-w-md text-center space-y-3">
@@ -111,6 +117,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         </div>
       </FullPage>
     );
+  }
   if (!tenantQ.data) return <FullPage>Academy not found.</FullPage>;
 
   const value: DashboardCtx = {

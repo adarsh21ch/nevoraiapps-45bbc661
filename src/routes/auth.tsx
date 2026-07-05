@@ -25,22 +25,28 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) navigate({ to: await routeAfterLogin(data.session.user.id) });
     });
   }, [navigate]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       toast.error(error.message);
       return;
     }
     toast.success("Signed in");
-    navigate({ to: "/dashboard" });
+    const uid = data.user?.id;
+    navigate({ to: uid ? await routeAfterLogin(uid) : "/dashboard" });
+  }
+
+  async function routeAfterLogin(uid: string): Promise<"/platform-admin" | "/dashboard"> {
+    const { data } = await supabase.from("platform_admins").select("user_id").eq("user_id", uid).maybeSingle();
+    return data ? "/platform-admin" : "/dashboard";
   }
 
   return (
