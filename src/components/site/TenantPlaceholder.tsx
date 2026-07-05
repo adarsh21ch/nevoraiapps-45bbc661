@@ -12,7 +12,14 @@ const DEMO_MSG = "Hi, I'd like a demo of Academy OS";
 /** Landing shown at the root domain when no tenant matches the URL.
  *  Acts as the platform's own marketing + login entry point. */
 export function TenantPlaceholder() {
-  return (
+  const { data: settings = DEFAULT_PLATFORM_SETTINGS } = useQuery({
+    queryKey: platformSettingsKey,
+    queryFn: fetchPlatformSettings,
+    staleTime: 60_000,
+  });
+  const whatsappUrl = waHref(settings.contact_whatsapp, DEMO_MSG);
+  const emailUrl = `mailto:${settings.contact_email}?subject=${encodeURIComponent("Demo request — Academy OS")}`;
+
     <div className="min-h-screen w-full bg-[#050505] text-zinc-100 selection:bg-purple-500/30 font-[Inter,ui-sans-serif,system-ui] overflow-x-hidden">
       {/* Ambient background glow */}
       <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 flex justify-center">
