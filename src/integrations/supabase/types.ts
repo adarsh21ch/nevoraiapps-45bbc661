@@ -162,6 +162,27 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_settings: {
+        Row: {
+          contact_email: string
+          contact_whatsapp: string
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string
+          contact_whatsapp?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string
+          contact_whatsapp?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
