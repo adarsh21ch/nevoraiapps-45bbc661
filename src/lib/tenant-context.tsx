@@ -20,12 +20,18 @@ async function fetchTenant(): Promise<Tenant | null> {
   });
   if (!hint) return null;
 
-  const column = hint.mode === "domain" ? "custom_domain" : "slug";
-  const { data, error } = await supabase
-    .from("tenants")
-    .select("*")
-    .eq(column, hint.value)
-    .maybeSingle();
+  // Domain mode: exact custom_domain match. Slug mode: match the subdomain slug OR a
+  // custom_domain equal to the full hostname, so any platform subdomain typed into the
+  // tenant's custom-domain field resolves instantly even when it differs from the slug.
+  const hostname = window.location.hostname;
+  const query =
+    hint.mode === "domain"
+      ? supabase.from("tenants").select("*").eq("custom_domain", hint.value)
+      : supabase
+          .from("tenants")
+          .select("*")
+          .or(`slug.eq.${hint.value},custom_domain.eq.${hostname}`);
+  const { data, error } = await query.limit(1).maybeSingle();
   if (error) {
     console.error("[tenant] fetch failed", error);
     return null;

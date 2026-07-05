@@ -55,9 +55,7 @@ export function resolveTenantHint(input: {
   if (pathMatch) return { mode: "slug", value: pathMatch[1] };
 
   // Subdomain: {slug}.platform.tld (only when the base host is a known platform host)
-  const isPlatformHost = platformHosts.some(
-    (h) => hostname === h || hostname.endsWith("." + h),
-  );
+  const isPlatformHost = platformHosts.some((h) => hostname === h || hostname.endsWith("." + h));
   if (isPlatformHost) {
     // e.g. kirkland-cricket.something.lovable.app
     const parts = hostname.split(".");
