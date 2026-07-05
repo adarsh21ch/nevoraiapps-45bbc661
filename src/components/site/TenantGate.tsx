@@ -23,6 +23,20 @@ export function TenantGate({ children }: { children: ReactNode }) {
     return <TenantPlaceholder />;
   }
 
+  if (state.status === "suspended") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 text-center">
+        <div className="max-w-md">
+          <h1 className="text-3xl font-semibold text-white">Temporarily unavailable</h1>
+          <p className="mt-3 text-sm text-neutral-400">
+            {state.tenant.name} is not accepting online activity right now. Please check back soon,
+            or contact the academy directly.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />

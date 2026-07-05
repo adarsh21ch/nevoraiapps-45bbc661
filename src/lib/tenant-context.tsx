@@ -6,6 +6,7 @@ import { resolveTenantHint, type Tenant } from "./tenant";
 type TenantState =
   | { status: "loading"; tenant: null }
   | { status: "missing"; tenant: null }
+  | { status: "suspended"; tenant: Tenant }
   | { status: "ready"; tenant: Tenant };
 
 const TenantContext = createContext<TenantState>({ status: "loading", tenant: null });
@@ -24,7 +25,6 @@ async function fetchTenant(): Promise<Tenant | null> {
     .from("tenants")
     .select("*")
     .eq(column, hint.value)
-    .eq("status", "active")
     .maybeSingle();
   if (error) {
     console.error("[tenant] fetch failed", error);
@@ -43,6 +43,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const state: TenantState = useMemo(() => {
     if (isLoading) return { status: "loading", tenant: null };
     if (!data) return { status: "missing", tenant: null };
+    if (data.status !== "active") return { status: "suspended", tenant: data };
     return { status: "ready", tenant: data };
   }, [isLoading, data]);
 
