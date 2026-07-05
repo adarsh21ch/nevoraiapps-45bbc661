@@ -20,7 +20,7 @@ function DashboardHome() {
   });
 
   const kpis = [
-    { label: `Active ${n.studentsPlural.toLowerCase()}`, value: data?.activeStudents ?? 0, icon: Users, tone: "text-emerald-600" },
+    { label: `Active ${n.students.toLowerCase()}`, value: data?.activeStudents ?? 0, icon: Users, tone: "text-emerald-600" },
     { label: "New registrations (7d)", value: data?.newRegsThisWeek ?? 0, icon: Inbox, tone: "text-blue-600" },
     { label: "This month's collection", value: `₹${(data?.collectionThisMonth ?? 0).toLocaleString("en-IN")}`, icon: IndianRupee, tone: "text-amber-600" },
     { label: "Pending monthly fees", value: data?.pendingFeeCount ?? 0, icon: AlertCircle, tone: "text-rose-600" },
@@ -57,7 +57,7 @@ function DashboardHome() {
           <div className="mx-auto grid size-12 place-items-center rounded-full" style={{ backgroundColor: "color-mix(in oklab, var(--brand) 15%, transparent)" }}>
             <Users className="size-6" style={{ color: "var(--brand)" }} />
           </div>
-          <h2 className="mt-4 text-lg font-semibold">No {n.studentsPlural.toLowerCase()} yet</h2>
+          <h2 className="mt-4 text-lg font-semibold">No {n.students.toLowerCase()} yet</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Add your first {n.students.toLowerCase()} to get started.
           </p>
@@ -79,7 +79,7 @@ function DashboardHome() {
             </li>
             <li className="flex items-center gap-2">
               <ArrowRight className="size-3.5 text-muted-foreground" />
-              Manage {n.studentsPlural.toLowerCase()}, {n.batchesPlural.toLowerCase()} and fee plans from the sidebar.
+              Manage {n.students.toLowerCase()}, {n.batches.toLowerCase()} and fee plans from the sidebar.
             </li>
             <li className="flex items-center gap-2">
               <ArrowRight className="size-3.5 text-muted-foreground" />
