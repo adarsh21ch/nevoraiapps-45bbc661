@@ -18,7 +18,10 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as PlatformAdminTenantsRouteImport } from './routes/platform-admin.tenants'
+import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
 import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
@@ -73,10 +76,25 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlatformAdminIndexRoute = PlatformAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+const PlatformAdminTenantsRoute = PlatformAdminTenantsRouteImport.update({
+  id: '/tenants',
+  path: '/tenants',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => PlatformAdminRoute,
 } as any)
 const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
   id: '/students',
@@ -126,7 +144,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
-  '/platform-admin': typeof PlatformAdminRoute
+  '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
@@ -136,7 +154,10 @@ export interface FileRoutesByFullPath {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/tenants': typeof PlatformAdminTenantsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
 }
 export interface FileRoutesByTo {
@@ -145,7 +166,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/fees': typeof FeesRoute
-  '/platform-admin': typeof PlatformAdminRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
@@ -155,7 +175,10 @@ export interface FileRoutesByTo {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/tenants': typeof PlatformAdminTenantsRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/platform-admin': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
 }
 export interface FileRoutesById {
@@ -166,7 +189,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
-  '/platform-admin': typeof PlatformAdminRoute
+  '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
@@ -176,7 +199,10 @@ export interface FileRoutesById {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/tenants': typeof PlatformAdminTenantsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
 }
 export interface FileRouteTypes {
@@ -198,7 +224,10 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/platform-admin/new'
+    | '/platform-admin/tenants'
     | '/dashboard/'
+    | '/platform-admin/'
     | '/dashboard/students/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -207,7 +236,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/fees'
-    | '/platform-admin'
     | '/register'
     | '/star-players'
     | '/dashboard/batches'
@@ -217,7 +245,10 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/platform-admin/new'
+    | '/platform-admin/tenants'
     | '/dashboard'
+    | '/platform-admin'
     | '/dashboard/students/$id'
   id:
     | '__root__'
@@ -237,7 +268,10 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/platform-admin/new'
+    | '/platform-admin/tenants'
     | '/dashboard/'
+    | '/platform-admin/'
     | '/dashboard/students/$id'
   fileRoutesById: FileRoutesById
 }
@@ -248,7 +282,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   FeesRoute: typeof FeesRoute
-  PlatformAdminRoute: typeof PlatformAdminRoute
+  PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
 }
@@ -318,12 +352,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/platform-admin/': {
+      id: '/platform-admin/'
+      path: '/'
+      fullPath: '/platform-admin/'
+      preLoaderRoute: typeof PlatformAdminIndexRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/platform-admin/tenants': {
+      id: '/platform-admin/tenants'
+      path: '/tenants'
+      fullPath: '/platform-admin/tenants'
+      preLoaderRoute: typeof PlatformAdminTenantsRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/new': {
+      id: '/platform-admin/new'
+      path: '/new'
+      fullPath: '/platform-admin/new'
+      preLoaderRoute: typeof PlatformAdminNewRouteImport
+      parentRoute: typeof PlatformAdminRoute
     }
     '/dashboard/students': {
       id: '/dashboard/students'
@@ -421,6 +476,22 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
+interface PlatformAdminRouteChildren {
+  PlatformAdminNewRoute: typeof PlatformAdminNewRoute
+  PlatformAdminTenantsRoute: typeof PlatformAdminTenantsRoute
+  PlatformAdminIndexRoute: typeof PlatformAdminIndexRoute
+}
+
+const PlatformAdminRouteChildren: PlatformAdminRouteChildren = {
+  PlatformAdminNewRoute: PlatformAdminNewRoute,
+  PlatformAdminTenantsRoute: PlatformAdminTenantsRoute,
+  PlatformAdminIndexRoute: PlatformAdminIndexRoute,
+}
+
+const PlatformAdminRouteWithChildren = PlatformAdminRoute._addFileChildren(
+  PlatformAdminRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -428,7 +499,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
   FeesRoute: FeesRoute,
-  PlatformAdminRoute: PlatformAdminRoute,
+  PlatformAdminRoute: PlatformAdminRouteWithChildren,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
 }

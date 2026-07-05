@@ -1,0 +1,474 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { fetchPriceLog, fetchTenantById, pqk } from "@/lib/platform-queries";
+import { StatusChip, SubChip } from "./platform-admin.index";
+import { niche, nicheOptions, type NicheKey } from "@/lib/niche";
+import { getFeatures, type Tenant, type TenantFeatures } from "@/lib/tenant";
+import { ArrowLeft, ExternalLink, Globe, Info, Pause, Play, ShieldAlert } from "lucide-react";
+import { uploadTenantFile, signedUrl } from "@/lib/storage";
+
+export const Route = createFileRoute("/platform-admin/tenants/$id")({
+  component: TenantDetail,
+});
+
+type FeatureKey = keyof TenantFeatures;
+const FEATURE_LIST: { key: FeatureKey; label: string; help: string }[] = [
+  { key: "online_registration", label: "Online registration", help: "Public /register form." },
+  { key: "fee_tracking", label: "Fee tracking", help: "Fee register, payment recording, monthly collection KPI." },
+  { key: "whatsapp_reminders", label: "WhatsApp reminders", help: "Enable the WhatsApp reminders module (add-on)." },
+  { key: "attendance", label: "Attendance", help: "Roll-call and attendance history." },
+  { key: "powered_by_badge", label: "Powered-by badge", help: "Show 'Powered by Academy OS' on the public site footer." },
+];
+
+function TenantDetail() {
+  const { id } = Route.useParams();
+  const qc = useQueryClient();
+  const { data: tenant, isLoading } = useQuery({ queryKey: pqk.tenant(id), queryFn: () => fetchTenantById(id) });
+  const { data: priceLog = [] } = useQuery({ queryKey: pqk.priceLog(id), queryFn: () => fetchPriceLog(id) });
+
+  if (isLoading || !tenant) {
+    return <div className="text-sm text-neutral-400">Loading tenant…</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <Link to="/platform-admin" className="text-xs text-neutral-400 hover:text-white inline-flex items-center gap-1">
+          <ArrowLeft className="size-3" /> All tenants
+        </Link>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <div className="size-10 rounded-md" style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }} />
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight truncate">{tenant.name}</h1>
+            <div className="text-xs text-neutral-400">
+              /{tenant.slug} · {niche(tenant.niche).label}
+            </div>
+          </div>
+          <div className="ml-auto flex flex-wrap gap-2 items-center">
+            <StatusChip status={tenant.status} />
+            <SubChip sub={tenant.subscription_status} />
+            <a href={`/?tenant=${tenant.slug}`} target="_blank" rel="noreferrer" className="text-xs text-neutral-300 hover:text-white inline-flex items-center gap-1">
+              View site <ExternalLink className="size-3" />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-4">
+          <BasicsEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
+          <BrandingEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
+          <FeaturesEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
+          <DomainEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
+        </div>
+        <div className="space-y-4">
+          <SubscriptionCard
+            tenant={tenant}
+            priceLog={priceLog}
+            onSaved={() => {
+              qc.invalidateQueries({ queryKey: pqk.tenant(id) });
+              qc.invalidateQueries({ queryKey: pqk.priceLog(id) });
+              qc.invalidateQueries({ queryKey: pqk.tenants });
+            }}
+          />
+          <SuspendCard tenant={tenant} onSaved={() => { qc.invalidateQueries({ queryKey: pqk.tenant(id) }); qc.invalidateQueries({ queryKey: pqk.tenants }); }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Basics ─────────────────────────────────────────── */
+
+function BasicsEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void }) {
+  const [f, setF] = useState({
+    name: tenant.name,
+    niche: (tenant.niche ?? "academy") as NicheKey,
+    tagline: tenant.tagline ?? "",
+    phone: tenant.phone ?? "",
+    whatsapp: tenant.whatsapp ?? "",
+    email: tenant.email ?? "",
+    address: tenant.address ?? "",
+    upi_id: tenant.upi_id ?? "",
+    fee_cycle: (tenant as unknown as { fee_cycle?: string }).fee_cycle ?? "calendar_month",
+  });
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("tenants").update(f).eq("id", tenant.id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Saved"); onSaved(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Panel title="Business details">
+      <div className="grid gap-3 md:grid-cols-2">
+        <PField label="Name" value={f.name} onChange={(v) => setF({ ...f, name: v })} />
+        <div className="space-y-1.5">
+          <Label className="text-neutral-300">Niche</Label>
+          <Select value={f.niche} onValueChange={(v) => setF({ ...f, niche: v as NicheKey })}>
+            <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
+            <SelectContent>{nicheOptions.map((n) => <SelectItem key={n.value} value={n.value}>{n.label}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <PField label="Tagline" value={f.tagline} onChange={(v) => setF({ ...f, tagline: v })} />
+        <div className="space-y-1.5">
+          <Label className="text-neutral-300">Fee cycle</Label>
+          <Select value={f.fee_cycle} onValueChange={(v) => setF({ ...f, fee_cycle: v })}>
+            <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="calendar_month">Calendar month</SelectItem>
+              <SelectItem value="joining_date">Joining-date anniversary</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <PField label="Phone" value={f.phone} onChange={(v) => setF({ ...f, phone: v })} />
+        <PField label="WhatsApp" value={f.whatsapp} onChange={(v) => setF({ ...f, whatsapp: v })} />
+        <PField label="Email" value={f.email} onChange={(v) => setF({ ...f, email: v })} />
+        <PField label="UPI ID" value={f.upi_id} onChange={(v) => setF({ ...f, upi_id: v })} />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-neutral-300">Address</Label>
+        <Textarea rows={2} value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} className="bg-neutral-950 border-white/10 text-white" />
+      </div>
+      <SaveRow onClick={() => save.mutate()} busy={save.isPending} />
+    </Panel>
+  );
+}
+
+/* ─── Branding ───────────────────────────────────────── */
+
+function BrandingEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void }) {
+  const [f, setF] = useState({
+    primary_color: tenant.primary_color,
+    secondary_color: tenant.secondary_color,
+    logo_url: tenant.logo_url ?? "",
+    upi_qr_url: tenant.upi_qr_url ?? "",
+  });
+  const [logoPreview, setLogoPreview] = useState("");
+  const [qrPreview, setQrPreview] = useState("");
+  useEffect(() => { if (f.logo_url) signedUrl(f.logo_url).then(setLogoPreview); else setLogoPreview(""); }, [f.logo_url]);
+  useEffect(() => { if (f.upi_qr_url) signedUrl(f.upi_qr_url).then(setQrPreview); else setQrPreview(""); }, [f.upi_qr_url]);
+
+  async function upload(field: "logo_url" | "upi_qr_url", file: File) {
+    try {
+      const path = await uploadTenantFile(tenant.id, field, file);
+      setF({ ...f, [field]: path });
+      toast.success("Uploaded — remember to Save");
+    } catch (e: any) { toast.error(e.message); }
+  }
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("tenants").update(f).eq("id", tenant.id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Saved"); onSaved(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Panel title="Branding & assets">
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label className="text-neutral-300">Primary colour</Label>
+          <div className="flex gap-2 items-center">
+            <input type="color" value={f.primary_color} onChange={(e) => setF({ ...f, primary_color: e.target.value })} className="w-12 h-9 rounded" />
+            <Input value={f.primary_color} onChange={(e) => setF({ ...f, primary_color: e.target.value })} className="bg-neutral-950 border-white/10 text-white" />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-neutral-300">Secondary colour</Label>
+          <div className="flex gap-2 items-center">
+            <input type="color" value={f.secondary_color} onChange={(e) => setF({ ...f, secondary_color: e.target.value })} className="w-12 h-9 rounded" />
+            <Input value={f.secondary_color} onChange={(e) => setF({ ...f, secondary_color: e.target.value })} className="bg-neutral-950 border-white/10 text-white" />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-neutral-300">Logo</Label>
+          <div className="flex items-center gap-3">
+            {logoPreview && <img src={logoPreview} alt="" className="size-14 rounded-md object-cover border border-white/10" />}
+            <label className="text-xs cursor-pointer inline-flex items-center gap-1 px-3 py-2 rounded-md border border-white/10 hover:bg-white/5">
+              Upload logo
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && upload("logo_url", e.target.files[0])} />
+            </label>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-neutral-300">UPI QR</Label>
+          <div className="flex items-center gap-3">
+            {qrPreview && <img src={qrPreview} alt="" className="size-14 rounded-md object-cover border border-white/10" />}
+            <label className="text-xs cursor-pointer inline-flex items-center gap-1 px-3 py-2 rounded-md border border-white/10 hover:bg-white/5">
+              Upload QR
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && upload("upi_qr_url", e.target.files[0])} />
+            </label>
+          </div>
+        </div>
+      </div>
+      <SaveRow onClick={() => save.mutate()} busy={save.isPending} />
+    </Panel>
+  );
+}
+
+/* ─── Features ───────────────────────────────────────── */
+
+function FeaturesEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void }) {
+  const [feats, setFeats] = useState<TenantFeatures>(getFeatures(tenant));
+  const save = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("tenants").update({ features: feats }).eq("id", tenant.id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Features updated"); onSaved(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Panel title="Features">
+      <div className="space-y-2">
+        {FEATURE_LIST.map((f) => (
+          <label key={f.key} className="flex items-start justify-between gap-3 rounded-md border border-white/10 p-3">
+            <div className="min-w-0">
+              <div className="text-sm font-medium">{f.label}</div>
+              <div className="text-xs text-neutral-400">{f.help}</div>
+            </div>
+            <Switch
+              checked={feats[f.key] === true}
+              onCheckedChange={(v) => setFeats({ ...feats, [f.key]: v })}
+            />
+          </label>
+        ))}
+      </div>
+      <SaveRow onClick={() => save.mutate()} busy={save.isPending} />
+    </Panel>
+  );
+}
+
+/* ─── Domain ─────────────────────────────────────────── */
+
+function DomainEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void }) {
+  const [domain, setDomain] = useState(tenant.custom_domain ?? "");
+  const save = useMutation({
+    mutationFn: async () => {
+      const value = domain.trim().toLowerCase() || null;
+      const { error } = await supabase.from("tenants").update({ custom_domain: value }).eq("id", tenant.id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Domain saved"); onSaved(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Panel title={<span className="flex items-center gap-2"><Globe className="size-4" /> Custom domain</span>}>
+      <PField label="Domain (e.g. app.kirklandcricket.in)" value={domain} onChange={setDomain} />
+      <div className="rounded-md border border-white/10 bg-neutral-950 p-3 text-xs text-neutral-300 space-y-1.5">
+        <div className="font-semibold text-white flex items-center gap-1"><Info className="size-3" /> DNS instructions to send the client</div>
+        <p>At their DNS provider, add this <strong>A record</strong>:</p>
+        <pre className="bg-neutral-900 rounded p-2 overflow-x-auto text-[11px]">
+          Type: A{"\n"}Host: {domain ? hostPart(domain) : "app"}{"\n"}Value: 185.158.133.1{"\n"}TTL: 3600
+        </pre>
+        <p>Then a <strong>TXT record</strong> for verification:</p>
+        <pre className="bg-neutral-900 rounded p-2 overflow-x-auto text-[11px]">
+          Type: TXT{"\n"}Host: _lovable{"\n"}Value: lovable_verify=&lt;paste from Lovable Publish dialog&gt;
+        </pre>
+        <p className="text-neutral-400">Once DNS propagates, add this exact domain in Project Settings → Domains in Lovable to issue SSL.</p>
+      </div>
+      <SaveRow onClick={() => save.mutate()} busy={save.isPending} />
+    </Panel>
+  );
+}
+
+function hostPart(d: string) {
+  const parts = d.split(".");
+  if (parts.length <= 2) return "@";
+  return parts.slice(0, parts.length - 2).join(".");
+}
+
+/* ─── Subscription ───────────────────────────────────── */
+
+function SubscriptionCard({
+  tenant, priceLog, onSaved,
+}: { tenant: Tenant; priceLog: any[]; onSaved: () => void }) {
+  const [f, setF] = useState({
+    monthly_price: String(tenant.monthly_price ?? 0),
+    setup_fee: String(tenant.setup_fee ?? 0),
+    billing_day: String(tenant.billing_day ?? 1),
+    subscription_status: tenant.subscription_status ?? "due",
+    last_paid_date: tenant.last_paid_date ?? "",
+    platform_notes: tenant.platform_notes ?? "",
+  });
+  const [priceNote, setPriceNote] = useState("");
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const newPrice = parseInt(f.monthly_price || "0", 10);
+      const oldPrice = tenant.monthly_price ?? 0;
+      const payload = {
+        monthly_price: newPrice,
+        setup_fee: parseInt(f.setup_fee || "0", 10),
+        billing_day: Math.max(1, Math.min(28, parseInt(f.billing_day || "1", 10))),
+        subscription_status: f.subscription_status,
+        last_paid_date: f.last_paid_date || null,
+        platform_notes: f.platform_notes || null,
+      };
+      const { error } = await supabase.from("tenants").update(payload).eq("id", tenant.id);
+      if (error) throw error;
+
+      if (newPrice !== oldPrice) {
+        const { data: userData } = await supabase.auth.getUser();
+        const { error: logErr } = await supabase.from("tenant_price_changes").insert({
+          tenant_id: tenant.id,
+          old_price: oldPrice,
+          new_price: newPrice,
+          note: priceNote || null,
+          changed_by: userData.user?.id ?? null,
+        });
+        if (logErr) throw logErr;
+        setPriceNote("");
+      }
+    },
+    onSuccess: () => { toast.success("Subscription updated"); onSaved(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const markPaid = useMutation({
+    mutationFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { error } = await supabase
+        .from("tenants")
+        .update({ subscription_status: "paid", last_paid_date: today })
+        .eq("id", tenant.id);
+      if (error) throw error;
+      setF({ ...f, subscription_status: "paid", last_paid_date: today });
+    },
+    onSuccess: () => { toast.success("Marked paid"); onSaved(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Panel title="Your subscription">
+      <div className="grid grid-cols-2 gap-3">
+        <PField label="Monthly ₹" value={f.monthly_price} onChange={(v) => setF({ ...f, monthly_price: v.replace(/[^\d]/g, "") })} />
+        <PField label="Setup ₹" value={f.setup_fee} onChange={(v) => setF({ ...f, setup_fee: v.replace(/[^\d]/g, "") })} />
+        <PField label="Billing day" value={f.billing_day} onChange={(v) => setF({ ...f, billing_day: v.replace(/[^\d]/g, "") })} />
+        <div className="space-y-1.5">
+          <Label className="text-neutral-300">Status</Label>
+          <Select value={f.subscription_status} onValueChange={(v) => setF({ ...f, subscription_status: v })}>
+            <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="due">Due</SelectItem>
+              <SelectItem value="overdue">Overdue</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="col-span-2 space-y-1.5">
+          <Label className="text-neutral-300">Last paid date</Label>
+          <Input type="date" value={f.last_paid_date ?? ""} onChange={(e) => setF({ ...f, last_paid_date: e.target.value })} className="bg-neutral-950 border-white/10 text-white" />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-neutral-300">Price-change note (optional)</Label>
+        <Input placeholder="Why is the price changing?" value={priceNote} onChange={(e) => setPriceNote(e.target.value)} className="bg-neutral-950 border-white/10 text-white" />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-neutral-300">Notes</Label>
+        <Textarea rows={2} value={f.platform_notes} onChange={(e) => setF({ ...f, platform_notes: e.target.value })} className="bg-neutral-950 border-white/10 text-white" />
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" className="bg-white text-neutral-900 hover:bg-neutral-100" onClick={() => save.mutate()} disabled={save.isPending}>Save</Button>
+        <Button size="sm" variant="ghost" className="text-emerald-300 hover:text-emerald-200 hover:bg-white/5" onClick={() => markPaid.mutate()} disabled={markPaid.isPending}>
+          Mark this month paid
+        </Button>
+      </div>
+
+      <div className="rounded-md border border-white/10 bg-neutral-950 p-3">
+        <div className="text-xs uppercase tracking-widest text-neutral-400 mb-2">Price change history</div>
+        {priceLog.length === 0 ? (
+          <div className="text-xs text-neutral-500">No price changes yet.</div>
+        ) : (
+          <ul className="space-y-1.5">
+            {priceLog.map((p) => (
+              <li key={p.id} className="text-xs flex items-baseline gap-2">
+                <span className="text-neutral-500 w-24 shrink-0">{new Date(p.created_at).toLocaleDateString("en-IN")}</span>
+                <span>₹{p.old_price} → <strong>₹{p.new_price}</strong></span>
+                {p.note && <span className="text-neutral-400">· {p.note}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </Panel>
+  );
+}
+
+/* ─── Suspend ────────────────────────────────────────── */
+
+function SuspendCard({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void }) {
+  const suspended = tenant.status === "suspended";
+  const toggle = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("tenants").update({ status: suspended ? "active" : "suspended" }).eq("id", tenant.id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success(suspended ? "Reactivated" : "Suspended"); onSaved(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Panel title={<span className="flex items-center gap-2"><ShieldAlert className="size-4" /> Access control</span>}>
+      <p className="text-xs text-neutral-400">
+        {suspended
+          ? "This tenant is currently SUSPENDED. Their public site shows a 'temporarily unavailable' page."
+          : "Suspending stops the public site immediately. Data is preserved and can be reactivated any time."}
+      </p>
+      <Button
+        className={suspended ? "bg-emerald-500 text-white hover:bg-emerald-400 w-full" : "bg-rose-500 text-white hover:bg-rose-400 w-full"}
+        onClick={() => toggle.mutate()}
+        disabled={toggle.isPending}
+      >
+        {suspended ? (<><Play className="size-4 mr-1" /> Reactivate tenant</>) : (<><Pause className="size-4 mr-1" /> Suspend tenant</>)}
+      </Button>
+    </Panel>
+  );
+}
+
+/* ─── shared bits ────────────────────────────────────── */
+
+function Panel({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <Card className="p-4 bg-neutral-900 border-white/10 text-neutral-100 space-y-3">
+      <div className="font-semibold">{title}</div>
+      {children}
+    </Card>
+  );
+}
+
+function PField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-neutral-300">{label}</Label>
+      <Input value={value} onChange={(e) => onChange(e.target.value)} className="bg-neutral-950 border-white/10 text-white" />
+    </div>
+  );
+}
+
+function SaveRow({ onClick, busy }: { onClick: () => void; busy: boolean }) {
+  return (
+    <div className="flex justify-end pt-2">
+      <Button size="sm" className="bg-white text-neutral-900 hover:bg-neutral-100" onClick={onClick} disabled={busy}>
+        {busy ? "Saving…" : "Save"}
+      </Button>
+    </div>
+  );
+}
