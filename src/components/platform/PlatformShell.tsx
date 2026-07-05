@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { LayoutDashboard, Building2, Plus, Receipt, LogOut, Menu, Shield } from "lucide-react";
+import { LayoutDashboard, Building2, Plus, Receipt, LogOut, Menu, Shield, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatform } from "@/lib/platform-context";
 
@@ -11,6 +11,7 @@ const nav = [
   { to: "/platform-admin/tenants", label: "Tenants", icon: Building2 },
   { to: "/platform-admin/subscriptions", label: "Subscriptions", icon: Receipt },
   { to: "/platform-admin/new", label: "Onboard new client", icon: Plus },
+  { to: "/platform-admin/settings", label: "Contact settings", icon: Settings },
 ];
 
 export function PlatformShell({ children }: { children: ReactNode }) {
