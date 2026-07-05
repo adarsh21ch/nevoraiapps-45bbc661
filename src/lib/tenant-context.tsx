@@ -47,14 +47,46 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     return { status: "ready", tenant: data };
   }, [isLoading, data]);
 
-  // Inject brand colors as CSS variables + document title
+  // Inject brand colors as CSS variables + document title + favicon + meta description
   useEffect(() => {
     if (typeof document === "undefined") return;
     const root = document.documentElement;
     if (state.tenant) {
-      root.style.setProperty("--brand", state.tenant.primary_color);
-      root.style.setProperty("--brand-ink", state.tenant.secondary_color);
-      document.title = state.tenant.name;
+      const t = state.tenant;
+      root.style.setProperty("--brand", t.primary_color);
+      root.style.setProperty("--brand-ink", t.secondary_color);
+      document.title = t.tagline ? `${t.name} — ${t.tagline}` : t.name;
+
+      // Favicon
+      if (t.logo_url) {
+        let link = document.querySelector<HTMLLinkElement>('link[rel="icon"][data-tenant]');
+        if (!link) {
+          link = document.createElement("link");
+          link.rel = "icon";
+          link.setAttribute("data-tenant", "1");
+          document.head.appendChild(link);
+        }
+        link.href = t.logo_url;
+      }
+
+      // Meta description + og
+      const setMeta = (attr: "name" | "property", key: string, value: string) => {
+        let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"][data-tenant="1"]`);
+        if (!el) {
+          el = document.createElement("meta");
+          el.setAttribute(attr, key);
+          el.setAttribute("data-tenant", "1");
+          document.head.appendChild(el);
+        }
+        el.content = value;
+      };
+      const desc = t.tagline ?? `${t.name} — register online, view fees, and get in touch.`;
+      setMeta("name", "description", desc);
+      setMeta("property", "og:title", t.name);
+      setMeta("property", "og:description", desc);
+      setMeta("property", "og:type", "website");
+      if (t.logo_url) setMeta("property", "og:image", t.logo_url);
+      setMeta("name", "theme-color", t.primary_color);
     } else {
       root.style.removeProperty("--brand");
       root.style.removeProperty("--brand-ink");

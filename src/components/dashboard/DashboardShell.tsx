@@ -114,8 +114,100 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           />
         </aside>
 
-        <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full">{children ?? <Outlet />}</main>
+        <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-24 md:pb-8">
+          {children ?? <Outlet />}
+        </main>
       </div>
+
+      {/* Mobile bottom tab bar */}
+      <MobileTabBar items={navWithBadges} />
+    </div>
+  );
+}
+
+function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
+  const location = useLocation();
+  // Prioritise: Home, Registrations, Students, Fees (if available), then a "More" toggle.
+  const priority = ["/dashboard", "/dashboard/registrations", "/dashboard/students", "/dashboard/fees"];
+  const primary = priority
+    .map((p) => items.find((i) => i.to === p))
+    .filter((x): x is NavItem & { badge?: number } => !!x)
+    .slice(0, 4);
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur-lg md:hidden">
+      <div className="grid grid-cols-5 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
+        {primary.map((n) => {
+          const active =
+            n.to === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(n.to);
+          const Icon = n.icon;
+          return (
+            <Link
+              key={n.to}
+              to={n.to}
+              className={cn(
+                "relative flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+                active ? "text-foreground" : "text-muted-foreground",
+              )}
+              style={active ? { color: "var(--brand)" } : undefined}
+            >
+              <Icon className="size-5" />
+              <span className="truncate max-w-[64px]">{n.label}</span>
+              {n.badge ? (
+                <span
+                  className="absolute top-1 right-1/4 min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white"
+                  style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
+                >
+                  {n.badge}
+                </span>
+              ) : null}
+            </Link>
+          );
+        })}
+        <MoreTrigger />
+      </div>
+    </nav>
+  );
+}
+
+function MoreTrigger() {
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <button className="flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium text-muted-foreground">
+          <Menu className="size-5" />
+          <span>More</span>
+        </button>
+      </SheetTrigger>
+      <SheetContent side="bottom" className="rounded-t-2xl">
+        <div className="mx-auto max-w-md py-2">
+          <MoreLinks />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function MoreLinks() {
+  return (
+    <div className="grid grid-cols-3 gap-2 p-2">
+      {[
+        { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
+        { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet },
+        { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+        { to: "/dashboard/site", label: "Site editor", icon: Globe },
+      ].map((l) => {
+        const Icon = l.icon;
+        return (
+          <Link
+            key={l.to}
+            to={l.to}
+            className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 text-xs font-medium text-foreground hover:bg-muted"
+          >
+            <Icon className="size-5" style={{ color: "var(--brand)" }} />
+            {l.label}
+          </Link>
+        );
+      })}
     </div>
   );
 }

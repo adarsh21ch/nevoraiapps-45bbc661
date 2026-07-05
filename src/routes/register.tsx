@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Loader2 } from "lucide-react";
+import { CheckCircle2, Copy, Download, Loader2, MessageCircle } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
 import { batchesQuery, feePlansQuery } from "@/lib/site-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { generateBlankRegistrationPdf } from "@/lib/registration-pdf";
+import { upiQrDataUrl } from "@/lib/upi";
 
 export const Route = createFileRoute("/register")({
   head: () => ({ meta: [{ title: "Register" }, { name: "description", content: "Register online" }] }),
@@ -43,6 +44,21 @@ function RegisterContent() {
 
   const selectedFee = fees.find((f) => f.id === form.fee_plan_id);
   const regFee = fees.find((f) => f.type === "registration");
+  const amount = (selectedFee?.amount ?? 0) + (regFee && regFee.id !== selectedFee?.id ? regFee.amount : 0);
+
+  // Generate QR when we hit the payment step
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  useEffect(() => {
+    if (step !== "payment") return;
+    if (tenant.upi_qr_url) return; // uploaded QR wins
+    if (!tenant.upi_id) return;
+    let active = true;
+    upiQrDataUrl(
+      { upiId: tenant.upi_id, name: tenant.name, amount, note: `Registration - ${form.name}`.slice(0, 40) },
+      tenant.primary_color,
+    ).then((u) => { if (active) setQrDataUrl(u); }).catch(() => {});
+    return () => { active = false; };
+  }, [step, tenant.upi_id, tenant.upi_qr_url, tenant.name, tenant.primary_color, amount, form.name]);
 
   async function submitForm(e: React.FormEvent) {
     e.preventDefault();
@@ -86,7 +102,6 @@ function RegisterContent() {
     }
     if (!regId) return;
     setSaving(true);
-    // Insert a fresh row with the payment claim; the initial 'pending' row remains as audit trail.
     const { error } = await supabase.from("registrations").insert({
       tenant_id: tenant.id,
       name: form.name.trim(),
@@ -114,8 +129,23 @@ function RegisterContent() {
     generateBlankRegistrationPdf(tenant, fees, batches);
   }
 
+  function copyUpi() {
+    if (!tenant.upi_id) return;
+    navigator.clipboard.writeText(tenant.upi_id).then(
+      () => toast.success("UPI ID copied"),
+      () => toast.error("Could not copy"),
+    );
+  }
+
+  const wa = (tenant.whatsapp ?? tenant.phone ?? "").replace(/[^\d]/g, "");
+  const waHref = wa
+    ? `https://wa.me/${wa}?text=${encodeURIComponent(
+        `Hi ${tenant.name}, I just registered (${form.name}). My UPI transaction reference is ${paymentRef}. Please confirm.`,
+      )}`
+    : null;
+
   return (
-    <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-20">
+    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-20">
       <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
         Join {tenant.name}
       </div>
@@ -127,21 +157,20 @@ function RegisterContent() {
           className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-xs font-medium text-foreground hover:bg-muted"
         >
           <Download className="h-3.5 w-3.5" />
-          Offline PDF form
+          <span className="hidden sm:inline">Offline PDF form</span>
+          <span className="sm:hidden">PDF</span>
         </button>
       </div>
 
       {/* Stepper */}
-      <div className="mt-8 flex items-center gap-2 text-xs">
-        <StepPill n={1} label="Details" active={step === "form"} done={step !== "form"} />
-        <div className="h-px flex-1 bg-border" />
-        <StepPill n={2} label="Pay" active={step === "payment"} done={step === "done"} />
-        <div className="h-px flex-1 bg-border" />
-        <StepPill n={3} label="Done" active={step === "done"} done={step === "done"} />
+      <div className="mt-8 grid grid-cols-3 gap-2 sm:gap-3">
+        <StepPill n={1} label="Fill form" active={step === "form"} done={step !== "form"} />
+        <StepPill n={2} label="Pay via UPI" active={step === "payment"} done={step === "done"} />
+        <StepPill n={3} label="Enter reference" active={step === "done"} done={step === "done"} />
       </div>
 
       {step === "form" ? (
-        <form onSubmit={submitForm} className="mt-10 space-y-5">
+        <form onSubmit={submitForm} className="mt-10 space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <Field label="Student name *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
           <Field label="Date of birth" type="date" value={form.dob} onChange={(v) => setForm({ ...form, dob: v })} />
           <Field label="Guardian name" value={form.guardian_name} onChange={(v) => setForm({ ...form, guardian_name: v })} />
@@ -183,32 +212,52 @@ function RegisterContent() {
       ) : null}
 
       {step === "payment" ? (
-        <div className="mt-10 space-y-6">
-          <div className="rounded-2xl border border-border/60 bg-card p-6">
-            <div className="text-sm text-muted-foreground">Amount to pay</div>
-            <div className="mt-1 text-3xl font-bold text-foreground">
-              ₹{((selectedFee?.amount ?? 0) + (regFee && regFee.id !== selectedFee?.id ? regFee.amount : 0)).toLocaleString("en-IN")}
+        <div className="mt-10 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Amount to pay</div>
+            <div className="mt-1 text-4xl font-bold text-foreground">
+              ₹{amount.toLocaleString("en-IN")}
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">
+            <div className="mt-1 text-xs text-muted-foreground">
               {selectedFee?.name}
               {regFee && regFee.id !== selectedFee?.id ? ` + ${regFee.name}` : ""}
             </div>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
-              {tenant.upi_qr_url ? (
-                <img src={tenant.upi_qr_url} alt="UPI QR" className="h-40 w-40 rounded-lg border border-border" />
-              ) : (
-                <div className="flex h-40 w-40 items-center justify-center rounded-lg border border-dashed border-border bg-muted/40 text-center text-xs text-muted-foreground">
-                  UPI QR not uploaded yet
-                </div>
-              )}
-              <div className="text-sm">
+            <div className="mt-6 flex flex-col items-center gap-5 sm:flex-row sm:items-start">
+              <div className="rounded-2xl border border-border bg-white p-3 shadow-inner">
+                {tenant.upi_qr_url ? (
+                  <img src={tenant.upi_qr_url} alt="UPI QR" className="h-44 w-44 object-contain" />
+                ) : qrDataUrl ? (
+                  <img src={qrDataUrl} alt="UPI QR" className="h-44 w-44 object-contain" />
+                ) : tenant.upi_id ? (
+                  <div className="grid h-44 w-44 place-items-center text-xs text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  </div>
+                ) : (
+                  <div className="grid h-44 w-44 place-items-center text-center text-xs text-muted-foreground">
+                    UPI not configured
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 text-sm">
                 <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">UPI ID</div>
-                <div className="mt-1 select-all text-lg font-mono font-semibold text-foreground">
-                  {tenant.upi_id ?? "—"}
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="select-all break-all font-mono text-base font-semibold text-foreground">
+                    {tenant.upi_id ?? "—"}
+                  </span>
+                  {tenant.upi_id ? (
+                    <button
+                      type="button"
+                      onClick={copyUpi}
+                      className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs text-foreground hover:bg-muted"
+                    >
+                      <Copy className="h-3 w-3" /> Copy
+                    </button>
+                  ) : null}
                 </div>
-                <p className="mt-4 text-xs text-muted-foreground">
-                  Pay via any UPI app (GPay, PhonePe, Paytm) to the ID above, then paste the transaction reference below.
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Scan with any UPI app (GPay, PhonePe, Paytm). Amount is pre-filled.
+                  After payment, copy the transaction reference below.
                 </p>
               </div>
             </div>
@@ -216,7 +265,7 @@ function RegisterContent() {
 
           <form onSubmit={confirmPayment} className="space-y-4">
             <Field
-              label="UPI transaction reference"
+              label="UPI transaction reference *"
               value={paymentRef}
               onChange={setPaymentRef}
               placeholder="e.g. 4XXXXXXXXX12"
@@ -235,15 +284,26 @@ function RegisterContent() {
       ) : null}
 
       {step === "done" ? (
-        <div className="mt-10 rounded-2xl border border-border/60 bg-card p-8 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: "var(--brand)" }}>
-            <CheckCircle2 className="h-7 w-7 text-white" />
+        <div className="mt-10 rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm animate-in fade-in zoom-in-95 duration-300">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full" style={{ backgroundColor: "var(--brand)" }}>
+            <CheckCircle2 className="h-8 w-8 text-white" />
           </div>
-          <h2 className="mt-6 text-2xl font-bold text-foreground">Registration submitted</h2>
+          <h2 className="mt-6 text-2xl font-bold text-foreground">Registration submitted 🎉</h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            Your registration will be confirmed by {tenant.name} after payment verification. You'll usually
-            hear back within a day.
+            Your registration will be confirmed by {tenant.name} after payment verification.
+            You'll usually hear back within a day.
           </p>
+          {waHref ? (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-semibold text-white shadow-md hover:opacity-95"
+            >
+              <MessageCircle className="h-4 w-4" fill="currentColor" />
+              Send confirmation on WhatsApp
+            </a>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -251,32 +311,31 @@ function RegisterContent() {
 }
 
 function StepPill({ n, label, active, done }: { n: number; label: string; active: boolean; done: boolean }) {
+  const on = active || done;
   return (
     <div
-      className="flex items-center gap-1.5 rounded-full border px-3 py-1 font-medium"
+      className="flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium transition-colors"
       style={{
-        borderColor: active || done ? "var(--brand)" : "hsl(var(--border))",
-        color: active || done ? "var(--brand)" : "hsl(var(--muted-foreground))",
+        borderColor: on ? "var(--brand)" : "hsl(var(--border))",
+        color: on ? "var(--brand)" : "hsl(var(--muted-foreground))",
+        backgroundColor: active ? "color-mix(in oklab, var(--brand) 8%, transparent)" : "transparent",
       }}
     >
-      <span className="tabular-nums">{done ? "✓" : n}</span>
-      <span>{label}</span>
+      <span
+        className="grid h-5 w-5 place-items-center rounded-full text-[10px] font-bold tabular-nums text-white"
+        style={{ backgroundColor: on ? "var(--brand)" : "hsl(var(--muted-foreground))" }}
+      >
+        {done ? "✓" : n}
+      </span>
+      <span className="truncate">{label}</span>
     </div>
   );
 }
 
 function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
+  label, value, onChange, type = "text", placeholder,
 }: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  placeholder?: string;
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string;
 }) {
   return (
     <label className="block">
@@ -296,15 +355,9 @@ function Field({
 }
 
 function SelectField({
-  label,
-  value,
-  onChange,
-  options,
+  label, value, onChange, options,
 }: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
+  label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
 }) {
   return (
     <label className="block">
