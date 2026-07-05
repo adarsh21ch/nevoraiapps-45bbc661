@@ -17,6 +17,8 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
 
 const StarPlayersRoute = StarPlayersRouteImport.update({
   id: '/star-players',
@@ -58,26 +60,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardRegistrationsRoute = DashboardRegistrationsRouteImport.update({
+  id: '/registrations',
+  path: '/registrations',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/dashboard/registrations': typeof DashboardRegistrationsRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
   '/fees': typeof FeesRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/dashboard/registrations': typeof DashboardRegistrationsRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -85,10 +100,12 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/dashboard/registrations': typeof DashboardRegistrationsRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,16 +118,19 @@ export interface FileRouteTypes {
     | '/fees'
     | '/register'
     | '/star-players'
+    | '/dashboard/registrations'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/auth'
     | '/contact'
-    | '/dashboard'
     | '/fees'
     | '/register'
     | '/star-players'
+    | '/dashboard/registrations'
+    | '/dashboard'
   id:
     | '__root__'
     | '/'
@@ -121,6 +141,8 @@ export interface FileRouteTypes {
     | '/fees'
     | '/register'
     | '/star-players'
+    | '/dashboard/registrations'
+    | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -128,7 +150,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
-  DashboardRoute: typeof DashboardRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   FeesRoute: typeof FeesRoute
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
@@ -192,15 +214,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/registrations': {
+      id: '/dashboard/registrations'
+      path: '/registrations'
+      fullPath: '/dashboard/registrations'
+      preLoaderRoute: typeof DashboardRegistrationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
+
+interface DashboardRouteChildren {
+  DashboardRegistrationsRoute: typeof DashboardRegistrationsRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardRegistrationsRoute: DashboardRegistrationsRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
-  DashboardRoute: DashboardRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   FeesRoute: FeesRoute,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
