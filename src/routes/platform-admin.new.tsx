@@ -68,11 +68,13 @@ function Wizard() {
   }
 
   const slugRe = /^[a-z0-9-]+$/;
+  const RESERVED_SLUGS = new Set(["academy", "www", "app", "api", "admin", "flow", "auth", "dashboard", "platform-admin", "register", "fees", "about", "contact"]);
 
   async function goNext() {
     if (step === 0) {
       if (!biz.name || !biz.slug) return toast.error("Name and slug are required");
       if (!slugRe.test(biz.slug)) return toast.error("Slug: lowercase letters, digits, hyphens only");
+      if (RESERVED_SLUGS.has(biz.slug)) return toast.error(`"${biz.slug}" is a reserved name — pick another`);
       const { data: dupe } = await supabase.from("tenants").select("id").eq("slug", biz.slug).maybeSingle();
       if (dupe) return toast.error("Slug already in use");
     }
