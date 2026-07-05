@@ -71,7 +71,11 @@ function Overview() {
           <div className="text-xs text-neutral-400">{data.length} total</div>
         </div>
 
-        {isLoading && <div className="p-6 text-sm text-neutral-400">Loading…</div>}
+        {isLoading && (
+          <div className="p-4 space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 bg-white/5" />)}
+          </div>
+        )}
         {!isLoading && data.length === 0 && (
           <div className="p-8 text-center text-sm text-neutral-400">
             No tenants yet. <Link to="/platform-admin/new" className="underline">Onboard your first client</Link>.
