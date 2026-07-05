@@ -30,7 +30,14 @@ export function resolveTenantHint(input: {
   platformHosts?: string[];
 }): { mode: "domain" | "slug"; value: string } | null {
   const { hostname, pathname, search } = input;
+  // Wildcard-subdomain base domain (e.g. "nevorai.com" → sai-sports.nevorai.com resolves by slug).
+  // Set VITE_PLATFORM_BASE_DOMAIN when deploying behind a *.base-domain DNS record.
+  const envBase =
+    typeof import.meta !== "undefined"
+      ? (import.meta.env?.VITE_PLATFORM_BASE_DOMAIN as string | undefined)
+      : undefined;
   const platformHosts = input.platformHosts ?? [
+    ...(envBase ? [envBase] : []),
     "localhost",
     "127.0.0.1",
     "lovable.app",
