@@ -278,30 +278,31 @@ function DomainEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void
     <Panel title={<span className="flex items-center gap-2"><Globe className="size-4" /> Custom domain</span>}>
       <PField label="Domain (e.g. app.kirklandcricket.in)" value={domain} onChange={setDomain} />
 
-      {isWildcardCovered ? (
+      {!d ? (
+        <div className="rounded-md border border-white/10 bg-neutral-950 p-3 text-xs text-neutral-400">
+          Enter a domain above to see the setup instructions.
+        </div>
+      ) : isWildcardCovered ? (
         <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-200 space-y-1.5">
           <div className="font-semibold text-emerald-100 flex items-center gap-1">
             <Info className="size-3" /> No DNS setup needed
           </div>
           <p>
-            <strong>{d}</strong> is already covered by the platform's <code className="bg-black/30 px-1 rounded">*{PLATFORM_WILDCARD_SUFFIX}</code> wildcard. Just save — it goes live immediately.
+            <strong>{d}</strong> is already live on the platform's <code className="bg-black/30 px-1 rounded">*{PLATFORM_WILDCARD_SUFFIX}</code> wildcard. Just save.
           </p>
         </div>
       ) : (
-        <div className="rounded-md border border-white/10 bg-neutral-950 p-3 text-xs text-neutral-300 space-y-1.5">
+        <div className="rounded-md border border-white/10 bg-neutral-950 p-3 text-xs text-neutral-300 space-y-2">
           <div className="font-semibold text-white flex items-center gap-1">
-            <Info className="size-3" /> DNS instructions to send the client
+            <Info className="size-3" /> Client-owned domain — send them this
           </div>
-          <p>At their DNS provider, add this <strong>CNAME record</strong>:</p>
-          <pre className="bg-neutral-900 rounded p-2 overflow-x-auto text-[11px]">
-            Type: CNAME{"\n"}Host: {hostForCname}{"\n"}Target: {PLATFORM_HOSTNAME}{"\n"}TTL: 3600
+          <p>Ask them to add this <strong>CNAME</strong> at their DNS provider:</p>
+          <pre className="bg-neutral-900 rounded p-2 overflow-x-auto text-[11px] leading-relaxed">
+            Type: CNAME{"\n"}Host: {hostForCname} <span className="text-neutral-500">(or their subdomain)</span>{"\n"}Target: {PLATFORM_HOSTNAME}
           </pre>
           <p className="text-neutral-400">
-            For a root domain (e.g. <code>example.com</code>), use a provider that supports CNAME flattening / ALIAS / ANAME on <code>@</code> (Cloudflare, DNSimple, Route53).
+            Then message me once it's added — I'll register <code>{d}</code> on our end to issue SSL.
           </p>
-          <div className="rounded border border-amber-500/30 bg-amber-500/10 p-2 text-amber-200">
-            <strong>Also required on our side:</strong> add <code>{d || "the-domain"}</code> as a custom hostname in the Cloudflare Worker before it will serve traffic. DNS alone won't make it live.
-          </div>
         </div>
       )}
 

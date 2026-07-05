@@ -68,14 +68,21 @@ function Wizard() {
   }
 
   const slugRe = /^[a-z0-9-]+$/;
-  const RESERVED_SLUGS = new Set(["academy", "www", "app", "api", "admin", "flow", "auth", "dashboard", "platform-admin", "register", "fees", "about", "contact"]);
+  const RESERVED_SLUGS = new Set(["academy", "www", "app", "api", "admin", "flow"]);
+  const slugTrimmed = biz.slug.trim().toLowerCase();
+  const slugReservedError = slugTrimmed && RESERVED_SLUGS.has(slugTrimmed)
+    ? "This name is reserved for the platform."
+    : "";
+  const slugFormatError = slugTrimmed && !slugRe.test(slugTrimmed)
+    ? "Use lowercase letters, digits, and hyphens only."
+    : "";
 
   async function goNext() {
     if (step === 0) {
       if (!biz.name || !biz.slug) return toast.error("Name and slug are required");
-      if (!slugRe.test(biz.slug)) return toast.error("Slug: lowercase letters, digits, hyphens only");
-      if (RESERVED_SLUGS.has(biz.slug)) return toast.error(`"${biz.slug}" is a reserved name — pick another`);
-      const { data: dupe } = await supabase.from("tenants").select("id").eq("slug", biz.slug).maybeSingle();
+      if (slugFormatError) return toast.error(slugFormatError);
+      if (slugReservedError) return toast.error(slugReservedError);
+      const { data: dupe } = await supabase.from("tenants").select("id").eq("slug", slugTrimmed).maybeSingle();
       if (dupe) return toast.error("Slug already in use");
     }
     if (step === 2) fillNicheDefaults();
@@ -258,7 +265,12 @@ function Wizard() {
             <SectionHead title="Business details" subtitle="Basics about the academy or gym." />
             <div className="grid gap-3 md:grid-cols-2">
               <Field label="Business name *" value={biz.name} onChange={(v) => setBiz({ ...biz, name: v })} />
-              <Field label="URL slug *" value={biz.slug} onChange={(v) => setBiz({ ...biz, slug: v.toLowerCase() })} placeholder="e.g. sunrise-cricket" />
+              <div className="space-y-1">
+                <Field label="URL slug *" value={biz.slug} onChange={(v) => setBiz({ ...biz, slug: v.toLowerCase() })} placeholder="e.g. sunrise-cricket" />
+                {(slugReservedError || slugFormatError) && (
+                  <p className="text-xs text-rose-400">{slugReservedError || slugFormatError}</p>
+                )}
+              </div>
               <div className="space-y-1.5">
                 <Label className="text-neutral-300">Niche *</Label>
                 <Select value={biz.niche} onValueChange={(v) => setBiz({ ...biz, niche: v as NicheKey })}>
