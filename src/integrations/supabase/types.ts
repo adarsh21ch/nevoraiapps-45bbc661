@@ -14,13 +14,440 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      batches: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          tenant_id: string
+          timing: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          tenant_id: string
+          timing?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          tenant_id?: string
+          timing?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "batches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_plans: {
+        Row: {
+          active: boolean
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          tenant_id: string
+          type: string
+        }
+        Insert: {
+          active?: boolean
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          tenant_id: string
+          type: string
+        }
+        Update: {
+          active?: boolean
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          tenant_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_plans_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          method: string
+          note: string | null
+          period: string | null
+          receipt_no: number
+          recorded_by: string | null
+          student_id: string | null
+          tenant_id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          method?: string
+          note?: string | null
+          period?: string | null
+          receipt_no?: number
+          recorded_by?: string | null
+          student_id?: string | null
+          tenant_id: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string
+          note?: string | null
+          period?: string | null
+          receipt_no?: number
+          recorded_by?: string | null
+          student_id?: string | null
+          tenant_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registrations: {
+        Row: {
+          batch_id: string | null
+          created_at: string
+          dob: string | null
+          fee_plan_id: string | null
+          guardian_name: string | null
+          guardian_phone: string | null
+          id: string
+          name: string
+          payment_ref: string | null
+          payment_status: string
+          phone: string
+          status: string
+          tenant_id: string
+          whatsapp: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string
+          dob?: string | null
+          fee_plan_id?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          name: string
+          payment_ref?: string | null
+          payment_status?: string
+          phone: string
+          status?: string
+          tenant_id: string
+          whatsapp?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string
+          dob?: string | null
+          fee_plan_id?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          name?: string
+          payment_ref?: string | null
+          payment_status?: string
+          phone?: string
+          status?: string
+          tenant_id?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registrations_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registrations_fee_plan_id_fkey"
+            columns: ["fee_plan_id"]
+            isOneToOne: false
+            referencedRelation: "fee_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registrations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      site_content: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          section: string
+          sort_order: number
+          tenant_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          section: string
+          sort_order?: number
+          tenant_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          section?: string
+          sort_order?: number
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_content_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      students: {
+        Row: {
+          batch_id: string | null
+          created_at: string
+          dob: string | null
+          fee_plan_id: string | null
+          guardian_name: string | null
+          guardian_phone: string | null
+          id: string
+          joined_at: string
+          name: string
+          notes: string | null
+          phone: string
+          photo_url: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          batch_id?: string | null
+          created_at?: string
+          dob?: string | null
+          fee_plan_id?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          joined_at?: string
+          name: string
+          notes?: string | null
+          phone: string
+          photo_url?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          batch_id?: string | null
+          created_at?: string
+          dob?: string | null
+          fee_plan_id?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          joined_at?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          photo_url?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_fee_plan_id_fkey"
+            columns: ["fee_plan_id"]
+            isOneToOne: false
+            referencedRelation: "fee_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tenants: {
+        Row: {
+          address: string | null
+          created_at: string
+          custom_domain: string | null
+          email: string | null
+          features: Json
+          id: string
+          logo_url: string | null
+          name: string
+          niche: string
+          phone: string | null
+          primary_color: string
+          secondary_color: string
+          slug: string
+          status: string
+          tagline: string | null
+          upi_id: string | null
+          upi_qr_url: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          custom_domain?: string | null
+          email?: string | null
+          features?: Json
+          id?: string
+          logo_url?: string | null
+          name: string
+          niche?: string
+          phone?: string | null
+          primary_color?: string
+          secondary_color?: string
+          slug: string
+          status?: string
+          tagline?: string | null
+          upi_id?: string | null
+          upi_qr_url?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          custom_domain?: string | null
+          email?: string | null
+          features?: Json
+          id?: string
+          logo_url?: string | null
+          name?: string
+          niche?: string
+          phone?: string | null
+          primary_color?: string
+          secondary_color?: string
+          slug?: string
+          status?: string
+          tagline?: string | null
+          upi_id?: string | null
+          upi_qr_url?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_platform_admin: { Args: { _uid: string }; Returns: boolean }
+      is_tenant_member: {
+        Args: { _tenant: string; _uid: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
