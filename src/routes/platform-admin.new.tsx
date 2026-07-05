@@ -68,7 +68,14 @@ function Wizard() {
   }
 
   const slugRe = /^[a-z0-9-]+$/;
-  const RESERVED_SLUGS = new Set(["academy", "www", "app", "api", "admin", "flow", "auth", "dashboard", "platform-admin", "register", "fees", "about", "contact"]);
+  const RESERVED_SLUGS = new Set(["academy", "www", "app", "api", "admin", "flow"]);
+  const slugTrimmed = biz.slug.trim().toLowerCase();
+  const slugReservedError = slugTrimmed && RESERVED_SLUGS.has(slugTrimmed)
+    ? "This name is reserved for the platform."
+    : "";
+  const slugFormatError = slugTrimmed && !slugRe.test(slugTrimmed)
+    ? "Use lowercase letters, digits, and hyphens only."
+    : "";
 
   async function goNext() {
     if (step === 0) {
