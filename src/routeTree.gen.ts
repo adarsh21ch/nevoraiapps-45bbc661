@@ -21,6 +21,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
+import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
 import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
@@ -94,6 +95,11 @@ const PlatformAdminSubscriptionsRoute =
     path: '/subscriptions',
     getParentRoute: () => PlatformAdminRoute,
   } as any)
+const PlatformAdminSettingsRoute = PlatformAdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
 const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByTo {
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/dashboard': typeof DashboardIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
@@ -218,6 +226,7 @@ export interface FileRoutesById {
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
@@ -245,6 +254,7 @@ export interface FileRouteTypes {
     | '/dashboard/site'
     | '/dashboard/students'
     | '/platform-admin/new'
+    | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
     | '/dashboard/'
     | '/platform-admin/'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/dashboard/site'
     | '/dashboard/students'
     | '/platform-admin/new'
+    | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
     | '/dashboard'
     | '/platform-admin'
@@ -293,6 +304,7 @@ export interface FileRouteTypes {
     | '/dashboard/site'
     | '/dashboard/students'
     | '/platform-admin/new'
+    | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
     | '/dashboard/'
     | '/platform-admin/'
@@ -397,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/subscriptions'
       fullPath: '/platform-admin/subscriptions'
       preLoaderRoute: typeof PlatformAdminSubscriptionsRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/settings': {
+      id: '/platform-admin/settings'
+      path: '/settings'
+      fullPath: '/platform-admin/settings'
+      preLoaderRoute: typeof PlatformAdminSettingsRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
     '/platform-admin/new': {
@@ -518,6 +537,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 interface PlatformAdminRouteChildren {
   PlatformAdminNewRoute: typeof PlatformAdminNewRoute
+  PlatformAdminSettingsRoute: typeof PlatformAdminSettingsRoute
   PlatformAdminSubscriptionsRoute: typeof PlatformAdminSubscriptionsRoute
   PlatformAdminIndexRoute: typeof PlatformAdminIndexRoute
   PlatformAdminTenantsIdRoute: typeof PlatformAdminTenantsIdRoute
@@ -526,6 +546,7 @@ interface PlatformAdminRouteChildren {
 
 const PlatformAdminRouteChildren: PlatformAdminRouteChildren = {
   PlatformAdminNewRoute: PlatformAdminNewRoute,
+  PlatformAdminSettingsRoute: PlatformAdminSettingsRoute,
   PlatformAdminSubscriptionsRoute: PlatformAdminSubscriptionsRoute,
   PlatformAdminIndexRoute: PlatformAdminIndexRoute,
   PlatformAdminTenantsIdRoute: PlatformAdminTenantsIdRoute,
