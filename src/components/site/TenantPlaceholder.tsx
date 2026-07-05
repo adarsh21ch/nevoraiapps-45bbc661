@@ -56,20 +56,28 @@ export function TenantPlaceholder() {
 
           <div className="mt-2 flex flex-col gap-3 sm:flex-row">
             <a
-              href={FOUNDER_WHATSAPP}
+              href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-8 py-3.5 font-semibold text-black shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 hover:brightness-110 active:scale-95"
+            >
+              <WhatsAppIcon />
+              WhatsApp {settings.contact_whatsapp}
+            </a>
+            <a
+              href={emailUrl}
               className="rounded-full bg-zinc-100 px-8 py-3.5 font-semibold text-zinc-950 shadow-lg shadow-white/10 transition-all hover:scale-105 hover:bg-white active:scale-95"
             >
-              Get started — 30-min setup
+              Email {settings.contact_email}
             </a>
             <Link
               to="/auth"
               className="rounded-full border border-zinc-800 bg-zinc-900 px-8 py-3.5 font-medium text-zinc-100 transition-all hover:bg-zinc-800"
             >
-              Log in to dashboard
+              Log in
             </Link>
           </div>
+
 
           <div className="flex items-center gap-2 pt-4 text-xs font-medium uppercase tracking-widest text-zinc-500">
             <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
