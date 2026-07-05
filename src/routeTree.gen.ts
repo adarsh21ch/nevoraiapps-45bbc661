@@ -18,7 +18,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
 import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
+import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
 
 const StarPlayersRoute = StarPlayersRouteImport.update({
   id: '/star-players',
@@ -65,10 +67,20 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardRegistrationsRoute = DashboardRegistrationsRouteImport.update({
   id: '/registrations',
   path: '/registrations',
   getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => DashboardStudentsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -81,7 +93,9 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
+  '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/students/$id': typeof DashboardStudentsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -92,7 +106,9 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
+  '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/students/$id': typeof DashboardStudentsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -105,7 +121,9 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
+  '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/students/$id': typeof DashboardStudentsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -119,7 +137,9 @@ export interface FileRouteTypes {
     | '/register'
     | '/star-players'
     | '/dashboard/registrations'
+    | '/dashboard/students'
     | '/dashboard/'
+    | '/dashboard/students/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,7 +150,9 @@ export interface FileRouteTypes {
     | '/register'
     | '/star-players'
     | '/dashboard/registrations'
+    | '/dashboard/students'
     | '/dashboard'
+    | '/dashboard/students/$id'
   id:
     | '__root__'
     | '/'
@@ -142,7 +164,9 @@ export interface FileRouteTypes {
     | '/register'
     | '/star-players'
     | '/dashboard/registrations'
+    | '/dashboard/students'
     | '/dashboard/'
+    | '/dashboard/students/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -221,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/students': {
+      id: '/dashboard/students'
+      path: '/students'
+      fullPath: '/dashboard/students'
+      preLoaderRoute: typeof DashboardStudentsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/registrations': {
       id: '/dashboard/registrations'
       path: '/registrations'
@@ -228,16 +259,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRegistrationsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/students/$id': {
+      id: '/dashboard/students/$id'
+      path: '/$id'
+      fullPath: '/dashboard/students/$id'
+      preLoaderRoute: typeof DashboardStudentsIdRouteImport
+      parentRoute: typeof DashboardStudentsRoute
+    }
   }
 }
 
+interface DashboardStudentsRouteChildren {
+  DashboardStudentsIdRoute: typeof DashboardStudentsIdRoute
+}
+
+const DashboardStudentsRouteChildren: DashboardStudentsRouteChildren = {
+  DashboardStudentsIdRoute: DashboardStudentsIdRoute,
+}
+
+const DashboardStudentsRouteWithChildren =
+  DashboardStudentsRoute._addFileChildren(DashboardStudentsRouteChildren)
+
 interface DashboardRouteChildren {
   DashboardRegistrationsRoute: typeof DashboardRegistrationsRoute
+  DashboardStudentsRoute: typeof DashboardStudentsRouteWithChildren
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardRegistrationsRoute: DashboardRegistrationsRoute,
+  DashboardStudentsRoute: DashboardStudentsRouteWithChildren,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
