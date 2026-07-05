@@ -165,15 +165,21 @@ export function TenantPlaceholder() {
             Whether you run a single-court gym or a multi-location academy, we'll set you up with a
             branded portal you own end-to-end.
           </p>
-          <div className="mx-auto flex max-w-xs flex-col gap-4">
+          <div className="mx-auto flex max-w-sm flex-col gap-3">
             <a
-              href={FOUNDER_WHATSAPP}
+              href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-6 py-4 font-bold text-black transition-all hover:brightness-110"
             >
               <WhatsAppIcon />
-              Chat on WhatsApp
+              Chat on WhatsApp · {settings.contact_whatsapp}
+            </a>
+            <a
+              href={emailUrl}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl border border-zinc-700 bg-zinc-900 px-6 py-4 font-semibold text-zinc-100 transition-all hover:bg-zinc-800"
+            >
+              Email {settings.contact_email}
             </a>
             <Link
               to="/auth"
@@ -182,6 +188,7 @@ export function TenantPlaceholder() {
               Existing owner? Sign in →
             </Link>
           </div>
+
         </section>
 
         <footer className="mt-24 text-[10px] uppercase tracking-widest text-zinc-600">
