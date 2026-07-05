@@ -1,7 +1,13 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import {
+  DEFAULT_PLATFORM_SETTINGS,
+  fetchPlatformSettings,
+  platformSettingsKey,
+  waHref,
+} from "@/lib/platform-settings";
 
-/** Founder contact — used for the "Chat on WhatsApp" CTA. */
-const FOUNDER_WHATSAPP = "https://wa.me/919999999999?text=Hi%2C%20I%27d%20like%20a%20demo%20of%20Academy%20OS";
+const DEMO_MSG = "Hi, I'd like a demo of Academy OS";
 
 /** Landing shown at the root domain when no tenant matches the URL.
  *  Acts as the platform's own marketing + login entry point. */
