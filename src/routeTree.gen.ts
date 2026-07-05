@@ -20,7 +20,6 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
-import { Route as PlatformAdminTenantsRouteImport } from './routes/platform-admin.tenants'
 import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
@@ -30,6 +29,7 @@ import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.r
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
 import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
+import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
 import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-admin.tenants.$id'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
 
@@ -88,11 +88,6 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
-const PlatformAdminTenantsRoute = PlatformAdminTenantsRouteImport.update({
-  id: '/tenants',
-  path: '/tenants',
-  getParentRoute: () => PlatformAdminRoute,
-} as any)
 const PlatformAdminSubscriptionsRoute =
   PlatformAdminSubscriptionsRouteImport.update({
     id: '/subscriptions',
@@ -139,10 +134,16 @@ const DashboardBatchesRoute = DashboardBatchesRouteImport.update({
   path: '/batches',
   getParentRoute: () => DashboardRoute,
 } as any)
+const PlatformAdminTenantsIndexRoute =
+  PlatformAdminTenantsIndexRouteImport.update({
+    id: '/tenants/',
+    path: '/tenants/',
+    getParentRoute: () => PlatformAdminRoute,
+  } as any)
 const PlatformAdminTenantsIdRoute = PlatformAdminTenantsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => PlatformAdminTenantsRoute,
+  id: '/tenants/$id',
+  path: '/tenants/$id',
+  getParentRoute: () => PlatformAdminRoute,
 } as any)
 const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
   id: '/$id',
@@ -169,11 +170,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
-  '/platform-admin/tenants': typeof PlatformAdminTenantsRouteWithChildren
   '/dashboard/': typeof DashboardIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
+  '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -192,11 +193,11 @@ export interface FileRoutesByTo {
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
-  '/platform-admin/tenants': typeof PlatformAdminTenantsRouteWithChildren
   '/dashboard': typeof DashboardIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
+  '/platform-admin/tenants': typeof PlatformAdminTenantsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -218,11 +219,11 @@ export interface FileRoutesById {
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
-  '/platform-admin/tenants': typeof PlatformAdminTenantsRouteWithChildren
   '/dashboard/': typeof DashboardIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
+  '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -245,11 +246,11 @@ export interface FileRouteTypes {
     | '/dashboard/students'
     | '/platform-admin/new'
     | '/platform-admin/subscriptions'
-    | '/platform-admin/tenants'
     | '/dashboard/'
     | '/platform-admin/'
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
+    | '/platform-admin/tenants/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -268,11 +269,11 @@ export interface FileRouteTypes {
     | '/dashboard/students'
     | '/platform-admin/new'
     | '/platform-admin/subscriptions'
-    | '/platform-admin/tenants'
     | '/dashboard'
     | '/platform-admin'
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
+    | '/platform-admin/tenants'
   id:
     | '__root__'
     | '/'
@@ -293,11 +294,11 @@ export interface FileRouteTypes {
     | '/dashboard/students'
     | '/platform-admin/new'
     | '/platform-admin/subscriptions'
-    | '/platform-admin/tenants'
     | '/dashboard/'
     | '/platform-admin/'
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
+    | '/platform-admin/tenants/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -391,13 +392,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/platform-admin/tenants': {
-      id: '/platform-admin/tenants'
-      path: '/tenants'
-      fullPath: '/platform-admin/tenants'
-      preLoaderRoute: typeof PlatformAdminTenantsRouteImport
-      parentRoute: typeof PlatformAdminRoute
-    }
     '/platform-admin/subscriptions': {
       id: '/platform-admin/subscriptions'
       path: '/subscriptions'
@@ -461,12 +455,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBatchesRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/platform-admin/tenants/': {
+      id: '/platform-admin/tenants/'
+      path: '/tenants'
+      fullPath: '/platform-admin/tenants/'
+      preLoaderRoute: typeof PlatformAdminTenantsIndexRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
     '/platform-admin/tenants/$id': {
       id: '/platform-admin/tenants/$id'
-      path: '/$id'
+      path: '/tenants/$id'
       fullPath: '/platform-admin/tenants/$id'
       preLoaderRoute: typeof PlatformAdminTenantsIdRouteImport
-      parentRoute: typeof PlatformAdminTenantsRoute
+      parentRoute: typeof PlatformAdminRoute
     }
     '/dashboard/students/$id': {
       id: '/dashboard/students/$id'
@@ -515,29 +516,20 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
-interface PlatformAdminTenantsRouteChildren {
-  PlatformAdminTenantsIdRoute: typeof PlatformAdminTenantsIdRoute
-}
-
-const PlatformAdminTenantsRouteChildren: PlatformAdminTenantsRouteChildren = {
-  PlatformAdminTenantsIdRoute: PlatformAdminTenantsIdRoute,
-}
-
-const PlatformAdminTenantsRouteWithChildren =
-  PlatformAdminTenantsRoute._addFileChildren(PlatformAdminTenantsRouteChildren)
-
 interface PlatformAdminRouteChildren {
   PlatformAdminNewRoute: typeof PlatformAdminNewRoute
   PlatformAdminSubscriptionsRoute: typeof PlatformAdminSubscriptionsRoute
-  PlatformAdminTenantsRoute: typeof PlatformAdminTenantsRouteWithChildren
   PlatformAdminIndexRoute: typeof PlatformAdminIndexRoute
+  PlatformAdminTenantsIdRoute: typeof PlatformAdminTenantsIdRoute
+  PlatformAdminTenantsIndexRoute: typeof PlatformAdminTenantsIndexRoute
 }
 
 const PlatformAdminRouteChildren: PlatformAdminRouteChildren = {
   PlatformAdminNewRoute: PlatformAdminNewRoute,
   PlatformAdminSubscriptionsRoute: PlatformAdminSubscriptionsRoute,
-  PlatformAdminTenantsRoute: PlatformAdminTenantsRouteWithChildren,
   PlatformAdminIndexRoute: PlatformAdminIndexRoute,
+  PlatformAdminTenantsIdRoute: PlatformAdminTenantsIdRoute,
+  PlatformAdminTenantsIndexRoute: PlatformAdminTenantsIndexRoute,
 }
 
 const PlatformAdminRouteWithChildren = PlatformAdminRoute._addFileChildren(
