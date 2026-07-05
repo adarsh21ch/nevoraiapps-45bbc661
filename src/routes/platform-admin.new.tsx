@@ -85,9 +85,6 @@ function Wizard() {
       const { data: dupe } = await supabase.from("tenants").select("id").eq("slug", slugTrimmed).maybeSingle();
       if (dupe) return toast.error("Slug already in use");
     }
-      const { data: dupe } = await supabase.from("tenants").select("id").eq("slug", biz.slug).maybeSingle();
-      if (dupe) return toast.error("Slug already in use");
-    }
     if (step === 2) fillNicheDefaults();
     if (step === 4) {
       if (!owner.email || owner.password.length < 8) return toast.error("Owner email and 8+ char password required");
