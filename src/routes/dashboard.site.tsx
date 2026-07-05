@@ -66,7 +66,7 @@ function SiteEditor() {
               { key: "name", label: "Name" },
               { key: "achievement", label: "Achievement" },
             ]}
-            imageField="photo" />
+            imageField="photo_url" />
         </TabsContent>
         <TabsContent value="gallery" className="pt-4">
           <MultiSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="gallery"
