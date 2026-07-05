@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Trophy } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
+import { StoragedImage } from "@/components/site/StoragedImage";
 import { useTenant } from "@/lib/tenant-context";
 import { sectionsBy, siteContentQuery } from "@/lib/site-queries";
 
@@ -43,13 +44,16 @@ function StarPlayersContent() {
                 className="flex h-56 items-center justify-center"
                 style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
               >
-                {p.photo_url ? (
-                  <img src={p.photo_url} alt={p.name} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/15 text-4xl font-bold text-white backdrop-blur">
-                    {p.name.charAt(0)}
-                  </div>
-                )}
+                <StoragedImage
+                  path={p.photo_url}
+                  alt={p.name}
+                  className="h-full w-full object-cover"
+                  fallback={
+                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/15 text-4xl font-bold text-white backdrop-blur">
+                      {p.name.charAt(0)}
+                    </div>
+                  }
+                />
               </div>
               <div className="p-6">
                 <div className="text-lg font-semibold text-foreground">{p.name}</div>
