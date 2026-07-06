@@ -67,30 +67,24 @@ function RegisterContent() {
       return;
     }
     setSaving(true);
-    const { data, error } = await supabase
-      .from("registrations")
-      .insert({
-        tenant_id: tenant.id,
-        name: form.name.trim(),
-        dob: form.dob || null,
-        guardian_name: form.guardian_name.trim() || null,
-        guardian_phone: form.guardian_phone.trim() || null,
-        phone: form.phone.trim(),
-        whatsapp: form.whatsapp.trim() || null,
-        batch_id: form.batch_id || null,
-        fee_plan_id: form.fee_plan_id,
-        status: "new",
-        payment_status: "pending",
-      })
-      .select("id")
-      .maybeSingle();
+    const { data, error } = await supabase.rpc("submit_registration" as never, {
+      _tenant_id: tenant.id,
+      _name: form.name.trim(),
+      _phone: form.phone.trim(),
+      _fee_plan_id: form.fee_plan_id,
+      _batch_id: form.batch_id || null,
+      _dob: form.dob || null,
+      _guardian_name: form.guardian_name.trim() || null,
+      _guardian_phone: form.guardian_phone.trim() || null,
+      _whatsapp: form.whatsapp.trim() || null,
+    } as never);
     setSaving(false);
     if (error || !data) {
-      toast.error("Could not submit. Please try again.");
+      toast.error(error?.message ?? "Could not submit. Please try again.");
       console.error(error);
       return;
     }
-    setRegId(data.id);
+    setRegId(data as unknown as string);
     setStep("payment");
   }
 
@@ -102,28 +96,19 @@ function RegisterContent() {
     }
     if (!regId) return;
     setSaving(true);
-    const { error } = await supabase.from("registrations").insert({
-      tenant_id: tenant.id,
-      name: form.name.trim(),
-      phone: form.phone.trim(),
-      whatsapp: form.whatsapp.trim() || null,
-      guardian_name: form.guardian_name.trim() || null,
-      guardian_phone: form.guardian_phone.trim() || null,
-      dob: form.dob || null,
-      batch_id: form.batch_id || null,
-      fee_plan_id: form.fee_plan_id,
-      status: "new",
-      payment_status: "claimed_paid",
-      payment_ref: paymentRef.trim(),
-    });
+    const { error } = await supabase.rpc("attach_payment_ref" as never, {
+      _registration_id: regId,
+      _payment_ref: paymentRef.trim(),
+    } as never);
     setSaving(false);
     if (error) {
-      toast.error("Could not save payment reference.");
+      toast.error(error.message ?? "Could not save payment reference.");
       console.error(error);
       return;
     }
     setStep("done");
   }
+
 
   function downloadPdf() {
     generateBlankRegistrationPdf(tenant, fees, batches);
