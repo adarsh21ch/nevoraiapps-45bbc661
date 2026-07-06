@@ -527,10 +527,28 @@ export type Database = {
         Args: { _registration_id: string }
         Returns: string
       }
+      attach_payment_ref: {
+        Args: { _payment_ref: string; _registration_id: string }
+        Returns: undefined
+      }
       is_platform_admin: { Args: { _uid: string }; Returns: boolean }
       is_tenant_member: {
         Args: { _tenant: string; _uid: string }
         Returns: boolean
+      }
+      submit_registration: {
+        Args: {
+          _batch_id?: string
+          _dob?: string
+          _fee_plan_id: string
+          _guardian_name?: string
+          _guardian_phone?: string
+          _name: string
+          _phone: string
+          _tenant_id: string
+          _whatsapp?: string
+        }
+        Returns: string
       }
     }
     Enums: {
