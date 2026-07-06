@@ -17,6 +17,7 @@ import {
   ExternalLink,
   IndianRupee,
   BarChart3,
+  MessageSquareText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
@@ -29,6 +30,7 @@ type NavItem = {
 
 const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
   { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
@@ -37,6 +39,7 @@ const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
   { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet },
   { to: "/dashboard/site", label: "Site editor", icon: Globe },
 ];
+
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
