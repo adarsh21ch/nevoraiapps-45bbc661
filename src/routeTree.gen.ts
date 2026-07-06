@@ -31,6 +31,7 @@ import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
 import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
+import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
 import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-admin.tenants.$id'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
@@ -146,6 +147,11 @@ const DashboardBatchesRoute = DashboardBatchesRouteImport.update({
   path: '/batches',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAttendanceRoute = DashboardAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const PlatformAdminTenantsIndexRoute =
   PlatformAdminTenantsIndexRouteImport.update({
     id: '/tenants/',
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByTo {
   '/fees': typeof FeesRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/register'
     | '/star-players'
+    | '/dashboard/attendance'
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
     | '/fees'
     | '/register'
     | '/star-players'
+    | '/dashboard/attendance'
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/register'
     | '/star-players'
+    | '/dashboard/attendance'
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
@@ -493,6 +505,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBatchesRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/attendance': {
+      id: '/dashboard/attendance'
+      path: '/attendance'
+      fullPath: '/dashboard/attendance'
+      preLoaderRoute: typeof DashboardAttendanceRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/platform-admin/tenants/': {
       id: '/platform-admin/tenants/'
       path: '/tenants'
@@ -529,6 +548,7 @@ const DashboardStudentsRouteWithChildren =
   DashboardStudentsRoute._addFileChildren(DashboardStudentsRouteChildren)
 
 interface DashboardRouteChildren {
+  DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardBatchesRoute: typeof DashboardBatchesRoute
   DashboardFeePlansRoute: typeof DashboardFeePlansRoute
   DashboardFeesRoute: typeof DashboardFeesRoute
@@ -541,6 +561,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardBatchesRoute: DashboardBatchesRoute,
   DashboardFeePlansRoute: DashboardFeePlansRoute,
   DashboardFeesRoute: DashboardFeesRoute,
