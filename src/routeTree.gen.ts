@@ -35,6 +35,7 @@ import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.atte
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
 import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-admin.tenants.$id'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
+import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 
 const StarPlayersRoute = StarPlayersRouteImport.update({
   id: '/star-players',
@@ -168,6 +169,12 @@ const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => DashboardStudentsRoute,
 } as any)
+const ApiPublicHooksFeeRemindersRoute =
+  ApiPublicHooksFeeRemindersRouteImport.update({
+    id: '/api/public/hooks/fee-reminders',
+    path: '/api/public/hooks/fee-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
+  '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -222,6 +230,7 @@ export interface FileRoutesByTo {
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/platform-admin/tenants': typeof PlatformAdminTenantsIndexRoute
+  '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -251,6 +260,7 @@ export interface FileRoutesById {
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
+  '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
     | '/platform-admin/tenants/'
+    | '/api/public/hooks/fee-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
     | '/platform-admin/tenants'
+    | '/api/public/hooks/fee-reminders'
   id:
     | '__root__'
     | '/'
@@ -335,6 +347,7 @@ export interface FileRouteTypes {
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
     | '/platform-admin/tenants/'
+    | '/api/public/hooks/fee-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -347,6 +360,7 @@ export interface RootRouteChildren {
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
+  ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -533,6 +547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentsIdRouteImport
       parentRoute: typeof DashboardStudentsRoute
     }
+    '/api/public/hooks/fee-reminders': {
+      id: '/api/public/hooks/fee-reminders'
+      path: '/api/public/hooks/fee-reminders'
+      fullPath: '/api/public/hooks/fee-reminders'
+      preLoaderRoute: typeof ApiPublicHooksFeeRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -609,6 +630,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
+  ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
