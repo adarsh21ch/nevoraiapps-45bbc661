@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Phone, MessageCircle, Mail, MapPin, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { Phone, MessageCircle, Mail, MapPin, ExternalLink, CheckCircle2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({ meta: [{ title: "Contact" }, { name: "description", content: "Get in touch" }] }),
@@ -64,6 +67,110 @@ function ContactContent() {
           </a>
         ) : null}
       </div>
+
+      <EnquiryForm tenantId={tenant.id} tenantName={tenant.name} />
     </div>
+  );
+}
+
+function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: string }) {
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || !phone.trim()) {
+      toast.error("Name and phone are required.");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.rpc("submit_lead" as never, {
+      _tenant_id: tenantId,
+      _name: name.trim(),
+      _phone: phone.trim(),
+      _message: message.trim() || null,
+      _source: "site-contact",
+    } as never);
+    setSaving(false);
+    if (error) {
+      toast.error(error.message ?? "Could not send. Please try again.");
+      return;
+    }
+    setDone(true);
+  }
+
+  if (done) {
+    return (
+      <div className="mt-12 rounded-2xl border border-border/60 bg-card p-8 text-center">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full" style={{ backgroundColor: "var(--brand)" }}>
+          <CheckCircle2 className="h-7 w-7 text-white" />
+        </div>
+        <h2 className="mt-5 text-xl font-bold text-foreground">Thanks — message received</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {tenantName} will get back to you shortly, usually on WhatsApp.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="mt-12 space-y-4 rounded-2xl border border-border/60 bg-card p-6 sm:p-8">
+      <div>
+        <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
+          Send a message
+        </div>
+        <h2 className="mt-1 text-2xl font-bold text-foreground">Or leave your number — we'll reach out</h2>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Your name *</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2"
+            style={{ boxShadow: "none" }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--brand)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "")}
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Phone *</span>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            inputMode="tel"
+            className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2"
+            style={{ boxShadow: "none" }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "var(--brand)")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = "")}
+          />
+        </label>
+      </div>
+      <label className="block">
+        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">What can we help with?</span>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={3}
+          placeholder="e.g. Looking for morning batches for my 12-year-old."
+          className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2"
+          style={{ boxShadow: "none" }}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "var(--brand)")}
+          onBlur={(e) => (e.currentTarget.style.borderColor = "")}
+        />
+      </label>
+      <button
+        type="submit"
+        disabled={saving}
+        className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white disabled:opacity-60"
+        style={{ backgroundColor: "var(--brand)" }}
+      >
+        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+        Send message
+      </button>
+    </form>
   );
 }

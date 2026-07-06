@@ -17,6 +17,7 @@ import {
   ExternalLink,
   IndianRupee,
   BarChart3,
+  MessageSquareText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
@@ -29,6 +30,7 @@ type NavItem = {
 
 const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
   { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
@@ -37,6 +39,7 @@ const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
   { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet },
   { to: "/dashboard/site", label: "Site editor", icon: Globe },
 ];
+
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
@@ -55,14 +58,32 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     refetchInterval: 30_000,
   });
 
+  const newLeadCount = useQuery({
+    queryKey: ["d", "leads-new-count", tenant.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("leads" as never)
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", tenant.id)
+        .eq("status", "new");
+      return count ?? 0;
+    },
+    refetchInterval: 30_000,
+  });
+
   const features = getFeatures(tenant);
   const navWithBadges = nav
     .filter((n) => !n.requiresFeature || features[n.requiresFeature] !== false)
-    .map((n) =>
-      n.to === "/dashboard/registrations"
-        ? { ...n, badge: newRegCount.data && newRegCount.data > 0 ? newRegCount.data : undefined }
-        : n,
-    );
+    .map((n) => {
+      if (n.to === "/dashboard/registrations" && newRegCount.data && newRegCount.data > 0) {
+        return { ...n, badge: newRegCount.data };
+      }
+      if (n.to === "/dashboard/leads" && newLeadCount.data && newLeadCount.data > 0) {
+        return { ...n, badge: newLeadCount.data };
+      }
+      return n;
+    });
+
 
   return (
     <div className="min-h-screen bg-muted/30 text-foreground">

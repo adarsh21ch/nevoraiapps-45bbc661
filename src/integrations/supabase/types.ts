@@ -90,6 +90,53 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          name: string
+          notes: string | null
+          phone: string
+          source: string
+          status: Database["public"]["Enums"]["lead_status"]
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          name: string
+          notes?: string | null
+          phone: string
+          source?: string
+          status?: Database["public"]["Enums"]["lead_status"]
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string
+          source?: string
+          status?: Database["public"]["Enums"]["lead_status"]
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -540,6 +587,16 @@ export type Database = {
         Args: { _tenant: string; _uid: string }
         Returns: boolean
       }
+      submit_lead: {
+        Args: {
+          _message?: string
+          _name: string
+          _phone: string
+          _source?: string
+          _tenant_id: string
+        }
+        Returns: string
+      }
       submit_registration: {
         Args: {
           _batch_id?: string
@@ -556,7 +613,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      lead_status: "new" | "contacted" | "won" | "lost"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -683,6 +740,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      lead_status: ["new", "contacted", "won", "lost"],
+    },
   },
 } as const
