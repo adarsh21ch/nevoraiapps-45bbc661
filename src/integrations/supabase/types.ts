@@ -14,6 +14,109 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance_marks: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          session_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          session_id: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          session_id?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_marks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_sessions: {
+        Row: {
+          batch_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          session_date: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          session_date?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          session_date?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_sessions_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       batches: {
         Row: {
           active: boolean
@@ -335,6 +438,72 @@ export type Database = {
           },
         ]
       }
+      reminder_logs: {
+        Row: {
+          amount: number | null
+          channel: string
+          created_at: string
+          id: string
+          message: string | null
+          period: string
+          phone: string | null
+          sent_at: string | null
+          sent_on: string
+          status: string
+          student_id: string
+          tenant_id: string
+          updated_at: string
+          whatsapp_url: string | null
+        }
+        Insert: {
+          amount?: number | null
+          channel?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          period: string
+          phone?: string | null
+          sent_at?: string | null
+          sent_on?: string
+          status?: string
+          student_id: string
+          tenant_id: string
+          updated_at?: string
+          whatsapp_url?: string | null
+        }
+        Update: {
+          amount?: number | null
+          channel?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          period?: string
+          phone?: string | null
+          sent_at?: string | null
+          sent_on?: string
+          status?: string
+          student_id?: string
+          tenant_id?: string
+          updated_at?: string
+          whatsapp_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminder_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_content: {
         Row: {
           content: Json
@@ -613,6 +782,7 @@ export type Database = {
       }
     }
     Enums: {
+      attendance_status: "present" | "absent" | "late"
       lead_status: "new" | "contacted" | "won" | "lost"
     }
     CompositeTypes: {
@@ -741,6 +911,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      attendance_status: ["present", "absent", "late"],
       lead_status: ["new", "contacted", "won", "lost"],
     },
   },

@@ -26,14 +26,17 @@ import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.ne
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
 import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
+import { Route as DashboardRemindersRouteImport } from './routes/dashboard.reminders'
 import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
 import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
+import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
 import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-admin.tenants.$id'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
+import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 
 const StarPlayersRoute = StarPlayersRouteImport.update({
   id: '/star-players',
@@ -121,6 +124,11 @@ const DashboardReportsRoute = DashboardReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardRemindersRoute = DashboardRemindersRouteImport.update({
+  id: '/reminders',
+  path: '/reminders',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardRegistrationsRoute = DashboardRegistrationsRouteImport.update({
   id: '/registrations',
   path: '/registrations',
@@ -146,6 +154,11 @@ const DashboardBatchesRoute = DashboardBatchesRouteImport.update({
   path: '/batches',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAttendanceRoute = DashboardAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const PlatformAdminTenantsIndexRoute =
   PlatformAdminTenantsIndexRouteImport.update({
     id: '/tenants/',
@@ -162,6 +175,12 @@ const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => DashboardStudentsRoute,
 } as any)
+const ApiPublicHooksFeeRemindersRoute =
+  ApiPublicHooksFeeRemindersRouteImport.update({
+    id: '/api/public/hooks/fee-reminders',
+    path: '/api/public/hooks/fee-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -173,11 +192,13 @@ export interface FileRoutesByFullPath {
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
+  '/dashboard/reminders': typeof DashboardRemindersRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
@@ -189,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
+  '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -198,11 +220,13 @@ export interface FileRoutesByTo {
   '/fees': typeof FeesRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
+  '/dashboard/reminders': typeof DashboardRemindersRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
@@ -214,6 +238,7 @@ export interface FileRoutesByTo {
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/platform-admin/tenants': typeof PlatformAdminTenantsIndexRoute
+  '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -226,11 +251,13 @@ export interface FileRoutesById {
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
+  '/dashboard/reminders': typeof DashboardRemindersRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
@@ -242,6 +269,7 @@ export interface FileRoutesById {
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
+  '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -255,11 +283,13 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/register'
     | '/star-players'
+    | '/dashboard/attendance'
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/leads'
     | '/dashboard/registrations'
+    | '/dashboard/reminders'
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
@@ -271,6 +301,7 @@ export interface FileRouteTypes {
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
     | '/platform-admin/tenants/'
+    | '/api/public/hooks/fee-reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -280,11 +311,13 @@ export interface FileRouteTypes {
     | '/fees'
     | '/register'
     | '/star-players'
+    | '/dashboard/attendance'
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/leads'
     | '/dashboard/registrations'
+    | '/dashboard/reminders'
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
@@ -296,6 +329,7 @@ export interface FileRouteTypes {
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
     | '/platform-admin/tenants'
+    | '/api/public/hooks/fee-reminders'
   id:
     | '__root__'
     | '/'
@@ -307,11 +341,13 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/register'
     | '/star-players'
+    | '/dashboard/attendance'
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/leads'
     | '/dashboard/registrations'
+    | '/dashboard/reminders'
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
@@ -323,6 +359,7 @@ export interface FileRouteTypes {
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
     | '/platform-admin/tenants/'
+    | '/api/public/hooks/fee-reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -335,6 +372,7 @@ export interface RootRouteChildren {
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
+  ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -458,6 +496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardReportsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/reminders': {
+      id: '/dashboard/reminders'
+      path: '/reminders'
+      fullPath: '/dashboard/reminders'
+      preLoaderRoute: typeof DashboardRemindersRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/registrations': {
       id: '/dashboard/registrations'
       path: '/registrations'
@@ -493,6 +538,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBatchesRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/attendance': {
+      id: '/dashboard/attendance'
+      path: '/attendance'
+      fullPath: '/dashboard/attendance'
+      preLoaderRoute: typeof DashboardAttendanceRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/platform-admin/tenants/': {
       id: '/platform-admin/tenants/'
       path: '/tenants'
@@ -514,6 +566,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentsIdRouteImport
       parentRoute: typeof DashboardStudentsRoute
     }
+    '/api/public/hooks/fee-reminders': {
+      id: '/api/public/hooks/fee-reminders'
+      path: '/api/public/hooks/fee-reminders'
+      fullPath: '/api/public/hooks/fee-reminders'
+      preLoaderRoute: typeof ApiPublicHooksFeeRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -529,11 +588,13 @@ const DashboardStudentsRouteWithChildren =
   DashboardStudentsRoute._addFileChildren(DashboardStudentsRouteChildren)
 
 interface DashboardRouteChildren {
+  DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardBatchesRoute: typeof DashboardBatchesRoute
   DashboardFeePlansRoute: typeof DashboardFeePlansRoute
   DashboardFeesRoute: typeof DashboardFeesRoute
   DashboardLeadsRoute: typeof DashboardLeadsRoute
   DashboardRegistrationsRoute: typeof DashboardRegistrationsRoute
+  DashboardRemindersRoute: typeof DashboardRemindersRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardSiteRoute: typeof DashboardSiteRoute
   DashboardStudentsRoute: typeof DashboardStudentsRouteWithChildren
@@ -541,11 +602,13 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardBatchesRoute: DashboardBatchesRoute,
   DashboardFeePlansRoute: DashboardFeePlansRoute,
   DashboardFeesRoute: DashboardFeesRoute,
   DashboardLeadsRoute: DashboardLeadsRoute,
   DashboardRegistrationsRoute: DashboardRegistrationsRoute,
+  DashboardRemindersRoute: DashboardRemindersRoute,
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardSiteRoute: DashboardSiteRoute,
   DashboardStudentsRoute: DashboardStudentsRouteWithChildren,
@@ -588,6 +651,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
+  ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
