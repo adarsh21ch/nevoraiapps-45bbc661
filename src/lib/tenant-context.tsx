@@ -60,8 +60,13 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     if (state.tenant) {
       const t = state.tenant;
-      root.style.setProperty("--brand", t.primary_color);
-      root.style.setProperty("--brand-ink", t.secondary_color);
+      // Auto-pick a sport-appropriate palette from niche + slug.
+      // Existing per-tenant primary_color still wins so owners keep control.
+      const preset = pickPreset(t.niche, t.slug);
+      root.style.setProperty("--brand", t.primary_color || preset.primary);
+      root.style.setProperty("--brand-ink", t.secondary_color || preset.ink);
+      root.style.setProperty("--brand-accent", preset.accent);
+      root.style.setProperty("--brand-surface", preset.surface);
       document.title = t.tagline ? `${t.name} — ${t.tagline}` : t.name;
 
       // Favicon
