@@ -162,14 +162,15 @@ export function TenantPlaceholder() {
                   style={{ background: LIME }}
                 />
                 <div
-                  className="mb-4 grid h-10 w-10 place-items-center rounded-lg text-black"
+                  className="mb-4 grid h-10 w-10 place-items-center rounded-lg font-[Bricolage_Grotesque,serif] text-lg font-bold text-black"
                   style={{ background: LIME }}
                 >
-                  {f.icon}
+                  {String(i + 1).padStart(2, "0")}
                 </div>
                 <h3 className="font-[Bricolage_Grotesque,serif] text-lg font-semibold text-white">{f.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-white/60">{f.body}</p>
               </div>
+
             ))}
           </div>
         </section>
