@@ -531,6 +531,10 @@ export type Database = {
         Args: { _payment_ref: string; _registration_id: string }
         Returns: undefined
       }
+      claim_registration_payment: {
+        Args: { p_payment_ref: string; p_registration_id: string }
+        Returns: boolean
+      }
       is_platform_admin: { Args: { _uid: string }; Returns: boolean }
       is_tenant_member: {
         Args: { _tenant: string; _uid: string }
