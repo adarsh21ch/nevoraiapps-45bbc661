@@ -153,15 +153,23 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
   const location = useLocation();
-  // Prioritise: Home, Registrations, Students, Fees (if available), then a "More" toggle.
-  const priority = ["/dashboard", "/dashboard/registrations", "/dashboard/students", "/dashboard/fees"];
+  // Fixed 5-slot bottom bar: Home · Fees · Students · Registrations · Profile
+  const priority = [
+    "/dashboard",
+    "/dashboard/fees",
+    "/dashboard/students",
+    "/dashboard/registrations",
+    "/dashboard/profile",
+  ];
   const primary = priority
     .map((p) => items.find((i) => i.to === p))
-    .filter((x): x is NavItem & { badge?: number } => !!x)
-    .slice(0, 4);
+    .filter((x): x is NavItem & { badge?: number } => !!x);
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur-lg md:hidden">
-      <div className="grid grid-cols-5 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
+      <div
+        className="grid pb-[max(0.25rem,env(safe-area-inset-bottom))]"
+        style={{ gridTemplateColumns: `repeat(${primary.length}, minmax(0, 1fr))` }}
+      >
         {primary.map((n) => {
           const active =
             n.to === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(n.to);
@@ -189,29 +197,12 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
             </Link>
           );
         })}
-        <MoreTrigger />
       </div>
     </nav>
   );
 }
 
-function MoreTrigger() {
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <button className="flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium text-muted-foreground">
-          <Menu className="size-5" />
-          <span>More</span>
-        </button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="rounded-t-2xl">
-        <div className="mx-auto max-w-md py-2">
-          <MoreLinks />
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
+
 
 function MoreLinks() {
   return (
