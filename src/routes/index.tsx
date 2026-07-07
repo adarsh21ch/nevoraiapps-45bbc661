@@ -5,6 +5,7 @@ import { ArrowRight, Phone, MessageCircle, Sparkles, Trophy, Users, ShieldCheck 
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
 import { feePlansQuery, sectionsBy, sectionOne, siteContentQuery } from "@/lib/site-queries";
+import cricketHeroAsset from "@/assets/cricket-stadium-hero.png.asset.json";
 
 export const Route = createFileRoute("/")({
   component: HomeRoute,
@@ -34,26 +35,31 @@ function HomeContent() {
   return (
     <>
       {/* Hero */}
-      <section
-        className="relative overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
-        }}
-      >
-        {/* Grid mask */}
+      <section className="relative overflow-hidden bg-neutral-950">
+        {/* 4K stadium background */}
+        <img
+          src={cricketHeroAsset.url}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          loading="eager"
+          decoding="async"
+        />
+        {/* Cinematic gradient overlays for legibility */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.14]"
+          className="pointer-events-none absolute inset-0"
           style={{
-            backgroundImage:
-              "linear-gradient(to right,#fff 1px,transparent 1px),linear-gradient(to bottom,#fff 1px,transparent 1px)",
-            backgroundSize: "56px 56px",
-            maskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+            background:
+              "linear-gradient(90deg, rgba(3,7,18,0.92) 0%, rgba(3,7,18,0.72) 38%, rgba(3,7,18,0.25) 65%, rgba(3,7,18,0) 100%)",
           }}
         />
-        {/* Ambient glow blobs */}
-        <div className="pointer-events-none absolute -top-40 -left-20 h-[520px] w-[520px] rounded-full bg-white/20 blur-[140px]" />
-        <div className="pointer-events-none absolute -bottom-32 -right-24 h-[460px] w-[460px] rounded-full bg-black/25 blur-[130px]" />
-        <div className="pointer-events-none absolute inset-0 opacity-10 [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:24px_24px]" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70" />
+        {/* Brand tint glow */}
+        <div
+          className="pointer-events-none absolute -top-40 -left-20 h-[520px] w-[520px] rounded-full opacity-40 blur-[140px]"
+          style={{ backgroundColor: tenant.primary_color }}
+        />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:24px_24px]" />
 
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 md:py-28 lg:py-32">
           <div className="max-w-3xl">
