@@ -62,13 +62,19 @@ export function SiteHeader() {
             );
           })}
           <Link
+            to="/auth"
+            className="ml-1 rounded-full border border-border/60 px-3.5 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+          >
+            Owner login
+          </Link>
+          <Link
             to="/register"
-            className="ml-2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            className="ml-1 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             style={{ backgroundColor: "var(--brand)" }}
           >
             Register
           </Link>
-        </nav>
+
 
         <button
           type="button"
