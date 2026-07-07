@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
+import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 
 type NavItem = {
   to: string;
@@ -93,15 +94,16 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
           <TenantMark tenant={tenant} />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-1">
             <a
               href={`/?tenant=${tenant.slug}`}
               target="_blank"
               rel="noreferrer"
-              className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mr-1"
             >
               View site <ExternalLink className="size-3" />
             </a>
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> Sign out
             </Button>
