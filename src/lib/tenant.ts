@@ -19,9 +19,66 @@ export function getFeatures(t: Tenant | null | undefined): TenantFeatures {
 }
 
 /**
+ * Hostnames whose first label must NEVER be treated as a tenant slug,
+ * and which — when hit as a bare subdomain of a platform base domain —
+ * should render the platform marketing site instead of a tenant.
+ */
+export const RESERVED_HOSTS = new Set([
+  "academy",
+  "www",
+  "app",
+  "api",
+  "admin",
+  "flow",
+]);
+
+/** Base domains we own. Anything ending in one of these is "our" host. */
+const DEFAULT_PLATFORM_HOSTS = [
+  "nevorai.com",
+  "localhost",
+  "127.0.0.1",
+  "lovable.app",
+  "lovable.dev",
+  "lovableproject.com",
+];
+
+function getPlatformHosts(extra?: string[]): string[] {
+  const envBase =
+    typeof import.meta !== "undefined"
+      ? (import.meta.env?.VITE_PLATFORM_BASE_DOMAIN as string | undefined)
+      : undefined;
+  return [
+    ...(envBase ? [envBase] : []),
+    ...DEFAULT_PLATFORM_HOSTS,
+    ...(extra ?? []),
+  ];
+}
+
+/**
+ * True when the hostname is one of our own platform hosts — either the bare
+ * base domain (nevorai.com), a reserved subdomain of it (academy.nevorai.com,
+ * www.nevorai.com…), or a lovable preview host. These must never resolve to
+ * a tenant and should render the platform marketing site.
+ */
+export function isReservedPlatformHost(hostname: string, platformHosts?: string[]): boolean {
+  const hosts = getPlatformHosts(platformHosts);
+  // Bare platform base (e.g. nevorai.com, localhost).
+  if (hosts.some((h) => hostname === h)) return true;
+  // Lovable preview subdomains (id-preview--xxx.lovable.app, xxx--yyy.lovable.app).
+  const parts = hostname.split(".");
+  if (parts.length > 2 && hosts.some((h) => hostname.endsWith("." + h))) {
+    const first = parts[0];
+    if (first.includes("--") || first.startsWith("id-preview")) return true;
+    if (RESERVED_HOSTS.has(first)) return true;
+  }
+  return false;
+}
+
+/**
  * Resolve which tenant slug to load for the current request.
  * Priority: custom_domain match → {slug}.host → path /a/{slug} → ?tenant=slug.
- * Returns { mode: "domain"|"slug", value } or null if no hint found.
+ * Returns { mode: "domain"|"slug", value } or null if no hint found
+ * (or if the host is a reserved platform host).
  */
 export function resolveTenantHint(input: {
   hostname: string;
@@ -30,43 +87,37 @@ export function resolveTenantHint(input: {
   platformHosts?: string[];
 }): { mode: "domain" | "slug"; value: string } | null {
   const { hostname, pathname, search } = input;
-  // Wildcard-subdomain base domain (e.g. "nevorai.com" → sai-sports.nevorai.com resolves by slug).
-  // Set VITE_PLATFORM_BASE_DOMAIN when deploying behind a *.base-domain DNS record.
-  const envBase =
-    typeof import.meta !== "undefined"
-      ? (import.meta.env?.VITE_PLATFORM_BASE_DOMAIN as string | undefined)
-      : undefined;
-  const platformHosts = input.platformHosts ?? [
-    ...(envBase ? [envBase] : []),
-    "localhost",
-    "127.0.0.1",
-    "lovable.app",
-    "lovable.dev",
-    "lovableproject.com",
-  ];
+  const platformHosts = getPlatformHosts(input.platformHosts);
 
   // Query param wins for local testing
   const params = new URLSearchParams(search);
   const qTenant = params.get("tenant");
-  if (qTenant) return { mode: "slug", value: qTenant };
+  if (qTenant && !RESERVED_HOSTS.has(qTenant)) return { mode: "slug", value: qTenant };
 
   // Path-based /a/{slug}
   const pathMatch = pathname.match(/^\/a\/([^/]+)/);
-  if (pathMatch) return { mode: "slug", value: pathMatch[1] };
+  if (pathMatch && !RESERVED_HOSTS.has(pathMatch[1])) {
+    return { mode: "slug", value: pathMatch[1] };
+  }
+
+  // Reserved platform host (academy.nevorai.com, www.nevorai.com, lovable
+  // preview URLs, or the bare nevorai.com) → never a tenant.
+  if (isReservedPlatformHost(hostname, input.platformHosts)) return null;
 
   // Subdomain: {slug}.platform.tld (only when the base host is a known platform host)
   const isPlatformHost = platformHosts.some((h) => hostname === h || hostname.endsWith("." + h));
   if (isPlatformHost) {
-    // e.g. kirkland-cricket.something.lovable.app
     const parts = hostname.split(".");
-    // Ignore lovable preview subdomains like id-preview--xxx.lovable.app
     if (parts.length > 2 && !parts[0].includes("--") && !parts[0].startsWith("id-preview")) {
       const first = parts[0];
-      if (first && first !== "www") return { mode: "slug", value: first };
+      if (first && !RESERVED_HOSTS.has(first) && first !== "www") {
+        return { mode: "slug", value: first };
+      }
     }
     return null;
   }
 
-  // External hostname → treat as a possible custom domain
+  // External hostname → treat as a possible custom domain.
   return { mode: "domain", value: hostname };
 }
+

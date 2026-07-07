@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 import { useTenantState } from "@/lib/tenant-context";
 import { TenantPlaceholder } from "./TenantPlaceholder";
+import { DomainNotConfigured } from "./DomainNotConfigured";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
 import { FloatingWhatsApp } from "./FloatingWhatsApp";
 import { MobileCtaBar } from "./MobileCtaBar";
+import { isReservedPlatformHost } from "@/lib/tenant";
 
 /**
  * Wraps public site pages: shows a placeholder when no tenant is resolved,
@@ -22,8 +24,13 @@ export function TenantGate({ children }: { children: ReactNode }) {
   }
 
   if (state.status === "missing") {
-    return <TenantPlaceholder />;
+    const host = typeof window !== "undefined" ? window.location.hostname : "";
+    // Reserved platform host (academy.nevorai.com, nevorai.com, lovable
+    // preview URLs…) → platform marketing site. Any other unknown hostname
+    // is a misconfigured domain, not an ad for Academy OS.
+    return isReservedPlatformHost(host) ? <TenantPlaceholder /> : <DomainNotConfigured />;
   }
+
 
   if (state.status === "suspended") {
     return (
