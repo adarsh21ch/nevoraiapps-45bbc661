@@ -11,7 +11,6 @@ import {
   Users,
   CalendarDays,
   Wallet,
-  Globe,
   LogOut,
   Menu,
   ExternalLink,
@@ -20,6 +19,7 @@ import {
   MessageSquareText,
   ClipboardCheck,
   BellRing,
+  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
@@ -32,17 +32,18 @@ type NavItem = {
 
 const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
-  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
-  { to: "/dashboard/students", label: "Students", icon: Users },
-  { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/students", label: "Students", icon: Users },
+  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
+  { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
+  { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/dashboard/reminders", label: "Reminders", icon: BellRing, requiresFeature: "fee_tracking" },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3, requiresFeature: "fee_tracking" },
   { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
   { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet },
-  { to: "/dashboard/site", label: "Site editor", icon: Globe },
+  { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
+
 
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -152,15 +153,23 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
   const location = useLocation();
-  // Prioritise: Home, Registrations, Students, Fees (if available), then a "More" toggle.
-  const priority = ["/dashboard", "/dashboard/registrations", "/dashboard/students", "/dashboard/fees"];
+  // Fixed 5-slot bottom bar: Home · Fees · Students · Registrations · Profile
+  const priority = [
+    "/dashboard",
+    "/dashboard/fees",
+    "/dashboard/students",
+    "/dashboard/registrations",
+    "/dashboard/profile",
+  ];
   const primary = priority
     .map((p) => items.find((i) => i.to === p))
-    .filter((x): x is NavItem & { badge?: number } => !!x)
-    .slice(0, 4);
+    .filter((x): x is NavItem & { badge?: number } => !!x);
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur-lg md:hidden">
-      <div className="grid grid-cols-5 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
+      <div
+        className="grid pb-[max(0.25rem,env(safe-area-inset-bottom))]"
+        style={{ gridTemplateColumns: `repeat(${primary.length}, minmax(0, 1fr))` }}
+      >
         {primary.map((n) => {
           const active =
             n.to === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(n.to);
@@ -188,56 +197,12 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
             </Link>
           );
         })}
-        <MoreTrigger />
       </div>
     </nav>
   );
 }
 
-function MoreTrigger() {
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <button className="flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium text-muted-foreground">
-          <Menu className="size-5" />
-          <span>More</span>
-        </button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="rounded-t-2xl">
-        <div className="mx-auto max-w-md py-2">
-          <MoreLinks />
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
 
-function MoreLinks() {
-  return (
-    <div className="grid grid-cols-3 gap-2 p-2">
-      {[
-        { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-        { to: "/dashboard/reminders", label: "Reminders", icon: BellRing },
-        { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
-        { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet },
-        { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-        { to: "/dashboard/site", label: "Site editor", icon: Globe },
-      ].map((l) => {
-        const Icon = l.icon;
-        return (
-          <Link
-            key={l.to}
-            to={l.to}
-            className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 text-xs font-medium text-foreground hover:bg-muted"
-          >
-            <Icon className="size-5" style={{ color: "var(--brand)" }} />
-            {l.label}
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
 
 function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | null } }) {
   return (

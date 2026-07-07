@@ -62,13 +62,22 @@ export function SiteHeader() {
             );
           })}
           <Link
+            to="/auth"
+            className="ml-1 rounded-full border border-border/60 px-3.5 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+          >
+            Owner login
+          </Link>
+          <Link
             to="/register"
-            className="ml-2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            className="ml-1 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
             style={{ backgroundColor: "var(--brand)" }}
           >
             Register
           </Link>
         </nav>
+
+
+
 
         <button
           type="button"
@@ -101,6 +110,14 @@ export function SiteHeader() {
             >
               Register Now
             </Link>
+            <Link
+              to="/auth"
+              onClick={() => setOpen(false)}
+              className="mx-1 mb-2 rounded-full border border-border px-4 py-2 text-center text-xs font-semibold text-muted-foreground hover:text-foreground"
+            >
+              Owner login
+            </Link>
+
           </div>
         </div>
       ) : null}

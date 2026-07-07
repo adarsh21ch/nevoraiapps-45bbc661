@@ -28,6 +28,7 @@ import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
 import { Route as DashboardRemindersRouteImport } from './routes/dashboard.reminders'
 import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
+import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
 import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
@@ -135,6 +136,11 @@ const DashboardRegistrationsRoute = DashboardRegistrationsRouteImport.update({
   path: '/registrations',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardProfileRoute = DashboardProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardLeadsRoute = DashboardLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -204,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -233,6 +240,7 @@ export interface FileRoutesByTo {
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -265,6 +273,7 @@ export interface FileRoutesById {
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -298,6 +307,7 @@ export interface FileRouteTypes {
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/leads'
+    | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
     | '/dashboard/reports'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/leads'
+    | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
     | '/dashboard/reports'
@@ -358,6 +369,7 @@ export interface FileRouteTypes {
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/leads'
+    | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
     | '/dashboard/reports'
@@ -524,6 +536,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRegistrationsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/profile': {
+      id: '/dashboard/profile'
+      path: '/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/leads': {
       id: '/dashboard/leads'
       path: '/leads'
@@ -614,6 +633,7 @@ interface DashboardRouteChildren {
   DashboardFeePlansRoute: typeof DashboardFeePlansRoute
   DashboardFeesRoute: typeof DashboardFeesRoute
   DashboardLeadsRoute: typeof DashboardLeadsRoute
+  DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardRegistrationsRoute: typeof DashboardRegistrationsRoute
   DashboardRemindersRoute: typeof DashboardRemindersRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
@@ -628,6 +648,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardFeePlansRoute: DashboardFeePlansRoute,
   DashboardFeesRoute: DashboardFeesRoute,
   DashboardLeadsRoute: DashboardLeadsRoute,
+  DashboardProfileRoute: DashboardProfileRoute,
   DashboardRegistrationsRoute: DashboardRegistrationsRoute,
   DashboardRemindersRoute: DashboardRemindersRoute,
   DashboardReportsRoute: DashboardReportsRoute,
@@ -678,13 +699,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

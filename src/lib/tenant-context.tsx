@@ -113,7 +113,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         el.href = href;
         if (extra) for (const [k, v] of Object.entries(extra)) el.setAttribute(k, v);
       };
-      setLink("manifest", "/api/public/manifest.webmanifest");
+      setLink("manifest", "/api/public/manifest/webmanifest");
       if (t.logo_url) setLink("apple-touch-icon", t.logo_url);
       setMeta("name", "apple-mobile-web-app-capable", "yes");
       setMeta("name", "apple-mobile-web-app-title", t.name);

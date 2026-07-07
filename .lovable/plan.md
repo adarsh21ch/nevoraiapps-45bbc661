@@ -1,57 +1,87 @@
-## Just shipped (this turn)
 
-**Registration bug is fixed.** Root cause:
-1. Step 1 silently failed because `anon` had no SELECT policy on `registrations`, so the `.select("id")` after insert returned `null` and the code treated a successful insert as an error.
-2. Step 2 always failed because it did a second `INSERT` (should have been `UPDATE`) with `payment_status: "claimed_paid"` — a value the RLS `WITH CHECK` doesn't allow.
+# Plan — Academy site polish + owner dashboard simplification
 
-Fix: two `SECURITY DEFINER` RPCs — `submit_registration` (returns the new id) and `attach_payment_ref` (updates the existing row). Verified end-to-end via a headless browser run — form now advances to the UPI payment step with the correct amount, and the row lands in the owner's Registrations inbox.
+Big scope, so I'm grouping it into 5 focused work streams. I'll implement all of them in this turn once you approve. Nothing below changes business logic — it's UI/UX, navigation, session, and one storage fix.
 
-## Sequenced next turns
+---
 
-I'll ship each of these as its own turn so you can review and course-correct without waiting on a monolith.
+## 1. Apply the sports theme to every academy site (not just the landing)
 
-### Turn A — Stadium Night landing (drop the cricket-ball motif)
+Today only the home page uses the kinetic theme. I'll extend the same visual language (tokens, typography, glass cards, subtle motion) to:
+- Public pages: About, Contact, Register, Fees, Star Players
+- Auth pages: /auth (sign in / sign up / reset)
+- The tenant "not accepting online activity" and placeholder screens
 
-New landing built around your palette `#0a0f0a / #141d16 / #c6ff4a / #f5f5f0`:
+Each academy keeps its **own** brand color, logo, and niche vocabulary (already in `theme-presets.ts` + `niche.ts`). The theme just gets applied consistently everywhere so the whole product feels premium, not just the landing.
 
-- Hero: near-black background, subtle floodlight radial glow, chalk-line grid overlay, lime `#c6ff4a` as the ONE accent (headline underline + primary CTA + stat numbers). No cricket ball. No purple gradients.
-- Type: `Bricolage Grotesque` display + `Inter` body kept, but tighter tracking, larger scale, ALL-CAPS eyebrow labels like a matchday programme.
-- "How it works" as a 3-lane grid (Register → Manage → Grow) with lime hairline dividers.
-- Segmented cards (Academy / Gym / Coaching) become horizontal chips instead of the current tiled block.
-- Pricing strip flattened, WhatsApp + Email CTAs stay dynamic from `platform_settings`.
-- Framer-motion on hero and card entry only — no scattered micro-animations.
+**Sports-flavored vocabulary** stays automatic via `niche()` — headings, empty states, CTAs will use "players / squads / coaches / season" instead of generic "students / batches".
 
-### Turn B — Leads inbox + one-tap WhatsApp reply
+**Visual upgrades (not a redesign — a polish pass):**
+- Glass cards with soft depth (glassmorphism) on key sections
+- Rounded 3D-ish stat tiles on the hero (Cloudflare-style pill/badge row)
+- Motion: hero entrance + on-scroll reveals via Motion/React (already installed)
+- Better section rhythm on the home page (Coaches, Star players, Testimonials, Facilities), all editable by owner
 
-- New `leads` table (name, phone, message, source, tenant_id, status enum `new|contacted|won|lost`, notes). Public `insert` policy so the landing form can write. Owner sees them in a new dashboard route `/dashboard/leads`.
-- Landing gets a small "Talk to us" form on the tenant site (separate from full `Register`) that writes a lead.
-- Owner inbox: filter by status, one-tap WhatsApp button that opens `wa.me` with a prefilled message, quick status buttons, notes field.
+---
 
-### Turn C — Attendance (coach mobile)
+## 2. Owner dashboard — cut the noise, put fees front and center
 
-- New `attendance_sessions` (batch_id, date, coach_id) + `attendance_marks` (session_id, student_id, status enum `present|absent|late`).
-- Coach mobile view under `/dashboard/attendance`: pick batch → pick date → tap-through student list with big present/absent toggles. Optimistic updates.
-- Absent students' guardians get a one-tap WhatsApp reminder from the same screen (opens `wa.me` prefilled — no auto-send yet, avoids WhatsApp Business API costs).
+Current dashboard has too many equal-weight items. New shape:
 
-### Turn D — Auto fee reminders (pg_cron)
+**Home (default view after login):**
+- Big "Fees this month" panel: collected vs pending, count of paid/unpaid students, quick "Mark paid" action per pending row
+- Secondary KPIs: active students, new registrations (7d)
+- Everything else moves to secondary tabs
 
-- New `/api/public/hooks/fee-reminders` server route, authed with anon `apikey` header per your existing pattern.
-- Daily cron at 09:00 IST scans overdue students, writes a `reminder_logs` row per student, and generates a WhatsApp deep link the owner can tap from the dashboard. Not auto-sent — owner reviews and taps.
-- New "Reminders queue" tab on the fees page.
+**Sidebar cleanup:**
+- **Remove "Site editor" from the owner sidebar entirely.** As you said — you (owner) edit the site from Platform Admin, not from the tenant dashboard.
+- Keep: Home, Fees, Students, Registrations, Batches, Fee plans, Attendance, Reminders, Reports
 
-### Turn E — AI assistant (owner chat)
+**Mobile bottom bar (5 slots):** Home · Fees · Students · Registrations · **Profile** (replaces the current "More" — profile screen holds settings, tenant info, sign out, help)
 
-- Uses Lovable AI Gateway (`google/gemini-3-flash-preview`) via a `createServerFn`. Auth-scoped to the current tenant via `requireSupabaseAuth`.
-- Tools the model can call: `list_overdue_students`, `count_registrations_this_month`, `draft_fee_reminder(student_id)`, `list_attendance_gaps(batch_id, days)`.
-- Chat UI at `/dashboard/assistant` — one conversation per owner, persisted in localStorage (per the chat-agent contract, no threaded history needed for MVP; can upgrade later).
+---
 
-## Technical notes
+## 3. Public site nav + session
 
-- Every new table follows the CREATE → GRANT → RLS → POLICY structure; anon only gets policies where a landing/public flow demands it.
-- `platform_settings` contact info continues to drive all WhatsApp/email links so you can change from the admin panel.
-- The `nevorai.com` wildcard subdomain flow and reserved-slug guards stay intact.
-- No changes to auth, tenants schema, or existing dashboard behaviour beyond the additive new routes.
+- **Owner Login moves to the top header** (right side, ghost button) on every public page. Remove it from the footer where the mobile CTA bar covers it.
+- **Persistent session:** Supabase client already uses `persistSession: true` + `autoRefreshToken: true`; I'll verify the auth listener doesn't force sign-out and that "Add to Home Screen" launches keep the session (localStorage survives PWA installs, so this should already work — I'll test and confirm).
+- **No student accounts.** Registration stays account-less (already the case) — nothing to change there beyond making it obvious.
+- **Add-to-home-screen** now installs the current page's tenant app (already done in last turn via dynamic manifest). I'll make sure the `start_url` = `/` so it opens the landing, and the Apple meta tags are correct.
 
-## What I need from you
+---
 
-Approve this plan and I'll start on **Turn A (Stadium Night landing)** immediately. Reject or comment and I'll re-sequence.
+## 4. Fix logo upload
+
+Current bug: uploading a logo from the device fails. I'll:
+- Debug the `tenant-assets` bucket upload path (likely a MIME/size/RLS issue)
+- Ensure image is uploaded to Supabase Storage (`tenant-assets/logos/{tenant}/…`), signed URL returned, and `tenants.logo_url` updated
+- Show inline preview + clear error toast on failure
+
+---
+
+## 5. Small home-page visual upgrades (kinetic theme v2)
+
+- Replace flat blue strip with a **glass stat card row** (rounded corners, backdrop-blur, subtle gradient border) — Cloudflare/Linear vibe
+- Hero: layered depth + one tasteful motion accent (not busy)
+- Coaches/Players sections with real photo slots the owner can upload
+- Keep white + tenant-blue palette for Sai Sports (as you said, you like it) — just more premium
+
+---
+
+## Out of scope this turn (call these out so I don't sneak them in)
+
+- **AI agent** for fees Q&A ("who hasn't paid this month?") — big enough to be its own turn. I'll leave a clean data shape so we can bolt it on next.
+- Full site-editor rebuild inside Platform Admin (it already exists there; I'm just removing it from the tenant sidebar)
+- Payment gateway / auto-reconciliation
+
+---
+
+## Technical notes (for reference)
+
+- Files touched: `src/routes/{auth,about,contact,register,fees,star-players,index}.tsx`, `src/components/site/*`, `src/components/dashboard/DashboardShell.tsx`, `src/routes/dashboard.index.tsx`, `src/routes/dashboard.site.tsx` (remove from nav, keep route for platform admin), new `src/routes/dashboard.profile.tsx`, `src/lib/storage.ts` (logo upload fix)
+- No DB migrations needed
+- No new dependencies
+
+---
+
+Approve and I'll execute the whole plan in one pass. If you want me to drop or reorder any section (e.g. skip #5 visual polish, or do fees dashboard first), tell me now.
