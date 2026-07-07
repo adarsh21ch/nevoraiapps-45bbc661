@@ -48,127 +48,143 @@ function StudentsPage() {
     });
   }, [students.data, q, status, batch]);
 
+  const total = students.data?.length ?? 0;
+  const counts = useMemo(() => {
+    const list = students.data ?? [];
+    return {
+      all: list.length,
+      active: list.filter((s) => s.status === "active").length,
+      paused: list.filter((s) => s.status === "paused").length,
+      left: list.filter((s) => s.status === "left").length,
+    };
+  }, [students.data]);
+
+  const statusTabs: { key: string; label: string; count: number }[] = [
+    { key: "active", label: "Active", count: counts.active },
+    { key: "all", label: "All", count: counts.all },
+    { key: "paused", label: "Paused", count: counts.paused },
+    { key: "left", label: "Left", count: counts.left },
+  ];
+
   return (
     <div className="space-y-4">
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Students</h1>
-          <p className="text-sm text-muted-foreground">{students.data?.length ?? 0} total</p>
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-bold tracking-tight">Students</h1>
+          <p className="text-sm text-muted-foreground">{total} total · {counts.active} active</p>
         </div>
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogTrigger asChild>
-            <Button style={{ backgroundColor: "var(--brand)", color: "white" }}>
-              <Plus className="size-4 mr-1" /> Add student
+            <Button className="shrink-0" style={{ backgroundColor: "var(--brand)", color: "white" }}>
+              <Plus className="size-4 mr-1" /> Add
             </Button>
           </DialogTrigger>
           <StudentDialog onClose={() => setAddOpen(false)} />
         </Dialog>
       </header>
 
-      <Card className="p-3 md:p-4 flex flex-col md:flex-row gap-2 md:items-center">
+      {/* Segmented status tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto rounded-full border border-border bg-card p-1">
+        {statusTabs.map((t) => {
+          const active = status === t.key;
+          return (
+            <button
+              key={t.key}
+              onClick={() => setStatus(t.key)}
+              className={cn(
+                "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
+                active ? "text-white shadow-sm" : "text-muted-foreground hover:text-foreground",
+              )}
+              style={active ? { backgroundColor: "var(--brand)" } : undefined}
+            >
+              {t.label}
+              <span className={cn("ml-1.5 tabular-nums text-[10px]", active ? "text-white/80" : "text-muted-foreground/70")}>
+                {t.count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Search + batch filter */}
+      <div className="flex flex-col md:flex-row gap-2 md:items-center">
         <div className="relative flex-1">
           <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search name or phone"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="pl-9"
+            className="pl-9 rounded-full bg-card"
           />
         </div>
-        <div className="flex gap-2">
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="paused">Paused</SelectItem>
-              <SelectItem value="left">Left</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={batch} onValueChange={setBatch}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Batch" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All batches</SelectItem>
-              {(batches.data ?? []).map((b) => (
-                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </Card>
-
-      {/* Mobile cards */}
-      <div className="grid gap-2 md:hidden">
-        {filtered.map((s) => (
-          <Link key={s.id} to="/dashboard/students/$id" params={{ id: s.id }}>
-            <Card className="p-3 active:scale-[0.99] transition-transform">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="font-semibold truncate">{s.name}</div>
-                  <div className="text-xs text-muted-foreground">{s.phone}</div>
-                  <div className="text-xs mt-1">
-                    {(s as any).batches?.name ?? "No batch"} ·{" "}
-                    {(s as any).fee_plans?.name ?? "No plan"}
-                  </div>
-                </div>
-                <StatusPill status={s.status} />
-              </div>
-            </Card>
-          </Link>
-        ))}
+        <Select value={batch} onValueChange={setBatch}>
+          <SelectTrigger className="w-full md:w-44 rounded-full bg-card"><SelectValue placeholder="Batch" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All batches</SelectItem>
+            {(batches.data ?? []).map((b) => (
+              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Desktop table */}
-      <Card className="hidden md:block overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
-            <tr>
-              <th className="text-left px-4 py-2 font-medium">Name</th>
-              <th className="text-left px-4 py-2 font-medium">Phone</th>
-              <th className="text-left px-4 py-2 font-medium">Batch</th>
-              <th className="text-left px-4 py-2 font-medium">Fee plan</th>
-              <th className="text-left px-4 py-2 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((s) => (
-              <tr key={s.id} className="border-t hover:bg-muted/40">
-                <td className="px-4 py-2">
-                  <Link to="/dashboard/students/$id" params={{ id: s.id }} className="font-medium hover:underline">
-                    {s.name}
-                  </Link>
-                </td>
-                <td className="px-4 py-2 text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    {s.phone}
-                    <a href={`tel:${s.phone}`} className="text-muted-foreground hover:text-foreground">
-                      <Phone className="size-3" />
-                    </a>
-                    <a
-                      href={`https://wa.me/${s.phone.replace(/\D/g, "")}`}
-                      target="_blank" rel="noreferrer"
-                      className="text-emerald-600 hover:text-emerald-700"
-                    >
-                      <MessageCircle className="size-3" />
-                    </a>
+      {/* Unified list: # · Name · Plan · Amount · Status */}
+      <Card className="overflow-hidden p-0">
+        <div className="hidden md:grid grid-cols-[40px_minmax(0,1fr)_140px_120px_100px_24px] items-center gap-3 border-b bg-muted/50 px-4 py-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+          <div className="text-right">#</div>
+          <div>Name</div>
+          <div>Fee plan</div>
+          <div className="text-right">Amount</div>
+          <div>Status</div>
+          <div />
+        </div>
+        <ul className="divide-y">
+          {filtered.map((s, i) => {
+            const plan = (s as any).fee_plans as { name?: string; amount?: number } | null;
+            const bname = (s as any).batches?.name as string | undefined;
+            return (
+              <li key={s.id}>
+                <Link
+                  to="/dashboard/students/$id"
+                  params={{ id: s.id }}
+                  className="grid grid-cols-[32px_minmax(0,1fr)_auto] md:grid-cols-[40px_minmax(0,1fr)_140px_120px_100px_24px] items-center gap-3 px-3 py-3 md:px-4 hover:bg-muted/40 transition-colors"
+                >
+                  <div className="text-right text-xs tabular-nums text-muted-foreground">{i + 1}</div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{s.name}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {s.phone}
+                      {bname ? ` · ${bname}` : ""}
+                      <span className="md:hidden">{plan?.name ? ` · ${plan.name}` : ""}</span>
+                    </div>
                   </div>
-                </td>
-                <td className="px-4 py-2">{(s as any).batches?.name ?? "—"}</td>
-                <td className="px-4 py-2">{(s as any).fee_plans?.name ?? "—"}</td>
-                <td className="px-4 py-2"><StatusPill status={s.status} /></td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={5} className="text-center py-8 text-muted-foreground">No students match.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                  <div className="hidden md:block text-sm text-muted-foreground truncate">{plan?.name ?? "—"}</div>
+                  <div className="hidden md:block text-sm font-semibold tabular-nums text-right">
+                    {plan?.amount ? `₹${Number(plan.amount).toLocaleString("en-IN")}` : "—"}
+                  </div>
+                  <div className="hidden md:block"><StatusPill status={s.status} /></div>
+                  <div className="hidden md:block text-muted-foreground text-right">›</div>
+                  <div className="md:hidden text-right">
+                    {plan?.amount ? (
+                      <div className="text-sm font-semibold tabular-nums">₹{Number(plan.amount).toLocaleString("en-IN")}</div>
+                    ) : null}
+                    <div className="mt-0.5"><StatusPill status={s.status} /></div>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+          {filtered.length === 0 && (
+            <li className="px-4 py-10 text-center text-sm text-muted-foreground">
+              No students match.
+            </li>
+          )}
+        </ul>
       </Card>
     </div>
   );
 }
+
 
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, string> = {
