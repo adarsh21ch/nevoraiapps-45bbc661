@@ -224,30 +224,63 @@ function HomeContent() {
         </section>
       ) : null}
 
-      {/* CTA */}
-      <section className="bg-muted/40 py-16">
-        <div className="mx-auto max-w-4xl rounded-3xl px-6 py-14 text-center sm:px-10" style={{ backgroundColor: "var(--brand-ink)" }}>
-          <h2 className="text-3xl font-bold text-white sm:text-4xl">Ready to join {tenant.name}?</h2>
-          <p className="mt-3 text-white/70">Fill the online registration form and we'll take it from there.</p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link
-              to="/register"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-neutral-900 shadow-lg hover:scale-[1.02] transition-transform"
+      {/* Cinematic video CTA */}
+      <section className="relative w-full overflow-hidden bg-neutral-950">
+        <div className="relative h-[380px] w-full sm:h-[480px] lg:h-[540px]">
+          <video
+            src={stadiumCtaVideo.url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            controls={false}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          />
+          {/* Dark overlay for legibility */}
+          <div className="pointer-events-none absolute inset-0 bg-[rgba(3,10,28,0.68)]" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+
+          {/* Glass CTA card */}
+          <div className="relative z-10 flex h-full items-center justify-center px-4 sm:px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="w-full max-w-2xl rounded-[24px] border border-white/15 bg-white/10 p-8 text-center shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-10"
+              style={{ WebkitBackdropFilter: "blur(16px)" }}
             >
-              Register Now
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            {wa ? (
-              <a
-                href={`https://wa.me/${wa}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-white/25 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10"
-              >
-                <MessageCircle className="h-4 w-4" />
-                WhatsApp us
-              </a>
-            ) : null}
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                Ready to Join {tenant.name}?
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-base text-white/80 sm:text-lg">
+                Start your cricket journey with professional coaching, structured training, and a pathway to competitive cricket.
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Link
+                  to="/register"
+                  className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.02]"
+                  style={{ backgroundColor: tenant.primary_color }}
+                >
+                  Register Now
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                {wa ? (
+                  <a
+                    href={`https://wa.me/${wa}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    WhatsApp Us
+                  </a>
+                ) : null}
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
