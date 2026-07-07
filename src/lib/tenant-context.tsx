@@ -99,6 +99,25 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       setMeta("property", "og:type", "website");
       if (t.logo_url) setMeta("property", "og:image", t.logo_url);
       setMeta("name", "theme-color", t.primary_color);
+
+      // PWA / Add-to-Home-Screen — per-tenant manifest so each academy installs
+      // with its own name, icon and colors on the phone home screen.
+      const setLink = (rel: string, href: string, extra?: Record<string, string>) => {
+        let el = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"][data-tenant="1"]`);
+        if (!el) {
+          el = document.createElement("link");
+          el.rel = rel;
+          el.setAttribute("data-tenant", "1");
+          document.head.appendChild(el);
+        }
+        el.href = href;
+        if (extra) for (const [k, v] of Object.entries(extra)) el.setAttribute(k, v);
+      };
+      setLink("manifest", "/api/public/manifest.webmanifest");
+      if (t.logo_url) setLink("apple-touch-icon", t.logo_url);
+      setMeta("name", "apple-mobile-web-app-capable", "yes");
+      setMeta("name", "apple-mobile-web-app-title", t.name);
+      setMeta("name", "apple-mobile-web-app-status-bar-style", "black-translucent");
     } else {
       root.style.removeProperty("--brand");
       root.style.removeProperty("--brand-ink");

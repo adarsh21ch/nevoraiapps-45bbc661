@@ -36,6 +36,7 @@ import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.atte
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
 import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-admin.tenants.$id'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
+import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 
 const StarPlayersRoute = StarPlayersRouteImport.update({
@@ -175,6 +176,12 @@ const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => DashboardStudentsRoute,
 } as any)
+const ApiPublicManifestWebmanifestRoute =
+  ApiPublicManifestWebmanifestRouteImport.update({
+    id: '/api/public/manifest/webmanifest',
+    path: '/api/public/manifest/webmanifest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksFeeRemindersRoute =
   ApiPublicHooksFeeRemindersRouteImport.update({
     id: '/api/public/hooks/fee-reminders',
@@ -211,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
+  '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -239,6 +247,7 @@ export interface FileRoutesByTo {
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/platform-admin/tenants': typeof PlatformAdminTenantsIndexRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
+  '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -270,6 +279,7 @@ export interface FileRoutesById {
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
+  '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/platform-admin/tenants/$id'
     | '/platform-admin/tenants/'
     | '/api/public/hooks/fee-reminders'
+    | '/api/public/manifest/webmanifest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -330,6 +341,7 @@ export interface FileRouteTypes {
     | '/platform-admin/tenants/$id'
     | '/platform-admin/tenants'
     | '/api/public/hooks/fee-reminders'
+    | '/api/public/manifest/webmanifest'
   id:
     | '__root__'
     | '/'
@@ -360,6 +372,7 @@ export interface FileRouteTypes {
     | '/platform-admin/tenants/$id'
     | '/platform-admin/tenants/'
     | '/api/public/hooks/fee-reminders'
+    | '/api/public/manifest/webmanifest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -373,6 +386,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
+  ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -566,6 +580,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentsIdRouteImport
       parentRoute: typeof DashboardStudentsRoute
     }
+    '/api/public/manifest/webmanifest': {
+      id: '/api/public/manifest/webmanifest'
+      path: '/api/public/manifest/webmanifest'
+      fullPath: '/api/public/manifest/webmanifest'
+      preLoaderRoute: typeof ApiPublicManifestWebmanifestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/fee-reminders': {
       id: '/api/public/hooks/fee-reminders'
       path: '/api/public/hooks/fee-reminders'
@@ -652,6 +673,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
+  ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

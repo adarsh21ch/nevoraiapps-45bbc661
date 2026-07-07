@@ -6,7 +6,7 @@ import { createClient } from "@supabase/supabase-js";
  * Resolves the tenant from the incoming Host header (custom_domain or {slug}.nevorai.com)
  * so each academy installs to the phone home screen with its own name, icon, and colors.
  */
-export const Route = createFileRoute("/api/public/manifest.webmanifest")({
+export const Route = createFileRoute("/api/public/manifest/webmanifest")({
   server: {
     handlers: {
       GET: async ({ request }) => {
