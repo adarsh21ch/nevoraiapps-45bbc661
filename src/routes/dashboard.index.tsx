@@ -2,11 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchKpis, qk } from "@/lib/dashboard-queries";
+import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Inbox, IndianRupee, AlertCircle, Plus, ArrowRight, TrendingUp } from "lucide-react";
+import { Users, IndianRupee, Plus, ArrowRight, TrendingUp, ChevronRight } from "lucide-react";
 import { niche } from "@/lib/niche";
 import { getFeatures } from "@/lib/tenant";
+import { candidatePeriods, periodKey, studentDue, tenantFeeCycle } from "@/lib/fees";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
