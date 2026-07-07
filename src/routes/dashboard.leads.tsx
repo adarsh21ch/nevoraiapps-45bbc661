@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { BulkImportLeads } from "@/components/dashboard/BulkImportLeads";
 
 type LeadStatus = "new" | "contacted" | "won" | "lost";
 
@@ -96,11 +97,14 @@ function LeadsInbox() {
 
   return (
     <div className="space-y-5">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Leads</h1>
-        <p className="text-sm text-muted-foreground">
-          Enquiries from your website. Reply on WhatsApp in one tap and track the outcome.
-        </p>
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight">Leads</h1>
+          <p className="text-sm text-muted-foreground">
+            Enquiries from your website. Reply on WhatsApp in one tap and track the outcome.
+          </p>
+        </div>
+        <BulkImportLeads />
       </header>
 
       <div className="flex flex-wrap gap-2">
