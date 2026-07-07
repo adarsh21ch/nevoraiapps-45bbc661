@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Sparkles } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
+import { PageHero } from "@/components/site/PageHero";
 import { useTenant } from "@/lib/tenant-context";
 import { feePlansQuery } from "@/lib/site-queries";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,7 +22,6 @@ function FeesContent() {
   const registration = fees.filter((f) => f.type === "registration");
   const monthly = fees.filter((f) => f.type === "monthly");
 
-  // Determine "most popular" — the middle plan when there are 3, else the median-priced plan.
   const sortedMonthly = [...monthly].sort((a, b) => a.amount - b.amount);
   const popularId =
     sortedMonthly.length >= 2
@@ -29,73 +29,73 @@ function FeesContent() {
       : undefined;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-24">
-      <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
-        Simple, transparent pricing
-      </div>
-      <h1 className="mt-3 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">Fees & plans</h1>
-      <p className="mt-4 max-w-2xl text-muted-foreground">
-        Pay directly to {tenant.name} via UPI. No hidden fees, no card surcharges.
-      </p>
+    <>
+      <PageHero
+        eyebrow="Simple, transparent pricing"
+        title="Fees & plans"
+        subtitle={`Pay directly to ${tenant.name} via UPI. No hidden fees, no card surcharges.`}
+      />
+      <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+        {isLoading ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-48 rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <>
+            {monthly.length > 0 ? (
+              <section>
+                <h2 className="text-lg font-semibold text-foreground">Monthly plans</h2>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {sortedMonthly.map((p) => (
+                    <PlanCard
+                      key={p.id}
+                      name={p.name}
+                      amount={p.amount}
+                      period="per month"
+                      desc={p.description}
+                      popular={p.id === popularId && sortedMonthly.length >= 2}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
-      {isLoading ? (
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-48 rounded-2xl" />
-          ))}
+            {registration.length > 0 ? (
+              <section className="mt-12">
+                <h2 className="text-lg font-semibold text-foreground">One-time</h2>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  {registration.map((p) => (
+                    <PlanCard key={p.id} name={p.name} amount={p.amount} period="one-time" desc={p.description} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {fees.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-12 text-center text-muted-foreground">
+                Fee plans coming soon.
+              </div>
+            ) : null}
+          </>
+        )}
+
+        <div className="mt-16 overflow-hidden rounded-3xl p-8 text-white sm:p-10" style={{ backgroundColor: "var(--brand-ink)" }}>
+          <div className="text-lg font-semibold">Ready to join?</div>
+          <p className="mt-2 text-sm text-white/70">Register online and pay directly to {tenant.name} via UPI.</p>
+          <Link
+            to="/register"
+            className="mt-6 inline-flex rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-neutral-900 transition-transform hover:scale-[1.02]"
+          >
+            Register Now
+          </Link>
         </div>
-      ) : (
-        <>
-          {monthly.length > 0 ? (
-            <section className="mt-12">
-              <h2 className="text-lg font-semibold text-foreground">Monthly plans</h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {sortedMonthly.map((p) => (
-                  <PlanCard
-                    key={p.id}
-                    name={p.name}
-                    amount={p.amount}
-                    period="per month"
-                    desc={p.description}
-                    popular={p.id === popularId && sortedMonthly.length >= 2}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          {registration.length > 0 ? (
-            <section className="mt-12">
-              <h2 className="text-lg font-semibold text-foreground">One-time</h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                {registration.map((p) => (
-                  <PlanCard key={p.id} name={p.name} amount={p.amount} period="one-time" desc={p.description} />
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          {fees.length === 0 ? (
-            <div className="mt-12 rounded-2xl border border-dashed border-border/60 bg-muted/20 p-12 text-center text-muted-foreground">
-              Fee plans coming soon.
-            </div>
-          ) : null}
-        </>
-      )}
-
-      <div className="mt-16 overflow-hidden rounded-3xl p-8 text-white sm:p-10" style={{ backgroundColor: "var(--brand-ink)" }}>
-        <div className="text-lg font-semibold">Ready to join?</div>
-        <p className="mt-2 text-sm text-white/70">Register online and pay directly to {tenant.name} via UPI.</p>
-        <Link
-          to="/register"
-          className="mt-6 inline-flex rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-neutral-900 transition-transform hover:scale-[1.02]"
-        >
-          Register Now
-        </Link>
       </div>
-    </div>
+    </>
   );
 }
+
 
 function PlanCard({
   name, amount, period, desc, popular,

@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Phone, MessageCircle, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, Phone, MessageCircle, Sparkles, Trophy, Users, ShieldCheck } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
-import { useTenant, useTenantState } from "@/lib/tenant-context";
+import { useTenant } from "@/lib/tenant-context";
 import { feePlansQuery, sectionsBy, sectionOne, siteContentQuery } from "@/lib/site-queries";
 
 export const Route = createFileRoute("/")({
@@ -39,23 +40,59 @@ function HomeContent() {
           background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
         }}
       >
-        <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:24px_24px]" />
+        {/* Grid mask */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.14]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right,#fff 1px,transparent 1px),linear-gradient(to bottom,#fff 1px,transparent 1px)",
+            backgroundSize: "56px 56px",
+            maskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+          }}
+        />
+        {/* Ambient glow blobs */}
+        <div className="pointer-events-none absolute -top-40 -left-20 h-[520px] w-[520px] rounded-full bg-white/20 blur-[140px]" />
+        <div className="pointer-events-none absolute -bottom-32 -right-24 h-[460px] w-[460px] rounded-full bg-black/25 blur-[130px]" />
+        <div className="pointer-events-none absolute inset-0 opacity-10 [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:24px_24px]" />
+
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 md:py-28 lg:py-32">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-white/90 backdrop-blur">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 backdrop-blur"
+            >
               <Sparkles className="h-3.5 w-3.5" />
               {tenant.niche === "gym" ? "Modern gym" : tenant.niche === "tuition" ? "Learning centre" : "Sports academy"}
-            </div>
-            <h1 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.05 }}
+              className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+            >
               {hero?.headline ?? tenant.tagline ?? tenant.name}
-            </h1>
+            </motion.h1>
             {hero?.subheadline ? (
-              <p className="mt-6 max-w-2xl text-lg text-white/80 sm:text-xl">{hero.subheadline}</p>
+              <motion.p
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.12 }}
+                className="mt-6 max-w-2xl text-lg text-white/85 sm:text-xl"
+              >
+                {hero.subheadline}
+              </motion.p>
             ) : null}
-            <div className="mt-10 flex flex-wrap gap-3">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.18 }}
+              className="mt-10 flex flex-wrap gap-3"
+            >
               <Link
                 to="/register"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-neutral-900 shadow-lg transition-transform hover:scale-[1.02]"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-neutral-900 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.4)] transition-transform hover:scale-[1.02]"
               >
                 {hero?.cta_label ?? "Register Now"}
                 <ArrowRight className="h-4 w-4" />
@@ -63,33 +100,48 @@ function HomeContent() {
               {tenant.phone ? (
                 <a
                   href={`tel:${tenant.phone}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-semibold text-white backdrop-blur hover:bg-white/10"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur hover:bg-white/20"
                 >
                   <Phone className="h-4 w-4" />
                   Call us
                 </a>
               ) : null}
-            </div>
+            </motion.div>
           </div>
+
+          {/* Glass stat row */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.25 }}
+            className="relative mt-14 grid gap-3 sm:mt-20 sm:grid-cols-3"
+          >
+            {[
+              { icon: Users, label: "Certified coaches", value: "Trained mentors" },
+              { icon: Trophy, label: "Structured training", value: "Skill-first curriculum" },
+              { icon: ShieldCheck, label: "Transparent fees", value: "No surprises" },
+            ].map((s) => (
+              <div
+                key={s.label}
+                className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-xl transition-transform hover:-translate-y-0.5"
+              >
+                <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl transition-opacity group-hover:opacity-70" />
+                <div className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/15 text-white ring-1 ring-white/25">
+                    <s.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-white/70">{s.label}</div>
+                    <div className="text-sm font-semibold text-white">{s.value}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* Highlights */}
-      <section className="border-b border-border/60 bg-background">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-16 sm:px-6 md:grid-cols-3">
-          {[
-            { title: "Certified coaches", body: "Experienced, trained mentors focused on real skill-building." },
-            { title: "Small batches", body: "Personal attention with structured curriculum and clear milestones." },
-            { title: "Transparent fees", body: "One clear price. No surprises, no hidden charges." },
-          ].map((h) => (
-            <div key={h.title}>
-              <div className="h-1 w-10 rounded-full" style={{ backgroundColor: "var(--brand)" }} />
-              <h3 className="mt-4 text-lg font-semibold text-foreground">{h.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{h.body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+
 
       {/* Star players */}
       {stars.length > 0 ? (

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Phone, MessageCircle, Mail, MapPin, ExternalLink, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { TenantGate } from "@/components/site/TenantGate";
+import { PageHero } from "@/components/site/PageHero";
 import { useTenant } from "@/lib/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,55 +24,59 @@ function ContactContent() {
     : null;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
-      <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
-        Get in touch
+    <>
+      <PageHero
+        eyebrow="Get in touch"
+        title="Contact us"
+        subtitle="Have questions? Reach out — we usually reply the same day."
+      />
+      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {tenant.phone ? (
+            <a href={`tel:${tenant.phone}`} className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md">
+              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30" style={{ backgroundColor: "var(--brand)" }} />
+              <Phone className="h-6 w-6" style={{ color: "var(--brand)" }} />
+              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Call</div>
+              <div className="mt-1 text-lg font-semibold text-foreground">{tenant.phone}</div>
+            </a>
+          ) : null}
+
+          {wa ? (
+            <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer" className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md">
+              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30" style={{ backgroundColor: "var(--brand)" }} />
+              <MessageCircle className="h-6 w-6" style={{ color: "var(--brand)" }} />
+              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">WhatsApp</div>
+              <div className="mt-1 text-lg font-semibold text-foreground">Chat with us</div>
+            </a>
+          ) : null}
+
+          {tenant.email ? (
+            <a href={`mailto:${tenant.email}`} className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md">
+              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30" style={{ backgroundColor: "var(--brand)" }} />
+              <Mail className="h-6 w-6" style={{ color: "var(--brand)" }} />
+              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</div>
+              <div className="mt-1 break-all text-lg font-semibold text-foreground">{tenant.email}</div>
+            </a>
+          ) : null}
+
+          {mapUrl ? (
+            <a href={mapUrl} target="_blank" rel="noreferrer" className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md">
+              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30" style={{ backgroundColor: "var(--brand)" }} />
+              <MapPin className="h-6 w-6" style={{ color: "var(--brand)" }} />
+              <div className="mt-4 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Visit <ExternalLink className="h-3 w-3" />
+              </div>
+              <div className="mt-1 text-lg font-semibold text-foreground">{tenant.address}</div>
+            </a>
+          ) : null}
+        </div>
+
+        <EnquiryForm tenantId={tenant.id} tenantName={tenant.name} />
       </div>
-      <h1 className="mt-3 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">Contact us</h1>
-      <p className="mt-4 max-w-2xl text-muted-foreground">
-        Have questions? Reach out — we usually reply the same day.
-      </p>
-
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
-        {tenant.phone ? (
-          <a href={`tel:${tenant.phone}`} className="group rounded-2xl border border-border/60 bg-card p-6 hover:shadow-md">
-            <Phone className="h-6 w-6" style={{ color: "var(--brand)" }} />
-            <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Call</div>
-            <div className="mt-1 text-lg font-semibold text-foreground">{tenant.phone}</div>
-          </a>
-        ) : null}
-
-        {wa ? (
-          <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer" className="group rounded-2xl border border-border/60 bg-card p-6 hover:shadow-md">
-            <MessageCircle className="h-6 w-6" style={{ color: "var(--brand)" }} />
-            <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">WhatsApp</div>
-            <div className="mt-1 text-lg font-semibold text-foreground">Chat with us</div>
-          </a>
-        ) : null}
-
-        {tenant.email ? (
-          <a href={`mailto:${tenant.email}`} className="group rounded-2xl border border-border/60 bg-card p-6 hover:shadow-md">
-            <Mail className="h-6 w-6" style={{ color: "var(--brand)" }} />
-            <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</div>
-            <div className="mt-1 break-all text-lg font-semibold text-foreground">{tenant.email}</div>
-          </a>
-        ) : null}
-
-        {mapUrl ? (
-          <a href={mapUrl} target="_blank" rel="noreferrer" className="group rounded-2xl border border-border/60 bg-card p-6 hover:shadow-md">
-            <MapPin className="h-6 w-6" style={{ color: "var(--brand)" }} />
-            <div className="mt-4 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Visit <ExternalLink className="h-3 w-3" />
-            </div>
-            <div className="mt-1 text-lg font-semibold text-foreground">{tenant.address}</div>
-          </a>
-        ) : null}
-      </div>
-
-      <EnquiryForm tenantId={tenant.id} tenantName={tenant.name} />
-    </div>
+    </>
   );
 }
+
 
 function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: string }) {
   const [name, setName] = useState("");
