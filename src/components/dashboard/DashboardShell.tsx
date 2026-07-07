@@ -11,7 +11,6 @@ import {
   Users,
   CalendarDays,
   Wallet,
-  Globe,
   LogOut,
   Menu,
   ExternalLink,
@@ -20,6 +19,7 @@ import {
   MessageSquareText,
   ClipboardCheck,
   BellRing,
+  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
@@ -32,17 +32,18 @@ type NavItem = {
 
 const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
-  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
-  { to: "/dashboard/students", label: "Students", icon: Users },
-  { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/students", label: "Students", icon: Users },
+  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
+  { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
+  { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/dashboard/reminders", label: "Reminders", icon: BellRing, requiresFeature: "fee_tracking" },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3, requiresFeature: "fee_tracking" },
   { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
   { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet },
-  { to: "/dashboard/site", label: "Site editor", icon: Globe },
+  { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
+
 
 
 export function DashboardShell({ children }: { children: ReactNode }) {
