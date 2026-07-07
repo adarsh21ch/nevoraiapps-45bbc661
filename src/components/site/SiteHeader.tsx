@@ -74,6 +74,9 @@ export function SiteHeader() {
           >
             Register
           </Link>
+        </nav>
+
+
 
 
         <button
