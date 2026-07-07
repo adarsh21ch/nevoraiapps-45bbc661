@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
+import { PageHero } from "@/components/site/PageHero";
 import { useTenant } from "@/lib/tenant-context";
 import { sectionOne, sectionsBy, siteContentQuery } from "@/lib/site-queries";
 
@@ -21,32 +22,42 @@ function AboutContent() {
   const achievements = sectionsBy(sections, "achievements").map((s) => s.content as { text: string });
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
-      <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
-        About {tenant.name}
+    <>
+      <PageHero
+        eyebrow={`About ${tenant.name}`}
+        title={about?.heading ?? `About ${tenant.name}`}
+        subtitle={about?.body ?? undefined}
+      />
+      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
+        {achievements.length > 0 ? (
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
+              Milestones
+            </div>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Achievements</h2>
+            <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+              {achievements.map((a, i) => (
+                <li
+                  key={i}
+                  className="group relative flex items-start gap-3 overflow-hidden rounded-2xl border border-border/60 bg-card p-5 transition-shadow hover:shadow-md"
+                >
+                  <div
+                    className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-25"
+                    style={{ backgroundColor: "var(--brand)" }}
+                  />
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0" style={{ color: "var(--brand)" }} />
+                  <span className="text-foreground">{a.text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-12 text-center text-muted-foreground">
+            More details coming soon.
+          </div>
+        )}
       </div>
-      <h1 className="mt-3 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-        {about?.heading ?? `About ${tenant.name}`}
-      </h1>
-      {about?.body ? (
-        <p className="mt-6 text-lg leading-relaxed text-muted-foreground">{about.body}</p>
-      ) : (
-        <p className="mt-6 text-muted-foreground">Details coming soon.</p>
-      )}
-
-      {achievements.length > 0 ? (
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">Achievements</h2>
-          <ul className="mt-6 space-y-3">
-            {achievements.map((a, i) => (
-              <li key={i} className="flex items-start gap-3 rounded-xl border border-border/60 bg-card p-4">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0" style={{ color: "var(--brand)" }} />
-                <span className="text-foreground">{a.text}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-    </div>
+    </>
   );
 }
+
