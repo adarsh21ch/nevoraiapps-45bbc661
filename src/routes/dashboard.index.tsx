@@ -145,45 +145,55 @@ function DashboardHome() {
         </Card>
       ) : null}
 
-      {/* Secondary KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-        <Card className="p-4 md:p-5">
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-muted-foreground">Active {n.students.toLowerCase()}</div>
-            <Users className="size-4 text-emerald-600" />
+      {/* Pending fees list — scannable, tap to collect */}
+      {features.fee_tracking !== false ? (
+        <Card className="p-0 overflow-hidden">
+          <div className="flex items-center justify-between border-b px-4 py-3 md:px-5">
+            <div>
+              <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Pending fees</div>
+              <div className="text-sm font-semibold">
+                {pendingList.isLoading ? "Loading…" : `${pendingList.data?.length ?? 0} ${n.students.toLowerCase()} to follow up`}
+              </div>
+            </div>
+            <Link to="/dashboard/fees" className="text-xs font-medium inline-flex items-center gap-1" style={{ color: "var(--brand)" }}>
+              Open register <ArrowRight className="size-3" />
+            </Link>
           </div>
-          <div className="mt-2 text-2xl font-bold">
-            {isLoading ? <Skeleton className="h-7 w-16" /> : active}
-          </div>
-          <Link to="/dashboard/students" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
-            View all <ArrowRight className="size-3" />
-          </Link>
+          <ul className="divide-y">
+            {(pendingList.data ?? []).slice(0, 6).map((row, i) => {
+              const overdue = row.due.state === "pending" ? row.due.overdueDays : 0;
+              const amount = row.student.fee_plans?.amount ?? 0;
+              return (
+                <li key={row.student.id}>
+                  <Link
+                    to="/dashboard/students/$id"
+                    params={{ id: row.student.id }}
+                    className="flex items-center gap-3 px-4 py-3 md:px-5 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="w-5 text-right text-xs tabular-nums text-muted-foreground">{i + 1}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium truncate">{row.student.name}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {row.student.fee_plans?.name ?? "Monthly"} · {overdue > 0 ? `${overdue}d overdue` : "due"}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-semibold tabular-nums">₹{Number(amount).toLocaleString("en-IN")}</div>
+                      <div className="text-[10px] font-medium uppercase tracking-wider text-rose-600">Pending</div>
+                    </div>
+                    <ChevronRight className="size-4 text-muted-foreground" />
+                  </Link>
+                </li>
+              );
+            })}
+            {!pendingList.isLoading && (pendingList.data?.length ?? 0) === 0 ? (
+              <li className="px-5 py-8 text-center text-sm text-muted-foreground">
+                All caught up — no pending fees this cycle.
+              </li>
+            ) : null}
+          </ul>
         </Card>
-        <Card className="p-4 md:p-5">
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-muted-foreground">New registrations (7d)</div>
-            <Inbox className="size-4 text-blue-600" />
-          </div>
-          <div className="mt-2 text-2xl font-bold">
-            {isLoading ? <Skeleton className="h-7 w-16" /> : data?.newRegsThisWeek ?? 0}
-          </div>
-          <Link to="/dashboard/registrations" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
-            Review <ArrowRight className="size-3" />
-          </Link>
-        </Card>
-        <Card className="p-4 md:p-5 col-span-2 md:col-span-1">
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-muted-foreground">Pending fees</div>
-            <AlertCircle className="size-4 text-rose-600" />
-          </div>
-          <div className="mt-2 text-2xl font-bold">
-            {isLoading ? <Skeleton className="h-7 w-16" /> : pending}
-          </div>
-          <Link to="/dashboard/fees" className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
-            Follow up <ArrowRight className="size-3" />
-          </Link>
-        </Card>
-      </div>
+      ) : null}
 
       {empty ? (
         <Card className="p-8 text-center">
