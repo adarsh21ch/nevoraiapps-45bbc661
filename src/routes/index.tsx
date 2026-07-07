@@ -7,6 +7,7 @@ import { useTenant } from "@/lib/tenant-context";
 import { feePlansQuery, sectionsBy, sectionOne, siteContentQuery } from "@/lib/site-queries";
 import cricketHeroAsset from "@/assets/cricket-stadium-hero.png.asset.json";
 import cricketHeroVideo from "@/assets/cricket-hero.mp4.asset.json";
+import stadiumCtaVideo from "@/assets/stadium-cta.mp4.asset.json";
 
 export const Route = createFileRoute("/")({
   component: HomeRoute,
