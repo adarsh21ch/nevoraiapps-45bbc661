@@ -40,7 +40,7 @@ function HomeContent() {
         {/* 4K cinematic stadium video */}
         <video
           src={cricketHeroVideo.url}
-          poster={cricketHeroAsset.url}
+          poster={cricketHeroPoster.url}
           autoPlay
           muted
           loop
