@@ -29,6 +29,54 @@ function DashboardHome() {
   const pending = data?.pendingFeeCount ?? 0;
   const active = data?.activeStudents ?? 0;
 
+  const cycle = tenantFeeCycle(tenant);
+  const now = new Date();
+  const pendingList = useQuery({
+    enabled: features.fee_tracking !== false,
+    queryKey: ["d", "pending-fees-list", tenant.id],
+    queryFn: async () => {
+      const periods = cycle === "joining_date" ? candidatePeriods(now) : [periodKey(now)];
+      const [studentsRes, paidRes] = await Promise.all([
+        supabase
+          .from("students")
+          .select("id, name, joined_at, fee_plans!inner(name, amount, type)")
+          .eq("tenant_id", tenant.id)
+          .eq("status", "active")
+          .eq("fee_plans.type", "monthly")
+          .order("name"),
+        supabase
+          .from("payments")
+          .select("student_id, period")
+          .eq("tenant_id", tenant.id)
+          .in("period", periods),
+      ]);
+      const paidByStudent = new Map<string, Set<string>>();
+      for (const p of paidRes.data ?? []) {
+        if (!p.student_id || !p.period) continue;
+        const s = paidByStudent.get(p.student_id) ?? new Set<string>();
+        s.add(p.period);
+        paidByStudent.set(p.student_id, s);
+      }
+      return (studentsRes.data ?? [])
+        .map((s) => {
+          const due = studentDue({
+            cycle,
+            joinedAt: s.joined_at,
+            selectedMonth: now,
+            paidPeriods: paidByStudent.get(s.id) ?? new Set(),
+            today: now,
+          });
+          return { student: s, due };
+        })
+        .filter((x) => x.due.state === "pending")
+        .sort((a, b) => {
+          const ao = a.due.state === "pending" ? a.due.overdueDays : 0;
+          const bo = b.due.state === "pending" ? b.due.overdueDays : 0;
+          return bo - ao;
+        });
+    },
+  });
+
   return (
     <div className="space-y-6">
       <header>
