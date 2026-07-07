@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Search, Phone, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { BulkImportStudents } from "@/components/dashboard/BulkImportStudents";
 
 export const Route = createFileRoute("/dashboard/students")({
   component: StudentsPage,
@@ -74,14 +75,17 @@ function StudentsPage() {
           <h1 className="truncate text-2xl font-bold tracking-tight">Students</h1>
           <p className="text-sm text-muted-foreground">{total} total · {counts.active} active</p>
         </div>
-        <Dialog open={addOpen} onOpenChange={setAddOpen}>
-          <DialogTrigger asChild>
-            <Button className="shrink-0" style={{ backgroundColor: "var(--brand)", color: "white" }}>
-              <Plus className="size-4 mr-1" /> Add
-            </Button>
-          </DialogTrigger>
-          <StudentDialog onClose={() => setAddOpen(false)} />
-        </Dialog>
+        <div className="flex items-center gap-2 shrink-0">
+          <BulkImportStudents />
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
+            <DialogTrigger asChild>
+              <Button className="shrink-0 rounded-full" style={{ backgroundColor: "var(--brand)", color: "white" }}>
+                <Plus className="size-4 mr-1" /> Add
+              </Button>
+            </DialogTrigger>
+            <StudentDialog onClose={() => setAddOpen(false)} />
+          </Dialog>
+        </div>
       </header>
 
       {/* Segmented status tabs */}
