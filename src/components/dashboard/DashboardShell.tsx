@@ -1,10 +1,9 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   Inbox,
@@ -12,7 +11,6 @@ import {
   CalendarDays,
   Wallet,
   LogOut,
-  Menu,
   ExternalLink,
   IndianRupee,
   BarChart3,
@@ -48,7 +46,6 @@ const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
-  const [open, setOpen] = useState(false);
 
   const newRegCount = useQuery({
     queryKey: ["d", "regs-new-count", tenant.id],
@@ -92,26 +89,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-muted/30 text-foreground">
-      {/* Top bar (mobile-first) */}
+      {/* Top bar */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Menu">
-                <Menu className="size-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
-              <SidebarInner
-                tenant={tenant}
-                items={navWithBadges}
-                onNavigate={() => setOpen(false)}
-                onSignOut={signOut}
-                role={profile.role}
-              />
-            </SheetContent>
-          </Sheet>
-
           <TenantMark tenant={tenant} />
           <div className="ml-auto flex items-center gap-2">
             <a
@@ -140,10 +120,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           />
         </aside>
 
-        <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-24 md:pb-8">
+        <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-32 md:pb-8">
           {children ?? <Outlet />}
         </main>
       </div>
+
 
       {/* Mobile bottom tab bar */}
       <MobileTabBar items={navWithBadges} />
@@ -165,9 +146,12 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
     .map((p) => items.find((i) => i.to === p))
     .filter((x): x is NavItem & { badge?: number } => !!x);
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur-lg md:hidden">
+    <nav
+      className="fixed inset-x-3 z-30 md:hidden rounded-2xl border border-border bg-background/85 shadow-[0_8px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+      style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+    >
       <div
-        className="grid pb-[max(0.25rem,env(safe-area-inset-bottom))]"
+        className="grid px-1 py-1.5"
         style={{ gridTemplateColumns: `repeat(${primary.length}, minmax(0, 1fr))` }}
       >
         {primary.map((n) => {
@@ -179,13 +163,14 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
               key={n.to}
               to={n.to}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
-                active ? "text-foreground" : "text-muted-foreground",
+                "relative flex flex-col items-center justify-center gap-1 rounded-xl py-2.5 text-[10px] font-medium transition-colors",
+                active ? "text-foreground bg-[color-mix(in_oklab,var(--brand)_14%,transparent)]" : "text-muted-foreground",
               )}
-              style={active ? { color: "var(--brand)" } : undefined}
+              style={active ? { color: "var(--brand-ink, var(--brand))" } : undefined}
             >
-              <Icon className="size-5" />
+              <Icon className="size-[22px]" />
               <span className="truncate max-w-[64px]">{n.label}</span>
+
               {n.badge ? (
                 <span
                   className="absolute top-1 right-1/4 min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white"
