@@ -31,7 +31,7 @@ import { useT } from "@/lib/i18n";
 type NavItem = {
   to: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   requiresFeature?: "fee_tracking";
 };
 
