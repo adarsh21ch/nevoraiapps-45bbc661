@@ -61,47 +61,44 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* LIGHT: crisp white surfaces + lime accent (Academy OS light theme) */
 :root {
-  --radius: 0.875rem;
-  --background: oklch(0.99 0.003 150);
-  --foreground: oklch(0.16 0.02 160);
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0.02 160);
+  --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.02 160);
-  --primary: oklch(0.82 0.22 132);
-  --primary-foreground: oklch(0.16 0.02 160);
-  --secondary: oklch(0.96 0.008 150);
-  --secondary-foreground: oklch(0.2 0.02 160);
-  --muted: oklch(0.96 0.008 150);
-  --muted-foreground: oklch(0.5 0.02 160);
-  --accent: oklch(0.94 0.06 132);
-  --accent-foreground: oklch(0.16 0.02 160);
-  --destructive: oklch(0.6 0.22 25);
-  --destructive-foreground: oklch(0.99 0.003 150);
-  --border: oklch(0.9 0.01 150);
-  --input: oklch(0.92 0.01 150);
-  --ring: oklch(0.82 0.22 132);
-  --chart-1: oklch(0.82 0.22 132);
-  --chart-2: oklch(0.72 0.18 148);
-  --chart-3: oklch(0.72 0.15 90);
-  --chart-4: oklch(0.62 0.2 20);
-  --chart-5: oklch(0.6 0.18 260);
-  --sidebar: oklch(0.98 0.005 150);
-  --sidebar-foreground: oklch(0.2 0.02 160);
-  --sidebar-primary: oklch(0.82 0.22 132);
-  --sidebar-primary-foreground: oklch(0.16 0.02 160);
-  --sidebar-accent: oklch(0.94 0.01 150);
-  --sidebar-accent-foreground: oklch(0.16 0.02 160);
-  --sidebar-border: oklch(0.9 0.01 150);
-  --sidebar-ring: oklch(0.82 0.22 132);
-  --brand: #16a34a;
-  --brand-ink: #052e16;
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
 }
 
-/* DARK: near-black surfaces + electric lime accent (matches marketing homepage) */
 .dark {
+  /* Academy OS dashboard palette: near-black surfaces + electric lime accents (matches marketing homepage) */
   --background: oklch(0.14 0.005 160);
   --foreground: oklch(0.98 0.005 150);
   --card: oklch(0.19 0.008 160);
@@ -114,12 +111,12 @@
   --secondary-foreground: oklch(0.98 0.005 150);
   --muted: oklch(0.22 0.008 160);
   --muted-foreground: oklch(0.72 0.02 155);
-  --accent: oklch(0.28 0.05 148);
-  --accent-foreground: oklch(0.98 0.005 150);
+  --accent: oklch(0.88 0.24 130);
+  --accent-foreground: oklch(0.16 0.02 160);
   --destructive: oklch(0.68 0.2 22);
   --destructive-foreground: oklch(0.98 0.01 150);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 14%);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.88 0.24 130);
   --chart-1: oklch(0.88 0.24 130);
   --chart-2: oklch(0.72 0.18 148);
@@ -132,12 +129,12 @@
   --sidebar-primary-foreground: oklch(0.16 0.02 160);
   --sidebar-accent: oklch(0.24 0.01 160);
   --sidebar-accent-foreground: oklch(0.98 0.005 150);
-  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.88 0.24 130);
+  /* Dashboard brand override: force lime accent regardless of tenant color */
   --brand: #a8ff1a;
   --brand-ink: #0a0a0a;
 }
-
 
 
 @layer base {
