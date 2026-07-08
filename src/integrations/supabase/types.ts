@@ -367,6 +367,7 @@ export type Database = {
       }
       registrations: {
         Row: {
+          address: string | null
           batch_id: string | null
           created_at: string
           dob: string | null
@@ -378,11 +379,13 @@ export type Database = {
           payment_ref: string | null
           payment_status: string
           phone: string
+          photo_url: string | null
           status: string
           tenant_id: string
           whatsapp: string | null
         }
         Insert: {
+          address?: string | null
           batch_id?: string | null
           created_at?: string
           dob?: string | null
@@ -394,11 +397,13 @@ export type Database = {
           payment_ref?: string | null
           payment_status?: string
           phone: string
+          photo_url?: string | null
           status?: string
           tenant_id: string
           whatsapp?: string | null
         }
         Update: {
+          address?: string | null
           batch_id?: string | null
           created_at?: string
           dob?: string | null
@@ -410,6 +415,7 @@ export type Database = {
           payment_ref?: string | null
           payment_status?: string
           phone?: string
+          photo_url?: string | null
           status?: string
           tenant_id?: string
           whatsapp?: string | null
@@ -541,6 +547,7 @@ export type Database = {
       }
       students: {
         Row: {
+          address: string | null
           batch_id: string | null
           created_at: string
           custom_fee: number | null
@@ -554,10 +561,12 @@ export type Database = {
           notes: string | null
           phone: string
           photo_url: string | null
+          player_id: string | null
           status: string
           tenant_id: string
         }
         Insert: {
+          address?: string | null
           batch_id?: string | null
           created_at?: string
           custom_fee?: number | null
@@ -571,10 +580,12 @@ export type Database = {
           notes?: string | null
           phone: string
           photo_url?: string | null
+          player_id?: string | null
           status?: string
           tenant_id: string
         }
         Update: {
+          address?: string | null
           batch_id?: string | null
           created_at?: string
           custom_fee?: number | null
@@ -588,6 +599,7 @@ export type Database = {
           notes?: string | null
           phone?: string
           photo_url?: string | null
+          player_id?: string | null
           status?: string
           tenant_id?: string
         }
@@ -670,6 +682,7 @@ export type Database = {
           niche: string
           phone: string | null
           platform_notes: string | null
+          player_prefix: string | null
           primary_color: string
           secondary_color: string
           setup_fee: number
@@ -697,6 +710,7 @@ export type Database = {
           niche?: string
           phone?: string | null
           platform_notes?: string | null
+          player_prefix?: string | null
           primary_color?: string
           secondary_color?: string
           setup_fee?: number
@@ -724,6 +738,7 @@ export type Database = {
           niche?: string
           phone?: string | null
           platform_notes?: string | null
+          player_prefix?: string | null
           primary_color?: string
           secondary_color?: string
           setup_fee?: number
@@ -754,6 +769,7 @@ export type Database = {
         Args: { p_payment_ref: string; p_registration_id: string }
         Returns: boolean
       }
+      compute_player_prefix: { Args: { _tenant_id: string }; Returns: string }
       is_platform_admin: { Args: { _uid: string }; Returns: boolean }
       is_tenant_member: {
         Args: { _tenant: string; _uid: string }
