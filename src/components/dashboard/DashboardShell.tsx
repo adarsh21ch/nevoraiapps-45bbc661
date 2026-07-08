@@ -1,9 +1,10 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   Inbox,
@@ -18,6 +19,8 @@ import {
   ClipboardCheck,
   BellRing,
   UserCircle,
+  MoreHorizontal,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
@@ -28,28 +31,33 @@ import { useT } from "@/lib/i18n";
 type NavItem = {
   to: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  requiresFeature?: "fee_tracking";
 };
 
-const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
+// Primary nav — the 5 things owners use every day.
+const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
   { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
   { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
-  { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-  { to: "/dashboard/reminders", label: "Reminders", icon: BellRing, requiresFeature: "fee_tracking" },
-  { to: "/dashboard/reports", label: "Reports", icon: BarChart3, requiresFeature: "fee_tracking" },
-  { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
-  { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet },
-  { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
-
+// Secondary — moved into "More" / Settings.
+const secondaryNav: NavItem[] = [
+  { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
+  { to: "/dashboard/reminders", label: "Reminders", icon: BellRing, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
+  { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/reports", label: "Reports", icon: BarChart3, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
+];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
   const { t } = useT();
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const newRegCount = useQuery({
     queryKey: ["d", "regs-new-count", tenant.id],
@@ -78,24 +86,24 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   });
 
   const features = getFeatures(tenant);
-  const navWithBadges = nav
-    .filter((n) => !n.requiresFeature || features[n.requiresFeature] !== false)
-    .map((n) => {
-      const label = t(n.label);
-      if (n.to === "/dashboard/registrations" && newRegCount.data && newRegCount.data > 0) {
-        return { ...n, label, badge: newRegCount.data };
-      }
-      if (n.to === "/dashboard/leads" && newLeadCount.data && newLeadCount.data > 0) {
-        return { ...n, label, badge: newLeadCount.data };
-      }
-      return { ...n, label };
-    });
+  const withBadges = (items: NavItem[]) =>
+    items
+      .filter((n) => !n.requiresFeature || features[n.requiresFeature] !== false)
+      .map((n) => {
+        const label = t(n.label);
+        let badge: number | undefined;
+        if (n.to === "/dashboard/registrations" && newRegCount.data) badge = newRegCount.data;
+        if (n.to === "/dashboard/leads" && newLeadCount.data) badge = newLeadCount.data;
+        return { ...n, label, badge };
+      });
 
+  const primary = withBadges(primaryNav);
+  const secondary = withBadges(secondaryNav);
 
   return (
-    <div className="min-h-screen bg-muted/30 text-foreground">
+    <div className="min-h-screen bg-[#fafafa] text-foreground">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/95 backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
           <TenantMark tenant={tenant} />
           <div className="ml-auto flex items-center gap-2">
@@ -118,83 +126,136 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="hidden md:block w-64 border-r bg-background sticky top-[57px] h-[calc(100vh-57px)]">
+        <aside className="hidden md:block w-60 border-r border-black/[0.06] bg-white sticky top-[57px] h-[calc(100vh-57px)]">
           <SidebarInner
             tenant={tenant}
-            items={navWithBadges}
+            primary={primary}
+            secondary={secondary}
             onSignOut={signOut}
             role={profile.role}
           />
         </aside>
 
-        <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-32 md:pb-8">
+        <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-28 md:pb-8">
           {children ?? <Outlet />}
         </main>
       </div>
 
+      {/* Mobile bottom tab bar — 5 slots incl. More */}
+      <MobileTabBar
+        items={primary}
+        onMore={() => setMoreOpen(true)}
+        moreBadge={0}
+      />
 
-      {/* Mobile bottom tab bar */}
-      <MobileTabBar items={navWithBadges} />
+      {/* More sheet — settings and secondary items */}
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl p-0 border-0 max-h-[80vh] overflow-y-auto"
+        >
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-black/10" />
+          <div className="p-5 pt-3">
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium mb-3 inline-flex items-center gap-1.5">
+              <Settings className="size-3.5" /> {t("Settings")}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {secondary.map((n) => {
+                const Icon = n.icon;
+                return (
+                  <Link
+                    key={n.to}
+                    to={n.to}
+                    onClick={() => setMoreOpen(false)}
+                    className="flex flex-col items-center gap-2 rounded-2xl border border-black/[0.06] bg-white p-4 text-[11px] font-medium text-foreground hover:bg-black/[0.02]"
+                  >
+                    <Icon className="size-5" style={{ color: "var(--brand)" }} />
+                    <span className="text-center leading-tight">{n.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+            <Button
+              variant="outline"
+              className="mt-5 w-full rounded-xl h-11"
+              onClick={() => {
+                setMoreOpen(false);
+                signOut();
+              }}
+            >
+              <LogOut className="size-4 mr-1.5" /> {t("Sign out")}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
 
-function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
+function MobileTabBar({
+  items,
+  onMore,
+  moreBadge,
+}: {
+  items: (NavItem & { badge?: number })[];
+  onMore: () => void;
+  moreBadge?: number;
+}) {
   const location = useLocation();
-  // Fixed 5-slot bottom bar: Home · Fees · Students · Registrations · Profile
-  const priority = [
-    "/dashboard",
-    "/dashboard/fees",
-    "/dashboard/students",
-    "/dashboard/registrations",
-    "/dashboard/profile",
-  ];
-  const primary = priority
-    .map((p) => items.find((i) => i.to === p))
-    .filter((x): x is NavItem & { badge?: number } => !!x);
   return (
     <nav
-      className="fixed inset-x-3 z-30 md:hidden rounded-2xl border border-border bg-background/85 shadow-[0_8px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl"
-      style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      className="fixed inset-x-0 z-30 md:hidden border-t border-black/[0.06] bg-white/95 backdrop-blur"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div
-        className="grid px-1 py-1.5"
-        style={{ gridTemplateColumns: `repeat(${primary.length}, minmax(0, 1fr))` }}
-      >
-        {primary.map((n) => {
+      <div className="grid grid-cols-5">
+        {items.map((n) => {
           const active =
-            n.to === "/dashboard" ? location.pathname === "/dashboard" : location.pathname.startsWith(n.to);
+            n.to === "/dashboard"
+              ? location.pathname === "/dashboard"
+              : location.pathname.startsWith(n.to);
           const Icon = n.icon;
           return (
             <Link
               key={n.to}
               to={n.to}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1 rounded-xl py-2.5 text-[10px] font-medium transition-colors",
-                active ? "text-foreground bg-[color-mix(in_oklab,var(--brand)_14%,transparent)]" : "text-muted-foreground",
+                "relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[52px] text-[10px] font-medium",
+                active ? "text-foreground" : "text-muted-foreground",
               )}
-              style={active ? { color: "var(--brand-ink, var(--brand))" } : undefined}
             >
-              <Icon className="size-[22px]" />
+              <Icon className="size-[20px]" style={active ? { color: "var(--brand)" } : undefined} />
               <span className="truncate max-w-[64px]">{n.label}</span>
-
-              {n.badge ? (
+              {active && (
                 <span
-                  className="absolute top-1 right-1/4 min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white"
-                  style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
-                >
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-t-full"
+                  style={{ backgroundColor: "var(--brand)" }}
+                />
+              )}
+              {n.badge ? (
+                <span className="absolute top-1 right-[calc(50%-18px)] min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white bg-rose-600">
                   {n.badge}
                 </span>
               ) : null}
             </Link>
           );
         })}
+        <button
+          type="button"
+          onClick={onMore}
+          className="relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[52px] text-[10px] font-medium text-muted-foreground"
+        >
+          <MoreHorizontal className="size-[20px]" />
+          <span>More</span>
+          {moreBadge ? (
+            <span className="absolute top-1 right-[calc(50%-18px)] min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white bg-rose-600">
+              {moreBadge}
+            </span>
+          ) : null}
+        </button>
       </div>
     </nav>
   );
 }
-
-
 
 function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | null } }) {
   const { t } = useT();
@@ -202,7 +263,7 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
     <div className="flex items-center gap-2 min-w-0">
       <div
         className="size-8 rounded-md grid place-items-center text-white text-xs font-bold shrink-0"
-        style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
+        style={{ backgroundColor: "var(--tenant-brand, var(--brand, #ff9f43))" }}
       >
         {tenant.logo_url ? (
           <img src={tenant.logo_url} alt="" className="size-8 rounded-md object-cover" />
@@ -220,60 +281,68 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
 
 function SidebarInner({
   tenant,
-  items,
-  onNavigate,
+  primary,
+  secondary,
   onSignOut,
   role,
 }: {
   tenant: { name: string };
-  items: (NavItem & { badge?: number })[];
-  onNavigate?: () => void;
+  primary: (NavItem & { badge?: number })[];
+  secondary: (NavItem & { badge?: number })[];
   onSignOut: () => void;
   role: string;
 }) {
   const location = useLocation();
   const { t } = useT();
+  const renderItem = (n: NavItem & { badge?: number }) => {
+    const active =
+      n.to === "/dashboard"
+        ? location.pathname === "/dashboard"
+        : location.pathname.startsWith(n.to);
+    const Icon = n.icon;
+    return (
+      <Link
+        key={n.to}
+        to={n.to}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+          active
+            ? "font-medium"
+            : "text-muted-foreground hover:bg-black/[0.03]",
+        )}
+        style={
+          active
+            ? {
+                backgroundColor: "color-mix(in oklab, var(--brand) 14%, transparent)",
+                color: "var(--brand-ink, var(--brand))",
+              }
+            : undefined
+        }
+      >
+        <Icon className="size-4" />
+        <span className="flex-1">{n.label}</span>
+        {n.badge ? (
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white bg-rose-600">
+            {n.badge}
+          </span>
+        ) : null}
+      </Link>
+    );
+  };
   return (
     <div className="flex h-full flex-col">
-      <div className="p-4 border-b">
+      <div className="p-4 border-b border-black/[0.06]">
         <div className="text-sm font-semibold truncate">{tenant.name}</div>
         <div className="text-xs text-muted-foreground capitalize">{role}</div>
       </div>
-      <nav className="flex-1 p-2 space-y-1">
-        {items.map((n) => {
-          const active =
-            n.to === "/dashboard"
-              ? location.pathname === "/dashboard"
-              : location.pathname.startsWith(n.to);
-          const Icon = n.icon;
-          return (
-            <Link
-              key={n.to}
-              to={n.to}
-              onClick={onNavigate}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                active
-                  ? "bg-[var(--brand)]/10 text-[var(--brand-ink)] font-medium"
-                  : "text-muted-foreground hover:bg-muted",
-              )}
-              style={active ? { color: "var(--brand-ink, currentColor)" } : undefined}
-            >
-              <Icon className="size-4" />
-              <span className="flex-1">{n.label}</span>
-              {n.badge ? (
-                <span
-                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white"
-                  style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
-                >
-                  {n.badge}
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+        {primary.map(renderItem)}
+        <div className="pt-3 pb-1 px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+          {t("Settings")}
+        </div>
+        {secondary.map(renderItem)}
       </nav>
-      <div className="p-2 border-t">
+      <div className="p-2 border-t border-black/[0.06]">
         <Button variant="ghost" size="sm" className="w-full justify-start" onClick={onSignOut}>
           <LogOut className="size-4 mr-2" /> {t("Sign out")}
         </Button>
