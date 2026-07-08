@@ -337,14 +337,14 @@ function DashboardHome() {
   );
 }
 
-function KpiCard({
+function KpiCell({
   to,
   search,
   icon,
   label,
   value,
   hint,
-  accent,
+  tone = "brand",
   emphasize,
 }: {
   to: "/dashboard/students" | "/dashboard/fees" | "/dashboard/registrations";
@@ -353,56 +353,40 @@ function KpiCard({
   label: string;
   value: string | null;
   hint?: string;
-  accent: "brand" | "emerald" | "rose";
+  tone?: "brand" | "emerald" | "rose";
   emphasize?: boolean;
 }) {
-  const { t } = useT();
-  const accentStyles: Record<string, { bg: string; fg: string; ring?: string }> = {
-    brand: {
-      bg: "color-mix(in oklab, var(--brand) 12%, transparent)",
-      fg: "var(--brand)",
-    },
-    emerald: {
-      bg: "color-mix(in oklab, #10b981 14%, transparent)",
-      fg: "#047857",
-    },
-    rose: {
-      bg: "color-mix(in oklab, #f43f5e 14%, transparent)",
-      fg: "#be123c",
-    },
-  };
-  const s = accentStyles[accent];
+  const toneColor =
+    tone === "emerald" ? "#10b981" : tone === "rose" ? "#f43f5e" : "var(--brand)";
   return (
     <Link
       to={to}
       search={search as never}
-      className="group block"
+      className="group block p-3 md:p-4 hover:bg-accent/60 transition-colors"
     >
-      <Card
-        className={`p-4 md:p-5 h-full transition-all hover:-translate-y-0.5 hover:shadow-md ${
-          emphasize ? "ring-1 ring-rose-200" : ""
-        }`}
-      >
-        <div className="flex items-start justify-between">
-          <div
-            className="grid size-9 place-items-center rounded-xl"
-            style={{ backgroundColor: s.bg, color: s.fg }}
-          >
-            {icon}
-          </div>
-          <ChevronRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-        <div className="mt-3 text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+      <div className="flex items-center gap-2">
+        <span
+          className="grid size-6 md:size-7 place-items-center rounded-md"
+          style={{
+            backgroundColor: `color-mix(in oklab, ${toneColor} 18%, transparent)`,
+            color: toneColor,
+          }}
+        >
+          {icon}
+        </span>
+        <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold truncate">
           {label}
-        </div>
-        <div className="mt-1 text-2xl md:text-3xl font-bold tabular-nums" style={{ color: emphasize ? s.fg : undefined }}>
-          {value === null ? <Skeleton className="h-8 w-20" /> : value}
-        </div>
-        {hint ? <div className="text-[11px] text-muted-foreground mt-1">{hint}</div> : null}
-        <div className="mt-2 text-[11px] font-semibold inline-flex items-center gap-1" style={{ color: s.fg }}>
-          {t("View")} <ArrowRight className="size-3" />
-        </div>
-      </Card>
+        </span>
+      </div>
+      <div
+        className="mt-2 text-2xl md:text-3xl font-bold tabular-nums leading-none"
+        style={emphasize ? { color: toneColor } : undefined}
+      >
+        {value === null ? <Skeleton className="h-7 w-16" /> : value}
+      </div>
+      {hint ? (
+        <div className="mt-1 text-[10px] text-muted-foreground truncate">{hint}</div>
+      ) : null}
     </Link>
   );
 }
