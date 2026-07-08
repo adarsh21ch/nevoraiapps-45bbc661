@@ -93,7 +93,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 
   return (
-    <div className="min-h-screen bg-muted/30 text-foreground">
+    <div className="dark min-h-screen bg-background text-foreground">
+
       {/* Top bar */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
