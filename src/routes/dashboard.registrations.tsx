@@ -90,12 +90,15 @@ function RegistrationsInbox() {
 
   return (
     <div className="space-y-5">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Registrations</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          New sign-ups from your website · newest first
-          {newCount > 0 ? ` · ${newCount} unactioned` : ""}
-        </p>
+      <header className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Registrations</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            New sign-ups from your website · newest first
+            {newCount > 0 ? ` · ${newCount} unactioned` : ""}
+          </p>
+        </div>
+        <ShareLinkButton tenant={tenant} />
       </header>
 
       {isLoading ? (
