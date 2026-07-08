@@ -127,7 +127,7 @@ export async function generateReportCardPdf(tenant: Tenant, r: ReportCardData) {
   if (r.playerId) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.setTextColor(tenant.primary_color || "#111");
+    doc.setTextColor(brandHex);
     doc.text(r.playerId, infoX, iy);
     iy += 18;
   }
