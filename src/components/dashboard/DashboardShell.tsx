@@ -101,9 +101,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const secondary = withBadges(secondaryNav);
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
           <TenantMark tenant={tenant} />
           <div className="ml-auto flex items-center gap-2">
