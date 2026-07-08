@@ -86,8 +86,12 @@ function FeeRegister() {
   const selectedPeriod = periodKey(selectedMonth);
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [selectedPeriod];
 
-  const [filter, setFilter] = useState<Filter>("pending");
+  const initialFilter = Route.useSearch().filter ?? "pending";
+  const [filter, setFilter] = useState<Filter>(initialFilter);
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);
+  // keep filter in sync when navigating via a KPI drill-through
+  // (component doesn't unmount on same-route search change)
+  useEffect(() => { setFilter(initialFilter); }, [initialFilter]);
 
   const studentsQ = useQuery({
     queryKey: qk.students(tenant.id),
