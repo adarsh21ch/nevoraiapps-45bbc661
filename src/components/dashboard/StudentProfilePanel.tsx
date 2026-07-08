@@ -101,7 +101,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
 
   const patch = useMutation({
     mutationFn: async (payload: Record<string, any>) => {
-      const { error } = await supabase.from("students").update(payload).eq("id", studentId);
+      const { error } = await (supabase.from("students") as any).update(payload).eq("id", studentId);
       if (error) throw error;
     },
     onSuccess: () => invalidate(),
