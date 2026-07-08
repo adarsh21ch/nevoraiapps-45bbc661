@@ -185,7 +185,7 @@ function FeeRegister() {
         </div>
         {cycle === "calendar_month" && (
           <div
-            className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1"
+            className="flex items-center gap-1 rounded-full bg-white border border-black/[0.06] shadow-sm px-1 py-1"
           >
             <Button
               variant="ghost"
@@ -239,14 +239,14 @@ function FeeRegister() {
 
       {/* List */}
       <section
-        className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
+        className="rounded-2xl bg-white border border-black/[0.06] shadow-sm overflow-hidden"
       >
         {loading ? (
           <SkeletonList />
         ) : visible.length === 0 ? (
           <EmptyState filter={filter} monthLabel={format(selectedMonth, "MMMM")} />
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-black/[0.06]">
             {visible.map((r, i) => (
               <FeeRow
                 key={r.studentId}
@@ -305,8 +305,8 @@ function SummaryCard({
   return (
     <div
       className={cn(
-        "rounded-2xl bg-card border shadow-sm p-5",
-        emphasized ? "border-rose-100 ring-1 ring-rose-100/60" : "border-border",
+        "rounded-2xl bg-white border shadow-sm p-5",
+        emphasized ? "border-rose-100 ring-1 ring-rose-100/60" : "border-black/[0.06]",
       )}
     >
       <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
@@ -337,7 +337,7 @@ function SegmentedToggle({
     { key: "all", label: "All", count: counts.all },
   ];
   return (
-    <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1">
+    <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-white border border-black/[0.06] shadow-sm p-1">
       {items.map((it) => {
         const active = value === it.key;
         return (
@@ -511,7 +511,7 @@ function FeeRow({
 
 function SkeletonList() {
   return (
-    <ul className="divide-y divide-border">
+    <ul className="divide-y divide-black/[0.06]">
       {Array.from({ length: 5 }).map((_, i) => (
         <li key={i} className="p-4 md:px-5 md:py-4">
           <div className="flex items-center gap-3 md:gap-4">
@@ -645,7 +645,7 @@ function CollectForm({
   return (
     <div className="space-y-5 pt-2">
       <div className="text-xs text-muted-foreground">
-        Period: <span className="font-medium text-foreground">{periodLabel(period)}</span>
+        Period: <span className="font-medium text-neutral-700">{periodLabel(period)}</span>
       </div>
 
       <div className="space-y-1.5">
@@ -728,7 +728,7 @@ function MethodButton({
         "h-16 rounded-xl border-2 flex items-center justify-center gap-2 text-base font-semibold transition-all",
         active
           ? "text-white shadow-sm"
-          : "bg-card text-foreground border-border hover:border-foreground/30",
+          : "bg-white text-neutral-700 border-black/[0.08] hover:border-black/20",
       )}
       style={
         active

@@ -139,7 +139,7 @@ function StudentsPage() {
       </header>
 
       {/* Status tabs */}
-      <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1 overflow-x-auto">
+      <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-white border border-black/[0.06] shadow-sm p-1 overflow-x-auto">
         {statusTabs.map((t) => {
           const active = status === t.key;
           return (
@@ -177,11 +177,11 @@ function StudentsPage() {
             placeholder="Search name, phone, or Player ID"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="pl-10 h-11 rounded-full bg-card border-border shadow-sm"
+            className="pl-10 h-11 rounded-full bg-white border-black/[0.06] shadow-sm"
           />
         </div>
         <Select value={batch} onValueChange={setBatch}>
-          <SelectTrigger className="w-full md:w-48 h-11 rounded-full bg-card border-border shadow-sm">
+          <SelectTrigger className="w-full md:w-48 h-11 rounded-full bg-white border-black/[0.06] shadow-sm">
             <SelectValue placeholder="Batch" />
           </SelectTrigger>
           <SelectContent>
@@ -194,9 +194,9 @@ function StudentsPage() {
       </div>
 
       {/* List */}
-      <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
+      <section className="rounded-2xl bg-white border border-black/[0.06] shadow-sm overflow-hidden">
         {students.isLoading ? (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-black/[0.06]">
             {Array.from({ length: 5 }).map((_, i) => (
               <li key={i} className="p-4 flex items-center gap-3">
                 <div className="h-11 w-11 rounded-full bg-black/5 animate-pulse" />
@@ -212,7 +212,7 @@ function StudentsPage() {
             No students match. {status === "active" ? "Add your first student to get started." : ""}
           </div>
         ) : (
-          <ul className="divide-y divide-border">
+          <ul className="divide-y divide-black/[0.06]">
             {filtered.map((s: any, i: number) => {
               const plan = s.fee_plans as { name?: string; amount?: number } | null;
               const effective = s.custom_fee != null ? Number(s.custom_fee) : Number(plan?.amount ?? 0);

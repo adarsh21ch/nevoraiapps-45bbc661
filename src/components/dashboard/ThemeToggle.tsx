@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/hooks/use-hydrated";
 
-const KEY = "acadaos-theme";
+const KEY = "lovable-theme";
 
 function applyTheme(t: "light" | "dark") {
   const el = document.documentElement;
@@ -12,10 +13,10 @@ function applyTheme(t: "light" | "dark") {
 
 export function ThemeToggle() {
   const hydrated = useHydrated();
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
-    const saved = (localStorage.getItem(KEY) as "light" | "dark" | null) ?? "dark";
+    const saved = (localStorage.getItem(KEY) as "light" | "dark" | null) ?? "light";
     setTheme(saved);
     applyTheme(saved);
   }, []);
@@ -28,17 +29,18 @@ export function ThemeToggle() {
   };
 
   if (!hydrated) {
-    return <div className="h-8 w-8" aria-hidden />;
+    return <div className="size-9" aria-hidden />;
   }
 
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={toggle}
       aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-none border border-white/10 bg-white/5 text-zinc-300 hover:text-lime-400 hover:border-lime-400/40 transition-colors"
+      className="rounded-full"
     >
       {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-    </button>
+    </Button>
   );
 }
