@@ -211,7 +211,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
       {/* Fee card */}
       <div
         className="rounded-2xl p-4 border shadow-sm bg-card flex items-center justify-between gap-3"
-        style={{ borderColor: "color-mix(in oklab, var(--brand) 20%, white)" }}
+        style={{ borderColor: "color-mix(in oklab, var(--brand) 40%, var(--border))" }}
       >
         <div>
           <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
