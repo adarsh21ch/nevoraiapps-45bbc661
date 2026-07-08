@@ -105,10 +105,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
-
-      {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
+    <div
+      className="dark min-h-screen bg-background text-foreground"
+      style={{ fontFamily: "Inter, ui-sans-serif, system-ui" }}
+    >
+      {/* Top bar — matches sign-in page brand strip */}
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0a0a0a]/95 backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
           <TenantMark tenant={tenant} />
           <div className="ml-auto flex items-center gap-2">
@@ -116,13 +118,18 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               href={`/?tenant=${tenant.slug}`}
               target="_blank"
               rel="noreferrer"
-              className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mr-1"
+              className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-lime-400 mr-1"
             >
               {t("View site")} <ExternalLink className="size-3" />
             </a>
             <LanguageToggle />
 
-            <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="hidden md:inline-flex text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300 hover:text-lime-400 hover:bg-white/5"
+            >
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>
           </div>
@@ -131,7 +138,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="hidden md:block w-64 border-r bg-background sticky top-[57px] h-[calc(100vh-57px)]">
+        <aside className="hidden md:block w-64 border-r border-white/10 bg-[#0a0a0a] sticky top-[57px] h-[calc(100vh-57px)]">
           <SidebarInner
             tenant={tenant}
             items={navWithBadges}
@@ -144,6 +151,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           {children ?? <Outlet />}
         </main>
       </div>
+
+
 
 
       {/* Mobile bottom tab bar */}
