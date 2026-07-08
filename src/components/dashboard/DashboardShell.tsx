@@ -232,7 +232,7 @@ function SidebarInner({
   role: string;
 }) {
   const location = useLocation();
-  return (
+  const { t } = useT();
     <div className="flex h-full flex-col">
       <div className="p-4 border-b">
         <div className="text-sm font-semibold truncate">{tenant.name}</div>
