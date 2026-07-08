@@ -121,7 +121,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               {t("View site")} <ExternalLink className="size-3" />
             </a>
             <LanguageToggle />
-            <ThemeToggle />
+
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>
