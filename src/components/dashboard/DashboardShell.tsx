@@ -24,7 +24,9 @@ import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
 
 import { LanguageToggle } from "@/components/dashboard/LanguageToggle";
+import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { useT } from "@/lib/i18n";
+
 
 type NavItem = {
   to: string;
