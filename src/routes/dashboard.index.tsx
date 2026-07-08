@@ -455,7 +455,23 @@ function normalizePhone(raw: string): string {
 function waFormat(phone: string): string {
   const digits = phone.replace(/\D/g, "");
   if (!digits) return "";
-  // If 10 digits assume India, prefix 91
   if (digits.length === 10) return `91${digits}`;
   return digits;
 }
+
+function HeroStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className={`border-l-2 pl-3 ${accent ? "border-lime-400" : "border-white/15"}`}>
+      <div
+        className={`text-3xl md:text-4xl leading-none ${accent ? "text-lime-400" : "text-white"}`}
+        style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+      >
+        {value}
+      </div>
+      <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.25em] text-zinc-500">
+        {label}
+      </div>
+    </div>
+  );
+}
+
