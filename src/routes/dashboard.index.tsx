@@ -122,16 +122,16 @@ function DashboardHome() {
   const feeEnabled = features.fee_tracking !== false;
 
   return (
-    <div className="dash-home space-y-5 md:space-y-6">
-      <header className="dash-header">
-        <h1 className="dash-h1 text-2xl font-bold tracking-tight">{t("Welcome back")}</h1>
-        <p className="dash-sub text-sm text-muted-foreground">
+    <div className="space-y-5 md:space-y-6">
+      <header>
+        <h1 className="text-2xl font-bold tracking-tight">{t("Welcome back")}</h1>
+        <p className="text-sm text-muted-foreground">
           {tenant.name} · {t("at a glance")} · {monthLabel}
         </p>
       </header>
 
       {/* KPI grid — clickable */}
-      <div className="dash-kpis grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <KpiCard
           to="/dashboard/students"
           search={{ status: "active" }}
@@ -176,7 +176,7 @@ function DashboardHome() {
 
       {/* Monthly collection progress */}
       {feeEnabled ? (
-        <Card className="dash-card dash-progress p-5 md:p-6">
+        <Card className="p-5 md:p-6">
           <div className="flex items-baseline justify-between gap-3 flex-wrap">
             <div>
               <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
@@ -216,7 +216,7 @@ function DashboardHome() {
 
       {/* Follow-up list */}
       {feeEnabled ? (
-        <Card className="dash-card dash-followup p-0 overflow-hidden">
+        <Card className="p-0 overflow-hidden">
           <div className="flex items-center justify-between border-b px-4 py-3 md:px-5">
             <div>
               <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
@@ -370,10 +370,9 @@ function KpiCard({
       className="group block"
     >
       <Card
-        className={`dash-card dash-kpi p-4 md:p-5 h-full transition-all hover:-translate-y-0.5 hover:shadow-md ${
+        className={`p-4 md:p-5 h-full transition-all hover:-translate-y-0.5 hover:shadow-md ${
           emphasize ? "ring-1 ring-rose-200" : ""
         }`}
-        data-accent={accent}
       >
         <div className="flex items-start justify-between">
           <div
@@ -387,7 +386,7 @@ function KpiCard({
         <div className="mt-3 text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
           {label}
         </div>
-        <div className="dash-num mt-1 text-2xl md:text-3xl font-bold tabular-nums" style={{ color: emphasize ? s.fg : undefined }}>
+        <div className="mt-1 text-2xl md:text-3xl font-bold tabular-nums" style={{ color: emphasize ? s.fg : undefined }}>
           {value === null ? <Skeleton className="h-8 w-20" /> : value}
         </div>
         {hint ? <div className="text-[11px] text-muted-foreground mt-1">{hint}</div> : null}

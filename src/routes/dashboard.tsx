@@ -2,7 +2,6 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { DashboardProvider } from "@/lib/dashboard-context";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { LanguageProvider } from "@/lib/i18n";
-import { ThemeDirectionProvider } from "@/lib/theme-direction";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -16,15 +15,12 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardLayout() {
   return (
-    <ThemeDirectionProvider>
-      <LanguageProvider>
-        <DashboardProvider>
-          <DashboardShell>
-            <Outlet />
-          </DashboardShell>
-        </DashboardProvider>
-      </LanguageProvider>
-    </ThemeDirectionProvider>
+    <LanguageProvider>
+      <DashboardProvider>
+        <DashboardShell>
+          <Outlet />
+        </DashboardShell>
+      </DashboardProvider>
+    </LanguageProvider>
   );
 }
-
