@@ -37,6 +37,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/fees")({
+  validateSearch: (search: Record<string, unknown>): { filter?: Filter } => {
+    const f = search.filter;
+    return f === "pending" || f === "paid" || f === "all" ? { filter: f } : {};
+  },
   component: FeeRegister,
 });
 
