@@ -49,6 +49,7 @@ const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
+  const { t } = useT();
 
   const newRegCount = useQuery({
     queryKey: ["d", "regs-new-count", tenant.id],
