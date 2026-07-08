@@ -3,34 +3,41 @@ import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/hooks/use-hydrated";
 
-const KEY = "lovable-theme";
+// Universal theme key — shared across owner dashboard AND platform admin.
+export const THEME_KEY = "acadaos.theme";
 
-function applyTheme(t: "light" | "dark") {
+export function applyTheme(t: "light" | "dark") {
   const el = document.documentElement;
   if (t === "dark") el.classList.add("dark");
   else el.classList.remove("dark");
 }
 
+export function readStoredTheme(): "light" | "dark" {
+  try {
+    const s = localStorage.getItem(THEME_KEY);
+    if (s === "light" || s === "dark") return s;
+  } catch { /* ignore */ }
+  return "dark"; // default = dark
+}
+
 export function ThemeToggle() {
   const hydrated = useHydrated();
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
-    const saved = (localStorage.getItem(KEY) as "light" | "dark" | null) ?? "light";
-    setTheme(saved);
-    applyTheme(saved);
+    const t = readStoredTheme();
+    setTheme(t);
+    applyTheme(t);
   }, []);
 
   const toggle = () => {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    localStorage.setItem(KEY, next);
+    try { localStorage.setItem(THEME_KEY, next); } catch { /* ignore */ }
     applyTheme(next);
   };
 
-  if (!hydrated) {
-    return <div className="size-9" aria-hidden />;
-  }
+  if (!hydrated) return <div className="size-9" aria-hidden />;
 
   return (
     <Button
