@@ -54,15 +54,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
   const { t } = useT();
 
-  // Force dark/lime theme across the entire dashboard (including portaled Radix dialogs/sheets)
-  useEffect(() => {
-    const el = document.documentElement;
-    const hadDark = el.classList.contains("dark");
-    el.classList.add("dark");
-    return () => {
-      if (!hadDark) el.classList.remove("dark");
-    };
-  }, []);
+
 
 
   const newRegCount = useQuery({
@@ -108,11 +100,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className="dark min-h-screen bg-background text-foreground"
+      className="min-h-screen bg-background text-foreground"
       style={{ fontFamily: "Inter, ui-sans-serif, system-ui" }}
     >
       {/* Top bar — matches sign-in page brand strip */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0a0a0a]/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-border bg-[#0a0a0a]/95 dark:bg-[#0a0a0a]/95 backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
           <TenantMark tenant={tenant} />
           <div className="ml-auto flex items-center gap-2">
@@ -125,6 +117,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               {t("View site")} <ExternalLink className="size-3" />
             </a>
             <LanguageToggle />
+            <ThemeToggle />
 
             <Button
               variant="ghost"
@@ -133,6 +126,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               className="hidden md:inline-flex text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300 hover:text-lime-400 hover:bg-white/5"
             >
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
+
             </Button>
           </div>
         </div>
