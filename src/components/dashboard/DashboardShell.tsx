@@ -176,7 +176,7 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
     .filter((x): x is NavItem & { badge?: number } => !!x);
   return (
     <nav
-      className="fixed inset-x-3 z-30 md:hidden rounded-2xl border border-border bg-background/85 shadow-[0_8px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+      className="fixed inset-x-3 z-30 md:hidden rounded-none border border-white/10 bg-[#0a0a0a]/95 shadow-[0_8px_30px_rgba(0,0,0,0.55)] backdrop-blur-xl"
       style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
     >
       <div
@@ -192,19 +192,15 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
               key={n.to}
               to={n.to}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1 rounded-xl py-2.5 text-[10px] font-medium transition-colors",
-                active ? "text-foreground bg-[color-mix(in_oklab,var(--brand)_14%,transparent)]" : "text-muted-foreground",
+                "relative flex flex-col items-center justify-center gap-1 rounded-none py-2.5 text-[9px] font-bold uppercase tracking-[0.15em] transition-colors",
+                active ? "bg-lime-400/10 text-lime-400" : "text-zinc-500 hover:text-zinc-200",
               )}
-              style={active ? { color: "var(--brand-ink, var(--brand))" } : undefined}
             >
               <Icon className="size-[22px]" />
               <span className="truncate max-w-[64px]">{n.label}</span>
 
               {n.badge ? (
-                <span
-                  className="absolute top-1 right-1/4 min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white"
-                  style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
-                >
+                <span className="absolute top-1 right-1/4 min-w-[16px] rounded-none px-1 text-[9px] font-black text-black bg-lime-400">
                   {n.badge}
                 </span>
               ) : null}
@@ -213,6 +209,7 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
         })}
       </div>
     </nav>
+
   );
 }
 
