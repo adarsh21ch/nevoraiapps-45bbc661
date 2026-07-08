@@ -101,9 +101,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const secondary = withBadges(secondaryNav);
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
           <TenantMark tenant={tenant} />
           <div className="ml-auto flex items-center gap-2">
@@ -126,7 +127,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="hidden md:block w-60 border-r border-black/[0.06] bg-white sticky top-[57px] h-[calc(100vh-57px)]">
+        <aside className="hidden md:block w-60 border-r border-border bg-card sticky top-[57px] h-[calc(100vh-57px)]">
           <SidebarInner
             tenant={tenant}
             primary={primary}
@@ -167,7 +168,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                     key={n.to}
                     to={n.to}
                     onClick={() => setMoreOpen(false)}
-                    className="flex flex-col items-center gap-2 rounded-2xl border border-black/[0.06] bg-white p-4 text-[11px] font-medium text-foreground hover:bg-black/[0.02]"
+                    className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-[11px] font-medium text-foreground hover:bg-muted"
                   >
                     <Icon className="size-5" style={{ color: "var(--brand)" }} />
                     <span className="text-center leading-tight">{n.label}</span>
@@ -204,7 +205,7 @@ function MobileTabBar({
   const location = useLocation();
   return (
     <nav
-      className="fixed inset-x-0 z-30 md:hidden border-t border-black/[0.06] bg-white/95 backdrop-blur"
+      className="fixed inset-x-0 z-30 md:hidden border-t border-border bg-background/95 backdrop-blur"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="grid grid-cols-5">
@@ -331,7 +332,7 @@ function SidebarInner({
   };
   return (
     <div className="flex h-full flex-col">
-      <div className="p-4 border-b border-black/[0.06]">
+      <div className="p-4 border-b border-border">
         <div className="text-sm font-semibold truncate">{tenant.name}</div>
         <div className="text-xs text-muted-foreground capitalize">{role}</div>
       </div>
@@ -342,7 +343,7 @@ function SidebarInner({
         </div>
         {secondary.map(renderItem)}
       </nav>
-      <div className="p-2 border-t border-black/[0.06]">
+      <div className="p-2 border-t border-border">
         <Button variant="ghost" size="sm" className="w-full justify-start" onClick={onSignOut}>
           <LogOut className="size-4 mr-2" /> {t("Sign out")}
         </Button>

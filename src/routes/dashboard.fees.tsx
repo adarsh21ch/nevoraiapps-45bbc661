@@ -213,22 +213,14 @@ function FeeRegister() {
         )}
       </header>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <SummaryCard
-          label="Pending"
-          amount={pendingAmount}
-          hint={`${pendingRows.length} student${pendingRows.length === 1 ? "" : "s"} to follow up`}
-          tone="danger"
-          emphasized
-        />
-        <SummaryCard
-          label="Collected"
-          amount={collectedAmount}
-          hint={`${paidRows.length} paid`}
-          tone="success"
-        />
-      </div>
+      {/* Compact collection strip */}
+      <CollectionStrip
+        collected={collectedAmount}
+        expected={collectedAmount + pendingAmount}
+        paidCount={paidRows.length}
+        totalCount={rows.length}
+      />
+
 
       {/* Segmented toggle */}
       <SegmentedToggle
@@ -286,7 +278,44 @@ function FeeRegister() {
   );
 }
 
+/* ---------- Collection strip ---------- */
+
+function CollectionStrip({
+  collected,
+  expected,
+  paidCount,
+  totalCount,
+}: {
+  collected: number;
+  expected: number;
+  paidCount: number;
+  totalCount: number;
+}) {
+  const pct = expected > 0 ? Math.round((collected / expected) * 100) : 0;
+  return (
+    <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
+      <div className="flex items-baseline justify-between gap-3 text-sm">
+        <div className="min-w-0 truncate">
+          <span className="font-semibold tabular-nums">{money(collected)}</span>
+          <span className="text-muted-foreground"> of {money(expected)} collected</span>
+        </div>
+        <div className="text-xs text-muted-foreground tabular-nums shrink-0">
+          {paidCount}/{totalCount} paid
+        </div>
+      </div>
+      <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+        <div
+          className="h-full rounded-full bg-foreground transition-all"
+          style={{ width: `${Math.min(100, pct)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Summary cards ---------- */
+
+
 
 function SummaryCard({
   label,

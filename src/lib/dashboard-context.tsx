@@ -73,10 +73,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (typeof document === "undefined") return;
     const t = tenantQ.data;
     const root = document.documentElement;
-    // Dashboard uses saffron as the primary action colour. Tenant branding is
-    // kept available on --tenant-brand for any per-tenant secondary accents.
-    root.style.setProperty("--brand", "#ff9f43");
-    root.style.setProperty("--brand-ink", "#b45309");
+    // Premium monochrome: brand follows the foreground (near-black in light,
+    // near-white in dark) so buttons and highlights read as premium B&W.
+    // Tenant colour is still exposed on --tenant-brand for optional touches.
+    root.style.setProperty("--brand", "var(--foreground)");
+    root.style.setProperty("--brand-ink", "var(--background)");
     if (t) {
       root.style.setProperty("--tenant-brand", t.primary_color);
       root.style.setProperty("--tenant-brand-ink", t.secondary_color);
