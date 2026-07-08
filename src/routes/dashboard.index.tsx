@@ -265,7 +265,7 @@ function DashboardHome() {
                       params={{ id: row.id }}
                       className="flex items-center gap-3 min-w-0 flex-1 hover:opacity-80"
                     >
-                      <PersonAvatar name={row.name} src={row.photoUrl} size={40} />
+                      <PersonAvatar name={row.name} src={row.photoUrl} className="size-10 text-sm" />
                       <div className="min-w-0 flex-1">
                         <div className="text-sm font-semibold truncate">{row.name}</div>
                         <div className="text-xs text-muted-foreground truncate">
