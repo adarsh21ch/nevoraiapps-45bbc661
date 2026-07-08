@@ -52,6 +52,17 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
   const { t } = useT();
 
+  // Force dark/lime theme across the entire dashboard (including portaled Radix dialogs/sheets)
+  useEffect(() => {
+    const el = document.documentElement;
+    const hadDark = el.classList.contains("dark");
+    el.classList.add("dark");
+    return () => {
+      if (!hadDark) el.classList.remove("dark");
+    };
+  }, []);
+
+
   const newRegCount = useQuery({
     queryKey: ["d", "regs-new-count", tenant.id],
     queryFn: async () => {
