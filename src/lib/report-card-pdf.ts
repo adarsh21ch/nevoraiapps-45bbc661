@@ -190,7 +190,15 @@ export async function generateReportCardPdf(tenant: Tenant, r: ReportCardData) {
     doc.text(doc.splitTextToSize(parts, w - margin * 2), margin, footerY);
   }
 
-  doc.save(
-    `${tenant.slug}-${(r.playerId || r.name).replace(/\s+/g, "-").toLowerCase()}-card.pdf`,
-  );
+  const filename = `${tenant.slug}-${(r.playerId || r.name).replace(/\s+/g, "-").toLowerCase()}-card.pdf`;
+  try {
+    doc.save(filename);
+  } catch { /* ignore */ }
+  // Also open in a new tab — reliable on iOS/Android where doc.save() can be blocked.
+  try {
+    const blobUrl = doc.output("bloburl") as unknown as string;
+    if (typeof window !== "undefined" && blobUrl) {
+      window.open(blobUrl, "_blank", "noopener,noreferrer");
+    }
+  } catch { /* ignore */ }
 }
