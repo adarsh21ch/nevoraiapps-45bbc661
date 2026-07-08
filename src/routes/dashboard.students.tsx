@@ -39,21 +39,15 @@ import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel"
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/dashboard/students")({
-  validateSearch: (search: Record<string, unknown>): { status?: string } => {
-    const s = search.status;
-    if (s === "active" || s === "paused" || s === "left" || s === "all") return { status: s };
-    return {};
-  },
   component: StudentsPage,
 });
 
 function StudentsPage() {
   const { tenant } = useDashboard();
   const cycle = tenantFeeCycle(tenant);
-  const initialStatus = Route.useSearch().status ?? "active";
 
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState<string>(initialStatus);
+  const [status, setStatus] = useState<string>("active");
   const [batch, setBatch] = useState<string>("all");
   const [addOpen, setAddOpen] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);

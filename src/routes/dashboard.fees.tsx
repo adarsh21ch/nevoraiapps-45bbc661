@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,10 +37,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/fees")({
-  validateSearch: (search: Record<string, unknown>): { filter?: Filter } => {
-    const f = search.filter;
-    return f === "pending" || f === "paid" || f === "all" ? { filter: f } : {};
-  },
   component: FeeRegister,
 });
 
@@ -86,12 +82,8 @@ function FeeRegister() {
   const selectedPeriod = periodKey(selectedMonth);
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [selectedPeriod];
 
-  const initialFilter = Route.useSearch().filter ?? "pending";
-  const [filter, setFilter] = useState<Filter>(initialFilter);
+  const [filter, setFilter] = useState<Filter>("pending");
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);
-  // keep filter in sync when navigating via a KPI drill-through
-  // (component doesn't unmount on same-route search change)
-  useEffect(() => { setFilter(initialFilter); }, [initialFilter]);
 
   const studentsQ = useQuery({
     queryKey: qk.students(tenant.id),
