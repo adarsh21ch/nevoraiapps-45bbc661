@@ -25,6 +25,15 @@ const hi: Dict = {
   "Sign out": "साइन आउट",
   "View site": "वेबसाइट देखें",
   "Language": "भाषा",
+  "Manage": "प्रबंध",
+  "here's your month at a glance": "इस महीने की एक झलक",
+  "Attendance today": "आज की हाज़िरी",
+  "New leads": "नई लीड्स",
+  "Next session": "अगला सत्र",
+  "student": "छात्र",
+  "students": "छात्र",
+  "No sessions": "कोई सत्र नहीं",
+
 
   // Home / KPIs
   "Welcome back": "वापसी पर स्वागत है",
