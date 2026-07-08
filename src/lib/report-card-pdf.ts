@@ -40,14 +40,20 @@ const fmtDate = (iso?: string | null) =>
     ? new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
     : "—";
 
+function safeHex(input: string | null | undefined, fallback = "#111111"): string {
+  const s = (input || "").trim();
+  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(s) ? s : fallback;
+}
+
 export async function generateReportCardPdf(tenant: Tenant, r: ReportCardData) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const w = doc.internal.pageSize.getWidth();
   const h = doc.internal.pageSize.getHeight();
   const margin = 48;
+  const brandHex = safeHex(tenant.primary_color);
 
   // Brand strip
-  doc.setFillColor(tenant.primary_color || "#111111");
+  doc.setFillColor(brandHex);
   doc.rect(0, 0, w, 8, "F");
 
   // Academy header
