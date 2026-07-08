@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
-import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
+
 import { LanguageToggle } from "@/components/dashboard/LanguageToggle";
 import { useT } from "@/lib/i18n";
 
