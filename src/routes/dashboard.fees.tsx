@@ -213,22 +213,14 @@ function FeeRegister() {
         )}
       </header>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <SummaryCard
-          label="Pending"
-          amount={pendingAmount}
-          hint={`${pendingRows.length} student${pendingRows.length === 1 ? "" : "s"} to follow up`}
-          tone="danger"
-          emphasized
-        />
-        <SummaryCard
-          label="Collected"
-          amount={collectedAmount}
-          hint={`${paidRows.length} paid`}
-          tone="success"
-        />
-      </div>
+      {/* Compact collection strip */}
+      <CollectionStrip
+        collected={collectedAmount}
+        expected={collectedAmount + pendingAmount}
+        paidCount={paidRows.length}
+        totalCount={rows.length}
+      />
+
 
       {/* Segmented toggle */}
       <SegmentedToggle
