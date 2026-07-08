@@ -112,10 +112,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  // Pre-hydration theme boot — prevents light-mode flash and defaults to DARK.
+  const themeBoot = `try{var t=localStorage.getItem('acadaos.theme');if(!t){t='dark';}if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}`;
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
       </head>
       <body>
         {children}

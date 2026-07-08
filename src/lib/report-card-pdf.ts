@@ -40,14 +40,20 @@ const fmtDate = (iso?: string | null) =>
     ? new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
     : "—";
 
+function safeHex(input: string | null | undefined, fallback = "#111111"): string {
+  const s = (input || "").trim();
+  return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(s) ? s : fallback;
+}
+
 export async function generateReportCardPdf(tenant: Tenant, r: ReportCardData) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const w = doc.internal.pageSize.getWidth();
   const h = doc.internal.pageSize.getHeight();
   const margin = 48;
+  const brandHex = safeHex(tenant.primary_color);
 
   // Brand strip
-  doc.setFillColor(tenant.primary_color || "#111111");
+  doc.setFillColor(brandHex);
   doc.rect(0, 0, w, 8, "F");
 
   // Academy header
@@ -121,7 +127,7 @@ export async function generateReportCardPdf(tenant: Tenant, r: ReportCardData) {
   if (r.playerId) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.setTextColor(tenant.primary_color || "#111");
+    doc.setTextColor(brandHex);
     doc.text(r.playerId, infoX, iy);
     iy += 18;
   }
@@ -184,7 +190,15 @@ export async function generateReportCardPdf(tenant: Tenant, r: ReportCardData) {
     doc.text(doc.splitTextToSize(parts, w - margin * 2), margin, footerY);
   }
 
-  doc.save(
-    `${tenant.slug}-${(r.playerId || r.name).replace(/\s+/g, "-").toLowerCase()}-card.pdf`,
-  );
+  const filename = `${tenant.slug}-${(r.playerId || r.name).replace(/\s+/g, "-").toLowerCase()}-card.pdf`;
+  try {
+    doc.save(filename);
+  } catch { /* ignore */ }
+  // Also open in a new tab — reliable on iOS/Android where doc.save() can be blocked.
+  try {
+    const blobUrl = doc.output("bloburl") as unknown as string;
+    if (typeof window !== "undefined" && blobUrl) {
+      window.open(blobUrl, "_blank", "noopener,noreferrer");
+    }
+  } catch { /* ignore */ }
 }

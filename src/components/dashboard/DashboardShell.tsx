@@ -308,19 +308,16 @@ function SidebarInner({
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
           active
-            ? "font-medium"
-            : "text-muted-foreground hover:bg-black/[0.03]",
+            ? "font-semibold text-foreground bg-accent border border-border"
+            : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
         )}
         style={
           active
-            ? {
-                backgroundColor: "color-mix(in oklab, var(--brand) 14%, transparent)",
-                color: "var(--brand-ink, var(--brand))",
-              }
+            ? { boxShadow: "inset 3px 0 0 var(--brand)" }
             : undefined
         }
       >
-        <Icon className="size-4" />
+        <Icon className="size-4" style={active ? { color: "var(--brand)" } : undefined} />
         <span className="flex-1">{n.label}</span>
         {n.badge ? (
           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white bg-rose-600">

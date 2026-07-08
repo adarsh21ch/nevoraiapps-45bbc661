@@ -10,7 +10,6 @@ import {
   IndianRupee,
   Plus,
   ArrowRight,
-  ChevronRight,
   Inbox,
   Phone,
   MessageCircle,
@@ -122,7 +121,7 @@ function DashboardHome() {
   const feeEnabled = features.fee_tracking !== false;
 
   return (
-    <div className="space-y-5 md:space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">{t("Welcome back")}</h1>
         <p className="text-sm text-muted-foreground">
@@ -130,86 +129,95 @@ function DashboardHome() {
         </p>
       </header>
 
-      {/* KPI grid — clickable */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <KpiCard
-          to="/dashboard/students"
-          search={{ status: "active" }}
-          icon={<Users className="size-5" />}
-          label={t("Active students")}
-          value={kpisQ.isLoading ? null : String(active)}
-          accent="brand"
-          hint={n.students.toLowerCase()}
-        />
-        {feeEnabled ? (
-          <KpiCard
-            to="/dashboard/fees"
-            search={{ filter: "paid" }}
-            icon={<IndianRupee className="size-5" />}
-            label={t("Collected this month")}
-            value={kpisQ.isLoading && pendingListQ.isLoading ? null : money(collectedMonth)}
-            accent="emerald"
-            hint={`${paidCount} ${t("paid")}`}
+      {/* Compact KPI hero — 2×2 on mobile, 4-across on desktop, all in one card */}
+      <Card className="p-0 overflow-hidden">
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-border">
+          <KpiCell
+            to="/dashboard/students"
+            search={{ status: "active" }}
+            icon={<Users className="size-4" />}
+            label={t("Active students")}
+            value={kpisQ.isLoading ? null : String(active)}
+            hint={n.students.toLowerCase()}
           />
-        ) : null}
-        {feeEnabled ? (
-          <KpiCard
-            to="/dashboard/fees"
-            search={{ filter: "pending" }}
-            icon={<AlertCircle className="size-5" />}
-            label={t("Pending this month")}
-            value={pendingListQ.isLoading ? null : String(pendingCount)}
-            accent="rose"
-            hint={`${n.students.toLowerCase()} · ${t("pending")}`}
-            emphasize
-          />
-        ) : null}
-        <KpiCard
-          to="/dashboard/registrations"
-          icon={<Inbox className="size-5" />}
-          label={t("New registrations")}
-          value={kpisQ.isLoading ? null : String(newRegs)}
-          accent="brand"
-          hint={t("This week")}
-        />
-      </div>
-
-      {/* Monthly collection progress */}
-      {feeEnabled ? (
-        <Card className="p-5 md:p-6">
-          <div className="flex items-baseline justify-between gap-3 flex-wrap">
-            <div>
-              <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                {t("This month")} · {monthLabel}
-              </div>
-              <div className="mt-1 text-lg md:text-xl font-semibold">
-                <span className="tabular-nums">{money(collectedMonth)}</span>{" "}
-                <span className="text-muted-foreground text-sm font-normal">
-                  {t("collected of")} {money(expectedMonth)} {t("expected")}
-                </span>
-              </div>
-            </div>
-            <div className="text-2xl font-bold tabular-nums" style={{ color: "var(--brand)" }}>
-              {pct}%
-            </div>
-          </div>
-          <div className="mt-4 h-2.5 w-full rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{ width: `${Math.min(100, pct)}%`, backgroundColor: "var(--brand, #0ea5e9)" }}
+          {feeEnabled ? (
+            <KpiCell
+              to="/dashboard/fees"
+              search={{ filter: "paid" }}
+              icon={<IndianRupee className="size-4" />}
+              label={t("Collected")}
+              value={kpisQ.isLoading && pendingListQ.isLoading ? null : money(collectedMonth)}
+              hint={`${paidCount} ${t("paid")}`}
+              tone="emerald"
             />
-          </div>
-          <div className="mt-3 flex items-center justify-between text-xs">
-            <span className="text-emerald-700 font-medium">
-              {paidCount} {t("of")} {totalMonthly} {t("paid")}
-            </span>
-            <Link
+          ) : null}
+          {feeEnabled ? (
+            <KpiCell
               to="/dashboard/fees"
               search={{ filter: "pending" }}
-              className="text-rose-600 font-semibold hover:underline"
-            >
-              {pendingCount} {t("pending")} →
-            </Link>
+              icon={<AlertCircle className="size-4" />}
+              label={t("Pending")}
+              value={pendingListQ.isLoading ? null : String(pendingCount)}
+              hint={t("pending")}
+              tone="rose"
+              emphasize={pendingCount > 0}
+            />
+          ) : null}
+          <KpiCell
+            to="/dashboard/registrations"
+            icon={<Inbox className="size-4" />}
+            label={t("New")}
+            value={kpisQ.isLoading ? null : String(newRegs)}
+            hint={t("This week")}
+          />
+        </div>
+      </Card>
+
+      {/* Student-focused progress — compact strip */}
+      {feeEnabled && totalMonthly > 0 ? (
+        <Card className="p-4 md:p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">
+                {monthLabel}
+              </div>
+              <div className="mt-0.5 text-base md:text-lg font-bold">
+                <span className="tabular-nums">{paidCount}</span>{" "}
+                <span className="text-muted-foreground font-normal">{t("of")}</span>{" "}
+                <span className="tabular-nums">{totalMonthly}</span>{" "}
+                <span className="text-muted-foreground font-normal">{t("students")} {t("paid")}</span>
+              </div>
+              <div className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
+                {money(collectedMonth)} <span className="opacity-70">/ {money(expectedMonth)}</span>
+              </div>
+            </div>
+            <div className="text-right shrink-0">
+              <div className="text-2xl font-bold tabular-nums" style={{ color: "var(--brand)" }}>
+                {pct}%
+              </div>
+              {pendingCount > 0 ? (
+                <Link
+                  to="/dashboard/fees"
+                  search={{ filter: "pending" }}
+                  className="text-[11px] font-semibold text-rose-500 hover:underline"
+                >
+                  {pendingCount} {t("pending")} →
+                </Link>
+              ) : (
+                <div className="text-[11px] font-semibold text-emerald-500 inline-flex items-center gap-1">
+                  <CheckCircle2 className="size-3" /> {t("All caught up")}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="mt-3 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${totalMonthly > 0 ? Math.round((paidCount / totalMonthly) * 100) : 0}%`,
+                backgroundColor: "var(--brand)",
+              }}
+            />
           </div>
         </Card>
       ) : null}
@@ -328,14 +336,14 @@ function DashboardHome() {
   );
 }
 
-function KpiCard({
+function KpiCell({
   to,
   search,
   icon,
   label,
   value,
   hint,
-  accent,
+  tone = "brand",
   emphasize,
 }: {
   to: "/dashboard/students" | "/dashboard/fees" | "/dashboard/registrations";
@@ -344,56 +352,40 @@ function KpiCard({
   label: string;
   value: string | null;
   hint?: string;
-  accent: "brand" | "emerald" | "rose";
+  tone?: "brand" | "emerald" | "rose";
   emphasize?: boolean;
 }) {
-  const { t } = useT();
-  const accentStyles: Record<string, { bg: string; fg: string; ring?: string }> = {
-    brand: {
-      bg: "color-mix(in oklab, var(--brand) 12%, transparent)",
-      fg: "var(--brand)",
-    },
-    emerald: {
-      bg: "color-mix(in oklab, #10b981 14%, transparent)",
-      fg: "#047857",
-    },
-    rose: {
-      bg: "color-mix(in oklab, #f43f5e 14%, transparent)",
-      fg: "#be123c",
-    },
-  };
-  const s = accentStyles[accent];
+  const toneColor =
+    tone === "emerald" ? "#10b981" : tone === "rose" ? "#f43f5e" : "var(--brand)";
   return (
     <Link
       to={to}
       search={search as never}
-      className="group block"
+      className="group block p-3 md:p-4 hover:bg-accent/60 transition-colors"
     >
-      <Card
-        className={`p-4 md:p-5 h-full transition-all hover:-translate-y-0.5 hover:shadow-md ${
-          emphasize ? "ring-1 ring-rose-200" : ""
-        }`}
-      >
-        <div className="flex items-start justify-between">
-          <div
-            className="grid size-9 place-items-center rounded-xl"
-            style={{ backgroundColor: s.bg, color: s.fg }}
-          >
-            {icon}
-          </div>
-          <ChevronRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-        </div>
-        <div className="mt-3 text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+      <div className="flex items-center gap-2">
+        <span
+          className="grid size-6 md:size-7 place-items-center rounded-md"
+          style={{
+            backgroundColor: `color-mix(in oklab, ${toneColor} 18%, transparent)`,
+            color: toneColor,
+          }}
+        >
+          {icon}
+        </span>
+        <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold truncate">
           {label}
-        </div>
-        <div className="mt-1 text-2xl md:text-3xl font-bold tabular-nums" style={{ color: emphasize ? s.fg : undefined }}>
-          {value === null ? <Skeleton className="h-8 w-20" /> : value}
-        </div>
-        {hint ? <div className="text-[11px] text-muted-foreground mt-1">{hint}</div> : null}
-        <div className="mt-2 text-[11px] font-semibold inline-flex items-center gap-1" style={{ color: s.fg }}>
-          {t("View")} <ArrowRight className="size-3" />
-        </div>
-      </Card>
+        </span>
+      </div>
+      <div
+        className="mt-2 text-2xl md:text-3xl font-bold tabular-nums leading-none"
+        style={emphasize ? { color: toneColor } : undefined}
+      >
+        {value === null ? <Skeleton className="h-7 w-16" /> : value}
+      </div>
+      {hint ? (
+        <div className="mt-1 text-[10px] text-muted-foreground truncate">{hint}</div>
+      ) : null}
     </Link>
   );
 }

@@ -102,16 +102,16 @@ function RegistrationsInbox() {
       </header>
 
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 rounded-2xl bg-white shadow-sm animate-pulse" />
+            <div key={i} className="h-14 rounded-xl bg-card border border-border animate-pulse" />
           ))}
         </div>
       ) : sorted.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-black/[0.06] shadow-sm p-10 text-center">
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-10 text-center">
           <div
             className="mx-auto h-14 w-14 rounded-full flex items-center justify-center text-2xl"
-            style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, white)" }}
+            style={{ backgroundColor: "color-mix(in oklab, var(--brand) 20%, transparent)" }}
           >
             📮
           </div>
@@ -121,17 +121,14 @@ function RegistrationsInbox() {
           </div>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {sorted.map((r: any) => (
-            <RegistrationCard
-              key={r.id}
-              reg={r}
-              onOpen={() => setOpenId(r.id)}
-              onAccept={() => approve.mutate(r.id)}
-              accepting={approve.isPending}
-            />
-          ))}
-        </div>
+        <RegistrationsTable
+          rows={sorted}
+          onOpen={(id) => setOpenId(id)}
+          onAccept={(id) => approve.mutate(id)}
+          onReject={(id) => del.mutate(id)}
+          accepting={approve.isPending}
+          rejecting={del.isPending}
+        />
       )}
 
       <RegistrationSheet
@@ -146,7 +143,17 @@ function RegistrationsInbox() {
   );
 }
 
-function ShareLinkButton({ tenant }: { tenant: { name: string; slug: string; custom_domain?: string | null; whatsapp?: string | null; phone?: string | null } }) {
+function ShareLinkButton({
+  tenant,
+}: {
+  tenant: {
+    name: string;
+    slug: string;
+    custom_domain?: string | null;
+    whatsapp?: string | null;
+    phone?: string | null;
+  };
+}) {
   const link =
     tenant.custom_domain
       ? `https://${tenant.custom_domain}/register`
@@ -154,20 +161,23 @@ function ShareLinkButton({ tenant }: { tenant: { name: string; slug: string; cus
         ? `${window.location.origin}/register?tenant=${tenant.slug}`
         : `/register?tenant=${tenant.slug}`;
   const contact = (tenant.whatsapp ?? tenant.phone ?? "").toString();
-  const message = `Sign up for ${tenant.name} training — ${link}${contact ? ` · Coach: ${contact}` : ""}`;
+  const message = `Sign up for ${tenant.name} training — ${link}${
+    contact ? ` · Coach: ${contact}` : ""
+  }`;
   const waHref = `https://wa.me/?text=${encodeURIComponent(message)}`;
-
   return (
     <div className="flex items-center gap-2">
       <button
         type="button"
         onClick={() => {
-          navigator.clipboard.writeText(link).then(
-            () => toast.success("Link copied"),
-            () => toast.error("Could not copy"),
-          );
+          if (typeof navigator !== "undefined" && navigator.clipboard) {
+            navigator.clipboard.writeText(link).then(
+              () => toast.success("Link copied"),
+              () => toast.error("Could not copy"),
+            );
+          }
         }}
-        className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
+        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-xs font-medium text-foreground hover:bg-accent"
       >
         <Copy className="size-3.5" /> Copy link
       </button>
@@ -175,117 +185,244 @@ function ShareLinkButton({ tenant }: { tenant: { name: string; slug: string; cus
         href={waHref}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-white shadow-sm"
-        style={{ backgroundColor: "var(--brand)" }}
+        className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-white shadow-sm bg-emerald-600 hover:bg-emerald-700"
       >
-        <Share2 className="size-3.5" /> Share link
+        <Share2 className="size-3.5" /> Share on WhatsApp
       </a>
     </div>
   );
 }
 
-function RegistrationCard({
-  reg,
+function RegistrationsTable({
+  rows,
   onOpen,
   onAccept,
+  onReject,
   accepting,
+  rejecting,
 }: {
-  reg: any;
-  onOpen: () => void;
-  onAccept: () => void;
+  rows: any[];
+  onOpen: (id: string) => void;
+  onAccept: (id: string) => void;
+  onReject: (id: string) => void;
   accepting: boolean;
+  rejecting: boolean;
 }) {
-  const plan = reg.fee_plans as { name?: string; amount?: number } | null;
-  const batch = reg.batches as { name?: string } | null;
-  const isNew = reg.status === "new";
-  const approved = reg.status === "approved";
-  const rejected = reg.status === "rejected";
-  const paid = reg.payment_status === "verified" || reg.payment_status === "claimed_paid";
-  return (
-    <div
-      className={cn(
-        "rounded-2xl bg-white border shadow-sm p-4 flex flex-col gap-3 transition-shadow hover:shadow-md",
-        approved
-          ? "border-emerald-100"
-          : rejected
-            ? "border-rose-100 opacity-70"
-            : "border-black/[0.06]",
-      )}
-    >
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex items-start gap-3 text-left"
-      >
-        <PersonAvatar name={reg.name} src={reg.photo_url} className="h-12 w-12" />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold truncate">{reg.name}</span>
-            {isNew && (
-              <span
-                className="text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5"
-                style={{ backgroundColor: "var(--brand)", color: "white" }}
-              >
-                New
-              </span>
-            )}
-            {approved && (
-              <span className="text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 bg-emerald-50 text-emerald-700">
-                Accepted
-              </span>
-            )}
-            {rejected && (
-              <span className="text-[10px] font-bold uppercase tracking-wider rounded-full px-2 py-0.5 bg-rose-50 text-rose-700">
-                Rejected
-              </span>
-            )}
-          </div>
-          <div className="text-xs text-muted-foreground truncate mt-0.5 inline-flex items-center gap-1">
-            <Phone className="size-3" /> {reg.phone}
-          </div>
-          <div className="text-xs text-muted-foreground mt-0.5 truncate">
-            {batch?.name ?? "No batch"} · {plan?.name ?? "No plan"}
-          </div>
-        </div>
-      </button>
+  const [confirmRejectId, setConfirmRejectId] = useState<string | null>(null);
+  const [confirmAcceptId, setConfirmAcceptId] = useState<string | null>(null);
+  const rejectTarget = rows.find((r) => r.id === confirmRejectId);
+  const acceptTarget = rows.find((r) => r.id === confirmAcceptId);
 
-      <div className="flex items-center justify-between border-t border-black/[0.06] pt-3">
-        <div>
-          <div className="text-base font-bold tabular-nums">
-            {plan?.amount ? money(Number(plan.amount)) : "—"}
-          </div>
-          <div
-            className={cn(
-              "text-[11px] font-semibold inline-flex items-center gap-1 mt-0.5",
-              paid ? "text-emerald-700" : "text-rose-700",
-            )}
-          >
-            <span
-              className={cn(
-                "w-1.5 h-1.5 rounded-full",
-                paid ? "bg-emerald-500" : "bg-rose-500",
-              )}
-            />
-            {paid ? "Paid" : "Not paid"}
-            {reg.payment_ref ? ` · ref ${reg.payment_ref.slice(0, 12)}` : ""}
-          </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">
-            {formatDistanceToNow(new Date(reg.created_at), { addSuffix: true })}
-          </div>
-        </div>
-        {!approved && !rejected && (
-          <Button
-            onClick={onAccept}
-            disabled={accepting}
-            className="rounded-full h-10 px-5 font-semibold"
-            style={{ backgroundColor: "var(--brand)", color: "white" }}
-          >
-            <CheckCheck className="size-4 mr-1" /> Accept
-          </Button>
-        )}
+  return (
+    <>
+      {/* Desktop / tablet — proper table */}
+      <div className="hidden md:block rounded-2xl border border-border bg-card overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-[10px] uppercase tracking-widest text-muted-foreground bg-muted/50">
+              <th className="px-3 py-2 w-10">#</th>
+              <th className="px-3 py-2">Name</th>
+              <th className="px-3 py-2">Phone</th>
+              <th className="px-3 py-2">Batch · Plan</th>
+              <th className="px-3 py-2">Date</th>
+              <th className="px-3 py-2">Status</th>
+              <th className="px-3 py-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rows.map((r, idx) => {
+              const plan = r.fee_plans as { name?: string } | null;
+              const batch = r.batches as { name?: string } | null;
+              const status = statusMeta(r);
+              const actionable = r.status !== "approved" && r.status !== "rejected";
+              return (
+                <tr key={r.id} className="hover:bg-accent/60 transition-colors">
+                  <td className="px-3 py-3 text-muted-foreground tabular-nums">{idx + 1}</td>
+                  <td className="px-3 py-3">
+                    <button
+                      type="button"
+                      onClick={() => onOpen(r.id)}
+                      className="flex items-center gap-2.5 text-left hover:underline"
+                    >
+                      <PersonAvatar name={r.name} src={r.photo_url} className="h-8 w-8 text-xs" />
+                      <span className="font-semibold truncate max-w-[160px]">{r.name}</span>
+                    </button>
+                  </td>
+                  <td className="px-3 py-3 text-muted-foreground tabular-nums">{r.phone}</td>
+                  <td className="px-3 py-3 text-xs text-muted-foreground">
+                    <div className="truncate max-w-[180px]">{batch?.name ?? "—"}</div>
+                    <div className="truncate max-w-[180px] opacity-70">{plan?.name ?? ""}</div>
+                  </td>
+                  <td className="px-3 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                    {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
+                  </td>
+                  <td className="px-3 py-3">
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                        status.className,
+                      )}
+                    >
+                      {status.label}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-right">
+                    {actionable ? (
+                      <div className="inline-flex gap-1.5">
+                        <Button
+                          size="sm"
+                          onClick={() => setConfirmAcceptId(r.id)}
+                          disabled={accepting}
+                          className="h-8 rounded-full font-semibold text-white"
+                          style={{ backgroundColor: "var(--brand)" }}
+                        >
+                          <CheckCheck className="size-3.5 mr-1" /> Accept
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setConfirmRejectId(r.id)}
+                          disabled={rejecting}
+                          className="h-8 rounded-full text-rose-500 border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-500"
+                        >
+                          <Trash2 className="size-3.5 mr-1" /> Reject
+                        </Button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-    </div>
+
+      {/* Mobile — stacked rows, still numbered */}
+      <div className="md:hidden space-y-2">
+        {rows.map((r, idx) => {
+          const status = statusMeta(r);
+          const actionable = r.status !== "approved" && r.status !== "rejected";
+          const batch = r.batches as { name?: string } | null;
+          return (
+            <div
+              key={r.id}
+              className="rounded-xl border border-border bg-card p-3 flex items-center gap-3"
+            >
+              <span className="text-xs text-muted-foreground tabular-nums w-5 shrink-0">
+                {idx + 1}
+              </span>
+              <button
+                type="button"
+                onClick={() => onOpen(r.id)}
+                className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+              >
+                <PersonAvatar name={r.name} src={r.photo_url} className="h-9 w-9 text-xs shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="font-semibold truncate text-sm">{r.name}</span>
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider",
+                        status.className,
+                      )}
+                    >
+                      {status.label}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-muted-foreground truncate">
+                    {r.phone} · {batch?.name ?? "No batch"}
+                  </div>
+                </div>
+              </button>
+              {actionable ? (
+                <div className="flex gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmAcceptId(r.id)}
+                    disabled={accepting}
+                    aria-label="Accept"
+                    className="inline-grid place-items-center size-9 rounded-full text-white"
+                    style={{ backgroundColor: "var(--brand)" }}
+                  >
+                    <CheckCheck className="size-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmRejectId(r.id)}
+                    disabled={rejecting}
+                    aria-label="Reject"
+                    className="inline-grid place-items-center size-9 rounded-full border border-rose-500/40 text-rose-500 hover:bg-rose-500/10"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+
+      <AlertDialog open={!!confirmAcceptId} onOpenChange={(o) => !o && setConfirmAcceptId(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Accept {acceptTarget?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will add them as a student with an auto-generated Player ID.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={accepting}
+              onClick={(e) => {
+                e.preventDefault();
+                if (confirmAcceptId) onAccept(confirmAcceptId);
+                setConfirmAcceptId(null);
+              }}
+              style={{ backgroundColor: "var(--brand)", color: "#fff" }}
+            >
+              Yes, accept
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!confirmRejectId} onOpenChange={(o) => !o && setConfirmRejectId(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reject {rejectTarget?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This registration will be permanently deleted. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={rejecting}
+              onClick={(e) => {
+                e.preventDefault();
+                if (confirmRejectId) onReject(confirmRejectId);
+                setConfirmRejectId(null);
+              }}
+              className="bg-rose-600 hover:bg-rose-700"
+            >
+              Reject
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
+}
+
+function statusMeta(r: any): { label: string; className: string } {
+  if (r.status === "approved")
+    return { label: "Accepted", className: "bg-emerald-500/15 text-emerald-500" };
+  if (r.status === "rejected")
+    return { label: "Rejected", className: "bg-rose-500/15 text-rose-500" };
+  return { label: "New", className: "bg-[var(--brand)]/20 text-[var(--brand)]" };
 }
 
 function RegistrationSheet({
@@ -405,7 +542,7 @@ function RegistrationDetails({
         </div>
       </div>
 
-      <dl className="rounded-2xl bg-white border border-black/[0.06] shadow-sm divide-y divide-black/[0.06] text-sm">
+      <dl className="rounded-2xl bg-card border border-border shadow-sm divide-y divide-border text-sm">
         <DRow label="Phone" value={reg.phone} />
         {reg.whatsapp && reg.whatsapp !== reg.phone && (
           <DRow label="WhatsApp" value={reg.whatsapp} />
@@ -498,7 +635,7 @@ function DRow({
       <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
         {label}
       </div>
-      <div className={cn("font-medium text-neutral-800", multiline ? "whitespace-pre-wrap" : "")}>
+      <div className={cn("font-medium text-foreground", multiline ? "whitespace-pre-wrap" : "")}>
         {value}
       </div>
     </div>

@@ -68,27 +68,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  // Inject branding
+  // Inject branding — saffron accent, universal light/dark.
   useEffect(() => {
     if (typeof document === "undefined") return;
     const t = tenantQ.data;
     const root = document.documentElement;
-    // Premium monochrome: brand follows the foreground (near-black in light,
-    // near-white in dark) so buttons and highlights read as premium B&W.
-    // Tenant colour is still exposed on --tenant-brand for optional touches.
-    root.style.setProperty("--brand", "var(--foreground)");
-    root.style.setProperty("--brand-ink", "var(--background)");
+    root.style.setProperty("--brand", "#ff9f43");
+    root.style.setProperty("--brand-ink", "#ffffff");
     if (t) {
-      root.style.setProperty("--tenant-brand", t.primary_color);
-      root.style.setProperty("--tenant-brand-ink", t.secondary_color);
+      if (t.primary_color) root.style.setProperty("--tenant-brand", t.primary_color);
+      if (t.secondary_color) root.style.setProperty("--tenant-brand-ink", t.secondary_color);
       document.title = `${t.name} · Dashboard`;
     }
-    return () => {
-      root.style.removeProperty("--brand");
-      root.style.removeProperty("--brand-ink");
-      root.style.removeProperty("--tenant-brand");
-      root.style.removeProperty("--tenant-brand-ink");
-    };
   }, [tenantQ.data]);
 
   if (session === undefined) return <FullPage>Loading…</FullPage>;

@@ -136,17 +136,17 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
   };
 
   return (
-    <div className={cn("space-y-5", compact ? "" : "pb-4")}>
-      {/* Header card */}
-      <div className="flex flex-col items-center text-center gap-3">
-        <label className="relative cursor-pointer group">
+    <div className={cn("space-y-4", compact ? "" : "pb-4")}>
+      {/* Compact header: DP on the LEFT, name + Player ID + actions on the RIGHT */}
+      <div className="flex items-start gap-4">
+        <label className="relative cursor-pointer group shrink-0">
           <PersonAvatar
             name={s.name}
             src={s.photo_url}
-            className="h-24 w-24 ring-4 ring-white shadow-sm"
+            className="h-20 w-20 md:h-24 md:w-24 ring-2 ring-border shadow-sm"
           />
           <span
-            className="absolute inset-0 rounded-full flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity text-white text-xs font-medium"
+            className="absolute inset-0 rounded-full flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity text-white"
             aria-hidden
           >
             <Camera className="size-5" />
@@ -163,46 +163,55 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             }}
           />
         </label>
-        <div>
-          <div className="text-xl font-bold">{s.name}</div>
-          {s.player_id && (
-            <div
-              className="inline-flex mt-1 items-center rounded-full px-3 py-0.5 text-xs font-bold tracking-wider"
-              style={{
-                backgroundColor: "color-mix(in oklab, var(--brand) 15%, white)",
-                color: "var(--brand)",
-              }}
-            >
-              {s.player_id}
+        <div className="min-w-0 flex-1 space-y-2">
+          <div>
+            <div className="text-lg md:text-xl font-bold truncate">{s.name}</div>
+            <div className="flex items-center gap-2 flex-wrap mt-1">
+              {s.player_id && (
+                <span
+                  className="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-[11px] font-mono font-semibold tracking-wider text-foreground"
+                >
+                  {s.player_id}
+                </span>
+              )}
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                  isLeft
+                    ? "bg-muted text-muted-foreground"
+                    : paidCurrent
+                      ? "bg-emerald-500/15 text-emerald-500"
+                      : "bg-rose-500/15 text-rose-500",
+                )}
+              >
+                {isLeft ? "Left" : paidCurrent ? "Paid this month" : "Pending this month"}
+              </span>
             </div>
-          )}
-          <div className="mt-1 text-xs text-muted-foreground">
-            {isLeft ? "Left" : paidCurrent ? "Paid this month" : "Pending this month"}
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild size="sm" variant="outline" className="rounded-full">
-            <a href={`tel:${s.phone}`}>
-              <Phone className="size-4 mr-1.5" /> Call
-            </a>
-          </Button>
-          <Button
-            asChild
-            size="sm"
-            className="rounded-full"
-            style={{ backgroundColor: "#25D366", color: "white" }}
-          >
-            <a href={`https://wa.me/${waPhone}`} target="_blank" rel="noreferrer">
-              <MessageCircle className="size-4 mr-1.5" /> WhatsApp
-            </a>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild size="sm" variant="outline" className="rounded-full h-8">
+              <a href={`tel:${s.phone}`}>
+                <Phone className="size-3.5 mr-1" /> Call
+              </a>
+            </Button>
+            <Button
+              asChild
+              size="sm"
+              className="rounded-full h-8 bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              <a href={`https://wa.me/${waPhone}`} target="_blank" rel="noreferrer">
+                <MessageCircle className="size-3.5 mr-1" /> WhatsApp
+              </a>
+            </Button>
+          </div>
         </div>
       </div>
 
+
       {/* Fee card */}
       <div
-        className="rounded-2xl p-4 border shadow-sm bg-white flex items-center justify-between gap-3"
-        style={{ borderColor: "color-mix(in oklab, var(--brand) 20%, white)" }}
+        className="rounded-2xl p-4 border shadow-sm bg-card flex items-center justify-between gap-3"
+        style={{ borderColor: "color-mix(in oklab, var(--brand) 40%, var(--border))" }}
       >
         <div>
           <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
@@ -241,8 +250,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
       )}
 
       {/* Details */}
-      <div className="rounded-2xl border border-black/[0.06] shadow-sm bg-white overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-black/[0.06]">
+      <div className="rounded-2xl border border-border shadow-sm bg-card overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <div className="text-sm font-semibold">Details</div>
           <Button
             variant="ghost"
@@ -269,7 +278,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             }}
           />
         ) : (
-          <dl className="divide-y divide-black/[0.06] text-sm">
+          <dl className="divide-y divide-border text-sm">
             <Row label="Guardian" value={s.guardian_name || "—"} />
             <Row label="Guardian phone" value={s.guardian_phone || "—"} />
             <Row
@@ -410,7 +419,7 @@ function Row({
         {label}
       </dt>
       <dd
-        className={cn("font-medium text-neutral-800", multiline ? "whitespace-pre-wrap" : "truncate")}
+        className={cn("font-medium text-foreground", multiline ? "whitespace-pre-wrap" : "truncate")}
       >
         {value}
       </dd>
@@ -459,7 +468,7 @@ function EditFeeInline({
   };
 
   return (
-    <div className="rounded-2xl border border-black/[0.06] shadow-sm bg-white p-4 space-y-3">
+    <div className="rounded-2xl border border-border shadow-sm bg-card p-4 space-y-3">
       <div className="text-sm font-semibold">Custom fee for this student</div>
       <div className="flex gap-2">
         <div className="relative flex-1">
@@ -490,7 +499,7 @@ function EditFeeInline({
           {currentCustom != null && (
             <button
               type="button"
-              className="text-neutral-600 hover:text-neutral-900 underline"
+              className="text-muted-foreground hover:text-foreground underline"
               disabled={saving}
               onClick={() => commit(null)}
             >
@@ -499,7 +508,7 @@ function EditFeeInline({
           )}
           <button
             type="button"
-            className="hover:text-neutral-900"
+            className="hover:text-foreground"
             onClick={onClose}
           >
             Cancel
@@ -664,7 +673,7 @@ function NotesEditor({
     setDirty(false);
   }, [initial]);
   return (
-    <div className="rounded-2xl border border-black/[0.06] shadow-sm bg-white p-4 space-y-2">
+    <div className="rounded-2xl border border-border shadow-sm bg-card p-4 space-y-2">
       <div className="text-sm font-semibold">Notes</div>
       <Textarea
         value={val}
