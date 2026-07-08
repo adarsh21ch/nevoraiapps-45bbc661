@@ -22,6 +22,8 @@ import {
 import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
+import { LanguageToggle } from "@/components/dashboard/LanguageToggle";
+import { useT } from "@/lib/i18n";
 
 type NavItem = {
   to: string;
@@ -47,6 +49,7 @@ const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
+  const { t } = useT();
 
   const newRegCount = useQuery({
     queryKey: ["d", "regs-new-count", tenant.id],
@@ -78,13 +81,14 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const navWithBadges = nav
     .filter((n) => !n.requiresFeature || features[n.requiresFeature] !== false)
     .map((n) => {
+      const label = t(n.label);
       if (n.to === "/dashboard/registrations" && newRegCount.data && newRegCount.data > 0) {
-        return { ...n, badge: newRegCount.data };
+        return { ...n, label, badge: newRegCount.data };
       }
       if (n.to === "/dashboard/leads" && newLeadCount.data && newLeadCount.data > 0) {
-        return { ...n, badge: newLeadCount.data };
+        return { ...n, label, badge: newLeadCount.data };
       }
-      return n;
+      return { ...n, label };
     });
 
 
@@ -94,18 +98,19 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
           <TenantMark tenant={tenant} />
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-2">
             <a
               href={`/?tenant=${tenant.slug}`}
               target="_blank"
               rel="noreferrer"
               className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mr-1"
             >
-              View site <ExternalLink className="size-3" />
+              {t("View site")} <ExternalLink className="size-3" />
             </a>
+            <LanguageToggle />
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
-              <LogOut className="size-4 mr-1" /> Sign out
+              <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>
           </div>
         </div>
@@ -192,6 +197,7 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
 
 
 function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | null } }) {
+  const { t } = useT();
   return (
     <div className="flex items-center gap-2 min-w-0">
       <div
@@ -206,7 +212,7 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
       </div>
       <div className="min-w-0">
         <div className="text-sm font-semibold truncate">{tenant.name}</div>
-        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Dashboard</div>
+        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("Dashboard")}</div>
       </div>
     </div>
   );
@@ -226,6 +232,7 @@ function SidebarInner({
   role: string;
 }) {
   const location = useLocation();
+  const { t } = useT();
   return (
     <div className="flex h-full flex-col">
       <div className="p-4 border-b">
@@ -268,7 +275,7 @@ function SidebarInner({
       </nav>
       <div className="p-2 border-t">
         <Button variant="ghost" size="sm" className="w-full justify-start" onClick={onSignOut}>
-          <LogOut className="size-4 mr-2" /> Sign out
+          <LogOut className="size-4 mr-2" /> {t("Sign out")}
         </Button>
       </div>
     </div>
