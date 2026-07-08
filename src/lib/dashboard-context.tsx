@@ -73,14 +73,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     if (typeof document === "undefined") return;
     const t = tenantQ.data;
     const root = document.documentElement;
+    // Dashboard uses saffron as the primary action colour. Tenant branding is
+    // kept available on --tenant-brand for any per-tenant secondary accents.
+    root.style.setProperty("--brand", "#ff9f43");
+    root.style.setProperty("--brand-ink", "#b45309");
     if (t) {
-      root.style.setProperty("--brand", t.primary_color);
-      root.style.setProperty("--brand-ink", t.secondary_color);
+      root.style.setProperty("--tenant-brand", t.primary_color);
+      root.style.setProperty("--tenant-brand-ink", t.secondary_color);
       document.title = `${t.name} · Dashboard`;
     }
     return () => {
       root.style.removeProperty("--brand");
       root.style.removeProperty("--brand-ink");
+      root.style.removeProperty("--tenant-brand");
+      root.style.removeProperty("--tenant-brand-ink");
     };
   }, [tenantQ.data]);
 
