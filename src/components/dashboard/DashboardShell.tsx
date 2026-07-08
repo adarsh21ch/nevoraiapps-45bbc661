@@ -1,6 +1,5 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { type ReactNode, useEffect } from "react";
-
+import { type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
@@ -22,7 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
-
+import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { LanguageToggle } from "@/components/dashboard/LanguageToggle";
 import { useT } from "@/lib/i18n";
 
@@ -51,17 +50,6 @@ const nav: (NavItem & { requiresFeature?: "fee_tracking" })[] = [
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
   const { t } = useT();
-
-  // Force dark/lime theme across the entire dashboard (including portaled Radix dialogs/sheets)
-  useEffect(() => {
-    const el = document.documentElement;
-    const hadDark = el.classList.contains("dark");
-    el.classList.add("dark");
-    return () => {
-      if (!hadDark) el.classList.remove("dark");
-    };
-  }, []);
-
 
   const newRegCount = useQuery({
     queryKey: ["d", "regs-new-count", tenant.id],
@@ -105,8 +93,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
-
+    <div className="min-h-screen bg-muted/30 text-foreground">
       {/* Top bar */}
       <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
@@ -121,7 +108,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               {t("View site")} <ExternalLink className="size-3" />
             </a>
             <LanguageToggle />
-
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>

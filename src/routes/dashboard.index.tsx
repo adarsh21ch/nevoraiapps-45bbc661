@@ -350,19 +350,18 @@ function KpiCard({
   const { t } = useT();
   const accentStyles: Record<string, { bg: string; fg: string; ring?: string }> = {
     brand: {
-      bg: "color-mix(in oklab, var(--brand) 18%, transparent)",
+      bg: "color-mix(in oklab, var(--brand) 12%, transparent)",
       fg: "var(--brand)",
     },
     emerald: {
-      bg: "color-mix(in oklab, #34d399 20%, transparent)",
-      fg: "#6ee7b7",
+      bg: "color-mix(in oklab, #10b981 14%, transparent)",
+      fg: "#047857",
     },
     rose: {
-      bg: "color-mix(in oklab, #fb7185 22%, transparent)",
-      fg: "#fda4af",
+      bg: "color-mix(in oklab, #f43f5e 14%, transparent)",
+      fg: "#be123c",
     },
   };
-
   const s = accentStyles[accent];
   return (
     <Link
