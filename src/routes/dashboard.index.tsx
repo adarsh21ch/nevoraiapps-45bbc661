@@ -10,7 +10,6 @@ import {
   IndianRupee,
   Plus,
   ArrowRight,
-  ChevronRight,
   Inbox,
   Phone,
   MessageCircle,
