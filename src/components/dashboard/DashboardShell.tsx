@@ -275,7 +275,7 @@ function SidebarInner({
       </nav>
       <div className="p-2 border-t">
         <Button variant="ghost" size="sm" className="w-full justify-start" onClick={onSignOut}>
-          <LogOut className="size-4 mr-2" /> Sign out
+          <LogOut className="size-4 mr-2" /> {t("Sign out")}
         </Button>
       </div>
     </div>
