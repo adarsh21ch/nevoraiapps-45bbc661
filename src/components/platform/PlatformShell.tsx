@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { LayoutDashboard, Building2, Plus, Receipt, LogOut, Menu, Shield, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatform } from "@/lib/platform-context";
+import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 
 const nav = [
   { to: "/platform-admin", label: "Overview", icon: LayoutDashboard, exact: true },
