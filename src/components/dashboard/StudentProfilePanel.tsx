@@ -210,7 +210,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
 
       {/* Fee card */}
       <div
-        className="rounded-2xl p-4 border shadow-sm bg-white flex items-center justify-between gap-3"
+        className="rounded-2xl p-4 border shadow-sm bg-card flex items-center justify-between gap-3"
         style={{ borderColor: "color-mix(in oklab, var(--brand) 20%, white)" }}
       >
         <div>
@@ -250,8 +250,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
       )}
 
       {/* Details */}
-      <div className="rounded-2xl border border-black/[0.06] shadow-sm bg-white overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-black/[0.06]">
+      <div className="rounded-2xl border border-border shadow-sm bg-card overflow-hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <div className="text-sm font-semibold">Details</div>
           <Button
             variant="ghost"
@@ -278,7 +278,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             }}
           />
         ) : (
-          <dl className="divide-y divide-black/[0.06] text-sm">
+          <dl className="divide-y divide-border text-sm">
             <Row label="Guardian" value={s.guardian_name || "—"} />
             <Row label="Guardian phone" value={s.guardian_phone || "—"} />
             <Row
@@ -419,7 +419,7 @@ function Row({
         {label}
       </dt>
       <dd
-        className={cn("font-medium text-neutral-800", multiline ? "whitespace-pre-wrap" : "truncate")}
+        className={cn("font-medium text-foreground", multiline ? "whitespace-pre-wrap" : "truncate")}
       >
         {value}
       </dd>
@@ -468,7 +468,7 @@ function EditFeeInline({
   };
 
   return (
-    <div className="rounded-2xl border border-black/[0.06] shadow-sm bg-white p-4 space-y-3">
+    <div className="rounded-2xl border border-border shadow-sm bg-card p-4 space-y-3">
       <div className="text-sm font-semibold">Custom fee for this student</div>
       <div className="flex gap-2">
         <div className="relative flex-1">
@@ -499,7 +499,7 @@ function EditFeeInline({
           {currentCustom != null && (
             <button
               type="button"
-              className="text-neutral-600 hover:text-neutral-900 underline"
+              className="text-muted-foreground hover:text-foreground underline"
               disabled={saving}
               onClick={() => commit(null)}
             >
@@ -508,7 +508,7 @@ function EditFeeInline({
           )}
           <button
             type="button"
-            className="hover:text-neutral-900"
+            className="hover:text-foreground"
             onClick={onClose}
           >
             Cancel
@@ -673,7 +673,7 @@ function NotesEditor({
     setDirty(false);
   }, [initial]);
   return (
-    <div className="rounded-2xl border border-black/[0.06] shadow-sm bg-white p-4 space-y-2">
+    <div className="rounded-2xl border border-border shadow-sm bg-card p-4 space-y-2">
       <div className="text-sm font-semibold">Notes</div>
       <Textarea
         value={val}

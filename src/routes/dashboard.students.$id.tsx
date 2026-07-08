@@ -16,7 +16,7 @@ function StudentDetail() {
       >
         <ArrowLeft className="size-4" /> All students
       </Link>
-      <div className="rounded-2xl bg-white border border-black/[0.06] shadow-sm p-5">
+      <div className="rounded-2xl bg-card border border-border shadow-sm p-5">
         <StudentProfilePanel studentId={id} />
       </div>
     </div>

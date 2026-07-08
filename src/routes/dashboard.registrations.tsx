@@ -104,11 +104,11 @@ function RegistrationsInbox() {
       {isLoading ? (
         <div className="grid gap-3 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 rounded-2xl bg-white shadow-sm animate-pulse" />
+            <div key={i} className="h-32 rounded-2xl bg-card shadow-sm animate-pulse" />
           ))}
         </div>
       ) : sorted.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-black/[0.06] shadow-sm p-10 text-center">
+        <div className="rounded-2xl bg-card border border-border shadow-sm p-10 text-center">
           <div
             className="mx-auto h-14 w-14 rounded-full flex items-center justify-center text-2xl"
             style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, white)" }}
@@ -167,7 +167,7 @@ function ShareLinkButton({ tenant }: { tenant: { name: string; slug: string; cus
             () => toast.error("Could not copy"),
           );
         }}
-        className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
+        className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
       >
         <Copy className="size-3.5" /> Copy link
       </button>
@@ -204,12 +204,12 @@ function RegistrationCard({
   return (
     <div
       className={cn(
-        "rounded-2xl bg-white border shadow-sm p-4 flex flex-col gap-3 transition-shadow hover:shadow-md",
+        "rounded-2xl bg-card border shadow-sm p-4 flex flex-col gap-3 transition-shadow hover:shadow-md",
         approved
           ? "border-emerald-100"
           : rejected
             ? "border-rose-100 opacity-70"
-            : "border-black/[0.06]",
+            : "border-border",
       )}
     >
       <button
@@ -249,7 +249,7 @@ function RegistrationCard({
         </div>
       </button>
 
-      <div className="flex items-center justify-between border-t border-black/[0.06] pt-3">
+      <div className="flex items-center justify-between border-t border-border pt-3">
         <div>
           <div className="text-base font-bold tabular-nums">
             {plan?.amount ? money(Number(plan.amount)) : "—"}
@@ -405,7 +405,7 @@ function RegistrationDetails({
         </div>
       </div>
 
-      <dl className="rounded-2xl bg-white border border-black/[0.06] shadow-sm divide-y divide-black/[0.06] text-sm">
+      <dl className="rounded-2xl bg-card border border-border shadow-sm divide-y divide-border text-sm">
         <DRow label="Phone" value={reg.phone} />
         {reg.whatsapp && reg.whatsapp !== reg.phone && (
           <DRow label="WhatsApp" value={reg.whatsapp} />
@@ -498,7 +498,7 @@ function DRow({
       <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
         {label}
       </div>
-      <div className={cn("font-medium text-neutral-800", multiline ? "whitespace-pre-wrap" : "")}>
+      <div className={cn("font-medium text-foreground", multiline ? "whitespace-pre-wrap" : "")}>
         {value}
       </div>
     </div>
