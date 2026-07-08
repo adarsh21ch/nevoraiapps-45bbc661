@@ -122,13 +122,62 @@ function DashboardHome() {
   const feeEnabled = features.fee_tracking !== false;
 
   return (
-    <div className="space-y-5 md:space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">{t("Welcome back")}</h1>
-        <p className="text-sm text-muted-foreground">
-          {tenant.name} · {t("at a glance")} · {monthLabel}
-        </p>
-      </header>
+    <div className="space-y-5 md:space-y-6" style={{ fontFamily: "Inter, ui-sans-serif, system-ui" }}>
+      {/* HERO — matches sign-in aesthetic */}
+      <section className="relative overflow-hidden rounded-none border border-white/10 bg-[#0a0a0a] p-6 md:p-10 text-white">
+        <div className="pointer-events-none absolute inset-0 -z-0">
+          <div className="absolute -top-40 -left-20 h-[500px] w-[500px] rounded-full bg-lime-500/20 blur-[140px]" />
+          <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-blue-500/10 blur-[120px]" />
+          <div
+            className="absolute inset-0 opacity-[0.05]"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right,#fff 1px,transparent 1px),linear-gradient(to bottom,#fff 1px,transparent 1px)",
+              backgroundSize: "60px 60px",
+              maskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+            }}
+          />
+        </div>
+
+        <div className="relative z-10 max-w-2xl space-y-5">
+          <div className="inline-flex items-center gap-2 rounded-full border border-lime-500/30 bg-lime-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.25em] text-lime-400">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400" />
+            </span>
+            {t("Coach Dashboard")}
+          </div>
+
+          <h1
+            className="text-5xl md:text-7xl leading-[0.9] tracking-tighter"
+            style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+          >
+            {t("Welcome back")}, <br />
+            <span className="text-lime-400">{tenant.name}.</span>
+          </h1>
+
+          <p className="text-base md:text-lg text-zinc-400 max-w-lg">
+            {monthLabel} · {t("at a glance")}. {t("Everything you need to run today from your phone.")}
+          </p>
+
+          {/* inline mini-stats */}
+          <div className="grid grid-cols-3 gap-3 pt-3 md:max-w-md">
+            <HeroStat label={t("Active")} value={kpisQ.isLoading ? "—" : String(active)} />
+            {feeEnabled ? (
+              <HeroStat label={t("Paid")} value={pendingListQ.isLoading ? "—" : String(paidCount)} />
+            ) : (
+              <HeroStat label={t("New")} value={String(newRegs)} />
+            )}
+            {feeEnabled ? (
+              <HeroStat label={t("Pending")} value={pendingListQ.isLoading ? "—" : String(pendingCount)} accent />
+            ) : (
+              <HeroStat label={t("Active")} value={String(active)} />
+            )}
+          </div>
+        </div>
+      </section>
+
+
 
       {/* KPI grid — clickable */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
