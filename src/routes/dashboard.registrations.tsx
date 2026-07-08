@@ -146,6 +146,44 @@ function RegistrationsInbox() {
   );
 }
 
+function ShareLinkButton({ tenant }: { tenant: { name: string; slug: string; custom_domain?: string | null; whatsapp?: string | null; phone?: string | null } }) {
+  const link =
+    tenant.custom_domain
+      ? `https://${tenant.custom_domain}/register`
+      : typeof window !== "undefined"
+        ? `${window.location.origin}/register?tenant=${tenant.slug}`
+        : `/register?tenant=${tenant.slug}`;
+  const contact = (tenant.whatsapp ?? tenant.phone ?? "").toString();
+  const message = `Sign up for ${tenant.name} training — ${link}${contact ? ` · Coach: ${contact}` : ""}`;
+  const waHref = `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => {
+          navigator.clipboard.writeText(link).then(
+            () => toast.success("Link copied"),
+            () => toast.error("Could not copy"),
+          );
+        }}
+        className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
+      >
+        <Copy className="size-3.5" /> Copy link
+      </button>
+      <a
+        href={waHref}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-white shadow-sm"
+        style={{ backgroundColor: "var(--brand)" }}
+      >
+        <Share2 className="size-3.5" /> Share link
+      </a>
+    </div>
+  );
+}
+
 function RegistrationCard({
   reg,
   onOpen,
