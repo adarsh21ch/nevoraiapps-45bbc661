@@ -218,24 +218,29 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
 function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | null } }) {
   const { t } = useT();
   return (
-    <div className="flex items-center gap-2 min-w-0">
-      <div
-        className="size-8 rounded-md grid place-items-center text-white text-xs font-bold shrink-0"
-        style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
-      >
+    <div className="flex items-center gap-2.5 min-w-0">
+      <div className="grid h-9 w-9 shrink-0 place-items-center rounded bg-lime-400 text-sm font-black text-black overflow-hidden">
         {tenant.logo_url ? (
-          <img src={tenant.logo_url} alt="" className="size-8 rounded-md object-cover" />
+          <img src={tenant.logo_url} alt="" className="size-9 object-cover" />
         ) : (
-          tenant.name.slice(0, 2).toUpperCase()
+          tenant.name.slice(0, 1).toUpperCase()
         )}
       </div>
       <div className="min-w-0">
-        <div className="text-sm font-semibold truncate">{tenant.name}</div>
-        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("Dashboard")}</div>
+        <div
+          className="text-sm font-black uppercase tracking-tight text-white truncate"
+          style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.02em" }}
+        >
+          {tenant.name}
+        </div>
+        <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-lime-400/80">
+          {t("Dashboard")}
+        </div>
       </div>
     </div>
   );
 }
+
 
 function SidebarInner({
   tenant,
