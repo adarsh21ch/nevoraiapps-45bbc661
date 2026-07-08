@@ -81,13 +81,14 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const navWithBadges = nav
     .filter((n) => !n.requiresFeature || features[n.requiresFeature] !== false)
     .map((n) => {
+      const label = t(n.label);
       if (n.to === "/dashboard/registrations" && newRegCount.data && newRegCount.data > 0) {
-        return { ...n, badge: newRegCount.data };
+        return { ...n, label, badge: newRegCount.data };
       }
       if (n.to === "/dashboard/leads" && newLeadCount.data && newLeadCount.data > 0) {
-        return { ...n, badge: newLeadCount.data };
+        return { ...n, label, badge: newLeadCount.data };
       }
-      return n;
+      return { ...n, label };
     });
 
 
