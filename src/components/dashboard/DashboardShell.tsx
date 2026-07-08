@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { LanguageToggle } from "@/components/dashboard/LanguageToggle";
+import { ThemeDirectionSwitcher } from "@/components/dashboard/ThemeDirectionSwitcher";
 import { useT } from "@/lib/i18n";
 
 type NavItem = {
@@ -108,6 +109,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               {t("View site")} <ExternalLink className="size-3" />
             </a>
             <LanguageToggle />
+            <ThemeDirectionSwitcher />
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
