@@ -105,10 +105,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
-
-      {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
+    <div
+      className="dark min-h-screen bg-background text-foreground"
+      style={{ fontFamily: "Inter, ui-sans-serif, system-ui" }}
+    >
+      {/* Top bar — matches sign-in page brand strip */}
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0a0a0a]/95 backdrop-blur">
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
           <TenantMark tenant={tenant} />
           <div className="ml-auto flex items-center gap-2">
@@ -116,13 +118,18 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               href={`/?tenant=${tenant.slug}`}
               target="_blank"
               rel="noreferrer"
-              className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mr-1"
+              className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-lime-400 mr-1"
             >
               {t("View site")} <ExternalLink className="size-3" />
             </a>
             <LanguageToggle />
 
-            <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="hidden md:inline-flex text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-300 hover:text-lime-400 hover:bg-white/5"
+            >
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>
           </div>
@@ -131,7 +138,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="hidden md:block w-64 border-r bg-background sticky top-[57px] h-[calc(100vh-57px)]">
+        <aside className="hidden md:block w-64 border-r border-white/10 bg-[#0a0a0a] sticky top-[57px] h-[calc(100vh-57px)]">
           <SidebarInner
             tenant={tenant}
             items={navWithBadges}
@@ -144,6 +151,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           {children ?? <Outlet />}
         </main>
       </div>
+
+
 
 
       {/* Mobile bottom tab bar */}
@@ -167,7 +176,7 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
     .filter((x): x is NavItem & { badge?: number } => !!x);
   return (
     <nav
-      className="fixed inset-x-3 z-30 md:hidden rounded-2xl border border-border bg-background/85 shadow-[0_8px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+      className="fixed inset-x-3 z-30 md:hidden rounded-none border border-white/10 bg-[#0a0a0a]/95 shadow-[0_8px_30px_rgba(0,0,0,0.55)] backdrop-blur-xl"
       style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
     >
       <div
@@ -183,19 +192,15 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
               key={n.to}
               to={n.to}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1 rounded-xl py-2.5 text-[10px] font-medium transition-colors",
-                active ? "text-foreground bg-[color-mix(in_oklab,var(--brand)_14%,transparent)]" : "text-muted-foreground",
+                "relative flex flex-col items-center justify-center gap-1 rounded-none py-2.5 text-[9px] font-bold uppercase tracking-[0.15em] transition-colors",
+                active ? "bg-lime-400/10 text-lime-400" : "text-zinc-500 hover:text-zinc-200",
               )}
-              style={active ? { color: "var(--brand-ink, var(--brand))" } : undefined}
             >
               <Icon className="size-[22px]" />
               <span className="truncate max-w-[64px]">{n.label}</span>
 
               {n.badge ? (
-                <span
-                  className="absolute top-1 right-1/4 min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white"
-                  style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
-                >
+                <span className="absolute top-1 right-1/4 min-w-[16px] rounded-none px-1 text-[9px] font-black text-black bg-lime-400">
                   {n.badge}
                 </span>
               ) : null}
@@ -204,6 +209,7 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
         })}
       </div>
     </nav>
+
   );
 }
 
@@ -212,24 +218,29 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
 function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | null } }) {
   const { t } = useT();
   return (
-    <div className="flex items-center gap-2 min-w-0">
-      <div
-        className="size-8 rounded-md grid place-items-center text-white text-xs font-bold shrink-0"
-        style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
-      >
+    <div className="flex items-center gap-2.5 min-w-0">
+      <div className="grid h-9 w-9 shrink-0 place-items-center rounded bg-lime-400 text-sm font-black text-black overflow-hidden">
         {tenant.logo_url ? (
-          <img src={tenant.logo_url} alt="" className="size-8 rounded-md object-cover" />
+          <img src={tenant.logo_url} alt="" className="size-9 object-cover" />
         ) : (
-          tenant.name.slice(0, 2).toUpperCase()
+          tenant.name.slice(0, 1).toUpperCase()
         )}
       </div>
       <div className="min-w-0">
-        <div className="text-sm font-semibold truncate">{tenant.name}</div>
-        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("Dashboard")}</div>
+        <div
+          className="text-sm font-black uppercase tracking-tight text-white truncate"
+          style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.02em" }}
+        >
+          {tenant.name}
+        </div>
+        <div className="text-[9px] font-bold uppercase tracking-[0.25em] text-lime-400/80">
+          {t("Dashboard")}
+        </div>
       </div>
     </div>
   );
 }
+
 
 function SidebarInner({
   tenant,
@@ -247,12 +258,19 @@ function SidebarInner({
   const location = useLocation();
   const { t } = useT();
   return (
-    <div className="flex h-full flex-col">
-      <div className="p-4 border-b">
-        <div className="text-sm font-semibold truncate">{tenant.name}</div>
-        <div className="text-xs text-muted-foreground capitalize">{role}</div>
+    <div className="flex h-full flex-col bg-[#0a0a0a]">
+      <div className="p-4 border-b border-white/10">
+        <div
+          className="text-base font-black uppercase tracking-tight text-white truncate"
+          style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+        >
+          {tenant.name}
+        </div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-lime-400/80 capitalize">
+          {role}
+        </div>
       </div>
-      <nav className="flex-1 p-2 space-y-1">
+      <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
         {items.map((n) => {
           const active =
             n.to === "/dashboard"
@@ -265,20 +283,16 @@ function SidebarInner({
               to={n.to}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                "group relative flex items-center gap-3 px-3 py-2.5 rounded-none text-[11px] font-bold uppercase tracking-[0.15em] transition-colors",
                 active
-                  ? "bg-[var(--brand)]/10 text-[var(--brand-ink)] font-medium"
-                  : "text-muted-foreground hover:bg-muted",
+                  ? "bg-lime-400/10 text-lime-400 border-l-2 border-lime-400"
+                  : "text-zinc-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent",
               )}
-              style={active ? { color: "var(--brand-ink, currentColor)" } : undefined}
             >
-              <Icon className="size-4" />
-              <span className="flex-1">{n.label}</span>
+              <Icon className="size-4 shrink-0" />
+              <span className="flex-1 truncate">{n.label}</span>
               {n.badge ? (
-                <span
-                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white"
-                  style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
-                >
+                <span className="text-[9px] font-black px-1.5 py-0.5 rounded-none text-black bg-lime-400">
                   {n.badge}
                 </span>
               ) : null}
@@ -286,9 +300,15 @@ function SidebarInner({
           );
         })}
       </nav>
-      <div className="p-2 border-t">
-        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={onSignOut}>
+      <div className="p-2 border-t border-white/10">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400 hover:text-lime-400 hover:bg-white/5 rounded-none"
+          onClick={onSignOut}
+        >
           <LogOut className="size-4 mr-2" /> {t("Sign out")}
+
         </Button>
       </div>
     </div>
