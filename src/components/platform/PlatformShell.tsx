@@ -46,7 +46,8 @@ export function PlatformShell({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex text-white hover:bg-white/10">
               <LogOut className="size-4 mr-1" /> Sign out
             </Button>
