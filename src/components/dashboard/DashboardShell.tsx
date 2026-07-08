@@ -197,6 +197,7 @@ function MobileTabBar({ items }: { items: (NavItem & { badge?: number })[] }) {
 
 
 function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | null } }) {
+  const { t } = useT();
   return (
     <div className="flex items-center gap-2 min-w-0">
       <div
@@ -211,7 +212,7 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
       </div>
       <div className="min-w-0">
         <div className="text-sm font-semibold truncate">{tenant.name}</div>
-        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Dashboard</div>
+        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("Dashboard")}</div>
       </div>
     </div>
   );
