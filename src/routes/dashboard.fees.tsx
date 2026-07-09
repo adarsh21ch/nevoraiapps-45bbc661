@@ -673,13 +673,13 @@ function CollectForm({
   return (
     <div className="space-y-5 pt-2">
       <div className="text-xs text-muted-foreground">
-        Period: <span className="font-medium text-neutral-700">{periodLabel(period)}</span>
+        Period: <span className="font-medium text-foreground">{periodLabel(period)}</span>
       </div>
 
       <div className="space-y-1.5">
         <Label className="text-sm">Amount</Label>
         <div className="relative">
-          <span className="absolute inset-y-0 left-4 flex items-center text-lg font-semibold text-neutral-500">
+          <span className="absolute inset-y-0 left-4 flex items-center text-lg font-semibold text-muted-foreground">
             ₹
           </span>
           <Input
