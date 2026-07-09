@@ -238,7 +238,7 @@ function FeeRegister() {
         ) : visible.length === 0 ? (
           <EmptyState filter={filter} monthLabel={format(selectedMonth, "MMMM")} />
         ) : (
-          <ul className="divide-y divide-black/[0.06]">
+          <ul className="divide-y divide-border">
             {visible.map((r, i) => (
               <FeeRow
                 key={r.studentId}
