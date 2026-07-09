@@ -19,7 +19,6 @@ import {
   ClipboardCheck,
   BellRing,
   UserCircle,
-  MoreHorizontal,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,13 +34,21 @@ type NavItem = {
   requiresFeature?: "fee_tracking";
 };
 
-// Primary nav — the 5 things owners use every day.
+// Primary desktop nav.
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
   { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
   { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
+];
+
+// Mobile bottom-tab primary — 4 items; 5th slot is Profile → opens Manage sheet.
+const mobilePrimary: NavItem[] = [
+  { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/students", label: "Students", icon: Users },
+  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
 ];
 
 // Secondary — moved into "More" / Settings.
