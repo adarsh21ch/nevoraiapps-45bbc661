@@ -139,7 +139,7 @@ function StudentsPage() {
       </header>
 
       {/* Status tabs */}
-      <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-white border border-black/[0.06] shadow-sm p-1 overflow-x-auto">
+      <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1 overflow-x-auto">
         {statusTabs.map((t) => {
           const active = status === t.key;
           return (
@@ -150,16 +150,15 @@ function StudentsPage() {
               className={cn(
                 "shrink-0 h-10 px-4 rounded-full text-sm font-medium transition-colors",
                 active
-                  ? "text-white shadow-sm"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-black/[0.03]",
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
               )}
-              style={active ? { backgroundColor: "var(--brand)" } : undefined}
             >
               {t.label}
               <span
                 className={cn(
                   "ml-1 text-xs tabular-nums",
-                  active ? "text-white/80" : "text-neutral-400",
+                  active ? "opacity-70" : "text-muted-foreground/70",
                 )}
               >
                 {t.count}
@@ -177,14 +176,14 @@ function StudentsPage() {
             placeholder="Search name, phone, or Player ID"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="pl-10 h-11 rounded-full bg-white border-black/[0.06] shadow-sm"
+            className="pl-10 h-11 rounded-full bg-card border-border shadow-sm"
           />
         </div>
         <Select value={batch} onValueChange={setBatch}>
-          <SelectTrigger className="w-full md:w-48 h-11 rounded-full bg-white border-black/[0.06] shadow-sm">
+          <SelectTrigger className="w-full md:w-48 h-11 rounded-full bg-card border-border shadow-sm">
             <SelectValue placeholder="Batch" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-popover text-popover-foreground border-border">
             <SelectItem value="all">All batches</SelectItem>
             {(batches.data ?? []).map((b: any) => (
               <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
@@ -194,7 +193,7 @@ function StudentsPage() {
       </div>
 
       {/* List */}
-      <section className="rounded-2xl bg-white border border-black/[0.06] shadow-sm overflow-hidden">
+      <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
         {students.isLoading ? (
           <ul className="divide-y divide-black/[0.06]">
             {Array.from({ length: 5 }).map((_, i) => (
