@@ -17,7 +17,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
         const supabaseKey =
           process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY!;
 
-        let tenant: {
+        type TenantRow = {
           name: string;
           slug: string;
           tagline: string | null;
@@ -25,7 +25,8 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           secondary_color: string | null;
           logo_url: string | null;
           short_name: string | null;
-        } | null = null;
+        };
+        let tenant: TenantRow | null = null;
 
         const COLS = "name, slug, tagline, primary_color, secondary_color, logo_url, short_name";
 
@@ -40,7 +41,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
             .select(COLS)
             .eq("custom_domain", hostname)
             .maybeSingle();
-          let data = first.data as typeof tenant;
+          let data = first.data as TenantRow | null;
 
           // Fallback: {slug}.{platformBase}
           if (!data && hostname.endsWith("." + platformBase)) {
@@ -51,7 +52,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
                 .select(COLS)
                 .eq("slug", slug)
                 .maybeSingle();
-              data = res.data as typeof tenant;
+              data = res.data as TenantRow | null;
             }
           }
 
