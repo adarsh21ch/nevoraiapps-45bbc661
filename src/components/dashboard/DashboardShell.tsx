@@ -238,17 +238,20 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 function MobileTabBar({
   items,
-  onMore,
-  moreBadge,
+  profile,
+  profileActive,
+  onProfile,
 }: {
   items: (NavItem & { badge?: number })[];
-  onMore: () => void;
-  moreBadge?: number;
+  profile?: NavItem & { badge?: number };
+  profileActive: boolean;
+  onProfile: () => void;
 }) {
   const location = useLocation();
+  const { t } = useT();
   return (
     <nav
-      className="fixed inset-x-0 z-30 md:hidden border-t border-border bg-background/95 backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-40 md:hidden border-t border-border bg-background/95 backdrop-blur"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="grid grid-cols-5">
@@ -263,15 +266,15 @@ function MobileTabBar({
               key={n.to}
               to={n.to}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[52px] text-[10px] font-medium",
+                "relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[10px] font-medium",
                 active ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              <Icon className="size-[20px]" style={active ? { color: "var(--brand)" } : undefined} />
+              <Icon className="size-[20px]" />
               <span className="truncate max-w-[64px]">{n.label}</span>
               {active && (
                 <span
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-t-full"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 rounded-b-full"
                   style={{ backgroundColor: "var(--brand)" }}
                 />
               )}
@@ -285,16 +288,20 @@ function MobileTabBar({
         })}
         <button
           type="button"
-          onClick={onMore}
-          className="relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[52px] text-[10px] font-medium text-muted-foreground"
+          onClick={onProfile}
+          className={cn(
+            "relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[10px] font-medium",
+            profileActive ? "text-foreground" : "text-muted-foreground",
+          )}
         >
-          <MoreHorizontal className="size-[20px]" />
-          <span>More</span>
-          {moreBadge ? (
-            <span className="absolute top-1 right-[calc(50%-18px)] min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white bg-rose-600">
-              {moreBadge}
-            </span>
-          ) : null}
+          <UserCircle className="size-[20px]" />
+          <span>{profile?.label ?? t("Profile")}</span>
+          {profileActive && (
+            <span
+              className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 rounded-b-full"
+              style={{ backgroundColor: "var(--brand)" }}
+            />
+          )}
         </button>
       </div>
     </nav>
