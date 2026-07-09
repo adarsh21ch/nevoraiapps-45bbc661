@@ -441,88 +441,51 @@ function SegmentedToggle({
 /* ---------- Row ---------- */
 
 function FeeRow({
-  index,
   row,
   tenantName,
   whatsappEnabled,
+  onOpenProfile,
   onCollect,
   onReceipt,
 }: {
-  index: number;
   row: RegisterRow;
   tenantName: string;
   whatsappEnabled: boolean;
+  onOpenProfile: () => void;
   onCollect: () => void;
   onReceipt: () => void;
 }) {
   const due = row.due;
   const remindPhone = (row.guardianPhone || row.phone || "").replace(/\D/g, "");
   const isPending = due.state === "pending";
+  const isOverdue = isPending && due.overdueDays > 0;
 
   return (
-    <li className="p-4 md:px-5 md:py-4 hover:bg-accent/60 transition-colors">
-      <div className="flex items-center gap-3 md:gap-4">
-        <div className="hidden md:flex w-6 text-xs text-muted-foreground tabular-nums justify-center">
-          {index}
-        </div>
-
-        <PersonAvatar name={row.name} src={row.photoUrl} className="h-11 w-11" />
-
-        <div className="min-w-0 flex-1">
-          <button
-            type="button"
-            className="font-semibold text-[15px] truncate block hover:underline text-left"
-            title={row.name}
-            onClick={() => {
-              // Student profile popup lives in a later prompt.
-              toast.message(row.name, { description: "Student profile — coming soon" });
-            }}
-          >
-            {row.name}
-          </button>
-          <div className="text-xs text-muted-foreground truncate mt-0.5">
-            <span className="md:hidden">#{index} · </span>
-            {[row.batchName, row.planName].filter(Boolean).join(" · ") || "—"}
+    <li className="p-3 md:px-5 md:py-3.5 hover:bg-accent/60 transition-colors">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onOpenProfile}
+          className="flex items-center gap-3 min-w-0 flex-1 text-left"
+          title={row.name}
+        >
+          <div className="relative shrink-0">
+            <PersonAvatar name={row.name} src={row.photoUrl} className="h-10 w-10" />
+            {isOverdue && (
+              <span
+                className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-card bg-rose-500"
+                title={`Overdue ${due.overdueDays}d`}
+              />
+            )}
           </div>
-          {isPending && due.overdueDays > 0 && (
-            <div className="mt-1">
-              <span className="inline-flex items-center rounded-full bg-rose-50 text-rose-700 text-[11px] font-semibold px-2 py-0.5">
-                Overdue {due.overdueDays}d
-              </span>
-              <span className="ml-2 text-[11px] text-muted-foreground">
-                {periodLabel(due.period)}
-              </span>
-            </div>
-          )}
-          {isPending && due.overdueDays === 0 && (
-            <div className="mt-1">
-              <span className="inline-flex items-center rounded-full bg-amber-50 text-amber-700 text-[11px] font-semibold px-2 py-0.5">
-                Due today
-              </span>
-              <span className="ml-2 text-[11px] text-muted-foreground">
-                {periodLabel(due.period)}
-              </span>
-            </div>
-          )}
-          {due.state === "paid" && row.paidPayment && (
-            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium">
-              <CheckCircle2 className="size-3.5" />
-              Paid · {format(new Date(row.paidPayment.created_at), "d MMM")} ·{" "}
-              {row.paidPayment.method.toUpperCase()}
-            </div>
-          )}
-        </div>
+          <span className="font-semibold text-[15px] truncate min-w-0">{row.name}</span>
+        </button>
 
         <div className="text-right shrink-0">
           <div className="font-bold tabular-nums text-[15px]">{money(row.amount)}</div>
-          {row.hasCustomFee && (
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">
-              custom
-            </div>
-          )}
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           {isPending ? (
             <>
               {whatsappEnabled && remindPhone && (
@@ -530,7 +493,7 @@ function FeeRow({
                   asChild
                   size="icon"
                   variant="ghost"
-                  className="rounded-full h-10 w-10 text-[#25D366] hover:bg-[#25D366]/10"
+                  className="rounded-full h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10 hidden sm:inline-flex"
                   aria-label="Remind on WhatsApp"
                 >
                   <a
@@ -552,28 +515,34 @@ function FeeRow({
               )}
               <Button
                 onClick={onCollect}
-                className="rounded-full h-10 px-5 font-semibold"
-                style={{ backgroundColor: "var(--brand)", color: "white" }}
+                className="rounded-full h-9 px-4 font-semibold text-sm"
+                style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
               >
                 Collect
               </Button>
             </>
           ) : (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="rounded-full h-10 w-10"
-              aria-label="Download receipt"
-              onClick={onReceipt}
-            >
-              <Download className="size-4" />
-            </Button>
+            <>
+              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+                <CheckCircle2 className="size-3.5" /> Paid
+              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="rounded-full h-9 w-9"
+                aria-label="Download receipt"
+                onClick={onReceipt}
+              >
+                <Download className="size-4" />
+              </Button>
+            </>
           )}
         </div>
       </div>
     </li>
   );
 }
+
 
 /* ---------- Empty / loading ---------- */
 
