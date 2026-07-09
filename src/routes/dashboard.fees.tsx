@@ -755,12 +755,12 @@ function MethodButton({
       className={cn(
         "h-16 rounded-xl border-2 flex items-center justify-center gap-2 text-base font-semibold transition-all",
         active
-          ? "text-white shadow-sm"
-          : "bg-white text-neutral-700 border-black/[0.08] hover:border-black/20",
+          ? "shadow-sm text-background"
+          : "bg-card text-foreground border-border hover:border-foreground/30",
       )}
       style={
         active
-          ? { backgroundColor: "var(--brand)", borderColor: "var(--brand)" }
+          ? { backgroundColor: "var(--brand)", borderColor: "var(--brand)", color: "var(--brand-ink)" }
           : undefined
       }
     >
