@@ -729,7 +729,7 @@ function CollectForm({
         onClick={() => save.mutate()}
         disabled={disabled}
         className="w-full h-14 text-base font-semibold rounded-xl"
-        style={{ backgroundColor: "var(--brand)", color: "white" }}
+        style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
       >
         {save.isPending ? "Saving…" : "Confirm payment"}
       </Button>
