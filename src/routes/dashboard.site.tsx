@@ -40,18 +40,14 @@ function SiteEditor() {
         <TabsList className="w-full flex-wrap h-auto">
           <TabsTrigger value="hero">Hero</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
+          <TabsTrigger value="spotlight">Spotlight</TabsTrigger>
           <TabsTrigger value="stars">Star players</TabsTrigger>
           <TabsTrigger value="gallery">Gallery</TabsTrigger>
           <TabsTrigger value="contact">Contact & UPI</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hero" className="pt-4">
-          <SingleSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="hero"
-            fields={[
-              { key: "headline", label: "Headline" },
-              { key: "subheadline", label: "Subheadline", multiline: true },
-              { key: "cta_label", label: "Call-to-action label" },
-            ]} />
+          <HeroEditor tenantId={tenant.id} rows={content.data ?? []} />
         </TabsContent>
         <TabsContent value="about" className="pt-4">
           <SingleSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="about"
@@ -59,6 +55,15 @@ function SiteEditor() {
               { key: "heading", label: "Heading" },
               { key: "body", label: "Body", multiline: true, rows: 6 },
             ]} />
+        </TabsContent>
+        <TabsContent value="spotlight" className="pt-4">
+          <MultiSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="spotlight"
+            fields={[
+              { key: "name", label: "Name" },
+              { key: "role", label: "Role / Title (e.g. Head Coach, Indian Women's Rugby Team)" },
+              { key: "bio", label: "Bio / Achievements", multiline: true, rows: 5 },
+            ]}
+            imageField="photo_url" />
         </TabsContent>
         <TabsContent value="stars" className="pt-4">
           <MultiSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="star_players"
@@ -82,6 +87,20 @@ function SiteEditor() {
 
 type Field = { key: string; label: string; multiline?: boolean; rows?: number };
 
+async function persistSectionContent(tenantId: string, section: string, existingId: string | null, content: Record<string, unknown>) {
+  if (existingId) {
+    const { error } = await supabase.from("site_content").update({ content }).eq("id", existingId);
+    if (error) throw error;
+    return existingId;
+  }
+  const { data, error } = await supabase.from("site_content")
+    .insert({ tenant_id: tenantId, section, content, sort_order: 0 })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return data.id as string;
+}
+
 function SingleSectionEditor({ tenantId, rows, section, fields }: {
   tenantId: string; rows: any[]; section: string; fields: Field[];
 }) {
@@ -91,17 +110,7 @@ function SingleSectionEditor({ tenantId, rows, section, fields }: {
   useEffect(() => { setValues((existing?.content as any) ?? {}); }, [existing?.id]);
 
   const save = useMutation({
-    mutationFn: async () => {
-      if (existing) {
-        const { error } = await supabase.from("site_content").update({ content: values }).eq("id", existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("site_content").insert({
-          tenant_id: tenantId, section, content: values, sort_order: 0,
-        });
-        if (error) throw error;
-      }
-    },
+    mutationFn: async () => persistSectionContent(tenantId, section, existing?.id ?? null, values),
     onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: qk.site(tenantId) }); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -119,6 +128,95 @@ function SingleSectionEditor({ tenantId, rows, section, fields }: {
         </div>
       ))}
       <div><Button onClick={() => save.mutate()} disabled={save.isPending} style={{ backgroundColor: "var(--brand)", color: "white" }}>Save</Button></div>
+    </Card>
+  );
+}
+
+/* Hero editor — text fields + background image/video upload (auto-saved) */
+function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
+  const qc = useQueryClient();
+  const existing = rows.find((r) => r.section === "hero");
+  const [values, setValues] = useState<Record<string, string>>(() => (existing?.content as any) ?? {});
+  const [bgPreview, setBgPreview] = useState("");
+  const [uploading, setUploading] = useState(false);
+  useEffect(() => { setValues((existing?.content as any) ?? {}); }, [existing?.id]);
+  useEffect(() => {
+    const p = values.background_url;
+    if (p) signedUrl(p).then(setBgPreview); else setBgPreview("");
+  }, [values.background_url]);
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: qk.site(tenantId) });
+
+  const save = useMutation({
+    mutationFn: async () => persistSectionContent(tenantId, "hero", existing?.id ?? null, values),
+    onSuccess: () => { toast.success("Saved"); invalidate(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  async function onBgFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]; if (!f) return;
+    setUploading(true);
+    try {
+      const path = await uploadTenantFile(tenantId, "hero", f);
+      const isVideo = f.type.startsWith("video/");
+      const next = { ...values, background_url: path, background_type: isVideo ? "video" : "image" };
+      setValues(next);
+      await persistSectionContent(tenantId, "hero", existing?.id ?? null, next);
+      toast.success("Background updated");
+      invalidate();
+    } catch (err: any) { toast.error(err.message); }
+    finally { setUploading(false); }
+  }
+
+  async function clearBg() {
+    const next = { ...values, background_url: "", background_type: "" };
+    setValues(next);
+    try {
+      await persistSectionContent(tenantId, "hero", existing?.id ?? null, next);
+      toast.success("Background cleared");
+      invalidate();
+    } catch (err: any) { toast.error(err.message); }
+  }
+
+  return (
+    <Card className="p-5 space-y-4">
+      <div className="space-y-1.5">
+        <Label>Headline</Label>
+        <Input value={values.headline ?? ""} onChange={(e) => setValues({ ...values, headline: e.target.value })} />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Subheadline</Label>
+        <Textarea rows={3} value={values.subheadline ?? ""} onChange={(e) => setValues({ ...values, subheadline: e.target.value })} />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Call-to-action label</Label>
+        <Input value={values.cta_label ?? ""} onChange={(e) => setValues({ ...values, cta_label: e.target.value })} placeholder="Register Now" />
+      </div>
+
+      <div className="space-y-2 pt-3 border-t">
+        <Label>Hero background (image or short video)</Label>
+        <p className="text-xs text-muted-foreground">Uploads save instantly. Recommended: a photo/video that represents your business (JPG/PNG/WebP up to ~5 MB, or short MP4).</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="h-24 w-40 rounded-md border overflow-hidden bg-muted grid place-items-center">
+            {bgPreview
+              ? (values.background_type === "video"
+                  ? <video src={bgPreview} muted className="h-full w-full object-cover" />
+                  : <img src={bgPreview} alt="" className="h-full w-full object-cover" />)
+              : <span className="text-xs text-muted-foreground">No background</span>}
+          </div>
+          <label className="text-xs cursor-pointer inline-flex items-center gap-1 px-3 py-2 rounded-md border hover:bg-muted">
+            <Upload className="size-3" /> {uploading ? "Uploading…" : "Upload background"}
+            <input type="file" accept="image/*,video/mp4,video/webm" className="hidden" onChange={onBgFile} />
+          </label>
+          {values.background_url && (
+            <Button variant="ghost" size="sm" className="text-rose-600" onClick={clearBg}>Remove</Button>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <Button onClick={() => save.mutate()} disabled={save.isPending} style={{ backgroundColor: "var(--brand)", color: "white" }}>Save text</Button>
+      </div>
     </Card>
   );
 }
@@ -188,8 +286,13 @@ function ItemCard({ row, fields, imageField, tenantId, onChange }: {
     setUploading(true);
     try {
       const path = await uploadTenantFile(tenantId, row.section, f);
-      setValues({ ...values, [imageField]: path });
-      toast.success("Uploaded — remember to Save");
+      const next = { ...values, [imageField]: path };
+      setValues(next);
+      // Auto-persist immediately so the user doesn't need to click Save.
+      const { error } = await supabase.from("site_content").update({ content: next }).eq("id", row.id);
+      if (error) throw error;
+      toast.success("Photo updated");
+      onChange();
     } catch (err: any) { toast.error(err.message); }
     finally { setUploading(false); }
   }
@@ -226,7 +329,7 @@ function ItemCard({ row, fields, imageField, tenantId, onChange }: {
           <Trash2 className="size-4 mr-1" /> Delete
         </Button>
         <Button size="sm" onClick={() => save.mutate()} disabled={save.isPending} style={{ backgroundColor: "var(--brand)", color: "white" }}>
-          Save
+          Save text
         </Button>
       </div>
     </Card>
@@ -245,30 +348,37 @@ function ContactEditor() {
     upi_qr_url: tenant.upi_qr_url ?? "",
     tagline: tenant.tagline ?? "",
     logo_url: tenant.logo_url ?? "",
+    short_name: (tenant as any).short_name ?? "",
   });
   const [qrPreview, setQrPreview] = useState<string>("");
   const [logoPreview, setLogoPreview] = useState<string>("");
-  useEffect(() => { if (form.upi_qr_url) signedUrl(form.upi_qr_url).then(setQrPreview); }, [form.upi_qr_url]);
-  useEffect(() => { if (form.logo_url) signedUrl(form.logo_url).then(setLogoPreview); }, [form.logo_url]);
+  useEffect(() => { if (form.upi_qr_url) signedUrl(form.upi_qr_url).then(setQrPreview); else setQrPreview(""); }, [form.upi_qr_url]);
+  useEffect(() => { if (form.logo_url) signedUrl(form.logo_url).then(setLogoPreview); else setLogoPreview(""); }, [form.logo_url]);
+
+  const invalidateTenant = () => {
+    qc.invalidateQueries({ queryKey: ["dashboard-tenant", tenant.id] });
+    qc.invalidateQueries({ queryKey: ["current-tenant"] });
+  };
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("tenants").update(form).eq("id", tenant.id);
+      const { error } = await supabase.from("tenants").update(form as any).eq("id", tenant.id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      toast.success("Saved");
-      qc.invalidateQueries({ queryKey: ["dashboard-tenant", tenant.id] });
-      qc.invalidateQueries({ queryKey: ["current-tenant"] });
-    },
+    onSuccess: () => { toast.success("Saved"); invalidateTenant(); },
     onError: (e: Error) => toast.error(e.message),
   });
 
   async function upload(field: "upi_qr_url" | "logo_url", file: File) {
     try {
       const path = await uploadTenantFile(tenant.id, field, file);
-      setForm({ ...form, [field]: path });
-      toast.success("Uploaded — remember to Save");
+      const next = { ...form, [field]: path };
+      setForm(next);
+      // Auto-persist the single field immediately so the change survives reload.
+      const { error } = await supabase.from("tenants").update({ [field]: path } as any).eq("id", tenant.id);
+      if (error) throw error;
+      toast.success(field === "logo_url" ? "Logo updated" : "QR updated");
+      invalidateTenant();
     } catch (e: any) { toast.error(e.message); }
   }
 
@@ -279,6 +389,15 @@ function ContactEditor() {
         <Field label="WhatsApp" value={form.whatsapp} onChange={(v) => setForm({ ...form, whatsapp: v })} />
         <Field label="Email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
         <Field label="Tagline" value={form.tagline} onChange={(v) => setForm({ ...form, tagline: v })} />
+        <div className="space-y-1.5 md:col-span-2">
+          <Label>Short name <span className="text-xs text-muted-foreground">(shown when app is added to phone home screen — max 12 chars)</span></Label>
+          <Input
+            value={form.short_name}
+            maxLength={12}
+            placeholder="Sai Sports"
+            onChange={(e) => setForm({ ...form, short_name: e.target.value })}
+          />
+        </div>
       </div>
       <div className="space-y-1.5">
         <Label>Address</Label>

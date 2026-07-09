@@ -164,7 +164,11 @@ function BrandingEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => vo
     try {
       const path = await uploadTenantFile(tenant.id, field, file);
       setF({ ...f, [field]: path });
-      toast.success("Uploaded — remember to Save");
+      // Auto-persist immediately so the change survives reload.
+      const { error } = await supabase.from("tenants").update({ [field]: path }).eq("id", tenant.id);
+      if (error) throw error;
+      toast.success(field === "logo_url" ? "Logo updated" : "QR updated");
+      onSaved();
     } catch (e: any) { toast.error(e.message); }
   }
 

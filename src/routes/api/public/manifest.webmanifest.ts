@@ -24,7 +24,10 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           primary_color: string | null;
           secondary_color: string | null;
           logo_url: string | null;
+          short_name: string | null;
         } | null = null;
+
+        const COLS = "name, slug, tagline, primary_color, secondary_color, logo_url, short_name";
 
         try {
           const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -34,7 +37,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           // Try custom_domain match first
           let { data } = await supabase
             .from("tenants")
-            .select("name, slug, tagline, primary_color, secondary_color, logo_url")
+            .select(COLS)
             .eq("custom_domain", hostname)
             .maybeSingle();
 
@@ -44,14 +47,14 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
             if (slug) {
               const res = await supabase
                 .from("tenants")
-                .select("name, slug, tagline, primary_color, secondary_color, logo_url")
+                .select(COLS)
                 .eq("slug", slug)
                 .maybeSingle();
               data = res.data;
             }
           }
 
-          tenant = data;
+          tenant = data as typeof tenant;
         } catch {
           // fall through to platform defaults
         }
@@ -73,7 +76,10 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
         }
 
         const name = tenant?.name ?? "Academy OS";
-        const shortName = (tenant?.name ?? "Academy").slice(0, 12);
+        const shortName =
+          (tenant?.short_name && tenant.short_name.trim())
+            ? tenant.short_name.trim().slice(0, 12)
+            : (tenant?.name ?? "Academy").slice(0, 12);
         const themeColor = tenant?.primary_color ?? "#0a0a0a";
         const bgColor = tenant?.secondary_color ?? "#0a0a0a";
         const description =
