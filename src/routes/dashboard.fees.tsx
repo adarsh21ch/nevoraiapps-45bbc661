@@ -539,18 +539,18 @@ function FeeRow({
 
 function SkeletonList() {
   return (
-    <ul className="divide-y divide-black/[0.06]">
+    <ul className="divide-y divide-border">
       {Array.from({ length: 5 }).map((_, i) => (
         <li key={i} className="p-4 md:px-5 md:py-4">
           <div className="flex items-center gap-3 md:gap-4">
             <div className="hidden md:block w-6" />
-            <div className="h-11 w-11 rounded-full bg-black/5 animate-pulse" />
+            <div className="h-11 w-11 rounded-full bg-muted animate-pulse" />
             <div className="flex-1 space-y-2">
-              <div className="h-3.5 w-40 rounded bg-black/5 animate-pulse" />
-              <div className="h-3 w-24 rounded bg-black/5 animate-pulse" />
+              <div className="h-3.5 w-40 rounded bg-muted animate-pulse" />
+              <div className="h-3 w-24 rounded bg-muted animate-pulse" />
             </div>
-            <div className="h-5 w-16 rounded bg-black/5 animate-pulse" />
-            <div className="h-10 w-24 rounded-full bg-black/5 animate-pulse" />
+            <div className="h-5 w-16 rounded bg-muted animate-pulse" />
+            <div className="h-10 w-24 rounded-full bg-muted animate-pulse" />
           </div>
         </li>
       ))}
