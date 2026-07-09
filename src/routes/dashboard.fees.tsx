@@ -605,7 +605,7 @@ function CollectFlow({
           side="bottom"
           className="rounded-t-2xl p-0 border-0 max-h-[92vh] overflow-y-auto"
         >
-          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-black/10" />
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
           <div className="p-5 pt-4">
             <SheetHeader>
               <SheetTitle>
