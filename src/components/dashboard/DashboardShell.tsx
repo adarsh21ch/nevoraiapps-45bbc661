@@ -155,43 +155,73 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile bottom tab bar — 5 slots incl. More */}
+      {/* Mobile bottom tab bar — 4 primary + Profile (opens Manage sheet) */}
       <MobileTabBar
-        items={primary}
-        onMore={() => setMoreOpen(true)}
-        moreBadge={0}
+        items={mobileTabs}
+        profile={profileEntry}
+        profileActive={moreOpen}
+        onProfile={() => setMoreOpen(true)}
       />
 
-      {/* More sheet — settings and secondary items */}
+      {/* Manage sheet — Profile at top + all secondary items */}
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
         <SheetContent
           side="bottom"
-          className="rounded-t-2xl p-0 border-0 max-h-[80vh] overflow-y-auto"
+          className="rounded-t-2xl p-0 border-0 max-h-[85vh] overflow-y-auto bg-popover text-popover-foreground"
         >
-          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-black/10" />
-          <div className="p-5 pt-3">
-            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium mb-3 inline-flex items-center gap-1.5">
-              <Settings className="size-3.5" /> {t("Settings")}
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
+          <div className="p-5 pt-3 space-y-4">
+            {profileEntry ? (
+              <Link
+                to={profileEntry.to}
+                onClick={() => setMoreOpen(false)}
+                className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 hover:bg-accent/60"
+              >
+                <div
+                  className="grid size-11 place-items-center rounded-full text-sm font-bold"
+                  style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
+                >
+                  {(tenant.name || "?").slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold truncate text-foreground">{tenant.name}</div>
+                  <div className="text-xs text-muted-foreground capitalize">
+                    {profile.role} · {t("Profile")}
+                  </div>
+                </div>
+              </Link>
+            ) : null}
+
+            <div>
+              <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium mb-2 inline-flex items-center gap-1.5">
+                <Settings className="size-3.5" /> {t("Manage")}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {manageList.map((n) => {
+                  const Icon = n.icon;
+                  return (
+                    <Link
+                      key={n.to}
+                      to={n.to}
+                      onClick={() => setMoreOpen(false)}
+                      className="relative flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-[11px] font-medium text-foreground hover:bg-accent/60"
+                    >
+                      <Icon className="size-5 text-muted-foreground" />
+                      <span className="text-center leading-tight">{n.label}</span>
+                      {n.badge ? (
+                        <span className="absolute top-1.5 right-1.5 min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white bg-rose-600">
+                          {n.badge}
+                        </span>
+                      ) : null}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {secondary.map((n) => {
-                const Icon = n.icon;
-                return (
-                  <Link
-                    key={n.to}
-                    to={n.to}
-                    onClick={() => setMoreOpen(false)}
-                    className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-[11px] font-medium text-foreground hover:bg-muted"
-                  >
-                    <Icon className="size-5" style={{ color: "var(--brand)" }} />
-                    <span className="text-center leading-tight">{n.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
+
             <Button
               variant="outline"
-              className="mt-5 w-full rounded-xl h-11"
+              className="w-full rounded-xl h-11"
               onClick={() => {
                 setMoreOpen(false);
                 signOut();
