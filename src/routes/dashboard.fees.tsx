@@ -185,7 +185,7 @@ function FeeRegister() {
         </div>
         {cycle === "calendar_month" && (
           <div
-            className="flex items-center gap-1 rounded-full bg-white border border-black/[0.06] shadow-sm px-1 py-1"
+            className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1"
           >
             <Button
               variant="ghost"
