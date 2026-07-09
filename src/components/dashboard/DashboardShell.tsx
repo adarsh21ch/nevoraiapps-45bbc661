@@ -1,10 +1,9 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   Inbox,
@@ -15,11 +14,9 @@ import {
   ExternalLink,
   IndianRupee,
   BarChart3,
-  MessageSquareText,
   ClipboardCheck,
   BellRing,
   UserCircle,
-  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures } from "@/lib/tenant";
@@ -34,24 +31,18 @@ type NavItem = {
   requiresFeature?: "fee_tracking";
 };
 
-// Primary desktop nav.
+// Primary nav — Leads folded into Registrations.
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
   { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
-  { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
 ];
 
-// Mobile bottom-tab primary — 4 items; 5th slot is Profile → opens Manage sheet.
-const mobilePrimary: NavItem[] = [
-  { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
-  { to: "/dashboard/students", label: "Students", icon: Users },
-  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
-];
+// Mobile bottom tabs — 4 primary + Profile (navigates to full page).
+const mobilePrimary: NavItem[] = primaryNav;
 
-// Secondary — moved into "More" / Settings.
+// Secondary — reached from Profile page or desktop sidebar Settings section.
 const secondaryNav: NavItem[] = [
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/dashboard/reminders", label: "Reminders", icon: BellRing, requiresFeature: "fee_tracking" },
@@ -64,30 +55,24 @@ const secondaryNav: NavItem[] = [
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
   const { t } = useT();
-  const [moreOpen, setMoreOpen] = useState(false);
 
+  // Combined "new to action" count — registrations + leads (leads folded in).
   const newRegCount = useQuery({
-    queryKey: ["d", "regs-new-count", tenant.id],
+    queryKey: ["d", "regs-plus-leads-count", tenant.id],
     queryFn: async () => {
-      const { count } = await supabase
-        .from("registrations")
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", tenant.id)
-        .eq("status", "new");
-      return count ?? 0;
-    },
-    refetchInterval: 30_000,
-  });
-
-  const newLeadCount = useQuery({
-    queryKey: ["d", "leads-new-count", tenant.id],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("leads" as never)
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", tenant.id)
-        .eq("status", "new");
-      return count ?? 0;
+      const [regs, leads] = await Promise.all([
+        supabase
+          .from("registrations")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenant.id)
+          .eq("status", "new"),
+        supabase
+          .from("leads" as never)
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenant.id)
+          .eq("status", "new"),
+      ]);
+      return (regs.count ?? 0) + (leads.count ?? 0);
     },
     refetchInterval: 30_000,
   });
@@ -100,7 +85,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         const label = t(n.label);
         let badge: number | undefined;
         if (n.to === "/dashboard/registrations" && newRegCount.data) badge = newRegCount.data;
-        if (n.to === "/dashboard/leads" && newLeadCount.data) badge = newLeadCount.data;
         return { ...n, label, badge };
       });
 
@@ -108,16 +92,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const secondary = withBadges(secondaryNav);
   const mobileTabs = withBadges(mobilePrimary);
   const profileEntry = secondary.find((s) => s.to === "/dashboard/profile");
-  const manageEntries = secondary.filter((s) => s.to !== "/dashboard/profile");
-  // Also include Leads in the Manage sheet so it's still reachable on mobile.
-  const leadsForSheet = primary.find((p) => p.to === "/dashboard/leads");
-  const manageList = leadsForSheet ? [leadsForSheet, ...manageEntries] : manageEntries;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Top bar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-
         <div className="flex items-center gap-3 px-4 py-3 md:px-6">
           <TenantMark tenant={tenant} />
           <div className="ml-auto flex items-center gap-2">
@@ -150,88 +129,13 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           />
         </aside>
 
-        <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-28 md:pb-8">
+        <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-32 md:pb-8">
           {children ?? <Outlet />}
         </main>
       </div>
 
-      {/* Mobile bottom tab bar — 4 primary + Profile (opens Manage sheet) */}
-      <MobileTabBar
-        items={mobileTabs}
-        profile={profileEntry}
-        profileActive={moreOpen}
-        onProfile={() => setMoreOpen(true)}
-      />
-
-      {/* Manage sheet — Profile at top + all secondary items */}
-      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent
-          side="bottom"
-          className="rounded-t-2xl p-0 border-0 max-h-[85vh] overflow-y-auto bg-popover text-popover-foreground"
-        >
-          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
-          <div className="p-5 pt-3 space-y-4">
-            {profileEntry ? (
-              <Link
-                to={profileEntry.to}
-                onClick={() => setMoreOpen(false)}
-                className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 hover:bg-accent/60"
-              >
-                <div
-                  className="grid size-11 place-items-center rounded-full text-sm font-bold"
-                  style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
-                >
-                  {(tenant.name || "?").slice(0, 2).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate text-foreground">{tenant.name}</div>
-                  <div className="text-xs text-muted-foreground capitalize">
-                    {profile.role} · {t("Profile")}
-                  </div>
-                </div>
-              </Link>
-            ) : null}
-
-            <div>
-              <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium mb-2 inline-flex items-center gap-1.5">
-                <Settings className="size-3.5" /> {t("Manage")}
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {manageList.map((n) => {
-                  const Icon = n.icon;
-                  return (
-                    <Link
-                      key={n.to}
-                      to={n.to}
-                      onClick={() => setMoreOpen(false)}
-                      className="relative flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-[11px] font-medium text-foreground hover:bg-accent/60"
-                    >
-                      <Icon className="size-5 text-muted-foreground" />
-                      <span className="text-center leading-tight">{n.label}</span>
-                      {n.badge ? (
-                        <span className="absolute top-1.5 right-1.5 min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white bg-rose-600">
-                          {n.badge}
-                        </span>
-                      ) : null}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-
-            <Button
-              variant="outline"
-              className="w-full rounded-xl h-11"
-              onClick={() => {
-                setMoreOpen(false);
-                signOut();
-              }}
-            >
-              <LogOut className="size-4 mr-1.5" /> {t("Sign out")}
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
+      {/* Mobile bottom tab bar — Profile navigates to /dashboard/profile */}
+      <MobileTabBar items={mobileTabs} profile={profileEntry} />
     </div>
   );
 }
@@ -239,23 +143,20 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 function MobileTabBar({
   items,
   profile,
-  profileActive,
-  onProfile,
 }: {
   items: (NavItem & { badge?: number })[];
   profile?: NavItem & { badge?: number };
-  profileActive: boolean;
-  onProfile: () => void;
 }) {
   const location = useLocation();
   const { t } = useT();
+  const allTabs = profile ? [...items, profile] : items;
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 md:hidden border-t border-border bg-background/95 backdrop-blur"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 6px)", paddingTop: "6px" }}
     >
       <div className="grid grid-cols-5">
-        {items.map((n) => {
+        {allTabs.map((n) => {
           const active =
             n.to === "/dashboard"
               ? location.pathname === "/dashboard"
@@ -266,43 +167,26 @@ function MobileTabBar({
               key={n.to}
               to={n.to}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[10px] font-medium",
+                "relative flex flex-col items-center justify-center gap-1 px-1 pt-2.5 pb-2 min-h-[68px] text-[10.5px] font-medium",
                 active ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              <Icon className="size-[20px]" />
-              <span className="truncate max-w-[64px]">{n.label}</span>
+              <Icon className="size-[22px]" />
+              <span className="truncate max-w-[68px] leading-none">{n.label ?? t("Profile")}</span>
               {active && (
                 <span
-                  className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 rounded-b-full"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 h-[3px] w-10 rounded-b-full"
                   style={{ backgroundColor: "var(--brand)" }}
                 />
               )}
               {n.badge ? (
-                <span className="absolute top-1 right-[calc(50%-18px)] min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white bg-rose-600">
+                <span className="absolute top-1.5 right-[calc(50%-20px)] min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white bg-rose-600">
                   {n.badge}
                 </span>
               ) : null}
             </Link>
           );
         })}
-        <button
-          type="button"
-          onClick={onProfile}
-          className={cn(
-            "relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[10px] font-medium",
-            profileActive ? "text-foreground" : "text-muted-foreground",
-          )}
-        >
-          <UserCircle className="size-[20px]" />
-          <span>{profile?.label ?? t("Profile")}</span>
-          {profileActive && (
-            <span
-              className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 rounded-b-full"
-              style={{ backgroundColor: "var(--brand)" }}
-            />
-          )}
-        </button>
       </div>
     </nav>
   );
@@ -314,7 +198,7 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
     <div className="flex items-center gap-2 min-w-0">
       <div
         className="size-8 rounded-md grid place-items-center text-white text-xs font-bold shrink-0"
-        style={{ backgroundColor: "var(--tenant-brand, var(--brand, #ff9f43))" }}
+        style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
       >
         {tenant.logo_url ? (
           <img src={tenant.logo_url} alt="" className="size-8 rounded-md object-cover" />
