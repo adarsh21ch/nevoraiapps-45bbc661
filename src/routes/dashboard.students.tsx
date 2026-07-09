@@ -131,7 +131,7 @@ function StudentsPage() {
           <Button
             onClick={() => setAddOpen(true)}
             className="rounded-full h-10 px-5 font-semibold"
-            style={{ backgroundColor: "var(--brand)", color: "white" }}
+            style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
           >
             <Plus className="size-4 mr-1" /> Add
           </Button>
