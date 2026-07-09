@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
+import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Banknote,
@@ -43,6 +44,7 @@ export const Route = createFileRoute("/dashboard/fees")({
   },
   component: FeeRegister,
 });
+
 
 type Filter = "pending" | "paid" | "all";
 
