@@ -183,35 +183,33 @@ function FeeRegister() {
   };
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Fees</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+    <div className="space-y-4">
+      {/* Compact header — heading + month selector on one line */}
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight truncate">Fees</h1>
+          <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
             Collect this month's fees and follow up on pending.
           </p>
         </div>
         {cycle === "calendar_month" && (
-          <div
-            className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1"
-          >
+          <div className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1 shrink-0">
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full h-9 w-9"
+              className="rounded-full h-8 w-8"
               aria-label="Previous month"
               onClick={() => setMonthOffset((m) => m - 1)}
             >
               <ChevronLeft className="size-4" />
             </Button>
-            <div className="text-sm font-semibold w-32 text-center tabular-nums">
-              {format(selectedMonth, "MMMM yyyy")}
+            <div className="text-xs font-semibold w-24 text-center tabular-nums">
+              {format(selectedMonth, "MMM yyyy")}
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full h-9 w-9"
+              className="rounded-full h-8 w-8"
               aria-label="Next month"
               disabled={monthOffset >= 0}
               onClick={() => setMonthOffset((m) => Math.min(0, m + 1))}
@@ -222,7 +220,6 @@ function FeeRegister() {
         )}
       </header>
 
-      {/* Compact collection strip */}
       <CollectionStrip
         collected={collectedAmount}
         expected={collectedAmount + pendingAmount}
@@ -230,31 +227,26 @@ function FeeRegister() {
         totalCount={rows.length}
       />
 
-
-      {/* Segmented toggle */}
       <SegmentedToggle
         value={filter}
         onChange={setFilter}
         counts={{ pending: pendingRows.length, paid: paidRows.length, all: rows.length }}
       />
 
-      {/* List */}
-      <section
-        className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
-      >
+      <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
         {loading ? (
           <SkeletonList />
         ) : visible.length === 0 ? (
           <EmptyState filter={filter} monthLabel={format(selectedMonth, "MMMM")} />
         ) : (
           <ul className="divide-y divide-border">
-            {visible.map((r, i) => (
+            {visible.map((r) => (
               <FeeRow
                 key={r.studentId}
-                index={i + 1}
                 row={r}
                 tenantName={tenant.name}
                 whatsappEnabled={features.whatsapp_reminders !== false}
+                onOpenProfile={() => openProfile(r.studentId)}
                 onCollect={() => setPayRow(r)}
                 onReceipt={() => {
                   if (!r.paidPayment) return;
@@ -283,9 +275,48 @@ function FeeRegister() {
           invalidate();
         }}
       />
+
+      <FeesProfileSheet id={profileId} onOpenChange={(o) => !o && setProfileId(null)} />
     </div>
   );
 }
+
+function FeesProfileSheet({
+  id,
+  onOpenChange,
+}: {
+  id: string | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const isMobile = useIsMobile();
+  const open = !!id;
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="rounded-t-2xl p-0 border-0 max-h-[92vh] overflow-y-auto">
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
+          <div className="p-5 pt-3">
+            <SheetHeader>
+              <SheetTitle className="sr-only">Student profile</SheetTitle>
+            </SheetHeader>
+            {id && <StudentProfilePanel studentId={id} compact />}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="sr-only">Student profile</DialogTitle>
+        </DialogHeader>
+        {id && <StudentProfilePanel studentId={id} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 /* ---------- Collection strip ---------- */
 
