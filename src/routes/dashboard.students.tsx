@@ -195,13 +195,13 @@ function StudentsPage() {
       {/* List */}
       <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
         {students.isLoading ? (
-          <ul className="divide-y divide-black/[0.06]">
+          <ul className="divide-y divide-border">
             {Array.from({ length: 5 }).map((_, i) => (
               <li key={i} className="p-4 flex items-center gap-3">
-                <div className="h-11 w-11 rounded-full bg-black/5 animate-pulse" />
+                <div className="h-11 w-11 rounded-full bg-muted animate-pulse" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3.5 w-40 rounded bg-black/5 animate-pulse" />
-                  <div className="h-3 w-24 rounded bg-black/5 animate-pulse" />
+                  <div className="h-3.5 w-40 rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-24 rounded bg-muted animate-pulse" />
                 </div>
               </li>
             ))}
@@ -211,7 +211,7 @@ function StudentsPage() {
             No students match. {status === "active" ? "Add your first student to get started." : ""}
           </div>
         ) : (
-          <ul className="divide-y divide-black/[0.06]">
+          <ul className="divide-y divide-border">
             {filtered.map((s: any, i: number) => {
               const plan = s.fee_plans as { name?: string; amount?: number } | null;
               const effective = s.custom_fee != null ? Number(s.custom_fee) : Number(plan?.amount ?? 0);
@@ -222,17 +222,17 @@ function StudentsPage() {
                   <button
                     type="button"
                     onClick={() => setProfileId(s.id)}
-                    className="w-full text-left flex items-center gap-3 md:gap-4 p-4 md:px-5 hover:bg-black/[0.015] transition-colors"
+                    className="w-full text-left flex items-center gap-3 md:gap-4 p-4 md:px-5 hover:bg-accent/60 transition-colors"
                   >
-                    <div className="hidden md:flex w-6 text-xs text-neutral-400 tabular-nums justify-center">
+                    <div className="hidden md:flex w-6 text-xs text-muted-foreground tabular-nums justify-center">
                       {i + 1}
                     </div>
                     <PersonAvatar name={s.name} src={s.photo_url} className="h-11 w-11" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-[15px] truncate">{s.name}</span>
+                        <span className="font-semibold text-[15px] truncate text-foreground">{s.name}</span>
                         {s.player_id && (
-                          <span className="text-[10px] font-bold tracking-wider text-neutral-500">
+                          <span className="text-[10px] font-bold tracking-wider text-muted-foreground">
                             {s.player_id}
                           </span>
                         )}
@@ -250,13 +250,13 @@ function StudentsPage() {
                       {s.status === "active" ? (
                         <StatusPill paid={paidThisMonth} />
                       ) : (
-                        <span className="text-[11px] uppercase tracking-wide text-neutral-400 font-semibold">
+                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
                           {s.status}
                         </span>
                       )}
                     </div>
                     <div className="text-right shrink-0 w-20">
-                      <div className="font-bold tabular-nums text-sm">
+                      <div className="font-bold tabular-nums text-sm text-foreground">
                         {effective ? `₹${effective.toLocaleString("en-IN")}` : "—"}
                       </div>
                       {s.custom_fee != null && (
@@ -265,7 +265,7 @@ function StudentsPage() {
                         </div>
                       )}
                     </div>
-                    <ChevronRight className="size-4 text-neutral-300 shrink-0" />
+                    <ChevronRight className="size-4 text-muted-foreground shrink-0" />
                   </button>
                 </li>
               );
