@@ -134,8 +134,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.985 0 0 / 40%);
-  --brand: #ff9f43;
-  --brand-ink: #ffffff;
+  --brand: #d4a24e;
+  --brand-ink: #0f0f0f;
 }
 
 @layer base {
