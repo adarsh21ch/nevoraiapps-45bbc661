@@ -366,7 +366,7 @@ function SegmentedToggle({
     { key: "all", label: "All", count: counts.all },
   ];
   return (
-    <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-white border border-black/[0.06] shadow-sm p-1">
+    <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1">
       {items.map((it) => {
         const active = value === it.key;
         return (
@@ -378,16 +378,15 @@ function SegmentedToggle({
               "flex-1 sm:flex-none h-10 px-4 rounded-full text-sm font-medium transition-colors",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
               active
-                ? "text-white shadow-sm"
-                : "text-neutral-600 hover:text-neutral-900 hover:bg-black/[0.03]",
+                ? "bg-foreground text-background shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
             )}
-            style={active ? { backgroundColor: "var(--brand)" } : undefined}
           >
             {it.label}{" "}
             <span
               className={cn(
                 "ml-1 text-xs tabular-nums",
-                active ? "text-white/80" : "text-neutral-400",
+                active ? "opacity-70" : "text-muted-foreground/70",
               )}
             >
               {it.count}
