@@ -185,7 +185,7 @@ function FeeRegister() {
         </div>
         {cycle === "calendar_month" && (
           <div
-            className="flex items-center gap-1 rounded-full bg-white border border-black/[0.06] shadow-sm px-1 py-1"
+            className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1"
           >
             <Button
               variant="ghost"
@@ -231,14 +231,14 @@ function FeeRegister() {
 
       {/* List */}
       <section
-        className="rounded-2xl bg-white border border-black/[0.06] shadow-sm overflow-hidden"
+        className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
       >
         {loading ? (
           <SkeletonList />
         ) : visible.length === 0 ? (
           <EmptyState filter={filter} monthLabel={format(selectedMonth, "MMMM")} />
         ) : (
-          <ul className="divide-y divide-black/[0.06]">
+          <ul className="divide-y divide-border">
             {visible.map((r, i) => (
               <FeeRow
                 key={r.studentId}
@@ -366,7 +366,7 @@ function SegmentedToggle({
     { key: "all", label: "All", count: counts.all },
   ];
   return (
-    <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-white border border-black/[0.06] shadow-sm p-1">
+    <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1">
       {items.map((it) => {
         const active = value === it.key;
         return (
@@ -378,16 +378,15 @@ function SegmentedToggle({
               "flex-1 sm:flex-none h-10 px-4 rounded-full text-sm font-medium transition-colors",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
               active
-                ? "text-white shadow-sm"
-                : "text-neutral-600 hover:text-neutral-900 hover:bg-black/[0.03]",
+                ? "bg-foreground text-background shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
             )}
-            style={active ? { backgroundColor: "var(--brand)" } : undefined}
           >
             {it.label}{" "}
             <span
               className={cn(
                 "ml-1 text-xs tabular-nums",
-                active ? "text-white/80" : "text-neutral-400",
+                active ? "opacity-70" : "text-muted-foreground/70",
               )}
             >
               {it.count}
@@ -421,9 +420,9 @@ function FeeRow({
   const isPending = due.state === "pending";
 
   return (
-    <li className="p-4 md:px-5 md:py-4 hover:bg-black/[0.015] transition-colors">
+    <li className="p-4 md:px-5 md:py-4 hover:bg-accent/60 transition-colors">
       <div className="flex items-center gap-3 md:gap-4">
-        <div className="hidden md:flex w-6 text-xs text-neutral-400 tabular-nums justify-center">
+        <div className="hidden md:flex w-6 text-xs text-muted-foreground tabular-nums justify-center">
           {index}
         </div>
 
@@ -540,18 +539,18 @@ function FeeRow({
 
 function SkeletonList() {
   return (
-    <ul className="divide-y divide-black/[0.06]">
+    <ul className="divide-y divide-border">
       {Array.from({ length: 5 }).map((_, i) => (
         <li key={i} className="p-4 md:px-5 md:py-4">
           <div className="flex items-center gap-3 md:gap-4">
             <div className="hidden md:block w-6" />
-            <div className="h-11 w-11 rounded-full bg-black/5 animate-pulse" />
+            <div className="h-11 w-11 rounded-full bg-muted animate-pulse" />
             <div className="flex-1 space-y-2">
-              <div className="h-3.5 w-40 rounded bg-black/5 animate-pulse" />
-              <div className="h-3 w-24 rounded bg-black/5 animate-pulse" />
+              <div className="h-3.5 w-40 rounded bg-muted animate-pulse" />
+              <div className="h-3 w-24 rounded bg-muted animate-pulse" />
             </div>
-            <div className="h-5 w-16 rounded bg-black/5 animate-pulse" />
-            <div className="h-10 w-24 rounded-full bg-black/5 animate-pulse" />
+            <div className="h-5 w-16 rounded bg-muted animate-pulse" />
+            <div className="h-10 w-24 rounded-full bg-muted animate-pulse" />
           </div>
         </li>
       ))}
@@ -606,7 +605,7 @@ function CollectFlow({
           side="bottom"
           className="rounded-t-2xl p-0 border-0 max-h-[92vh] overflow-y-auto"
         >
-          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-black/10" />
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
           <div className="p-5 pt-4">
             <SheetHeader>
               <SheetTitle>
@@ -674,13 +673,13 @@ function CollectForm({
   return (
     <div className="space-y-5 pt-2">
       <div className="text-xs text-muted-foreground">
-        Period: <span className="font-medium text-neutral-700">{periodLabel(period)}</span>
+        Period: <span className="font-medium text-foreground">{periodLabel(period)}</span>
       </div>
 
       <div className="space-y-1.5">
         <Label className="text-sm">Amount</Label>
         <div className="relative">
-          <span className="absolute inset-y-0 left-4 flex items-center text-lg font-semibold text-neutral-500">
+          <span className="absolute inset-y-0 left-4 flex items-center text-lg font-semibold text-muted-foreground">
             ₹
           </span>
           <Input
@@ -730,7 +729,7 @@ function CollectForm({
         onClick={() => save.mutate()}
         disabled={disabled}
         className="w-full h-14 text-base font-semibold rounded-xl"
-        style={{ backgroundColor: "var(--brand)", color: "white" }}
+        style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
       >
         {save.isPending ? "Saving…" : "Confirm payment"}
       </Button>
@@ -756,12 +755,12 @@ function MethodButton({
       className={cn(
         "h-16 rounded-xl border-2 flex items-center justify-center gap-2 text-base font-semibold transition-all",
         active
-          ? "text-white shadow-sm"
-          : "bg-white text-neutral-700 border-black/[0.08] hover:border-black/20",
+          ? "shadow-sm text-background"
+          : "bg-card text-foreground border-border hover:border-foreground/30",
       )}
       style={
         active
-          ? { backgroundColor: "var(--brand)", borderColor: "var(--brand)" }
+          ? { backgroundColor: "var(--brand)", borderColor: "var(--brand)", color: "var(--brand-ink)" }
           : undefined
       }
     >

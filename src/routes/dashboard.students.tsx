@@ -131,7 +131,7 @@ function StudentsPage() {
           <Button
             onClick={() => setAddOpen(true)}
             className="rounded-full h-10 px-5 font-semibold"
-            style={{ backgroundColor: "var(--brand)", color: "white" }}
+            style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
           >
             <Plus className="size-4 mr-1" /> Add
           </Button>
@@ -139,7 +139,7 @@ function StudentsPage() {
       </header>
 
       {/* Status tabs */}
-      <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-white border border-black/[0.06] shadow-sm p-1 overflow-x-auto">
+      <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1 overflow-x-auto">
         {statusTabs.map((t) => {
           const active = status === t.key;
           return (
@@ -150,16 +150,15 @@ function StudentsPage() {
               className={cn(
                 "shrink-0 h-10 px-4 rounded-full text-sm font-medium transition-colors",
                 active
-                  ? "text-white shadow-sm"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-black/[0.03]",
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
               )}
-              style={active ? { backgroundColor: "var(--brand)" } : undefined}
             >
               {t.label}
               <span
                 className={cn(
                   "ml-1 text-xs tabular-nums",
-                  active ? "text-white/80" : "text-neutral-400",
+                  active ? "opacity-70" : "text-muted-foreground/70",
                 )}
               >
                 {t.count}
@@ -177,14 +176,14 @@ function StudentsPage() {
             placeholder="Search name, phone, or Player ID"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="pl-10 h-11 rounded-full bg-white border-black/[0.06] shadow-sm"
+            className="pl-10 h-11 rounded-full bg-card border-border shadow-sm"
           />
         </div>
         <Select value={batch} onValueChange={setBatch}>
-          <SelectTrigger className="w-full md:w-48 h-11 rounded-full bg-white border-black/[0.06] shadow-sm">
+          <SelectTrigger className="w-full md:w-48 h-11 rounded-full bg-card border-border shadow-sm">
             <SelectValue placeholder="Batch" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-popover text-popover-foreground border-border">
             <SelectItem value="all">All batches</SelectItem>
             {(batches.data ?? []).map((b: any) => (
               <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
@@ -194,15 +193,15 @@ function StudentsPage() {
       </div>
 
       {/* List */}
-      <section className="rounded-2xl bg-white border border-black/[0.06] shadow-sm overflow-hidden">
+      <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
         {students.isLoading ? (
-          <ul className="divide-y divide-black/[0.06]">
+          <ul className="divide-y divide-border">
             {Array.from({ length: 5 }).map((_, i) => (
               <li key={i} className="p-4 flex items-center gap-3">
-                <div className="h-11 w-11 rounded-full bg-black/5 animate-pulse" />
+                <div className="h-11 w-11 rounded-full bg-muted animate-pulse" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3.5 w-40 rounded bg-black/5 animate-pulse" />
-                  <div className="h-3 w-24 rounded bg-black/5 animate-pulse" />
+                  <div className="h-3.5 w-40 rounded bg-muted animate-pulse" />
+                  <div className="h-3 w-24 rounded bg-muted animate-pulse" />
                 </div>
               </li>
             ))}
@@ -212,7 +211,7 @@ function StudentsPage() {
             No students match. {status === "active" ? "Add your first student to get started." : ""}
           </div>
         ) : (
-          <ul className="divide-y divide-black/[0.06]">
+          <ul className="divide-y divide-border">
             {filtered.map((s: any, i: number) => {
               const plan = s.fee_plans as { name?: string; amount?: number } | null;
               const effective = s.custom_fee != null ? Number(s.custom_fee) : Number(plan?.amount ?? 0);
@@ -223,17 +222,17 @@ function StudentsPage() {
                   <button
                     type="button"
                     onClick={() => setProfileId(s.id)}
-                    className="w-full text-left flex items-center gap-3 md:gap-4 p-4 md:px-5 hover:bg-black/[0.015] transition-colors"
+                    className="w-full text-left flex items-center gap-3 md:gap-4 p-4 md:px-5 hover:bg-accent/60 transition-colors"
                   >
-                    <div className="hidden md:flex w-6 text-xs text-neutral-400 tabular-nums justify-center">
+                    <div className="hidden md:flex w-6 text-xs text-muted-foreground tabular-nums justify-center">
                       {i + 1}
                     </div>
                     <PersonAvatar name={s.name} src={s.photo_url} className="h-11 w-11" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-[15px] truncate">{s.name}</span>
+                        <span className="font-semibold text-[15px] truncate text-foreground">{s.name}</span>
                         {s.player_id && (
-                          <span className="text-[10px] font-bold tracking-wider text-neutral-500">
+                          <span className="text-[10px] font-bold tracking-wider text-muted-foreground">
                             {s.player_id}
                           </span>
                         )}
@@ -251,13 +250,13 @@ function StudentsPage() {
                       {s.status === "active" ? (
                         <StatusPill paid={paidThisMonth} />
                       ) : (
-                        <span className="text-[11px] uppercase tracking-wide text-neutral-400 font-semibold">
+                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
                           {s.status}
                         </span>
                       )}
                     </div>
                     <div className="text-right shrink-0 w-20">
-                      <div className="font-bold tabular-nums text-sm">
+                      <div className="font-bold tabular-nums text-sm text-foreground">
                         {effective ? `₹${effective.toLocaleString("en-IN")}` : "—"}
                       </div>
                       {s.custom_fee != null && (
@@ -266,7 +265,7 @@ function StudentsPage() {
                         </div>
                       )}
                     </div>
-                    <ChevronRight className="size-4 text-neutral-300 shrink-0" />
+                    <ChevronRight className="size-4 text-muted-foreground shrink-0" />
                   </button>
                 </li>
               );
@@ -318,7 +317,7 @@ function ProfileSheet({
           side="bottom"
           className="rounded-t-2xl p-0 border-0 max-h-[92vh] overflow-y-auto"
         >
-          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-black/10" />
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
           <div className="p-5 pt-3">
             <SheetHeader>
               <SheetTitle className="text-left sr-only">Student profile</SheetTitle>
@@ -359,7 +358,7 @@ function AddStudentSheet({
           side="bottom"
           className="rounded-t-2xl p-0 border-0 max-h-[92vh] overflow-y-auto"
         >
-          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-black/10" />
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
           <div className="p-5 pt-3">
             <SheetHeader>
               <SheetTitle className="text-left">Add student</SheetTitle>

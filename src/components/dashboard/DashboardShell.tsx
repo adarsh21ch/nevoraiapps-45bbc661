@@ -19,7 +19,6 @@ import {
   ClipboardCheck,
   BellRing,
   UserCircle,
-  MoreHorizontal,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,13 +34,21 @@ type NavItem = {
   requiresFeature?: "fee_tracking";
 };
 
-// Primary nav — the 5 things owners use every day.
+// Primary desktop nav.
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
   { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
   { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
+];
+
+// Mobile bottom-tab primary — 4 items; 5th slot is Profile → opens Manage sheet.
+const mobilePrimary: NavItem[] = [
+  { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/students", label: "Students", icon: Users },
+  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
 ];
 
 // Secondary — moved into "More" / Settings.
@@ -99,6 +106,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   const primary = withBadges(primaryNav);
   const secondary = withBadges(secondaryNav);
+  const mobileTabs = withBadges(mobilePrimary);
+  const profileEntry = secondary.find((s) => s.to === "/dashboard/profile");
+  const manageEntries = secondary.filter((s) => s.to !== "/dashboard/profile");
+  // Also include Leads in the Manage sheet so it's still reachable on mobile.
+  const leadsForSheet = primary.find((p) => p.to === "/dashboard/leads");
+  const manageList = leadsForSheet ? [leadsForSheet, ...manageEntries] : manageEntries;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -142,43 +155,73 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile bottom tab bar — 5 slots incl. More */}
+      {/* Mobile bottom tab bar — 4 primary + Profile (opens Manage sheet) */}
       <MobileTabBar
-        items={primary}
-        onMore={() => setMoreOpen(true)}
-        moreBadge={0}
+        items={mobileTabs}
+        profile={profileEntry}
+        profileActive={moreOpen}
+        onProfile={() => setMoreOpen(true)}
       />
 
-      {/* More sheet — settings and secondary items */}
+      {/* Manage sheet — Profile at top + all secondary items */}
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
         <SheetContent
           side="bottom"
-          className="rounded-t-2xl p-0 border-0 max-h-[80vh] overflow-y-auto"
+          className="rounded-t-2xl p-0 border-0 max-h-[85vh] overflow-y-auto bg-popover text-popover-foreground"
         >
-          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-black/10" />
-          <div className="p-5 pt-3">
-            <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium mb-3 inline-flex items-center gap-1.5">
-              <Settings className="size-3.5" /> {t("Settings")}
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
+          <div className="p-5 pt-3 space-y-4">
+            {profileEntry ? (
+              <Link
+                to={profileEntry.to}
+                onClick={() => setMoreOpen(false)}
+                className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 hover:bg-accent/60"
+              >
+                <div
+                  className="grid size-11 place-items-center rounded-full text-sm font-bold"
+                  style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
+                >
+                  {(tenant.name || "?").slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold truncate text-foreground">{tenant.name}</div>
+                  <div className="text-xs text-muted-foreground capitalize">
+                    {profile.role} · {t("Profile")}
+                  </div>
+                </div>
+              </Link>
+            ) : null}
+
+            <div>
+              <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium mb-2 inline-flex items-center gap-1.5">
+                <Settings className="size-3.5" /> {t("Manage")}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {manageList.map((n) => {
+                  const Icon = n.icon;
+                  return (
+                    <Link
+                      key={n.to}
+                      to={n.to}
+                      onClick={() => setMoreOpen(false)}
+                      className="relative flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-[11px] font-medium text-foreground hover:bg-accent/60"
+                    >
+                      <Icon className="size-5 text-muted-foreground" />
+                      <span className="text-center leading-tight">{n.label}</span>
+                      {n.badge ? (
+                        <span className="absolute top-1.5 right-1.5 min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white bg-rose-600">
+                          {n.badge}
+                        </span>
+                      ) : null}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              {secondary.map((n) => {
-                const Icon = n.icon;
-                return (
-                  <Link
-                    key={n.to}
-                    to={n.to}
-                    onClick={() => setMoreOpen(false)}
-                    className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-4 text-[11px] font-medium text-foreground hover:bg-muted"
-                  >
-                    <Icon className="size-5" style={{ color: "var(--brand)" }} />
-                    <span className="text-center leading-tight">{n.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
+
             <Button
               variant="outline"
-              className="mt-5 w-full rounded-xl h-11"
+              className="w-full rounded-xl h-11"
               onClick={() => {
                 setMoreOpen(false);
                 signOut();
@@ -195,17 +238,20 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 function MobileTabBar({
   items,
-  onMore,
-  moreBadge,
+  profile,
+  profileActive,
+  onProfile,
 }: {
   items: (NavItem & { badge?: number })[];
-  onMore: () => void;
-  moreBadge?: number;
+  profile?: NavItem & { badge?: number };
+  profileActive: boolean;
+  onProfile: () => void;
 }) {
   const location = useLocation();
+  const { t } = useT();
   return (
     <nav
-      className="fixed inset-x-0 z-30 md:hidden border-t border-border bg-background/95 backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-40 md:hidden border-t border-border bg-background/95 backdrop-blur"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="grid grid-cols-5">
@@ -220,15 +266,15 @@ function MobileTabBar({
               key={n.to}
               to={n.to}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[52px] text-[10px] font-medium",
+                "relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[10px] font-medium",
                 active ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              <Icon className="size-[20px]" style={active ? { color: "var(--brand)" } : undefined} />
+              <Icon className="size-[20px]" />
               <span className="truncate max-w-[64px]">{n.label}</span>
               {active && (
                 <span
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-t-full"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 rounded-b-full"
                   style={{ backgroundColor: "var(--brand)" }}
                 />
               )}
@@ -242,16 +288,20 @@ function MobileTabBar({
         })}
         <button
           type="button"
-          onClick={onMore}
-          className="relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[52px] text-[10px] font-medium text-muted-foreground"
+          onClick={onProfile}
+          className={cn(
+            "relative flex flex-col items-center justify-center gap-0.5 py-2 min-h-[56px] text-[10px] font-medium",
+            profileActive ? "text-foreground" : "text-muted-foreground",
+          )}
         >
-          <MoreHorizontal className="size-[20px]" />
-          <span>More</span>
-          {moreBadge ? (
-            <span className="absolute top-1 right-[calc(50%-18px)] min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white bg-rose-600">
-              {moreBadge}
-            </span>
-          ) : null}
+          <UserCircle className="size-[20px]" />
+          <span>{profile?.label ?? t("Profile")}</span>
+          {profileActive && (
+            <span
+              className="absolute top-0 left-1/2 -translate-x-1/2 h-[2px] w-10 rounded-b-full"
+              style={{ backgroundColor: "var(--brand)" }}
+            />
+          )}
         </button>
       </div>
     </nav>
@@ -306,18 +356,19 @@ function SidebarInner({
         key={n.to}
         to={n.to}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+          "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
           active
-            ? "font-semibold text-foreground bg-accent border border-border"
-            : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+            ? "font-semibold text-foreground bg-accent/40"
+            : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
         )}
-        style={
-          active
-            ? { boxShadow: "inset 3px 0 0 var(--brand)" }
-            : undefined
-        }
       >
-        <Icon className="size-4" style={active ? { color: "var(--brand)" } : undefined} />
+        {active && (
+          <span
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[2px] rounded-r-full"
+            style={{ backgroundColor: "var(--brand)" }}
+          />
+        )}
+        <Icon className="size-4" />
         <span className="flex-1">{n.label}</span>
         {n.badge ? (
           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white bg-rose-600">
