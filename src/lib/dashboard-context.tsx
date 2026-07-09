@@ -68,13 +68,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  // Inject branding — saffron accent, universal light/dark.
+  // Inject branding — muted premium gold accent, universal light/dark.
   useEffect(() => {
     if (typeof document === "undefined") return;
     const t = tenantQ.data;
     const root = document.documentElement;
-    root.style.setProperty("--brand", "#ff9f43");
-    root.style.setProperty("--brand-ink", "#ffffff");
+    const isDark = root.classList.contains("dark");
+    root.style.setProperty("--brand", isDark ? "#d4a24e" : "#c99a3f");
+    root.style.setProperty("--brand-ink", isDark ? "#0f0f0f" : "#ffffff");
     if (t) {
       if (t.primary_color) root.style.setProperty("--tenant-brand", t.primary_color);
       if (t.secondary_color) root.style.setProperty("--tenant-brand-ink", t.secondary_color);
