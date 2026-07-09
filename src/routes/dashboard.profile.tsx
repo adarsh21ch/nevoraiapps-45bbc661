@@ -14,7 +14,7 @@ import {
   ClipboardCheck,
   BellRing,
   BarChart3,
-  MessageSquareText,
+  
 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/profile")({
@@ -96,8 +96,8 @@ function ProfilePage() {
             { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
             { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet },
             { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-            { to: "/dashboard/leads", label: "Leads", icon: MessageSquareText },
           ].map((l) => {
+
             const Icon = l.icon;
             return (
               <Link
