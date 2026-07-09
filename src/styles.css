@@ -95,8 +95,8 @@
   --sidebar-accent-foreground: oklch(0.16 0 0);
   --sidebar-border: oklch(0.92 0 0);
   --sidebar-ring: oklch(0.7 0 0);
-  /* Saffron accent — fallback until dashboard-context injects it. */
-  --brand: #ff9f43;
+  /* Muted premium gold — used sparingly as accent/highlight only. */
+  --brand: #c99a3f;
   --brand-ink: #ffffff;
 }
 
