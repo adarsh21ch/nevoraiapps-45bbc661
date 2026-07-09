@@ -82,8 +82,20 @@ function Wizard() {
       if (!biz.name || !biz.slug) return toast.error("Name and slug are required");
       if (slugFormatError) return toast.error(slugFormatError);
       if (slugReservedError) return toast.error(slugReservedError);
-      const { data: dupe } = await supabase.from("tenants").select("id").eq("slug", slugTrimmed).maybeSingle();
-      if (dupe) return toast.error("Slug already in use");
+      // Dupe check must not silently kill the Continue button: if the query
+      // errors (RLS/network), warn but still let the admin proceed — the DB
+      // unique constraint on submit is the real guard.
+      try {
+        const { data: dupe, error } = await supabase
+          .from("tenants")
+          .select("id")
+          .eq("slug", slugTrimmed)
+          .maybeSingle();
+        if (error) throw error;
+        if (dupe) return toast.error("Slug already in use");
+      } catch (e: any) {
+        toast.error(`Couldn't verify slug (${e?.message ?? "network error"}) — continuing anyway`);
+      }
     }
     if (step === 2) fillNicheDefaults();
     if (step === 4) {

@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { Toaster } from "sonner";
+
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { TenantProvider } from "../lib/tenant-context";
@@ -136,6 +138,9 @@ function RootComponent() {
       <TenantProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        {/* App-wide toast host — without this, every toast.success/error is invisible,
+            making uploads and form validation look like "nothing happened". */}
+        <Toaster richColors position="top-center" theme="dark" />
       </TenantProvider>
     </QueryClientProvider>
   );

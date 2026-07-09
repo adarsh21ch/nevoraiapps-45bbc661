@@ -76,7 +76,7 @@ function Subs() {
       {!isLoading && (["overdue", "due", "paid"] as const).map((k) => (
         <div key={k} className="space-y-2">
           <div className="text-xs uppercase tracking-widest text-neutral-500">{k} · {grouped[k].length}</div>
-          <Card className="bg-neutral-900 border-white/10 divide-y divide-white/5 overflow-hidden">
+          <Card className="bg-neutral-900 border-white/10 divide-y divide-white/5 overflow-hidden text-neutral-100">
             {grouped[k].length === 0 && <div className="p-4 text-xs text-neutral-500">Nothing here — nice.</div>}
             {grouped[k].map((t) => (
               <Row
