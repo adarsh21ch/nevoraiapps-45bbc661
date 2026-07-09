@@ -686,6 +686,7 @@ export type Database = {
           primary_color: string
           secondary_color: string
           setup_fee: number
+          short_name: string | null
           slug: string
           status: string
           subscription_status: string
@@ -714,6 +715,7 @@ export type Database = {
           primary_color?: string
           secondary_color?: string
           setup_fee?: number
+          short_name?: string | null
           slug: string
           status?: string
           subscription_status?: string
@@ -742,6 +744,7 @@ export type Database = {
           primary_color?: string
           secondary_color?: string
           setup_fee?: number
+          short_name?: string | null
           slug?: string
           status?: string
           subscription_status?: string

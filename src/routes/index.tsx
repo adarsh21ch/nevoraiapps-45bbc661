@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { ArrowRight, Phone, MessageCircle, Sparkles, Trophy, Users, ShieldCheck } from "lucide-react";
+import { ArrowRight, Phone, MessageCircle, Sparkles, Trophy, Users, ShieldCheck, Star } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
 import { feePlansQuery, sectionsBy, sectionOne, siteContentQuery } from "@/lib/site-queries";
-import cricketHeroAsset from "@/assets/cricket-stadium-hero.png.asset.json";
-import cricketHeroVideo from "@/assets/cricket-hero.mp4.asset.json";
-import stadiumCtaVideo from "@/assets/stadium-cta.mp4.asset.json";
+import { signedUrl } from "@/lib/storage";
+import { StoragedImage } from "@/components/site/StoragedImage";
 
 export const Route = createFileRoute("/")({
   component: HomeRoute,
@@ -21,8 +21,27 @@ function HomeRoute() {
   );
 }
 
-type Hero = { headline?: string; subheadline?: string; cta_label?: string; image_url?: string };
+type Hero = {
+  headline?: string;
+  subheadline?: string;
+  cta_label?: string;
+  background_url?: string;
+  background_type?: "image" | "video" | "";
+};
 type StarPlayer = { name: string; achievement: string; photo_url?: string | null };
+type Spotlight = { name?: string; role?: string; bio?: string; photo_url?: string | null };
+
+function useResolvedUrl(path?: string | null) {
+  const [url, setUrl] = useState("");
+  useEffect(() => {
+    if (!path) { setUrl(""); return; }
+    if (path.startsWith("http")) { setUrl(path); return; }
+    let active = true;
+    signedUrl(path).then((u) => { if (active) setUrl(u); });
+    return () => { active = false; };
+  }, [path]);
+  return url;
+}
 
 function HomeContent() {
   const tenant = useTenant();
@@ -30,41 +49,68 @@ function HomeContent() {
   const { data: fees = [] } = useQuery(feePlansQuery(tenant.id));
   const hero = sectionOne<Hero>(sections, "hero");
   const stars = sectionsBy(sections, "star_players").map((s) => s.content as StarPlayer);
+  const spotlights = sectionsBy(sections, "spotlight").map((s) => s.content as Spotlight);
   const monthly = fees.filter((f) => f.type === "monthly").slice(0, 3);
 
   const wa = tenant.whatsapp?.replace(/[^\d]/g, "");
+  const bgUrl = useResolvedUrl(hero?.background_url);
+  const bgIsVideo = hero?.background_type === "video";
+
+  const nicheLabel =
+    tenant.niche === "gym" ? "Modern gym"
+    : tenant.niche === "tuition" ? "Learning centre"
+    : tenant.niche === "dance" ? "Dance studio"
+    : tenant.niche === "music" ? "Music school"
+    : "Sports academy";
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-neutral-950">
-        {/* 4K cinematic stadium video */}
-        <video
-          src={cricketHeroVideo.url}
-          poster={cricketHeroAsset.url}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        />
-        {/* Cinematic gradient overlays for legibility */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(3,7,18,0.92) 0%, rgba(3,7,18,0.72) 38%, rgba(3,7,18,0.25) 65%, rgba(3,7,18,0) 100%)",
-          }}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70" />
-        {/* Brand tint glow */}
-        <div
-          className="pointer-events-none absolute -top-40 -left-20 h-[520px] w-[520px] rounded-full opacity-40 blur-[140px]"
-          style={{ backgroundColor: tenant.primary_color }}
-        />
-        <div className="pointer-events-none absolute inset-0 opacity-[0.06] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:24px_24px]" />
+      {/* Hero — tenant-driven background, brand-color fallback */}
+      <section
+        className="relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+        }}
+      >
+        {bgUrl && bgIsVideo ? (
+          <video
+            src={bgUrl}
+            autoPlay muted loop playsInline preload="auto"
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            style={{ objectPosition: "center" }}
+          />
+        ) : bgUrl ? (
+          <img
+            src={bgUrl}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            style={{ objectPosition: "center" }}
+          />
+        ) : (
+          <>
+            <div className="pointer-events-none absolute inset-0 opacity-[0.10] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:24px_24px]" />
+            <div
+              className="pointer-events-none absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-white/15 blur-[120px]"
+            />
+            <div className="pointer-events-none absolute -bottom-32 -right-24 h-[420px] w-[420px] rounded-full bg-black/25 blur-[120px]" />
+          </>
+        )}
+
+        {/* Legibility overlays only when there is a photo/video behind */}
+        {bgUrl ? (
+          <>
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(3,7,18,0.85) 0%, rgba(3,7,18,0.65) 40%, rgba(3,7,18,0.25) 70%, rgba(3,7,18,0.1) 100%)",
+              }}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+          </>
+        ) : null}
 
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 md:py-28 lg:py-32">
           <div className="max-w-3xl">
@@ -75,7 +121,7 @@ function HomeContent() {
               className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 backdrop-blur"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              {tenant.niche === "gym" ? "Modern gym" : tenant.niche === "tuition" ? "Learning centre" : "Sports academy"}
+              {nicheLabel}
             </motion.div>
             <motion.h1
               initial={{ opacity: 0, y: 16 }}
@@ -90,7 +136,7 @@ function HomeContent() {
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.12 }}
-                className="mt-6 max-w-2xl text-lg text-white/85 sm:text-xl"
+                className="mt-6 max-w-2xl text-lg text-white/90 sm:text-xl"
               >
                 {hero.subheadline}
               </motion.p>
@@ -152,7 +198,16 @@ function HomeContent() {
         </div>
       </section>
 
-
+      {/* Spotlight — editorial-style featured profile */}
+      {spotlights.length > 0 ? (
+        <section className="bg-background py-16 sm:py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 space-y-16">
+            {spotlights.map((sp, i) => (
+              <SpotlightBlock key={i} spotlight={sp} flip={i % 2 === 1} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {/* Star players */}
       {stars.length > 0 ? (
@@ -224,66 +279,98 @@ function HomeContent() {
         </section>
       ) : null}
 
-      {/* Cinematic video CTA */}
-      <section className="relative w-full overflow-hidden bg-neutral-950">
-        <div className="relative h-[380px] w-full sm:h-[480px] lg:h-[540px]">
-          <video
-            src={stadiumCtaVideo.url}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            disablePictureInPicture
-            controls={false}
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          />
-          {/* Dark overlay for legibility */}
-          <div className="pointer-events-none absolute inset-0 bg-[rgba(3,10,28,0.68)]" />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+      {/* Brand-tinted CTA */}
+      <section
+        className="relative w-full overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+      >
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+        <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:22px_22px]" />
 
-          {/* Glass CTA card */}
-          <div className="relative z-10 flex h-full items-center justify-center px-4 sm:px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.4 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-              className="w-full max-w-2xl rounded-[24px] border border-white/15 bg-white/10 p-8 text-center shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-10"
-              style={{ WebkitBackdropFilter: "blur(16px)" }}
-            >
-              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Ready to Join {tenant.name}?
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-base text-white/80 sm:text-lg">
-                Start your cricket journey with professional coaching, structured training, and a pathway to competitive cricket.
-              </p>
-              <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Link
-                  to="/register"
-                  className="inline-flex items-center gap-2 rounded-full px-7 py-3 text-sm font-semibold text-white shadow-lg transition-transform hover:scale-[1.02]"
-                  style={{ backgroundColor: tenant.primary_color }}
+        <div className="relative z-10 flex items-center justify-center px-4 py-20 sm:px-6 sm:py-28">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="w-full max-w-2xl rounded-[24px] border border-white/15 bg-white/10 p-8 text-center shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-10"
+          >
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Ready to join {tenant.name}?
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-base text-white/85 sm:text-lg">
+              {hero?.subheadline || tenant.tagline || `Get in touch to learn more about ${tenant.name}.`}
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-semibold text-neutral-900 shadow-lg transition-transform hover:scale-[1.02]"
+              >
+                {hero?.cta_label ?? "Register Now"}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              {wa ? (
+                <a
+                  href={`https://wa.me/${wa}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
                 >
-                  Register Now
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                {wa ? (
-                  <a
-                    href={`https://wa.me/${wa}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-7 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    WhatsApp Us
-                  </a>
-                ) : null}
-              </div>
-            </motion.div>
-          </div>
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp Us
+                </a>
+              ) : null}
+            </div>
+          </motion.div>
         </div>
       </section>
     </>
+  );
+}
+
+function SpotlightBlock({ spotlight, flip }: { spotlight: Spotlight; flip: boolean }) {
+  const tenant = useTenant();
+  return (
+    <div className={`grid gap-8 md:grid-cols-2 md:items-center ${flip ? "md:[&>*:first-child]:order-2" : ""}`}>
+      <div className="relative">
+        <div
+          className="absolute -inset-3 rounded-[28px] opacity-40 blur-2xl"
+          style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+        />
+        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[24px] border border-border/60 bg-muted">
+          <StoragedImage
+            path={spotlight.photo_url}
+            alt={spotlight.name ?? "Spotlight"}
+            className="h-full w-full object-cover"
+            fallback={
+              <div
+                className="grid h-full w-full place-items-center text-6xl font-bold text-white"
+                style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+              >
+                {(spotlight.name ?? "★").charAt(0)}
+              </div>
+            }
+          />
+        </div>
+      </div>
+      <div>
+        <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--brand)" }}>
+          <Star className="h-3.5 w-3.5" /> Spotlight
+        </div>
+        <h2 className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+          {spotlight.name ?? "Featured player"}
+        </h2>
+        {spotlight.role ? (
+          <div className="mt-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+            {spotlight.role}
+          </div>
+        ) : null}
+        {spotlight.bio ? (
+          <p className="mt-5 whitespace-pre-line text-base leading-relaxed text-muted-foreground sm:text-lg">
+            {spotlight.bio}
+          </p>
+        ) : null}
+      </div>
+    </div>
   );
 }

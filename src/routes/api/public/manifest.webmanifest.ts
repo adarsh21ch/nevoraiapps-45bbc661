@@ -17,14 +17,18 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
         const supabaseKey =
           process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY!;
 
-        let tenant: {
+        type TenantRow = {
           name: string;
           slug: string;
           tagline: string | null;
           primary_color: string | null;
           secondary_color: string | null;
           logo_url: string | null;
-        } | null = null;
+          short_name: string | null;
+        };
+        let tenant: TenantRow | null = null;
+
+        const COLS = "name, slug, tagline, primary_color, secondary_color, logo_url, short_name";
 
         try {
           const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -32,22 +36,23 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           });
 
           // Try custom_domain match first
-          let { data } = await supabase
-            .from("tenants")
-            .select("name, slug, tagline, primary_color, secondary_color, logo_url")
+          const first = await (supabase
+            .from("tenants") as any)
+            .select(COLS)
             .eq("custom_domain", hostname)
             .maybeSingle();
+          let data = first.data as TenantRow | null;
 
           // Fallback: {slug}.{platformBase}
           if (!data && hostname.endsWith("." + platformBase)) {
             const slug = hostname.replace("." + platformBase, "").split(".").pop();
             if (slug) {
-              const res = await supabase
-                .from("tenants")
-                .select("name, slug, tagline, primary_color, secondary_color, logo_url")
+              const res = await (supabase
+                .from("tenants") as any)
+                .select(COLS)
                 .eq("slug", slug)
                 .maybeSingle();
-              data = res.data;
+              data = res.data as TenantRow | null;
             }
           }
 
@@ -73,7 +78,10 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
         }
 
         const name = tenant?.name ?? "Academy OS";
-        const shortName = (tenant?.name ?? "Academy").slice(0, 12);
+        const shortName =
+          (tenant?.short_name && tenant.short_name.trim())
+            ? tenant.short_name.trim().slice(0, 12)
+            : (tenant?.name ?? "Academy").slice(0, 12);
         const themeColor = tenant?.primary_color ?? "#0a0a0a";
         const bgColor = tenant?.secondary_color ?? "#0a0a0a";
         const description =
