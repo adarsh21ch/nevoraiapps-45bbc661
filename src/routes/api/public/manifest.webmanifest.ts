@@ -35,22 +35,23 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           });
 
           // Try custom_domain match first
-          let { data } = await supabase
-            .from("tenants")
+          const first = await (supabase
+            .from("tenants") as any)
             .select(COLS)
             .eq("custom_domain", hostname)
-            .maybeSingle<typeof tenant>();
+            .maybeSingle();
+          let data = first.data as typeof tenant;
 
           // Fallback: {slug}.{platformBase}
           if (!data && hostname.endsWith("." + platformBase)) {
             const slug = hostname.replace("." + platformBase, "").split(".").pop();
             if (slug) {
-              const res = await supabase
-                .from("tenants")
+              const res = await (supabase
+                .from("tenants") as any)
                 .select(COLS)
                 .eq("slug", slug)
-                .maybeSingle<typeof tenant>();
-              data = res.data;
+                .maybeSingle();
+              data = res.data as typeof tenant;
             }
           }
 
