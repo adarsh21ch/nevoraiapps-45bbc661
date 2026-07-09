@@ -49,7 +49,9 @@ export const Route = createFileRoute("/dashboard/students")({
 
 function StudentsPage() {
   const { tenant } = useDashboard();
+  const qc = useQueryClient();
   const cycle = tenantFeeCycle(tenant);
+
   const initialStatus = Route.useSearch().status ?? "active";
 
   const [q, setQ] = useState("");
@@ -112,10 +114,10 @@ function StudentsPage() {
 
   const statusTabs = [
     { key: "active", label: "Active", count: counts.active },
-    { key: "paused", label: "Paused", count: counts.paused },
     { key: "left", label: "Left", count: counts.left },
     { key: "all", label: "All", count: counts.all },
   ];
+
 
   return (
     <div className="space-y-5">
@@ -168,9 +170,9 @@ function StudentsPage() {
         })}
       </div>
 
-      {/* Search + batch */}
-      <div className="flex flex-col md:flex-row gap-2">
-        <div className="relative flex-1">
+      {/* Search + batch on one row */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1 min-w-0">
           <Search className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search name, phone, or Player ID"
@@ -180,7 +182,7 @@ function StudentsPage() {
           />
         </div>
         <Select value={batch} onValueChange={setBatch}>
-          <SelectTrigger className="w-full md:w-48 h-11 rounded-full bg-card border-border shadow-sm">
+          <SelectTrigger className="w-[130px] shrink-0 h-11 rounded-full bg-card border-border shadow-sm">
             <SelectValue placeholder="Batch" />
           </SelectTrigger>
           <SelectContent className="bg-popover text-popover-foreground border-border">
@@ -191,6 +193,7 @@ function StudentsPage() {
           </SelectContent>
         </Select>
       </div>
+
 
       {/* List */}
       <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
@@ -213,15 +216,16 @@ function StudentsPage() {
         ) : (
           <ul className="divide-y divide-border">
             {filtered.map((s: any, i: number) => {
-              const plan = s.fee_plans as { name?: string; amount?: number } | null;
-              const effective = s.custom_fee != null ? Number(s.custom_fee) : Number(plan?.amount ?? 0);
               const paidThisMonth = paidSet.has(s.id);
-              const bname = s.batches?.name as string | undefined;
               return (
                 <li key={s.id}>
                   <button
                     type="button"
-                    onClick={() => setProfileId(s.id)}
+                    onClick={() => {
+                      qc.setQueryData(qk.student(s.id), s);
+                      setProfileId(s.id);
+                    }}
+                    onMouseEnter={() => qc.setQueryData(qk.student(s.id), s)}
                     className="w-full text-left flex items-center gap-3 md:gap-4 p-4 md:px-5 hover:bg-accent/60 transition-colors"
                   >
                     <div className="hidden md:flex w-6 text-xs text-muted-foreground tabular-nums justify-center">
@@ -237,40 +241,21 @@ function StudentsPage() {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-muted-foreground truncate mt-0.5">
-                        {[bname, plan?.name].filter(Boolean).join(" · ") || s.phone}
-                      </div>
-                      {s.status === "active" && (
-                        <div className="mt-1 md:hidden">
-                          <StatusPill paid={paidThisMonth} />
-                        </div>
-                      )}
                     </div>
-                    <div className="hidden md:block">
-                      {s.status === "active" ? (
-                        <StatusPill paid={paidThisMonth} />
-                      ) : (
-                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
-                          {s.status}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-right shrink-0 w-20">
-                      <div className="font-bold tabular-nums text-sm text-foreground">
-                        {effective ? `₹${effective.toLocaleString("en-IN")}` : "—"}
-                      </div>
-                      {s.custom_fee != null && (
-                        <div className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                          custom
-                        </div>
-                      )}
-                    </div>
+                    {s.status === "active" ? (
+                      <StatusPill paid={paidThisMonth} />
+                    ) : (
+                      <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
+                        {s.status}
+                      </span>
+                    )}
                     <ChevronRight className="size-4 text-muted-foreground shrink-0" />
                   </button>
                 </li>
               );
             })}
           </ul>
+
         )}
       </section>
 

@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
+import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Banknote,
@@ -43,6 +44,7 @@ export const Route = createFileRoute("/dashboard/fees")({
   },
   component: FeeRegister,
 });
+
 
 type Filter = "pending" | "paid" | "all";
 
@@ -89,8 +91,7 @@ function FeeRegister() {
   const initialFilter = Route.useSearch().filter ?? "pending";
   const [filter, setFilter] = useState<Filter>(initialFilter);
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);
-  // keep filter in sync when navigating via a KPI drill-through
-  // (component doesn't unmount on same-route search change)
+  const [profileId, setProfileId] = useState<string | null>(null);
   useEffect(() => { setFilter(initialFilter); }, [initialFilter]);
 
   const studentsQ = useQuery({
@@ -101,6 +102,14 @@ function FeeRegister() {
     queryKey: qk.feeRegister(tenant.id, periods.join(",")),
     queryFn: () => fetchPaymentsForPeriods(tenant.id, periods),
   });
+
+  // Instant profile open — seed the detail query cache from the roster list.
+  const openProfile = (studentId: string) => {
+    const s = (studentsQ.data ?? []).find((x: any) => x.id === studentId);
+    if (s) qc.setQueryData(qk.student(studentId), s);
+    setProfileId(studentId);
+  };
+
 
   const rows: RegisterRow[] = useMemo(() => {
     const paidByStudent = new Map<string, Set<string>>();
@@ -174,35 +183,33 @@ function FeeRegister() {
   };
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Fees</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+    <div className="space-y-4">
+      {/* Compact header — heading + month selector on one line */}
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight truncate">Fees</h1>
+          <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
             Collect this month's fees and follow up on pending.
           </p>
         </div>
         {cycle === "calendar_month" && (
-          <div
-            className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1"
-          >
+          <div className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1 shrink-0">
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full h-9 w-9"
+              className="rounded-full h-8 w-8"
               aria-label="Previous month"
               onClick={() => setMonthOffset((m) => m - 1)}
             >
               <ChevronLeft className="size-4" />
             </Button>
-            <div className="text-sm font-semibold w-32 text-center tabular-nums">
-              {format(selectedMonth, "MMMM yyyy")}
+            <div className="text-xs font-semibold w-24 text-center tabular-nums">
+              {format(selectedMonth, "MMM yyyy")}
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full h-9 w-9"
+              className="rounded-full h-8 w-8"
               aria-label="Next month"
               disabled={monthOffset >= 0}
               onClick={() => setMonthOffset((m) => Math.min(0, m + 1))}
@@ -213,7 +220,6 @@ function FeeRegister() {
         )}
       </header>
 
-      {/* Compact collection strip */}
       <CollectionStrip
         collected={collectedAmount}
         expected={collectedAmount + pendingAmount}
@@ -221,31 +227,26 @@ function FeeRegister() {
         totalCount={rows.length}
       />
 
-
-      {/* Segmented toggle */}
       <SegmentedToggle
         value={filter}
         onChange={setFilter}
         counts={{ pending: pendingRows.length, paid: paidRows.length, all: rows.length }}
       />
 
-      {/* List */}
-      <section
-        className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
-      >
+      <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
         {loading ? (
           <SkeletonList />
         ) : visible.length === 0 ? (
           <EmptyState filter={filter} monthLabel={format(selectedMonth, "MMMM")} />
         ) : (
           <ul className="divide-y divide-border">
-            {visible.map((r, i) => (
+            {visible.map((r) => (
               <FeeRow
                 key={r.studentId}
-                index={i + 1}
                 row={r}
                 tenantName={tenant.name}
                 whatsappEnabled={features.whatsapp_reminders !== false}
+                onOpenProfile={() => openProfile(r.studentId)}
                 onCollect={() => setPayRow(r)}
                 onReceipt={() => {
                   if (!r.paidPayment) return;
@@ -274,9 +275,48 @@ function FeeRegister() {
           invalidate();
         }}
       />
+
+      <FeesProfileSheet id={profileId} onOpenChange={(o) => !o && setProfileId(null)} />
     </div>
   );
 }
+
+function FeesProfileSheet({
+  id,
+  onOpenChange,
+}: {
+  id: string | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const isMobile = useIsMobile();
+  const open = !!id;
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="rounded-t-2xl p-0 border-0 max-h-[92vh] overflow-y-auto">
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
+          <div className="p-5 pt-3">
+            <SheetHeader>
+              <SheetTitle className="sr-only">Student profile</SheetTitle>
+            </SheetHeader>
+            {id && <StudentProfilePanel studentId={id} compact />}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="sr-only">Student profile</DialogTitle>
+        </DialogHeader>
+        {id && <StudentProfilePanel studentId={id} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 /* ---------- Collection strip ---------- */
 
@@ -401,88 +441,51 @@ function SegmentedToggle({
 /* ---------- Row ---------- */
 
 function FeeRow({
-  index,
   row,
   tenantName,
   whatsappEnabled,
+  onOpenProfile,
   onCollect,
   onReceipt,
 }: {
-  index: number;
   row: RegisterRow;
   tenantName: string;
   whatsappEnabled: boolean;
+  onOpenProfile: () => void;
   onCollect: () => void;
   onReceipt: () => void;
 }) {
   const due = row.due;
   const remindPhone = (row.guardianPhone || row.phone || "").replace(/\D/g, "");
   const isPending = due.state === "pending";
+  const isOverdue = isPending && due.overdueDays > 0;
 
   return (
-    <li className="p-4 md:px-5 md:py-4 hover:bg-accent/60 transition-colors">
-      <div className="flex items-center gap-3 md:gap-4">
-        <div className="hidden md:flex w-6 text-xs text-muted-foreground tabular-nums justify-center">
-          {index}
-        </div>
-
-        <PersonAvatar name={row.name} src={row.photoUrl} className="h-11 w-11" />
-
-        <div className="min-w-0 flex-1">
-          <button
-            type="button"
-            className="font-semibold text-[15px] truncate block hover:underline text-left"
-            title={row.name}
-            onClick={() => {
-              // Student profile popup lives in a later prompt.
-              toast.message(row.name, { description: "Student profile — coming soon" });
-            }}
-          >
-            {row.name}
-          </button>
-          <div className="text-xs text-muted-foreground truncate mt-0.5">
-            <span className="md:hidden">#{index} · </span>
-            {[row.batchName, row.planName].filter(Boolean).join(" · ") || "—"}
+    <li className="p-3 md:px-5 md:py-3.5 hover:bg-accent/60 transition-colors">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onOpenProfile}
+          className="flex items-center gap-3 min-w-0 flex-1 text-left"
+          title={row.name}
+        >
+          <div className="relative shrink-0">
+            <PersonAvatar name={row.name} src={row.photoUrl} className="h-10 w-10" />
+            {isOverdue && (
+              <span
+                className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-card bg-rose-500"
+                title={`Overdue ${due.overdueDays}d`}
+              />
+            )}
           </div>
-          {isPending && due.overdueDays > 0 && (
-            <div className="mt-1">
-              <span className="inline-flex items-center rounded-full bg-rose-50 text-rose-700 text-[11px] font-semibold px-2 py-0.5">
-                Overdue {due.overdueDays}d
-              </span>
-              <span className="ml-2 text-[11px] text-muted-foreground">
-                {periodLabel(due.period)}
-              </span>
-            </div>
-          )}
-          {isPending && due.overdueDays === 0 && (
-            <div className="mt-1">
-              <span className="inline-flex items-center rounded-full bg-amber-50 text-amber-700 text-[11px] font-semibold px-2 py-0.5">
-                Due today
-              </span>
-              <span className="ml-2 text-[11px] text-muted-foreground">
-                {periodLabel(due.period)}
-              </span>
-            </div>
-          )}
-          {due.state === "paid" && row.paidPayment && (
-            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium">
-              <CheckCircle2 className="size-3.5" />
-              Paid · {format(new Date(row.paidPayment.created_at), "d MMM")} ·{" "}
-              {row.paidPayment.method.toUpperCase()}
-            </div>
-          )}
-        </div>
+          <span className="font-semibold text-[15px] truncate min-w-0">{row.name}</span>
+        </button>
 
         <div className="text-right shrink-0">
           <div className="font-bold tabular-nums text-[15px]">{money(row.amount)}</div>
-          {row.hasCustomFee && (
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">
-              custom
-            </div>
-          )}
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           {isPending ? (
             <>
               {whatsappEnabled && remindPhone && (
@@ -490,7 +493,7 @@ function FeeRow({
                   asChild
                   size="icon"
                   variant="ghost"
-                  className="rounded-full h-10 w-10 text-[#25D366] hover:bg-[#25D366]/10"
+                  className="rounded-full h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10 hidden sm:inline-flex"
                   aria-label="Remind on WhatsApp"
                 >
                   <a
@@ -512,28 +515,34 @@ function FeeRow({
               )}
               <Button
                 onClick={onCollect}
-                className="rounded-full h-10 px-5 font-semibold"
-                style={{ backgroundColor: "var(--brand)", color: "white" }}
+                className="rounded-full h-9 px-4 font-semibold text-sm"
+                style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
               >
                 Collect
               </Button>
             </>
           ) : (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="rounded-full h-10 w-10"
-              aria-label="Download receipt"
-              onClick={onReceipt}
-            >
-              <Download className="size-4" />
-            </Button>
+            <>
+              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
+                <CheckCircle2 className="size-3.5" /> Paid
+              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="rounded-full h-9 w-9"
+                aria-label="Download receipt"
+                onClick={onReceipt}
+              >
+                <Download className="size-4" />
+              </Button>
+            </>
           )}
         </div>
       </div>
     </li>
   );
 }
+
 
 /* ---------- Empty / loading ---------- */
 
