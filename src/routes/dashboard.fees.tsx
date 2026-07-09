@@ -91,8 +91,7 @@ function FeeRegister() {
   const initialFilter = Route.useSearch().filter ?? "pending";
   const [filter, setFilter] = useState<Filter>(initialFilter);
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);
-  // keep filter in sync when navigating via a KPI drill-through
-  // (component doesn't unmount on same-route search change)
+  const [profileId, setProfileId] = useState<string | null>(null);
   useEffect(() => { setFilter(initialFilter); }, [initialFilter]);
 
   const studentsQ = useQuery({
@@ -103,6 +102,14 @@ function FeeRegister() {
     queryKey: qk.feeRegister(tenant.id, periods.join(",")),
     queryFn: () => fetchPaymentsForPeriods(tenant.id, periods),
   });
+
+  // Instant profile open — seed the detail query cache from the roster list.
+  const openProfile = (studentId: string) => {
+    const s = (studentsQ.data ?? []).find((x: any) => x.id === studentId);
+    if (s) qc.setQueryData(qk.student(studentId), s);
+    setProfileId(studentId);
+  };
+
 
   const rows: RegisterRow[] = useMemo(() => {
     const paidByStudent = new Map<string, Set<string>>();
