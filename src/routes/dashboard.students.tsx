@@ -49,7 +49,9 @@ export const Route = createFileRoute("/dashboard/students")({
 
 function StudentsPage() {
   const { tenant } = useDashboard();
+  const qc = useQueryClient();
   const cycle = tenantFeeCycle(tenant);
+
   const initialStatus = Route.useSearch().status ?? "active";
 
   const [q, setQ] = useState("");
