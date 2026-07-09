@@ -231,7 +231,7 @@ function FeeRegister() {
 
       {/* List */}
       <section
-        className="rounded-2xl bg-white border border-black/[0.06] shadow-sm overflow-hidden"
+        className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden"
       >
         {loading ? (
           <SkeletonList />
