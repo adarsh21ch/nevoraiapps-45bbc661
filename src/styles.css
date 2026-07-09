@@ -95,9 +95,10 @@
   --sidebar-accent-foreground: oklch(0.16 0 0);
   --sidebar-border: oklch(0.92 0 0);
   --sidebar-ring: oklch(0.7 0 0);
-  /* Muted premium gold — used sparingly as accent/highlight only. */
-  --brand: #c99a3f;
+  /* Indian saffron — accent/highlight only, sparingly. */
+  --brand: #E8873C;
   --brand-ink: #ffffff;
+
 }
 
 .dark {
@@ -134,8 +135,9 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.985 0 0 / 40%);
-  --brand: #d4a24e;
+  --brand: #F0932B;
   --brand-ink: #0f0f0f;
+
 }
 
 @layer base {

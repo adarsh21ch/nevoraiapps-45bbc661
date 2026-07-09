@@ -74,8 +74,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const t = tenantQ.data;
     const root = document.documentElement;
     const isDark = root.classList.contains("dark");
-    root.style.setProperty("--brand", isDark ? "#d4a24e" : "#c99a3f");
+    root.style.setProperty("--brand", isDark ? "#F0932B" : "#E8873C");
     root.style.setProperty("--brand-ink", isDark ? "#0f0f0f" : "#ffffff");
+
     if (t) {
       if (t.primary_color) root.style.setProperty("--tenant-brand", t.primary_color);
       if (t.secondary_color) root.style.setProperty("--tenant-brand-ink", t.secondary_color);
