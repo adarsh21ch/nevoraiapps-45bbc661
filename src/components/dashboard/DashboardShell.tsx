@@ -356,18 +356,19 @@ function SidebarInner({
         key={n.to}
         to={n.to}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+          "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
           active
-            ? "font-semibold text-foreground bg-accent border border-border"
-            : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+            ? "font-semibold text-foreground bg-accent/40"
+            : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
         )}
-        style={
-          active
-            ? { boxShadow: "inset 3px 0 0 var(--brand)" }
-            : undefined
-        }
       >
-        <Icon className="size-4" style={active ? { color: "var(--brand)" } : undefined} />
+        {active && (
+          <span
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[2px] rounded-r-full"
+            style={{ backgroundColor: "var(--brand)" }}
+          />
+        )}
+        <Icon className="size-4" />
         <span className="flex-1">{n.label}</span>
         {n.badge ? (
           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white bg-rose-600">
