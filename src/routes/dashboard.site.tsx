@@ -89,12 +89,12 @@ type Field = { key: string; label: string; multiline?: boolean; rows?: number };
 
 async function persistSectionContent(tenantId: string, section: string, existingId: string | null, content: Record<string, unknown>) {
   if (existingId) {
-    const { error } = await supabase.from("site_content").update({ content }).eq("id", existingId);
+    const { error } = await supabase.from("site_content").update({ content: content as any }).eq("id", existingId);
     if (error) throw error;
     return existingId;
   }
   const { data, error } = await supabase.from("site_content")
-    .insert({ tenant_id: tenantId, section, content, sort_order: 0 })
+    .insert({ tenant_id: tenantId, section, content: content as any, sort_order: 0 })
     .select("id")
     .single();
   if (error) throw error;

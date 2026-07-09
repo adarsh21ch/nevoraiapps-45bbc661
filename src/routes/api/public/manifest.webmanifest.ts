@@ -39,7 +39,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
             .from("tenants")
             .select(COLS)
             .eq("custom_domain", hostname)
-            .maybeSingle();
+            .maybeSingle<typeof tenant>();
 
           // Fallback: {slug}.{platformBase}
           if (!data && hostname.endsWith("." + platformBase)) {
@@ -49,12 +49,12 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
                 .from("tenants")
                 .select(COLS)
                 .eq("slug", slug)
-                .maybeSingle();
+                .maybeSingle<typeof tenant>();
               data = res.data;
             }
           }
 
-          tenant = data as typeof tenant;
+          tenant = data;
         } catch {
           // fall through to platform defaults
         }
