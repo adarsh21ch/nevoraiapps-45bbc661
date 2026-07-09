@@ -106,6 +106,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   const primary = withBadges(primaryNav);
   const secondary = withBadges(secondaryNav);
+  const mobileTabs = withBadges(mobilePrimary);
+  const profileEntry = secondary.find((s) => s.to === "/dashboard/profile");
+  const manageEntries = secondary.filter((s) => s.to !== "/dashboard/profile");
+  // Also include Leads in the Manage sheet so it's still reachable on mobile.
+  const leadsForSheet = primary.find((p) => p.to === "/dashboard/leads");
+  const manageList = leadsForSheet ? [leadsForSheet, ...manageEntries] : manageEntries;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
