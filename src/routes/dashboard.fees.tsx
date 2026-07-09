@@ -420,9 +420,9 @@ function FeeRow({
   const isPending = due.state === "pending";
 
   return (
-    <li className="p-4 md:px-5 md:py-4 hover:bg-black/[0.015] transition-colors">
+    <li className="p-4 md:px-5 md:py-4 hover:bg-accent/60 transition-colors">
       <div className="flex items-center gap-3 md:gap-4">
-        <div className="hidden md:flex w-6 text-xs text-neutral-400 tabular-nums justify-center">
+        <div className="hidden md:flex w-6 text-xs text-muted-foreground tabular-nums justify-center">
           {index}
         </div>
 
