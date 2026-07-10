@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { ArrowRight, Phone, MessageCircle, Sparkles, Trophy, Users, ShieldCheck, Star } from "lucide-react";
+import { ArrowRight, Phone, MessageCircle, Sparkles, Trophy, Users, ShieldCheck, Star, MapPin, Mail } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
 import { feePlansQuery, sectionsBy, sectionOne, siteContentQuery } from "@/lib/site-queries";
@@ -28,8 +28,19 @@ type Hero = {
   background_url?: string;
   background_type?: "image" | "video" | "";
 };
+type Founder = {
+  name?: string;
+  title?: string;
+  credentials?: string;
+  bio?: string;
+  photo_url?: string | null;
+};
+type Coach = { name?: string; role?: string; bio?: string; photo_url?: string | null };
+type GalleryItem = { url?: string; caption?: string };
 type StarPlayer = { name: string; achievement: string; photo_url?: string | null };
 type Spotlight = { name?: string; role?: string; bio?: string; photo_url?: string | null };
+type Cta = { headline?: string; subheadline?: string; background_url?: string; background_type?: "image" | "video" | "" };
+type MapContent = { embed_url?: string; directions_url?: string };
 
 function useResolvedUrl(path?: string | null) {
   const [url, setUrl] = useState("");
@@ -47,14 +58,22 @@ function HomeContent() {
   const tenant = useTenant();
   const { data: sections = [] } = useQuery(siteContentQuery(tenant.id));
   const { data: fees = [] } = useQuery(feePlansQuery(tenant.id));
+
   const hero = sectionOne<Hero>(sections, "hero");
+  const founder = sectionOne<Founder>(sections, "founder");
+  const coaches = sectionsBy(sections, "coaches").map((s) => s.content as Coach);
+  const gallery = sectionsBy(sections, "gallery").map((s) => s.content as GalleryItem);
   const stars = sectionsBy(sections, "star_players").map((s) => s.content as StarPlayer);
   const spotlights = sectionsBy(sections, "spotlight").map((s) => s.content as Spotlight);
+  const cta = sectionOne<Cta>(sections, "cta");
+  const mapContent = sectionOne<MapContent>(sections, "map");
   const monthly = fees.filter((f) => f.type === "monthly").slice(0, 3);
 
   const wa = tenant.whatsapp?.replace(/[^\d]/g, "");
   const bgUrl = useResolvedUrl(hero?.background_url);
   const bgIsVideo = hero?.background_type === "video";
+  const ctaBgUrl = useResolvedUrl(cta?.background_url);
+  const ctaIsVideo = cta?.background_type === "video";
 
   const nicheLabel =
     tenant.niche === "gym" ? "Modern gym"
@@ -78,7 +97,6 @@ function HomeContent() {
             autoPlay muted loop playsInline preload="auto"
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-            style={{ objectPosition: "center" }}
           />
         ) : bgUrl ? (
           <img
@@ -86,19 +104,15 @@ function HomeContent() {
             alt=""
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-            style={{ objectPosition: "center" }}
           />
         ) : (
           <>
             <div className="pointer-events-none absolute inset-0 opacity-[0.10] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:24px_24px]" />
-            <div
-              className="pointer-events-none absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-white/15 blur-[120px]"
-            />
+            <div className="pointer-events-none absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-white/15 blur-[120px]" />
             <div className="pointer-events-none absolute -bottom-32 -right-24 h-[420px] w-[420px] rounded-full bg-black/25 blur-[120px]" />
           </>
         )}
 
-        {/* Legibility overlays only when there is a photo/video behind */}
         {bgUrl ? (
           <>
             <div
@@ -127,7 +141,7 @@ function HomeContent() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.05 }}
-              className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
+              className="mt-6 text-4xl font-black leading-[1.02] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[5.5rem]"
             >
               {hero?.headline ?? tenant.tagline ?? tenant.name}
             </motion.h1>
@@ -160,13 +174,12 @@ function HomeContent() {
                   className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur hover:bg-white/20"
                 >
                   <Phone className="h-4 w-4" />
-                  Call us
+                  Call {tenant.phone}
                 </a>
               ) : null}
             </motion.div>
           </div>
 
-          {/* Glass stat row */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -198,10 +211,100 @@ function HomeContent() {
         </div>
       </section>
 
-      {/* Spotlight — editorial-style featured profile */}
+      {/* Founder */}
+      {founder && (founder.name || founder.bio || founder.photo_url) ? (
+        <section className="bg-background py-16 sm:py-20">
+          <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-center">
+            <div className="relative">
+              <div
+                className="absolute -inset-3 rounded-[32px] opacity-40 blur-2xl"
+                style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+              />
+              <div className="relative aspect-square w-full overflow-hidden rounded-full border-[6px] border-background bg-muted shadow-xl">
+                <StoragedImage
+                  path={founder.photo_url}
+                  alt={founder.name ?? "Founder"}
+                  className="h-full w-full object-cover"
+                  fallback={
+                    <div
+                      className="grid h-full w-full place-items-center text-6xl font-bold text-white"
+                      style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+                    >
+                      {(founder.name ?? "★").charAt(0)}
+                    </div>
+                  }
+                />
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.25em]" style={{ color: "var(--brand)" }}>
+                The founder
+              </div>
+              <h2 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-5xl">
+                {founder.name ?? "Our founder"}
+              </h2>
+              {founder.title ? (
+                <div className="mt-2 text-lg font-semibold" style={{ color: "var(--brand)" }}>
+                  {founder.title}
+                </div>
+              ) : null}
+              {founder.credentials ? (
+                <div className="mt-1 text-sm font-medium text-muted-foreground">{founder.credentials}</div>
+              ) : null}
+              {founder.bio ? (
+                <p className="mt-5 whitespace-pre-line text-base leading-relaxed text-muted-foreground sm:text-lg">
+                  {founder.bio}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Coaches */}
+      {coaches.length > 0 ? (
+        <section className="bg-muted/30 py-16 sm:py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="text-center">
+              <div className="text-xs font-semibold uppercase tracking-[0.25em]" style={{ color: "var(--brand)" }}>
+                The team
+              </div>
+              <h2 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+                Our elite coaches
+              </h2>
+            </div>
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {coaches.map((c, i) => (
+                <div key={i} className="group text-center">
+                  <div className="relative mx-auto aspect-square w-full max-w-[220px] overflow-hidden rounded-full border-4 border-background bg-muted shadow-md ring-1 ring-border/60 transition-transform group-hover:scale-[1.03]">
+                    <StoragedImage
+                      path={c.photo_url}
+                      alt={c.name ?? "Coach"}
+                      className="h-full w-full object-cover"
+                      fallback={
+                        <div
+                          className="grid h-full w-full place-items-center text-3xl font-bold text-white"
+                          style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+                        >
+                          {(c.name ?? "?").charAt(0)}
+                        </div>
+                      }
+                    />
+                  </div>
+                  <div className="mt-4 text-lg font-bold text-foreground">{c.name ?? "Coach"}</div>
+                  {c.role ? <div className="text-sm text-muted-foreground">{c.role}</div> : null}
+                  {c.bio ? <p className="mt-2 text-xs text-muted-foreground line-clamp-3">{c.bio}</p> : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Spotlight */}
       {spotlights.length > 0 ? (
         <section className="bg-background py-16 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 space-y-16">
+          <div className="mx-auto max-w-6xl space-y-16 px-4 sm:px-6">
             {spotlights.map((sp, i) => (
               <SpotlightBlock key={i} spotlight={sp} flip={i % 2 === 1} />
             ))}
@@ -227,20 +330,68 @@ function HomeContent() {
               </Link>
             </div>
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {stars.slice(0, 3).map((p, i) => (
-                <div
-                  key={i}
-                  className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-lg"
-                >
-                  <div
-                    className="flex h-16 w-16 items-center justify-center rounded-xl text-xl font-bold text-white"
-                    style={{ backgroundColor: "var(--brand)" }}
-                  >
-                    {p.name.charAt(0)}
+              {stars.slice(0, 6).map((p, i) => (
+                <div key={i} className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full ring-2 ring-border/60">
+                      <StoragedImage
+                        path={p.photo_url}
+                        alt={p.name}
+                        className="h-full w-full object-cover"
+                        fallback={
+                          <div
+                            className="flex h-full w-full items-center justify-center text-lg font-bold text-white"
+                            style={{ backgroundColor: "var(--brand)" }}
+                          >
+                            {p.name.charAt(0)}
+                          </div>
+                        }
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="truncate text-base font-semibold text-foreground">{p.name}</div>
+                      <div className="text-sm text-muted-foreground">{p.achievement}</div>
+                    </div>
                   </div>
-                  <div className="mt-4 text-base font-semibold text-foreground">{p.name}</div>
-                  <div className="mt-1 text-sm text-muted-foreground">{p.achievement}</div>
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Gallery / Facilities */}
+      {gallery.length > 0 ? (
+        <section className="bg-background py-16 sm:py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="text-center">
+              <div className="text-xs font-semibold uppercase tracking-[0.25em]" style={{ color: "var(--brand)" }}>
+                Our ground
+              </div>
+              <h2 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+                Inside the academy
+              </h2>
+            </div>
+            <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {gallery.map((g, i) => (
+                <figure
+                  key={i}
+                  className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-muted ${i % 5 === 0 ? "sm:col-span-2 sm:row-span-2" : ""}`}
+                >
+                  <div className={`${i % 5 === 0 ? "aspect-[4/3]" : "aspect-square"} w-full`}>
+                    <StoragedImage
+                      path={g.url}
+                      alt={g.caption ?? ""}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      fallback={<div className="h-full w-full bg-muted" />}
+                    />
+                  </div>
+                  {g.caption ? (
+                    <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-sm font-medium text-white">
+                      {g.caption}
+                    </figcaption>
+                  ) : null}
+                </figure>
               ))}
             </div>
           </div>
@@ -249,7 +400,7 @@ function HomeContent() {
 
       {/* Fee plans preview */}
       {monthly.length > 0 ? (
-        <section className="bg-background py-16">
+        <section className="bg-muted/30 py-16">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="max-w-2xl">
               <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
@@ -279,12 +430,94 @@ function HomeContent() {
         </section>
       ) : null}
 
-      {/* Brand-tinted CTA */}
+      {/* Contact + Map */}
+      {(tenant.phone || tenant.email || tenant.address || mapContent?.embed_url) ? (
+        <section className="bg-background py-16 sm:py-20">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.25em]" style={{ color: "var(--brand)" }}>
+                  Get in touch
+                </div>
+                <h2 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+                  Visit or call us
+                </h2>
+                <div className="mt-6 space-y-4 text-base">
+                  {tenant.phone ? (
+                    <a href={`tel:${tenant.phone}`} className="flex items-center gap-3 text-foreground hover:opacity-80">
+                      <span className="grid h-10 w-10 place-items-center rounded-full" style={{ backgroundColor: "var(--brand)", color: "white" }}>
+                        <Phone className="h-4 w-4" />
+                      </span>
+                      <span className="font-semibold">{tenant.phone}</span>
+                    </a>
+                  ) : null}
+                  {wa ? (
+                    <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-foreground hover:opacity-80">
+                      <span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-500 text-white">
+                        <MessageCircle className="h-4 w-4" />
+                      </span>
+                      <span className="font-semibold">WhatsApp us</span>
+                    </a>
+                  ) : null}
+                  {tenant.email ? (
+                    <a href={`mailto:${tenant.email}`} className="flex items-center gap-3 text-foreground hover:opacity-80">
+                      <span className="grid h-10 w-10 place-items-center rounded-full bg-muted text-foreground">
+                        <Mail className="h-4 w-4" />
+                      </span>
+                      <span>{tenant.email}</span>
+                    </a>
+                  ) : null}
+                  {tenant.address ? (
+                    <div className="flex items-start gap-3 text-muted-foreground">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-muted text-foreground">
+                        <MapPin className="h-4 w-4" />
+                      </span>
+                      <span>{tenant.address}</span>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              <div className="min-h-[280px] overflow-hidden rounded-2xl border border-border/60 bg-muted">
+                {mapContent?.embed_url ? (
+                  <iframe
+                    src={mapContent.embed_url}
+                    className="h-full min-h-[280px] w-full"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Location map"
+                  />
+                ) : (
+                  <div className="flex h-full min-h-[280px] items-center justify-center p-6 text-center text-sm text-muted-foreground">
+                    Add a Google Maps embed in your site editor to show your location here.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* Brand-tinted CTA with optional background image */}
       <section
         className="relative w-full overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
       >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+        {ctaBgUrl && ctaIsVideo ? (
+          <video
+            src={ctaBgUrl}
+            autoPlay muted loop playsInline preload="auto"
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          />
+        ) : ctaBgUrl ? (
+          <img
+            src={ctaBgUrl}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          />
+        ) : null}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/70" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:22px_22px]" />
 
         <div className="relative z-10 flex items-center justify-center px-4 py-20 sm:px-6 sm:py-28">
@@ -295,11 +528,11 @@ function HomeContent() {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="w-full max-w-2xl rounded-[24px] border border-white/15 bg-white/10 p-8 text-center shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] backdrop-blur-xl sm:p-10"
           >
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Ready to join {tenant.name}?
+            <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
+              {cta?.headline ?? `Ready to join ${tenant.name}?`}
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-base text-white/85 sm:text-lg">
-              {hero?.subheadline || tenant.tagline || `Get in touch to learn more about ${tenant.name}.`}
+            <p className="mx-auto mt-4 max-w-xl text-base text-white/90 sm:text-lg">
+              {cta?.subheadline || hero?.subheadline || tenant.tagline || `Get in touch to learn more about ${tenant.name}.`}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
