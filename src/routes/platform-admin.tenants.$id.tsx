@@ -16,6 +16,7 @@ import { niche, nicheOptions, type NicheKey } from "@/lib/niche";
 import { getFeatures, tenantSiteUrl, type Tenant, type TenantFeatures } from "@/lib/tenant";
 import { ArrowLeft, ExternalLink, Globe, Info, Pause, Play, ShieldAlert } from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
+import { SiteContentTabs } from "@/components/dashboard/SiteContentTabs";
 
 export const Route = createFileRoute("/platform-admin/tenants/$id")({
   component: TenantDetail,
