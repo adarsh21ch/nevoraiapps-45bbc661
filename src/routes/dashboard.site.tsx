@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDashboard } from "@/lib/dashboard-context";
-import { fetchSiteContent, qk } from "@/lib/dashboard-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,9 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Trash2, Upload, ExternalLink } from "lucide-react";
+import { Upload, ExternalLink } from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { tenantSiteUrl } from "@/lib/tenant";
+import { SiteContentTabs } from "@/components/dashboard/SiteContentTabs";
 
 
 export const Route = createFileRoute("/dashboard/site")({
