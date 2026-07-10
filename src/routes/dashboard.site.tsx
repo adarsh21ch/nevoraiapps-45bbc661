@@ -138,7 +138,7 @@ function SiteEditor() {
   );
 }
 
-type Field = { key: string; label: string; multiline?: boolean; rows?: number };
+type Field = { key: string; label: string; multiline?: boolean; rows?: number; placeholder?: string };
 
 async function persistSectionContent(tenantId: string, section: string, existingId: string | null, content: Record<string, unknown>) {
   if (existingId) {
@@ -154,19 +154,40 @@ async function persistSectionContent(tenantId: string, section: string, existing
   return data.id as string;
 }
 
-function SingleSectionEditor({ tenantId, rows, section, fields }: {
-  tenantId: string; rows: any[]; section: string; fields: Field[];
+function SingleSectionEditor({ tenantId, rows, section, fields, imageField, imageLabel }: {
+  tenantId: string; rows: any[]; section: string; fields: Field[]; imageField?: string; imageLabel?: string;
 }) {
   const qc = useQueryClient();
   const existing = rows.find((r) => r.section === section);
   const [values, setValues] = useState<Record<string, string>>(() => (existing?.content as any) ?? {});
+  const [imgPreview, setImgPreview] = useState("");
+  const [uploading, setUploading] = useState(false);
   useEffect(() => { setValues((existing?.content as any) ?? {}); }, [existing?.id]);
+  useEffect(() => {
+    const p = imageField ? values[imageField] : "";
+    if (p) signedUrl(p).then(setImgPreview); else setImgPreview("");
+  }, [values, imageField]);
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: qk.site(tenantId) });
 
   const save = useMutation({
     mutationFn: async () => persistSectionContent(tenantId, section, existing?.id ?? null, values),
-    onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: qk.site(tenantId) }); },
+    onSuccess: () => { toast.success("Saved"); invalidate(); },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  async function onImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]; if (!f || !imageField) return;
+    setUploading(true);
+    try {
+      const path = await uploadTenantFile(tenantId, section, f);
+      const next = { ...values, [imageField]: path };
+      setValues(next);
+      await persistSectionContent(tenantId, section, existing?.id ?? null, next);
+      toast.success("Photo updated"); invalidate();
+    } catch (err: any) { toast.error(err.message); }
+    finally { setUploading(false); }
+  }
 
   return (
     <Card className="p-5 space-y-3">
@@ -174,21 +195,37 @@ function SingleSectionEditor({ tenantId, rows, section, fields }: {
         <div key={f.key} className="space-y-1.5">
           <Label>{f.label}</Label>
           {f.multiline ? (
-            <Textarea rows={f.rows ?? 3} value={values[f.key] ?? ""} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
+            <Textarea rows={f.rows ?? 3} value={values[f.key] ?? ""} placeholder={f.placeholder} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
           ) : (
-            <Input value={values[f.key] ?? ""} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
+            <Input value={values[f.key] ?? ""} placeholder={f.placeholder} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
           )}
         </div>
       ))}
+      {imageField && (
+        <div className="space-y-2 pt-3 border-t">
+          <Label>{imageLabel ?? "Photo"}</Label>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="h-24 w-24 rounded-md border overflow-hidden bg-muted grid place-items-center">
+              {imgPreview ? <img src={imgPreview} alt="" className="h-full w-full object-cover" /> : <Upload className="size-6 text-muted-foreground" />}
+            </div>
+            <label className="text-xs cursor-pointer inline-flex items-center gap-1 px-3 py-2 rounded-md border hover:bg-muted">
+              <Upload className="size-3" /> {uploading ? "Uploading…" : "Upload photo"}
+              <input type="file" accept="image/*" className="hidden" onChange={onImage} />
+            </label>
+          </div>
+        </div>
+      )}
       <div><Button onClick={() => save.mutate()} disabled={save.isPending} style={{ backgroundColor: "var(--brand)", color: "white" }}>Save</Button></div>
     </Card>
   );
 }
 
-/* Hero editor — text fields + background image/video upload (auto-saved) */
-function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
+/* Reusable hero-like editor with text fields + background image/video upload (auto-saved) */
+function HeroLikeEditor({ tenantId, rows, section, textFields, bgLabel }: {
+  tenantId: string; rows: any[]; section: string; textFields: Field[]; bgLabel: string;
+}) {
   const qc = useQueryClient();
-  const existing = rows.find((r) => r.section === "hero");
+  const existing = rows.find((r) => r.section === section);
   const [values, setValues] = useState<Record<string, string>>(() => (existing?.content as any) ?? {});
   const [bgPreview, setBgPreview] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -201,7 +238,7 @@ function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
   const invalidate = () => qc.invalidateQueries({ queryKey: qk.site(tenantId) });
 
   const save = useMutation({
-    mutationFn: async () => persistSectionContent(tenantId, "hero", existing?.id ?? null, values),
+    mutationFn: async () => persistSectionContent(tenantId, section, existing?.id ?? null, values),
     onSuccess: () => { toast.success("Saved"); invalidate(); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -210,13 +247,12 @@ function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
     const f = e.target.files?.[0]; if (!f) return;
     setUploading(true);
     try {
-      const path = await uploadTenantFile(tenantId, "hero", f);
+      const path = await uploadTenantFile(tenantId, section, f);
       const isVideo = f.type.startsWith("video/");
       const next = { ...values, background_url: path, background_type: isVideo ? "video" : "image" };
       setValues(next);
-      await persistSectionContent(tenantId, "hero", existing?.id ?? null, next);
-      toast.success("Background updated");
-      invalidate();
+      await persistSectionContent(tenantId, section, existing?.id ?? null, next);
+      toast.success("Background updated"); invalidate();
     } catch (err: any) { toast.error(err.message); }
     finally { setUploading(false); }
   }
@@ -225,30 +261,25 @@ function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
     const next = { ...values, background_url: "", background_type: "" };
     setValues(next);
     try {
-      await persistSectionContent(tenantId, "hero", existing?.id ?? null, next);
-      toast.success("Background cleared");
-      invalidate();
+      await persistSectionContent(tenantId, section, existing?.id ?? null, next);
+      toast.success("Background cleared"); invalidate();
     } catch (err: any) { toast.error(err.message); }
   }
 
   return (
     <Card className="p-5 space-y-4">
-      <div className="space-y-1.5">
-        <Label>Headline</Label>
-        <Input value={values.headline ?? ""} onChange={(e) => setValues({ ...values, headline: e.target.value })} />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Subheadline</Label>
-        <Textarea rows={3} value={values.subheadline ?? ""} onChange={(e) => setValues({ ...values, subheadline: e.target.value })} />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Call-to-action label</Label>
-        <Input value={values.cta_label ?? ""} onChange={(e) => setValues({ ...values, cta_label: e.target.value })} placeholder="Register Now" />
-      </div>
+      {textFields.map((f) => (
+        <div key={f.key} className="space-y-1.5">
+          <Label>{f.label}</Label>
+          {f.multiline
+            ? <Textarea rows={f.rows ?? 3} value={values[f.key] ?? ""} placeholder={f.placeholder} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
+            : <Input value={values[f.key] ?? ""} placeholder={f.placeholder} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />}
+        </div>
+      ))}
 
       <div className="space-y-2 pt-3 border-t">
-        <Label>Hero background (image or short video)</Label>
-        <p className="text-xs text-muted-foreground">Uploads save instantly. Recommended: a photo/video that represents your business (JPG/PNG/WebP up to ~5 MB, or short MP4).</p>
+        <Label>{bgLabel}</Label>
+        <p className="text-xs text-muted-foreground">Uploads save instantly. JPG/PNG/WebP up to ~5 MB, or short MP4.</p>
         <div className="flex flex-wrap items-center gap-3">
           <div className="h-24 w-40 rounded-md border overflow-hidden bg-muted grid place-items-center">
             {bgPreview
@@ -273,6 +304,7 @@ function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
     </Card>
   );
 }
+
 
 function MultiSectionEditor({ tenantId, rows, section, fields, imageField }: {
   tenantId: string; rows: any[]; section: string; fields: Field[]; imageField?: string;
