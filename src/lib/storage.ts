@@ -57,7 +57,15 @@ export async function uploadTenantFile(
 ): Promise<string> {
   const { blob, ext, contentType } = await maybeCompressImage(file);
   const path = `${tenantId}/${folder}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
+
+  // Safari/WebKit can send Blob uploads through supabase-js as an empty
+  // multipart body (`content-length: 0`), which Supabase rejects as
+  // "No content provided". Upload a raw ArrayBuffer instead so every browser
+  // sends the actual bytes with the correct content type.
+  const body = await blob.arrayBuffer();
+  if (body.byteLength === 0) throw new Error("Selected file is empty");
+
+  const { error } = await supabase.storage.from(BUCKET).upload(path, body, {
     cacheControl: "3600",
     upsert: false,
     contentType,
