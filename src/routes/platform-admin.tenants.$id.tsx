@@ -16,6 +16,7 @@ import { niche, nicheOptions, type NicheKey } from "@/lib/niche";
 import { getFeatures, tenantSiteUrl, type Tenant, type TenantFeatures } from "@/lib/tenant";
 import { ArrowLeft, ExternalLink, Globe, Info, Pause, Play, ShieldAlert } from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
+import { SiteContentTabs } from "@/components/dashboard/SiteContentTabs";
 
 export const Route = createFileRoute("/platform-admin/tenants/$id")({
   component: TenantDetail,
@@ -69,6 +70,10 @@ function TenantDetail() {
         <div className="lg:col-span-2 space-y-4">
           <BasicsEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
           <BrandingEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
+          <Panel title="Site content — landing page">
+            <p className="text-xs text-neutral-400 mb-3">Hero background image/video, founder photo, coaches, gallery, star players, CTA banner, Google Map — everything that shows on the public site.</p>
+            <SiteContentTabs tenantId={tenant.id} />
+          </Panel>
           <FeaturesEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
           <DomainEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
         </div>
