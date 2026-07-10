@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetchTenants, pqk } from "@/lib/platform-queries";
 import { Building2, ChevronRight, ExternalLink, Plus, TrendingUp, Users, Wallet } from "lucide-react";
 import { niche } from "@/lib/niche";
+import { tenantSiteUrl } from "@/lib/tenant";
+
 
 export const Route = createFileRoute("/platform-admin/")({
   component: Overview,
@@ -111,7 +113,8 @@ function Overview() {
               <div className="text-right">
                 <div className="text-sm font-semibold">₹{(t.monthly_price ?? 0).toLocaleString("en-IN")}<span className="text-xs text-neutral-400">/mo</span></div>
                 <a
-                  href={`/?tenant=${t.slug}`}
+                  href={tenantSiteUrl(t)}
+
                   target="_blank"
                   rel="noreferrer"
                   className="text-xs text-neutral-400 hover:text-white inline-flex items-center gap-1"

@@ -16,6 +16,8 @@ import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { useServerFn } from "@tanstack/react-start";
 import { createTenantOwner } from "@/lib/tenant-owner.functions";
 import { pqk } from "@/lib/platform-queries";
+import { tenantSiteUrl } from "@/lib/tenant";
+
 
 export const Route = createFileRoute("/platform-admin/new")({
   component: Wizard,
@@ -219,10 +221,10 @@ function Wizard() {
         </div>
 
         <Section title="Public site">
-          <CopyRow label="Slug link" value={`${window.location.origin}/?tenant=${createdSlug}`} />
+          <CopyRow label="Site URL" value={tenantSiteUrl({ slug: createdSlug, custom_domain: null })} />
           <CopyRow label="Path link" value={`${window.location.origin}/a/${createdSlug}`} />
           <a
-            href={`/?tenant=${createdSlug}`}
+            href={tenantSiteUrl({ slug: createdSlug, custom_domain: null })}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-sm text-white/80 hover:text-white underline"
@@ -230,6 +232,7 @@ function Wizard() {
             Open site <ExternalLink className="size-3" />
           </a>
         </Section>
+
 
         {ownerCreds && (
           <Section title="Owner login (share once, then delete)">

@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { fetchPriceLog, fetchTenantById, pqk } from "@/lib/platform-queries";
 import { StatusChip, SubChip } from "./platform-admin.index";
 import { niche, nicheOptions, type NicheKey } from "@/lib/niche";
-import { getFeatures, type Tenant, type TenantFeatures } from "@/lib/tenant";
+import { getFeatures, tenantSiteUrl, type Tenant, type TenantFeatures } from "@/lib/tenant";
 import { ArrowLeft, ExternalLink, Globe, Info, Pause, Play, ShieldAlert } from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
 
@@ -57,9 +57,10 @@ function TenantDetail() {
           <div className="ml-auto flex flex-wrap gap-2 items-center">
             <StatusChip status={tenant.status} />
             <SubChip sub={tenant.subscription_status} />
-            <a href={`/?tenant=${tenant.slug}`} target="_blank" rel="noreferrer" className="text-xs text-neutral-300 hover:text-white inline-flex items-center gap-1">
+            <a href={tenantSiteUrl(tenant)} target="_blank" rel="noreferrer" className="text-xs text-neutral-300 hover:text-white inline-flex items-center gap-1">
               View site <ExternalLink className="size-3" />
             </a>
+
           </div>
         </div>
       </div>

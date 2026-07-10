@@ -13,6 +13,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Plus, Trash2, Upload, ExternalLink } from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
+import { tenantSiteUrl } from "@/lib/tenant";
+
 
 export const Route = createFileRoute("/dashboard/site")({
   component: SiteEditor,
@@ -30,9 +32,10 @@ function SiteEditor() {
           <p className="text-sm text-muted-foreground">Update what visitors see on your public website.</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <a href={`/?tenant=${tenant.slug}`} target="_blank" rel="noreferrer">
+          <a href={tenantSiteUrl(tenant)} target="_blank" rel="noreferrer">
             View site <ExternalLink className="size-3 ml-1" />
           </a>
+
         </Button>
       </header>
 
@@ -40,14 +43,24 @@ function SiteEditor() {
         <TabsList className="w-full flex-wrap h-auto">
           <TabsTrigger value="hero">Hero</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
+          <TabsTrigger value="founder">Founder</TabsTrigger>
+          <TabsTrigger value="coaches">Coaches</TabsTrigger>
           <TabsTrigger value="spotlight">Spotlight</TabsTrigger>
           <TabsTrigger value="stars">Star players</TabsTrigger>
           <TabsTrigger value="gallery">Gallery</TabsTrigger>
+          <TabsTrigger value="cta">CTA banner</TabsTrigger>
+          <TabsTrigger value="map">Map</TabsTrigger>
           <TabsTrigger value="contact">Contact & UPI</TabsTrigger>
         </TabsList>
 
         <TabsContent value="hero" className="pt-4">
-          <HeroEditor tenantId={tenant.id} rows={content.data ?? []} />
+          <HeroLikeEditor tenantId={tenant.id} rows={content.data ?? []} section="hero"
+            textFields={[
+              { key: "headline", label: "Headline" },
+              { key: "subheadline", label: "Subheadline", multiline: true, rows: 3 },
+              { key: "cta_label", label: "Call-to-action label", placeholder: "Register Now" },
+            ]}
+            bgLabel="Hero background (image or short video)" />
         </TabsContent>
         <TabsContent value="about" className="pt-4">
           <SingleSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="about"
@@ -56,11 +69,31 @@ function SiteEditor() {
               { key: "body", label: "Body", multiline: true, rows: 6 },
             ]} />
         </TabsContent>
+        <TabsContent value="founder" className="pt-4">
+          <SingleSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="founder"
+            fields={[
+              { key: "name", label: "Founder name" },
+              { key: "title", label: "Title (e.g. Director & Chief Coach)" },
+              { key: "credentials", label: "Credentials (e.g. Padma Shri Awardee)" },
+              { key: "bio", label: "Bio / Story", multiline: true, rows: 8 },
+            ]}
+            imageField="photo_url"
+            imageLabel="Founder photo" />
+        </TabsContent>
+        <TabsContent value="coaches" className="pt-4">
+          <MultiSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="coaches"
+            fields={[
+              { key: "name", label: "Name" },
+              { key: "role", label: "Role (e.g. Head Coach, Batting Coach)" },
+              { key: "bio", label: "Short bio (optional)", multiline: true, rows: 2 },
+            ]}
+            imageField="photo_url" />
+        </TabsContent>
         <TabsContent value="spotlight" className="pt-4">
           <MultiSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="spotlight"
             fields={[
               { key: "name", label: "Name" },
-              { key: "role", label: "Role / Title (e.g. Head Coach, Indian Women's Rugby Team)" },
+              { key: "role", label: "Role / Title" },
               { key: "bio", label: "Bio / Achievements", multiline: true, rows: 5 },
             ]}
             imageField="photo_url" />
@@ -75,17 +108,37 @@ function SiteEditor() {
         </TabsContent>
         <TabsContent value="gallery" className="pt-4">
           <MultiSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="gallery"
-            fields={[{ key: "caption", label: "Caption" }]} imageField="url" />
+            fields={[{ key: "caption", label: "Caption (optional)" }]} imageField="url" />
+        </TabsContent>
+        <TabsContent value="cta" className="pt-4">
+          <HeroLikeEditor tenantId={tenant.id} rows={content.data ?? []} section="cta"
+            textFields={[
+              { key: "headline", label: "Headline (optional — defaults to 'Ready to join …')" },
+              { key: "subheadline", label: "Message", multiline: true, rows: 3 },
+            ]}
+            bgLabel="CTA banner background image (photo of your ground, stadium, etc.)" />
+        </TabsContent>
+        <TabsContent value="map" className="pt-4">
+          <SingleSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="map"
+            fields={[
+              { key: "embed_url", label: "Google Maps embed URL", placeholder: "https://www.google.com/maps/embed?pb=…" },
+              { key: "directions_url", label: "Directions link (optional)", placeholder: "https://maps.app.goo.gl/…" },
+            ]} />
+          <p className="text-xs text-muted-foreground mt-2">
+            In Google Maps → Share → Embed a map → copy the <code>src</code> URL only (starts with
+            <code>https://www.google.com/maps/embed?pb=</code>).
+          </p>
         </TabsContent>
         <TabsContent value="contact" className="pt-4">
           <ContactEditor />
         </TabsContent>
       </Tabs>
+
     </div>
   );
 }
 
-type Field = { key: string; label: string; multiline?: boolean; rows?: number };
+type Field = { key: string; label: string; multiline?: boolean; rows?: number; placeholder?: string };
 
 async function persistSectionContent(tenantId: string, section: string, existingId: string | null, content: Record<string, unknown>) {
   if (existingId) {
@@ -101,19 +154,40 @@ async function persistSectionContent(tenantId: string, section: string, existing
   return data.id as string;
 }
 
-function SingleSectionEditor({ tenantId, rows, section, fields }: {
-  tenantId: string; rows: any[]; section: string; fields: Field[];
+function SingleSectionEditor({ tenantId, rows, section, fields, imageField, imageLabel }: {
+  tenantId: string; rows: any[]; section: string; fields: Field[]; imageField?: string; imageLabel?: string;
 }) {
   const qc = useQueryClient();
   const existing = rows.find((r) => r.section === section);
   const [values, setValues] = useState<Record<string, string>>(() => (existing?.content as any) ?? {});
+  const [imgPreview, setImgPreview] = useState("");
+  const [uploading, setUploading] = useState(false);
   useEffect(() => { setValues((existing?.content as any) ?? {}); }, [existing?.id]);
+  useEffect(() => {
+    const p = imageField ? values[imageField] : "";
+    if (p) signedUrl(p).then(setImgPreview); else setImgPreview("");
+  }, [values, imageField]);
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: qk.site(tenantId) });
 
   const save = useMutation({
     mutationFn: async () => persistSectionContent(tenantId, section, existing?.id ?? null, values),
-    onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: qk.site(tenantId) }); },
+    onSuccess: () => { toast.success("Saved"); invalidate(); },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  async function onImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]; if (!f || !imageField) return;
+    setUploading(true);
+    try {
+      const path = await uploadTenantFile(tenantId, section, f);
+      const next = { ...values, [imageField]: path };
+      setValues(next);
+      await persistSectionContent(tenantId, section, existing?.id ?? null, next);
+      toast.success("Photo updated"); invalidate();
+    } catch (err: any) { toast.error(err.message); }
+    finally { setUploading(false); }
+  }
 
   return (
     <Card className="p-5 space-y-3">
@@ -121,21 +195,37 @@ function SingleSectionEditor({ tenantId, rows, section, fields }: {
         <div key={f.key} className="space-y-1.5">
           <Label>{f.label}</Label>
           {f.multiline ? (
-            <Textarea rows={f.rows ?? 3} value={values[f.key] ?? ""} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
+            <Textarea rows={f.rows ?? 3} value={values[f.key] ?? ""} placeholder={f.placeholder} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
           ) : (
-            <Input value={values[f.key] ?? ""} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
+            <Input value={values[f.key] ?? ""} placeholder={f.placeholder} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
           )}
         </div>
       ))}
+      {imageField && (
+        <div className="space-y-2 pt-3 border-t">
+          <Label>{imageLabel ?? "Photo"}</Label>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="h-24 w-24 rounded-md border overflow-hidden bg-muted grid place-items-center">
+              {imgPreview ? <img src={imgPreview} alt="" className="h-full w-full object-cover" /> : <Upload className="size-6 text-muted-foreground" />}
+            </div>
+            <label className="text-xs cursor-pointer inline-flex items-center gap-1 px-3 py-2 rounded-md border hover:bg-muted">
+              <Upload className="size-3" /> {uploading ? "Uploading…" : "Upload photo"}
+              <input type="file" accept="image/*" className="hidden" onChange={onImage} />
+            </label>
+          </div>
+        </div>
+      )}
       <div><Button onClick={() => save.mutate()} disabled={save.isPending} style={{ backgroundColor: "var(--brand)", color: "white" }}>Save</Button></div>
     </Card>
   );
 }
 
-/* Hero editor — text fields + background image/video upload (auto-saved) */
-function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
+/* Reusable hero-like editor with text fields + background image/video upload (auto-saved) */
+function HeroLikeEditor({ tenantId, rows, section, textFields, bgLabel }: {
+  tenantId: string; rows: any[]; section: string; textFields: Field[]; bgLabel: string;
+}) {
   const qc = useQueryClient();
-  const existing = rows.find((r) => r.section === "hero");
+  const existing = rows.find((r) => r.section === section);
   const [values, setValues] = useState<Record<string, string>>(() => (existing?.content as any) ?? {});
   const [bgPreview, setBgPreview] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -148,7 +238,7 @@ function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
   const invalidate = () => qc.invalidateQueries({ queryKey: qk.site(tenantId) });
 
   const save = useMutation({
-    mutationFn: async () => persistSectionContent(tenantId, "hero", existing?.id ?? null, values),
+    mutationFn: async () => persistSectionContent(tenantId, section, existing?.id ?? null, values),
     onSuccess: () => { toast.success("Saved"); invalidate(); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -157,13 +247,12 @@ function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
     const f = e.target.files?.[0]; if (!f) return;
     setUploading(true);
     try {
-      const path = await uploadTenantFile(tenantId, "hero", f);
+      const path = await uploadTenantFile(tenantId, section, f);
       const isVideo = f.type.startsWith("video/");
       const next = { ...values, background_url: path, background_type: isVideo ? "video" : "image" };
       setValues(next);
-      await persistSectionContent(tenantId, "hero", existing?.id ?? null, next);
-      toast.success("Background updated");
-      invalidate();
+      await persistSectionContent(tenantId, section, existing?.id ?? null, next);
+      toast.success("Background updated"); invalidate();
     } catch (err: any) { toast.error(err.message); }
     finally { setUploading(false); }
   }
@@ -172,30 +261,25 @@ function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
     const next = { ...values, background_url: "", background_type: "" };
     setValues(next);
     try {
-      await persistSectionContent(tenantId, "hero", existing?.id ?? null, next);
-      toast.success("Background cleared");
-      invalidate();
+      await persistSectionContent(tenantId, section, existing?.id ?? null, next);
+      toast.success("Background cleared"); invalidate();
     } catch (err: any) { toast.error(err.message); }
   }
 
   return (
     <Card className="p-5 space-y-4">
-      <div className="space-y-1.5">
-        <Label>Headline</Label>
-        <Input value={values.headline ?? ""} onChange={(e) => setValues({ ...values, headline: e.target.value })} />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Subheadline</Label>
-        <Textarea rows={3} value={values.subheadline ?? ""} onChange={(e) => setValues({ ...values, subheadline: e.target.value })} />
-      </div>
-      <div className="space-y-1.5">
-        <Label>Call-to-action label</Label>
-        <Input value={values.cta_label ?? ""} onChange={(e) => setValues({ ...values, cta_label: e.target.value })} placeholder="Register Now" />
-      </div>
+      {textFields.map((f) => (
+        <div key={f.key} className="space-y-1.5">
+          <Label>{f.label}</Label>
+          {f.multiline
+            ? <Textarea rows={f.rows ?? 3} value={values[f.key] ?? ""} placeholder={f.placeholder} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
+            : <Input value={values[f.key] ?? ""} placeholder={f.placeholder} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />}
+        </div>
+      ))}
 
       <div className="space-y-2 pt-3 border-t">
-        <Label>Hero background (image or short video)</Label>
-        <p className="text-xs text-muted-foreground">Uploads save instantly. Recommended: a photo/video that represents your business (JPG/PNG/WebP up to ~5 MB, or short MP4).</p>
+        <Label>{bgLabel}</Label>
+        <p className="text-xs text-muted-foreground">Uploads save instantly. JPG/PNG/WebP up to ~5 MB, or short MP4.</p>
         <div className="flex flex-wrap items-center gap-3">
           <div className="h-24 w-40 rounded-md border overflow-hidden bg-muted grid place-items-center">
             {bgPreview
@@ -220,6 +304,7 @@ function HeroEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
     </Card>
   );
 }
+
 
 function MultiSectionEditor({ tenantId, rows, section, fields, imageField }: {
   tenantId: string; rows: any[]; section: string; fields: Field[]; imageField?: string;
