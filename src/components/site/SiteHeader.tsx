@@ -3,6 +3,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { useTenant } from "@/lib/tenant-context";
 import { cn } from "@/lib/utils";
+import { StoragedImage } from "./StoragedImage";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -22,7 +23,19 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           {tenant.logo_url ? (
-            <img src={tenant.logo_url} alt={tenant.name} className="h-9 w-9 rounded-lg object-cover" />
+            <StoragedImage
+              path={tenant.logo_url}
+              alt={tenant.name}
+              className="h-9 w-9 rounded-lg object-cover"
+              fallback={
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm"
+                  style={{ backgroundColor: "var(--brand)" }}
+                >
+                  {tenant.name.charAt(0)}
+                </div>
+              }
+            />
           ) : (
             <div
               className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm"

@@ -16,6 +16,7 @@ import {
   BarChart3,
   
 } from "lucide-react";
+import { StoragedImage } from "@/components/site/StoragedImage";
 
 export const Route = createFileRoute("/dashboard/profile")({
   component: ProfilePage,
@@ -39,7 +40,12 @@ function ProfilePage() {
             style={{ backgroundColor: "var(--brand, #0ea5e9)" }}
           >
             {tenant.logo_url ? (
-              <img src={tenant.logo_url} alt="" className="size-14 rounded-xl object-cover" />
+              <StoragedImage
+                path={tenant.logo_url}
+                alt={tenant.name}
+                className="size-14 rounded-xl object-cover"
+                fallback={<span>{tenant.name.slice(0, 2).toUpperCase()}</span>}
+              />
             ) : (
               tenant.name.slice(0, 2).toUpperCase()
             )}

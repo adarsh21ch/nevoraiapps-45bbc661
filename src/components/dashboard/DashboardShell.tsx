@@ -23,6 +23,7 @@ import { getFeatures } from "@/lib/tenant";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { LanguageToggle } from "@/components/dashboard/LanguageToggle";
 import { useT } from "@/lib/i18n";
+import { StoragedImage } from "@/components/site/StoragedImage";
 
 type NavItem = {
   to: string;
@@ -201,7 +202,12 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
         style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
       >
         {tenant.logo_url ? (
-          <img src={tenant.logo_url} alt="" className="size-8 rounded-md object-cover" />
+          <StoragedImage
+            path={tenant.logo_url}
+            alt={tenant.name}
+            className="size-8 rounded-md object-cover"
+            fallback={<span>{tenant.name.slice(0, 2).toUpperCase()}</span>}
+          />
         ) : (
           tenant.name.slice(0, 2).toUpperCase()
         )}

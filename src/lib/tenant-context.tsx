@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveTenantHint, type Tenant } from "./tenant";
 import { pickPreset } from "./theme-presets";
+import { signedUrl } from "./storage";
 
 type TenantState =
   | { status: "loading"; tenant: null }
@@ -69,7 +70,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       root.style.setProperty("--brand-surface", preset.surface);
       document.title = t.tagline ? `${t.name} — ${t.tagline}` : t.name;
 
-      // Favicon
+      // Favicon / app icons. Tenant logos are stored as private storage paths,
+      // so resolve them before using them in browser chrome metadata.
       if (t.logo_url) {
         let link = document.querySelector<HTMLLinkElement>('link[rel="icon"][data-tenant]');
         if (!link) {
@@ -78,7 +80,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
           link.setAttribute("data-tenant", "1");
           document.head.appendChild(link);
         }
-        link.href = t.logo_url;
+        signedUrl(t.logo_url).then((url) => {
+          if (url) link.href = url;
+        });
       }
 
       // Meta description + og
@@ -97,7 +101,6 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       setMeta("property", "og:title", t.name);
       setMeta("property", "og:description", desc);
       setMeta("property", "og:type", "website");
-      if (t.logo_url) setMeta("property", "og:image", t.logo_url);
       setMeta("name", "theme-color", t.primary_color);
 
       // PWA / Add-to-Home-Screen — per-tenant manifest so each academy installs
@@ -114,7 +117,11 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         if (extra) for (const [k, v] of Object.entries(extra)) el.setAttribute(k, v);
       };
       setLink("manifest", "/api/public/manifest/webmanifest");
-      if (t.logo_url) setLink("apple-touch-icon", t.logo_url);
+      if (t.logo_url) {
+        signedUrl(t.logo_url).then((url) => {
+          if (url) setLink("apple-touch-icon", url);
+        });
+      }
       setMeta("name", "apple-mobile-web-app-capable", "yes");
       setMeta("name", "apple-mobile-web-app-title", t.name);
       setMeta("name", "apple-mobile-web-app-status-bar-style", "black-translucent");

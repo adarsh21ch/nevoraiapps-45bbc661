@@ -163,7 +163,7 @@ function BrandingEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => vo
   async function upload(field: "logo_url" | "upi_qr_url", file: File) {
     try {
       const path = await uploadTenantFile(tenant.id, field, file);
-      setF({ ...f, [field]: path });
+      setF((current) => ({ ...current, [field]: path }));
       // Auto-persist immediately so the change survives reload.
       const { error } = await supabase.from("tenants").update({ [field]: path } as any).eq("id", tenant.id);
       if (error) throw error;
