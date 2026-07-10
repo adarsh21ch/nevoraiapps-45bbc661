@@ -39,95 +39,13 @@ function SiteEditor() {
         </Button>
       </header>
 
-      <Tabs defaultValue="hero">
+      <Tabs defaultValue="site">
         <TabsList className="w-full flex-wrap h-auto">
-          <TabsTrigger value="hero">Hero</TabsTrigger>
-          <TabsTrigger value="about">About</TabsTrigger>
-          <TabsTrigger value="founder">Founder</TabsTrigger>
-          <TabsTrigger value="coaches">Coaches</TabsTrigger>
-          <TabsTrigger value="spotlight">Spotlight</TabsTrigger>
-          <TabsTrigger value="stars">Star players</TabsTrigger>
-          <TabsTrigger value="gallery">Gallery</TabsTrigger>
-          <TabsTrigger value="cta">CTA banner</TabsTrigger>
-          <TabsTrigger value="map">Map</TabsTrigger>
+          <TabsTrigger value="site">Site content</TabsTrigger>
           <TabsTrigger value="contact">Contact & UPI</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="hero" className="pt-4">
-          <HeroLikeEditor tenantId={tenant.id} rows={content.data ?? []} section="hero"
-            textFields={[
-              { key: "headline", label: "Headline" },
-              { key: "subheadline", label: "Subheadline", multiline: true, rows: 3 },
-              { key: "cta_label", label: "Call-to-action label", placeholder: "Register Now" },
-            ]}
-            bgLabel="Hero background (image or short video)" />
-        </TabsContent>
-        <TabsContent value="about" className="pt-4">
-          <SingleSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="about"
-            fields={[
-              { key: "heading", label: "Heading" },
-              { key: "body", label: "Body", multiline: true, rows: 6 },
-            ]} />
-        </TabsContent>
-        <TabsContent value="founder" className="pt-4">
-          <SingleSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="founder"
-            fields={[
-              { key: "name", label: "Founder name" },
-              { key: "title", label: "Title (e.g. Director & Chief Coach)" },
-              { key: "credentials", label: "Credentials (e.g. Padma Shri Awardee)" },
-              { key: "bio", label: "Bio / Story", multiline: true, rows: 8 },
-            ]}
-            imageField="photo_url"
-            imageLabel="Founder photo" />
-        </TabsContent>
-        <TabsContent value="coaches" className="pt-4">
-          <MultiSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="coaches"
-            fields={[
-              { key: "name", label: "Name" },
-              { key: "role", label: "Role (e.g. Head Coach, Batting Coach)" },
-              { key: "bio", label: "Short bio (optional)", multiline: true, rows: 2 },
-            ]}
-            imageField="photo_url" />
-        </TabsContent>
-        <TabsContent value="spotlight" className="pt-4">
-          <MultiSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="spotlight"
-            fields={[
-              { key: "name", label: "Name" },
-              { key: "role", label: "Role / Title" },
-              { key: "bio", label: "Bio / Achievements", multiline: true, rows: 5 },
-            ]}
-            imageField="photo_url" />
-        </TabsContent>
-        <TabsContent value="stars" className="pt-4">
-          <MultiSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="star_players"
-            fields={[
-              { key: "name", label: "Name" },
-              { key: "achievement", label: "Achievement" },
-            ]}
-            imageField="photo_url" />
-        </TabsContent>
-        <TabsContent value="gallery" className="pt-4">
-          <MultiSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="gallery"
-            fields={[{ key: "caption", label: "Caption (optional)" }]} imageField="url" />
-        </TabsContent>
-        <TabsContent value="cta" className="pt-4">
-          <HeroLikeEditor tenantId={tenant.id} rows={content.data ?? []} section="cta"
-            textFields={[
-              { key: "headline", label: "Headline (optional — defaults to 'Ready to join …')" },
-              { key: "subheadline", label: "Message", multiline: true, rows: 3 },
-            ]}
-            bgLabel="CTA banner background image (photo of your ground, stadium, etc.)" />
-        </TabsContent>
-        <TabsContent value="map" className="pt-4">
-          <SingleSectionEditor tenantId={tenant.id} rows={content.data ?? []} section="map"
-            fields={[
-              { key: "embed_url", label: "Google Maps embed URL", placeholder: "https://www.google.com/maps/embed?pb=…" },
-              { key: "directions_url", label: "Directions link (optional)", placeholder: "https://maps.app.goo.gl/…" },
-            ]} />
-          <p className="text-xs text-muted-foreground mt-2">
-            In Google Maps → Share → Embed a map → copy the <code>src</code> URL only (starts with
-            <code>https://www.google.com/maps/embed?pb=</code>).
-          </p>
+        <TabsContent value="site" className="pt-4">
+          <SiteContentTabs tenantId={tenant.id} />
         </TabsContent>
         <TabsContent value="contact" className="pt-4">
           <ContactEditor />
