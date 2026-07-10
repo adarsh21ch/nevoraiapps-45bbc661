@@ -121,3 +121,29 @@ export function resolveTenantHint(input: {
   return { mode: "domain", value: hostname };
 }
 
+/**
+ * Build the public URL for a tenant. When the tenant has a custom_domain,
+ * use it. Otherwise, when the caller is on a platform base host (e.g.
+ * nevorai.com), route to {slug}.{base}. On previews / localhost, fall back
+ * to the ?tenant= query on the same origin so the site still resolves.
+ */
+export function tenantSiteUrl(
+  tenant: Pick<Tenant, "slug" | "custom_domain">,
+  currentHost?: string,
+): string {
+  if (tenant.custom_domain) return `https://${tenant.custom_domain}`;
+  const host =
+    currentHost ??
+    (typeof window !== "undefined" ? window.location.hostname : "");
+  // Prefer the true production base first, so admin/dashboard subdomains
+  // (academy.nevorai.com) still send visitors to {slug}.nevorai.com.
+  const productionBases = ["nevorai.com"];
+  for (const b of productionBases) {
+    if (host === b || host.endsWith("." + b)) return `https://${tenant.slug}.${b}`;
+  }
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "";
+  return `${origin}/?tenant=${tenant.slug}`;
+}
+
+
