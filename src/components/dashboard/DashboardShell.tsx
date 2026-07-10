@@ -19,7 +19,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getFeatures } from "@/lib/tenant";
+import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { LanguageToggle } from "@/components/dashboard/LanguageToggle";
 import { useT } from "@/lib/i18n";
@@ -102,7 +102,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <TenantMark tenant={tenant} />
           <div className="ml-auto flex items-center gap-2">
             <a
-              href={`/?tenant=${tenant.slug}`}
+              href={tenantSiteUrl(tenant)}
+
               target="_blank"
               rel="noreferrer"
               className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mr-1"

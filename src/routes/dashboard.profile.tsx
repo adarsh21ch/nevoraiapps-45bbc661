@@ -17,6 +17,8 @@ import {
   
 } from "lucide-react";
 import { StoragedImage } from "@/components/site/StoragedImage";
+import { tenantSiteUrl } from "@/lib/tenant";
+
 
 export const Route = createFileRoute("/dashboard/profile")({
   component: ProfilePage,
@@ -83,10 +85,11 @@ function ProfilePage() {
 
         <div className="mt-5 flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm">
-            <a href={`/?tenant=${tenant.slug}`} target="_blank" rel="noreferrer">
+            <a href={tenantSiteUrl(tenant)} target="_blank" rel="noreferrer">
               View public site <ExternalLink className="size-3 ml-1" />
             </a>
           </Button>
+
           <Button variant="outline" size="sm" onClick={signOut}>
             <LogOut className="size-4 mr-1" /> Sign out
           </Button>
