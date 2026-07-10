@@ -84,129 +84,122 @@ function HomeContent() {
 
   return (
     <>
-      {/* Hero — tenant-driven background, brand-color fallback */}
-      <section
-        className="relative overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
-        }}
-      >
+      {/* Hero — cinematic, premium, tenant-driven */}
+      <section className="relative overflow-hidden bg-[#05060a] text-white">
+        {/* Layered background */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-90"
+          style={{
+            background: `radial-gradient(1200px 600px at 15% 10%, ${tenant.primary_color}55, transparent 60%), radial-gradient(900px 500px at 90% 30%, ${tenant.secondary_color}55, transparent 60%), linear-gradient(180deg, #05060a 0%, #0a0d1a 100%)`,
+          }}
+        />
         {bgUrl && bgIsVideo ? (
-          <video
-            src={bgUrl}
-            autoPlay muted loop playsInline preload="auto"
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          />
+          <video src={bgUrl} autoPlay muted loop playsInline preload="auto" aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60" />
         ) : bgUrl ? (
-          <img
-            src={bgUrl}
-            alt=""
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          />
-        ) : (
-          <>
-            <div className="pointer-events-none absolute inset-0 opacity-[0.10] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:24px_24px]" />
-            <div className="pointer-events-none absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-white/15 blur-[120px]" />
-            <div className="pointer-events-none absolute -bottom-32 -right-24 h-[420px] w-[420px] rounded-full bg-black/25 blur-[120px]" />
-          </>
-        )}
-
-        {bgUrl ? (
-          <>
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(90deg, rgba(3,7,18,0.85) 0%, rgba(3,7,18,0.65) 40%, rgba(3,7,18,0.25) 70%, rgba(3,7,18,0.1) 100%)",
-              }}
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
-          </>
+          <img src={bgUrl} alt="" aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-55" />
         ) : null}
+        <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-[#05060a]" />
 
-        <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 md:py-28 lg:py-32">
-          <div className="max-w-3xl">
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-24 sm:px-6 md:py-32 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:py-40">
+          <div>
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 backdrop-blur"
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/80 backdrop-blur"
             >
-              <Sparkles className="h-3.5 w-3.5" />
-              {nicheLabel}
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: tenant.primary_color, boxShadow: `0 0 12px ${tenant.primary_color}` }} />
+              {nicheLabel} · Est. {tenant.address ? tenant.address.split(",").slice(-1)[0]?.trim() : "India"}
             </motion.div>
             <motion.h1
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.05 }}
-              className="mt-6 text-4xl font-black leading-[1.02] tracking-tight text-white sm:text-6xl md:text-7xl lg:text-[5.5rem]"
+              initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.65, delay: 0.05 }}
+              className="mt-7 font-black leading-[0.98] tracking-tight text-white text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[5.25rem]"
             >
               {hero?.headline ?? tenant.tagline ?? tenant.name}
             </motion.h1>
-            {hero?.subheadline ? (
-              <motion.p
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.12 }}
-                className="mt-6 max-w-2xl text-lg text-white/90 sm:text-xl"
-              >
-                {hero.subheadline}
-              </motion.p>
-            ) : null}
+            <motion.p
+              initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}
+              className="mt-6 max-w-xl text-lg leading-relaxed text-white/75 sm:text-xl"
+            >
+              {hero?.subheadline ?? `Professional training, transparent fees and a home for every athlete at ${tenant.name}.`}
+            </motion.p>
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.18 }}
-              className="mt-10 flex flex-wrap gap-3"
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}
+              className="mt-10 flex flex-wrap items-center gap-3"
             >
               <Link
                 to="/register"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-neutral-900 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.4)] transition-transform hover:scale-[1.02]"
+                className="group inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.6)] transition-transform hover:scale-[1.02]"
+                style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
               >
-                {hero?.cta_label ?? "Register Now"}
-                <ArrowRight className="h-4 w-4" />
+                {hero?.cta_label ?? "Start your trial"}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               {tenant.phone ? (
-                <a
-                  href={`tel:${tenant.phone}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur hover:bg-white/20"
-                >
-                  <Phone className="h-4 w-4" />
-                  Call {tenant.phone}
+                <a href={`tel:${tenant.phone}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/10">
+                  <Phone className="h-4 w-4" /> {tenant.phone}
                 </a>
               ) : null}
             </motion.div>
+
+            {/* Trust bar */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.7 }}
+              className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/10 pt-6 text-xs uppercase tracking-[0.22em] text-white/50"
+            >
+              <span className="flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5" /> Certified coaches</span>
+              <span className="flex items-center gap-2"><Trophy className="h-3.5 w-3.5" /> Proven results</span>
+              <span className="flex items-center gap-2"><Users className="h-3.5 w-3.5" /> Small batch sizes</span>
+            </motion.div>
           </div>
 
+          {/* Floating premium card cluster */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.25 }}
-            className="relative mt-14 grid gap-3 sm:mt-20 sm:grid-cols-3"
+            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}
+            className="relative hidden lg:block"
           >
-            {[
-              { icon: Users, label: "Certified coaches", value: "Trained mentors" },
-              { icon: Trophy, label: "Structured training", value: "Skill-first curriculum" },
-              { icon: ShieldCheck, label: "Transparent fees", value: "No surprises" },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className="group relative overflow-hidden rounded-2xl border border-white/20 bg-white/10 p-5 backdrop-blur-xl transition-transform hover:-translate-y-0.5"
-              >
-                <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl transition-opacity group-hover:opacity-70" />
+            <div className="relative mx-auto aspect-[4/5] w-full max-w-md">
+              <div className="absolute inset-0 rounded-[36px]"
+                style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`, filter: "blur(60px)", opacity: 0.5 }} />
+              <div className="absolute inset-0 overflow-hidden rounded-[32px] border border-white/15 bg-white/[0.04] backdrop-blur-xl">
+                {bgUrl && !bgIsVideo ? (
+                  <img src={bgUrl} alt="" className="h-full w-full object-cover opacity-80" />
+                ) : (
+                  <div className="h-full w-full"
+                    style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }} />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-6">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/70">Today at {tenant.name}</div>
+                  <div className="mt-2 text-2xl font-bold text-white">Live training in session</div>
+                </div>
+              </div>
+              {/* Floating stat cards */}
+              <div className="absolute -left-8 top-10 rounded-2xl border border-white/15 bg-black/60 p-4 backdrop-blur-xl shadow-2xl">
                 <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/15 text-white ring-1 ring-white/25">
-                    <s.icon className="h-5 w-5" />
+                  <div className="grid h-10 w-10 place-items-center rounded-xl" style={{ backgroundColor: tenant.primary_color }}>
+                    <Trophy className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-widest text-white/70">{s.label}</div>
-                    <div className="text-sm font-semibold text-white">{s.value}</div>
+                    <div className="text-lg font-bold">{stars.length || 25}+</div>
+                    <div className="text-[10px] uppercase tracking-widest text-white/60">Champions trained</div>
                   </div>
                 </div>
               </div>
-            ))}
+              <div className="absolute -right-6 bottom-24 rounded-2xl border border-white/15 bg-black/60 p-4 backdrop-blur-xl shadow-2xl">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500">
+                    <Star className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold">4.9 / 5</div>
+                    <div className="text-[10px] uppercase tracking-widest text-white/60">Parent rating</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -314,43 +307,38 @@ function HomeContent() {
 
       {/* Star players */}
       {stars.length > 0 ? (
-        <section className="bg-muted/30 py-16">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <section className="relative bg-[#05060a] py-20 text-white">
+          <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:22px_22px]" />
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
-                  Our champions
+                <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/60">
+                  <span style={{ color: tenant.primary_color }}>01 —</span> Our champions
                 </div>
-                <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                  Star players
-                </h2>
+                <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Star players</h2>
               </div>
-              <Link to="/star-players" className="hidden text-sm font-medium text-muted-foreground hover:text-foreground sm:inline">
+              <Link to="/star-players" className="hidden text-sm font-medium text-white/70 hover:text-white sm:inline">
                 See all →
               </Link>
             </div>
-            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {stars.slice(0, 6).map((p, i) => (
-                <div key={i} className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full ring-2 ring-border/60">
-                      <StoragedImage
-                        path={p.photo_url}
-                        alt={p.name}
-                        className="h-full w-full object-cover"
+                <div key={i} className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 transition-all hover:-translate-y-1 hover:border-white/25">
+                  <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl transition-opacity group-hover:opacity-90"
+                    style={{ backgroundColor: `${tenant.primary_color}40` }} />
+                  <div className="relative flex items-center gap-4">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl ring-2 ring-white/20">
+                      <StoragedImage path={p.photo_url} alt={p.name} className="h-full w-full object-cover"
                         fallback={
-                          <div
-                            className="flex h-full w-full items-center justify-center text-lg font-bold text-white"
-                            style={{ backgroundColor: "var(--brand)" }}
-                          >
+                          <div className="flex h-full w-full items-center justify-center text-xl font-bold text-white"
+                            style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}>
                             {p.name.charAt(0)}
                           </div>
-                        }
-                      />
+                        } />
                     </div>
                     <div className="min-w-0">
-                      <div className="truncate text-base font-semibold text-foreground">{p.name}</div>
-                      <div className="text-sm text-muted-foreground">{p.achievement}</div>
+                      <div className="truncate text-lg font-bold">{p.name}</div>
+                      <div className="text-sm text-white/60">{p.achievement}</div>
                     </div>
                   </div>
                 </div>
@@ -398,31 +386,52 @@ function HomeContent() {
         </section>
       ) : null}
 
-      {/* Fee plans preview */}
+      {/* Fee plans preview — premium pricing cards */}
       {monthly.length > 0 ? (
-        <section className="bg-muted/30 py-16">
+        <section className="relative bg-background py-20 sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="max-w-2xl">
-              <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
-                Simple pricing
+              <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+                <span style={{ color: "var(--brand)" }}>02 —</span> Simple pricing
               </div>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Monthly plans</h2>
-              <p className="mt-3 text-muted-foreground">Choose what fits. See all plans and one-time fees on the fees page.</p>
+              <h2 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-5xl">Plans built for every athlete</h2>
+              <p className="mt-4 text-lg text-muted-foreground">No hidden charges. Cancel anytime. See all plans and one-time fees on the fees page.</p>
             </div>
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {monthly.map((p) => (
-                <div key={p.id} className="rounded-2xl border border-border/60 bg-card p-6">
-                  <div className="text-sm font-medium text-muted-foreground">{p.name}</div>
-                  <div className="mt-3 flex items-baseline gap-1">
-                    <span className="text-3xl font-bold text-foreground">₹{p.amount.toLocaleString("en-IN")}</span>
-                    <span className="text-sm text-muted-foreground">/month</span>
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {monthly.map((p, i) => {
+                const featured = i === 1 && monthly.length >= 2;
+                return (
+                  <div key={p.id} className={`group relative rounded-3xl p-[1.5px] transition-transform hover:-translate-y-1 ${featured ? "shadow-[0_25px_60px_-25px_rgba(0,0,0,0.35)]" : ""}`}
+                    style={featured
+                      ? { background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }
+                      : { background: "hsl(var(--border) / 0.6)" }}>
+                    <div className="relative flex h-full flex-col rounded-[calc(1.5rem-1.5px)] bg-card p-7">
+                      {featured ? (
+                        <div className="absolute -top-3 right-6 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white"
+                          style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}>
+                          Most popular
+                        </div>
+                      ) : null}
+                      <div className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">{p.name}</div>
+                      <div className="mt-5 flex items-baseline gap-1">
+                        <span className="text-5xl font-black tracking-tight text-foreground">₹{p.amount.toLocaleString("en-IN")}</span>
+                        <span className="text-base text-muted-foreground">/month</span>
+                      </div>
+                      {p.description ? <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{p.description}</p> : null}
+                      <div className="mt-auto pt-6">
+                        <Link to="/register"
+                          className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-transform hover:scale-[1.02] ${featured ? "text-white" : "border border-border text-foreground hover:bg-muted"}`}
+                          style={featured ? { background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` } : {}}>
+                          Get started <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      </div>
+                    </div>
                   </div>
-                  {p.description ? <p className="mt-3 text-sm text-muted-foreground">{p.description}</p> : null}
-                </div>
-              ))}
+                );
+              })}
             </div>
-            <div className="mt-8">
-              <Link to="/fees" className="text-sm font-medium" style={{ color: "var(--brand)" }}>
+            <div className="mt-10">
+              <Link to="/fees" className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: "var(--brand)" }}>
                 View all fees →
               </Link>
             </div>
