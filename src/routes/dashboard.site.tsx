@@ -22,7 +22,8 @@ export const Route = createFileRoute("/dashboard/site")({
 
 function SiteEditor() {
   const { tenant } = useDashboard();
-  const content = useQuery({ queryKey: qk.site(tenant.id), queryFn: () => fetchSiteContent(tenant.id) });
+
+
 
   return (
     <div className="space-y-4">
