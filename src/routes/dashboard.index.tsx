@@ -180,6 +180,14 @@ function DashboardHome() {
         </div>
       </Card>
 
+      {/* Insights row: revenue trend, today's attendance, upcoming birthdays */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <RevenueCard insightsQ={insightsQ} t={t} />
+        <AttendanceCard insightsQ={insightsQ} t={t} />
+        <BirthdaysCard insightsQ={insightsQ} t={t} tenantId={tenant.id} />
+      </div>
+
+
       {/* Student-focused progress — compact strip */}
       {feeEnabled && totalMonthly > 0 ? (
         <Card className="p-4 md:p-5">
