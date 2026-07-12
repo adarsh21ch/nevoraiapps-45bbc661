@@ -26,19 +26,23 @@ async function fetchTenant(): Promise<Tenant | null> {
   // custom_domain equal to the full hostname, so any platform subdomain typed into the
   // tenant's custom-domain field resolves instantly even when it differs from the slug.
   const hostname = window.location.hostname;
+  // Anon-safe columns only — sensitive business fields (monthly_price, subscription_status,
+  // billing_day, last_paid_date, setup_fee, platform_notes) are not granted to the anon role.
+  const PUBLIC_COLS =
+    "id, slug, name, short_name, tagline, custom_domain, logo_url, primary_color, secondary_color, niche, features, phone, whatsapp, email, address, upi_id, upi_qr_url, status, fee_cycle, player_prefix";
   const query =
     hint.mode === "domain"
-      ? supabase.from("tenants").select("*").eq("custom_domain", hint.value)
+      ? supabase.from("tenants").select(PUBLIC_COLS).eq("custom_domain", hint.value)
       : supabase
           .from("tenants")
-          .select("*")
+          .select(PUBLIC_COLS)
           .or(`slug.eq.${hint.value},custom_domain.eq.${hostname}`);
   const { data, error } = await query.limit(1).maybeSingle();
   if (error) {
     console.error("[tenant] fetch failed", error);
     return null;
   }
-  return data;
+  return data as unknown as Tenant | null;
 }
 
 export function TenantProvider({ children }: { children: ReactNode }) {
