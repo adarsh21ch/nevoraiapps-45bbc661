@@ -42,6 +42,10 @@ function DashboardHome() {
     queryKey: qk.kpis(tenant.id),
     queryFn: () => fetchKpis(tenant),
   });
+  const insightsQ = useQuery({
+    queryKey: qk.insights(tenant.id),
+    queryFn: () => fetchDashboardInsights(tenant.id),
+  });
 
   const cycle = tenantFeeCycle(tenant);
   const now = new Date();
