@@ -20,6 +20,7 @@ export const qk = {
   studentPayments: (id: string) => ["d", "payments", "student", id] as const,
   site: (t: string) => ["d", "site", t] as const,
   kpis: (t: string) => ["d", "kpis", t] as const,
+  insights: (t: string) => ["d", "insights", t] as const,
   feeRegister: (t: string, month: string) => ["d", "fees", t, month] as const,
   monthCollection: (t: string) => ["d", "fees", "collected", t] as const,
   report: (t: string) => ["d", "report", t] as const,
