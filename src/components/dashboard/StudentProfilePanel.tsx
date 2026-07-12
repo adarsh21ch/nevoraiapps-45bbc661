@@ -293,6 +293,14 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
                   : "—"
               }
             />
+            <Row
+              label="Gender"
+              value={
+                s.gender
+                  ? String(s.gender).charAt(0).toUpperCase() + String(s.gender).slice(1)
+                  : "—"
+              }
+            />
             <Row label="Address" value={s.address || "—"} multiline />
             <Row label="Phone" value={s.phone} />
             <Row label="Batch" value={batch?.name || "—"} />
@@ -536,6 +544,7 @@ function CoreEditor({
     guardian_name: student.guardian_name ?? "",
     guardian_phone: student.guardian_phone ?? "",
     dob: student.dob ?? "",
+    gender: student.gender ?? "",
     address: student.address ?? "",
     batch_id: student.batch_id ?? "",
     fee_plan_id: student.fee_plan_id ?? "",
