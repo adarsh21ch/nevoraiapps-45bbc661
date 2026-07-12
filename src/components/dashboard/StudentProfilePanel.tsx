@@ -11,6 +11,7 @@ import {
 import { useDashboard } from "@/lib/dashboard-context";
 import { uploadTenantFile } from "@/lib/storage";
 import { generateReportCardPdf } from "@/lib/report-card-pdf";
+import { generateIdCardPdf } from "@/lib/id-card-pdf";
 import { candidatePeriods, periodKey, tenantFeeCycle } from "@/lib/fees";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { Button } from "@/components/ui/button";
