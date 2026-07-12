@@ -42,7 +42,7 @@ async function fetchTenant(): Promise<Tenant | null> {
     console.error("[tenant] fetch failed", error);
     return null;
   }
-  return data;
+  return data as unknown as Tenant | null;
 }
 
 export function TenantProvider({ children }: { children: ReactNode }) {
