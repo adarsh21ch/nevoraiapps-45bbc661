@@ -11,6 +11,7 @@ import {
 import { useDashboard } from "@/lib/dashboard-context";
 import { uploadTenantFile } from "@/lib/storage";
 import { generateReportCardPdf } from "@/lib/report-card-pdf";
+import { generateIdCardPdf } from "@/lib/id-card-pdf";
 import { candidatePeriods, periodKey, tenantFeeCycle } from "@/lib/fees";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { Button } from "@/components/ui/button";
@@ -349,6 +350,25 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           }}
         >
           <Download className="size-4 mr-2" /> Download report card
+        </Button>
+        <Button
+          variant="outline"
+          className="rounded-xl h-12 justify-start"
+          onClick={async () => {
+            await generateIdCardPdf(tenant, {
+              playerId: s.player_id,
+              name: s.name,
+              guardianName: s.guardian_name,
+              dob: s.dob,
+              phone: s.phone,
+              guardianPhone: s.guardian_phone,
+              batchName: batch?.name ?? null,
+              joinedAt: s.joined_at,
+              photoPath: s.photo_url ?? null,
+            });
+          }}
+        >
+          <Download className="size-4 mr-2" /> Download ID card
         </Button>
         {isLeft ? (
           <Button
