@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useDashboard } from "@/lib/dashboard-context";
-import { fetchKpis, qk } from "@/lib/dashboard-queries";
+import { fetchKpis, fetchDashboardInsights, qk } from "@/lib/dashboard-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +16,9 @@ import {
   PartyPopper,
   AlertCircle,
   CheckCircle2,
+  TrendingUp,
+  Cake,
+  ClipboardCheck,
 } from "lucide-react";
 import { niche } from "@/lib/niche";
 import { getFeatures } from "@/lib/tenant";
