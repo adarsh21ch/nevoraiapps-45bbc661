@@ -30,6 +30,7 @@ export function SiteContentTabs({ tenantId }: { tenantId: string }) {
         <TabsTrigger value="gallery">Gallery</TabsTrigger>
         <TabsTrigger value="cta">CTA banner</TabsTrigger>
         <TabsTrigger value="map">Map</TabsTrigger>
+        <TabsTrigger value="pricing">Pricing</TabsTrigger>
       </TabsList>
 
       <TabsContent value="hero" className="pt-4">
@@ -100,7 +101,57 @@ export function SiteContentTabs({ tenantId }: { tenantId: string }) {
             { key: "directions_url", label: "Directions link (optional)" },
           ]} />
       </TabsContent>
+      <TabsContent value="pricing" className="pt-4">
+        <PricingVisibilityEditor tenantId={tenantId} rows={rows} />
+      </TabsContent>
     </Tabs>
+  );
+}
+
+function PricingVisibilityEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
+  const qc = useQueryClient();
+  const existing = rows.find((r) => r.section === "pricing");
+  const initial = (existing?.content as any)?.visible === "true";
+  const [visible, setVisible] = useState<boolean>(initial);
+  useEffect(() => { setVisible((existing?.content as any)?.visible === "true"); }, [existing?.id]);
+  const save = useMutation({
+    mutationFn: async () =>
+      persistSectionContent(tenantId, "pricing", existing?.id ?? null, { visible: visible ? "true" : "false" }),
+    onSuccess: () => {
+      toast.success(visible ? "Pricing section is now visible" : "Pricing section hidden");
+      qc.invalidateQueries({ queryKey: qk.site(tenantId) });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Card className="p-5 space-y-4">
+      <div>
+        <div className="font-semibold">Show monthly pricing on the landing page</div>
+        <p className="text-sm text-muted-foreground mt-1">
+          When off, the "Simple pricing" section is completely hidden from the public site. Fee plans still work inside the dashboard and on the private fees page.
+        </p>
+      </div>
+      <label className="flex items-center gap-3 cursor-pointer select-none">
+        <span className="relative inline-block h-6 w-11">
+          <input
+            type="checkbox"
+            className="sr-only peer"
+            checked={visible}
+            onChange={(e) => setVisible(e.target.checked)}
+          />
+          <span className="absolute inset-0 rounded-full bg-muted peer-checked:bg-emerald-500 transition-colors" />
+          <span className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5" />
+        </span>
+        <span className="text-sm font-medium">
+          {visible ? "Visible on landing page" : "Hidden from landing page"}
+        </span>
+      </label>
+      <div>
+        <Button onClick={() => save.mutate()} disabled={save.isPending} style={{ backgroundColor: "var(--brand)", color: "white" }}>
+          Save
+        </Button>
+      </div>
+    </Card>
   );
 }
 
