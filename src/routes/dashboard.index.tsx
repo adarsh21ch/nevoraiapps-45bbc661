@@ -416,3 +416,165 @@ function waFormat(phone: string): string {
   if (digits.length === 10) return `91${digits}`;
   return digits;
 }
+
+// -----------------------------------------------------------------------------
+// Insight cards
+// -----------------------------------------------------------------------------
+
+type InsightsQ = ReturnType<typeof useQuery<Awaited<ReturnType<typeof fetchDashboardInsights>>>>;
+
+function RevenueCard({ insightsQ, t }: { insightsQ: InsightsQ; t: (s: string) => string }) {
+  const data = insightsQ.data;
+  const points = data?.revenue ?? [];
+  const max = Math.max(1, ...points.map((p) => p.amount));
+  const total = data?.revenueTotal ?? 0;
+  const lastLabel = points.at(-1)?.label ?? "";
+
+  return (
+    <Card className="p-4 md:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+            <TrendingUp className="size-3" /> {t("Revenue")} · 6M
+          </div>
+          <div className="mt-1 text-2xl font-bold tabular-nums">
+            {insightsQ.isLoading ? <Skeleton className="h-7 w-24" /> : money(total)}
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">
+            {t("Last 6 months")}
+          </div>
+        </div>
+      </div>
+      <div className="mt-4 flex h-16 items-end gap-1.5">
+        {(insightsQ.isLoading ? Array.from({ length: 6 }, (_, i) => ({ amount: 0, label: "", month: String(i) })) : points).map((p, i) => {
+          const h = insightsQ.isLoading ? 40 : (p.amount / max) * 100;
+          const isLast = i === (points.length - 1);
+          return (
+            <div key={p.month + i} className="flex flex-1 flex-col items-center gap-1">
+              <div
+                className="w-full rounded-t-md transition-all"
+                style={{
+                  height: `${Math.max(4, h)}%`,
+                  backgroundColor: isLast ? "var(--brand)" : "color-mix(in oklab, var(--brand) 30%, transparent)",
+                }}
+              />
+              <div className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">
+                {p.label.slice(0, 3)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {!insightsQ.isLoading && lastLabel ? (
+        <div className="mt-2 text-[11px] text-muted-foreground tabular-nums">
+          {lastLabel}: {money(points.at(-1)?.amount ?? 0)}
+        </div>
+      ) : null}
+    </Card>
+  );
+}
+
+function AttendanceCard({ insightsQ, t }: { insightsQ: InsightsQ; t: (s: string) => string }) {
+  const a = insightsQ.data?.attendanceToday;
+  const percent = a?.percent ?? 0;
+  const tone = percent >= 80 ? "#10b981" : percent >= 60 ? "#f59e0b" : "#f43f5e";
+
+  return (
+    <Link
+      to="/dashboard/attendance"
+      className="block rounded-xl border bg-card p-4 md:p-5 transition-colors hover:bg-accent/40"
+    >
+      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+        <ClipboardCheck className="size-3" /> {t("Today's attendance")}
+      </div>
+      {insightsQ.isLoading ? (
+        <div className="mt-3"><Skeleton className="h-16 w-full" /></div>
+      ) : a && a.sessions === 0 ? (
+        <div className="mt-4 text-sm text-muted-foreground">
+          {t("No sessions today")}
+        </div>
+      ) : a && a.total === 0 ? (
+        <div className="mt-4 text-sm text-muted-foreground">
+          {t("Not marked yet")}
+        </div>
+      ) : (
+        <>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-3xl font-bold tabular-nums" style={{ color: tone }}>
+              {percent}%
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {a?.present}/{a?.total} {t("present")}
+            </span>
+          </div>
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${percent}%`, backgroundColor: tone }}
+            />
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>{a?.sessions} {t("sessions")}</span>
+            <span className="inline-flex items-center gap-1 font-medium" style={{ color: "var(--brand)" }}>
+              {t("Open")} <ArrowRight className="size-3" />
+            </span>
+          </div>
+        </>
+      )}
+    </Link>
+  );
+}
+
+function BirthdaysCard({
+  insightsQ,
+  t,
+  tenantId: _tenantId,
+}: {
+  insightsQ: InsightsQ;
+  t: (s: string) => string;
+  tenantId: string;
+}) {
+  const list = insightsQ.data?.birthdays ?? [];
+
+  return (
+    <Card className="p-4 md:p-5">
+      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+        <Cake className="size-3" /> {t("Birthdays this week")}
+      </div>
+      {insightsQ.isLoading ? (
+        <div className="mt-3 space-y-2">
+          {[0, 1, 2].map((i) => <Skeleton key={i} className="h-10 w-full" />)}
+        </div>
+      ) : list.length === 0 ? (
+        <div className="mt-4 text-sm text-muted-foreground">
+          {t("No birthdays coming up")}
+        </div>
+      ) : (
+        <ul className="mt-3 space-y-2">
+          {list.slice(0, 4).map((b) => (
+            <li key={b.id} className="flex items-center gap-2.5">
+              <PersonAvatar name={b.name} src={b.photoUrl} className="size-8 text-xs shrink-0" />
+              <Link
+                to="/dashboard/students/$id"
+                params={{ id: b.id }}
+                className="flex-1 min-w-0 hover:opacity-80"
+              >
+                <div className="text-sm font-semibold truncate">{b.name}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {b.daysAway === 0 ? (
+                    <span className="font-semibold text-pink-500">🎂 {t("Today")} · {b.age}</span>
+                  ) : b.daysAway === 1 ? (
+                    <span>{t("Tomorrow")} · {b.age}</span>
+                  ) : (
+                    <span>{t("In")} {b.daysAway} {t("days")} · {b.age}</span>
+                  )}
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
