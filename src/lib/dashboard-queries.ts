@@ -20,6 +20,7 @@ export const qk = {
   studentPayments: (id: string) => ["d", "payments", "student", id] as const,
   site: (t: string) => ["d", "site", t] as const,
   kpis: (t: string) => ["d", "kpis", t] as const,
+  insights: (t: string) => ["d", "insights", t] as const,
   feeRegister: (t: string, month: string) => ["d", "fees", t, month] as const,
   monthCollection: (t: string) => ["d", "fees", "collected", t] as const,
   report: (t: string) => ["d", "report", t] as const,
@@ -187,4 +188,122 @@ export async function fetchPaymentsSince(tenantId: string, sinceISO: string) {
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
+}
+
+// -----------------------------------------------------------------------------
+// Dashboard insights: revenue trend (last 6 months), today's attendance %,
+// upcoming birthdays (next 7 days).
+// -----------------------------------------------------------------------------
+
+export type RevenuePoint = { month: string; label: string; amount: number };
+export type Birthday = {
+  id: string;
+  name: string;
+  photoUrl: string | null;
+  dob: string;
+  daysAway: number; // 0 = today, 1..7 = upcoming
+  age: number;
+};
+export type DashboardInsights = {
+  revenue: RevenuePoint[];
+  revenueTotal: number;
+  attendanceToday: {
+    present: number;
+    absent: number;
+    total: number;
+    percent: number;
+    sessions: number;
+  };
+  birthdays: Birthday[];
+};
+
+function monthKeyOf(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+export async function fetchDashboardInsights(tenantId: string): Promise<DashboardInsights> {
+  const now = new Date();
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const todayStr = now.toISOString().slice(0, 10);
+
+  const [payRes, sessRes, studRes] = await Promise.all([
+    supabase
+      .from("payments")
+      .select("amount, created_at")
+      .eq("tenant_id", tenantId)
+      .gte("created_at", sixMonthsAgo.toISOString()),
+    supabase
+      .from("attendance_sessions")
+      .select("id, attendance_marks(status)")
+      .eq("tenant_id", tenantId)
+      .eq("session_date", todayStr),
+    supabase
+      .from("students")
+      .select("id, name, dob, photo_url")
+      .eq("tenant_id", tenantId)
+      .eq("status", "active")
+      .not("dob", "is", null),
+  ]);
+
+  // Revenue trend (fill zero months)
+  const buckets = new Map<string, number>();
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    buckets.set(monthKeyOf(d), 0);
+  }
+  for (const p of payRes.data ?? []) {
+    if (!p.created_at) continue;
+    const key = monthKeyOf(new Date(p.created_at));
+    if (buckets.has(key)) buckets.set(key, buckets.get(key)! + Number(p.amount || 0));
+  }
+  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const revenue: RevenuePoint[] = Array.from(buckets.entries()).map(([key, amount]) => {
+    const [, m] = key.split("-");
+    return { month: key, label: monthLabels[Number(m) - 1] ?? key, amount };
+  });
+  const revenueTotal = revenue.reduce((s, r) => s + r.amount, 0);
+
+  // Today's attendance
+  let present = 0;
+  let absent = 0;
+  const sessions = (sessRes.data ?? []).length;
+  for (const s of sessRes.data ?? []) {
+    for (const m of (s as any).attendance_marks ?? []) {
+      if (m.status === "present" || m.status === "late") present++;
+      else if (m.status === "absent") absent++;
+    }
+  }
+  const total = present + absent;
+  const percent = total > 0 ? Math.round((present / total) * 100) : 0;
+
+  // Birthdays in next 7 days (including today)
+  const birthdays: Birthday[] = [];
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  for (const s of studRes.data ?? []) {
+    if (!s.dob) continue;
+    const dob = new Date(s.dob);
+    const thisYear = new Date(now.getFullYear(), dob.getMonth(), dob.getDate());
+    // if birthday already passed this year, roll to next year (won't match 7-day window unless year-end)
+    if (thisYear < startOfToday) thisYear.setFullYear(now.getFullYear() + 1);
+    const daysAway = Math.round((thisYear.getTime() - startOfToday.getTime()) / 86400000);
+    if (daysAway <= 7) {
+      const age = thisYear.getFullYear() - dob.getFullYear();
+      birthdays.push({
+        id: s.id,
+        name: s.name,
+        photoUrl: s.photo_url ?? null,
+        dob: s.dob,
+        daysAway,
+        age,
+      });
+    }
+  }
+  birthdays.sort((a, b) => a.daysAway - b.daysAway);
+
+  return {
+    revenue,
+    revenueTotal,
+    attendanceToday: { present, absent, total, percent, sessions },
+    birthdays: birthdays.slice(0, 8),
+  };
 }
