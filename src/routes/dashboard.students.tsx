@@ -498,6 +498,17 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
         />
         <FormField label="DOB" type="date" value={f.dob} onChange={(v) => setF({ ...f, dob: v })} />
       </div>
+      <div className="space-y-1.5">
+        <Label>Gender</Label>
+        <Select value={f.gender} onValueChange={(v) => setF({ ...f, gender: v })}>
+          <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <div className="grid grid-cols-2 gap-2">
         <FormField
           label="Parent name"
