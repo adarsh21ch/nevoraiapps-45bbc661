@@ -142,49 +142,61 @@ function StudentsPage() {
         </div>
       </header>
 
-      {/* Status tabs */}
-      <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1 overflow-x-auto">
-        {statusTabs.map((t) => {
-          const active = status === t.key;
-          return (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setStatus(t.key)}
-              className={cn(
-                "shrink-0 h-10 px-4 rounded-full text-sm font-medium transition-colors",
-                active
-                  ? "bg-foreground text-background shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
-              )}
-            >
-              {t.label}
-              <span
+      {/* Row 1: Status tabs + gender */}
+      <div className="flex items-center gap-2">
+        <div className="inline-flex flex-1 items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1 overflow-x-auto">
+          {statusTabs.map((t) => {
+            const active = status === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setStatus(t.key)}
                 className={cn(
-                  "ml-1 text-xs tabular-nums",
-                  active ? "opacity-70" : "text-muted-foreground/70",
+                  "shrink-0 flex-1 h-9 px-3 rounded-full text-sm font-medium transition-colors",
+                  active
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
                 )}
               >
-                {t.count}
-              </span>
-            </button>
-          );
-        })}
+                {t.label}
+                <span
+                  className={cn(
+                    "ml-1 text-xs tabular-nums",
+                    active ? "opacity-70" : "text-muted-foreground/70",
+                  )}
+                >
+                  {t.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <Select value={gender} onValueChange={setGender}>
+          <SelectTrigger className="w-[110px] shrink-0 h-11 rounded-full bg-card border-border shadow-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-popover text-popover-foreground border-border">
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Search + batch on one row */}
+      {/* Row 2: Search + batch */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1 min-w-0">
           <Search className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search name, phone, or Player ID"
+            placeholder="Search name, phone, Player ID"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             className="pl-10 h-11 rounded-full bg-card border-border shadow-sm"
           />
         </div>
         <Select value={batch} onValueChange={setBatch}>
-          <SelectTrigger className="w-[130px] shrink-0 h-11 rounded-full bg-card border-border shadow-sm">
+          <SelectTrigger className="w-[120px] shrink-0 h-11 rounded-full bg-card border-border shadow-sm">
             <SelectValue placeholder="Batch" />
           </SelectTrigger>
           <SelectContent className="bg-popover text-popover-foreground border-border">
@@ -196,29 +208,6 @@ function StudentsPage() {
         </Select>
       </div>
 
-      {/* Gender filter */}
-      <div className="inline-flex items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1">
-        {[
-          { key: "all", label: "All" },
-          { key: "male", label: "Male" },
-          { key: "female", label: "Female" },
-        ].map((g) => {
-          const active = gender === g.key;
-          return (
-            <button
-              key={g.key}
-              type="button"
-              onClick={() => setGender(g.key)}
-              className={cn(
-                "h-9 px-4 rounded-full text-xs font-semibold transition-colors",
-                active ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {g.label}
-            </button>
-          );
-        })}
-      </div>
 
 
       {/* List */}
