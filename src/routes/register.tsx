@@ -33,6 +33,7 @@ function RegisterContent() {
     batch_id: "",
     dob: "",
     address: "",
+    gender: "",
   });
 
   async function submitForm(e: React.FormEvent) {
@@ -62,10 +63,13 @@ function RegisterContent() {
       _guardian_phone: null,
       _whatsapp: null,
     } as never);
-    if (!error && data && form.address.trim()) {
+    const extras: Record<string, string> = {};
+    if (form.address.trim()) extras.address = form.address.trim();
+    if (form.gender) extras.gender = form.gender;
+    if (!error && data && Object.keys(extras).length > 0) {
       await supabase
         .from("registrations")
-        .update({ address: form.address.trim() })
+        .update(extras as never)
         .eq("id", data as unknown as string);
     }
     setSaving(false);
@@ -128,6 +132,17 @@ function RegisterContent() {
             />
           ) : null}
           <Field label="Date of birth" type="date" value={form.dob} onChange={(v) => setForm({ ...form, dob: v })} />
+          <SelectField
+            label="Gender"
+            value={form.gender}
+            onChange={(v) => setForm({ ...form, gender: v })}
+            options={[
+              { value: "", label: "Prefer not to say" },
+              { value: "male", label: "Male" },
+              { value: "female", label: "Female" },
+              { value: "other", label: "Other" },
+            ]}
+          />
           <TextArea label="Address" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
 
           <button
