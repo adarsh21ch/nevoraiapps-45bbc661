@@ -372,6 +372,7 @@ export type Database = {
           created_at: string
           dob: string | null
           fee_plan_id: string | null
+          gender: string | null
           guardian_name: string | null
           guardian_phone: string | null
           id: string
@@ -390,6 +391,7 @@ export type Database = {
           created_at?: string
           dob?: string | null
           fee_plan_id?: string | null
+          gender?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
@@ -408,6 +410,7 @@ export type Database = {
           created_at?: string
           dob?: string | null
           fee_plan_id?: string | null
+          gender?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
@@ -553,6 +556,7 @@ export type Database = {
           custom_fee: number | null
           dob: string | null
           fee_plan_id: string | null
+          gender: string | null
           guardian_name: string | null
           guardian_phone: string | null
           id: string
@@ -572,6 +576,7 @@ export type Database = {
           custom_fee?: number | null
           dob?: string | null
           fee_plan_id?: string | null
+          gender?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
@@ -591,6 +596,7 @@ export type Database = {
           custom_fee?: number | null
           dob?: string | null
           fee_plan_id?: string | null
+          gender?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string

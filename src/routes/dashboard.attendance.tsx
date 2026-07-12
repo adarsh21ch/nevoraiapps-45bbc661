@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { Check, X, Clock, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
@@ -119,7 +119,7 @@ function AttendancePage() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Attendance</h1>
         <p className="text-sm text-muted-foreground">
-          Tap a student to cycle Present → Absent → Late. Nudge absentees on WhatsApp.
+          Slide right for present, left for absent. Nudge absentees on WhatsApp.
         </p>
       </header>
 
@@ -152,7 +152,7 @@ function AttendancePage() {
         <div className="ml-auto flex gap-2 text-xs">
           <Badge tone="emerald">{counts.present} present</Badge>
           <Badge tone="rose">{counts.absent} absent</Badge>
-          <Badge tone="amber">{counts.late} late</Badge>
+          {counts.late > 0 && <Badge tone="amber">{counts.late} late</Badge>}
           {counts.unmarked > 0 && <Badge tone="slate">{counts.unmarked} unmarked</Badge>}
         </div>
       </Card>
@@ -170,11 +170,6 @@ function AttendancePage() {
               tenantName={tenant.name}
               date={date}
               status={m?.status}
-              onCycle={() => {
-                const next: Status =
-                  m?.status === "present" ? "absent" : m?.status === "absent" ? "late" : "present";
-                mark.mutate({ studentId: s.id, status: next });
-              }}
               onSet={(status) => mark.mutate({ studentId: s.id, status })}
             />
           );
@@ -190,14 +185,13 @@ function AttendancePage() {
 }
 
 function StudentRow({
-  name, phone, tenantName, date, status, onCycle, onSet,
+  name, phone, tenantName, date, status, onSet,
 }: {
   name: string;
   phone: string | null;
   tenantName: string;
   date: string;
   status?: Status;
-  onCycle: () => void;
   onSet: (s: Status) => void;
 }) {
   const waDigits = (phone ?? "").replace(/\D/g, "");
@@ -207,9 +201,8 @@ function StudentRow({
 
   return (
     <Card
-      onClick={onCycle}
       className={cn(
-        "flex items-center gap-3 p-3 cursor-pointer active:scale-[0.995] transition select-none border-l-4",
+        "flex items-center gap-3 p-3 transition select-none border-l-4",
         status === "present" && "border-l-emerald-500 bg-emerald-50/40",
         status === "absent" && "border-l-rose-500 bg-rose-50/40",
         status === "late" && "border-l-amber-500 bg-amber-50/40",
@@ -220,23 +213,14 @@ function StudentRow({
         <div className="font-medium truncate">{name}</div>
         <div className="text-xs text-muted-foreground">{phone || "No phone"}</div>
       </div>
-      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-        <IconBtn active={status === "present"} tone="emerald" onClick={() => onSet("present")} title="Present">
-          <Check className="size-4" />
-        </IconBtn>
-        <IconBtn active={status === "absent"} tone="rose" onClick={() => onSet("absent")} title="Absent">
-          <X className="size-4" />
-        </IconBtn>
-        <IconBtn active={status === "late"} tone="amber" onClick={() => onSet("late")} title="Late">
-          <Clock className="size-4" />
-        </IconBtn>
+      <div className="flex items-center gap-2">
+        <AttendanceToggle status={status} onSet={onSet} />
         {status === "absent" && waUrl && (
           <a
             href={waUrl}
             target="_blank"
             rel="noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="ml-1 inline-flex items-center gap-1 rounded-full bg-[#25D366] px-2.5 py-1 text-[11px] font-semibold text-white"
+            className="inline-flex items-center gap-1 rounded-full bg-[#25D366] px-2.5 py-1 text-[11px] font-semibold text-white"
           >
             <MessageCircle className="size-3" fill="currentColor" /> Notify
           </a>
@@ -246,31 +230,62 @@ function StudentRow({
   );
 }
 
-function IconBtn({
-  active, tone, onClick, title, children,
+function AttendanceToggle({
+  status,
+  onSet,
 }: {
-  active: boolean;
-  tone: "emerald" | "rose" | "amber";
-  onClick: () => void;
-  title: string;
-  children: React.ReactNode;
+  status?: Status;
+  onSet: (s: Status) => void;
 }) {
-  const styles: Record<string, string> = {
-    emerald: active ? "bg-emerald-600 text-white" : "text-emerald-700 hover:bg-emerald-100",
-    rose: active ? "bg-rose-600 text-white" : "text-rose-700 hover:bg-rose-100",
-    amber: active ? "bg-amber-500 text-white" : "text-amber-700 hover:bg-amber-100",
-  };
+  // Two-state slide switch: left = absent (red), right = present (green).
+  // Default (unmarked) sits centered in muted grey. Tap either half to set.
+  const isPresent = status === "present";
+  const isAbsent = status === "absent";
+  const bg = isPresent
+    ? "bg-emerald-500"
+    : isAbsent
+    ? "bg-rose-500"
+    : "bg-muted";
+  const knobPos = isPresent
+    ? "translate-x-9"
+    : isAbsent
+    ? "translate-x-0"
+    : "translate-x-[18px]";
   return (
-    <button
-      type="button"
-      title={title}
-      onClick={onClick}
-      className={cn("size-8 grid place-items-center rounded-full transition", styles[tone])}
-    >
-      {children}
-    </button>
+    <div className="relative inline-flex items-center">
+      <button
+        type="button"
+        aria-label="Toggle attendance"
+        onClick={() => onSet(isPresent ? "absent" : "present")}
+        className={cn(
+          "relative h-8 w-[74px] rounded-full transition-colors duration-200 shadow-inner",
+          bg,
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 left-0.5 h-7 w-7 rounded-full bg-white shadow-md transition-transform duration-200 grid place-items-center text-[10px] font-bold",
+            knobPos,
+            isPresent
+              ? "text-emerald-600"
+              : isAbsent
+              ? "text-rose-600"
+              : "text-muted-foreground",
+          )}
+        >
+          {isPresent ? "P" : isAbsent ? "A" : "—"}
+        </span>
+        <span className="absolute inset-y-0 left-2 flex items-center text-[10px] font-bold text-white/90 select-none pointer-events-none">
+          {isAbsent ? "" : "A"}
+        </span>
+        <span className="absolute inset-y-0 right-2 flex items-center text-[10px] font-bold text-white/90 select-none pointer-events-none">
+          {isPresent ? "" : "P"}
+        </span>
+      </button>
+    </div>
   );
 }
+
 
 function Badge({ tone, children }: { tone: "emerald" | "rose" | "amber" | "slate"; children: React.ReactNode }) {
   const styles: Record<string, string> = {

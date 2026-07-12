@@ -57,6 +57,7 @@ function StudentsPage() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>(initialStatus);
   const [batch, setBatch] = useState<string>("all");
+  const [gender, setGender] = useState<string>("all");
   const [addOpen, setAddOpen] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
 
@@ -89,6 +90,7 @@ function StudentsPage() {
     return list.filter((s: any) => {
       if (status !== "all" && s.status !== status) return false;
       if (batch !== "all" && s.batch_id !== batch) return false;
+      if (gender !== "all" && (s.gender ?? "").toLowerCase() !== gender) return false;
       if (q) {
         const needle = q.toLowerCase();
         if (
@@ -100,7 +102,7 @@ function StudentsPage() {
       }
       return true;
     });
-  }, [students.data, q, status, batch]);
+  }, [students.data, q, status, batch, gender]);
 
   const counts = useMemo(() => {
     const list = students.data ?? [];
@@ -192,6 +194,30 @@ function StudentsPage() {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Gender filter */}
+      <div className="inline-flex items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1">
+        {[
+          { key: "all", label: "All" },
+          { key: "male", label: "Male" },
+          { key: "female", label: "Female" },
+        ].map((g) => {
+          const active = gender === g.key;
+          return (
+            <button
+              key={g.key}
+              type="button"
+              onClick={() => setGender(g.key)}
+              className={cn(
+                "h-9 px-4 rounded-full text-xs font-semibold transition-colors",
+                active ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {g.label}
+            </button>
+          );
+        })}
       </div>
 
 
@@ -386,6 +412,7 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
     guardian_name: "",
     guardian_phone: "",
     dob: "",
+    gender: "",
     address: "",
     batch_id: "",
     fee_plan_id: "",
@@ -406,6 +433,7 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
           guardian_name: f.guardian_name || null,
           guardian_phone: f.guardian_phone || null,
           dob: f.dob || null,
+          gender: f.gender || null,
           address: f.address || null,
           batch_id: f.batch_id || null,
           fee_plan_id: f.fee_plan_id || null,
@@ -469,6 +497,17 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
           onChange={(v) => setF({ ...f, phone: v })}
         />
         <FormField label="DOB" type="date" value={f.dob} onChange={(v) => setF({ ...f, dob: v })} />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Gender</Label>
+        <Select value={f.gender} onValueChange={(v) => setF({ ...f, gender: v })}>
+          <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="grid grid-cols-2 gap-2">
         <FormField

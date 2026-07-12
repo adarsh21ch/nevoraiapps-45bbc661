@@ -293,6 +293,14 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
                   : "—"
               }
             />
+            <Row
+              label="Gender"
+              value={
+                s.gender
+                  ? String(s.gender).charAt(0).toUpperCase() + String(s.gender).slice(1)
+                  : "—"
+              }
+            />
             <Row label="Address" value={s.address || "—"} multiline />
             <Row label="Phone" value={s.phone} />
             <Row label="Batch" value={batch?.name || "—"} />
@@ -536,6 +544,7 @@ function CoreEditor({
     guardian_name: student.guardian_name ?? "",
     guardian_phone: student.guardian_phone ?? "",
     dob: student.dob ?? "",
+    gender: student.gender ?? "",
     address: student.address ?? "",
     batch_id: student.batch_id ?? "",
     fee_plan_id: student.fee_plan_id ?? "",
@@ -554,6 +563,7 @@ function CoreEditor({
             guardian_name: f.guardian_name || null,
             guardian_phone: f.guardian_phone || null,
             dob: f.dob || null,
+            gender: f.gender || null,
             address: f.address || null,
             batch_id: f.batch_id || null,
             fee_plan_id: f.fee_plan_id || null,
@@ -584,6 +594,17 @@ function CoreEditor({
           value={f.guardian_phone}
           onChange={(v) => setF({ ...f, guardian_phone: v })}
         />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Gender</Label>
+        <Select value={f.gender} onValueChange={(v) => setF({ ...f, gender: v })}>
+          <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div className="space-y-1.5">
         <Label>Address</Label>
