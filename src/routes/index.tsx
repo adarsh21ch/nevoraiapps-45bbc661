@@ -67,6 +67,8 @@ function HomeContent() {
   const spotlights = sectionsBy(sections, "spotlight").map((s) => s.content as Spotlight);
   const cta = sectionOne<Cta>(sections, "cta");
   const mapContent = sectionOne<MapContent>(sections, "map");
+  const pricingSettings = sectionOne<{ visible?: string }>(sections, "pricing");
+  const showPricing = pricingSettings?.visible === "true";
   const monthly = fees.filter((f) => f.type === "monthly").slice(0, 3);
 
   const wa = tenant.whatsapp?.replace(/[^\d]/g, "");
@@ -387,7 +389,7 @@ function HomeContent() {
       ) : null}
 
       {/* Fee plans preview — premium pricing cards */}
-      {monthly.length > 0 ? (
+      {showPricing && monthly.length > 0 ? (
         <section className="relative bg-background py-20 sm:py-24">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="max-w-2xl">
