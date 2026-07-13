@@ -30,6 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { DemoBadge } from "@/components/match-center/demo-badge";
+import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
 
 type NavItem = {
   to: string;
