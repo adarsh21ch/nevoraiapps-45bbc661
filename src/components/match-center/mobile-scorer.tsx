@@ -496,6 +496,16 @@ export function MobileScorer(props: MobileScorerProps) {
 
 /* ---------------- primitives ---------------- */
 
+function StatChip({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md bg-muted/70 px-1.5 py-0.5">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-bold text-foreground tabular-nums">{value}</span>
+    </span>
+  );
+}
+
+
 function PlayerChip({
   onClick,
   name,
