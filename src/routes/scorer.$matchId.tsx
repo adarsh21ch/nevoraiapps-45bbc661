@@ -207,8 +207,6 @@ function ScorerPage() {
   const [inningsCompleteOpen, setInningsCompleteOpen] = useState(false);
   const [matchCompleteOpen, setMatchCompleteOpen] = useState(false);
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
-  const [dismissedFielder, setDismissedFielder] = useState<PlayerOption | null>(null);
-  const [runOutWho, setRunOutWho] = useState<"striker" | "non-striker" | null>(null);
 
   /* ---------- innings/match completion detection ---------- */
   useEffect(() => {
@@ -355,15 +353,12 @@ function ScorerPage() {
 
   const handleDismissal = (kind: DismissalKind) => {
     setDismissOpen(false);
-    setPendingDismissal(kind);
     if (kind === "Caught") {
-      setDismissedFielder(null);
       setCaughtOpen(true);
     } else if (kind === "Run Out") {
       setRunOutOpen(true);
     } else {
       void finalizeWicket(DISMISSAL_MAP[kind]);
-      setPendingDismissal(null);
     }
   };
 
@@ -660,10 +655,8 @@ function ScorerPage() {
         players={bowlingOptions}
         recent={bowlingOptions.slice(0, 3)}
         onSelect={(p) => {
-          setDismissedFielder(p);
           setCaughtOpen(false);
           void finalizeWicket("caught", { fielder: p });
-          setPendingDismissal(null);
         }}
       />
 
@@ -672,9 +665,7 @@ function ScorerPage() {
         onOpenChange={setRunOutOpen}
         onSelect={(who) => {
           setRunOutOpen(false);
-          setRunOutWho(who);
           void finalizeWicket("run_out", { dismissed: who });
-          setPendingDismissal(null);
         }}
       />
 
