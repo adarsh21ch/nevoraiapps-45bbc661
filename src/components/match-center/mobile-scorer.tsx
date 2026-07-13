@@ -280,7 +280,7 @@ export function MobileScorer(props: MobileScorerProps) {
           {/* Batters — two chips */}
           <div className="grid grid-cols-2 gap-2">
             <PlayerChip
-              onClick={props.onOpenStrikerPicker}
+              onClick={() => openPicker("striker")}
               name={props.striker?.name ?? "Striker"}
               onStrike
               value={`${props.striker?.runs ?? 0}${
@@ -293,7 +293,7 @@ export function MobileScorer(props: MobileScorerProps) {
               }
             />
             <PlayerChip
-              onClick={props.onOpenNonStrikerPicker}
+              onClick={() => openPicker("nonStriker")}
               name={props.nonStriker?.name ?? "Non-striker"}
               value={`${props.nonStriker?.runs ?? 0}${
                 props.nonStriker ? ` (${props.nonStriker.balls})` : ""
@@ -309,7 +309,7 @@ export function MobileScorer(props: MobileScorerProps) {
           {/* Bowler row */}
           <button
             type="button"
-            onClick={props.onOpenBowlerPicker}
+            onClick={() => openPicker("bowler")}
             className="flex w-full items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2 text-left transition duration-100 hover:bg-muted/50 active:scale-[0.99]"
           >
             <span className="inline-block size-1.5 shrink-0 rounded-full bg-indigo-500" />
@@ -457,7 +457,7 @@ export function MobileScorer(props: MobileScorerProps) {
                 label="Change striker"
                 onClick={() => {
                   setMoreOpen(false);
-                  props.onOpenStrikerPicker();
+                  openPicker("striker");
                 }}
               />
               <SheetRow
@@ -465,7 +465,7 @@ export function MobileScorer(props: MobileScorerProps) {
                 label="Change non-striker"
                 onClick={() => {
                   setMoreOpen(false);
-                  props.onOpenNonStrikerPicker();
+                  openPicker("nonStriker");
                 }}
               />
               <SheetRow
@@ -492,7 +492,7 @@ export function MobileScorer(props: MobileScorerProps) {
                 label="Change bowler"
                 onClick={() => {
                   setMoreOpen(false);
-                  props.onOpenBowlerPicker();
+                  openPicker("bowler");
                 }}
               />
             </Section>
