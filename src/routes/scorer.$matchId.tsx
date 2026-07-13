@@ -234,6 +234,35 @@ function ScorerPage() {
     }
   }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
 
+  /* ---------- auto-open pickers when cricket rules require input ---------- */
+  useEffect(() => {
+    if (session.matchState.innings.awaitingNewBatter) setNewBatterOpen(true);
+  }, [session.matchState.innings.awaitingNewBatter]);
+  useEffect(() => {
+    if (session.matchState.innings.awaitingNewBowler) setNewBowlerOpen(true);
+  }, [session.matchState.innings.awaitingNewBowler]);
+  useEffect(() => {
+    if (!session.activeInnings) return;
+    if (session.events.length > 0) return;
+    if (!session.striker.name && !pickStrikerOpen && session.battingSquad.length > 0)
+      setPickStrikerOpen(true);
+    else if (session.striker.name && !session.nonStriker.name && !pickNonStrikerOpen)
+      setPickNonStrikerOpen(true);
+    else if (
+      session.striker.name &&
+      session.nonStriker.name &&
+      !session.bowler.name &&
+      !pickBowlerOpen
+    )
+      setPickBowlerOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    session.activeInnings?.id,
+    session.striker.name,
+    session.nonStriker.name,
+    session.bowler.name,
+  ]);
+
   /* ---------- stats ---------- */
   const stats = useMemo(
     () =>
