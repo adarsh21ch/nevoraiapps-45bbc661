@@ -14,7 +14,8 @@ import {
   ClipboardCheck,
   BellRing,
   BarChart3,
-  
+  Settings,
+  ChevronRight,
 } from "lucide-react";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { tenantSiteUrl } from "@/lib/tenant";
