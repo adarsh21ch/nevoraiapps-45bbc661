@@ -73,6 +73,12 @@ import {
   ACHIEVEMENT_KINDS,
   AWARD_KINDS,
 } from "@/lib/mc-athletes";
+import {
+  getCareer,
+  getCareerTimeline,
+  rebuildCareer,
+  type CareerTimelinePoint,
+} from "@/lib/mc-career-engine";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/match-center/players/$athleteId")({
