@@ -588,18 +588,17 @@ function ScorerPage() {
           </div>
         </div>
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
-          {/* Left: Batters */}
+        <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-3 overflow-y-auto p-3 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
+          {/* Left: Batters (auto-driven by match state; taps open pickers) */}
           <div className="flex min-h-0 flex-col gap-3">
-            <PlayerPanel striker={strikerStat} nonStriker={nonStrikerStat} />
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" onClick={() => setPickStrikerOpen(true)}>
-                {striker.name ? "Change striker" : "Select striker"}
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setPickNonStrikerOpen(true)}>
-                {nonStriker.name ? "Change non-striker" : "Select non-striker"}
-              </Button>
-            </div>
+            <button
+              type="button"
+              className="rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              onClick={() => setPickStrikerOpen(true)}
+              aria-label="Change striker"
+            >
+              <PlayerPanel striker={strikerStat} nonStriker={nonStrikerStat} />
+            </button>
             {stats.team.currentPartnership && (
               <div className="rounded-lg border bg-card p-3 text-xs">
                 <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -612,7 +611,7 @@ function ScorerPage() {
             )}
           </div>
 
-          {/* Center: over timeline + scoring buttons */}
+          {/* Center: over timeline + scoring surface */}
           <div className="flex min-h-0 flex-col gap-3">
             <OverTimeline balls={session.currentOver.events.map(ballChipLabel)} />
 
@@ -625,44 +624,26 @@ function ScorerPage() {
                 <Button onClick={startFirstInnings}>Start innings 1</Button>
               </div>
             ) : (
-              <>
-                <div className="grid grid-cols-6 gap-2">
-                  {([0, 1, 2, 3, 4, 6] as const).map((r) => (
-                    <RunsButton key={r} value={r} onClick={() => onRun(r)} />
-                  ))}
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  <ExtraButton label="Wide" onClick={() => setExtraKind("Wide")} />
-                  <ExtraButton label="No Ball" onClick={() => setExtraKind("No Ball")} />
-                  <ExtraButton label="Bye" onClick={() => setExtraKind("Bye")} />
-                  <ExtraButton label="Leg Bye" onClick={() => setExtraKind("Leg Bye")} />
-                </div>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <ScoreButton
-                    label="OUT"
-                    tone="wicket"
-                    size="xl"
-                    onClick={() => setDismissOpen(true)}
-                    className="sm:col-span-2"
-                  />
-                  <ScoreButton
-                    label="Swap"
-                    tone="neutral"
-                    sublabel="Strike"
-                    onClick={() => {
-                      const s = { ...session.striker };
-                      session.setStriker({ ...session.nonStriker, onStrike: true });
-                      session.setNonStriker({ ...s, onStrike: false });
-                    }}
-                  />
-                  <ScoreButton
-                    label="End"
-                    tone="danger"
-                    sublabel="Match"
-                    onClick={finalizeMatch}
-                  />
-                </div>
-              </>
+              <ScoringActions
+                onRun={onRun}
+                onExtra={(k) => setExtraKind(k)}
+                onOut={() => setDismissOpen(true)}
+                onUndo={() => void session.undo()}
+                onSwapStrike={() => {
+                  const s = { ...session.striker };
+                  session.setStriker({ ...session.nonStriker, onStrike: true });
+                  session.setNonStriker({ ...s, onStrike: false });
+                }}
+                onChangeStriker={() => setPickStrikerOpen(true)}
+                onChangeNonStriker={() => setPickNonStrikerOpen(true)}
+                onChangeBowler={() => setPickBowlerOpen(true)}
+                onRetiredHurt={() => void finalizeWicket("retired_hurt")}
+                onFinishInnings={
+                  session.activeInnings?.innings_number === 1 ? startSecondInnings : undefined
+                }
+                showFinishInnings={session.activeInnings?.innings_number === 1}
+                onEndMatch={finalizeMatch}
+              />
             )}
 
             <CommentaryPanel
@@ -672,32 +653,24 @@ function ScorerPage() {
             />
           </div>
 
-          {/* Right: Bowler + undo */}
+          {/* Right: Bowler (tap to change) */}
           <div className="flex min-h-0 flex-col gap-3">
-            <BowlerPanel bowler={bowlerStat} />
-            <Button variant="outline" size="sm" onClick={() => setPickBowlerOpen(true)}>
-              {bowlerRef.name ? "Change bowler" : "Select bowler"}
-            </Button>
-            <div className="grid grid-cols-2 gap-2">
-              <UndoButton onClick={() => void session.undo()} />
-              <Button variant="secondary" size="lg" className="h-14 gap-2" onClick={() => setScorecardOpen(true)}>
-                <FileText className="size-4" /> Card
-              </Button>
-            </div>
+            <button
+              type="button"
+              className="rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              onClick={() => setPickBowlerOpen(true)}
+              aria-label="Change bowler"
+            >
+              <BowlerPanel bowler={bowlerStat} />
+            </button>
             {session.matchState.innings.awaitingNewBatter && (
               <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
                 Waiting for next batter…
-                <Button size="sm" className="mt-2 w-full" onClick={() => setNewBatterOpen(true)}>
-                  Select
-                </Button>
               </div>
             )}
             {session.matchState.innings.awaitingNewBowler && (
               <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
-                Over complete — assign next bowler.
-                <Button size="sm" className="mt-2 w-full" onClick={() => setNewBowlerOpen(true)}>
-                  Select
-                </Button>
+                Over complete — pick next bowler.
               </div>
             )}
           </div>
