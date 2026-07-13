@@ -31,7 +31,6 @@ import {
   Undo2,
   UserCog,
   UserPlus,
-  X,
 } from "lucide-react";
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
 
@@ -303,7 +302,7 @@ export function MobileScorer(props: MobileScorerProps) {
       />
 
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent side="bottom" className="max-h-[82dvh] overflow-y-auto rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+        <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="max-h-[82dvh] overflow-y-auto rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
           <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
           <SheetHeader className="px-4 pb-2 pt-3 text-left">
             <SheetTitle className="text-base">More actions</SheetTitle>
@@ -684,17 +683,14 @@ function PlayerPickerSheet({
   const title = kind === "bowler" ? "Select bowler" : kind === "nonStriker" ? "Select non-striker" : "Select striker";
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[74dvh] overflow-hidden rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+      <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="max-h-[74dvh] overflow-hidden rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
         <SheetHeader className="px-4 pb-2 pt-3 text-left">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+          <div className="grid grid-cols-1 items-center gap-2 pr-10">
             <div className="min-w-0">
               <SheetTitle className="truncate text-base">{title}</SheetTitle>
               <SheetDescription className="text-xs">Tap once to continue scoring</SheetDescription>
             </div>
-            <button type="button" onClick={() => onOpenChange(false)} className="grid size-9 place-items-center rounded-full bg-muted text-muted-foreground" aria-label="Close picker">
-              <X className="size-4" />
-            </button>
           </div>
         </SheetHeader>
         <div className="border-y px-3 py-2">
