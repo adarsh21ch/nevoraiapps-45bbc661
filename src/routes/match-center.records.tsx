@@ -122,9 +122,9 @@ function RecordsPage() {
   });
 
   const searchQ = useQuery({
-    queryKey: ["mc-records-search", tenantId, searchTerm],
-    queryFn: () => globalSearch(tenantId, searchTerm),
-    enabled: searchTerm.trim().length >= 2,
+    queryKey: ["mc-records-search", tenantId, debouncedSearch],
+    queryFn: () => globalSearch(tenantId, debouncedSearch),
+    enabled: debouncedSearch.trim().length >= 2,
   });
 
   const rebuildMut = useMutation({
