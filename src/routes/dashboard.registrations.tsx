@@ -42,12 +42,32 @@ function RegistrationsInbox() {
 
   const [openId, setOpenId] = useState<string | null>(null);
 
+  // Gmail/WhatsApp/Slack behaviour: opening the inbox marks every NEW
+  // registration as REVIEWED. The badge instantly disappears everywhere.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await markRegistrationsReviewed(tenant.id);
+        if (cancelled) return;
+        qc.invalidateQueries({ queryKey: newRegsQueryKey(tenant.id) });
+        qc.invalidateQueries({ queryKey: qk.regs(tenant.id) });
+      } catch {
+        // silent — badge just remains until next refetch
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tenant.id, qc]);
+
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: qk.regs(tenant.id) });
-    qc.invalidateQueries({ queryKey: ["d", "regs-new-count", tenant.id] });
+    qc.invalidateQueries({ queryKey: newRegsQueryKey(tenant.id) });
     qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
     qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
   };
+
 
   const approve = useMutation({
     mutationFn: async (id: string) => {
