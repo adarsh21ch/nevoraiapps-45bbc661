@@ -253,7 +253,7 @@ function GenerateForm({ tenantId }: { tenantId: string }) {
 
   return (
     <Card className="p-4 space-y-3">
-      <SectionTitle title="Generate a report" description="Deterministic, template-driven." icon={Sparkles} />
+      <SectionTitle title="Generate a report" />
       <div className="grid gap-3 sm:grid-cols-[200px_1fr_auto]">
         <Select value={scope} onValueChange={(v) => { setScope(v as AIReportType); setRefId(""); }}>
           <SelectTrigger><SelectValue /></SelectTrigger>
@@ -303,7 +303,7 @@ function SettingsPanel({ tenantId }: { tenantId: string }) {
   const s = q.data;
   return (
     <Card className="p-4 space-y-4 max-w-xl">
-      <SectionTitle title="AI Insights settings" icon={Sparkles} />
+      <SectionTitle title="AI Insights settings" />
       {[
         { key: "auto_generate_match_reports", label: "Auto-generate match reports" },
         { key: "auto_generate_player_reports", label: "Auto-generate player reports" },

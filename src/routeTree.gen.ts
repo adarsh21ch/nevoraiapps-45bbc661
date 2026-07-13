@@ -36,6 +36,7 @@ import { Route as MatchCenterLeaderboardsRouteImport } from './routes/match-cent
 import { Route as MatchCenterDashboardRouteImport } from './routes/match-center.dashboard'
 import { Route as MatchCenterCreateRouteImport } from './routes/match-center.create'
 import { Route as MatchCenterAwardsRouteImport } from './routes/match-center.awards'
+import { Route as MatchCenterAiInsightsRouteImport } from './routes/match-center.ai-insights'
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
 import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
@@ -195,6 +196,11 @@ const MatchCenterAwardsRoute = MatchCenterAwardsRouteImport.update({
   path: '/awards',
   getParentRoute: () => MatchCenterRoute,
 } as any)
+const MatchCenterAiInsightsRoute = MatchCenterAiInsightsRouteImport.update({
+  id: '/ai-insights',
+  path: '/ai-insights',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
 const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
   id: '/students',
   path: '/students',
@@ -333,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
   '/match-center/create': typeof MatchCenterCreateRoute
   '/match-center/dashboard': typeof MatchCenterDashboardRoute
@@ -381,6 +388,7 @@ export interface FileRoutesByTo {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
   '/match-center/create': typeof MatchCenterCreateRoute
   '/match-center/dashboard': typeof MatchCenterDashboardRoute
@@ -433,6 +441,7 @@ export interface FileRoutesById {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
   '/match-center/create': typeof MatchCenterCreateRoute
   '/match-center/dashboard': typeof MatchCenterDashboardRoute
@@ -486,6 +495,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/match-center/ai-insights'
     | '/match-center/awards'
     | '/match-center/create'
     | '/match-center/dashboard'
@@ -534,6 +544,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/match-center/ai-insights'
     | '/match-center/awards'
     | '/match-center/create'
     | '/match-center/dashboard'
@@ -585,6 +596,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/match-center/ai-insights'
     | '/match-center/awards'
     | '/match-center/create'
     | '/match-center/dashboard'
@@ -822,6 +834,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchCenterAwardsRouteImport
       parentRoute: typeof MatchCenterRoute
     }
+    '/match-center/ai-insights': {
+      id: '/match-center/ai-insights'
+      path: '/ai-insights'
+      fullPath: '/match-center/ai-insights'
+      preLoaderRoute: typeof MatchCenterAiInsightsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
     '/dashboard/students': {
       id: '/dashboard/students'
       path: '/students'
@@ -1040,6 +1059,7 @@ const MatchCenterTournamentsRouteWithChildren =
   )
 
 interface MatchCenterRouteChildren {
+  MatchCenterAiInsightsRoute: typeof MatchCenterAiInsightsRoute
   MatchCenterAwardsRoute: typeof MatchCenterAwardsRoute
   MatchCenterCreateRoute: typeof MatchCenterCreateRoute
   MatchCenterDashboardRoute: typeof MatchCenterDashboardRoute
@@ -1059,6 +1079,7 @@ interface MatchCenterRouteChildren {
 }
 
 const MatchCenterRouteChildren: MatchCenterRouteChildren = {
+  MatchCenterAiInsightsRoute: MatchCenterAiInsightsRoute,
   MatchCenterAwardsRoute: MatchCenterAwardsRoute,
   MatchCenterCreateRoute: MatchCenterCreateRoute,
   MatchCenterDashboardRoute: MatchCenterDashboardRoute,
