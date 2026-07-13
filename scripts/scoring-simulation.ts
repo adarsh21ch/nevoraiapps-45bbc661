@@ -334,7 +334,7 @@ section("Statistics engine derives correctly");
   expect("legal balls in stats matches replay",
     stats.team.legalBalls, replayInnings(b.events as any, { totalOvers: 20 }).innings.legalBalls);
   const x = stats.bowling.ordered.find((r) => r.player.name === "X");
-  expect("bowler X runs = team runs (single bowler)", x?.runs, stats.team.runs);
+  expect("bowler X runs = team runs (single bowler)", x?.runsConceded, stats.team.runs);
 }
 
 /* ================================================================
