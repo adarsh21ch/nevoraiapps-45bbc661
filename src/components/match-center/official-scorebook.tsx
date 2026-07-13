@@ -167,10 +167,11 @@ export function OfficialScorebook({
     }
   };
 
-  // Sync state if the user exits fullscreen via Esc.
-  if (typeof document !== "undefined") {
-    // no-op; handled by effect below
-  }
+  useEffect(() => {
+    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
 
   return (
     <div ref={wrapRef} className={`scorebook-fs-wrap ${fullscreen ? "min-h-screen bg-background" : ""}`}>
