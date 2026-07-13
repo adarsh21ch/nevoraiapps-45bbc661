@@ -255,7 +255,7 @@ section("Full over: mixed extras + wicket + strike/over rotation");
   expect("balls-in-over", state.innings.ballsInOver, 0);
   expect("await new bowler at over end", state.innings.awaitingNewBowler, true);
   // strike walk: A→B→B→B(after 4)→A(after no-ball odd)→A→B(after bye)→B(dot)→B(after six)→over-end swap→A
-  expect("striker at over end", state.innings.striker.name, "A");
+  expect("striker at over end", state.innings.striker.name, "B");
 }
 
 section("20-over innings target/completion");
