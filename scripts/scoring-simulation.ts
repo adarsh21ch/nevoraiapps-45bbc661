@@ -18,7 +18,7 @@ import {
   applyStrikeAfterBall,
   type MatchState,
 } from "../src/lib/mc-rules-engine";
-import { calculateInningsStatistics } from "../src/lib/mc-statistics-engine";
+import { computeInningsStatistics } from "../src/lib/mc-statistics-engine";
 import type {
   DismissalType,
   ExtraType,
