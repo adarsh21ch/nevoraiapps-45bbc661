@@ -573,7 +573,7 @@ function ScorerPage() {
               We couldn't reach the match data. Check your connection and try again.
             </p>
             <div className="flex justify-center gap-2">
-              <Button size="sm" variant="outline" onClick={() => session.refresh()}>
+              <Button size="sm" variant="outline" onClick={() => void session.reload()}>
                 Retry
               </Button>
               <Button size="sm" variant="ghost" asChild>
