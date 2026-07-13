@@ -1,0 +1,866 @@
+/* ================================================================
+ * Cricket Statistics Engine
+ * ----------------------------------------------------------------
+ * Pure, deterministic derivation of ALL match statistics from the
+ * immutable `mc_ball_events` log. Nothing is persisted; every value
+ * is computed on demand from events (+ replay engine state).
+ *
+ * Design contract:
+ *   - No writes.
+ *   - No side effects.
+ *   - No usage of Date/now/random.
+ *   - O(n) over events for a single innings.
+ *   - Safe to memoize by (events reference, options).
+ *
+ * NOTE: This module never queries the database. Callers pass in the
+ * event log (typically from `useScoringSession`). This keeps
+ * statistics coherent with the replay engine and avoids duplication.
+ * ================================================================ */
+
+import type {
+  DismissalType,
+  ExtraType,
+  MCBallEvent,
+} from "@/lib/mc-ball-events";
+import { isLegalDelivery } from "@/lib/mc-ball-events";
+import {
+  ballSwapsStrike,
+  isBowlerCredited,
+  isWicketDismissal,
+  totalRunsForBall,
+} from "@/lib/mc-rules-engine";
+
+/* ================================================================
+ * Player key helpers (unifies academy athlete + external name)
+ * ================================================================ */
+
+export type PlayerKey = string; // "id:<uuid>" or "name:<lowercased>"
+
+export function playerKey(
+  athleteId: string | null | undefined,
+  name: string | null | undefined,
+): PlayerKey | null {
+  if (athleteId) return `id:${athleteId}`;
+  if (name && name.trim()) return `name:${name.trim().toLowerCase()}`;
+  return null;
+}
+
+export interface PlayerRef {
+  key: PlayerKey;
+  athleteId: string | null;
+  name: string | null;
+}
+
+function refFrom(
+  athleteId: string | null | undefined,
+  name: string | null | undefined,
+): PlayerRef | null {
+  const key = playerKey(athleteId, name);
+  if (!key) return null;
+  return {
+    key,
+    athleteId: athleteId ?? null,
+    name: name ?? null,
+  };
+}
+
+/* ================================================================
+ * Batting statistics
+ * ================================================================ */
+
+export interface BattingStat {
+  player: PlayerRef;
+  runs: number;
+  balls: number; // legal balls faced (excludes wides; includes no-balls where the batter faced)
+  fours: number;
+  sixes: number;
+  singles: number;
+  doubles: number;
+  triples: number;
+  dotBalls: number;
+  boundaryRuns: number;
+  boundaryPct: number; // 0..100
+  strikeRate: number; // runs / balls * 100
+  notOut: boolean;
+  dismissalType: DismissalType | null;
+  dismissedBy: PlayerRef | null; // bowler credited (or null if run out / non-bowler)
+  fielder: PlayerRef | null;
+  battingPosition: number; // 1-based, order of first appearance as striker/non-striker
+  duck: boolean;
+  goldenDuck: boolean; // out first ball
+  silverDuck: boolean; // out second ball
+  isCentury: boolean;
+  isHalfCentury: boolean;
+  minutesBatted: null; // placeholder (no timestamps in engine)
+}
+
+export interface BattingTable {
+  byKey: Map<PlayerKey, BattingStat>;
+  ordered: BattingStat[]; // sorted by battingPosition
+  highestScore: BattingStat | null;
+}
+
+function emptyBatting(player: PlayerRef, position: number): BattingStat {
+  return {
+    player,
+    runs: 0,
+    balls: 0,
+    fours: 0,
+    sixes: 0,
+    singles: 0,
+    doubles: 0,
+    triples: 0,
+    dotBalls: 0,
+    boundaryRuns: 0,
+    boundaryPct: 0,
+    strikeRate: 0,
+    notOut: true,
+    dismissalType: null,
+    dismissedBy: null,
+    fielder: null,
+    battingPosition: position,
+    duck: false,
+    goldenDuck: false,
+    silverDuck: false,
+    isCentury: false,
+    isHalfCentury: false,
+    minutesBatted: null,
+  };
+}
+
+export function computeBatting(events: MCBallEvent[]): BattingTable {
+  const byKey = new Map<PlayerKey, BattingStat>();
+  let position = 0;
+
+  const ensure = (
+    athleteId: string | null,
+    name: string | null,
+  ): BattingStat | null => {
+    const ref = refFrom(athleteId, name);
+    if (!ref) return null;
+    let row = byKey.get(ref.key);
+    if (!row) {
+      position += 1;
+      row = emptyBatting(ref, position);
+      byKey.set(ref.key, row);
+    }
+    return row;
+  };
+
+  for (const e of events) {
+    // Register both batters at the crease (defines batting order).
+    ensure(e.non_striker_athlete_id, e.non_striker_name);
+    const striker = ensure(e.striker_athlete_id, e.striker_name);
+    if (!striker) continue;
+
+    const extra = e.extra_type as ExtraType | null;
+    const off = e.runs_off_bat ?? 0;
+
+    // Ball faced: any delivery except a wide counts (no-ball is faced).
+    const faced = extra !== "wide";
+    if (faced) striker.balls += 1;
+
+    // Runs off bat count toward the batter's runs.
+    striker.runs += off;
+
+    if (faced && off === 0 && !isWicketDismissal(e.dismissal_type as DismissalType | null)) {
+      // Dot ball (from the batter's POV) — a delivery the batter faced with 0 off bat.
+      // We only count when nothing "happened" for the batter; extras still counted
+      // separately in team stats.
+      if (extra == null || extra === "no_ball") {
+        // For no-ball with off=0, still a dot for the batter (no runs to bat).
+        striker.dotBalls += 1;
+      }
+    }
+
+    if (off === 4) {
+      striker.fours += 1;
+      striker.boundaryRuns += 4;
+    } else if (off === 6) {
+      striker.sixes += 1;
+      striker.boundaryRuns += 6;
+    } else if (off === 1) striker.singles += 1;
+    else if (off === 2) striker.doubles += 1;
+    else if (off === 3) striker.triples += 1;
+
+    // Dismissal
+    const dt = e.dismissal_type as DismissalType | null;
+    if (dt) {
+      const dismissedRef = refFrom(
+        e.dismissed_athlete_id ?? e.striker_athlete_id,
+        e.dismissed_name ?? e.striker_name,
+      );
+      const target = dismissedRef
+        ? byKey.get(dismissedRef.key) ?? null
+        : striker;
+      if (target && target.notOut) {
+        target.notOut = false;
+        target.dismissalType = dt;
+        if (isBowlerCredited(dt)) {
+          target.dismissedBy = refFrom(e.bowler_athlete_id, e.bowler_name);
+        }
+        target.fielder = refFrom(e.fielder_athlete_id, e.fielder_name);
+        if (target.runs === 0 && isWicketDismissal(dt)) {
+          target.duck = true;
+          if (target.balls === 1) target.goldenDuck = true;
+          else if (target.balls === 2) target.silverDuck = true;
+        }
+      }
+    }
+  }
+
+  // Derived aggregates
+  let highest: BattingStat | null = null;
+  for (const row of byKey.values()) {
+    row.strikeRate = row.balls > 0 ? +((row.runs / row.balls) * 100).toFixed(2) : 0;
+    row.boundaryPct =
+      row.runs > 0 ? +((row.boundaryRuns / row.runs) * 100).toFixed(2) : 0;
+    row.isCentury = row.runs >= 100;
+    row.isHalfCentury = row.runs >= 50 && row.runs < 100;
+    if (!highest || row.runs > highest.runs) highest = row;
+  }
+
+  const ordered = Array.from(byKey.values()).sort(
+    (a, b) => a.battingPosition - b.battingPosition,
+  );
+  return { byKey, ordered, highestScore: highest };
+}
+
+/* ================================================================
+ * Bowling statistics
+ * ================================================================ */
+
+export interface BowlingStat {
+  player: PlayerRef;
+  legalBalls: number;
+  overs: number; // integer completed overs
+  overBalls: number; // legal balls in the in-progress over
+  oversDisplay: string; // "3.4"
+  maidens: number;
+  runsConceded: number;
+  wickets: number;
+  economy: number; // runs per over
+  strikeRate: number; // balls per wicket
+  average: number; // runs per wicket
+  dotBalls: number;
+  wides: number;
+  noBalls: number;
+  boundaryBalls: number; // legal deliveries where batter hit 4 or 6
+  bestBowlingRuns: number;
+  bestBowlingWickets: number;
+  bestBowlingDisplay: string; // "3/22"
+}
+
+export interface BowlingTable {
+  byKey: Map<PlayerKey, BowlingStat>;
+  ordered: BowlingStat[];
+  bestBowler: BowlingStat | null;
+}
+
+function emptyBowling(player: PlayerRef): BowlingStat {
+  return {
+    player,
+    legalBalls: 0,
+    overs: 0,
+    overBalls: 0,
+    oversDisplay: "0.0",
+    maidens: 0,
+    runsConceded: 0,
+    wickets: 0,
+    economy: 0,
+    strikeRate: 0,
+    average: 0,
+    dotBalls: 0,
+    wides: 0,
+    noBalls: 0,
+    boundaryBalls: 0,
+    bestBowlingRuns: 0,
+    bestBowlingWickets: 0,
+    bestBowlingDisplay: "0/0",
+  };
+}
+
+/** Runs charged to the bowler (excludes byes, leg-byes, penalties). */
+function bowlerRunsFor(e: MCBallEvent): number {
+  const extra = e.extra_type as ExtraType | null;
+  const off = e.runs_off_bat ?? 0;
+  const ex = e.extra_runs ?? 0;
+  if (extra === "wide") return ex; // whole wide count charged
+  if (extra === "no_ball") return 1 + off; // penalty + off-bat; ex byes not charged
+  if (extra === "bye" || extra === "leg_bye" || extra === "penalty") return 0;
+  return off;
+}
+
+export function computeBowling(events: MCBallEvent[]): BowlingTable {
+  const byKey = new Map<PlayerKey, BowlingStat>();
+
+  // For maiden + best-bowling we track per-over per-bowler.
+  interface OverKey {
+    bowlerKey: PlayerKey;
+    overNumber: number;
+  }
+  const perOver = new Map<
+    string,
+    { runs: number; legal: number; hadBoundary: boolean; player: PlayerRef }
+  >();
+
+  const ensure = (ref: PlayerRef): BowlingStat => {
+    let row = byKey.get(ref.key);
+    if (!row) {
+      row = emptyBowling(ref);
+      byKey.set(ref.key, row);
+    }
+    return row;
+  };
+
+  for (const e of events) {
+    const ref = refFrom(e.bowler_athlete_id, e.bowler_name);
+    if (!ref) continue;
+    const row = ensure(ref);
+    const legal = isLegalDelivery(e.extra_type as ExtraType | null);
+    const conceded = bowlerRunsFor(e);
+    row.runsConceded += conceded;
+
+    if (legal) row.legalBalls += 1;
+    if (legal && conceded === 0 && (e.runs_off_bat ?? 0) === 0) row.dotBalls += 1;
+    if ((e.runs_off_bat ?? 0) === 4 || (e.runs_off_bat ?? 0) === 6)
+      row.boundaryBalls += 1;
+    if (e.extra_type === "wide") row.wides += 1;
+    if (e.extra_type === "no_ball") row.noBalls += 1;
+
+    const dt = e.dismissal_type as DismissalType | null;
+    if (isBowlerCredited(dt)) row.wickets += 1;
+
+    // Per-over bucket
+    const okey = `${ref.key}::${e.over_number}`;
+    let bucket = perOver.get(okey);
+    if (!bucket) {
+      bucket = { runs: 0, legal: 0, hadBoundary: false, player: ref };
+      perOver.set(okey, bucket);
+    }
+    bucket.runs += conceded;
+    if (legal) bucket.legal += 1;
+    if ((e.runs_off_bat ?? 0) >= 4) bucket.hadBoundary = true;
+  }
+
+  // Finalize per-over stats: maidens.
+  for (const bucket of perOver.values()) {
+    if (bucket.legal === 6 && bucket.runs === 0 && !bucket.hadBoundary) {
+      const row = byKey.get(bucket.player.key);
+      if (row) row.maidens += 1;
+    }
+  }
+
+  let best: BowlingStat | null = null;
+  for (const row of byKey.values()) {
+    row.overs = Math.floor(row.legalBalls / 6);
+    row.overBalls = row.legalBalls % 6;
+    row.oversDisplay = `${row.overs}.${row.overBalls}`;
+    const oversFloat = row.overs + row.overBalls / 6;
+    row.economy = oversFloat > 0 ? +(row.runsConceded / oversFloat).toFixed(2) : 0;
+    row.strikeRate = row.wickets > 0 ? +(row.legalBalls / row.wickets).toFixed(2) : 0;
+    row.average =
+      row.wickets > 0 ? +(row.runsConceded / row.wickets).toFixed(2) : 0;
+    row.bestBowlingRuns = row.runsConceded;
+    row.bestBowlingWickets = row.wickets;
+    row.bestBowlingDisplay = `${row.wickets}/${row.runsConceded}`;
+    if (
+      !best ||
+      row.wickets > best.wickets ||
+      (row.wickets === best.wickets && row.runsConceded < best.runsConceded)
+    ) {
+      best = row;
+    }
+  }
+
+  const ordered = Array.from(byKey.values()).sort(
+    (a, b) =>
+      b.wickets - a.wickets ||
+      a.runsConceded - b.runsConceded ||
+      b.legalBalls - a.legalBalls,
+  );
+  return { byKey, ordered, bestBowler: best };
+}
+
+/* ================================================================
+ * Fielding statistics
+ * ================================================================ */
+
+export interface FieldingStat {
+  player: PlayerRef;
+  catches: number;
+  stumpings: number;
+  runOuts: number;
+  directHitRunOuts: number;
+  assistedRunOuts: number;
+}
+
+export interface FieldingTable {
+  byKey: Map<PlayerKey, FieldingStat>;
+  ordered: FieldingStat[];
+}
+
+function emptyFielding(player: PlayerRef): FieldingStat {
+  return {
+    player,
+    catches: 0,
+    stumpings: 0,
+    runOuts: 0,
+    directHitRunOuts: 0,
+    assistedRunOuts: 0,
+  };
+}
+
+export function computeFielding(events: MCBallEvent[]): FieldingTable {
+  const byKey = new Map<PlayerKey, FieldingStat>();
+  const ensure = (ref: PlayerRef): FieldingStat => {
+    let row = byKey.get(ref.key);
+    if (!row) {
+      row = emptyFielding(ref);
+      byKey.set(ref.key, row);
+    }
+    return row;
+  };
+
+  for (const e of events) {
+    const dt = e.dismissal_type as DismissalType | null;
+    if (!dt) continue;
+    const fielder = refFrom(e.fielder_athlete_id, e.fielder_name);
+    if (dt === "caught" && fielder) ensure(fielder).catches += 1;
+    else if (dt === "stumped" && fielder) ensure(fielder).stumpings += 1;
+    else if (dt === "run_out") {
+      // Direct hit if comment contains "direct" or no assist recorded — the UI
+      // typically flags it; without a dedicated flag, treat any run-out with a
+      // fielder as an assisted run-out and count `runOuts` for that fielder.
+      if (fielder) {
+        const row = ensure(fielder);
+        row.runOuts += 1;
+        const isDirect = /direct/i.test(e.comment ?? "");
+        if (isDirect) row.directHitRunOuts += 1;
+        else row.assistedRunOuts += 1;
+      }
+    }
+  }
+
+  const ordered = Array.from(byKey.values()).sort(
+    (a, b) =>
+      b.catches + b.stumpings + b.runOuts -
+      (a.catches + a.stumpings + a.runOuts),
+  );
+  return { byKey, ordered };
+}
+
+/* ================================================================
+ * Team, extras, over summary, fall of wickets, partnerships
+ * ================================================================ */
+
+export interface ExtrasBreakdown {
+  wides: number;
+  noBalls: number;
+  byes: number;
+  legByes: number;
+  penalty: number;
+  total: number;
+}
+
+export interface OverSummaryStat {
+  overNumber: number;
+  bowler: PlayerRef | null;
+  runs: number;
+  wickets: number;
+  extras: number;
+  legalBalls: number;
+  illegalBalls: number;
+  boundaries: number;
+  dotBalls: number;
+  isMaiden: boolean;
+  completed: boolean;
+}
+
+export interface FallOfWicket {
+  wicketNumber: number;
+  score: number; // team score at fall
+  overDisplay: string; // "12.3"
+  batter: PlayerRef | null;
+  bowler: PlayerRef | null;
+  dismissal: DismissalType | null;
+}
+
+export interface Partnership {
+  batterA: PlayerRef | null;
+  batterB: PlayerRef | null;
+  runs: number;
+  balls: number;
+  startWicket: number; // 0-based (partnership begins after this many wickets)
+  endWicket: number | null; // null if unbroken
+}
+
+export interface TeamStats {
+  runs: number;
+  wickets: number;
+  legalBalls: number;
+  illegalBalls: number;
+  overs: number;
+  ballsInOver: number;
+  oversDisplay: string;
+  runRate: number;
+  extras: ExtrasBreakdown;
+  boundaries: number; // 4s + 6s off the bat
+  fours: number;
+  sixes: number;
+  dotBalls: number; // legal deliveries that scored 0 total
+  fallOfWickets: FallOfWicket[];
+  overs_summary: OverSummaryStat[];
+  partnerships: Partnership[];
+  currentPartnership: Partnership | null;
+  highestPartnership: Partnership | null;
+  // chase
+  target: number | null;
+  requiredRuns: number | null;
+  ballsRemaining: number | null;
+  requiredRunRate: number | null;
+}
+
+export function computeExtras(events: MCBallEvent[]): ExtrasBreakdown {
+  let wides = 0,
+    noBalls = 0,
+    byes = 0,
+    legByes = 0,
+    penalty = 0;
+  for (const e of events) {
+    const t = e.extra_type as ExtraType | null;
+    const ex = e.extra_runs ?? 0;
+    if (t === "wide") wides += ex;
+    else if (t === "no_ball") noBalls += 1; // +off-bat is batter runs; +ex is byes off no-ball
+    else if (t === "bye") byes += ex;
+    else if (t === "leg_bye") legByes += ex;
+    else if (t === "penalty") penalty += ex;
+  }
+  return {
+    wides,
+    noBalls,
+    byes,
+    legByes,
+    penalty,
+    total: wides + noBalls + byes + legByes + penalty,
+  };
+}
+
+export function computeOverSummaries(events: MCBallEvent[]): OverSummaryStat[] {
+  const map = new Map<number, OverSummaryStat>();
+  for (const e of events) {
+    let row = map.get(e.over_number);
+    if (!row) {
+      row = {
+        overNumber: e.over_number,
+        bowler: refFrom(e.bowler_athlete_id, e.bowler_name),
+        runs: 0,
+        wickets: 0,
+        extras: 0,
+        legalBalls: 0,
+        illegalBalls: 0,
+        boundaries: 0,
+        dotBalls: 0,
+        isMaiden: false,
+        completed: false,
+      };
+      map.set(e.over_number, row);
+    }
+    const total = totalRunsForBall(e);
+    row.runs += total;
+    row.extras += e.extra_runs ?? 0;
+    if (e.is_legal_delivery) row.legalBalls += 1;
+    else row.illegalBalls += 1;
+    if ((e.runs_off_bat ?? 0) === 4 || (e.runs_off_bat ?? 0) === 6)
+      row.boundaries += 1;
+    if (e.is_legal_delivery && total === 0) row.dotBalls += 1;
+    if (isWicketDismissal(e.dismissal_type as DismissalType | null))
+      row.wickets += 1;
+  }
+  for (const row of map.values()) {
+    row.completed = row.legalBalls >= 6;
+    row.isMaiden = row.completed && row.runs === 0;
+  }
+  return Array.from(map.values()).sort((a, b) => a.overNumber - b.overNumber);
+}
+
+export function computeFallOfWickets(events: MCBallEvent[]): FallOfWicket[] {
+  const out: FallOfWicket[] = [];
+  let score = 0;
+  let legalBalls = 0;
+  let wicketNumber = 0;
+  for (const e of events) {
+    score += totalRunsForBall(e);
+    if (e.is_legal_delivery) legalBalls += 1;
+    const dt = e.dismissal_type as DismissalType | null;
+    if (isWicketDismissal(dt)) {
+      wicketNumber += 1;
+      const overs = Math.floor(legalBalls / 6);
+      const balls = legalBalls % 6;
+      out.push({
+        wicketNumber,
+        score,
+        overDisplay: `${overs}.${balls}`,
+        batter: refFrom(
+          e.dismissed_athlete_id ?? e.striker_athlete_id,
+          e.dismissed_name ?? e.striker_name,
+        ),
+        bowler: isBowlerCredited(dt)
+          ? refFrom(e.bowler_athlete_id, e.bowler_name)
+          : null,
+        dismissal: dt,
+      });
+    }
+  }
+  return out;
+}
+
+export function computePartnerships(events: MCBallEvent[]): {
+  partnerships: Partnership[];
+  current: Partnership | null;
+  highest: Partnership | null;
+} {
+  const partnerships: Partnership[] = [];
+  let cur: Partnership | null = null;
+  let wicketsFallen = 0;
+
+  // Track striker/non-striker as they appear on each event.
+  let striker: PlayerRef | null = null;
+  let nonStriker: PlayerRef | null = null;
+
+  const ensurePartnership = () => {
+    if (!cur) {
+      cur = {
+        batterA: striker,
+        batterB: nonStriker,
+        runs: 0,
+        balls: 0,
+        startWicket: wicketsFallen,
+        endWicket: null,
+      };
+    } else {
+      // Refresh player refs (identity might update once names known).
+      if (!cur.batterA) cur.batterA = striker;
+      if (!cur.batterB) cur.batterB = nonStriker;
+    }
+  };
+
+  for (const e of events) {
+    striker = refFrom(e.striker_athlete_id, e.striker_name) ?? striker;
+    nonStriker = refFrom(e.non_striker_athlete_id, e.non_striker_name) ?? nonStriker;
+    ensurePartnership();
+    if (!cur) continue;
+
+    cur.runs += totalRunsForBall(e);
+    if (e.extra_type !== "wide") cur.balls += 1;
+
+    const dt = e.dismissal_type as DismissalType | null;
+    if (isWicketDismissal(dt)) {
+      wicketsFallen += 1;
+      cur.endWicket = wicketsFallen;
+      partnerships.push(cur);
+      cur = null;
+    } else if (ballSwapsStrike(e)) {
+      const tmp = striker;
+      striker = nonStriker;
+      nonStriker = tmp;
+    }
+  }
+
+  const current = cur;
+  const all = current ? [...partnerships, current] : partnerships;
+  let highest: Partnership | null = null;
+  for (const p of all) if (!highest || p.runs > highest.runs) highest = p;
+
+  return { partnerships, current, highest };
+}
+
+export interface TeamStatsOptions {
+  totalOvers?: number | null;
+  target?: number | null;
+}
+
+export function computeTeamStats(
+  events: MCBallEvent[],
+  opts: TeamStatsOptions = {},
+): TeamStats {
+  let runs = 0;
+  let wickets = 0;
+  let legalBalls = 0;
+  let illegalBalls = 0;
+  let fours = 0;
+  let sixes = 0;
+  let dotBalls = 0;
+
+  for (const e of events) {
+    runs += totalRunsForBall(e);
+    if (e.is_legal_delivery) legalBalls += 1;
+    else illegalBalls += 1;
+    if ((e.runs_off_bat ?? 0) === 4) fours += 1;
+    else if ((e.runs_off_bat ?? 0) === 6) sixes += 1;
+    if (e.is_legal_delivery && totalRunsForBall(e) === 0) dotBalls += 1;
+    if (isWicketDismissal(e.dismissal_type as DismissalType | null))
+      wickets += 1;
+  }
+
+  const overs = Math.floor(legalBalls / 6);
+  const ballsInOver = legalBalls % 6;
+  const oversFloat = overs + ballsInOver / 6;
+  const runRate = oversFloat > 0 ? +(runs / oversFloat).toFixed(2) : 0;
+
+  const target = opts.target ?? null;
+  const total = opts.totalOvers ?? null;
+  let requiredRuns: number | null = null;
+  let ballsRemaining: number | null = null;
+  let requiredRunRate: number | null = null;
+  if (target != null) {
+    requiredRuns = Math.max(0, target - runs);
+    if (total != null) {
+      ballsRemaining = Math.max(0, total * 6 - legalBalls);
+      const oversLeft = ballsRemaining / 6;
+      requiredRunRate =
+        oversLeft > 0 && requiredRuns > 0
+          ? +(requiredRuns / oversLeft).toFixed(2)
+          : 0;
+    }
+  }
+
+  const extras = computeExtras(events);
+  const overs_summary = computeOverSummaries(events);
+  const fallOfWickets = computeFallOfWickets(events);
+  const { partnerships, current, highest } = computePartnerships(events);
+
+  return {
+    runs,
+    wickets,
+    legalBalls,
+    illegalBalls,
+    overs,
+    ballsInOver,
+    oversDisplay: `${overs}.${ballsInOver}`,
+    runRate,
+    extras,
+    boundaries: fours + sixes,
+    fours,
+    sixes,
+    dotBalls,
+    fallOfWickets,
+    overs_summary,
+    partnerships,
+    currentPartnership: current,
+    highestPartnership: highest,
+    target,
+    requiredRuns,
+    ballsRemaining,
+    requiredRunRate,
+  };
+}
+
+/* ================================================================
+ * Match summary (highlights)
+ * ================================================================ */
+
+export interface MatchSummary {
+  highestScorer: BattingStat | null;
+  bestBowler: BowlingStat | null;
+  bestPartnership: Partnership | null;
+  mostBoundaries: BattingStat | null;
+  mostDotBalls: BowlingStat | null;
+  highestOver: OverSummaryStat | null;
+  lowestOver: OverSummaryStat | null;
+  extras: ExtrasBreakdown;
+}
+
+export function computeMatchSummary(
+  batting: BattingTable,
+  bowling: BowlingTable,
+  team: TeamStats,
+): MatchSummary {
+  let mostBoundaries: BattingStat | null = null;
+  for (const b of batting.byKey.values()) {
+    const total = b.fours + b.sixes;
+    const cur = mostBoundaries
+      ? mostBoundaries.fours + mostBoundaries.sixes
+      : -1;
+    if (total > cur) mostBoundaries = b;
+  }
+
+  let mostDotBalls: BowlingStat | null = null;
+  for (const bw of bowling.byKey.values()) {
+    if (!mostDotBalls || bw.dotBalls > mostDotBalls.dotBalls) mostDotBalls = bw;
+  }
+
+  let highestOver: OverSummaryStat | null = null;
+  let lowestOver: OverSummaryStat | null = null;
+  for (const o of team.overs_summary) {
+    if (!o.completed) continue;
+    if (!highestOver || o.runs > highestOver.runs) highestOver = o;
+    if (!lowestOver || o.runs < lowestOver.runs) lowestOver = o;
+  }
+
+  return {
+    highestScorer: batting.highestScore,
+    bestBowler: bowling.bestBowler,
+    bestPartnership: team.highestPartnership,
+    mostBoundaries,
+    mostDotBalls,
+    highestOver,
+    lowestOver,
+    extras: team.extras,
+  };
+}
+
+/* ================================================================
+ * Top-level composed statistics
+ * ================================================================ */
+
+export interface InningsStatistics {
+  batting: BattingTable;
+  bowling: BowlingTable;
+  fielding: FieldingTable;
+  team: TeamStats;
+  summary: MatchSummary;
+}
+
+export function computeInningsStatistics(
+  events: MCBallEvent[],
+  opts: TeamStatsOptions = {},
+): InningsStatistics {
+  const batting = computeBatting(events);
+  const bowling = computeBowling(events);
+  const fielding = computeFielding(events);
+  const team = computeTeamStats(events, opts);
+  const summary = computeMatchSummary(batting, bowling, team);
+  return { batting, bowling, fielding, team, summary };
+}
+
+/* ================================================================
+ * Simple memoization (keyed by event array reference + opts)
+ * ---------------------------------------------------------------
+ * The event log is treated as immutable — the reference changes
+ * whenever a ball is appended or undone, so identity-equality is a
+ * correct cache key.
+ * ================================================================ */
+
+const memoCache = new WeakMap<
+  MCBallEvent[],
+  Map<string, InningsStatistics>
+>();
+
+export function computeInningsStatisticsMemo(
+  events: MCBallEvent[],
+  opts: TeamStatsOptions = {},
+): InningsStatistics {
+  let byOpts = memoCache.get(events);
+  if (!byOpts) {
+    byOpts = new Map();
+    memoCache.set(events, byOpts);
+  }
+  const key = `${opts.totalOvers ?? "-"}::${opts.target ?? "-"}`;
+  let cached = byOpts.get(key);
+  if (!cached) {
+    cached = computeInningsStatistics(events, opts);
+    byOpts.set(key, cached);
+  }
+  return cached;
+}
