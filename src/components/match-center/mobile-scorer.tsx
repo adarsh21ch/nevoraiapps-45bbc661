@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -29,8 +29,10 @@ import {
   UserPlus,
   ArrowLeft,
   FileText,
+  Search,
+  X,
 } from "lucide-react";
-import type { BatterStats, BowlerStats } from "./scoring-ui";
+import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
 
 /**
  * Compact, thumb-first cricket scoring surface. Presentation-only — no MCC /
@@ -68,10 +70,15 @@ export interface MobileScorerProps {
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   onOut: () => void;
 
-  // player pickers
+  // player pickers (fallback: opens external modal)
   onOpenStrikerPicker: () => void;
   onOpenNonStrikerPicker: () => void;
   onOpenBowlerPicker: () => void;
+
+  // inline player picker (preferred when provided — replaces modals)
+  battingOptions?: PlayerOption[];
+  bowlingOptions?: PlayerOption[];
+  onPickPlayer?: (role: "striker" | "nonStriker" | "bowler", p: PlayerOption) => void;
 
   // secondary actions (bottom-sheet)
   onUndo: () => void;
@@ -91,17 +98,70 @@ export interface MobileScorerProps {
   awaitingNewBowler?: boolean;
 }
 
+type InlinePickerKind = "striker" | "nonStriker" | "bowler";
+
 export function MobileScorer(props: MobileScorerProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [confirm, setConfirm] = useState<
     | null
     | { kind: "end-match" | "finish-innings" | "delete-ball" }
   >(null);
+  const [inlinePicker, setInlinePicker] = useState<InlinePickerKind | null>(null);
+  const [pickerQuery, setPickerQuery] = useState("");
+
+  const inlineEnabled = !!(props.battingOptions && props.bowlingOptions && props.onPickPlayer);
+
+  // Auto-open inline picker when the innings is waiting for a batter/bowler.
+  useEffect(() => {
+    if (!inlineEnabled) return;
+    if (props.awaitingNewBatter) setInlinePicker("striker");
+    else if (props.awaitingNewBowler) setInlinePicker("bowler");
+  }, [inlineEnabled, props.awaitingNewBatter, props.awaitingNewBowler]);
+
+  // reset search when picker kind changes
+  useEffect(() => {
+    setPickerQuery("");
+  }, [inlinePicker]);
+
+  const openPicker = (kind: InlinePickerKind) => {
+    if (inlineEnabled) {
+      setInlinePicker(kind);
+      return;
+    }
+    if (kind === "striker") props.onOpenStrikerPicker();
+    else if (kind === "nonStriker") props.onOpenNonStrikerPicker();
+    else props.onOpenBowlerPicker();
+  };
+
+  const pickerCandidates = useMemo<PlayerOption[]>(() => {
+    if (!inlinePicker || !inlineEnabled) return [];
+    const base =
+      inlinePicker === "bowler"
+        ? props.bowlingOptions ?? []
+        : props.battingOptions ?? [];
+    if (inlinePicker !== "bowler") {
+      const excluded = new Set<string>();
+      const s = props.striker?.name;
+      const n = props.nonStriker?.name;
+      if (inlinePicker === "striker" && n) excluded.add(n);
+      if (inlinePicker === "nonStriker" && s) excluded.add(s);
+      return base.filter((p) => !excluded.has(p.name));
+    }
+    return base;
+  }, [inlinePicker, inlineEnabled, props.battingOptions, props.bowlingOptions, props.striker?.name, props.nonStriker?.name]);
+
+  const filteredCandidates = useMemo(() => {
+    const q = pickerQuery.trim().toLowerCase();
+    if (!q) return pickerCandidates;
+    return pickerCandidates.filter((p) => p.name.toLowerCase().includes(q));
+  }, [pickerCandidates, pickerQuery]);
 
   const closeAll = () => {
     setMoreOpen(false);
     setConfirm(null);
   };
+
+
 
   const confirmMeta = (() => {
     if (!confirm) return null;
@@ -220,7 +280,7 @@ export function MobileScorer(props: MobileScorerProps) {
           {/* Batters — two chips */}
           <div className="grid grid-cols-2 gap-2">
             <PlayerChip
-              onClick={props.onOpenStrikerPicker}
+              onClick={() => openPicker("striker")}
               name={props.striker?.name ?? "Striker"}
               onStrike
               value={`${props.striker?.runs ?? 0}${
@@ -233,7 +293,7 @@ export function MobileScorer(props: MobileScorerProps) {
               }
             />
             <PlayerChip
-              onClick={props.onOpenNonStrikerPicker}
+              onClick={() => openPicker("nonStriker")}
               name={props.nonStriker?.name ?? "Non-striker"}
               value={`${props.nonStriker?.runs ?? 0}${
                 props.nonStriker ? ` (${props.nonStriker.balls})` : ""
@@ -249,7 +309,7 @@ export function MobileScorer(props: MobileScorerProps) {
           {/* Bowler row */}
           <button
             type="button"
-            onClick={props.onOpenBowlerPicker}
+            onClick={() => openPicker("bowler")}
             className="flex w-full items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2 text-left transition duration-100 hover:bg-muted/50 active:scale-[0.99]"
           >
             <span className="inline-block size-1.5 shrink-0 rounded-full bg-indigo-500" />
@@ -304,13 +364,11 @@ export function MobileScorer(props: MobileScorerProps) {
             </div>
           </div>
 
-          {(props.awaitingNewBatter || props.awaitingNewBowler) && (
+          {(props.awaitingNewBatter || props.awaitingNewBowler) && !inlinePicker && (
             <button
               type="button"
-              onClick={
-                props.awaitingNewBatter
-                  ? props.onOpenStrikerPicker
-                  : props.onOpenBowlerPicker
+              onClick={() =>
+                openPicker(props.awaitingNewBatter ? "striker" : "bowler")
               }
               className="flex h-9 w-full items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 text-[11px] font-medium text-amber-700 transition active:scale-[0.98] duration-100 dark:text-amber-400"
               aria-live="polite"
@@ -324,8 +382,25 @@ export function MobileScorer(props: MobileScorerProps) {
               <span className="ml-auto shrink-0 text-[10px] opacity-70">Tap to select</span>
             </button>
           )}
+
+          {/* Inline player picker — fills remaining space, replaces modal */}
+          {inlinePicker && inlineEnabled && (
+            <InlinePlayerPicker
+              kind={inlinePicker}
+              query={pickerQuery}
+              onQuery={setPickerQuery}
+              players={filteredCandidates}
+              onSelect={(p) => {
+                props.onPickPlayer?.(inlinePicker, p);
+                setInlinePicker(null);
+              }}
+              onClose={() => setInlinePicker(null)}
+              dismissible={!props.awaitingNewBatter && !props.awaitingNewBowler}
+            />
+          )}
         </div>
       </div>
+
 
 
       {/* ---------------- Floating scoring dock ---------------- */}
@@ -397,7 +472,7 @@ export function MobileScorer(props: MobileScorerProps) {
                 label="Change striker"
                 onClick={() => {
                   setMoreOpen(false);
-                  props.onOpenStrikerPicker();
+                  openPicker("striker");
                 }}
               />
               <SheetRow
@@ -405,7 +480,7 @@ export function MobileScorer(props: MobileScorerProps) {
                 label="Change non-striker"
                 onClick={() => {
                   setMoreOpen(false);
-                  props.onOpenNonStrikerPicker();
+                  openPicker("nonStriker");
                 }}
               />
               <SheetRow
@@ -432,7 +507,7 @@ export function MobileScorer(props: MobileScorerProps) {
                 label="Change bowler"
                 onClick={() => {
                   setMoreOpen(false);
-                  props.onOpenBowlerPicker();
+                  openPicker("bowler");
                 }}
               />
             </Section>
@@ -495,6 +570,112 @@ export function MobileScorer(props: MobileScorerProps) {
 }
 
 /* ---------------- primitives ---------------- */
+
+function InlinePlayerPicker({
+  kind,
+  query,
+  onQuery,
+  players,
+  onSelect,
+  onClose,
+  dismissible,
+}: {
+  kind: InlinePickerKind;
+  query: string;
+  onQuery: (v: string) => void;
+  players: PlayerOption[];
+  onSelect: (p: PlayerOption) => void;
+  onClose: () => void;
+  dismissible: boolean;
+}) {
+  const heading =
+    kind === "striker"
+      ? "Select striker"
+      : kind === "nonStriker"
+        ? "Select non-striker"
+        : "Select bowler";
+  return (
+    <div className="mt-1 flex min-h-[220px] flex-col overflow-hidden rounded-xl border border-border/60 bg-card animate-in fade-in-0 slide-in-from-bottom-1 duration-150">
+      <div className="flex items-center gap-2 border-b border-border/60 px-2.5 py-1.5">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {heading}
+        </span>
+        <span className="text-[10px] text-muted-foreground/70 tabular-nums">
+          {players.length}
+        </span>
+        {dismissible && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto inline-flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted active:scale-95 transition duration-100"
+            aria-label="Close picker"
+          >
+            <X className="size-3.5" />
+          </button>
+        )}
+      </div>
+      <div className="border-b border-border/60 px-2.5 py-1.5">
+        <label className="flex items-center gap-2 rounded-lg bg-muted/60 px-2 py-1.5">
+          <Search className="size-3.5 shrink-0 text-muted-foreground" />
+          <input
+            type="text"
+            inputMode="search"
+            autoFocus
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            placeholder="Search player…"
+            className="w-full min-w-0 bg-transparent text-[13px] outline-none placeholder:text-muted-foreground"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => onQuery("")}
+              aria-label="Clear search"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </label>
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        {players.length === 0 ? (
+          <div className="grid h-full min-h-[120px] place-items-center px-4 text-center text-[12px] text-muted-foreground">
+            No matching players.
+          </div>
+        ) : (
+          <ul className="divide-y divide-border/50">
+            {players.map((p) => (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => onSelect(p)}
+                  className="flex w-full items-center gap-2.5 px-2.5 py-2 text-left transition active:scale-[0.99] active:bg-muted duration-100"
+                >
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-[11px] font-bold text-foreground/80">
+                    {initials(p.name)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[13px] font-semibold">{p.name}</div>
+                    {p.role && (
+                      <div className="truncate text-[10px] text-muted-foreground">{p.role}</div>
+                    )}
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "?";
+}
+
 
 function StatChip({ label, value }: { label: string; value: string }) {
   return (

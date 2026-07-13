@@ -222,13 +222,7 @@ function ScorerPage() {
     }
   }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
 
-  /* ---------- auto-open pickers when cricket rules require input ---------- */
-  useEffect(() => {
-    if (session.matchState.innings.awaitingNewBatter) setNewBatterOpen(true);
-  }, [session.matchState.innings.awaitingNewBatter]);
-  useEffect(() => {
-    if (session.matchState.innings.awaitingNewBowler) setNewBowlerOpen(true);
-  }, [session.matchState.innings.awaitingNewBowler]);
+  /* Batter/bowler waiting states are handled inline inside MobileScorer. */
   useEffect(() => {
     if (!session.activeInnings) return;
     if (session.events.length > 0) return;
@@ -636,6 +630,9 @@ function ScorerPage() {
                   })
               : undefined
           }
+          battingOptions={battingOptions}
+          bowlingOptions={bowlingOptions}
+          onPickPlayer={(role, p) => setPlayer(role, p)}
           awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
         />
@@ -972,12 +969,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     }
   }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
 
-  useEffect(() => {
-    if (session.matchState.innings.awaitingNewBatter) setNewBatterOpen(true);
-  }, [session.matchState.innings.awaitingNewBatter]);
-  useEffect(() => {
-    if (session.matchState.innings.awaitingNewBowler) setNewBowlerOpen(true);
-  }, [session.matchState.innings.awaitingNewBowler]);
+  /* Batter/bowler waiting states are handled inline inside MobileScorer. */
   useEffect(() => {
     if (!session.activeInnings) return;
     if (session.events.length > 0) return;
@@ -1327,6 +1319,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           showFinishInnings={activeInnings?.innings_number === 1}
           onEndMatch={finalizeMatch}
           onOpenScorecard={() => setScorecardOpen(true)}
+          battingOptions={battingOptions}
+          bowlingOptions={bowlingOptions}
+          onPickPlayer={(role, p) => setPlayer(role, p)}
           awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
         />
