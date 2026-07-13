@@ -447,6 +447,7 @@ export interface RecordRow {
 }
 
 export function deriveRecords(demo: DemoData): RecordRow[] {
+  const inningsMap = inningsTeamMap(demo);
   let bestBat: (BattingStat & { matchId: string }) | null = null;
   let bestBowl: (BowlingStat & { matchId: string }) | null = null;
   let mostSixes: LeaderRow | null = null;
