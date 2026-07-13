@@ -503,6 +503,10 @@ function ScorerPage() {
         ground={session.match?.ground_name ?? undefined}
         tournament={session.match?.match_type ?? undefined}
         connection={connection}
+        isLive={!!session.activeInnings && !session.match?.match_locked}
+        date={session.match?.scheduled_date ?? null}
+        currentBatter={striker.name ?? null}
+        currentBowler={bowlerRef.name ?? null}
       />
 
       <div className="flex items-center justify-between gap-2 border-b bg-card px-3 py-1.5 text-xs">
@@ -1068,6 +1072,20 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         ground={match.ground_name ?? undefined}
         tournament={match.match_type ?? undefined}
         connection="online"
+        isLive={isLive}
+        date={match.scheduled_date ?? null}
+        tossLine={
+          match.toss_decision
+            ? `${match.team_a?.name ?? "Team A"} chose to ${match.toss_decision}`
+            : null
+        }
+        playerOfMatch={
+          match.match_locked && match.player_of_match_athlete_id
+            ? demo.players.find((p) => p.id === match.player_of_match_athlete_id)?.student?.name ?? null
+            : null
+        }
+        currentBatter={stats.summary.highestScorer?.player.name ?? null}
+        currentBowler={stats.summary.bestBowler?.player.name ?? null}
       />
 
       <div className="flex items-center justify-between gap-2 border-b bg-card px-3 py-1.5 text-xs">

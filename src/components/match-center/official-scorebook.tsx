@@ -491,11 +491,14 @@ function InningsBlock({
 
 function SectionBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mt-4 first:mt-0">
-      <h3 className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-        <span>{title}</span>
-        <span className="h-px flex-1 bg-border" aria-hidden="true" />
-      </h3>
+    <div className="mt-5 first:mt-0">
+      <div className="mb-2 flex items-center gap-3">
+        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-border" aria-hidden="true" />
+        <h3 className="text-[11px] font-black uppercase tracking-[0.28em] text-foreground/80">
+          {title}
+        </h3>
+        <span className="h-px flex-1 bg-gradient-to-l from-transparent via-border to-border" aria-hidden="true" />
+      </div>
       <div className="rounded-xl border bg-background/40 p-3 sm:p-4">
         {children}
       </div>
@@ -509,6 +512,7 @@ type Stats = ReturnType<typeof calculateInningsStatistics>;
 
 function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: string | null }) {
   const pomKey = playerOfMatch?.trim().toLowerCase() ?? "";
+  const topKey = stats.summary.highestScorer?.player.key ?? null;
   return (
     <div className="overflow-x-auto">
       <table className="sb-sticky-thead w-full border-collapse text-[12px]">
@@ -528,13 +532,18 @@ function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: s
           {stats.batting.ordered.map((b, i) => {
             const name = b.player.name ?? "";
             const isPom = pomKey && name.trim().toLowerCase() === pomKey;
+            const isTop = topKey && b.player.key === topKey && b.runs > 0;
             return (
               <tr
                 key={b.player.key}
-                className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isPom ? "bg-amber-500/10" : ""}`}
+                className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isPom ? "bg-amber-500/10" : isTop ? "bg-emerald-500/5" : ""}`}
               >
                 <td className="py-2 pl-2 font-semibold">
-                  {isPom && <span className="mr-1 text-amber-600 dark:text-amber-400" title="Player of the Match">★</span>}
+                  {isPom ? (
+                    <span className="mr-1 text-amber-600 dark:text-amber-400" title="Player of the Match">★</span>
+                  ) : isTop ? (
+                    <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Top scorer">◆</span>
+                  ) : null}
                   {b.player.name ?? "—"}
                   {b.notOut && <span className="ml-1 text-muted-foreground">*</span>}
                 </td>
@@ -589,8 +598,7 @@ function ExtrasLine({ stats }: { stats: Stats }) {
 }
 
 function BowlingTable({ stats }: { stats: Stats }) {
-  const pomKey = ""; // reserved
-  void pomKey;
+  const bestKey = stats.summary.bestBowler?.player.key ?? null;
   return (
     <div className="overflow-x-auto">
       <table className="sb-sticky-thead w-full border-collapse text-[12px]">
@@ -608,19 +616,28 @@ function BowlingTable({ stats }: { stats: Stats }) {
           </tr>
         </thead>
         <tbody>
-          {stats.bowling.ordered.map((b, i) => (
-            <tr key={b.player.key} className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
-              <td className="py-2 pl-2 font-semibold">{b.player.name ?? "—"}</td>
-              <Td>{b.oversDisplay}</Td>
-              <Td>{b.maidens}</Td>
-              <Td>{b.runsConceded}</Td>
-              <Td className="pr-2 text-sm font-black">{b.wickets}</Td>
-              <Td>{b.economy ? b.economy.toFixed(2) : "—"}</Td>
-              <Td>{b.dotBalls}</Td>
-              <Td>{b.wides}</Td>
-              <Td>{b.noBalls}</Td>
-            </tr>
-          ))}
+          {stats.bowling.ordered.map((b, i) => {
+            const isBest = bestKey && b.player.key === bestKey && b.wickets > 0;
+            return (
+              <tr
+                key={b.player.key}
+                className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isBest ? "bg-emerald-500/5" : ""}`}
+              >
+                <td className="py-2 pl-2 font-semibold">
+                  {isBest && <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Best bowler">◆</span>}
+                  {b.player.name ?? "—"}
+                </td>
+                <Td>{b.oversDisplay}</Td>
+                <Td>{b.maidens}</Td>
+                <Td>{b.runsConceded}</Td>
+                <Td className="pr-2 text-sm font-black">{b.wickets}</Td>
+                <Td>{b.economy ? b.economy.toFixed(2) : "—"}</Td>
+                <Td>{b.dotBalls}</Td>
+                <Td>{b.wides}</Td>
+                <Td>{b.noBalls}</Td>
+              </tr>
+            );
+          })}
           {stats.bowling.ordered.length === 0 && (
             <tr>
               <td colSpan={9} className="py-4 text-center text-muted-foreground">
@@ -669,6 +686,7 @@ function PartnershipsTable({ stats }: { stats: Stats }) {
   if (rows.length === 0) {
     return <p className="text-[11px] text-muted-foreground">No partnerships yet.</p>;
   }
+  const bestRuns = rows.reduce((m, p) => Math.max(m, p.runs), 0);
   return (
     <table className="sb-sticky-thead w-full border-collapse text-[11.5px]">
       <thead>
@@ -680,19 +698,26 @@ function PartnershipsTable({ stats }: { stats: Stats }) {
         </tr>
       </thead>
       <tbody>
-        {rows.map((p, i) => (
-          <tr key={i} className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
-            <td className="py-1.5 pl-2 font-bold tabular-nums">{p.startWicket + 1}</td>
-            <td>
-              {(p.batterA?.name ?? "?")} & {(p.batterB?.name ?? "?")}
-              {p.endWicket == null && (
-                <span className="ml-1 text-[10px] font-bold uppercase text-primary">Live</span>
-              )}
-            </td>
-            <td className="text-right font-semibold tabular-nums">{p.runs}</td>
-            <td className="pr-2 text-right tabular-nums">{p.balls}</td>
-          </tr>
-        ))}
+        {rows.map((p, i) => {
+          const isBest = bestRuns > 0 && p.runs === bestRuns;
+          return (
+            <tr
+              key={i}
+              className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isBest ? "bg-emerald-500/5" : ""}`}
+            >
+              <td className="py-1.5 pl-2 font-bold tabular-nums">{p.startWicket + 1}</td>
+              <td>
+                {isBest && <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Highest partnership">◆</span>}
+                {(p.batterA?.name ?? "?")} & {(p.batterB?.name ?? "?")}
+                {p.endWicket == null && (
+                  <span className="ml-1 text-[10px] font-bold uppercase text-primary">Live</span>
+                )}
+              </td>
+              <td className="text-right font-semibold tabular-nums">{p.runs}</td>
+              <td className="pr-2 text-right tabular-nums">{p.balls}</td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

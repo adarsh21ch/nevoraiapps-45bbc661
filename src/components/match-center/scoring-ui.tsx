@@ -86,6 +86,9 @@ export interface MatchHeaderProps {
   awayTeam: string;
   homeShort?: string;
   awayShort?: string;
+  homeLogoUrl?: string | null;
+  awayLogoUrl?: string | null;
+  academyLogoUrl?: string | null;
   score: string; // e.g. "142/4"
   overs: string; // e.g. "18.3"
   crr?: string;
@@ -97,19 +100,74 @@ export interface MatchHeaderProps {
   tournament?: string;
   timer?: string;
   connection?: ConnectionStatus;
+  /** Premium meta — appear as a secondary strip when provided. */
+  tossLine?: string | null;
+  date?: string | null;
+  time?: string | null;
+  isLive?: boolean;
+  currentBatter?: string | null;
+  currentBowler?: string | null;
+  playerOfMatch?: string | null;
+}
+
+function TeamCrest({ name, logoUrl }: { name: string; logoUrl?: string | null }) {
+  const initials = (name ?? "?")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  if (logoUrl) {
+    return (
+      <img
+        src={logoUrl}
+        alt={`${name} logo`}
+        loading="lazy"
+        decoding="async"
+        className="size-6 shrink-0 rounded object-cover sm:size-7"
+      />
+    );
+  }
+  return (
+    <div className="grid size-6 shrink-0 place-items-center rounded bg-primary/10 text-[9px] font-black text-primary sm:size-7 sm:text-[10px]">
+      {initials || "?"}
+    </div>
+  );
 }
 
 export function MatchHeader(props: MatchHeaderProps) {
+  const hasSecondaryMeta =
+    !!(props.tossLine || props.date || props.time || props.currentBatter || props.currentBowler || props.playerOfMatch);
+
   return (
     <header className="border-b bg-card">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 py-2 sm:gap-6 sm:px-6 sm:py-2.5">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <LivePulse />
+          {props.academyLogoUrl ? (
+            <img
+              src={props.academyLogoUrl}
+              alt="Academy logo"
+              loading="lazy"
+              decoding="async"
+              className="hidden size-8 shrink-0 rounded object-cover sm:block"
+            />
+          ) : (
+            <LivePulse />
+          )}
           <div className="min-w-0">
             <div className="flex items-baseline gap-1.5 truncate text-[13px] sm:text-sm font-semibold">
+              <TeamCrest name={props.homeTeam} logoUrl={props.homeLogoUrl} />
               <span className="truncate">{props.homeTeam}</span>
               <span className="text-muted-foreground">v</span>
+              <TeamCrest name={props.awayTeam} logoUrl={props.awayLogoUrl} />
               <span className="truncate">{props.awayTeam}</span>
+              {props.isLive && (
+                <span className="ml-1 inline-flex items-center gap-1 rounded-full border border-rose-500/50 bg-rose-500/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">
+                  <span className="inline-block size-1.5 animate-pulse rounded-full bg-rose-500" />
+                  Live
+                </span>
+              )}
             </div>
             <div className="truncate text-[11px] sm:text-xs text-muted-foreground">
               {[props.format, props.tournament, props.ground]
@@ -119,7 +177,6 @@ export function MatchHeader(props: MatchHeaderProps) {
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Score always visible — including mobile */}
           <div className="text-right">
             <div className="hidden sm:block text-[10px] uppercase tracking-wider text-muted-foreground">
               Score
@@ -132,36 +189,22 @@ export function MatchHeader(props: MatchHeaderProps) {
             </div>
           </div>
           <div className="hidden text-right md:block">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              CRR
-            </div>
-            <div className="text-sm font-bold tabular-nums">
-              {props.crr ?? "–"}
-            </div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">CRR</div>
+            <div className="text-sm font-bold tabular-nums">{props.crr ?? "–"}</div>
           </div>
           {props.rrr && (
             <div className="hidden text-right md:block">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                RRR
-              </div>
-              <div className="text-sm font-bold tabular-nums text-primary">
-                {props.rrr}
-              </div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">RRR</div>
+              <div className="text-sm font-bold tabular-nums text-primary">{props.rrr}</div>
             </div>
           )}
           {props.target && (
             <div className="hidden text-right lg:block">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Target
-              </div>
-              <div className="text-sm font-bold tabular-nums">
-                {props.target}
-              </div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Target</div>
+              <div className="text-sm font-bold tabular-nums">{props.target}</div>
             </div>
           )}
-          <Badge variant="secondary" className="hidden sm:inline-flex">
-            {props.status}
-          </Badge>
+          <Badge variant="secondary" className="hidden sm:inline-flex">{props.status}</Badge>
           {props.timer && (
             <span className="hidden font-mono text-xs tabular-nums text-muted-foreground lg:inline">
               {props.timer}
@@ -170,6 +213,46 @@ export function MatchHeader(props: MatchHeaderProps) {
           <StatusIndicator status={props.connection ?? "online"} />
         </div>
       </div>
+
+      {hasSecondaryMeta && (
+        <div className="border-t bg-background/40 px-3 py-1.5 sm:px-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            {props.tossLine && (
+              <span>
+                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">Toss</span>
+                <span className="text-foreground">{props.tossLine}</span>
+              </span>
+            )}
+            {(props.date || props.time) && (
+              <span>
+                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">When</span>
+                <span className="text-foreground">
+                  {[props.date, props.time].filter(Boolean).join(" · ")}
+                </span>
+              </span>
+            )}
+            {props.currentBatter && (
+              <span>
+                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">Batter</span>
+                <span className="text-foreground">{props.currentBatter}</span>
+              </span>
+            )}
+            {props.currentBowler && (
+              <span>
+                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">Bowler</span>
+                <span className="text-foreground">{props.currentBowler}</span>
+              </span>
+            )}
+            {props.playerOfMatch && (
+              <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-amber-700 dark:text-amber-400">
+                <span className="mr-1">★</span>
+                <span className="font-semibold">Player of the Match:</span>{" "}
+                <span className="font-bold">{props.playerOfMatch}</span>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
