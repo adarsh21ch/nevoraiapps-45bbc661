@@ -73,6 +73,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Insights",
     items: [
+      { to: "/match-center/performance", label: "Performance", icon: LineChart },
       { to: "/match-center/recognition", label: "Recognition", icon: Award },
       { to: "/match-center/awards", label: "Awards", icon: Medal },
       { to: "/match-center/ai-insights", label: "AI Insights", icon: Sparkles },
