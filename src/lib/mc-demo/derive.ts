@@ -291,19 +291,21 @@ export function deriveTeamProfile(demo: DemoData, teamId: string): TeamProfile {
   const wktsByAthlete = new Map<string, number>();
   const squad = new Map<string, string>();
 
+  const inningsMap = inningsTeamMap(demo);
+
   for (const m of playedMatches(demo)) {
     if (m.team_a_id !== teamId && m.team_b_id !== teamId) continue;
     played += 1;
     const events = eventsFor(demo, m.id);
-    // team totals: sum "batting_team_id" runs, "bowling_team_id" wickets
+    // team totals via innings → team mapping (ball events store innings_id only)
     let ownTotal = 0;
     for (const e of events) {
-      if (e.batting_team_id === teamId) {
+      const inn = inningsMap.get(e.innings_id);
+      if (!inn) continue;
+      if (inn.batting === teamId) {
         ownTotal += (e.runs_off_bat ?? 0) + (e.extra_runs ?? 0);
       }
-      if (e.bowling_team_id === teamId) {
-        if (e.dismissal_type) totalWickets += 1;
-      }
+      if (inn.bowling === teamId && e.dismissal_type) totalWickets += 1;
     }
     totalRuns += ownTotal;
     if (ownTotal > highestTotal) highestTotal = ownTotal;
