@@ -29,6 +29,7 @@ import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.ne
 import { Route as MatchCenterTournamentsRouteImport } from './routes/match-center.tournaments'
 import { Route as MatchCenterSettingsRouteImport } from './routes/match-center.settings'
 import { Route as MatchCenterRecordsRouteImport } from './routes/match-center.records'
+import { Route as MatchCenterRecognitionRouteImport } from './routes/match-center.recognition'
 import { Route as MatchCenterMatchesRouteImport } from './routes/match-center.matches'
 import { Route as MatchCenterLiveRouteImport } from './routes/match-center.live'
 import { Route as MatchCenterLeaderboardsRouteImport } from './routes/match-center.leaderboards'
@@ -157,6 +158,11 @@ const MatchCenterSettingsRoute = MatchCenterSettingsRouteImport.update({
 const MatchCenterRecordsRoute = MatchCenterRecordsRouteImport.update({
   id: '/records',
   path: '/records',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterRecognitionRoute = MatchCenterRecognitionRouteImport.update({
+  id: '/recognition',
+  path: '/recognition',
   getParentRoute: () => MatchCenterRoute,
 } as any)
 const MatchCenterMatchesRoute = MatchCenterMatchesRouteImport.update({
@@ -333,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/match-center/leaderboards': typeof MatchCenterLeaderboardsRoute
   '/match-center/live': typeof MatchCenterLiveRoute
   '/match-center/matches': typeof MatchCenterMatchesRoute
+  '/match-center/recognition': typeof MatchCenterRecognitionRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
@@ -380,6 +387,7 @@ export interface FileRoutesByTo {
   '/match-center/leaderboards': typeof MatchCenterLeaderboardsRoute
   '/match-center/live': typeof MatchCenterLiveRoute
   '/match-center/matches': typeof MatchCenterMatchesRoute
+  '/match-center/recognition': typeof MatchCenterRecognitionRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
@@ -431,6 +439,7 @@ export interface FileRoutesById {
   '/match-center/leaderboards': typeof MatchCenterLeaderboardsRoute
   '/match-center/live': typeof MatchCenterLiveRoute
   '/match-center/matches': typeof MatchCenterMatchesRoute
+  '/match-center/recognition': typeof MatchCenterRecognitionRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
@@ -483,6 +492,7 @@ export interface FileRouteTypes {
     | '/match-center/leaderboards'
     | '/match-center/live'
     | '/match-center/matches'
+    | '/match-center/recognition'
     | '/match-center/records'
     | '/match-center/settings'
     | '/match-center/tournaments'
@@ -530,6 +540,7 @@ export interface FileRouteTypes {
     | '/match-center/leaderboards'
     | '/match-center/live'
     | '/match-center/matches'
+    | '/match-center/recognition'
     | '/match-center/records'
     | '/match-center/settings'
     | '/match-center/tournaments'
@@ -580,6 +591,7 @@ export interface FileRouteTypes {
     | '/match-center/leaderboards'
     | '/match-center/live'
     | '/match-center/matches'
+    | '/match-center/recognition'
     | '/match-center/records'
     | '/match-center/settings'
     | '/match-center/tournaments'
@@ -759,6 +771,13 @@ declare module '@tanstack/react-router' {
       path: '/records'
       fullPath: '/match-center/records'
       preLoaderRoute: typeof MatchCenterRecordsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/recognition': {
+      id: '/match-center/recognition'
+      path: '/recognition'
+      fullPath: '/match-center/recognition'
+      preLoaderRoute: typeof MatchCenterRecognitionRouteImport
       parentRoute: typeof MatchCenterRoute
     }
     '/match-center/matches': {
@@ -1027,6 +1046,7 @@ interface MatchCenterRouteChildren {
   MatchCenterLeaderboardsRoute: typeof MatchCenterLeaderboardsRoute
   MatchCenterLiveRoute: typeof MatchCenterLiveRoute
   MatchCenterMatchesRoute: typeof MatchCenterMatchesRoute
+  MatchCenterRecognitionRoute: typeof MatchCenterRecognitionRoute
   MatchCenterRecordsRoute: typeof MatchCenterRecordsRoute
   MatchCenterSettingsRoute: typeof MatchCenterSettingsRoute
   MatchCenterTournamentsRoute: typeof MatchCenterTournamentsRouteWithChildren
@@ -1045,6 +1065,7 @@ const MatchCenterRouteChildren: MatchCenterRouteChildren = {
   MatchCenterLeaderboardsRoute: MatchCenterLeaderboardsRoute,
   MatchCenterLiveRoute: MatchCenterLiveRoute,
   MatchCenterMatchesRoute: MatchCenterMatchesRoute,
+  MatchCenterRecognitionRoute: MatchCenterRecognitionRoute,
   MatchCenterRecordsRoute: MatchCenterRecordsRoute,
   MatchCenterSettingsRoute: MatchCenterSettingsRoute,
   MatchCenterTournamentsRoute: MatchCenterTournamentsRouteWithChildren,
