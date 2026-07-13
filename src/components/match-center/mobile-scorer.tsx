@@ -141,12 +141,12 @@ export function MobileScorer(props: MobileScorerProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
-      {/* ---------------- Compact top bar (h ~ 36px) ---------------- */}
-      <div className="flex h-9 items-center gap-2 border-b bg-card/90 px-2 backdrop-blur">
+      {/* ---------------- Compact sticky top bar ---------------- */}
+      <div className="sticky top-0 z-20 flex h-10 items-center gap-2 border-b bg-card/95 px-2 backdrop-blur">
         <button
           type="button"
           onClick={props.onExit}
-          className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-foreground/80 hover:bg-muted"
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-foreground/80 hover:bg-muted active:scale-95 transition duration-100"
           aria-label="Exit scorer"
         >
           <ArrowLeft className="size-4" />
@@ -169,6 +169,14 @@ export function MobileScorer(props: MobileScorerProps) {
             </div>
           )}
         </div>
+        <button
+          type="button"
+          onClick={() => setMoreOpen(true)}
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-foreground/80 hover:bg-muted active:scale-95 transition duration-100"
+          aria-label="More options"
+        >
+          <MoreHorizontal className="size-4" />
+        </button>
       </div>
 
       {/* ---------------- Compact info stack ---------------- */}
@@ -320,9 +328,9 @@ export function MobileScorer(props: MobileScorerProps) {
         className="border-t bg-card"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="mx-auto w-full max-w-xl px-2 pt-1.5 pb-1.5">
+        <div className="mx-auto w-full max-w-xl px-2 pt-2 pb-2">
           {/* Row 1 — runs 0-6 */}
-          <div className="grid grid-cols-6 gap-1">
+          <div className="grid grid-cols-6 gap-2">
             <RunKey value={0} onClick={() => !props.disabled && props.onRun(0)} />
             <RunKey value={1} onClick={() => !props.disabled && props.onRun(1)} />
             <RunKey value={2} onClick={() => !props.disabled && props.onRun(2)} />
@@ -331,7 +339,7 @@ export function MobileScorer(props: MobileScorerProps) {
             <RunKey value={6} tone="six" onClick={() => !props.disabled && props.onRun(6)} />
           </div>
           {/* Row 2 — events */}
-          <div className="mt-1 grid grid-cols-5 gap-1">
+          <div className="mt-2 grid grid-cols-5 gap-2">
             <ExtraKey label="Wide" tone="wide" onClick={() => !props.disabled && props.onExtra("Wide")} />
             <ExtraKey label="No Ball" tone="nb" onClick={() => !props.disabled && props.onExtra("No Ball")} />
             <ExtraKey label="Bye" tone="bye" onClick={() => !props.disabled && props.onExtra("Bye")} />
@@ -339,17 +347,17 @@ export function MobileScorer(props: MobileScorerProps) {
             <ExtraKey label="OUT" tone="out" onClick={() => !props.disabled && props.onOut()} />
           </div>
 
-          {/* Compact icon action bar */}
-          <div className="mt-1 grid grid-cols-3 gap-1">
-            <FooterAction
-              icon={<FileText className="size-3.5" />}
-              label="Scorecard"
-              onClick={props.onOpenScorecard}
-            />
+          {/* Compact icon action bar — Undo · Scorecard · More */}
+          <div className="mt-2 grid grid-cols-3 gap-2">
             <FooterAction
               icon={<Undo2 className="size-3.5" />}
               label="Undo"
               onClick={props.onUndo}
+            />
+            <FooterAction
+              icon={<FileText className="size-3.5" />}
+              label="Scorecard"
+              onClick={props.onOpenScorecard}
             />
             <FooterAction
               icon={<MoreHorizontal className="size-3.5" />}
@@ -559,7 +567,7 @@ function RunKey({
       type="button"
       onClick={onClick}
       className={cn(
-        "grid h-10 w-full place-items-center rounded-md border text-base font-black tabular-nums transition active:scale-[0.95] duration-100",
+        "grid h-11 w-full place-items-center rounded-lg border text-base font-black tabular-nums transition active:scale-[0.95] duration-100",
         tone === "four" &&
           "border-transparent bg-blue-500 text-white shadow-sm hover:bg-blue-600",
         tone === "six" &&
@@ -586,7 +594,7 @@ function ExtraKey({
       type="button"
       onClick={onClick}
       className={cn(
-        "grid h-10 w-full place-items-center rounded-md border px-1 text-[10px] font-black uppercase tracking-wider transition active:scale-[0.95] duration-100",
+        "grid h-11 w-full place-items-center rounded-lg border px-1 text-[11px] font-black uppercase tracking-wider transition active:scale-[0.95] duration-100",
         tone === "wide" &&
           "border-orange-500/50 bg-orange-500/10 text-orange-700 hover:bg-orange-500/20 dark:text-orange-400",
         tone === "nb" &&
@@ -620,7 +628,7 @@ function FooterAction({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex h-8 items-center justify-center gap-1 rounded-md border bg-background text-[11px] font-semibold text-foreground/80 transition hover:bg-muted disabled:opacity-40 active:scale-[0.97] duration-100"
+      className="flex h-9 items-center justify-center gap-1.5 rounded-lg border bg-background text-[11px] font-semibold text-foreground/80 transition hover:bg-muted disabled:opacity-40 active:scale-[0.97] duration-100"
     >
       {icon}
       {label}
