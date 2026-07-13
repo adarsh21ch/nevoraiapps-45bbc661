@@ -137,6 +137,15 @@ export function MobileScorer(props: MobileScorerProps) {
     setPickerOpen("bowler");
   }, [sheetPickerEnabled, props.awaitingNewBowler]);
 
+  // Auto-open the batter picker when a wicket falls and a slot is empty.
+  useEffect(() => {
+    if (!sheetPickerEnabled) return;
+    if (!props.awaitingNewBatter) return;
+    if (!missingBatterRole) return;
+    setPickerOpen(missingBatterRole);
+  }, [sheetPickerEnabled, props.awaitingNewBatter, missingBatterRole]);
+
+
   useEffect(() => {
     setPickerQuery("");
   }, [pickerOpen]);
