@@ -1,25 +1,19 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  MatchHeader,
-  PlayerPanel,
-  BowlerPanel,
-  OverTimeline,
   DismissalModal,
   PlayerPickerModal,
   RunOutModal,
   ExtraRunsModal,
   SquadDrawer,
-  CommentaryPanel,
-  type ConnectionStatus,
   type DismissalKind,
   type PlayerOption,
   type BatterStats,
   type BowlerStats,
 } from "@/components/match-center/scoring-ui";
-import { ScoringActions } from "@/components/match-center/scoring-actions";
+import { MobileScorer } from "@/components/match-center/mobile-scorer";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -32,21 +26,19 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
 import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
-import { buildCommentary, ballChipLabel } from "@/lib/mc-commentary";
-import type { DismissalType, MCBallEvent } from "@/lib/mc-ball-events";
+import { ballChipLabel } from "@/lib/mc-commentary";
+import type { DismissalType } from "@/lib/mc-ball-events";
 
 import { LiveScorecard } from "@/components/match-center/live-scorecard";
 import { FinalizationDialog, UnlockMatchDialog } from "@/components/match-center/finalization-ui";
 import { detectMatchResult, type InningsRow, type MatchResult } from "@/lib/mc-finalization";
 import {
-  Users,
-  ClipboardList,
-  ArrowLeft,
   Printer,
   Share2,
   FileText,
   Trophy,
 } from "lucide-react";
+
 
 export const Route = createFileRoute("/scorer/$matchId")({
   head: () => ({
