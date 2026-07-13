@@ -758,33 +758,37 @@ function ScorerPage() {
               Live totals derived from every ball. Nothing entered manually.
             </DialogDescription>
           </DialogHeader>
-          <LiveScorecard
-            events={session.events}
-            innings={session.activeInnings}
-            totalOvers={session.match?.overs ?? null}
-            matchInfo={{
-              homeTeam: homeName,
-              awayTeam: awayName,
-              format: session.match?.match_format ?? null,
-              ground: session.match?.ground_name ?? null,
-              tournament: session.match?.match_type ?? null,
-              date: session.match?.scheduled_date ?? null,
-              result: resultLine,
-            }}
-          />
-          <DialogFooter className="gap-2">
-            <Button variant="outline" size="sm" onClick={() => window.print()}>
-              <Printer className="mr-1.5 size-4" /> Print
-            </Button>
-            <Button variant="outline" size="sm" disabled>
-              <FileText className="mr-1.5 size-4" /> PDF (soon)
-            </Button>
-            <Button variant="outline" size="sm" disabled>
-              <Share2 className="mr-1.5 size-4" /> Share (soon)
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Scorecard sheet */}
+      <Sheet open={scorecardOpen} onOpenChange={setScorecardOpen}>
+        <SheetContent
+          side="bottom"
+          className="flex h-[90dvh] flex-col rounded-t-[28px] border-t-0 p-0 pb-[env(safe-area-inset-bottom)] shadow-2xl"
+        >
+          <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
+          <SheetHeader className="shrink-0 space-y-0.5 px-5 pt-3 pb-2 text-left">
+            <SheetTitle className="text-[22px] font-black tracking-tight">Scorecard</SheetTitle>
+            <SheetDescription className="text-[12px]">
+              Live totals derived from every ball.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 min-h-0 overflow-hidden px-4">
+            <LiveScorecard
+              events={session.events}
+              innings={session.activeInnings}
+              totalOvers={session.match?.overs ?? null}
+              matchInfo={{
+                homeTeam: homeName,
+                awayTeam: awayName,
+                format: session.match?.match_format ?? null,
+                ground: session.match?.ground_name ?? null,
+                tournament: session.match?.match_type ?? null,
+                date: session.match?.scheduled_date ?? null,
+                result: resultLine,
+              }}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Innings complete */}
       <Dialog open={inningsCompleteOpen} onOpenChange={setInningsCompleteOpen}>
