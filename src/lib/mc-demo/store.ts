@@ -188,6 +188,21 @@ export function findDemoDatasetByMatchId(
   } catch {
     /* ignore */
   }
+  if (matchId.startsWith("demo-")) {
+    const tenantId = "demo-auto";
+    const data = generateDemoData(tenantId);
+    data.__v = VERSION;
+    dataCache.set(tenantId, data);
+    try {
+      window.localStorage.setItem(FLAG_KEY(tenantId), "on");
+      writeData(tenantId, data);
+    } catch {
+      /* ignore */
+    }
+    if (data.matches?.some((m) => m.id === matchId) || data.liveMatch?.id === matchId) {
+      return { tenantId, data };
+    }
+  }
   return null;
 }
 
