@@ -164,6 +164,7 @@ export function SearchBar({
 export function MatchCenterLayout({ children }: { children?: ReactNode }) {
   const { tenant, signOut } = useDashboard();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -264,7 +265,10 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
           </div>
         )}
 
-        <main className="flex-1 min-w-0 p-4 md:p-8 max-w-7xl mx-auto w-full pb-[calc(env(safe-area-inset-bottom)+88px)] md:pb-8 no-tap-highlight">
+        <main
+          key={location.pathname}
+          className="flex-1 min-w-0 p-4 md:p-8 max-w-7xl mx-auto w-full pb-[calc(env(safe-area-inset-bottom)+88px)] md:pb-8 no-tap-highlight page-enter"
+        >
           {children ?? <Outlet />}
         </main>
       </div>

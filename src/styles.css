@@ -394,3 +394,131 @@ body {
   padding-bottom: 2px;
 }
 .chip-strip::-webkit-scrollbar { display: none; }
+
+/* ============================================================
+ * Premium polish (Prompt 15D)
+ * Presentation only — subtle sports identity + refined motion.
+ * ============================================================ */
+
+/* Page-enter animation — apply once at route mount for a soft, instant feel. */
+@keyframes ds-page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@utility page-enter {
+  animation: ds-page-enter 320ms var(--ds-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+
+/* Staggered child enter — combine with `page-enter` on parent grids. */
+@utility stagger-children {
+  & > * {
+    animation: ds-page-enter 380ms var(--ds-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+  }
+  & > *:nth-child(1) { animation-delay: 20ms; }
+  & > *:nth-child(2) { animation-delay: 60ms; }
+  & > *:nth-child(3) { animation-delay: 100ms; }
+  & > *:nth-child(4) { animation-delay: 140ms; }
+  & > *:nth-child(5) { animation-delay: 180ms; }
+  & > *:nth-child(6) { animation-delay: 220ms; }
+  & > *:nth-child(n+7) { animation-delay: 260ms; }
+}
+
+/* Respect user's motion preferences — kill all decorative motion. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* -------- Subtle sports identity textures (opt-in) -------- */
+
+/* Cricket pitch line background — six faint horizontal creases + soft turf tint.
+   Use on hero cards, empty states, celebration surfaces. */
+@utility pitch-lines {
+  background-image:
+    linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(50% - 1px),
+      color-mix(in oklch, var(--foreground) 6%, transparent) 50%,
+      transparent calc(50% + 1px)
+    ),
+    radial-gradient(
+      ellipse at 50% 100%,
+      color-mix(in oklch, var(--accent-success) 8%, transparent),
+      transparent 70%
+    );
+  background-size: 100% 22px, 100% 100%;
+  background-repeat: repeat-y, no-repeat;
+}
+
+/* Ball-stitching accent border — a dashed line reminiscent of cricket-ball seams. */
+@utility stitched-border {
+  border: 1.5px dashed color-mix(in oklch, var(--accent-wicket) 42%, transparent);
+  border-radius: var(--radius-2xl);
+}
+
+/* Trophy glow — soft radial spotlight for recognition surfaces. */
+@utility trophy-glow {
+  position: relative;
+  isolation: isolate;
+}
+.trophy-glow::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% 40% -10%;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in oklch, var(--accent-award) 30%, transparent),
+    transparent 60%
+  );
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Live status glow — a soft red halo for live match cards. */
+@utility live-halo {
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--accent-wicket) 32%, transparent),
+    0 8px 32px -8px color-mix(in oklch, var(--accent-wicket) 25%, transparent);
+}
+
+/* Premium card hover — refined lift + tinted border on hover. */
+@utility card-premium {
+  transition:
+    transform 220ms var(--ds-ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+    box-shadow 220ms var(--ds-ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+    border-color 220ms var(--ds-ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.card-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elev);
+  border-color: color-mix(in oklch, var(--foreground) 20%, transparent);
+}
+
+/* Numeric count-up placeholder — tabular numerals + tighter tracking for stats. */
+@utility num-display {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+
+/* Refined focus ring — offset + tenant-tinted. */
+:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px color-mix(in oklch, var(--tenant-brand, var(--brand, #E8873C)) 65%, transparent);
+  border-radius: 6px;
+}
+
+/* Elevated shadow token for premium modals & sheets. */
+:root {
+  --shadow-premium:
+    0 20px 60px -20px oklch(0 0 0 / 20%),
+    0 8px 20px -8px oklch(0 0 0 / 12%),
+    0 1px 0 0 color-mix(in oklch, var(--foreground) 5%, transparent) inset;
+}

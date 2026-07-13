@@ -232,6 +232,7 @@ export function EmptyState({
   onAction,
   secondaryHelp,
   tone = "neutral",
+  illustration = "pitch",
 }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
@@ -241,11 +242,43 @@ export function EmptyState({
   onAction?: () => void;
   secondaryHelp?: string;
   tone?: AccentTone;
+  /** Ambient sports-themed backdrop. Set to "none" to disable. */
+  illustration?: "pitch" | "trophy" | "none";
 }) {
+  const isTrophy = illustration === "trophy";
   return (
-    <div className="rounded-2xl border border-dashed border-border bg-card/30 py-14 px-6 text-center">
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-2xl border border-dashed border-border bg-card/40 py-14 px-6 text-center",
+        illustration === "pitch" && "pitch-lines",
+        isTrophy && "trophy-glow",
+      )}
+    >
+      {/* Subtle cricket-ball seam arc, decorative */}
+      {illustration !== "none" && (
+        <svg
+          aria-hidden
+          viewBox="0 0 400 120"
+          className="pointer-events-none absolute inset-x-0 top-0 h-24 w-full opacity-[0.06]"
+        >
+          <path
+            d="M -20 90 Q 200 -20 420 90"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeDasharray="4 6"
+          />
+          <path
+            d="M -20 100 Q 200 -8 420 100"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1"
+            strokeDasharray="2 8"
+          />
+        </svg>
+      )}
       <div
-        className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl"
+        className="relative mx-auto mb-4 grid size-16 place-items-center rounded-2xl shadow-[var(--shadow-elev)]"
         style={
           tone === "neutral"
             ? {
@@ -253,28 +286,32 @@ export function EmptyState({
                 color: "#fff",
               }
             : {
-                backgroundColor: `color-mix(in oklch, ${toneVar[tone]} 16%, transparent)`,
+                backgroundColor: `color-mix(in oklch, ${toneVar[tone]} 18%, transparent)`,
                 color: toneVar[tone],
               }
         }
       >
-        <Icon className="size-6" />
+        <Icon className="size-7" />
       </div>
-      <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-      <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">{description}</p>
+      <h3 className="relative text-lg font-semibold tracking-tight">{title}</h3>
+      <p className="relative mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
+        {description}
+      </p>
       {actionLabel && (actionTo || onAction) && (
-        <div className="mt-6">
+        <div className="relative mt-6">
           {actionTo ? (
-            <Button asChild>
+            <Button asChild size="lg" className="rounded-full px-6">
               <Link to={actionTo}>{actionLabel}</Link>
             </Button>
           ) : (
-            <Button onClick={onAction}>{actionLabel}</Button>
+            <Button size="lg" className="rounded-full px-6" onClick={onAction}>
+              {actionLabel}
+            </Button>
           )}
         </div>
       )}
       {secondaryHelp && (
-        <p className="mt-3 text-xs text-muted-foreground/80">{secondaryHelp}</p>
+        <p className="relative mt-3 text-xs text-muted-foreground/80">{secondaryHelp}</p>
       )}
     </div>
   );
@@ -288,10 +325,14 @@ export function LoadingSkeleton({
   className?: string;
 }) {
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-3", className)} role="status" aria-label="Loading">
       {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} className="h-16 w-full rounded-xl" />
+        <div
+          key={i}
+          className="h-16 w-full rounded-xl ds-shimmer border border-border/40"
+        />
       ))}
+      <span className="sr-only">Loading…</span>
     </div>
   );
 }
