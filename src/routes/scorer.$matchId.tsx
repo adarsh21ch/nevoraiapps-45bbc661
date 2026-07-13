@@ -520,6 +520,13 @@ function ScorerPage() {
           >
             <FileText className="size-3.5" /> Scorecard
           </Button>
+          {!isDemo && (
+            <Button asChild variant="ghost" size="sm" className="h-8 gap-1.5">
+              <Link to="/match-center/scorebook/$matchId" params={{ matchId }} target="_blank">
+                <ClipboardList className="size-3.5" /> Scorebook
+              </Link>
+            </Button>
+          )}
         </div>
         <div className="flex items-center gap-1">
           <Button

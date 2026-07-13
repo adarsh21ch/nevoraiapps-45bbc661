@@ -59,6 +59,7 @@ import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-ad
 import { Route as MatchCenterTournamentsTournamentIdRouteImport } from './routes/match-center.tournaments.$tournamentId'
 import { Route as MatchCenterTeamsNewRouteImport } from './routes/match-center.teams.new'
 import { Route as MatchCenterTeamsTeamIdRouteImport } from './routes/match-center.teams.$teamId'
+import { Route as MatchCenterScorebookMatchIdRouteImport } from './routes/match-center.scorebook.$matchId'
 import { Route as MatchCenterPlayersAthleteIdRouteImport } from './routes/match-center.players.$athleteId'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
@@ -317,6 +318,12 @@ const MatchCenterTeamsTeamIdRoute = MatchCenterTeamsTeamIdRouteImport.update({
   path: '/teams/$teamId',
   getParentRoute: () => MatchCenterRoute,
 } as any)
+const MatchCenterScorebookMatchIdRoute =
+  MatchCenterScorebookMatchIdRouteImport.update({
+    id: '/scorebook/$matchId',
+    path: '/scorebook/$matchId',
+    getParentRoute: () => MatchCenterRoute,
+  } as any)
 const MatchCenterPlayersAthleteIdRoute =
   MatchCenterPlayersAthleteIdRouteImport.update({
     id: '/players/$athleteId',
@@ -387,6 +394,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/players/$athleteId': typeof MatchCenterPlayersAthleteIdRoute
+  '/match-center/scorebook/$matchId': typeof MatchCenterScorebookMatchIdRoute
   '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
   '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
   '/match-center/tournaments/$tournamentId': typeof MatchCenterTournamentsTournamentIdRoute
@@ -440,6 +448,7 @@ export interface FileRoutesByTo {
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/players/$athleteId': typeof MatchCenterPlayersAthleteIdRoute
+  '/match-center/scorebook/$matchId': typeof MatchCenterScorebookMatchIdRoute
   '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
   '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
   '/match-center/tournaments/$tournamentId': typeof MatchCenterTournamentsTournamentIdRoute
@@ -497,6 +506,7 @@ export interface FileRoutesById {
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/players/$athleteId': typeof MatchCenterPlayersAthleteIdRoute
+  '/match-center/scorebook/$matchId': typeof MatchCenterScorebookMatchIdRoute
   '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
   '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
   '/match-center/tournaments/$tournamentId': typeof MatchCenterTournamentsTournamentIdRoute
@@ -555,6 +565,7 @@ export interface FileRouteTypes {
     | '/platform-admin/'
     | '/dashboard/students/$id'
     | '/match-center/players/$athleteId'
+    | '/match-center/scorebook/$matchId'
     | '/match-center/teams/$teamId'
     | '/match-center/teams/new'
     | '/match-center/tournaments/$tournamentId'
@@ -608,6 +619,7 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/dashboard/students/$id'
     | '/match-center/players/$athleteId'
+    | '/match-center/scorebook/$matchId'
     | '/match-center/teams/$teamId'
     | '/match-center/teams/new'
     | '/match-center/tournaments/$tournamentId'
@@ -664,6 +676,7 @@ export interface FileRouteTypes {
     | '/platform-admin/'
     | '/dashboard/students/$id'
     | '/match-center/players/$athleteId'
+    | '/match-center/scorebook/$matchId'
     | '/match-center/teams/$teamId'
     | '/match-center/teams/new'
     | '/match-center/tournaments/$tournamentId'
@@ -1046,6 +1059,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchCenterTeamsTeamIdRouteImport
       parentRoute: typeof MatchCenterRoute
     }
+    '/match-center/scorebook/$matchId': {
+      id: '/match-center/scorebook/$matchId'
+      path: '/scorebook/$matchId'
+      fullPath: '/match-center/scorebook/$matchId'
+      preLoaderRoute: typeof MatchCenterScorebookMatchIdRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
     '/match-center/players/$athleteId': {
       id: '/match-center/players/$athleteId'
       path: '/players/$athleteId'
@@ -1152,6 +1172,7 @@ interface MatchCenterRouteChildren {
   MatchCenterWebsiteRoute: typeof MatchCenterWebsiteRoute
   MatchCenterIndexRoute: typeof MatchCenterIndexRoute
   MatchCenterPlayersAthleteIdRoute: typeof MatchCenterPlayersAthleteIdRoute
+  MatchCenterScorebookMatchIdRoute: typeof MatchCenterScorebookMatchIdRoute
   MatchCenterTeamsTeamIdRoute: typeof MatchCenterTeamsTeamIdRoute
   MatchCenterTeamsNewRoute: typeof MatchCenterTeamsNewRoute
   MatchCenterPlayersIndexRoute: typeof MatchCenterPlayersIndexRoute
@@ -1173,6 +1194,7 @@ const MatchCenterRouteChildren: MatchCenterRouteChildren = {
   MatchCenterWebsiteRoute: MatchCenterWebsiteRoute,
   MatchCenterIndexRoute: MatchCenterIndexRoute,
   MatchCenterPlayersAthleteIdRoute: MatchCenterPlayersAthleteIdRoute,
+  MatchCenterScorebookMatchIdRoute: MatchCenterScorebookMatchIdRoute,
   MatchCenterTeamsTeamIdRoute: MatchCenterTeamsTeamIdRoute,
   MatchCenterTeamsNewRoute: MatchCenterTeamsNewRoute,
   MatchCenterPlayersIndexRoute: MatchCenterPlayersIndexRoute,

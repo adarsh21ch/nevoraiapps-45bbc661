@@ -522,3 +522,35 @@ body {
     0 8px 20px -8px oklch(0 0 0 / 12%),
     0 1px 0 0 color-mix(in oklch, var(--foreground) 5%, transparent) inset;
 }
+
+/* ================================================================
+ * Official Scorebook — print + fullscreen presentation utilities
+ * ================================================================ */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  html, body { background: #fff !important; }
+  .no-print { display: none !important; }
+  .scorebook-print {
+    color: #000 !important;
+    background: #fff !important;
+    font-size: 11px;
+  }
+  .scorebook-print table { page-break-inside: avoid; }
+  .scorebook-print section { page-break-inside: avoid; }
+  .scorebook-print h1, .scorebook-print h2, .scorebook-print h3 { color: #000 !important; }
+  .scorebook-print .sb-card {
+    border: 1px solid #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+  .scorebook-print .sb-th {
+    background: #f2f2f2 !important;
+    color: #000 !important;
+  }
+}
+
+@utility scorebook-paper {
+  background:
+    linear-gradient(180deg, color-mix(in oklch, var(--background) 96%, transparent), var(--background));
+  background-attachment: local;
+}
