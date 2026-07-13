@@ -37,10 +37,13 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export function LiveScorecard({ events, innings, totalOvers, matchInfo }: Props) {
   const [tab, setTab] = useState<TabKey>("summary");
+  const [viewMode, setViewMode] = useState<"compact" | "rich">("compact");
   const stats = calculateInningsStatistics(events, {
     totalOvers: totalOvers ?? null,
     target: innings?.target ?? null,
   });
+
+  const showViewToggle = tab === "batting" || tab === "bowling";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -85,7 +88,7 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo }: Props)
       </div>
 
       {/* Segment control */}
-      <div className="sticky top-0 z-10 -mx-1 bg-background/95 px-1 pb-2 backdrop-blur">
+      <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 pb-2 backdrop-blur">
         <div className="flex gap-1 overflow-x-auto rounded-full bg-muted p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TABS.map((t) => (
             <button
@@ -102,19 +105,124 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo }: Props)
             </button>
           ))}
         </div>
+        {showViewToggle && (
+          <div className="flex items-center justify-end">
+            <div className="inline-flex rounded-full border border-border/60 bg-card p-0.5 text-[10px] font-bold uppercase tracking-widest">
+              {(["compact", "rich"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setViewMode(m)}
+                  className={cn(
+                    "rounded-full px-2.5 py-1 transition-colors",
+                    viewMode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Scroll content */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 pt-3 pb-4 animate-fade-in">
         {tab === "summary" && <SummaryPane stats={stats} matchInfo={matchInfo} />}
-        {tab === "batting" && <BattingPane batters={stats.batting.ordered} />}
-        {tab === "bowling" && <BowlingPane bowlers={stats.bowling.ordered} />}
+        {tab === "batting" && (viewMode === "compact" ? <BattingTable batters={stats.batting.ordered} /> : <BattingPane batters={stats.batting.ordered} />)}
+        {tab === "bowling" && (viewMode === "compact" ? <BowlingTable bowlers={stats.bowling.ordered} /> : <BowlingPane bowlers={stats.bowling.ordered} />)}
         {tab === "overs" && <OversPane overs={stats.team.overs_summary} />}
         {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} />}
       </div>
     </div>
   );
 }
+
+/* ----------------------------- Compact tables ---------------------------- */
+
+function BattingTable({ batters }: { batters: BattingStat[] }) {
+  if (batters.length === 0) return <EmptyState text="No balls yet." />;
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
+      <table className="w-full text-[12px] tabular-nums">
+        <thead className="sticky top-0 z-[1] bg-muted/70 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <tr>
+            <th className="px-2.5 py-2 text-left">Batter</th>
+            <th className="px-1.5 py-2 text-right">R</th>
+            <th className="px-1.5 py-2 text-right">B</th>
+            <th className="px-1.5 py-2 text-right">4s</th>
+            <th className="px-1.5 py-2 text-right">6s</th>
+            <th className="px-2.5 py-2 text-right">SR</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border/60">
+          {batters.map((b) => {
+            const dismissal = b.notOut
+              ? "not out"
+              : `${b.dismissalType ?? "out"}${b.dismissedBy?.name ? ` b ${b.dismissedBy.name}` : ""}`;
+            return (
+              <tr key={b.player.key} className="align-top">
+                <td className="min-w-0 px-2.5 py-2 text-left">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span className="truncate font-semibold">{b.player.name ?? "—"}</span>
+                    {b.notOut && (
+                      <span className="shrink-0 rounded-full bg-primary/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary">
+                        *
+                      </span>
+                    )}
+                  </div>
+                  <div className="truncate text-[10px] text-muted-foreground">{dismissal}</div>
+                </td>
+                <td className="px-1.5 py-2 text-right font-black">{b.runs}</td>
+                <td className="px-1.5 py-2 text-right">{b.balls}</td>
+                <td className="px-1.5 py-2 text-right">{b.fours}</td>
+                <td className="px-1.5 py-2 text-right">{b.sixes}</td>
+                <td className="px-2.5 py-2 text-right">{b.strikeRate}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function BowlingTable({ bowlers }: { bowlers: BowlingStat[] }) {
+  if (bowlers.length === 0) return <EmptyState text="No balls yet." />;
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
+      <table className="w-full text-[12px] tabular-nums">
+        <thead className="sticky top-0 z-[1] bg-muted/70 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <tr>
+            <th className="px-2.5 py-2 text-left">Bowler</th>
+            <th className="px-1.5 py-2 text-right">O</th>
+            <th className="px-1.5 py-2 text-right">M</th>
+            <th className="px-1.5 py-2 text-right">R</th>
+            <th className="px-1.5 py-2 text-right">W</th>
+            <th className="px-2.5 py-2 text-right">Econ</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border/60">
+          {bowlers.map((b) => (
+            <tr key={b.player.key}>
+              <td className="min-w-0 px-2.5 py-2 text-left">
+                <div className="truncate font-semibold">{b.player.name ?? "—"}</div>
+                <div className="truncate text-[10px] text-muted-foreground">
+                  {b.dotBalls} dots · {b.wides}wd · {b.noBalls}nb
+                </div>
+              </td>
+              <td className="px-1.5 py-2 text-right">{b.oversDisplay}</td>
+              <td className="px-1.5 py-2 text-right">{b.maidens}</td>
+              <td className="px-1.5 py-2 text-right">{b.runsConceded}</td>
+              <td className="px-1.5 py-2 text-right font-black">{b.wickets}</td>
+              <td className="px-2.5 py-2 text-right">{b.economy}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 
 /* --------------------------------- Panes --------------------------------- */
 
