@@ -481,7 +481,7 @@ function ScorerPage() {
 
   /* ---------- render ---------- */
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       <MatchHeader
         homeTeam={homeName}
         awayTeam={awayName}
