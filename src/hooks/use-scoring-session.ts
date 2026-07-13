@@ -249,6 +249,18 @@ export function useScoringSession(
 
   const currentOver = useMemo(() => buildCurrentOver(events), [events]);
 
+  /* ---------- reconstructed match state (pure replay) ---------- */
+
+  const matchState = useMemo<MatchState>(
+    () =>
+      replayInnings(events, {
+        totalOvers: match?.overs_per_innings ?? null,
+        maxWickets: 10,
+        target: activeInnings?.target ?? null,
+      }),
+    [events, match?.overs_per_innings, activeInnings?.target],
+  );
+
   /* ---------- mutations ---------- */
 
   const startInnings = useCallback(
