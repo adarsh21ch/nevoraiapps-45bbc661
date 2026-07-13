@@ -240,6 +240,297 @@ export type Database = {
           },
         ]
       }
+      mc_athlete_achievements: {
+        Row: {
+          athlete_profile_id: string
+          created_at: string
+          description: string | null
+          event_date: string | null
+          id: string
+          kind: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          athlete_profile_id: string
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          id?: string
+          kind: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          athlete_profile_id?: string
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          id?: string
+          kind?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_athlete_achievements_athlete_profile_id_fkey"
+            columns: ["athlete_profile_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_athlete_achievements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_athlete_awards: {
+        Row: {
+          athlete_profile_id: string
+          created_at: string
+          description: string | null
+          event_date: string | null
+          id: string
+          kind: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          athlete_profile_id: string
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          id?: string
+          kind: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          athlete_profile_id?: string
+          created_at?: string
+          description?: string | null
+          event_date?: string | null
+          id?: string
+          kind?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_athlete_awards_athlete_profile_id_fkey"
+            columns: ["athlete_profile_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_athlete_awards_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_athlete_profiles: {
+        Row: {
+          created_at: string
+          current_status: string
+          dominant_hand: string | null
+          emergency_notes: string | null
+          fitness_status: string | null
+          height_cm: number | null
+          id: string
+          joining_sport_date: string | null
+          medical_notes: string | null
+          primary_sport: string
+          secondary_sports: Json
+          student_id: string
+          tenant_id: string
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          current_status?: string
+          dominant_hand?: string | null
+          emergency_notes?: string | null
+          fitness_status?: string | null
+          height_cm?: number | null
+          id?: string
+          joining_sport_date?: string | null
+          medical_notes?: string | null
+          primary_sport?: string
+          secondary_sports?: Json
+          student_id: string
+          tenant_id: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          current_status?: string
+          dominant_hand?: string | null
+          emergency_notes?: string | null
+          fitness_status?: string | null
+          height_cm?: number | null
+          id?: string
+          joining_sport_date?: string | null
+          medical_notes?: string | null
+          primary_sport?: string
+          secondary_sports?: Json
+          student_id?: string
+          tenant_id?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_athlete_profiles_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_athlete_profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_athlete_timeline: {
+        Row: {
+          athlete_profile_id: string
+          created_at: string
+          description: string | null
+          event_date: string
+          id: string
+          image_url: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          athlete_profile_id: string
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          athlete_profile_id?: string
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_athlete_timeline_athlete_profile_id_fkey"
+            columns: ["athlete_profile_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_athlete_timeline_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_cricket_profiles: {
+        Row: {
+          athlete_profile_id: string
+          batting_style: string | null
+          bowling_style: string | null
+          bowling_type: string | null
+          career_status: string
+          created_at: string
+          dominant_hand: string | null
+          favorite_delivery: string | null
+          favorite_shot: string | null
+          id: string
+          jersey_number: number | null
+          playing_role: string | null
+          preferred_position: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          athlete_profile_id: string
+          batting_style?: string | null
+          bowling_style?: string | null
+          bowling_type?: string | null
+          career_status?: string
+          created_at?: string
+          dominant_hand?: string | null
+          favorite_delivery?: string | null
+          favorite_shot?: string | null
+          id?: string
+          jersey_number?: number | null
+          playing_role?: string | null
+          preferred_position?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          athlete_profile_id?: string
+          batting_style?: string | null
+          bowling_style?: string | null
+          bowling_type?: string | null
+          career_status?: string
+          created_at?: string
+          dominant_hand?: string | null
+          favorite_delivery?: string | null
+          favorite_shot?: string | null
+          id?: string
+          jersey_number?: number | null
+          playing_role?: string | null
+          preferred_position?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_cricket_profiles_athlete_profile_id_fkey"
+            columns: ["athlete_profile_id"]
+            isOneToOne: true
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_cricket_profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_team_players: {
         Row: {
           added_at: string
