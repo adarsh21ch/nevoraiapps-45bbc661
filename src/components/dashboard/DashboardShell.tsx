@@ -21,8 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
-import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
-import { LanguageToggle } from "@/components/dashboard/LanguageToggle";
+import { Bell } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
@@ -133,15 +132,20 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <div className="ml-auto flex items-center gap-2">
             <a
               href={tenantSiteUrl(tenant)}
-
               target="_blank"
               rel="noreferrer"
               className="hidden sm:inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mr-1"
             >
               {t("View site")} <ExternalLink className="size-3" />
             </a>
-            <LanguageToggle />
-            <ThemeToggle />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              aria-label="Notifications"
+            >
+              <Bell className="size-4" />
+            </Button>
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>

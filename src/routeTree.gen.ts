@@ -44,6 +44,7 @@ import { Route as MatchCenterAwardsRouteImport } from './routes/match-center.awa
 import { Route as MatchCenterAiInsightsRouteImport } from './routes/match-center.ai-insights'
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
 import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
 import { Route as DashboardRemindersRouteImport } from './routes/dashboard.reminders'
 import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
@@ -245,6 +246,11 @@ const DashboardSiteRoute = DashboardSiteRouteImport.update({
   path: '/site',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardReportsRoute = DashboardReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -397,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
   '/dashboard/reports': typeof DashboardReportsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
@@ -455,6 +462,7 @@ export interface FileRoutesByTo {
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
   '/dashboard/reports': typeof DashboardReportsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
@@ -517,6 +525,7 @@ export interface FileRoutesById {
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
   '/dashboard/reports': typeof DashboardReportsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
@@ -580,6 +589,7 @@ export interface FileRouteTypes {
     | '/dashboard/registrations'
     | '/dashboard/reminders'
     | '/dashboard/reports'
+    | '/dashboard/settings'
     | '/dashboard/site'
     | '/dashboard/students'
     | '/match-center/ai-insights'
@@ -638,6 +648,7 @@ export interface FileRouteTypes {
     | '/dashboard/registrations'
     | '/dashboard/reminders'
     | '/dashboard/reports'
+    | '/dashboard/settings'
     | '/dashboard/site'
     | '/dashboard/students'
     | '/match-center/ai-insights'
@@ -699,6 +710,7 @@ export interface FileRouteTypes {
     | '/dashboard/registrations'
     | '/dashboard/reminders'
     | '/dashboard/reports'
+    | '/dashboard/settings'
     | '/dashboard/site'
     | '/dashboard/students'
     | '/match-center/ai-insights'
@@ -1005,6 +1017,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSiteRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/reports': {
       id: '/dashboard/reports'
       path: '/reports'
@@ -1197,6 +1216,7 @@ interface DashboardRouteChildren {
   DashboardRegistrationsRoute: typeof DashboardRegistrationsRoute
   DashboardRemindersRoute: typeof DashboardRemindersRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSiteRoute: typeof DashboardSiteRoute
   DashboardStudentsRoute: typeof DashboardStudentsRouteWithChildren
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -1212,6 +1232,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardRegistrationsRoute: DashboardRegistrationsRoute,
   DashboardRemindersRoute: DashboardRemindersRoute,
   DashboardReportsRoute: DashboardReportsRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSiteRoute: DashboardSiteRoute,
   DashboardStudentsRoute: DashboardStudentsRouteWithChildren,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -1346,13 +1367,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

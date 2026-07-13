@@ -28,7 +28,7 @@ import {
   LineChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
+
 import { DemoBadge } from "@/components/match-center/demo-badge";
 import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
 
@@ -248,7 +248,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
             >
               <Bell className="size-4" />
             </Button>
-            <ThemeToggle />
+            
             <Button
               variant="ghost"
               size="sm"
