@@ -103,14 +103,24 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     [playingXI, activeInnings],
   );
 
+  const matchState = useMemo<MatchState>(
+    () =>
+      replayInnings(events, {
+        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
+        maxWickets: 10,
+        target: activeInnings?.target ?? null,
+      }),
+    [events, match, activeInnings?.target],
+  );
+
   // Reconstruct current striker/non-striker/bowler from the event tail so
   // the panels stay in sync after page reload.
   const lastEvent = events[events.length - 1];
-  const inferredStriker = lastEvent
-    ? { athleteId: lastEvent.striker_athlete_id, name: lastEvent.striker_name, onStrike: true }
+  const inferredStriker = matchState.innings.striker.athleteId || matchState.innings.striker.name
+    ? { ...matchState.innings.striker, onStrike: true }
     : { athleteId: null, name: null, onStrike: true };
-  const inferredNonStriker = lastEvent
-    ? { athleteId: lastEvent.non_striker_athlete_id, name: lastEvent.non_striker_name, onStrike: false }
+  const inferredNonStriker = matchState.innings.nonStriker.athleteId || matchState.innings.nonStriker.name
+    ? { ...matchState.innings.nonStriker, onStrike: false }
     : { athleteId: null, name: null, onStrike: false };
   const inferredBowler = lastEvent
     ? { athleteId: lastEvent.bowler_athlete_id, name: lastEvent.bowler_name }
@@ -196,15 +206,19 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     return pair;
   };
 
-  const matchStateForSelectedBatters = (state: MatchState): MatchState => {
+  const matchStateForSelectedBatters = (
+    state: MatchState,
+    selectedStriker: CurrentBatterState = striker,
+    selectedNonStriker: CurrentBatterState = nonStriker,
+  ): MatchState => {
     if (!state.innings.awaitingNewBatter) return state;
-    const strikerReady = Boolean(striker.athleteId || striker.name) &&
-      !(striker.athleteId && state.innings.dismissedIds.has(striker.athleteId)) &&
-      !(striker.name && state.innings.dismissedNames.has(striker.name));
-    const nonStrikerReady = Boolean(nonStriker.athleteId || nonStriker.name) &&
-      !(nonStriker.athleteId && state.innings.dismissedIds.has(nonStriker.athleteId)) &&
-      !(nonStriker.name && state.innings.dismissedNames.has(nonStriker.name));
-    if (!strikerReady || !nonStrikerReady || samePlayerRef(striker, nonStriker)) return state;
+    const strikerReady = Boolean(selectedStriker.athleteId || selectedStriker.name) &&
+      !(selectedStriker.athleteId && state.innings.dismissedIds.has(selectedStriker.athleteId)) &&
+      !(selectedStriker.name && state.innings.dismissedNames.has(selectedStriker.name));
+    const nonStrikerReady = Boolean(selectedNonStriker.athleteId || selectedNonStriker.name) &&
+      !(selectedNonStriker.athleteId && state.innings.dismissedIds.has(selectedNonStriker.athleteId)) &&
+      !(selectedNonStriker.name && state.innings.dismissedNames.has(selectedNonStriker.name));
+    if (!strikerReady || !nonStrikerReady || samePlayerRef(selectedStriker, selectedNonStriker)) return state;
     return {
       ...state,
       innings: {
@@ -221,16 +235,6 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     const legal = overEvents.filter((e) => e.is_legal_delivery).length;
     return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
   }, [events]);
-
-  const matchState = useMemo<MatchState>(
-    () =>
-      replayInnings(events, {
-        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
-        maxWickets: 10,
-        target: activeInnings?.target ?? null,
-      }),
-    [events, match, activeInnings?.target],
-  );
 
   const startInnings = useCallback<ScoringSession["startInnings"]>(
     async (input: Omit<CreateInningsInput, "tenantId" | "matchId">) => {
