@@ -278,10 +278,10 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
 function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
   const location = useLocation();
   return (
-    <nav className="flex-1 p-2 space-y-4 overflow-y-auto h-full">
+    <nav className="flex-1 px-2 py-3 space-y-5 overflow-y-auto h-full">
       {NAV_GROUPS.map((group) => (
         <div key={group.label} className="space-y-0.5">
-          <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+          <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/60">
             {group.label}
           </div>
           {group.items.map((n) => {
@@ -294,20 +294,35 @@ function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
                 to={n.to}
                 onClick={onNavigate}
                 className={cn(
-                  "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                  "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150",
                   active
-                    ? "font-semibold text-foreground bg-accent/50"
+                    ? "font-semibold text-foreground"
                     : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
                 )}
+                style={
+                  active
+                    ? {
+                        backgroundColor:
+                          "color-mix(in oklch, var(--tenant-brand, var(--brand, #E8873C)) 12%, transparent)",
+                      }
+                    : undefined
+                }
               >
                 {active && (
                   <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[2px] rounded-r-full"
-                    style={{ backgroundColor: "var(--brand)" }}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full"
+                    style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
                   />
                 )}
-                <Icon className="size-4" />
-                <span>{n.label}</span>
+                <Icon
+                  className={cn("size-4 transition-colors", active && "text-foreground")}
+                  style={
+                    active
+                      ? { color: "var(--tenant-brand, var(--brand, #E8873C))" }
+                      : undefined
+                  }
+                />
+                <span className="truncate">{n.label}</span>
               </Link>
             );
           })}
