@@ -60,26 +60,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
   const { t } = useT();
 
-  // Combined "new to action" count — registrations + leads (leads folded in).
-  const newRegCount = useQuery({
-    queryKey: ["d", "regs-plus-leads-count", tenant.id],
-    queryFn: async () => {
-      const [regs, leads] = await Promise.all([
-        supabase
-          .from("registrations")
-          .select("id", { count: "exact", head: true })
-          .eq("tenant_id", tenant.id)
-          .eq("status", "new"),
-        supabase
-          .from("leads" as never)
-          .select("id", { count: "exact", head: true })
-          .eq("tenant_id", tenant.id)
-          .eq("status", "new"),
-      ]);
-      return (regs.count ?? 0) + (leads.count ?? 0);
-    },
-    refetchInterval: 30_000,
-  });
+  // Single source of truth for the "new registration" badge — status='new'.
+  const newRegCount = useNewRegistrationsCount(tenant.id);
 
   // Live match indicator for the Match Center tab.
   const liveMatchCount = useQuery({
@@ -104,11 +86,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         const label = t(n.label);
         let badge: number | undefined;
         let live = false;
-        if (n.to === "/dashboard/students" && newRegCount.data) badge = newRegCount.data;
-        if (n.to === "/dashboard/registrations" && newRegCount.data) badge = newRegCount.data;
+        if (n.to === "/dashboard/students" && newRegCount) badge = newRegCount;
+        if (n.to === "/dashboard/registrations" && newRegCount) badge = newRegCount;
         if (n.to === "/match-center" && (liveMatchCount.data ?? 0) > 0) live = true;
         return { ...n, label, badge, live };
       });
+
 
   const primary = withBadges(primaryNav);
   const secondary = withBadges(secondaryNav);
