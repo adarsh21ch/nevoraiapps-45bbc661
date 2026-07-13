@@ -200,9 +200,7 @@ export async function setCaptaincy(
   field: "captain_student_id" | "vice_captain_student_id" | "keeper_student_id",
   studentId: string | null,
 ) {
-  const { error } = await supabase
-    .from("mc_teams")
-    .update({ [field]: studentId })
-    .eq("id", teamId);
+  const patch: MCTeamUpdate = { [field]: studentId } as MCTeamUpdate;
+  const { error } = await supabase.from("mc_teams").update(patch).eq("id", teamId);
   if (error) throw error;
 }
