@@ -92,6 +92,25 @@ function StudentsPage() {
     refetchInterval: 30_000,
   });
 
+  // Dismissible pending-registrations banner: only show when the count exceeds
+  // what the user has already acknowledged for this tenant.
+  const dismissKey = `regs-banner-ack:${tenant.id}`;
+  const [ackCount, setAckCount] = useState(0);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(dismissKey);
+    const n = raw ? Number(raw) : 0;
+    setAckCount(Number.isFinite(n) ? n : 0);
+  }, [dismissKey]);
+  const pendingCount = pendingRegs.data ?? 0;
+  const showRegsBanner = pendingCount > ackCount;
+  const ackBanner = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(dismissKey, String(pendingCount));
+    }
+    setAckCount(pendingCount);
+  };
+
   const today = new Date();
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [periodKey(today)];
   const monthPays = useQuery({
