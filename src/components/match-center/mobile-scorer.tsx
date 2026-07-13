@@ -181,18 +181,18 @@ export function MobileScorer(props: MobileScorerProps) {
 
       {/* ---------------- Compact info stack ---------------- */}
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-xl px-2.5 pt-2 pb-1.5">
-          {/* Score header (compact) */}
-          <div className="flex items-end justify-between gap-2">
-            <div className="flex items-baseline gap-1.5 min-w-0">
-              <div className="text-3xl font-black leading-none tabular-nums">
+        <div className="mx-auto w-full max-w-xl px-3 pt-3 pb-2 space-y-3">
+          {/* Score header — hero */}
+          <div className="flex items-end justify-between gap-3">
+            <div className="flex items-baseline gap-2 min-w-0">
+              <div className="text-[40px] font-black leading-none tracking-tight tabular-nums transition-[font-size] duration-100">
                 {props.score}
               </div>
-              <div className="text-xs font-semibold text-muted-foreground tabular-nums">
-                ({props.overs} ov)
+              <div className="text-[13px] font-semibold text-muted-foreground tabular-nums">
+                {props.overs} ov
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-x-2.5 gap-y-0 text-[11px] tabular-nums">
+            <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-0.5 text-[11px] tabular-nums">
               {props.crr && (
                 <span className="text-muted-foreground">
                   CRR <span className="font-bold text-foreground">{props.crr}</span>
@@ -212,13 +212,13 @@ export function MobileScorer(props: MobileScorerProps) {
           </div>
 
           {props.chase && (
-            <div className="mt-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+            <div className="-mt-2 text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
               Need {props.chase.runsNeeded} off {props.chase.ballsLeft} balls
             </div>
           )}
 
-          {/* Batters row (compact — two batters on one line) */}
-          <div className="mt-2 grid grid-cols-2 gap-1.5">
+          {/* Batters — two chips */}
+          <div className="grid grid-cols-2 gap-2">
             <PlayerChip
               onClick={props.onOpenStrikerPicker}
               name={props.striker?.name ?? "Striker"}
@@ -250,19 +250,19 @@ export function MobileScorer(props: MobileScorerProps) {
           <button
             type="button"
             onClick={props.onOpenBowlerPicker}
-            className="mt-1.5 flex w-full items-center gap-2 rounded-lg border bg-card px-2.5 py-1.5 text-left hover:bg-muted/50"
+            className="flex w-full items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2 text-left transition duration-100 hover:bg-muted/50 active:scale-[0.99]"
           >
             <span className="inline-block size-1.5 shrink-0 rounded-full bg-indigo-500" />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <span className="truncate text-[13px] font-semibold">
                   {props.bowler?.name ?? "Bowler"}
                 </span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
                   Bowling
                 </span>
               </div>
-              <div className="text-[10px] text-muted-foreground tabular-nums leading-tight">
+              <div className="text-[11px] text-muted-foreground tabular-nums leading-tight">
                 {props.bowler
                   ? `${props.bowler.overs} ov · ${props.bowler.wickets}/${props.bowler.runs} · Econ ${props.bowler.economy ?? "–"}`
                   : "Tap to select"}
@@ -270,21 +270,24 @@ export function MobileScorer(props: MobileScorerProps) {
             </div>
           </button>
 
-          {/* Partnership + This over — single compact row */}
-          <div className="mt-1.5 flex items-center gap-2 text-[11px]">
-            {props.partnership && (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 tabular-nums">
-                <span className="text-muted-foreground">P'ship</span>
-                <span className="font-bold">
-                  {props.partnership.runs}({props.partnership.balls})
-                </span>
-              </span>
-            )}
-          </div>
+          {/* Stat chips — partnership, projected, need */}
+          {(props.partnership || props.chase) && (
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px] tabular-nums">
+              {props.partnership && (
+                <StatChip label="P'ship" value={`${props.partnership.runs}(${props.partnership.balls})`} />
+              )}
+              {props.chase && (
+                <>
+                  <StatChip label="Need" value={`${props.chase.runsNeeded}`} />
+                  <StatChip label="Balls" value={`${props.chase.ballsLeft}`} />
+                </>
+              )}
+            </div>
+          )}
 
-          {/* This over — one row */}
-          <div className="mt-1.5 flex h-8 items-center gap-2 rounded-md border bg-card px-2">
-            <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground shrink-0">
+          {/* This over */}
+          <div className="flex h-9 items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-2.5">
+            <div className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground shrink-0">
               This over
             </div>
             <div className="flex flex-1 items-center gap-1 overflow-x-auto scrollbar-none">
@@ -292,7 +295,7 @@ export function MobileScorer(props: MobileScorerProps) {
                 <span className="text-[11px] text-muted-foreground">—</span>
               ) : (
                 props.overBalls.map((b, i) => (
-                  <span key={i} className="text-[11px] font-bold tabular-nums text-muted-foreground">
+                  <span key={i} className="text-[12px] font-bold tabular-nums text-muted-foreground">
                     {i > 0 && <span className="mx-1 text-border">•</span>}
                     <BallText label={b} />
                   </span>
@@ -309,7 +312,8 @@ export function MobileScorer(props: MobileScorerProps) {
                   ? props.onOpenStrikerPicker
                   : props.onOpenBowlerPicker
               }
-              className="mt-1.5 flex h-8 w-full items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 text-[11px] font-medium text-amber-700 dark:text-amber-400"
+              className="flex h-9 w-full items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 text-[11px] font-medium text-amber-700 transition active:scale-[0.98] duration-100 dark:text-amber-400"
+              aria-live="polite"
             >
               <span aria-hidden>⚠</span>
               <span className="truncate">
@@ -322,6 +326,7 @@ export function MobileScorer(props: MobileScorerProps) {
           )}
         </div>
       </div>
+
 
       {/* ---------------- Floating scoring dock ---------------- */}
       <div
