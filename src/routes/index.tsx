@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -14,12 +14,33 @@ export const Route = createFileRoute("/")({
 });
 
 function HomeRoute() {
+  // Installed PWA (standalone display-mode) users should never see the
+  // marketing site — old installs still have start_url="/" cached. Bounce
+  // them to /app-launch which restores the session and routes to /dashboard
+  // or /auth. Guests in a normal browser tab still see the public homepage.
+  useStandaloneAppRedirect();
+
   return (
     <TenantGate>
       <HomeContent />
     </TenantGate>
   );
 }
+
+function useStandaloneAppRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isStandalone =
+      window.matchMedia?.("(display-mode: standalone)").matches ||
+      // iOS Safari's non-standard flag
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+    if (isStandalone) {
+      navigate({ to: "/app-launch", replace: true });
+    }
+  }, [navigate]);
+}
+
 
 type Hero = {
   headline?: string;
