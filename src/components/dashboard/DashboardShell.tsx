@@ -122,14 +122,26 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             >
               {t("View site")} <ExternalLink className="size-3" />
             </a>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full"
-              aria-label="Notifications"
+            <Link
+              to="/dashboard/registrations"
+              aria-label={
+                newRegCount > 0
+                  ? `Registrations, ${newRegCount} new`
+                  : "Registrations"
+              }
+              className="relative inline-grid place-items-center size-9 rounded-full hover:bg-accent transition-colors"
             >
-              <Bell className="size-4" />
-            </Button>
+              <Inbox className="size-4" />
+              {newRegCount > 0 ? (
+                <span
+                  aria-hidden
+                  className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full text-[10px] font-bold text-white bg-rose-600 ring-2 ring-background"
+                >
+                  {newRegCount > 99 ? "99+" : newRegCount}
+                </span>
+              ) : null}
+            </Link>
+
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>
