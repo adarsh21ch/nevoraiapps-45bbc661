@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { listParentChildren, getChildSummary, type ParentChild, type ChildSummary } from "@/lib/mc-parent-portal";
 import { ProgressReport } from "@/components/parent-portal/ProgressReport";
+import { findAnyDemoTenant, useDemoData } from "@/lib/mc-demo/store";
+import { useMCChildSummary } from "@/lib/mc-data";
 
 export const Route = createFileRoute("/parent-portal")({
   head: () => ({
