@@ -106,11 +106,62 @@ export function MobileScorer(props: MobileScorerProps) {
     | null
     | { kind: "end-match" | "finish-innings" | "delete-ball" }
   >(null);
+  const [inlinePicker, setInlinePicker] = useState<InlinePickerKind | null>(null);
+  const [pickerQuery, setPickerQuery] = useState("");
+
+  const inlineEnabled = !!(props.battingOptions && props.bowlingOptions && props.onPickPlayer);
+
+  // Auto-open inline picker when the innings is waiting for a batter/bowler.
+  useEffect(() => {
+    if (!inlineEnabled) return;
+    if (props.awaitingNewBatter) setInlinePicker("striker");
+    else if (props.awaitingNewBowler) setInlinePicker("bowler");
+  }, [inlineEnabled, props.awaitingNewBatter, props.awaitingNewBowler]);
+
+  // reset search when picker kind changes
+  useEffect(() => {
+    setPickerQuery("");
+  }, [inlinePicker]);
+
+  const openPicker = (kind: InlinePickerKind) => {
+    if (inlineEnabled) {
+      setInlinePicker(kind);
+      return;
+    }
+    if (kind === "striker") props.onOpenStrikerPicker();
+    else if (kind === "nonStriker") props.onOpenNonStrikerPicker();
+    else props.onOpenBowlerPicker();
+  };
+
+  const pickerCandidates = useMemo<PlayerOption[]>(() => {
+    if (!inlinePicker || !inlineEnabled) return [];
+    const base =
+      inlinePicker === "bowler"
+        ? props.bowlingOptions ?? []
+        : props.battingOptions ?? [];
+    if (inlinePicker !== "bowler") {
+      const excluded = new Set<string>();
+      const s = props.striker?.name;
+      const n = props.nonStriker?.name;
+      if (inlinePicker === "striker" && n) excluded.add(n);
+      if (inlinePicker === "nonStriker" && s) excluded.add(s);
+      return base.filter((p) => !excluded.has(p.name));
+    }
+    return base;
+  }, [inlinePicker, inlineEnabled, props.battingOptions, props.bowlingOptions, props.striker?.name, props.nonStriker?.name]);
+
+  const filteredCandidates = useMemo(() => {
+    const q = pickerQuery.trim().toLowerCase();
+    if (!q) return pickerCandidates;
+    return pickerCandidates.filter((p) => p.name.toLowerCase().includes(q));
+  }, [pickerCandidates, pickerQuery]);
 
   const closeAll = () => {
     setMoreOpen(false);
     setConfirm(null);
   };
+
+
 
   const confirmMeta = (() => {
     if (!confirm) return null;
