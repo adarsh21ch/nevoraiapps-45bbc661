@@ -1,0 +1,96 @@
+import { useSyncExternalStore, useMemo } from "react";
+import { generateDemoData, type DemoData } from "./generate";
+
+const FLAG_KEY = (tenantId: string) => `mc:demo:${tenantId}`;
+const DATA_KEY = (tenantId: string) => `mc:demo:data:${tenantId}`;
+const VERSION = 1;
+
+const listeners = new Set<() => void>();
+function emit() {
+  for (const l of listeners) l();
+}
+
+function readFlag(tenantId: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(FLAG_KEY(tenantId)) === "on";
+  } catch {
+    return false;
+  }
+}
+
+function readData(tenantId: string): DemoData | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DATA_KEY(tenantId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.__v !== VERSION) return null;
+    return parsed as DemoData;
+  } catch {
+    return null;
+  }
+}
+
+function writeData(tenantId: string, data: DemoData) {
+  try {
+    window.localStorage.setItem(DATA_KEY(tenantId), JSON.stringify(data));
+  } catch {
+    // storage full / unavailable – demo just won't persist
+  }
+}
+
+export function setDemoMode(tenantId: string, on: boolean) {
+  try {
+    if (on) window.localStorage.setItem(FLAG_KEY(tenantId), "on");
+    else window.localStorage.removeItem(FLAG_KEY(tenantId));
+  } catch {
+    /* noop */
+  }
+  emit();
+}
+
+export function resetDemoData(tenantId: string) {
+  try {
+    window.localStorage.removeItem(DATA_KEY(tenantId));
+  } catch {
+    /* noop */
+  }
+  emit();
+}
+
+function subscribe(l: () => void) {
+  listeners.add(l);
+  const onStorage = () => l();
+  if (typeof window !== "undefined") window.addEventListener("storage", onStorage);
+  return () => {
+    listeners.delete(l);
+    if (typeof window !== "undefined") window.removeEventListener("storage", onStorage);
+  };
+}
+
+export function useDemoMode(tenantId: string): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => readFlag(tenantId),
+    () => false,
+  );
+}
+
+export function useDemoData(tenantId: string): DemoData | null {
+  const on = useDemoMode(tenantId);
+  return useMemo(() => {
+    if (!on) return null;
+    let d = readData(tenantId);
+    if (!d) {
+      d = generateDemoData(tenantId);
+      d.__v = VERSION;
+      writeData(tenantId, d);
+    }
+    return d;
+  }, [on, tenantId]);
+}
+
+export function isDemoId(id: string | null | undefined): boolean {
+  return typeof id === "string" && id.startsWith("demo-");
+}

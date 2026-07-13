@@ -16,6 +16,7 @@ import {
   type MatchWithTeams,
 } from "@/lib/mc-matches";
 import { toast } from "sonner";
+import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/matches")({
   head: () => ({
@@ -36,10 +37,11 @@ function MatchesPage() {
     queryFn: () => listMatches(tenant.id),
   });
 
+  const overlaid = useDemoOverlay(tenant.id, matchesQ.data, (d) => d.matches);
+
   const filtered = useMemo(() => {
-    const list = matchesQ.data ?? [];
     const needle = q.trim().toLowerCase();
-    return list.filter((m) => {
+    return overlaid.filter((m) => {
       if (status !== "all" && m.status !== status) return false;
       if (!needle) return true;
       return (
@@ -50,7 +52,7 @@ function MatchesPage() {
         m.match_type?.toLowerCase().includes(needle)
       );
     });
-  }, [matchesQ.data, q, status]);
+  }, [overlaid, q, status]);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] });
 
@@ -71,7 +73,7 @@ function MatchesPage() {
     invalidate();
   };
 
-  const hasMatches = (matchesQ.data?.length ?? 0) > 0;
+  const hasMatches = overlaid.length > 0;
 
   return (
     <div>
