@@ -20,6 +20,11 @@ export function SiteHeader() {
 
   return (
     <>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-background"
+        style={{ height: "env(safe-area-inset-top)" }}
+      />
       <div aria-hidden="true" className="bg-background" style={{ height: "env(safe-area-inset-top)" }} />
       <header
         className="sticky z-40 border-b border-border/60 bg-background/85 backdrop-blur-lg"

@@ -118,6 +118,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Top bar */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-background"
+        style={{ height: "env(safe-area-inset-top)" }}
+      />
       <div aria-hidden="true" className="bg-background" style={{ height: "env(safe-area-inset-top)" }} />
       <header
         className="sticky z-40 border-b border-border bg-background/95 backdrop-blur"

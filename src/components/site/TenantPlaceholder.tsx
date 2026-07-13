@@ -42,6 +42,11 @@ export function TenantPlaceholder() {
         />
       </div>
 
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 top-0 z-30 bg-[#0a0a0a]"
+        style={{ height: "env(safe-area-inset-top)" }}
+      />
       <div aria-hidden="true" className="bg-[#0a0a0a]" style={{ height: "env(safe-area-inset-top)" }} />
       <Nav whatsappUrl={whatsappUrl} />
       <Hero whatsappUrl={whatsappUrl} emailUrl={emailUrl} />

@@ -21,6 +21,11 @@ export function PlatformShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-neutral-950"
+        style={{ height: "env(safe-area-inset-top)" }}
+      />
       <div aria-hidden="true" className="bg-neutral-950" style={{ height: "env(safe-area-inset-top)" }} />
       <header
         className="sticky z-40 border-b border-white/10 bg-neutral-950/80 backdrop-blur"
