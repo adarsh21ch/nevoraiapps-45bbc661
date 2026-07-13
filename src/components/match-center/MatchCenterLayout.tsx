@@ -183,6 +183,10 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
   const { tenant, signOut } = useDashboard();
   const navigate = useNavigate();
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
