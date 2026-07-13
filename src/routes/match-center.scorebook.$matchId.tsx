@@ -8,8 +8,7 @@ import { LoadingSkeleton } from "@/components/match-center/ui";
 import { Button } from "@/components/ui/button";
 import type { MCBallEvent } from "@/lib/mc-ball-events";
 import { useDashboard } from "@/lib/dashboard-context";
-import { useDemoEntity } from "@/lib/mc-demo/store";
-import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
+import { useDemoEntity, useDemoData } from "@/lib/mc-demo/store";
 
 export const Route = createFileRoute("/match-center/scorebook/$matchId")({
   head: () => ({
@@ -144,18 +143,8 @@ function ScorebookPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchId]);
 
-  if (demoEntity) {
-    return (
-      <div className="max-w-5xl mx-auto p-4 md:p-6">
-        <DemoDetailStub
-          entity={demoEntity}
-          backLabel="Matches"
-          backTo="/match-center/matches"
-          parentLabel="Scorebook"
-          parentTo="/match-center/matches"
-        />
-      </div>
-    );
+  if (demoEntity && demoEntity.kind === "match") {
+    return <DemoScorebook matchId={matchId} tenantId={tenant.id} />;
   }
 
   if (matchQ.isLoading) {
@@ -219,6 +208,67 @@ function ScorebookPage() {
           teams={teams}
           innings={inningsQ.data ?? []}
           events={eventsQ.data ?? []}
+        />
+      </div>
+    </div>
+  );
+}
+
+function DemoScorebook({ matchId, tenantId }: { matchId: string; tenantId: string }) {
+  const demo = useDemoData(tenantId);
+  if (!demo) return null;
+  const match = demo.matches.find((m) => m.id === matchId);
+  if (!match) return null;
+  const innings = demo.innings.filter((i) => i.match_id === matchId);
+  const events = demo.ballEvents.filter((e) => e.match_id === matchId);
+  const teams = [match.team_a, match.team_b].filter(Boolean).map((t) => ({
+    id: t!.id,
+    name: t!.name ?? null,
+    short_name: t!.short_name ?? null,
+  }));
+  const pom = match.player_of_match_athlete_id
+    ? demo.players.find((p) => p.id === match.player_of_match_athlete_id)?.student?.name ?? null
+    : null;
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="no-print border-b bg-card/60 backdrop-blur">
+        <div className="mx-auto flex max-w-[900px] items-center justify-between gap-2 px-4 py-2">
+          <Button asChild size="sm" variant="ghost">
+            <Link to="/match-center/matches">
+              <ArrowLeft className="size-4 mr-1.5" /> Matches
+            </Link>
+          </Button>
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            {match.team_a?.short_name ?? "A"} v {match.team_b?.short_name ?? "B"}
+          </div>
+        </div>
+      </div>
+      <div className="mx-auto max-w-[960px] px-3 py-4 sm:px-6 sm:py-6">
+        <OfficialScorebook
+          matchInfo={{
+            title: `${match.team_a?.name ?? "Team A"} v ${match.team_b?.name ?? "Team B"}`,
+            tournament: null,
+            ground: match.ground_name,
+            date: match.scheduled_date,
+            format: match.match_format ?? match.match_type,
+            overs: match.overs,
+            umpire: (match as { umpire?: string | null }).umpire ?? null,
+            scorer: null,
+            tossWinner: match.team_a?.name ?? null,
+            tossDecision: match.toss_decision,
+            result: match.result,
+            playerOfMatch: pom,
+            locked: !!match.match_locked,
+          }}
+          teams={teams}
+          innings={innings.map((i) => ({
+            id: i.id,
+            innings_number: i.innings_number,
+            batting_team_id: i.batting_team_id,
+            bowling_team_id: i.bowling_team_id,
+            target: i.target,
+          }))}
+          events={events}
         />
       </div>
     </div>

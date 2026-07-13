@@ -3,7 +3,7 @@ import { generateDemoData, type DemoData } from "./generate";
 
 const FLAG_KEY = (tenantId: string) => `mc:demo:${tenantId}`;
 const DATA_KEY = (tenantId: string) => `mc:demo:data:${tenantId}`;
-const VERSION = 1;
+const VERSION = 2;
 
 const listeners = new Set<() => void>();
 function emit() {
