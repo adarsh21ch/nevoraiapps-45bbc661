@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Users,
   User,
   Radio,
   Trophy,
@@ -12,6 +11,7 @@ import {
   BarChart3,
   Search,
   LogOut,
+  FileText,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { listParentChildren, getChildSummary, type ParentChild, type ChildSummary } from "@/lib/mc-parent-portal";
+import { ProgressReport } from "@/components/parent-portal/ProgressReport";
 
 export const Route = createFileRoute("/parent-portal")({
   head: () => ({
@@ -168,16 +169,18 @@ function ChildTabs({ studentId, kid }: { studentId: string; kid: ParentChild }) 
   const s = q.data;
 
   return (
-    <Tabs defaultValue="dashboard">
+    <Tabs defaultValue="progress">
       <TabsList className="flex-wrap">
-        <TabsTrigger value="dashboard"><User className="size-4 mr-1" />Dashboard</TabsTrigger>
-        <TabsTrigger value="matches"><Trophy className="size-4 mr-1" />Matches</TabsTrigger>
-        <TabsTrigger value="performance"><BarChart3 className="size-4 mr-1" />Performance</TabsTrigger>
-        <TabsTrigger value="recognitions"><Award className="size-4 mr-1" />Recognitions</TabsTrigger>
-        <TabsTrigger value="achievements"><Medal className="size-4 mr-1" />Achievements</TabsTrigger>
-        <TabsTrigger value="timeline"><Clock className="size-4 mr-1" />Timeline</TabsTrigger>
+        <TabsTrigger value="progress"><FileText className="size-4 mr-1" aria-hidden />Progress</TabsTrigger>
+        <TabsTrigger value="dashboard"><User className="size-4 mr-1" aria-hidden />Dashboard</TabsTrigger>
+        <TabsTrigger value="matches"><Trophy className="size-4 mr-1" aria-hidden />Matches</TabsTrigger>
+        <TabsTrigger value="performance"><BarChart3 className="size-4 mr-1" aria-hidden />Performance</TabsTrigger>
+        <TabsTrigger value="recognitions"><Award className="size-4 mr-1" aria-hidden />Recognitions</TabsTrigger>
+        <TabsTrigger value="achievements"><Medal className="size-4 mr-1" aria-hidden />Achievements</TabsTrigger>
+        <TabsTrigger value="timeline"><Clock className="size-4 mr-1" aria-hidden />Timeline</TabsTrigger>
       </TabsList>
 
+      <TabsContent value="progress" className="pt-4"><ProgressReport summary={s} kid={kid} /></TabsContent>
       <TabsContent value="dashboard" className="pt-4"><DashboardTab summary={s} kid={kid} /></TabsContent>
       <TabsContent value="matches" className="pt-4"><MatchesTab summary={s} /></TabsContent>
       <TabsContent value="performance" className="pt-4"><PerformanceTab summary={s} /></TabsContent>

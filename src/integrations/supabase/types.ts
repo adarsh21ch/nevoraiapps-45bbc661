@@ -886,6 +886,57 @@ export type Database = {
           },
         ]
       }
+      mc_coach_remarks: {
+        Row: {
+          author_name: string | null
+          author_user_id: string | null
+          created_at: string
+          id: string
+          remark: string
+          student_id: string
+          tenant_id: string
+          updated_at: string
+          visible_to_parents: boolean
+        }
+        Insert: {
+          author_name?: string | null
+          author_user_id?: string | null
+          created_at?: string
+          id?: string
+          remark: string
+          student_id: string
+          tenant_id: string
+          updated_at?: string
+          visible_to_parents?: boolean
+        }
+        Update: {
+          author_name?: string | null
+          author_user_id?: string | null
+          created_at?: string
+          id?: string
+          remark?: string
+          student_id?: string
+          tenant_id?: string
+          updated_at?: string
+          visible_to_parents?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_coach_remarks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_coach_remarks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_cricket_profiles: {
         Row: {
           athlete_profile_id: string
