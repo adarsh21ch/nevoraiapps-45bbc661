@@ -727,3 +727,11 @@ function AddPlayersDialogBody({
     </>
   );
 }
+
+function DemoTeamWrapper({ tenantId, teamId }: { tenantId: string; teamId: string }) {
+  const demo = useDemoData(tenantId);
+  if (!demo) return null;
+  const team = demo.teams.find((t) => t.id === teamId);
+  if (!team) return null;
+  return <DemoTeamProfile demo={demo} team={team} />;
+}
