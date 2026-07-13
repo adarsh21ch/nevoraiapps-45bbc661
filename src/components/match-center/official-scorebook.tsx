@@ -507,12 +507,13 @@ function SectionBlock({ title, children }: { title: string; children: React.Reac
 
 type Stats = ReturnType<typeof calculateInningsStatistics>;
 
-function BattingTable({ stats }: { stats: Stats }) {
+function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: string | null }) {
+  const pomKey = playerOfMatch?.trim().toLowerCase() ?? "";
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-[12px]">
+      <table className="sb-sticky-thead w-full border-collapse text-[12px]">
         <thead>
-          <tr className="border-y">
+          <tr className="border-y bg-muted/40">
             <Th className="text-left">Batter</Th>
             <Th className="text-left">Dismissal</Th>
             <Th className="text-left">Bowler</Th>
@@ -521,45 +522,51 @@ function BattingTable({ stats }: { stats: Stats }) {
             <Th className="text-right">4s</Th>
             <Th className="text-right">6s</Th>
             <Th className="text-right">SR</Th>
-            <Th className="text-right">Min</Th>
           </tr>
         </thead>
         <tbody>
-          {stats.batting.ordered.map((b) => (
-            <tr key={b.player.key} className="border-b last:border-0">
-              <td className="py-1.5 font-semibold">
-                {b.player.name ?? "—"}
-                {b.notOut && <span className="ml-1 text-muted-foreground">*</span>}
-              </td>
-              <td className="text-[11px] text-muted-foreground">
-                {b.notOut ? "not out" : b.dismissalType ?? "—"}
-              </td>
-              <td className="text-[11px] text-muted-foreground">
-                {b.dismissedBy?.name ?? (b.notOut ? "—" : "—")}
-              </td>
-              <Td className="font-bold">{b.runs}</Td>
-              <Td>{b.balls}</Td>
-              <Td>{b.fours}</Td>
-              <Td>{b.sixes}</Td>
-              <Td>{b.strikeRate ? b.strikeRate.toFixed(1) : "—"}</Td>
-              <Td className="text-muted-foreground">—</Td>
-            </tr>
-          ))}
+          {stats.batting.ordered.map((b, i) => {
+            const name = b.player.name ?? "";
+            const isPom = pomKey && name.trim().toLowerCase() === pomKey;
+            return (
+              <tr
+                key={b.player.key}
+                className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isPom ? "bg-amber-500/10" : ""}`}
+              >
+                <td className="py-2 pl-2 font-semibold">
+                  {isPom && <span className="mr-1 text-amber-600 dark:text-amber-400" title="Player of the Match">★</span>}
+                  {b.player.name ?? "—"}
+                  {b.notOut && <span className="ml-1 text-muted-foreground">*</span>}
+                </td>
+                <td className="text-[11px] text-muted-foreground">
+                  {b.notOut ? "not out" : b.dismissalType ?? "—"}
+                </td>
+                <td className="text-[11px] text-muted-foreground">
+                  {b.dismissedBy?.name ?? "—"}
+                </td>
+                <Td className="pr-2 text-sm font-black">{b.runs}</Td>
+                <Td>{b.balls}</Td>
+                <Td>{b.fours}</Td>
+                <Td>{b.sixes}</Td>
+                <Td>{b.strikeRate ? b.strikeRate.toFixed(1) : "—"}</Td>
+              </tr>
+            );
+          })}
           {stats.batting.ordered.length === 0 && (
             <tr>
-              <td colSpan={9} className="py-4 text-center text-muted-foreground">
+              <td colSpan={8} className="py-4 text-center text-muted-foreground">
                 No balls faced.
               </td>
             </tr>
           )}
         </tbody>
         <tfoot>
-          <tr className="border-t-2 border-foreground/80">
-            <td colSpan={3} className="py-1.5 text-[11px] font-bold uppercase tracking-widest">
+          <tr className="border-t-2 border-foreground/80 bg-foreground/5">
+            <td colSpan={3} className="py-2 pl-2 text-[11px] font-black uppercase tracking-widest">
               Total
             </td>
-            <td className="text-right text-sm font-black">{stats.team.runs}</td>
-            <td colSpan={5} className="text-right text-[11px] text-muted-foreground">
+            <td className="pr-2 text-right text-base font-black tabular-nums">{stats.team.runs}</td>
+            <td colSpan={4} className="pr-2 text-right text-[11px] font-semibold text-muted-foreground">
               {stats.team.wickets} wkts · {stats.team.oversDisplay} ov · RR {stats.team.runRate.toFixed(2)}
             </td>
           </tr>
@@ -572,22 +579,23 @@ function BattingTable({ stats }: { stats: Stats }) {
 function ExtrasLine({ stats }: { stats: Stats }) {
   const e = stats.team.extras;
   return (
-    <div className="rounded-md border bg-muted/30 px-3 py-1.5 text-[11px]">
-      <span className="font-bold uppercase tracking-widest">Extras</span>{" "}
+    <div className="flex flex-wrap items-baseline justify-between gap-2 text-[12px]">
       <span className="text-muted-foreground">
-        (b {e.byes}, lb {e.legByes}, w {e.wides}, nb {e.noBalls}, p {e.penalty})
-      </span>{" "}
-      <span className="font-black tabular-nums">{e.total}</span>
+        b {e.byes} · lb {e.legByes} · w {e.wides} · nb {e.noBalls} · p {e.penalty}
+      </span>
+      <span className="text-base font-black tabular-nums">{e.total}</span>
     </div>
   );
 }
 
 function BowlingTable({ stats }: { stats: Stats }) {
+  const pomKey = ""; // reserved
+  void pomKey;
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-[12px]">
+      <table className="sb-sticky-thead w-full border-collapse text-[12px]">
         <thead>
-          <tr className="border-y">
+          <tr className="border-y bg-muted/40">
             <Th className="text-left">Bowler</Th>
             <Th className="text-right">O</Th>
             <Th className="text-right">M</Th>
@@ -600,13 +608,13 @@ function BowlingTable({ stats }: { stats: Stats }) {
           </tr>
         </thead>
         <tbody>
-          {stats.bowling.ordered.map((b) => (
-            <tr key={b.player.key} className="border-b last:border-0">
-              <td className="py-1.5 font-semibold">{b.player.name ?? "—"}</td>
+          {stats.bowling.ordered.map((b, i) => (
+            <tr key={b.player.key} className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
+              <td className="py-2 pl-2 font-semibold">{b.player.name ?? "—"}</td>
               <Td>{b.oversDisplay}</Td>
               <Td>{b.maidens}</Td>
               <Td>{b.runsConceded}</Td>
-              <Td className="font-bold">{b.wickets}</Td>
+              <Td className="pr-2 text-sm font-black">{b.wickets}</Td>
               <Td>{b.economy ? b.economy.toFixed(2) : "—"}</Td>
               <Td>{b.dotBalls}</Td>
               <Td>{b.wides}</Td>
@@ -627,100 +635,90 @@ function BowlingTable({ stats }: { stats: Stats }) {
 }
 
 function FallOfWicketsTable({ stats }: { stats: Stats }) {
+  if (stats.team.fallOfWickets.length === 0) {
+    return <p className="text-[11px] text-muted-foreground">No wickets fallen.</p>;
+  }
   return (
-    <div>
-      <SectionTitle>Fall of Wickets</SectionTitle>
-      {stats.team.fallOfWickets.length === 0 ? (
-        <p className="text-[11px] text-muted-foreground">No wickets fallen.</p>
-      ) : (
-        <table className="w-full border-collapse text-[11.5px]">
-          <thead>
-            <tr className="border-y">
-              <Th className="text-left">#</Th>
-              <Th className="text-right">Score</Th>
-              <Th className="text-left">Batter</Th>
-              <Th className="text-right">Over</Th>
-              <Th className="text-left">Bowler</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.team.fallOfWickets.map((f) => (
-              <tr key={f.wicketNumber} className="border-b last:border-0">
-                <td className="py-1 font-bold tabular-nums">{f.wicketNumber}</td>
-                <td className="text-right font-semibold tabular-nums">{f.score}</td>
-                <td>{f.batter?.name ?? "—"}</td>
-                <td className="text-right tabular-nums">{f.overDisplay}</td>
-                <td className="text-muted-foreground">{f.bowler?.name ?? "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+    <table className="sb-sticky-thead w-full border-collapse text-[11.5px]">
+      <thead>
+        <tr className="border-y bg-muted/40">
+          <Th className="text-left">#</Th>
+          <Th className="text-right">Score</Th>
+          <Th className="text-left">Batter</Th>
+          <Th className="text-right">Over</Th>
+          <Th className="text-left">Bowler</Th>
+        </tr>
+      </thead>
+      <tbody>
+        {stats.team.fallOfWickets.map((f, i) => (
+          <tr key={f.wicketNumber} className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
+            <td className="py-1.5 pl-2 font-bold tabular-nums">{f.wicketNumber}</td>
+            <td className="text-right font-semibold tabular-nums">{f.score}</td>
+            <td>{f.batter?.name ?? "—"}</td>
+            <td className="text-right tabular-nums">{f.overDisplay}</td>
+            <td className="pr-2 text-muted-foreground">{f.bowler?.name ?? "—"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
 function PartnershipsTable({ stats }: { stats: Stats }) {
   const rows = stats.team.partnerships;
+  if (rows.length === 0) {
+    return <p className="text-[11px] text-muted-foreground">No partnerships yet.</p>;
+  }
   return (
-    <div>
-      <SectionTitle>Partnerships</SectionTitle>
-      {rows.length === 0 ? (
-        <p className="text-[11px] text-muted-foreground">No partnerships yet.</p>
-      ) : (
-        <table className="w-full border-collapse text-[11.5px]">
-          <thead>
-            <tr className="border-y">
-              <Th className="text-left">Wkt</Th>
-              <Th className="text-left">Batters</Th>
-              <Th className="text-right">Runs</Th>
-              <Th className="text-right">Balls</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((p, i) => (
-              <tr key={i} className="border-b last:border-0">
-                <td className="py-1 font-bold tabular-nums">{p.startWicket + 1}</td>
-                <td>
-                  {(p.batterA?.name ?? "?")} & {(p.batterB?.name ?? "?")}
-                  {p.endWicket == null && (
-                    <span className="ml-1 text-[10px] font-bold uppercase text-primary">Live</span>
-                  )}
-                </td>
-                <td className="text-right font-semibold tabular-nums">{p.runs}</td>
-                <td className="text-right tabular-nums">{p.balls}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+    <table className="sb-sticky-thead w-full border-collapse text-[11.5px]">
+      <thead>
+        <tr className="border-y bg-muted/40">
+          <Th className="text-left">Wkt</Th>
+          <Th className="text-left">Batters</Th>
+          <Th className="text-right">Runs</Th>
+          <Th className="text-right">Balls</Th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((p, i) => (
+          <tr key={i} className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
+            <td className="py-1.5 pl-2 font-bold tabular-nums">{p.startWicket + 1}</td>
+            <td>
+              {(p.batterA?.name ?? "?")} & {(p.batterB?.name ?? "?")}
+              {p.endWicket == null && (
+                <span className="ml-1 text-[10px] font-bold uppercase text-primary">Live</span>
+              )}
+            </td>
+            <td className="text-right font-semibold tabular-nums">{p.runs}</td>
+            <td className="pr-2 text-right tabular-nums">{p.balls}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
 function OverSummary({ stats }: { stats: Stats }) {
   const overs = stats.team.overs_summary;
-  if (overs.length === 0) return null;
+  if (overs.length === 0) {
+    return <p className="text-[11px] text-muted-foreground">No overs bowled.</p>;
+  }
   return (
-    <div>
-      <SectionTitle>Over-by-Over</SectionTitle>
-      <div className="grid gap-1.5 sm:grid-cols-2">
-        {overs.map((o) => (
-          <div
-            key={o.overNumber}
-            className="flex items-center gap-2 rounded-md border bg-background/50 px-2 py-1 text-[11px]"
-          >
-            <span className="w-8 font-bold tabular-nums">Ov{o.overNumber + 1}</span>
-            <span className="flex-1 truncate text-muted-foreground">
-              {o.bowler?.name ?? "—"}
-            </span>
-            <span className="tabular-nums">
-              {o.runs}r · {o.wickets}w
-              {o.isMaiden ? " · M" : ""}
-            </span>
-          </div>
-        ))}
-      </div>
+    <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+      {overs.map((o) => (
+        <div
+          key={o.overNumber}
+          className="flex items-center gap-2 rounded-md border bg-card px-2 py-1.5 text-[11px]"
+        >
+          <span className="w-9 font-bold tabular-nums">Ov{o.overNumber + 1}</span>
+          <span className="flex-1 truncate text-muted-foreground">
+            {o.bowler?.name ?? "—"}
+          </span>
+          <span className="tabular-nums font-semibold">
+            {o.runs}r · {o.wickets}w{o.isMaiden ? " · M" : ""}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -754,21 +752,20 @@ function MatchNotes({ stats }: { stats: Stats }) {
       value: `Ov ${s.highestOver.overNumber + 1} · ${s.highestOver.runs} runs (${s.highestOver.bowler?.name ?? "?"})`,
     });
 
-  if (notes.length === 0) return null;
+  if (notes.length === 0) {
+    return <p className="text-[11px] text-muted-foreground">No highlights yet.</p>;
+  }
   return (
-    <div>
-      <SectionTitle>Match Notes</SectionTitle>
-      <ul className="grid gap-1 text-[11.5px] sm:grid-cols-2">
-        {notes.map((n) => (
-          <li key={n.label} className="flex gap-2">
-            <span className="w-40 shrink-0 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              {n.label}
-            </span>
-            <span className="font-medium">{n.value}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <ul className="grid gap-2 text-[12px] sm:grid-cols-2">
+      {notes.map((n) => (
+        <li key={n.label} className="flex flex-col gap-0.5 rounded-md border bg-card px-3 py-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            {n.label}
+          </span>
+          <span className="font-semibold">{n.value}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
