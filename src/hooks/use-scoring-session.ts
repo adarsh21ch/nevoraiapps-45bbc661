@@ -254,11 +254,11 @@ export function useScoringSession(
   const matchState = useMemo<MatchState>(
     () =>
       replayInnings(events, {
-        totalOvers: match?.overs_per_innings ?? null,
+        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
         maxWickets: 10,
         target: activeInnings?.target ?? null,
       }),
-    [events, match?.overs_per_innings, activeInnings?.target],
+    [events, match, activeInnings?.target],
   );
 
   /* ---------- mutations ---------- */
