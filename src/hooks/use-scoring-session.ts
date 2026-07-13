@@ -397,6 +397,13 @@ export function useScoringSession(
       if (!currentBowler.athleteId && !currentBowler.name)
         throw new BallEventError("NO_BOWLER", "Select the bowler.");
 
+      const priorEvents = eventsRef.current;
+      const latestMatchState = replayInnings(priorEvents, {
+        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
+        maxWickets: 10,
+        target: activeInnings.target ?? null,
+      });
+
       // Rules-engine validation against the reconstructed state.
       validateBallDraft(
         {
@@ -408,15 +415,14 @@ export function useScoringSession(
           bowlerName: currentBowler.name,
           ...partial,
         },
-        matchStateForSelectedBatters(matchState, currentStriker, currentNonStriker),
+        matchStateForSelectedBatters(latestMatchState, currentStriker, currentNonStriker),
         {
           innings: activeInnings,
-          events: eventsRef.current,
+          events: priorEvents,
           matchStatus: match?.status ?? null,
         },
       );
 
-      const priorEvents = eventsRef.current;
       const pos = nextPosition(priorEvents);
       const optimistic: MCBallEvent = {
         id: makeClientEventId(),
