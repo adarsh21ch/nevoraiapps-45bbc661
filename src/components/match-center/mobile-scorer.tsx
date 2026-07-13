@@ -90,6 +90,9 @@ export interface MobileScorerProps {
   previousBowlerName?: string | null;
   previousBowlerId?: string | null;
   bowledBowlerIds?: string[];
+  dismissedBatterIds?: string[];
+  dismissedBatterNames?: string[];
+
 
   onUndo: () => void;
   onSwapStrike: () => void;
