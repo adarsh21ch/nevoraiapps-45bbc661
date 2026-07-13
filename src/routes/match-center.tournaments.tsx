@@ -25,6 +25,7 @@ import {
   type MCTournament,
 } from "@/lib/mc-tournaments";
 import { AGE_GROUPS } from "@/lib/mc-teams";
+import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/tournaments")({
   head: () => ({
@@ -47,17 +48,18 @@ function TournamentsPage() {
     queryFn: () => listTournaments(tenant.id),
   });
 
+  const overlaid = useDemoOverlay(tenant.id, q.data, (d) => d.tournaments);
+
   const filtered = useMemo(() => {
-    const list = q.data ?? [];
-    if (!search.trim()) return list;
+    if (!search.trim()) return overlaid;
     const s = search.trim().toLowerCase();
-    return list.filter(
+    return overlaid.filter(
       (t) =>
         t.name.toLowerCase().includes(s) ||
         (t.season ?? "").toLowerCase().includes(s) ||
         (t.age_group ?? "").toLowerCase().includes(s),
     );
-  }, [q.data, search]);
+  }, [overlaid, search]);
 
   return (
     <div>

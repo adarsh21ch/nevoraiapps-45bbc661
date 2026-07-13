@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
+import { DemoBadge } from "@/components/match-center/demo-badge";
 
 type NavItem = {
   to: string;
@@ -208,6 +209,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-1.5">
+            <DemoBadge />
             <Button
               size="sm"
               className="hidden md:inline-flex rounded-full h-9"

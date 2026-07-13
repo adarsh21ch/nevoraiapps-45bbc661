@@ -27,6 +27,7 @@ import {
   type StudentLite,
 } from "@/lib/mc-athletes";
 import { toast } from "sonner";
+import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/players/")({
   head: () => ({
@@ -45,11 +46,12 @@ function PlayersPage() {
     queryFn: () => listAthletes(tenant.id),
   });
 
+  const overlaid = useDemoOverlay(tenant.id, athletesQ.data, (d) => d.players);
+
   const filtered = useMemo(() => {
-    const list = athletesQ.data ?? [];
     const needle = q.trim().toLowerCase();
-    if (!needle) return list;
-    return list.filter((a) => {
+    if (!needle) return overlaid;
+    return overlaid.filter((a) => {
       const s = a.student;
       return (
         s?.name?.toLowerCase().includes(needle) ||
@@ -58,7 +60,7 @@ function PlayersPage() {
         a.cricket?.playing_role?.toLowerCase().includes(needle)
       );
     });
-  }, [athletesQ.data, q]);
+  }, [overlaid, q]);
 
   return (
     <div>

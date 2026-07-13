@@ -16,6 +16,7 @@ import {
   TEAM_STATUSES,
 } from "@/lib/mc-teams";
 import { toast } from "sonner";
+import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/teams/")({
   head: () => ({ meta: [{ title: "Teams · Match Center" }, { name: "robots", content: "noindex" }] }),
@@ -37,7 +38,7 @@ function TeamsListPage() {
     queryFn: () => listTeams(tenant.id),
   });
 
-  const teams = teamsQ.data ?? [];
+  const teams = useDemoOverlay(tenant.id, teamsQ.data, (d) => d.teams);
 
   const coaches = useMemo(
     () => Array.from(new Set(teams.map((t) => t.coach_name).filter(Boolean))) as string[],
