@@ -1,9 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Radio, PlusCircle } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Radio, PlusCircle, Trophy } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
-import { EmptyState } from "@/components/match-center/ui";
+import { EmptyState, LoadingSkeleton } from "@/components/match-center/ui";
 import { Button } from "@/components/ui/button";
-import { Link } from "@tanstack/react-router";
+import { useDashboard } from "@/lib/dashboard-context";
+import { listMatches } from "@/lib/mc-matches";
 
 export const Route = createFileRoute("/match-center/live")({
   head: () => ({ meta: [{ title: "Live · Match Center" }, { name: "robots", content: "noindex" }] }),
@@ -11,6 +14,22 @@ export const Route = createFileRoute("/match-center/live")({
 });
 
 function LivePage() {
+  const { tenant } = useDashboard();
+  const matchesQ = useQuery({
+    queryKey: ["mc-matches", tenant.id],
+    queryFn: () => listMatches(tenant.id),
+    refetchInterval: 15000,
+  });
+
+  const live = useMemo(
+    () => (matchesQ.data ?? []).filter((m) => m.status === "live"),
+    [matchesQ.data],
+  );
+  const completed = useMemo(
+    () => (matchesQ.data ?? []).filter((m) => m.status === "completed").slice(0, 8),
+    [matchesQ.data],
+  );
+
   return (
     <div>
       <PageHeader
@@ -21,27 +40,80 @@ function LivePage() {
           { label: "Live" },
         ]}
         actions={
-          <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link to="/scorer/$matchId" params={{ matchId: "demo" }}>
-                <Radio className="size-4 mr-1.5" /> Open scorer (demo)
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link to="/match-center/create">
-                <PlusCircle className="size-4 mr-1.5" /> Start match
-              </Link>
-            </Button>
-          </div>
+          <Button asChild>
+            <Link to="/match-center/create">
+              <PlusCircle className="size-4 mr-1.5" /> Start match
+            </Link>
+          </Button>
         }
       />
-      <EmptyState
-        icon={Radio}
-        title="No live matches right now"
-        description="Once a match goes live, the scorecard, commentary and stats will appear here in real time."
-        actionLabel="Start a match"
-        actionTo="/match-center/create"
-      />
+
+      {matchesQ.isLoading ? (
+        <LoadingSkeleton rows={3} />
+      ) : live.length === 0 ? (
+        <EmptyState
+          icon={Radio}
+          title="No live matches right now"
+          description="When a match goes live, its scorer, commentary and stats appear here."
+          actionLabel="Start a match"
+          actionTo="/match-center/create"
+        />
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {live.map((m) => (
+            <div key={m.id} className="rounded-xl border bg-card p-4">
+              <div className="flex items-center gap-2 text-xs font-semibold text-red-500">
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex size-2 rounded-full bg-red-500" />
+                </span>
+                LIVE
+              </div>
+              <div className="mt-1 text-lg font-semibold">
+                {m.team_a?.name ?? "Team A"} <span className="text-muted-foreground">vs</span> {m.team_b?.name ?? "Team B"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {[m.match_format, m.ground_name, m.match_type].filter(Boolean).join(" · ")}
+              </div>
+              <div className="mt-3 flex gap-2">
+                <Button asChild size="sm">
+                  <Link to="/scorer/$matchId" params={{ matchId: m.id }}>
+                    <Radio className="mr-1.5 size-3.5" /> Open scorer
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {completed.length > 0 && (
+        <div className="mt-8">
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
+            <Trophy className="size-4 text-primary" /> Recently completed
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {completed.map((m) => (
+              <Link
+                key={m.id}
+                to="/scorer/$matchId"
+                params={{ matchId: m.id }}
+                className="rounded-xl border bg-card p-4 transition hover:bg-accent"
+              >
+                <div className="text-sm font-semibold">
+                  {m.team_a?.name ?? "Team A"} vs {m.team_b?.name ?? "Team B"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {[m.match_format, m.scheduled_date, m.ground_name].filter(Boolean).join(" · ")}
+                </div>
+                {m.result && (
+                  <div className="mt-2 text-xs font-medium text-primary">{m.result}</div>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
