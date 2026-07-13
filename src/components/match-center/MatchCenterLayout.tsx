@@ -98,7 +98,7 @@ const NAV_GROUPS: NavGroup[] = [
 
 ];
 
-const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
+
 
 
 export type PageHeaderProps = {
