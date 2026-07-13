@@ -1458,6 +1458,39 @@ export type Database = {
           },
         ]
       }
+      mc_parent_links: {
+        Row: {
+          academy_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          parent_user_id: string
+          relationship: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          academy_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          parent_user_id: string
+          relationship?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          academy_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          parent_user_id?: string
+          relationship?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mc_player_careers: {
         Row: {
           athlete_profile_id: string
@@ -1607,6 +1640,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mc_public_matches: {
+        Row: {
+          academy_id: string
+          allow_live_score: boolean
+          allow_match_summary: boolean
+          allow_player_profiles: boolean
+          allow_scorecard: boolean
+          created_at: string
+          id: string
+          is_public: boolean
+          match_id: string
+          public_slug: string
+          updated_at: string
+        }
+        Insert: {
+          academy_id: string
+          allow_live_score?: boolean
+          allow_match_summary?: boolean
+          allow_player_profiles?: boolean
+          allow_scorecard?: boolean
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          match_id: string
+          public_slug: string
+          updated_at?: string
+        }
+        Update: {
+          academy_id?: string
+          allow_live_score?: boolean
+          allow_match_summary?: boolean
+          allow_player_profiles?: boolean
+          allow_scorecard?: boolean
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          match_id?: string
+          public_slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mc_public_settings: {
+        Row: {
+          academy_id: string
+          allow_ai_summary: boolean
+          allow_download_scorecard: boolean
+          allow_live_scores: boolean
+          allow_public_links: boolean
+          created_at: string
+          default_match_visibility: string
+          default_player_visibility: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          academy_id: string
+          allow_ai_summary?: boolean
+          allow_download_scorecard?: boolean
+          allow_live_scores?: boolean
+          allow_public_links?: boolean
+          created_at?: string
+          default_match_visibility?: string
+          default_player_visibility?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          academy_id?: string
+          allow_ai_summary?: boolean
+          allow_download_scorecard?: boolean
+          allow_live_scores?: boolean
+          allow_public_links?: boolean
+          created_at?: string
+          default_match_visibility?: string
+          default_player_visibility?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       mc_recognitions: {
         Row: {
@@ -2600,10 +2714,25 @@ export type Database = {
         Returns: boolean
       }
       compute_player_prefix: { Args: { _tenant_id: string }; Returns: string }
+      get_parent_child_summary: { Args: { _student_id: string }; Returns: Json }
+      get_public_match_bundle: { Args: { _slug: string }; Returns: Json }
       is_platform_admin: { Args: { _uid: string }; Returns: boolean }
       is_tenant_member: {
         Args: { _tenant: string; _uid: string }
         Returns: boolean
+      }
+      list_parent_children: {
+        Args: never
+        Returns: {
+          academy_id: string
+          is_primary: boolean
+          link_id: string
+          photo_url: string
+          player_id: string
+          relationship: string
+          student_id: string
+          student_name: string
+        }[]
       }
       submit_lead: {
         Args: {
