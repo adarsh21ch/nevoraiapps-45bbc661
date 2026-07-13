@@ -184,8 +184,11 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-        <div className="flex h-12 items-center gap-2 px-2 md:h-auto md:gap-3 md:px-6 md:py-3">
+      <header
+        className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
+        <div className="flex h-14 items-center gap-2 px-3 md:h-auto md:gap-3 md:px-6 md:py-3">
           <button
             className="md:hidden -ml-1 grid size-11 place-items-center rounded-lg hover:bg-accent/50 no-tap-highlight"
             onClick={() => setMobileOpen((v) => !v)}
