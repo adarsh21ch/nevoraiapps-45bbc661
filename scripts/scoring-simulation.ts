@@ -323,19 +323,18 @@ section("Statistics engine derives correctly");
   b.run(0); // legal 7? wait, only 6 legal. Let me count: legal=1,2,3,4,5,6 → over ends after 7th line above.
   // Total legal so far: dot(1)+4(2)+6(3)+dot(4 after wide)+1(5)+1(6) — over ends. This extra ball would start over 1.
 
-  const stats = calculateInningsStatistics(b.events as any, {
+  const stats = computeInningsStatistics(b.events as any, {
     totalOvers: 20,
     maxWickets: 10,
   });
-  const totalBatterRuns = stats.batters.reduce((s, x) => s + x.runs, 0);
-  const totalExtras = stats.extras.total;
+  const totalBatterRuns = stats.batting.ordered.reduce((s, x) => s + x.runs, 0);
+  const totalExtras = stats.team.extras.total;
   expect("team total = batter runs + extras",
-    stats.total.runs, totalBatterRuns + totalExtras);
+    stats.team.runs, totalBatterRuns + totalExtras);
   expect("legal balls in stats matches replay",
-    stats.total.legalBalls, replayInnings(b.events as any, { totalOvers: 20 }).innings.legalBalls);
-  // Bowler figures: X should have runs conceded = team runs (only one bowler used)
-  const x = stats.bowlers.find((r) => r.player.name === "X");
-  expect("bowler X runs = team runs (single bowler)", x?.runs, stats.total.runs);
+    stats.team.legalBalls, replayInnings(b.events as any, { totalOvers: 20 }).innings.legalBalls);
+  const x = stats.bowling.ordered.find((r) => r.player.name === "X");
+  expect("bowler X runs = team runs (single bowler)", x?.runs, stats.team.runs);
 }
 
 /* ================================================================
