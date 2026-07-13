@@ -90,6 +90,9 @@ export interface MobileScorerProps {
   previousBowlerName?: string | null;
   previousBowlerId?: string | null;
   bowledBowlerIds?: string[];
+  dismissedBatterIds?: string[];
+  dismissedBatterNames?: string[];
+
 
   onUndo: () => void;
   onSwapStrike: () => void;
@@ -134,6 +137,15 @@ export function MobileScorer(props: MobileScorerProps) {
     setPickerOpen("bowler");
   }, [sheetPickerEnabled, props.awaitingNewBowler]);
 
+  // Auto-open the batter picker when a wicket falls and a slot is empty.
+  useEffect(() => {
+    if (!sheetPickerEnabled) return;
+    if (!props.awaitingNewBatter) return;
+    if (!missingBatterRole) return;
+    setPickerOpen(missingBatterRole);
+  }, [sheetPickerEnabled, props.awaitingNewBatter, missingBatterRole]);
+
+
   useEffect(() => {
     setPickerQuery("");
   }, [pickerOpen]);
@@ -164,10 +176,24 @@ export function MobileScorer(props: MobileScorerProps) {
     if (pickerOpen === "bowler") return base;
 
     const excluded = new Set<string>();
-    if (pickerOpen === "striker" && props.nonStriker?.name) excluded.add(props.nonStriker.name);
-    if (pickerOpen === "nonStriker" && props.striker?.name) excluded.add(props.striker.name);
-    return base.filter((p) => !excluded.has(p.name));
-  }, [pickerOpen, sheetPickerEnabled, props.battingOptions, props.bowlingOptions, props.striker?.name, props.nonStriker?.name]);
+    const excludedNames = new Set<string>();
+    if (pickerOpen === "striker" && props.nonStriker?.name) excludedNames.add(props.nonStriker.name);
+    if (pickerOpen === "nonStriker" && props.striker?.name) excludedNames.add(props.striker.name);
+    // Exclude anyone already dismissed in this innings.
+    for (const id of props.dismissedBatterIds ?? []) excluded.add(id);
+    for (const name of props.dismissedBatterNames ?? []) excludedNames.add(name);
+    return base.filter((p) => !excluded.has(p.id) && !excludedNames.has(p.name));
+  }, [
+    pickerOpen,
+    sheetPickerEnabled,
+    props.battingOptions,
+    props.bowlingOptions,
+    props.striker?.name,
+    props.nonStriker?.name,
+    props.dismissedBatterIds,
+    props.dismissedBatterNames,
+  ]);
+
 
   const filteredCandidates = useMemo(() => {
     const q = pickerQuery.trim().toLowerCase();
