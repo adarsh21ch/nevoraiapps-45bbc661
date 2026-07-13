@@ -338,3 +338,59 @@
   animation: ds-shimmer 1.4s var(--ds-ease-in-out) infinite;
 }
 
+
+/* ============================================================
+ * Mobile-first utilities (Prompt 15C)
+ * Presentation only — no logic impact.
+ * ============================================================ */
+@utility safe-pb {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 12px);
+}
+@utility safe-pt {
+  padding-top: calc(env(safe-area-inset-top) + 8px);
+}
+@utility tap-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+@utility no-tap-highlight {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+@utility sunlight-contrast {
+  /* Darker text + heavier weight for outdoor readability. */
+  color: color-mix(in oklch, var(--foreground) 100%, black 4%);
+  font-weight: 600;
+}
+
+/* Global mobile ergonomics: kill 300ms tap delay, remove tap highlight, prevent iOS text auto-zoom. */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  overscroll-behavior-y: contain;
+}
+
+/* Inputs at 16px+ on mobile prevents iOS auto-zoom on focus. */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Horizontal filter-chip strip: scroll but hide scrollbar. */
+@utility chip-strip {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x proximity;
+  padding-bottom: 2px;
+}
+.chip-strip::-webkit-scrollbar { display: none; }

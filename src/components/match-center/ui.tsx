@@ -348,19 +348,137 @@ export function DashboardCard({
 export function StickyActionBar({
   children,
   className,
+  align = "end",
 }: {
   children: ReactNode;
   className?: string;
+  align?: "end" | "stretch";
 }) {
   return (
     <div
       className={cn(
-        "sticky bottom-0 left-0 right-0 z-20 -mx-4 md:mx-0 mt-6 border-t border-border bg-background/95 backdrop-blur px-4 py-3 md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-0",
+        "sticky bottom-0 left-0 right-0 z-20 -mx-4 md:mx-0 mt-6 border-t border-border bg-background/95 backdrop-blur px-4 pt-3 md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-0 no-tap-highlight",
         className,
       )}
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}
     >
-      <div className="flex items-center justify-end gap-2">{children}</div>
+      <div
+        className={cn(
+          "flex items-center gap-2 md:justify-end",
+          align === "stretch" ? "[&>*]:flex-1 md:[&>*]:flex-none" : "justify-end",
+        )}
+      >
+        {children}
+      </div>
     </div>
+  );
+}
+
+/** Horizontal-scroll filter chip strip; hides scrollbars, snaps softly. */
+export function FilterChipRow({
+  items,
+  value,
+  onChange,
+  className,
+}: {
+  items: { value: string; label: string; count?: number }[];
+  value?: string;
+  onChange?: (v: string) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn("chip-strip -mx-1 px-1", className)} role="tablist">
+      {items.map((it) => {
+        const active = value === it.value;
+        return (
+          <button
+            key={it.value}
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange?.(it.value)}
+            className={cn(
+              "no-tap-highlight shrink-0 snap-start inline-flex items-center gap-1.5 rounded-full border px-3.5 min-h-9 text-xs font-semibold transition-colors",
+              active
+                ? "bg-foreground text-background border-foreground"
+                : "bg-card text-muted-foreground border-border hover:text-foreground",
+            )}
+          >
+            <span className="whitespace-nowrap">{it.label}</span>
+            {typeof it.count === "number" && (
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[10px] tabular-nums",
+                  active ? "bg-background/20" : "bg-muted",
+                )}
+              >
+                {it.count}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Compact list item card — replaces tables on mobile. Keyboard + a11y friendly. */
+export function MobileListItem({
+  title,
+  subtitle,
+  right,
+  meta,
+  icon: Icon,
+  to,
+  onClick,
+  tone,
+  className,
+}: {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  right?: ReactNode;
+  meta?: ReactNode;
+  icon?: React.ComponentType<{ className?: string }>;
+  to?: string;
+  onClick?: () => void;
+  tone?: AccentTone;
+  className?: string;
+}) {
+  const inner = (
+    <div
+      className={cn(
+        "no-tap-highlight flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 min-h-[64px] transition-colors hover:border-foreground/20 active:bg-muted/60",
+        className,
+      )}
+    >
+      {Icon && (
+        <div
+          className="grid size-10 shrink-0 place-items-center rounded-lg"
+          style={
+            tone
+              ? {
+                  backgroundColor: `color-mix(in oklch, ${toneVar[tone]} 14%, transparent)`,
+                  color: toneVar[tone],
+                }
+              : { backgroundColor: "var(--muted)", color: "var(--foreground)" }
+          }
+        >
+          <Icon className="size-4" />
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-semibold">{title}</div>
+        {subtitle && (
+          <div className="truncate text-xs text-muted-foreground mt-0.5">{subtitle}</div>
+        )}
+        {meta && <div className="mt-1 text-[11px] text-muted-foreground">{meta}</div>}
+      </div>
+      {right && <div className="shrink-0 tabular-nums">{right}</div>}
+    </div>
+  );
+  if (to) return <Link to={to} className="block">{inner}</Link>;
+  return (
+    <button onClick={onClick} className="block w-full text-left" type="button">
+      {inner}
+    </button>
   );
 }
