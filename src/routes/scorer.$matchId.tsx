@@ -222,13 +222,7 @@ function ScorerPage() {
     }
   }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
 
-  /* ---------- auto-open pickers when cricket rules require input ---------- */
-  useEffect(() => {
-    if (session.matchState.innings.awaitingNewBatter) setNewBatterOpen(true);
-  }, [session.matchState.innings.awaitingNewBatter]);
-  useEffect(() => {
-    if (session.matchState.innings.awaitingNewBowler) setNewBowlerOpen(true);
-  }, [session.matchState.innings.awaitingNewBowler]);
+  /* Batter/bowler waiting states are handled inline inside MobileScorer. */
   useEffect(() => {
     if (!session.activeInnings) return;
     if (session.events.length > 0) return;
