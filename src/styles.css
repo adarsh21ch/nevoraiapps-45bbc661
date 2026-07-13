@@ -395,6 +395,38 @@ body {
 }
 .chip-strip::-webkit-scrollbar { display: none; }
 
+/* Filter row that scrolls horizontally on mobile, wraps on sm+. Applied on the container.
+ * Children auto-shrink-0 so chips never squish. */
+@utility chip-row {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+  & > * { flex-shrink: 0; }
+}
+.chip-row::-webkit-scrollbar { display: none; }
+@media (min-width: 640px) {
+  .chip-row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}
+
+/* Mobile table density — tighten padding & prevent oversized cells so scrolling
+ * tables remain readable on 320-390px viewports. Presentation only. */
+@media (max-width: 640px) {
+  table th,
+  table td {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.8125rem;
+  }
+  table th { font-size: 0.6875rem; }
+}
+
 /* ============================================================
  * Premium polish (Prompt 15D)
  * Presentation only — subtle sports identity + refined motion.
