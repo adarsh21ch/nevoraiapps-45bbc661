@@ -595,3 +595,310 @@ export function deriveRecords(demo: DemoData): RecordRow[] {
   }
   return rows;
 }
+
+/* ---------------- Tournament derivation ---------------- */
+
+export interface TournamentStandingRow {
+  teamId: string;
+  teamName: string;
+  played: number;
+  won: number;
+  lost: number;
+  tied: number;
+  points: number;
+  runsFor: number;
+  runsAgainst: number;
+  nrr: number;
+}
+
+export interface TournamentFixtureRow {
+  matchId: string;
+  date: string | null;
+  ground: string | null;
+  teamAId: string;
+  teamAName: string;
+  teamBId: string;
+  teamBName: string;
+  status: string;
+  result: string | null;
+  winnerTeamId: string | null;
+}
+
+export interface TournamentTopBatRow {
+  athleteId: string | null;
+  name: string;
+  matches: number;
+  runs: number;
+  balls: number;
+  fours: number;
+  sixes: number;
+  average: number;
+  strikeRate: number;
+}
+
+export interface TournamentTopBowlRow {
+  athleteId: string | null;
+  name: string;
+  matches: number;
+  wickets: number;
+  legalBalls: number;
+  runsConceded: number;
+  economy: number;
+  average: number;
+}
+
+export interface TournamentSummary {
+  tournamentId: string;
+  matchesPlayed: number;
+  matchesTotal: number;
+  teamsCount: number;
+  standings: TournamentStandingRow[];
+  fixtures: TournamentFixtureRow[];
+  results: TournamentFixtureRow[];
+  orangeCap: TournamentTopBatRow[];
+  purpleCap: TournamentTopBowlRow[];
+  highestTeamTotal: { teamName: string; runs: number; matchId: string } | null;
+  bestBowling: { name: string; athleteId: string | null; wickets: number; runs: number; matchId: string } | null;
+  highestIndividualScore: { name: string; athleteId: string | null; runs: number; balls: number; matchId: string } | null;
+}
+
+function pointsFor(pw: number, pt: number, won: number, tied: number): number {
+  return won * pw + tied * pt;
+}
+
+export function deriveTournament(
+  demo: DemoData,
+  tournamentId: string,
+): TournamentSummary | null {
+  const t = demo.tournaments.find((x) => x.id === tournamentId);
+  if (!t) return null;
+
+  const inningsMap = inningsTeamMap(demo);
+  const tMatches = demo.matches.filter(
+    (m) => (m as unknown as { tournament_id?: string | null }).tournament_id === tournamentId,
+  );
+  const playedIds = new Set(demo.ballEvents.map((e) => e.match_id));
+  const played = tMatches.filter((m) => playedIds.has(m.id));
+
+  const pw = (t as unknown as { points_for_win?: number }).points_for_win ?? 2;
+  const pt = (t as unknown as { points_for_tie?: number }).points_for_tie ?? 1;
+
+  const teamsMap = new Map<string, TournamentStandingRow>();
+  const ensureTeam = (id: string, name: string) => {
+    if (!teamsMap.has(id))
+      teamsMap.set(id, {
+        teamId: id,
+        teamName: name,
+        played: 0,
+        won: 0,
+        lost: 0,
+        tied: 0,
+        points: 0,
+        runsFor: 0,
+        runsAgainst: 0,
+        nrr: 0,
+      });
+    return teamsMap.get(id)!;
+  };
+
+  // seed teams from all fixtures so standings show all participants
+  for (const m of tMatches) {
+    if (m.team_a_id) ensureTeam(m.team_a_id, teamNameById(demo, m.team_a_id));
+    if (m.team_b_id) ensureTeam(m.team_b_id, teamNameById(demo, m.team_b_id));
+  }
+
+  // per-team over consumption for NRR
+  const oversFor = new Map<string, number>();
+  const oversAgainst = new Map<string, number>();
+
+  const perPlayerBat = new Map<string, TournamentTopBatRow & { dismissals: number }>();
+  const perPlayerBowl = new Map<string, TournamentTopBowlRow>();
+
+  let bestBowl: TournamentSummary["bestBowling"] = null;
+  let highIndividual: TournamentSummary["highestIndividualScore"] = null;
+  let highestTeamTotal: TournamentSummary["highestTeamTotal"] = null;
+
+  for (const m of played) {
+    const events = eventsFor(demo, m.id);
+    const bat = computeBatting(events);
+    const bowl = computeBowling(events);
+
+    // team totals + overs
+    const totals = new Map<string, { runs: number; legal: number }>();
+    for (const e of events) {
+      const inn = inningsMap.get(e.innings_id);
+      if (!inn) continue;
+      const t0 = totals.get(inn.batting) ?? { runs: 0, legal: 0 };
+      t0.runs += (e.runs_off_bat ?? 0) + (e.extra_runs ?? 0);
+      if ((e as unknown as { is_legal_delivery?: boolean }).is_legal_delivery) t0.legal += 1;
+      totals.set(inn.batting, t0);
+    }
+    const teamsInMatch = [m.team_a_id, m.team_b_id].filter(Boolean) as string[];
+    for (const teamId of teamsInMatch) {
+      const own = totals.get(teamId) ?? { runs: 0, legal: 0 };
+      const opp = teamsInMatch.find((x) => x !== teamId);
+      const oppT = opp ? totals.get(opp) ?? { runs: 0, legal: 0 } : { runs: 0, legal: 0 };
+      const row = ensureTeam(teamId, teamNameById(demo, teamId));
+      row.played += 1;
+      row.runsFor += own.runs;
+      row.runsAgainst += oppT.runs;
+      oversFor.set(teamId, (oversFor.get(teamId) ?? 0) + own.legal / 6);
+      oversAgainst.set(teamId, (oversAgainst.get(teamId) ?? 0) + oppT.legal / 6);
+      if (!highestTeamTotal || own.runs > highestTeamTotal.runs) {
+        highestTeamTotal = { teamName: row.teamName, runs: own.runs, matchId: m.id };
+      }
+    }
+
+    // W/L/T from stored winner/result
+    const winner = (m as unknown as { winner_team?: string | null }).winner_team ?? null;
+    const resultStr = (m.result ?? "").toLowerCase();
+    if (resultStr.includes("tie") || resultStr.includes("draw")) {
+      for (const teamId of teamsInMatch) ensureTeam(teamId, teamNameById(demo, teamId)).tied += 1;
+    } else if (winner) {
+      for (const teamId of teamsInMatch) {
+        const row = ensureTeam(teamId, teamNameById(demo, teamId));
+        if (teamId === winner) row.won += 1;
+        else row.lost += 1;
+      }
+    }
+
+    // batting aggregates
+    bat.byKey.forEach((s) => {
+      const id = s.player.athleteId;
+      const key = id ?? s.player.name ?? s.player.key;
+      const name = nameForKey(demo, id, s.player.name ?? "Unknown");
+      const cur =
+        perPlayerBat.get(key) ??
+        ({
+          athleteId: id,
+          name,
+          matches: 0,
+          runs: 0,
+          balls: 0,
+          fours: 0,
+          sixes: 0,
+          average: 0,
+          strikeRate: 0,
+          dismissals: 0,
+        } as TournamentTopBatRow & { dismissals: number });
+      cur.matches += 1;
+      cur.runs += s.runs;
+      cur.balls += s.balls;
+      cur.fours += s.fours;
+      cur.sixes += s.sixes;
+      if (!s.notOut) cur.dismissals += 1;
+      perPlayerBat.set(key, cur);
+
+      if (!highIndividual || s.runs > highIndividual.runs) {
+        highIndividual = { name, athleteId: id, runs: s.runs, balls: s.balls, matchId: m.id };
+      }
+    });
+
+    // bowling aggregates
+    bowl.byKey.forEach((s) => {
+      const id = s.player.athleteId;
+      const key = id ?? s.player.name ?? s.player.key;
+      const name = nameForKey(demo, id, s.player.name ?? "Unknown");
+      const cur =
+        perPlayerBowl.get(key) ??
+        ({
+          athleteId: id,
+          name,
+          matches: 0,
+          wickets: 0,
+          legalBalls: 0,
+          runsConceded: 0,
+          economy: 0,
+          average: 0,
+        } as TournamentTopBowlRow);
+      cur.matches += 1;
+      cur.wickets += s.wickets;
+      cur.legalBalls += s.legalBalls;
+      cur.runsConceded += s.runsConceded;
+      perPlayerBowl.set(key, cur);
+
+      if (
+        !bestBowl ||
+        s.wickets > bestBowl.wickets ||
+        (s.wickets === bestBowl.wickets && s.runsConceded < bestBowl.runs)
+      ) {
+        bestBowl = { name, athleteId: id, wickets: s.wickets, runs: s.runsConceded, matchId: m.id };
+      }
+    });
+  }
+
+  // finalize standings — points + NRR
+  const standings = Array.from(teamsMap.values()).map((r) => {
+    const ovF = oversFor.get(r.teamId) ?? 0;
+    const ovA = oversAgainst.get(r.teamId) ?? 0;
+    const rrF = ovF > 0 ? r.runsFor / ovF : 0;
+    const rrA = ovA > 0 ? r.runsAgainst / ovA : 0;
+    r.nrr = Math.round((rrF - rrA) * 1000) / 1000;
+    r.points = pointsFor(pw, pt, r.won, r.tied);
+    return r;
+  });
+  standings.sort((a, b) => b.points - a.points || b.nrr - a.nrr || b.won - a.won);
+
+  // fixtures & results
+  const toRow = (m: (typeof tMatches)[number]): TournamentFixtureRow => ({
+    matchId: m.id,
+    date: m.scheduled_date ?? null,
+    ground: m.ground_name ?? null,
+    teamAId: m.team_a_id ?? "",
+    teamAName: m.team_a?.name ?? teamNameById(demo, m.team_a_id),
+    teamBId: m.team_b_id ?? "",
+    teamBName: m.team_b?.name ?? teamNameById(demo, m.team_b_id),
+    status: m.status ?? "scheduled",
+    result: m.result ?? null,
+    winnerTeamId: (m as unknown as { winner_team?: string | null }).winner_team ?? null,
+  });
+  const fixtures = tMatches.map(toRow);
+  const results = played.map(toRow);
+
+  // top batters
+  const orangeCap = Array.from(perPlayerBat.values())
+    .filter((r) => r.runs > 0)
+    .map((r) => {
+      const average = r.dismissals > 0 ? r.runs / r.dismissals : r.runs;
+      const strikeRate = r.balls > 0 ? (r.runs / r.balls) * 100 : 0;
+      return {
+        athleteId: r.athleteId,
+        name: r.name,
+        matches: r.matches,
+        runs: r.runs,
+        balls: r.balls,
+        fours: r.fours,
+        sixes: r.sixes,
+        average: Math.round(average * 100) / 100,
+        strikeRate: Math.round(strikeRate * 100) / 100,
+      };
+    })
+    .sort((a, b) => b.runs - a.runs)
+    .slice(0, 20);
+
+  const purpleCap = Array.from(perPlayerBowl.values())
+    .filter((r) => r.wickets > 0 || r.legalBalls > 0)
+    .map((r) => ({
+      ...r,
+      economy: r.legalBalls > 0 ? Math.round(((r.runsConceded / r.legalBalls) * 6) * 100) / 100 : 0,
+      average: r.wickets > 0 ? Math.round((r.runsConceded / r.wickets) * 100) / 100 : 0,
+    }))
+    .sort((a, b) => b.wickets - a.wickets || a.economy - b.economy)
+    .slice(0, 20);
+
+  return {
+    tournamentId,
+    matchesPlayed: played.length,
+    matchesTotal: tMatches.length,
+    teamsCount: teamsMap.size,
+    standings,
+    fixtures,
+    results,
+    orangeCap,
+    purpleCap,
+    highestTeamTotal,
+    bestBowling: bestBowl,
+    highestIndividualScore: highIndividual,
+  };
+}
+
