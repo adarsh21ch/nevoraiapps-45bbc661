@@ -50,8 +50,9 @@ import {
   computeTournamentRecords,
 } from "@/lib/mc-tournament-engine";
 import { listTeams } from "@/lib/mc-teams";
-import { useDemoEntity } from "@/lib/mc-demo/store";
-import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
+import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
+import { DemoTournamentDetail } from "@/components/match-center/demo-tournament-detail";
+
 
 export const Route = createFileRoute("/match-center/tournaments/$tournamentId")({
   head: () => ({
