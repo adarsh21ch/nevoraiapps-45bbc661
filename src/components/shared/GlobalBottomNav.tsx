@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { LayoutDashboard, Users, Swords, IndianRupee, UserCircle } from "lucide-react";
+import { LayoutDashboard, Users, BarChart3, IndianRupee, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { getFeatures } from "@/lib/tenant";
@@ -17,10 +17,11 @@ type Tab = {
 const TABS: Tab[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/dashboard/students", label: "Students", icon: Users },
-  { to: "/match-center", label: "Match Center", icon: Swords },
+  { to: "/insights", label: "Insights", icon: BarChart3 },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
+
 
 /**
  * Unified bottom navigation shared between Academy OS (DashboardShell) and
