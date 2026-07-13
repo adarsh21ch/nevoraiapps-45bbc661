@@ -97,6 +97,22 @@ function ProfilePage() {
         </div>
       </Card>
 
+      <Card className="overflow-hidden p-0">
+        <Link
+          to="/dashboard/settings"
+          className="flex items-center gap-3 px-4 py-4 hover:bg-muted/60 active:bg-muted/80 transition-colors"
+        >
+          <span className="inline-flex size-9 items-center justify-center rounded-lg bg-muted text-foreground">
+            <Settings className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-medium leading-tight">Settings</div>
+            <div className="text-xs text-muted-foreground">Language, theme and preferences</div>
+          </div>
+          <ChevronRight className="size-4 text-muted-foreground" />
+        </Link>
+      </Card>
+
       <Card className="p-5">
         <h2 className="font-semibold mb-3">Manage</h2>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">

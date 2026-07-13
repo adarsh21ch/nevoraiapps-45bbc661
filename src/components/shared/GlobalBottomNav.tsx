@@ -72,7 +72,7 @@ export function GlobalBottomNav() {
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 md:hidden border-t border-border bg-background/95 backdrop-blur"
-      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 6px)", paddingTop: "6px" }}
+      style={{ paddingBottom: "env(safe-area-inset-bottom)", paddingTop: "2px" }}
       aria-label="Primary"
     >
       <div className="grid grid-cols-5">
@@ -96,7 +96,7 @@ export function GlobalBottomNav() {
               aria-current={active ? "page" : undefined}
               aria-label={ariaLabel}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1 px-1 pt-2.5 pb-2 min-h-[68px] text-[10.5px] font-medium",
+                "relative flex flex-col items-center justify-center gap-1 px-1 pt-1.5 pb-1.5 min-h-[56px] text-[10.5px] font-medium",
                 "outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:rounded-md",
                 active ? "text-foreground" : "text-muted-foreground",
               )}
