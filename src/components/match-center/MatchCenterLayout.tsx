@@ -33,22 +33,55 @@ type NavItem = {
   exact?: boolean;
 };
 
-const NAV: NavItem[] = [
-  { to: "/match-center/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/match-center/live", label: "Live Matches", icon: Radio },
-  { to: "/match-center/create", label: "Create Match", icon: PlusCircle },
-  { to: "/match-center/matches", label: "Matches", icon: Swords },
-  { to: "/match-center/teams", label: "Teams", icon: Users2 },
-  { to: "/match-center/players", label: "Players", icon: User },
-  { to: "/match-center/tournaments", label: "Tournaments", icon: Trophy },
-  { to: "/match-center/leaderboards", label: "Leaderboards", icon: ListOrdered },
-  { to: "/match-center/records", label: "Records", icon: Medal },
-  { to: "/match-center/awards", label: "Awards", icon: Award },
-  { to: "/match-center/recognition", label: "Recognition", icon: Award },
-  { to: "/match-center/ai-insights", label: "AI Insights", icon: Award },
-  { to: "/match-center/settings", label: "Settings", icon: Settings },
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
 
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: "Home",
+    items: [{ to: "/match-center/dashboard", label: "Dashboard", icon: LayoutDashboard }],
+  },
+  {
+    label: "Live",
+    items: [
+      { to: "/match-center/live", label: "Live Matches", icon: Radio },
+      { to: "/match-center/create", label: "Create Match", icon: PlusCircle },
+    ],
+  },
+  {
+    label: "Matches",
+    items: [
+      { to: "/match-center/matches", label: "Matches", icon: Swords },
+      { to: "/match-center/teams", label: "Teams", icon: Users2 },
+      { to: "/match-center/players", label: "Players", icon: User },
+    ],
+  },
+  {
+    label: "Competitions",
+    items: [
+      { to: "/match-center/tournaments", label: "Tournaments", icon: Trophy },
+      { to: "/match-center/leaderboards", label: "Leaderboards", icon: ListOrdered },
+      { to: "/match-center/records", label: "Records", icon: Medal },
+    ],
+  },
+  {
+    label: "Insights",
+    items: [
+      { to: "/match-center/awards", label: "Awards", icon: Award },
+      { to: "/match-center/recognition", label: "Recognition", icon: Award },
+      { to: "/match-center/ai-insights", label: "AI Insights", icon: Award },
+    ],
+  },
+  {
+    label: "System",
+    items: [{ to: "/match-center/settings", label: "Settings", icon: Settings }],
+  },
 ];
+
+const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
+
 
 export type PageHeaderProps = {
   title: string;
