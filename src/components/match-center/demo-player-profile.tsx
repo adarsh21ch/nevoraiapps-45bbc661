@@ -126,7 +126,39 @@ export function DemoPlayerProfile({ demo, player }: Props) {
       {career.matchHistory.length > 0 && (
         <>
           <SectionTitle icon={Trophy} label="Match History" className="mt-6" />
-          <div className="overflow-hidden rounded-2xl border border-border">
+
+          {/* Mobile: stacked cards */}
+          <ul className="grid gap-2 sm:hidden">
+            {career.matchHistory.map((l) => {
+              const field = [
+                l.fieldingCatches ? `${l.fieldingCatches}c` : null,
+                l.fieldingRunOuts ? `${l.fieldingRunOuts}ro` : null,
+                l.fieldingStumpings ? `${l.fieldingStumpings}st` : null,
+              ].filter(Boolean).join(" ");
+              return (
+                <li key={l.matchId} className="rounded-xl border border-border bg-card px-3 py-2.5">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div className="min-w-0 truncate text-[13px] font-semibold">{l.opponent}</div>
+                    <div className="shrink-0 text-[10.5px] text-muted-foreground">{l.date ?? ""}</div>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] tabular-nums">
+                    <span className="text-muted-foreground">Bat <b className="text-foreground">
+                      {l.battedBalls > 0 ? `${l.battedRuns}${l.battedOut ? "" : "*"} (${l.battedBalls})` : "—"}
+                    </b></span>
+                    <span className="text-muted-foreground">Bowl <b className="text-foreground">
+                      {l.bowledOvers !== "0.0" ? `${l.bowledWickets}/${l.bowledRuns} (${l.bowledOvers})` : "—"}
+                    </b></span>
+                    <span className="text-muted-foreground">Field <b className="text-foreground">
+                      {field || "—"}
+                    </b></span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Desktop: table */}
+          <div className="hidden sm:block overflow-hidden rounded-2xl border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 <tr>
@@ -182,6 +214,7 @@ export function DemoPlayerProfile({ demo, player }: Props) {
           </div>
         </>
       )}
+
 
       {career.batting.matches === 0 && (
         <p className="mt-6 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
