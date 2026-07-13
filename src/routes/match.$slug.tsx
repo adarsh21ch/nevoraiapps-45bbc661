@@ -67,9 +67,13 @@ function PublicMatchPage() {
   }
   if (!q.data) {
     return (
-      <div className="max-w-3xl mx-auto p-10 text-center">
-        <h1 className="text-2xl font-semibold">Match not found</h1>
-        <p className="text-muted-foreground mt-2">This public link is invalid or was disabled.</p>
+      <div className="flex min-h-dvh flex-col bg-background">
+        <div className="mx-auto flex w-full max-w-3xl flex-1 items-center justify-center p-10 text-center">
+          <div>
+            <h1 className="text-2xl font-semibold">Match not found</h1>
+            <p className="text-muted-foreground mt-2">This public link is invalid or was disabled.</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -80,7 +84,7 @@ function PublicMatchPage() {
   const events = (b.ball_events as unknown as MCBallEvent[]) ?? [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <header className="border-b bg-card">
         <div className="max-w-5xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
           <div>
