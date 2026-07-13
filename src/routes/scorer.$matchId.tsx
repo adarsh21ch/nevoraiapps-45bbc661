@@ -503,6 +503,10 @@ function ScorerPage() {
         ground={session.match?.ground_name ?? undefined}
         tournament={session.match?.match_type ?? undefined}
         connection={connection}
+        isLive={!!session.activeInnings && !session.match?.match_locked}
+        date={session.match?.scheduled_date ?? null}
+        currentBatter={striker.name ?? null}
+        currentBowler={bowlerRef.name ?? null}
       />
 
       <div className="flex items-center justify-between gap-2 border-b bg-card px-3 py-1.5 text-xs">
