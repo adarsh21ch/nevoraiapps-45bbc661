@@ -41,6 +41,7 @@ import {
   Undo2,
   UserCog,
   UserPlus,
+  Share2,
 } from "lucide-react";
 
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
