@@ -122,8 +122,8 @@ export function ShareMatchDialog({ open, onOpenChange, matchId, academyId }: Pro
             <p className="text-sm text-muted-foreground">
               This match isn't public yet. Enable sharing to generate a link.
             </p>
-            <Button onClick={() => upsertM.mutate({ create: true })} disabled={upsertM.isPending}>
-              {upsertM.isPending ? "Creating…" : "Enable public sharing"}
+            <Button onClick={() => createM.mutate()} disabled={createM.isPending}>
+              {createM.isPending ? "Creating…" : "Enable public sharing"}
             </Button>
           </div>
         ) : (
@@ -147,25 +147,25 @@ export function ShareMatchDialog({ open, onOpenChange, matchId, academyId }: Pro
                 label="Publicly accessible"
                 desc="Turn off to make the link stop working."
                 value={local.is_public}
-                onChange={(v) => upsertM.mutate({ is_public: v })}
+                onChange={(v) => updateM.mutate({ is_public: v })}
               />
               <ToggleRow
                 label="Show live score"
                 desc="Runs, wickets, current batters and bowler."
                 value={local.allow_live_score}
-                onChange={(v) => upsertM.mutate({ allow_live_score: v })}
+                onChange={(v) => updateM.mutate({ allow_live_score: v })}
               />
               <ToggleRow
                 label="Show scorecard"
                 desc="Detailed batting and bowling figures."
                 value={local.allow_scorecard}
-                onChange={(v) => upsertM.mutate({ allow_scorecard: v })}
+                onChange={(v) => updateM.mutate({ allow_scorecard: v })}
               />
               <ToggleRow
                 label="Show player names"
                 desc="Squad and roles. Names only — no contact info."
                 value={local.allow_player_profiles}
-                onChange={(v) => upsertM.mutate({ allow_player_profiles: v })}
+                onChange={(v) => updateM.mutate({ allow_player_profiles: v })}
               />
             </div>
           </div>
