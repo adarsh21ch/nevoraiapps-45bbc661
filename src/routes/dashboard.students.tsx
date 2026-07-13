@@ -163,11 +163,8 @@ function StudentsPage() {
           </Button>
         </div>
       </header>
-          >
-            <Plus className="size-4 mr-1" /> Add
-          </Button>
-        </div>
-      </header>
+
+
 
       {pendingRegs.data ? (
         <Link
