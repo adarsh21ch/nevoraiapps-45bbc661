@@ -628,9 +628,13 @@ export function computePartnerships(events: MCBallEvent[]): {
   let striker: PlayerRef | null = null;
   let nonStriker: PlayerRef | null = null;
 
-  const ensurePartnership = () => {
-    if (!cur) {
-      cur = {
+  for (const e of events) {
+    striker = refFrom(e.striker_athlete_id, e.striker_name) ?? striker;
+    nonStriker = refFrom(e.non_striker_athlete_id, e.non_striker_name) ?? nonStriker;
+
+    let active: Partnership;
+    if (cur == null) {
+      active = {
         batterA: striker,
         batterB: nonStriker,
         runs: 0,
@@ -638,27 +642,21 @@ export function computePartnerships(events: MCBallEvent[]): {
         startWicket: wicketsFallen,
         endWicket: null,
       };
+      cur = active;
     } else {
-      // Refresh player refs (identity might update once names known).
-      if (!cur.batterA) cur.batterA = striker;
-      if (!cur.batterB) cur.batterB = nonStriker;
+      active = cur;
+      if (!active.batterA) active.batterA = striker;
+      if (!active.batterB) active.batterB = nonStriker;
     }
-  };
 
-  for (const e of events) {
-    striker = refFrom(e.striker_athlete_id, e.striker_name) ?? striker;
-    nonStriker = refFrom(e.non_striker_athlete_id, e.non_striker_name) ?? nonStriker;
-    ensurePartnership();
-    if (!cur) continue;
-
-    cur.runs += totalRunsForBall(e);
-    if (e.extra_type !== "wide") cur.balls += 1;
+    active.runs += totalRunsForBall(e);
+    if (e.extra_type !== "wide") active.balls += 1;
 
     const dt = e.dismissal_type as DismissalType | null;
     if (isWicketDismissal(dt)) {
       wicketsFallen += 1;
-      cur.endWicket = wicketsFallen;
-      partnerships.push(cur);
+      active.endWicket = wicketsFallen;
+      partnerships.push(active);
       cur = null;
     } else if (ballSwapsStrike(e)) {
       const tmp = striker;
@@ -666,6 +664,7 @@ export function computePartnerships(events: MCBallEvent[]): {
       nonStriker = tmp;
     }
   }
+
 
   const current = cur;
   const all = current ? [...partnerships, current] : partnerships;
