@@ -137,12 +137,6 @@ export function MobileScorer(props: MobileScorerProps) {
     else props.onOpenBowlerPicker();
   };
 
-  useEffect(() => {
-    if (!effectiveAwaitingNewBatter && (pickerOpen === "striker" || pickerOpen === "nonStriker")) {
-      setPickerOpen(null);
-    }
-  }, [effectiveAwaitingNewBatter, pickerOpen]);
-
   const pickerCandidates = useMemo(() => {
     if (!pickerOpen || !sheetPickerEnabled) return [];
     const base = pickerOpen === "bowler" ? props.bowlingOptions ?? [] : props.battingOptions ?? [];
