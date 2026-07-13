@@ -40,6 +40,7 @@ function DashboardHome() {
   const { t, lang } = useT();
   const n = niche(tenant.niche);
   const features = getFeatures(tenant);
+  const newRegs = useNewRegistrationsCount(tenant.id);
   const kpisQ = useQuery({
     queryKey: qk.kpis(tenant.id),
     queryFn: () => fetchKpis(tenant),
