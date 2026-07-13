@@ -17,6 +17,7 @@ import {
   ClipboardCheck,
   BellRing,
   UserCircle,
+  Swords,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
@@ -45,6 +46,7 @@ const mobilePrimary: NavItem[] = primaryNav;
 
 // Secondary — reached from Profile page or desktop sidebar Settings section.
 const secondaryNav: NavItem[] = [
+  { to: "/match-center", label: "Match Center", icon: Swords },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/dashboard/reminders", label: "Reminders", icon: BellRing, requiresFeature: "fee_tracking" },
   { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
