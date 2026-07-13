@@ -434,6 +434,12 @@ export function UnlockMatchDialog({
     setBusy(true);
     try {
       await unlockMatch({ matchId, tenantId, actorId, reason: reason.trim() });
+      // Career Engine: rebuild affected athletes so unlocked match is excluded.
+      try {
+        await rebuildCareersAfterUnlock(matchId);
+      } catch (careerErr) {
+        console.error("Career rebuild after unlock failed", careerErr);
+      }
       toast.success("Match unlocked");
       onUnlocked?.();
       onOpenChange(false);
