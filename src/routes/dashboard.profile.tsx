@@ -16,6 +16,8 @@ import {
   BarChart3,
   Settings,
   ChevronRight,
+  Swords,
+  Users as UsersIcon,
 } from "lucide-react";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { tenantSiteUrl } from "@/lib/tenant";
