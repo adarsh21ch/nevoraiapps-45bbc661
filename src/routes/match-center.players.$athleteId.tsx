@@ -80,6 +80,8 @@ import {
   type CareerTimelinePoint,
 } from "@/lib/mc-career-engine";
 import { toast } from "sonner";
+import { useDemoEntity } from "@/lib/mc-demo/store";
+import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
 
 export const Route = createFileRoute("/match-center/players/$athleteId")({
   head: () => ({
@@ -109,8 +111,10 @@ function AthleteProfilePage() {
   const { tenant } = useDashboard();
   const navigate = useNavigate();
   const [tab, setTab] = useState<TabId>("overview");
+  const demoEntity = useDemoEntity(tenant.id, athleteId);
 
   const athleteQ = useQuery({
+    enabled: !demoEntity,
     queryKey: ["mc-athlete", tenant.id, athleteId],
     queryFn: () => getAthlete(tenant.id, athleteId),
   });
