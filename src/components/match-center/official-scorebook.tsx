@@ -77,6 +77,7 @@ export function OfficialScorebook({
   fullscreen = false,
   onExitFullscreen,
 }: OfficialScorebookProps) {
+  const wrapRef = useRef<HTMLDivElement>(null);
   const paperRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -155,7 +156,7 @@ export function OfficialScorebook({
   const handleFullscreen = async () => {
     try {
       if (!document.fullscreenElement) {
-        await paperRef.current?.requestFullscreen?.();
+        await wrapRef.current?.requestFullscreen?.();
         setIsFullscreen(true);
       } else {
         await document.exitFullscreen();
@@ -166,10 +167,15 @@ export function OfficialScorebook({
     }
   };
 
+  // Sync state if the user exits fullscreen via Esc.
+  if (typeof document !== "undefined") {
+    // no-op; handled by effect below
+  }
+
   return (
-    <div className={fullscreen ? "min-h-screen bg-background" : ""}>
+    <div ref={wrapRef} className={`scorebook-fs-wrap ${fullscreen ? "min-h-screen bg-background" : ""}`}>
       {toolbar && (
-        <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-card px-3 py-2">
+        <div className="scorebook-toolbar no-print mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-card px-3 py-2">
           <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Official Scorebook
             {matchInfo.locked ? (
@@ -208,45 +214,48 @@ export function OfficialScorebook({
         </div>
       )}
 
-      <div
-        ref={paperRef}
-        className="scorebook-print scorebook-paper mx-auto max-w-[900px] rounded-2xl border bg-card p-5 shadow-sm sm:p-8"
-      >
-        <ScorebookHeader info={matchInfo} teamA={teamA} teamB={teamB} />
-        <MatchSummaryStrip
-          info={matchInfo}
-          teamA={teamA}
-          teamB={teamB}
-          innings={orderedInnings}
-          eventsByInnings={eventsByInnings}
-        />
+      <div className="scorebook-paper-outer">
+        <div
+          ref={paperRef}
+          className="scorebook-print scorebook-paper mx-auto max-w-[960px] rounded-2xl border bg-card p-5 shadow-sm sm:p-8"
+        >
+          <ScorebookHeader info={matchInfo} teamA={teamA} teamB={teamB} />
+          <MatchSummaryStrip
+            info={matchInfo}
+            teamA={teamA}
+            teamB={teamB}
+            innings={orderedInnings}
+            eventsByInnings={eventsByInnings}
+          />
 
-        {orderedInnings.map((inn) => {
-          const evs = eventsByInnings.get(inn.id) ?? [];
-          const battingTeam = teamById.get(inn.batting_team_id);
-          const bowlingTeam = inn.bowling_team_id ? teamById.get(inn.bowling_team_id) : null;
-          const stats = calculateInningsStatistics(evs, {
-            totalOvers: matchInfo.overs ?? null,
-            target: inn.target ?? null,
-          });
-          return (
-            <InningsBlock
-              key={inn.id}
-              inningsNumber={inn.innings_number}
-              battingTeamName={battingTeam?.name ?? "Batting"}
-              bowlingTeamName={bowlingTeam?.name ?? "Bowling"}
-              stats={stats}
-            />
-          );
-        })}
+          {orderedInnings.map((inn) => {
+            const evs = eventsByInnings.get(inn.id) ?? [];
+            const battingTeam = teamById.get(inn.batting_team_id);
+            const bowlingTeam = inn.bowling_team_id ? teamById.get(inn.bowling_team_id) : null;
+            const stats = calculateInningsStatistics(evs, {
+              totalOvers: matchInfo.overs ?? null,
+              target: inn.target ?? null,
+            });
+            return (
+              <InningsBlock
+                key={inn.id}
+                inningsNumber={inn.innings_number}
+                battingTeamName={battingTeam?.name ?? "Batting"}
+                bowlingTeamName={bowlingTeam?.name ?? "Bowling"}
+                stats={stats}
+                playerOfMatch={matchInfo.playerOfMatch ?? null}
+              />
+            );
+          })}
 
-        {orderedInnings.length === 0 && (
-          <div className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground">
-            The scorebook fills automatically as balls are scored.
-          </div>
-        )}
+          {orderedInnings.length === 0 && (
+            <div className="rounded-xl border border-dashed p-10 text-center text-sm text-muted-foreground">
+              The scorebook fills automatically as balls are scored.
+            </div>
+          )}
 
-        <PrintFooter />
+          <PrintFooter />
+        </div>
       </div>
     </div>
   );
