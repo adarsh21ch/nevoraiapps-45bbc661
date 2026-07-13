@@ -36,6 +36,8 @@ import {
   type MCAIReport,
   type AIReportType,
 } from "@/lib/mc-ai-engine";
+import { useMCAIReports } from "@/lib/mc-data";
+import type { DemoAIReport } from "@/lib/mc-demo/generate";
 
 export const Route = createFileRoute("/match-center/ai-insights")({
   component: AIInsightsPage,
