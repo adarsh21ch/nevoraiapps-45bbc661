@@ -155,18 +155,11 @@ function MatchCenterDashboard() {
         description="Your live sports command center — everything happening in your academy, at a glance."
         breadcrumbs={[{ label: "Academy OS", to: "/dashboard" }, { label: "Match Center" }]}
         actions={
-          <>
-            <Button variant="outline" asChild>
-              <Link to="/match-center/matches">
-                <Swords className="size-4 mr-1.5" /> All matches
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link to="/match-center/create">
-                <PlusCircle className="size-4 mr-1.5" /> Start match
-              </Link>
-            </Button>
-          </>
+          <Button asChild>
+            <Link to="/match-center/create">
+              <PlusCircle className="size-4 mr-1.5" /> Start match
+            </Link>
+          </Button>
         }
       />
 
