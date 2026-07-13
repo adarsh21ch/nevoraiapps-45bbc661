@@ -99,14 +99,14 @@ function MatchesPage() {
             onQuery={setQ}
           />
         </div>
-        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex flex-wrap gap-1.5">
           {[{ value: "all", label: "All" }, ...MATCH_STATUSES].map((s) => (
             <button
               key={s.value}
               type="button"
               onClick={() => setStatus(s.value)}
               className={
-                "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors " +
+                "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors " +
                 (status === s.value
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-card hover:bg-accent")
