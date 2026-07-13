@@ -259,22 +259,32 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
           <div
             className="fixed inset-0 z-50 md:hidden"
             onClick={() => setMobileOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Match Center navigation"
           >
             <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
             <aside
-              className="absolute left-0 top-0 h-full w-72 border-r border-border bg-card shadow-xl"
+              className="absolute left-0 top-0 flex h-dvh w-[86vw] max-w-[320px] flex-col border-r border-border bg-card shadow-xl"
               onClick={(e) => e.stopPropagation()}
+              style={{
+                paddingTop: "env(safe-area-inset-top)",
+                paddingBottom: "env(safe-area-inset-bottom)",
+              }}
             >
-              <div className="flex items-center justify-between p-4 border-b border-border">
-                <div className="text-sm font-semibold">Match Center</div>
+              <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-card/95 px-4 py-3 backdrop-blur">
+                <div className="text-sm font-semibold truncate">Match Center</div>
                 <button
-                  className="p-1.5 rounded-md hover:bg-accent/50"
+                  className="tap-target no-tap-highlight grid place-items-center rounded-lg hover:bg-accent/50 -mr-1"
                   onClick={() => setMobileOpen(false)}
+                  aria-label="Close navigation"
                 >
-                  <X className="size-4" />
+                  <X className="size-5" />
                 </button>
               </div>
-              <SidebarInner onNavigate={() => setMobileOpen(false)} />
+              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+                <SidebarInner onNavigate={() => setMobileOpen(false)} />
+              </div>
             </aside>
           </div>
         )}
