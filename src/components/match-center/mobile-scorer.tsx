@@ -687,18 +687,6 @@ function ExtraKey({ label, tone, disabled, onClick }: { label: string; tone: "wi
   );
 }
 
-function FooterAction({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex items-center justify-center gap-1.5 rounded-lg text-[12px] font-bold text-muted-foreground transition duration-100 active:scale-[0.95] active:bg-muted active:text-foreground"
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
-  );
-}
 
 function PlayerPickerSheet({
   open,
