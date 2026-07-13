@@ -462,6 +462,147 @@ export type Database = {
           },
         ]
       }
+      mc_ball_events: {
+        Row: {
+          ball_number: number
+          bowler_athlete_id: string | null
+          bowler_name: string | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          dismissal_type: string | null
+          dismissed_athlete_id: string | null
+          dismissed_name: string | null
+          extra_runs: number
+          extra_type: string | null
+          fielder_athlete_id: string | null
+          fielder_name: string | null
+          id: string
+          innings_id: string
+          is_legal_delivery: boolean
+          match_id: string
+          non_striker_athlete_id: string | null
+          non_striker_name: string | null
+          over_number: number
+          runs_off_bat: number
+          sequence_number: number
+          striker_athlete_id: string | null
+          striker_name: string | null
+          tenant_id: string
+        }
+        Insert: {
+          ball_number: number
+          bowler_athlete_id?: string | null
+          bowler_name?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          dismissal_type?: string | null
+          dismissed_athlete_id?: string | null
+          dismissed_name?: string | null
+          extra_runs?: number
+          extra_type?: string | null
+          fielder_athlete_id?: string | null
+          fielder_name?: string | null
+          id?: string
+          innings_id: string
+          is_legal_delivery?: boolean
+          match_id: string
+          non_striker_athlete_id?: string | null
+          non_striker_name?: string | null
+          over_number: number
+          runs_off_bat?: number
+          sequence_number: number
+          striker_athlete_id?: string | null
+          striker_name?: string | null
+          tenant_id: string
+        }
+        Update: {
+          ball_number?: number
+          bowler_athlete_id?: string | null
+          bowler_name?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          dismissal_type?: string | null
+          dismissed_athlete_id?: string | null
+          dismissed_name?: string | null
+          extra_runs?: number
+          extra_type?: string | null
+          fielder_athlete_id?: string | null
+          fielder_name?: string | null
+          id?: string
+          innings_id?: string
+          is_legal_delivery?: boolean
+          match_id?: string
+          non_striker_athlete_id?: string | null
+          non_striker_name?: string | null
+          over_number?: number
+          runs_off_bat?: number
+          sequence_number?: number
+          striker_athlete_id?: string | null
+          striker_name?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_ball_events_bowler_athlete_id_fkey"
+            columns: ["bowler_athlete_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_ball_events_dismissed_athlete_id_fkey"
+            columns: ["dismissed_athlete_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_ball_events_fielder_athlete_id_fkey"
+            columns: ["fielder_athlete_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_ball_events_innings_id_fkey"
+            columns: ["innings_id"]
+            isOneToOne: false
+            referencedRelation: "mc_innings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_ball_events_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "mc_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_ball_events_non_striker_athlete_id_fkey"
+            columns: ["non_striker_athlete_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_ball_events_striker_athlete_id_fkey"
+            columns: ["striker_athlete_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_ball_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_cricket_profiles: {
         Row: {
           athlete_profile_id: string
@@ -553,6 +694,95 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "mc_custom_match_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_innings: {
+        Row: {
+          balls: number
+          batting_team_id: string
+          bowling_team_id: string
+          completed_at: string | null
+          created_at: string
+          extras: number
+          id: string
+          innings_number: number
+          match_id: string
+          overs: number
+          runs: number
+          started_at: string | null
+          status: string
+          target: number | null
+          tenant_id: string
+          updated_at: string
+          wickets: number
+        }
+        Insert: {
+          balls?: number
+          batting_team_id: string
+          bowling_team_id: string
+          completed_at?: string | null
+          created_at?: string
+          extras?: number
+          id?: string
+          innings_number: number
+          match_id: string
+          overs?: number
+          runs?: number
+          started_at?: string | null
+          status?: string
+          target?: number | null
+          tenant_id: string
+          updated_at?: string
+          wickets?: number
+        }
+        Update: {
+          balls?: number
+          batting_team_id?: string
+          bowling_team_id?: string
+          completed_at?: string | null
+          created_at?: string
+          extras?: number
+          id?: string
+          innings_number?: number
+          match_id?: string
+          overs?: number
+          runs?: number
+          started_at?: string | null
+          status?: string
+          target?: number | null
+          tenant_id?: string
+          updated_at?: string
+          wickets?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_innings_batting_team_id_fkey"
+            columns: ["batting_team_id"]
+            isOneToOne: false
+            referencedRelation: "mc_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_innings_bowling_team_id_fkey"
+            columns: ["bowling_team_id"]
+            isOneToOne: false
+            referencedRelation: "mc_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_innings_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "mc_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_innings_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
