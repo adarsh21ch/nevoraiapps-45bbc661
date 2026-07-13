@@ -164,21 +164,21 @@ function StudentsPage() {
 
   return (
     <div className="space-y-5">
-      <header className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:gap-4">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:items-end sm:gap-4">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight leading-tight">Students</h1>
-          <p className="text-[13px] sm:text-sm text-muted-foreground mt-0.5">
+          <p className="text-[12.5px] sm:text-sm text-muted-foreground mt-0.5 truncate">
             {counts.all} total · {counts.active} active
           </p>
         </div>
-        <div className="flex items-center gap-2 sm:justify-end">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 justify-end">
           <BulkImportStudents />
           <Button
             onClick={() => setAddOpen(true)}
-            className="rounded-full h-10 px-5 font-semibold"
+            className="rounded-full h-9 sm:h-10 px-3 sm:px-5 font-semibold"
             style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
           >
-            <Plus className="size-4 mr-1" /> Add
+            <Plus className="size-4 sm:mr-1" /> <span className="hidden sm:inline">Add</span>
           </Button>
         </div>
       </header>
