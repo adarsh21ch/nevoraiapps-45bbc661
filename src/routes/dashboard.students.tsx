@@ -164,6 +164,28 @@ function StudentsPage() {
         </div>
       </header>
 
+      {pendingRegs.data ? (
+        <Link
+          to="/dashboard/registrations"
+          className="group flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 px-4 py-3 transition-colors"
+        >
+          <span className="grid place-items-center size-9 rounded-full bg-rose-600 text-white shrink-0">
+            <Inbox className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold text-foreground">
+              {pendingRegs.data} pending registration{pendingRegs.data === 1 ? "" : "s"}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              New admission requests waiting for review
+            </div>
+          </div>
+          <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+        </Link>
+      ) : null}
+
+
+
       {/* Row 1: Status tabs + gender */}
       <div className="flex items-center gap-2">
         <div className="inline-flex flex-1 items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1 overflow-x-auto">
