@@ -328,9 +328,9 @@ export function MobileScorer(props: MobileScorerProps) {
         className="border-t bg-card"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="mx-auto w-full max-w-xl px-2 pt-1.5 pb-1.5">
+        <div className="mx-auto w-full max-w-xl px-2 pt-2 pb-2">
           {/* Row 1 — runs 0-6 */}
-          <div className="grid grid-cols-6 gap-1">
+          <div className="grid grid-cols-6 gap-2">
             <RunKey value={0} onClick={() => !props.disabled && props.onRun(0)} />
             <RunKey value={1} onClick={() => !props.disabled && props.onRun(1)} />
             <RunKey value={2} onClick={() => !props.disabled && props.onRun(2)} />
@@ -339,7 +339,7 @@ export function MobileScorer(props: MobileScorerProps) {
             <RunKey value={6} tone="six" onClick={() => !props.disabled && props.onRun(6)} />
           </div>
           {/* Row 2 — events */}
-          <div className="mt-1 grid grid-cols-5 gap-1">
+          <div className="mt-2 grid grid-cols-5 gap-2">
             <ExtraKey label="Wide" tone="wide" onClick={() => !props.disabled && props.onExtra("Wide")} />
             <ExtraKey label="No Ball" tone="nb" onClick={() => !props.disabled && props.onExtra("No Ball")} />
             <ExtraKey label="Bye" tone="bye" onClick={() => !props.disabled && props.onExtra("Bye")} />
@@ -347,17 +347,17 @@ export function MobileScorer(props: MobileScorerProps) {
             <ExtraKey label="OUT" tone="out" onClick={() => !props.disabled && props.onOut()} />
           </div>
 
-          {/* Compact icon action bar */}
-          <div className="mt-1 grid grid-cols-3 gap-1">
-            <FooterAction
-              icon={<FileText className="size-3.5" />}
-              label="Scorecard"
-              onClick={props.onOpenScorecard}
-            />
+          {/* Compact icon action bar — Undo · Scorecard · More */}
+          <div className="mt-2 grid grid-cols-3 gap-2">
             <FooterAction
               icon={<Undo2 className="size-3.5" />}
               label="Undo"
               onClick={props.onUndo}
+            />
+            <FooterAction
+              icon={<FileText className="size-3.5" />}
+              label="Scorecard"
+              onClick={props.onOpenScorecard}
             />
             <FooterAction
               icon={<MoreHorizontal className="size-3.5" />}
