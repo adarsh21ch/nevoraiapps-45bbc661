@@ -22,6 +22,9 @@ import {
   ChevronRight,
   Menu,
   X,
+  Sparkles,
+  Globe,
+  HeartHandshake,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
@@ -69,9 +72,16 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Insights",
     items: [
-      { to: "/match-center/awards", label: "Awards", icon: Award },
       { to: "/match-center/recognition", label: "Recognition", icon: Award },
-      { to: "/match-center/ai-insights", label: "AI Insights", icon: Award },
+      { to: "/match-center/awards", label: "Awards", icon: Medal },
+      { to: "/match-center/ai-insights", label: "AI Insights", icon: Sparkles },
+    ],
+  },
+  {
+    label: "Public",
+    items: [
+      { to: "/match-center/website", label: "Website", icon: Globe },
+      { to: "/parent-portal", label: "Parent Portal", icon: HeartHandshake },
     ],
   },
   {
@@ -133,8 +143,8 @@ export function SearchBar({
 }) {
   const [q, setQ] = useState("");
   return (
-    <div className={cn("relative", className)}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+    <div className={cn("relative group", className)}>
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground transition-colors group-focus-within:text-foreground" />
       <Input
         value={q}
         onChange={(e) => {
@@ -142,8 +152,11 @@ export function SearchBar({
           onQuery?.(e.target.value);
         }}
         placeholder={placeholder}
-        className="pl-9 h-10 bg-card"
+        className="pl-9 pr-14 h-10 rounded-full bg-card border-border/70 focus-visible:border-foreground/30"
       />
+      <kbd className="hidden md:inline-flex absolute right-2 top-1/2 -translate-y-1/2 items-center gap-0.5 rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground pointer-events-none">
+        ⌘K
+      </kbd>
     </div>
   );
 }
@@ -192,11 +205,28 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-1.5">
-            <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+            <Button
+              size="sm"
+              className="hidden md:inline-flex rounded-full h-9"
+              onClick={() => navigate({ to: "/match-center/create" })}
+            >
+              <PlusCircle className="size-4 mr-1.5" /> New match
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative rounded-full"
+              aria-label="Notifications"
+            >
               <Bell className="size-4" />
             </Button>
             <ThemeToggle />
-            <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="hidden md:inline-flex"
+            >
               <LogOut className="size-4 mr-1" /> Sign out
             </Button>
           </div>
@@ -248,10 +278,10 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
 function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
   const location = useLocation();
   return (
-    <nav className="flex-1 p-2 space-y-4 overflow-y-auto h-full">
+    <nav className="flex-1 px-2 py-3 space-y-5 overflow-y-auto h-full">
       {NAV_GROUPS.map((group) => (
         <div key={group.label} className="space-y-0.5">
-          <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+          <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/60">
             {group.label}
           </div>
           {group.items.map((n) => {
@@ -264,20 +294,28 @@ function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
                 to={n.to}
                 onClick={onNavigate}
                 className={cn(
-                  "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                  "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150",
                   active
-                    ? "font-semibold text-foreground bg-accent/50"
+                    ? "font-semibold text-foreground"
                     : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
                 )}
+                style={
+                  active
+                    ? {
+                        backgroundColor:
+                          "color-mix(in oklch, var(--tenant-brand, var(--brand, #E8873C)) 12%, transparent)",
+                      }
+                    : undefined
+                }
               >
                 {active && (
                   <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[2px] rounded-r-full"
-                    style={{ backgroundColor: "var(--brand)" }}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full"
+                    style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
                   />
                 )}
-                <Icon className="size-4" />
-                <span>{n.label}</span>
+                <Icon className={cn("size-4 transition-colors", active && "text-foreground")} />
+                <span className="truncate">{n.label}</span>
               </Link>
             );
           })}
