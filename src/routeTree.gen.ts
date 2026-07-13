@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StarPlayersRouteImport } from './routes/star-players'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
+import { Route as MatchCenterRouteImport } from './routes/match-center'
 import { Route as FeesRouteImport } from './routes/fees'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -19,10 +20,22 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
+import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
+import { Route as MatchCenterTournamentsRouteImport } from './routes/match-center.tournaments'
+import { Route as MatchCenterTeamsRouteImport } from './routes/match-center.teams'
+import { Route as MatchCenterSettingsRouteImport } from './routes/match-center.settings'
+import { Route as MatchCenterRecordsRouteImport } from './routes/match-center.records'
+import { Route as MatchCenterPlayersRouteImport } from './routes/match-center.players'
+import { Route as MatchCenterMatchesRouteImport } from './routes/match-center.matches'
+import { Route as MatchCenterLiveRouteImport } from './routes/match-center.live'
+import { Route as MatchCenterLeaderboardsRouteImport } from './routes/match-center.leaderboards'
+import { Route as MatchCenterDashboardRouteImport } from './routes/match-center.dashboard'
+import { Route as MatchCenterCreateRouteImport } from './routes/match-center.create'
+import { Route as MatchCenterAwardsRouteImport } from './routes/match-center.awards'
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
 import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
@@ -53,6 +66,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const PlatformAdminRoute = PlatformAdminRouteImport.update({
   id: '/platform-admin',
   path: '/platform-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchCenterRoute = MatchCenterRouteImport.update({
+  id: '/match-center',
+  path: '/match-center',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeesRoute = FeesRouteImport.update({
@@ -90,6 +108,11 @@ const PlatformAdminIndexRoute = PlatformAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => PlatformAdminRoute,
 } as any)
+const MatchCenterIndexRoute = MatchCenterIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -110,6 +133,61 @@ const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
   id: '/new',
   path: '/new',
   getParentRoute: () => PlatformAdminRoute,
+} as any)
+const MatchCenterTournamentsRoute = MatchCenterTournamentsRouteImport.update({
+  id: '/tournaments',
+  path: '/tournaments',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterTeamsRoute = MatchCenterTeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterSettingsRoute = MatchCenterSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterRecordsRoute = MatchCenterRecordsRouteImport.update({
+  id: '/records',
+  path: '/records',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterPlayersRoute = MatchCenterPlayersRouteImport.update({
+  id: '/players',
+  path: '/players',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterMatchesRoute = MatchCenterMatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterLiveRoute = MatchCenterLiveRouteImport.update({
+  id: '/live',
+  path: '/live',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterLeaderboardsRoute = MatchCenterLeaderboardsRouteImport.update({
+  id: '/leaderboards',
+  path: '/leaderboards',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterDashboardRoute = MatchCenterDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterCreateRoute = MatchCenterCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterAwardsRoute = MatchCenterAwardsRouteImport.update({
+  id: '/awards',
+  path: '/awards',
+  getParentRoute: () => MatchCenterRoute,
 } as any)
 const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
   id: '/students',
@@ -202,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
+  '/match-center': typeof MatchCenterRouteWithChildren
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
@@ -216,10 +295,22 @@ export interface FileRoutesByFullPath {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/match-center/awards': typeof MatchCenterAwardsRoute
+  '/match-center/create': typeof MatchCenterCreateRoute
+  '/match-center/dashboard': typeof MatchCenterDashboardRoute
+  '/match-center/leaderboards': typeof MatchCenterLeaderboardsRoute
+  '/match-center/live': typeof MatchCenterLiveRoute
+  '/match-center/matches': typeof MatchCenterMatchesRoute
+  '/match-center/players': typeof MatchCenterPlayersRoute
+  '/match-center/records': typeof MatchCenterRecordsRoute
+  '/match-center/settings': typeof MatchCenterSettingsRoute
+  '/match-center/teams': typeof MatchCenterTeamsRoute
+  '/match-center/tournaments': typeof MatchCenterTournamentsRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
@@ -246,10 +337,22 @@ export interface FileRoutesByTo {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/match-center/awards': typeof MatchCenterAwardsRoute
+  '/match-center/create': typeof MatchCenterCreateRoute
+  '/match-center/dashboard': typeof MatchCenterDashboardRoute
+  '/match-center/leaderboards': typeof MatchCenterLeaderboardsRoute
+  '/match-center/live': typeof MatchCenterLiveRoute
+  '/match-center/matches': typeof MatchCenterMatchesRoute
+  '/match-center/players': typeof MatchCenterPlayersRoute
+  '/match-center/records': typeof MatchCenterRecordsRoute
+  '/match-center/settings': typeof MatchCenterSettingsRoute
+  '/match-center/teams': typeof MatchCenterTeamsRoute
+  '/match-center/tournaments': typeof MatchCenterTournamentsRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/match-center': typeof MatchCenterIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
@@ -265,6 +368,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
+  '/match-center': typeof MatchCenterRouteWithChildren
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
@@ -279,10 +383,22 @@ export interface FileRoutesById {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/match-center/awards': typeof MatchCenterAwardsRoute
+  '/match-center/create': typeof MatchCenterCreateRoute
+  '/match-center/dashboard': typeof MatchCenterDashboardRoute
+  '/match-center/leaderboards': typeof MatchCenterLeaderboardsRoute
+  '/match-center/live': typeof MatchCenterLiveRoute
+  '/match-center/matches': typeof MatchCenterMatchesRoute
+  '/match-center/players': typeof MatchCenterPlayersRoute
+  '/match-center/records': typeof MatchCenterRecordsRoute
+  '/match-center/settings': typeof MatchCenterSettingsRoute
+  '/match-center/teams': typeof MatchCenterTeamsRoute
+  '/match-center/tournaments': typeof MatchCenterTournamentsRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
@@ -299,6 +415,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/fees'
+    | '/match-center'
     | '/platform-admin'
     | '/register'
     | '/star-players'
@@ -313,10 +430,22 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/match-center/awards'
+    | '/match-center/create'
+    | '/match-center/dashboard'
+    | '/match-center/leaderboards'
+    | '/match-center/live'
+    | '/match-center/matches'
+    | '/match-center/players'
+    | '/match-center/records'
+    | '/match-center/settings'
+    | '/match-center/teams'
+    | '/match-center/tournaments'
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
     | '/dashboard/'
+    | '/match-center/'
     | '/platform-admin/'
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
@@ -343,10 +472,22 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/match-center/awards'
+    | '/match-center/create'
+    | '/match-center/dashboard'
+    | '/match-center/leaderboards'
+    | '/match-center/live'
+    | '/match-center/matches'
+    | '/match-center/players'
+    | '/match-center/records'
+    | '/match-center/settings'
+    | '/match-center/teams'
+    | '/match-center/tournaments'
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
     | '/dashboard'
+    | '/match-center'
     | '/platform-admin'
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
@@ -361,6 +502,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/fees'
+    | '/match-center'
     | '/platform-admin'
     | '/register'
     | '/star-players'
@@ -375,10 +517,22 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/match-center/awards'
+    | '/match-center/create'
+    | '/match-center/dashboard'
+    | '/match-center/leaderboards'
+    | '/match-center/live'
+    | '/match-center/matches'
+    | '/match-center/players'
+    | '/match-center/records'
+    | '/match-center/settings'
+    | '/match-center/teams'
+    | '/match-center/tournaments'
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
     | '/dashboard/'
+    | '/match-center/'
     | '/platform-admin/'
     | '/dashboard/students/$id'
     | '/platform-admin/tenants/$id'
@@ -394,6 +548,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   FeesRoute: typeof FeesRoute
+  MatchCenterRoute: typeof MatchCenterRouteWithChildren
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
@@ -422,6 +577,13 @@ declare module '@tanstack/react-router' {
       path: '/platform-admin'
       fullPath: '/platform-admin'
       preLoaderRoute: typeof PlatformAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/match-center': {
+      id: '/match-center'
+      path: '/match-center'
+      fullPath: '/match-center'
+      preLoaderRoute: typeof MatchCenterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fees': {
@@ -473,6 +635,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlatformAdminIndexRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
+    '/match-center/': {
+      id: '/match-center/'
+      path: '/'
+      fullPath: '/match-center/'
+      preLoaderRoute: typeof MatchCenterIndexRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/'
@@ -500,6 +669,83 @@ declare module '@tanstack/react-router' {
       fullPath: '/platform-admin/new'
       preLoaderRoute: typeof PlatformAdminNewRouteImport
       parentRoute: typeof PlatformAdminRoute
+    }
+    '/match-center/tournaments': {
+      id: '/match-center/tournaments'
+      path: '/tournaments'
+      fullPath: '/match-center/tournaments'
+      preLoaderRoute: typeof MatchCenterTournamentsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/teams': {
+      id: '/match-center/teams'
+      path: '/teams'
+      fullPath: '/match-center/teams'
+      preLoaderRoute: typeof MatchCenterTeamsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/settings': {
+      id: '/match-center/settings'
+      path: '/settings'
+      fullPath: '/match-center/settings'
+      preLoaderRoute: typeof MatchCenterSettingsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/records': {
+      id: '/match-center/records'
+      path: '/records'
+      fullPath: '/match-center/records'
+      preLoaderRoute: typeof MatchCenterRecordsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/players': {
+      id: '/match-center/players'
+      path: '/players'
+      fullPath: '/match-center/players'
+      preLoaderRoute: typeof MatchCenterPlayersRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/matches': {
+      id: '/match-center/matches'
+      path: '/matches'
+      fullPath: '/match-center/matches'
+      preLoaderRoute: typeof MatchCenterMatchesRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/live': {
+      id: '/match-center/live'
+      path: '/live'
+      fullPath: '/match-center/live'
+      preLoaderRoute: typeof MatchCenterLiveRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/leaderboards': {
+      id: '/match-center/leaderboards'
+      path: '/leaderboards'
+      fullPath: '/match-center/leaderboards'
+      preLoaderRoute: typeof MatchCenterLeaderboardsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/dashboard': {
+      id: '/match-center/dashboard'
+      path: '/dashboard'
+      fullPath: '/match-center/dashboard'
+      preLoaderRoute: typeof MatchCenterDashboardRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/create': {
+      id: '/match-center/create'
+      path: '/create'
+      fullPath: '/match-center/create'
+      preLoaderRoute: typeof MatchCenterCreateRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/awards': {
+      id: '/match-center/awards'
+      path: '/awards'
+      fullPath: '/match-center/awards'
+      preLoaderRoute: typeof MatchCenterAwardsRouteImport
+      parentRoute: typeof MatchCenterRoute
     }
     '/dashboard/students': {
       id: '/dashboard/students'
@@ -661,6 +907,40 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
+interface MatchCenterRouteChildren {
+  MatchCenterAwardsRoute: typeof MatchCenterAwardsRoute
+  MatchCenterCreateRoute: typeof MatchCenterCreateRoute
+  MatchCenterDashboardRoute: typeof MatchCenterDashboardRoute
+  MatchCenterLeaderboardsRoute: typeof MatchCenterLeaderboardsRoute
+  MatchCenterLiveRoute: typeof MatchCenterLiveRoute
+  MatchCenterMatchesRoute: typeof MatchCenterMatchesRoute
+  MatchCenterPlayersRoute: typeof MatchCenterPlayersRoute
+  MatchCenterRecordsRoute: typeof MatchCenterRecordsRoute
+  MatchCenterSettingsRoute: typeof MatchCenterSettingsRoute
+  MatchCenterTeamsRoute: typeof MatchCenterTeamsRoute
+  MatchCenterTournamentsRoute: typeof MatchCenterTournamentsRoute
+  MatchCenterIndexRoute: typeof MatchCenterIndexRoute
+}
+
+const MatchCenterRouteChildren: MatchCenterRouteChildren = {
+  MatchCenterAwardsRoute: MatchCenterAwardsRoute,
+  MatchCenterCreateRoute: MatchCenterCreateRoute,
+  MatchCenterDashboardRoute: MatchCenterDashboardRoute,
+  MatchCenterLeaderboardsRoute: MatchCenterLeaderboardsRoute,
+  MatchCenterLiveRoute: MatchCenterLiveRoute,
+  MatchCenterMatchesRoute: MatchCenterMatchesRoute,
+  MatchCenterPlayersRoute: MatchCenterPlayersRoute,
+  MatchCenterRecordsRoute: MatchCenterRecordsRoute,
+  MatchCenterSettingsRoute: MatchCenterSettingsRoute,
+  MatchCenterTeamsRoute: MatchCenterTeamsRoute,
+  MatchCenterTournamentsRoute: MatchCenterTournamentsRoute,
+  MatchCenterIndexRoute: MatchCenterIndexRoute,
+}
+
+const MatchCenterRouteWithChildren = MatchCenterRoute._addFileChildren(
+  MatchCenterRouteChildren,
+)
+
 interface PlatformAdminRouteChildren {
   PlatformAdminNewRoute: typeof PlatformAdminNewRoute
   PlatformAdminSettingsRoute: typeof PlatformAdminSettingsRoute
@@ -690,6 +970,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
   FeesRoute: FeesRoute,
+  MatchCenterRoute: MatchCenterRouteWithChildren,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
