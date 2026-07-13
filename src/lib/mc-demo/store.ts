@@ -7,8 +7,11 @@ const VERSION = 4;
 
 const listeners = new Set<() => void>();
 const dataCache = new Map<string, DemoData>();
+const pendingWrites = new Map<string, number>();
+let revision = 0;
 
 function emit() {
+  revision += 1;
   for (const l of listeners) l();
 }
 
@@ -42,6 +45,17 @@ function writeData(tenantId: string, data: DemoData) {
   }
 }
 
+function scheduleWriteData(tenantId: string, data: DemoData) {
+  if (typeof window === "undefined") return;
+  const pending = pendingWrites.get(tenantId);
+  if (pending) window.clearTimeout(pending);
+  const handle = window.setTimeout(() => {
+    pendingWrites.delete(tenantId);
+    writeData(tenantId, dataCache.get(tenantId) ?? data);
+  }, 0);
+  pendingWrites.set(tenantId, handle);
+}
+
 function ensureData(tenantId: string): DemoData {
   const cached = dataCache.get(tenantId);
   if (cached) return cached;
@@ -72,6 +86,9 @@ export function resetDemoData(tenantId: string) {
   } catch {
     /* noop */
   }
+  const pending = pendingWrites.get(tenantId);
+  if (pending) window.clearTimeout(pending);
+  pendingWrites.delete(tenantId);
   dataCache.delete(tenantId);
   // Immediately regenerate so subsequent reads are consistent
   ensureData(tenantId);
@@ -103,8 +120,8 @@ export function updateDemoData(
   };
   mutator(next);
   dataCache.set(tenantId, next);
-  writeData(tenantId, next);
   emit();
+  scheduleWriteData(tenantId, next);
 }
 
 function subscribe(l: () => void) {
@@ -133,6 +150,14 @@ export function useDemoData(tenantId: string): DemoData | null {
   );
 }
 
+export function useDemoRevision(): number {
+  return useSyncExternalStore(
+    subscribe,
+    () => revision,
+    () => 0,
+  );
+}
+
 export function isDemoId(id: string | null | undefined): boolean {
   return typeof id === "string" && id.startsWith("demo-");
 }
@@ -144,7 +169,7 @@ export function findDemoDatasetByMatchId(
   if (typeof window === "undefined") return null;
   // Try cache first
   for (const [tenantId, data] of dataCache) {
-    if (data.matches?.some((m) => m.id === matchId)) return { tenantId, data };
+    if (data.matches?.some((m) => m.id === matchId) || data.liveMatch?.id === matchId) return { tenantId, data };
   }
   try {
     for (let i = 0; i < window.localStorage.length; i++) {
@@ -154,7 +179,7 @@ export function findDemoDatasetByMatchId(
       if (!raw) continue;
       const parsed = JSON.parse(raw) as DemoData & { __v?: number };
       if (parsed?.__v !== VERSION) continue;
-      if (parsed.matches?.some((m) => m.id === matchId)) {
+      if (parsed.matches?.some((m) => m.id === matchId) || parsed.liveMatch?.id === matchId) {
         const tenantId = key.slice("mc:demo:data:".length);
         dataCache.set(tenantId, parsed);
         return { tenantId, data: parsed };
@@ -162,6 +187,21 @@ export function findDemoDatasetByMatchId(
     }
   } catch {
     /* ignore */
+  }
+  if (matchId.startsWith("demo-")) {
+    const tenantId = "demo-auto";
+    const data = generateDemoData(tenantId);
+    data.__v = VERSION;
+    dataCache.set(tenantId, data);
+    try {
+      window.localStorage.setItem(FLAG_KEY(tenantId), "on");
+      writeData(tenantId, data);
+    } catch {
+      /* ignore */
+    }
+    if (data.matches?.some((m) => m.id === matchId) || data.liveMatch?.id === matchId) {
+      return { tenantId, data };
+    }
   }
   return null;
 }

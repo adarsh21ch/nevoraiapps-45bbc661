@@ -177,6 +177,7 @@ export function nextPosition(events: MCBallEvent[]): OverBallPosition {
 /* --------- Append (single source of truth for scoring) --------- */
 
 export interface AppendBallInput {
+  eventId?: string;
   tenantId: string;
   matchId: string;
   inningsId: string;
@@ -238,25 +239,8 @@ export async function appendBallEvent(
   const pos = nextPosition(events);
   const legal = isLegalDelivery(input.extraType ?? null);
 
-  // Prevent double-submit of an identical last event (defensive dedupe).
-  const last = events[events.length - 1];
-  if (
-    last &&
-    last.striker_athlete_id === (input.strikerAthleteId ?? null) &&
-    last.bowler_athlete_id === (input.bowlerAthleteId ?? null) &&
-    last.runs_off_bat === (input.runsOffBat ?? 0) &&
-    last.extra_type === (input.extraType ?? null) &&
-    last.extra_runs === (input.extraRuns ?? 0) &&
-    last.dismissal_type === (input.dismissalType ?? null) &&
-    Date.now() - new Date(last.created_at).getTime() < 400
-  ) {
-    throw new BallEventError(
-      "DUPLICATE_BALL",
-      "Duplicate ball event ignored.",
-    );
-  }
-
   const payload: MCBallEventInsert = {
+    id: input.eventId,
     tenant_id: input.tenantId,
     match_id: input.matchId,
     innings_id: input.inningsId,
