@@ -71,6 +71,27 @@ function StudentsPage() {
     queryFn: () => fetchBatches(tenant.id),
   });
 
+  // Pending registrations + new leads — shares cache with DashboardShell badge.
+  const pendingRegs = useQuery({
+    queryKey: ["d", "regs-plus-leads-count", tenant.id],
+    queryFn: async () => {
+      const [regs, leads] = await Promise.all([
+        supabase
+          .from("registrations")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenant.id)
+          .eq("status", "new"),
+        supabase
+          .from("leads" as never)
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenant.id)
+          .eq("status", "new"),
+      ]);
+      return (regs.count ?? 0) + (leads.count ?? 0);
+    },
+    refetchInterval: 30_000,
+  });
+
   const today = new Date();
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [periodKey(today)];
   const monthPays = useQuery({
