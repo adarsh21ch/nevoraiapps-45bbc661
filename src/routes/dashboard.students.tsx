@@ -30,7 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Camera, ChevronRight } from "lucide-react";
+import { Plus, Search, Camera, ChevronRight, Inbox } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { BulkImportStudents } from "@/components/dashboard/BulkImportStudents";
@@ -68,6 +69,27 @@ function StudentsPage() {
   const batches = useQuery({
     queryKey: qk.batches(tenant.id),
     queryFn: () => fetchBatches(tenant.id),
+  });
+
+  // Pending registrations + new leads — shares cache with DashboardShell badge.
+  const pendingRegs = useQuery({
+    queryKey: ["d", "regs-plus-leads-count", tenant.id],
+    queryFn: async () => {
+      const [regs, leads] = await Promise.all([
+        supabase
+          .from("registrations")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenant.id)
+          .eq("status", "new"),
+        supabase
+          .from("leads" as never)
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenant.id)
+          .eq("status", "new"),
+      ]);
+      return (regs.count ?? 0) + (leads.count ?? 0);
+    },
+    refetchInterval: 30_000,
   });
 
   const today = new Date();
@@ -141,6 +163,28 @@ function StudentsPage() {
           </Button>
         </div>
       </header>
+
+      {pendingRegs.data ? (
+        <Link
+          to="/dashboard/registrations"
+          className="group flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 px-4 py-3 transition-colors"
+        >
+          <span className="grid place-items-center size-9 rounded-full bg-rose-600 text-white shrink-0">
+            <Inbox className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold text-foreground">
+              {pendingRegs.data} pending registration{pendingRegs.data === 1 ? "" : "s"}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              New admission requests waiting for review
+            </div>
+          </div>
+          <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+        </Link>
+      ) : null}
+
+
 
       {/* Row 1: Status tabs + gender */}
       <div className="flex items-center gap-2">

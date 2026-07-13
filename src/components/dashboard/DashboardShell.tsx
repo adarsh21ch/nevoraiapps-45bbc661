@@ -33,26 +33,26 @@ type NavItem = {
   requiresFeature?: "fee_tracking";
 };
 
-// Primary nav — Leads folded into Registrations.
+// Primary nav — 5 tabs: Home, Students (incl. Registrations), Match Center, Fees, Profile.
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
   { to: "/dashboard/students", label: "Students", icon: Users },
-  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
+  { to: "/match-center", label: "Match Center", icon: Swords },
+  { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
-// Mobile bottom tabs — 4 primary + Profile (navigates to full page).
+// Mobile bottom tabs mirror the primary nav (5 tabs, one-hand friendly).
 const mobilePrimary: NavItem[] = primaryNav;
 
 // Secondary — reached from Profile page or desktop sidebar Settings section.
 const secondaryNav: NavItem[] = [
-  { to: "/match-center", label: "Match Center", icon: Swords },
+  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/dashboard/reminders", label: "Reminders", icon: BellRing, requiresFeature: "fee_tracking" },
   { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
   { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet, requiresFeature: "fee_tracking" },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3, requiresFeature: "fee_tracking" },
-  { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -80,6 +80,21 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     refetchInterval: 30_000,
   });
 
+  // Live match indicator for the Match Center tab.
+  const liveMatchCount = useQuery({
+    queryKey: ["mc-live-count", tenant.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("matches" as never)
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", tenant.id)
+        .eq("status", "live");
+      return count ?? 0;
+    },
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
+
   const features = getFeatures(tenant);
   const withBadges = (items: NavItem[]) =>
     items
@@ -87,14 +102,16 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       .map((n) => {
         const label = t(n.label);
         let badge: number | undefined;
+        let live = false;
+        if (n.to === "/dashboard/students" && newRegCount.data) badge = newRegCount.data;
         if (n.to === "/dashboard/registrations" && newRegCount.data) badge = newRegCount.data;
-        return { ...n, label, badge };
+        if (n.to === "/match-center" && (liveMatchCount.data ?? 0) > 0) live = true;
+        return { ...n, label, badge, live };
       });
 
   const primary = withBadges(primaryNav);
   const secondary = withBadges(secondaryNav);
   const mobileTabs = withBadges(mobilePrimary);
-  const profileEntry = secondary.find((s) => s.to === "/dashboard/profile");
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -138,29 +155,26 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile bottom tab bar — Profile navigates to /dashboard/profile */}
-      <MobileTabBar items={mobileTabs} profile={profileEntry} />
+      {/* Mobile bottom tab bar — 5 tabs, safe-area padded. */}
+      <MobileTabBar items={mobileTabs} />
     </div>
   );
 }
 
 function MobileTabBar({
   items,
-  profile,
 }: {
-  items: (NavItem & { badge?: number })[];
-  profile?: NavItem & { badge?: number };
+  items: (NavItem & { badge?: number; live?: boolean })[];
 }) {
   const location = useLocation();
-  const { t } = useT();
-  const allTabs = profile ? [...items, profile] : items;
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 md:hidden border-t border-border bg-background/95 backdrop-blur"
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 6px)", paddingTop: "6px" }}
+      aria-label="Primary"
     >
       <div className="grid grid-cols-5">
-        {allTabs.map((n) => {
+        {items.map((n) => {
           const active =
             n.to === "/dashboard"
               ? location.pathname === "/dashboard"
@@ -175,8 +189,16 @@ function MobileTabBar({
                 active ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              <Icon className="size-[22px]" />
-              <span className="truncate max-w-[68px] leading-none">{n.label ?? t("Profile")}</span>
+              <span className="relative inline-flex">
+                <Icon className="size-[22px]" />
+                {n.live ? (
+                  <span
+                    aria-hidden
+                    className="absolute -top-0.5 -right-1 size-2 rounded-full bg-rose-600 ring-2 ring-background animate-pulse"
+                  />
+                ) : null}
+              </span>
+              <span className="truncate max-w-[68px] leading-none">{n.label}</span>
               {active && (
                 <span
                   className="absolute top-0 left-1/2 -translate-x-1/2 h-[3px] w-10 rounded-b-full"
@@ -231,14 +253,14 @@ function SidebarInner({
   role,
 }: {
   tenant: { name: string };
-  primary: (NavItem & { badge?: number })[];
-  secondary: (NavItem & { badge?: number })[];
+  primary: (NavItem & { badge?: number; live?: boolean })[];
+  secondary: (NavItem & { badge?: number; live?: boolean })[];
   onSignOut: () => void;
   role: string;
 }) {
   const location = useLocation();
   const { t } = useT();
-  const renderItem = (n: NavItem & { badge?: number }) => {
+  const renderItem = (n: NavItem & { badge?: number; live?: boolean }) => {
     const active =
       n.to === "/dashboard"
         ? location.pathname === "/dashboard"
@@ -261,8 +283,21 @@ function SidebarInner({
             style={{ backgroundColor: "var(--brand)" }}
           />
         )}
-        <Icon className="size-4" />
+        <span className="relative inline-flex">
+          <Icon className="size-4" />
+          {n.live ? (
+            <span
+              aria-hidden
+              className="absolute -top-0.5 -right-1 size-1.5 rounded-full bg-rose-600 ring-2 ring-background animate-pulse"
+            />
+          ) : null}
+        </span>
         <span className="flex-1">{n.label}</span>
+        {n.live ? (
+          <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded-full text-white bg-rose-600">
+            LIVE
+          </span>
+        ) : null}
         {n.badge ? (
           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white bg-rose-600">
             {n.badge}
