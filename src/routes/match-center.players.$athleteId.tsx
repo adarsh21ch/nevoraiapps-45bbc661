@@ -128,7 +128,7 @@ function AthleteProfilePage() {
   });
 
   if (demoEntity && demoEntity.kind === "player") {
-    return <DemoPlayerProfileWrapper player={demoEntity.player} />;
+    return <DemoPlayerWrapper tenantId={tenant.id} player={demoEntity.player} />;
   }
   if (demoEntity) {
     return (
