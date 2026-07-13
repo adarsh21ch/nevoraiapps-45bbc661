@@ -749,15 +749,6 @@ function ScorerPage() {
         onSelect={onExtraRuns}
       />
 
-      {/* Scorecard drawer */}
-      <Dialog open={scorecardOpen} onOpenChange={setScorecardOpen}>
-        <DialogContent className="max-w-5xl">
-          <DialogHeader>
-            <DialogTitle>Scorecard</DialogTitle>
-            <DialogDescription>
-              Live totals derived from every ball. Nothing entered manually.
-            </DialogDescription>
-          </DialogHeader>
       {/* Scorecard sheet */}
       <Sheet open={scorecardOpen} onOpenChange={setScorecardOpen}>
         <SheetContent
