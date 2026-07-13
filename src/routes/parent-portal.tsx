@@ -402,3 +402,112 @@ function TimelineTab({ summary }: { summary: ChildSummary }) {
     </div>
   );
 }
+
+/* ---------- Demo Parent Portal ---------- */
+
+function DemoParentPortal({ tenantId }: { tenantId: string }) {
+  const demo = useDemoData(tenantId);
+  const players = demo?.players ?? [];
+  const [athleteId, setAthleteId] = useState<string | null>(players[0]?.id ?? null);
+  useEffect(() => {
+    if (!athleteId && players[0]) setAthleteId(players[0].id);
+  }, [players, athleteId]);
+  const summary = useMCChildSummary(tenantId, athleteId);
+
+  if (!demo || players.length === 0) {
+    return <PageSkeleton />;
+  }
+  const player = players.find((p) => p.id === athleteId) ?? players[0];
+  const playerName = player.student?.name ?? "Player";
+
+  const kidLike = {
+    link_id: `demo-${player.id}`,
+    student_id: player.id,
+    student_name: playerName,
+    player_id: player.id,
+    relationship: "parent",
+    is_primary: true,
+    academy_id: tenantId,
+    photo_url: null,
+  } as unknown as ParentChild;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-card">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">
+              Parent Portal · Demo
+            </div>
+            <h1 className="text-2xl font-bold truncate">{playerName}</h1>
+            <p className="text-xs text-muted-foreground">{player.cricket?.playing_role ?? ""}</p>
+          </div>
+          <div className="flex gap-1 flex-wrap max-w-md overflow-x-auto">
+            {players.slice(0, 6).map((p) => (
+              <Button
+                key={p.id}
+                size="sm"
+                variant={p.id === athleteId ? "default" : "outline"}
+                onClick={() => setAthleteId(p.id)}
+              >
+                {p.student?.name ?? "Player"}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </header>
+      <main className="max-w-6xl mx-auto p-4">
+        {!summary ? (
+          <Skeleton className="h-96" />
+        ) : (
+          <Tabs defaultValue="dashboard">
+            <TabsList className="flex-wrap">
+              <TabsTrigger value="dashboard">
+                <User className="size-4 mr-1" aria-hidden />
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger value="matches">
+                <Trophy className="size-4 mr-1" aria-hidden />
+                Matches
+              </TabsTrigger>
+              <TabsTrigger value="performance">
+                <BarChart3 className="size-4 mr-1" aria-hidden />
+                Performance
+              </TabsTrigger>
+              <TabsTrigger value="recognitions">
+                <Award className="size-4 mr-1" aria-hidden />
+                Recognitions
+              </TabsTrigger>
+              <TabsTrigger value="achievements">
+                <Medal className="size-4 mr-1" aria-hidden />
+                Achievements
+              </TabsTrigger>
+              <TabsTrigger value="timeline">
+                <Clock className="size-4 mr-1" aria-hidden />
+                Timeline
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="dashboard" className="pt-4">
+              <DashboardTab summary={summary as unknown as ChildSummary} kid={kidLike} />
+            </TabsContent>
+            <TabsContent value="matches" className="pt-4">
+              <MatchesTab summary={summary as unknown as ChildSummary} />
+            </TabsContent>
+            <TabsContent value="performance" className="pt-4">
+              <PerformanceTab summary={summary as unknown as ChildSummary} />
+            </TabsContent>
+            <TabsContent value="recognitions" className="pt-4">
+              <RecognitionsTab summary={summary as unknown as ChildSummary} />
+            </TabsContent>
+            <TabsContent value="achievements" className="pt-4">
+              <AchievementsTab summary={summary as unknown as ChildSummary} />
+            </TabsContent>
+            <TabsContent value="timeline" className="pt-4">
+              <TimelineTab summary={summary as unknown as ChildSummary} />
+            </TabsContent>
+          </Tabs>
+        )}
+      </main>
+    </div>
+  );
+}
