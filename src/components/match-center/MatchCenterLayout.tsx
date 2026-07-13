@@ -106,12 +106,12 @@ export type PageHeaderProps = {
 
 export function PageHeader({ title, description, breadcrumbs, actions }: PageHeaderProps) {
   return (
-    <div className="mb-8">
+    <div className="mb-5 sm:mb-8">
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+        <nav className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 overflow-x-auto whitespace-nowrap">
           {breadcrumbs.map((b, i) => (
             <span key={i} className="flex items-center gap-1.5">
-              {i > 0 && <ChevronRight className="size-3" />}
+              {i > 0 && <ChevronRight className="size-3 shrink-0" />}
               {b.to ? (
                 <Link to={b.to} className="hover:text-foreground transition-colors">
                   {b.label}
@@ -123,14 +123,23 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
           ))}
         </nav>
       )}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:justify-between">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-4">
         <div className="min-w-0">
-          <h1 className="truncate text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight [text-wrap:balance]">
+            {title}
+          </h1>
           {description && (
-            <p className="mt-1.5 text-sm text-muted-foreground max-w-2xl">{description}</p>
+            <p
+              className="mt-1 sm:mt-1.5 text-[13px] sm:text-sm text-muted-foreground max-w-2xl overflow-hidden"
+              style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
+            >
+              {description}
+            </p>
           )}
         </div>
-        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+        {actions && (
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">{actions}</div>
+        )}
       </div>
     </div>
   );
