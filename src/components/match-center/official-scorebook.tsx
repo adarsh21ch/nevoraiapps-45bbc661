@@ -512,6 +512,7 @@ type Stats = ReturnType<typeof calculateInningsStatistics>;
 
 function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: string | null }) {
   const pomKey = playerOfMatch?.trim().toLowerCase() ?? "";
+  const topKey = stats.summary.highestScorer?.player.key ?? null;
   return (
     <div className="overflow-x-auto">
       <table className="sb-sticky-thead w-full border-collapse text-[12px]">
@@ -531,13 +532,18 @@ function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: s
           {stats.batting.ordered.map((b, i) => {
             const name = b.player.name ?? "";
             const isPom = pomKey && name.trim().toLowerCase() === pomKey;
+            const isTop = topKey && b.player.key === topKey && b.runs > 0;
             return (
               <tr
                 key={b.player.key}
-                className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isPom ? "bg-amber-500/10" : ""}`}
+                className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isPom ? "bg-amber-500/10" : isTop ? "bg-emerald-500/5" : ""}`}
               >
                 <td className="py-2 pl-2 font-semibold">
-                  {isPom && <span className="mr-1 text-amber-600 dark:text-amber-400" title="Player of the Match">★</span>}
+                  {isPom ? (
+                    <span className="mr-1 text-amber-600 dark:text-amber-400" title="Player of the Match">★</span>
+                  ) : isTop ? (
+                    <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Top scorer">◆</span>
+                  ) : null}
                   {b.player.name ?? "—"}
                   {b.notOut && <span className="ml-1 text-muted-foreground">*</span>}
                 </td>
