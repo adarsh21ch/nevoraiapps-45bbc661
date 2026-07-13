@@ -21,10 +21,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
-import { Bell } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
+import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
+
 
 type NavItem = {
   to: string;
@@ -59,26 +60,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
   const { t } = useT();
 
-  // Combined "new to action" count — registrations + leads (leads folded in).
-  const newRegCount = useQuery({
-    queryKey: ["d", "regs-plus-leads-count", tenant.id],
-    queryFn: async () => {
-      const [regs, leads] = await Promise.all([
-        supabase
-          .from("registrations")
-          .select("id", { count: "exact", head: true })
-          .eq("tenant_id", tenant.id)
-          .eq("status", "new"),
-        supabase
-          .from("leads" as never)
-          .select("id", { count: "exact", head: true })
-          .eq("tenant_id", tenant.id)
-          .eq("status", "new"),
-      ]);
-      return (regs.count ?? 0) + (leads.count ?? 0);
-    },
-    refetchInterval: 30_000,
-  });
+  // Single source of truth for the "new registration" badge — status='new'.
+  const newRegCount = useNewRegistrationsCount(tenant.id);
 
   // Live match indicator for the Match Center tab.
   const liveMatchCount = useQuery({
@@ -103,11 +86,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         const label = t(n.label);
         let badge: number | undefined;
         let live = false;
-        if (n.to === "/dashboard/students" && newRegCount.data) badge = newRegCount.data;
-        if (n.to === "/dashboard/registrations" && newRegCount.data) badge = newRegCount.data;
+        if (n.to === "/dashboard/students" && newRegCount) badge = newRegCount;
+        if (n.to === "/dashboard/registrations" && newRegCount) badge = newRegCount;
         if (n.to === "/match-center" && (liveMatchCount.data ?? 0) > 0) live = true;
         return { ...n, label, badge, live };
       });
+
 
   const primary = withBadges(primaryNav);
   const secondary = withBadges(secondaryNav);
@@ -138,14 +122,26 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             >
               {t("View site")} <ExternalLink className="size-3" />
             </a>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full"
-              aria-label="Notifications"
+            <Link
+              to="/dashboard/registrations"
+              aria-label={
+                newRegCount > 0
+                  ? `Registrations, ${newRegCount} new`
+                  : "Registrations"
+              }
+              className="relative inline-grid place-items-center size-9 rounded-full hover:bg-accent transition-colors"
             >
-              <Bell className="size-4" />
-            </Button>
+              <Inbox className="size-4" />
+              {newRegCount > 0 ? (
+                <span
+                  aria-hidden
+                  className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 grid place-items-center rounded-full text-[10px] font-bold text-white bg-rose-600 ring-2 ring-background"
+                >
+                  {newRegCount > 99 ? "99+" : newRegCount}
+                </span>
+              ) : null}
+            </Link>
+
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>

@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchRegistrations, qk } from "@/lib/dashboard-queries";
 import { supabase } from "@/integrations/supabase/client";
+import { markRegistrationsReviewed, newRegsQueryKey } from "@/hooks/use-new-registrations";
+
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -40,12 +42,32 @@ function RegistrationsInbox() {
 
   const [openId, setOpenId] = useState<string | null>(null);
 
+  // Gmail/WhatsApp/Slack behaviour: opening the inbox marks every NEW
+  // registration as REVIEWED. The badge instantly disappears everywhere.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await markRegistrationsReviewed(tenant.id);
+        if (cancelled) return;
+        qc.invalidateQueries({ queryKey: newRegsQueryKey(tenant.id) });
+        qc.invalidateQueries({ queryKey: qk.regs(tenant.id) });
+      } catch {
+        // silent — badge just remains until next refetch
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tenant.id, qc]);
+
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: qk.regs(tenant.id) });
-    qc.invalidateQueries({ queryKey: ["d", "regs-new-count", tenant.id] });
+    qc.invalidateQueries({ queryKey: newRegsQueryKey(tenant.id) });
     qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
     qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
   };
+
 
   const approve = useMutation({
     mutationFn: async (id: string) => {
@@ -86,7 +108,9 @@ function RegistrationsInbox() {
   );
 
   const openReg = sorted.find((r: any) => r.id === openId) ?? null;
-  const newCount = sorted.filter((r: any) => r.status === "new").length;
+  const newCount = sorted.filter(
+    (r: any) => r.status === "new" || r.status === "reviewed",
+  ).length;
 
   return (
     <div className="space-y-5">
