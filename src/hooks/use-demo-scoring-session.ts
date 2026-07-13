@@ -125,9 +125,10 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
   const lastSeenRef = useRef<number>(lastEventSeq);
   if (lastSeenRef.current !== lastEventSeq) {
     lastSeenRef.current = lastEventSeq;
+    const batterChoiceStillNeeded = Boolean(lastEvent?.dismissal_type);
     // reset overrides after each ball — replay is now source of truth
-    if (strikerOverride) setStrikerOverride(null);
-    if (nonStrikerOverride) setNonStrikerOverride(null);
+    if (!batterChoiceStillNeeded && strikerOverride) setStrikerOverride(null);
+    if (!batterChoiceStillNeeded && nonStrikerOverride) setNonStrikerOverride(null);
     // keep bowler override until end of over
     if (bowlerOverride && lastEvent) {
       // Clear if bowler in event matches override
