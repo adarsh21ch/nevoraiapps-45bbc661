@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Users,
   User,
   Radio,
   Trophy,
@@ -12,6 +11,7 @@ import {
   BarChart3,
   Search,
   LogOut,
+  FileText,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { listParentChildren, getChildSummary, type ParentChild, type ChildSummary } from "@/lib/mc-parent-portal";
+import { ProgressReport } from "@/components/parent-portal/ProgressReport";
 
 export const Route = createFileRoute("/parent-portal")({
   head: () => ({
