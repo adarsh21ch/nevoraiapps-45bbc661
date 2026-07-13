@@ -1,87 +1,68 @@
+## Goal
 
-# Plan — Academy site polish + owner dashboard simplification
+A **Demo Mode** toggle inside Match Center → Settings that overlays realistic sample data across every module. Real academy data is never written to or modified. When OFF, only real data is visible.
 
-Big scope, so I'm grouping it into 5 focused work streams. I'll implement all of them in this turn once you approve. Nothing below changes business logic — it's UI/UX, navigation, session, and one storage fix.
+## Approach — client-side overlay (no DB writes)
 
----
+Writing 150 players, 80 matches, ball events, careers, recognitions etc. into Supabase would (a) mix with real data, (b) require RLS/tenant-safe seeding, (c) break the "never touch real data" rule the moment a scorer edits the live demo match. Instead:
 
-## 1. Apply the sports theme to every academy site (not just the landing)
+- Demo data lives in a deterministic **in-memory fixture module** (`src/lib/mc-demo/*`), generated once with a seeded PRNG and cached in `localStorage` (per-tenant key).
+- A **`useDemoMode()` hook** reads a per-tenant flag from `localStorage` (`mc:demo:<tenantId>` = `on|off`, default `off`).
+- Read paths (list pages, dashboards, profiles, website, parent portal, scorebook, performance) are wrapped by small **`withDemo()` selectors** that, when demo is ON, return `[...realData, ...demoData]` (or purely demo if the academy is empty). Real DB queries are unchanged.
+- Write paths (create/update/delete, scorer ball events) short-circuit for demo IDs: mutations against a demo entity update the in-memory fixture and re-render, never hitting Supabase. All demo IDs are prefixed `demo-` so this is a cheap check.
 
-Today only the home page uses the kinetic theme. I'll extend the same visual language (tokens, typography, glass cards, subtle motion) to:
-- Public pages: About, Contact, Register, Fees, Star Players
-- Auth pages: /auth (sign in / sign up / reset)
-- The tenant "not accepting online activity" and placeholder screens
+This satisfies "reuse existing engines" — the Statistics Engine, Ball Event aggregator, Performance Analytics, Scorebook, Career calculator all run on the demo fixture the exact same way they run on real data.
 
-Each academy keeps its **own** brand color, logo, and niche vocabulary (already in `theme-presets.ts` + `niche.ts`). The theme just gets applied consistently everywhere so the whole product feels premium, not just the landing.
+## Fixture generator
 
-**Sports-flavored vocabulary** stays automatic via `niche()` — headings, empty states, CTAs will use "players / squads / coaches / season" instead of generic "students / batches".
+`src/lib/mc-demo/generate.ts` — pure function, seeded by `tenantId`:
 
-**Visual upgrades (not a redesign — a polish pass):**
-- Glass cards with soft depth (glassmorphism) on key sections
-- Rounded 3D-ish stat tiles on the hero (Cloudflare-style pill/badge row)
-- Motion: hero entrance + on-scroll reveals via Motion/React (already installed)
-- Better section rhythm on the home page (Coaches, Star players, Testimonials, Facilities), all editable by owner
+- 150 players (names, roles, DOB, photo URLs from a curated placeholder set, `player_id = DEMO001…`)
+- 10 teams (Junior, Senior, Girls, U13/15/17/19, Practice, Tournament, Representative)
+- 5 tournaments (Summer Cup, Winter Cup, Practice League, District League, State Qualifier) with fixtures + standings
+- 80 completed matches — each with innings, ball events, POM, scorebook-ready data
+- 3 upcoming matches
+- **1 live match** — Sky Cricket Academy U16 vs Royal, 126/4 after 10.5 overs; ball events populated up to that point, `status = 'live'`
+- Career rows derived by running the existing `calculateInningsStatistics` over demo ball events
+- Academy records, recognitions, hall of fame, AI reports (canned but realistic text tied to actual stats), parent links
 
----
+Cached in `localStorage` under `mc:demo:data:<tenantId>` (JSON, ~1–2 MB). Regenerated only on **Reset Demo Data** or version bump.
 
-## 2. Owner dashboard — cut the noise, put fees front and center
+## UI touch points
 
-Current dashboard has too many equal-weight items. New shape:
+1. **Settings → Demo Data card** (`src/routes/match-center.settings.tsx` or the settings surface used today) — toggle + "Reset Demo Data" button.
+2. **Global demo badge** — `🟡 Demo Data` pill in `MatchCenterLayout` top bar when demo is ON.
+3. **Read overlays** — thin wrappers in ~15 route/component files (matches list, teams, players, tournaments, dashboard, website public bundle preview, parent portal, performance center, scorebook, recognition, records, hall of fame). Each is a 3-5 line change: `const data = useDemoOverlay(realData, demoSlice)`.
+4. **Scorer** — when `matchId.startsWith('demo-')`, ball-event writes go to the demo store; realtime subscriptions are replaced by a local event emitter. Score, scorebook, career, records, website, parent portal, performance all recompute because they read from the same fixture.
 
-**Home (default view after login):**
-- Big "Fees this month" panel: collected vs pending, count of paid/unpaid students, quick "Mark paid" action per pending row
-- Secondary KPIs: active students, new registrations (7d)
-- Everything else moves to secondary tabs
+## Files
 
-**Sidebar cleanup:**
-- **Remove "Site editor" from the owner sidebar entirely.** As you said — you (owner) edit the site from Platform Admin, not from the tenant dashboard.
-- Keep: Home, Fees, Students, Registrations, Batches, Fee plans, Attendance, Reminders, Reports
+**Created**
+- `src/lib/mc-demo/rng.ts` — seeded PRNG
+- `src/lib/mc-demo/names.ts` — name/photo pools
+- `src/lib/mc-demo/generate.ts` — fixture generator (players/teams/tournaments/matches/careers/etc.)
+- `src/lib/mc-demo/store.ts` — localStorage-backed store, `useDemoMode`, `useDemoData`, `resetDemoData`, `isDemoId`
+- `src/lib/mc-demo/overlay.ts` — `withDemo(list, demoList)` + per-entity selectors
+- `src/lib/mc-demo/scorer.ts` — in-memory ball-event handler for `demo-*` matches
+- `src/components/match-center/demo-badge.tsx`
+- `src/components/match-center/demo-settings-card.tsx`
 
-**Mobile bottom bar (5 slots):** Home · Fees · Students · Registrations · **Profile** (replaces the current "More" — profile screen holds settings, tenant info, sign out, help)
+**Modified** (small, presentation-only)
+- `src/components/match-center/MatchCenterLayout.tsx` — mount demo badge
+- Settings route — mount `DemoSettingsCard`
+- Matches / teams / players / tournaments / dashboard / performance / scorebook / website preview / parent portal routes — wrap reads with overlay
+- Scorer route — branch on `isDemoId(matchId)` before Supabase writes
 
----
+## Non-goals
 
-## 3. Public site nav + session
+- No DB migrations, no RLS changes, no engine edits, no new statistics, no new APIs.
+- No demo data for platform-admin surfaces (out of scope).
+- No server-side demo mode (per-tenant admin toggle is client-local; that is sufficient for a "make the product feel alive" demo).
 
-- **Owner Login moves to the top header** (right side, ghost button) on every public page. Remove it from the footer where the mobile CTA bar covers it.
-- **Persistent session:** Supabase client already uses `persistSession: true` + `autoRefreshToken: true`; I'll verify the auth listener doesn't force sign-out and that "Add to Home Screen" launches keep the session (localStorage survives PWA installs, so this should already work — I'll test and confirm).
-- **No student accounts.** Registration stays account-less (already the case) — nothing to change there beyond making it obvious.
-- **Add-to-home-screen** now installs the current page's tenant app (already done in last turn via dynamic manifest). I'll make sure the `start_url` = `/` so it opens the landing, and the Apple meta tags are correct.
+## Deliverables at end
 
----
-
-## 4. Fix logo upload
-
-Current bug: uploading a logo from the device fails. I'll:
-- Debug the `tenant-assets` bucket upload path (likely a MIME/size/RLS issue)
-- Ensure image is uploaded to Supabase Storage (`tenant-assets/logos/{tenant}/…`), signed URL returned, and `tenants.logo_url` updated
-- Show inline preview + clear error toast on failure
-
----
-
-## 5. Small home-page visual upgrades (kinetic theme v2)
-
-- Replace flat blue strip with a **glass stat card row** (rounded corners, backdrop-blur, subtle gradient border) — Cloudflare/Linear vibe
-- Hero: layered depth + one tasteful motion accent (not busy)
-- Coaches/Players sections with real photo slots the owner can upload
-- Keep white + tenant-blue palette for Sai Sports (as you said, you like it) — just more premium
+Files created / modified, list of demo entities generated, live-match walkthrough, reset behavior, perf note (fixture cached, generated once, ~50 ms), typecheck result.
 
 ---
 
-## Out of scope this turn (call these out so I don't sneak them in)
-
-- **AI agent** for fees Q&A ("who hasn't paid this month?") — big enough to be its own turn. I'll leave a clean data shape so we can bolt it on next.
-- Full site-editor rebuild inside Platform Admin (it already exists there; I'm just removing it from the tenant sidebar)
-- Payment gateway / auto-reconciliation
-
----
-
-## Technical notes (for reference)
-
-- Files touched: `src/routes/{auth,about,contact,register,fees,star-players,index}.tsx`, `src/components/site/*`, `src/components/dashboard/DashboardShell.tsx`, `src/routes/dashboard.index.tsx`, `src/routes/dashboard.site.tsx` (remove from nav, keep route for platform admin), new `src/routes/dashboard.profile.tsx`, `src/lib/storage.ts` (logo upload fix)
-- No DB migrations needed
-- No new dependencies
-
----
-
-Approve and I'll execute the whole plan in one pass. If you want me to drop or reorder any section (e.g. skip #5 visual polish, or do fees dashboard first), tell me now.
+**Scope check before I build:** this is a large surface (~15 files touched for overlays, plus the fixture generator itself). Approve the client-side overlay approach and I'll implement it. If instead you want demo data **actually seeded into Supabase under the current tenant** (so it appears identically on every device / to real logins), say so — that is a different, larger change with tenant-safety implications.
