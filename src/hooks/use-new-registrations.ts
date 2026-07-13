@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -6,21 +6,24 @@ import { supabase } from "@/integrations/supabase/client";
  * Single source of truth for the "new registration" notification badge.
  *
  * Only registrations with status = 'new' contribute to the count.
- * Once the Registrations inbox is opened they are flipped to 'reviewed'
- * (see markRegistrationsReviewed) — they never come back to 'new'.
+ * Once the Registrations inbox is opened they are flipped to 'reviewed'.
  *
- * A single Realtime subscription is installed per tenant; every consumer
- * shares the same React Query cache entry, so header, sidebar, bottom
- * nav and dashboard banner always render an identical number.
+ * Every consumer shares the same React Query cache entry, so header,
+ * sidebar, bottom nav and dashboard banner always render an identical
+ * number. Each subscriber uses a unique realtime channel name so two
+ * consumers on the same page never collide on the same topic (which
+ * Supabase Realtime treats as an error).
  */
 export function newRegsQueryKey(tenantId: string) {
   return ["d", "regs-new-count", tenantId] as const;
 }
 
-export function useNewRegistrationsCount(tenantId: string) {
+export function useNewRegistrationsCount(tenantId: string): number {
   const qc = useQueryClient();
+  const subId = useId();
 
   const q = useQuery({
+    enabled: !!tenantId,
     queryKey: newRegsQueryKey(tenantId),
     queryFn: async () => {
       const { count, error } = await supabase
@@ -37,7 +40,7 @@ export function useNewRegistrationsCount(tenantId: string) {
   useEffect(() => {
     if (!tenantId) return;
     const channel = supabase
-      .channel(`reg-notify:${tenantId}`)
+      .channel(`reg-notify:${tenantId}:${subId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "registrations", filter: `tenant_id=eq.${tenantId}` },
@@ -47,9 +50,13 @@ export function useNewRegistrationsCount(tenantId: string) {
       )
       .subscribe();
     return () => {
-      supabase.removeChannel(channel);
+      try {
+        supabase.removeChannel(channel);
+      } catch {
+        /* channel already torn down */
+      }
     };
-  }, [tenantId, qc]);
+  }, [tenantId, qc, subId]);
 
   return q.data ?? 0;
 }
@@ -59,6 +66,7 @@ export function useNewRegistrationsCount(tenantId: string) {
  * Registrations inbox mounts — matches Gmail/WhatsApp/Slack behaviour.
  */
 export async function markRegistrationsReviewed(tenantId: string) {
+  if (!tenantId) return;
   const { error } = await supabase
     .from("registrations")
     .update({ status: "reviewed" })
