@@ -117,9 +117,9 @@ function RecognitionPage() {
     queryFn: () => listAcademyTimeline(tenantId, 200),
   });
   const searchQ = useQuery({
-    queryKey: ["mc-recog-search", tenantId, search],
-    queryFn: () => searchRecognitions(tenantId, search),
-    enabled: search.trim().length >= 2,
+    queryKey: ["mc-recog-search", tenantId, debouncedSearch],
+    queryFn: () => searchRecognitions(tenantId, debouncedSearch),
+    enabled: debouncedSearch.trim().length >= 2,
   });
 
   const invalidateAll = () => {
