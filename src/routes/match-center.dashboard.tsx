@@ -21,6 +21,7 @@ import {
   Medal,
   ClipboardList,
   Rocket,
+  BookOpen,
 } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import {
