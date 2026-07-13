@@ -240,6 +240,171 @@ export type Database = {
           },
         ]
       }
+      mc_team_players: {
+        Row: {
+          added_at: string
+          batting_style: string | null
+          bowling_style: string | null
+          id: string
+          is_captain: boolean
+          is_keeper: boolean
+          is_vice_captain: boolean
+          jersey_number: number | null
+          role: string | null
+          student_id: string
+          team_id: string
+          tenant_id: string
+        }
+        Insert: {
+          added_at?: string
+          batting_style?: string | null
+          bowling_style?: string | null
+          id?: string
+          is_captain?: boolean
+          is_keeper?: boolean
+          is_vice_captain?: boolean
+          jersey_number?: number | null
+          role?: string | null
+          student_id: string
+          team_id: string
+          tenant_id: string
+        }
+        Update: {
+          added_at?: string
+          batting_style?: string | null
+          bowling_style?: string | null
+          id?: string
+          is_captain?: boolean
+          is_keeper?: boolean
+          is_vice_captain?: boolean
+          jersey_number?: number | null
+          role?: string | null
+          student_id?: string
+          team_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_team_players_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_team_players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "mc_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_team_players_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_teams: {
+        Row: {
+          age_group: string | null
+          age_group_custom: string | null
+          assistant_coach_name: string | null
+          captain_student_id: string | null
+          coach_name: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          keeper_student_id: string | null
+          logo_url: string | null
+          name: string
+          season: string | null
+          short_name: string | null
+          sport: string
+          status: string
+          team_color: string | null
+          tenant_id: string
+          updated_at: string
+          vice_captain_student_id: string | null
+        }
+        Insert: {
+          age_group?: string | null
+          age_group_custom?: string | null
+          assistant_coach_name?: string | null
+          captain_student_id?: string | null
+          coach_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          keeper_student_id?: string | null
+          logo_url?: string | null
+          name: string
+          season?: string | null
+          short_name?: string | null
+          sport?: string
+          status?: string
+          team_color?: string | null
+          tenant_id: string
+          updated_at?: string
+          vice_captain_student_id?: string | null
+        }
+        Update: {
+          age_group?: string | null
+          age_group_custom?: string | null
+          assistant_coach_name?: string | null
+          captain_student_id?: string | null
+          coach_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          keeper_student_id?: string | null
+          logo_url?: string | null
+          name?: string
+          season?: string | null
+          short_name?: string | null
+          sport?: string
+          status?: string
+          team_color?: string | null
+          tenant_id?: string
+          updated_at?: string
+          vice_captain_student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_teams_captain_student_id_fkey"
+            columns: ["captain_student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_teams_keeper_student_id_fkey"
+            columns: ["keeper_student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_teams_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_teams_vice_captain_student_id_fkey"
+            columns: ["vice_captain_student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
