@@ -554,3 +554,43 @@ body {
     linear-gradient(180deg, color-mix(in oklch, var(--background) 96%, transparent), var(--background));
   background-attachment: local;
 }
+
+/* Fullscreen: turn the scorebook into a scrollable document with sticky toolbar. */
+.scorebook-fs-wrap:fullscreen {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100vh;
+  width: 100vw;
+  background: var(--background);
+  padding: 0;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.scorebook-fs-wrap:fullscreen .scorebook-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  margin: 0;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  backdrop-filter: blur(12px);
+  background: color-mix(in oklch, var(--card) 85%, transparent);
+}
+.scorebook-fs-wrap:fullscreen .scorebook-paper-outer {
+  max-width: min(1400px, 100%);
+  padding: 1.25rem 1.5rem 3rem;
+  margin-inline: auto;
+}
+.scorebook-fs-wrap:fullscreen .scorebook-paper {
+  max-width: none;
+  box-shadow: 0 20px 60px -30px color-mix(in oklch, var(--foreground) 25%, transparent);
+}
+/* Sticky table headers inside the fullscreen scroll container */
+.scorebook-fs-wrap:fullscreen .sb-sticky-thead thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: color-mix(in oklch, var(--card) 95%, var(--background));
+}
