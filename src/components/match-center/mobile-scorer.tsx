@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -29,8 +29,10 @@ import {
   UserPlus,
   ArrowLeft,
   FileText,
+  Search,
+  X,
 } from "lucide-react";
-import type { BatterStats, BowlerStats } from "./scoring-ui";
+import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
 
 /**
  * Compact, thumb-first cricket scoring surface. Presentation-only — no MCC /
