@@ -205,11 +205,28 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-1.5">
-            <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+            <Button
+              size="sm"
+              className="hidden md:inline-flex rounded-full h-9"
+              onClick={() => navigate({ to: "/match-center/create" })}
+            >
+              <PlusCircle className="size-4 mr-1.5" /> New match
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative rounded-full"
+              aria-label="Notifications"
+            >
               <Bell className="size-4" />
             </Button>
             <ThemeToggle />
-            <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="hidden md:inline-flex"
+            >
               <LogOut className="size-4 mr-1" /> Sign out
             </Button>
           </div>
