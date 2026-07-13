@@ -166,6 +166,16 @@
     border-color: var(--color-border);
   }
 
+  /* Native mobile app feel — never allow horizontal scroll on the shell.
+     Elements that intentionally scroll horizontally (chip rows, tables,
+     carousels) must opt-in locally with overflow-x-auto. */
+  html,
+  body,
+  #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -174,6 +184,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
+
 
   /* Focus rings — visible, consistent, tone-aware. */
   :where(button, a, [role="button"], input, select, textarea, [tabindex]):focus-visible {
