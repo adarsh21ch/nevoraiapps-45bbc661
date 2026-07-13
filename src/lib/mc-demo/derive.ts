@@ -44,6 +44,15 @@ function teamNameById(demo: DemoData, teamId: string | null | undefined): string
   return demo.teams.find((t) => t.id === teamId)?.name ?? "—";
 }
 
+/** Map innings_id → { batting_team_id, bowling_team_id } for O(1) event → team lookup. */
+function inningsTeamMap(demo: DemoData): Map<string, { batting: string; bowling: string }> {
+  const m = new Map<string, { batting: string; bowling: string }>();
+  for (const i of demo.innings) {
+    m.set(i.id, { batting: i.batting_team_id, bowling: i.bowling_team_id });
+  }
+  return m;
+}
+
 /* ---------------- Player: career derivation ---------------- */
 
 export interface PlayerMatchLine {
