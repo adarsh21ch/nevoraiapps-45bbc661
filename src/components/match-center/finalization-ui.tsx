@@ -148,10 +148,15 @@ export function FinalizationDialog({
         if (recog.inserted > 0) {
           toast.success(`${recog.inserted} recognition${recog.inserted === 1 ? "" : "s"} suggested`);
         }
+        // AI Insights Engine: auto-generate match report (deterministic).
+        const { processMatchAI } = await import("@/lib/mc-ai-engine");
+        const ai = await processMatchAI(matchId);
+        if (ai.generated > 0) toast.success("AI match report generated");
       } catch (careerErr) {
         console.error("Career/records update failed", careerErr);
         toast.error("Match finalized, but downstream update failed. Rebuild manually.");
       }
+
       onFinalized?.();
       onOpenChange(false);
       setStep(1);
