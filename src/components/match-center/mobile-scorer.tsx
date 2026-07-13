@@ -294,23 +294,35 @@ export function MobileScorer(props: MobileScorerProps) {
           </div>
 
           {(props.awaitingNewBatter || props.awaitingNewBowler) && (
-            <div className="mt-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1 text-[11px] font-medium text-amber-700 dark:text-amber-400">
-              {props.awaitingNewBatter
-                ? "Waiting for next batter…"
-                : "Over complete — pick next bowler."}
-            </div>
+            <button
+              type="button"
+              onClick={
+                props.awaitingNewBatter
+                  ? props.onOpenStrikerPicker
+                  : props.onOpenBowlerPicker
+              }
+              className="mt-1.5 flex h-8 w-full items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 text-[11px] font-medium text-amber-700 dark:text-amber-400"
+            >
+              <span aria-hidden>⚠</span>
+              <span className="truncate">
+                {props.awaitingNewBatter
+                  ? "Waiting for next batter"
+                  : "Over complete — pick next bowler"}
+              </span>
+              <span className="ml-auto shrink-0 text-[10px] opacity-70">Tap to select</span>
+            </button>
           )}
         </div>
       </div>
 
-      {/* ---------------- Fixed scoring keypad ---------------- */}
+      {/* ---------------- Fixed scoring keypad (compact ~124px) ---------------- */}
       <div
         className="border-t bg-card"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="mx-auto w-full max-w-xl px-2 py-2">
-          {/* Row 1 — runs 0-6 in a single row */}
-          <div className="grid grid-cols-6 gap-1.5">
+        <div className="mx-auto w-full max-w-xl px-2 pt-1.5 pb-1.5">
+          {/* Row 1 — runs 0-6 */}
+          <div className="grid grid-cols-6 gap-1">
             <RunKey value={0} onClick={() => !props.disabled && props.onRun(0)} />
             <RunKey value={1} onClick={() => !props.disabled && props.onRun(1)} />
             <RunKey value={2} onClick={() => !props.disabled && props.onRun(2)} />
@@ -319,7 +331,7 @@ export function MobileScorer(props: MobileScorerProps) {
             <RunKey value={6} tone="six" onClick={() => !props.disabled && props.onRun(6)} />
           </div>
           {/* Row 2 — events */}
-          <div className="mt-1.5 grid grid-cols-5 gap-1.5">
+          <div className="mt-1 grid grid-cols-5 gap-1">
             <ExtraKey label="Wide" tone="wide" onClick={() => !props.disabled && props.onExtra("Wide")} />
             <ExtraKey label="No Ball" tone="nb" onClick={() => !props.disabled && props.onExtra("No Ball")} />
             <ExtraKey label="Bye" tone="bye" onClick={() => !props.disabled && props.onExtra("Bye")} />
@@ -327,20 +339,20 @@ export function MobileScorer(props: MobileScorerProps) {
             <ExtraKey label="OUT" tone="out" onClick={() => !props.disabled && props.onOut()} />
           </div>
 
-          {/* Bottom action bar — Scorecard · Undo · More */}
-          <div className="mt-2 grid grid-cols-3 gap-1.5">
+          {/* Compact icon action bar */}
+          <div className="mt-1 grid grid-cols-3 gap-1">
             <FooterAction
-              icon={<FileText className="size-4" />}
+              icon={<FileText className="size-3.5" />}
               label="Scorecard"
               onClick={props.onOpenScorecard}
             />
             <FooterAction
-              icon={<Undo2 className="size-4" />}
+              icon={<Undo2 className="size-3.5" />}
               label="Undo"
               onClick={props.onUndo}
             />
             <FooterAction
-              icon={<MoreHorizontal className="size-4" />}
+              icon={<MoreHorizontal className="size-3.5" />}
               label="More"
               onClick={() => setMoreOpen(true)}
             />
