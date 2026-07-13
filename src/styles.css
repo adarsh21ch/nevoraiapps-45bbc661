@@ -273,14 +273,34 @@
   }
 
   .scorer-native-page {
+    height: 100%;
+    max-height: 100%;
+    overscroll-behavior: none;
+  }
+
+  .scorer-root {
+    /* Belt-and-braces: fixed positioning already pins the scorer to the
+       viewport, but explicitly block overscroll so pull-to-refresh /
+       rubber-band does not reveal the page underneath on iOS/Android. */
+    overscroll-behavior: none;
+    touch-action: manipulation;
+  }
+
+  /* When any scorer-root is mounted, freeze the document scroll so the
+     scoring workspace behaves like a native app rather than a web page. */
+  html:has(.scorer-root),
+  body:has(.scorer-root) {
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
     height: 100dvh;
     max-height: 100dvh;
-    overscroll-behavior: none;
   }
 
   .scorer-match-scroll {
     -webkit-overflow-scrolling: touch;
     scrollbar-gutter: stable both-edges;
+    overscroll-behavior: contain;
   }
 }
 
