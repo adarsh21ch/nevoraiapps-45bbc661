@@ -15,7 +15,7 @@ import { useTenant } from "@/lib/tenant-context";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/insights")({
+export const Route = createFileRoute("/dashboard/insights")({
   head: () => ({
     meta: [
       { title: "Insights & Records — Academy" },

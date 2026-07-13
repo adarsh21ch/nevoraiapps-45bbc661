@@ -14,7 +14,6 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
 import { Route as ParentPortalRouteImport } from './routes/parent-portal'
 import { Route as MatchCenterRouteImport } from './routes/match-center'
-import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as FeesRouteImport } from './routes/fees'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -53,6 +52,7 @@ import { Route as DashboardRemindersRouteImport } from './routes/dashboard.remin
 import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
+import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
 import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
@@ -96,11 +96,6 @@ const ParentPortalRoute = ParentPortalRouteImport.update({
 const MatchCenterRoute = MatchCenterRouteImport.update({
   id: '/match-center',
   path: '/match-center',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InsightsRoute = InsightsRouteImport.update({
-  id: '/insights',
-  path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeesRoute = FeesRouteImport.update({
@@ -294,6 +289,11 @@ const DashboardLeadsRoute = DashboardLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardInsightsRoute = DashboardInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardFeesRoute = DashboardFeesRouteImport.update({
   id: '/fees',
   path: '/fees',
@@ -406,7 +406,6 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
-  '/insights': typeof InsightsRoute
   '/match-center': typeof MatchCenterRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
@@ -417,6 +416,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
+  '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
@@ -470,7 +470,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/fees': typeof FeesRoute
-  '/insights': typeof InsightsRoute
   '/parent-portal': typeof ParentPortalRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
@@ -479,6 +478,7 @@ export interface FileRoutesByTo {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
+  '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
@@ -534,7 +534,6 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
-  '/insights': typeof InsightsRoute
   '/match-center': typeof MatchCenterRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
@@ -545,6 +544,7 @@ export interface FileRoutesById {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
+  '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
@@ -601,7 +601,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/fees'
-    | '/insights'
     | '/match-center'
     | '/parent-portal'
     | '/platform-admin'
@@ -612,6 +611,7 @@ export interface FileRouteTypes {
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
+    | '/dashboard/insights'
     | '/dashboard/leads'
     | '/dashboard/profile'
     | '/dashboard/registrations'
@@ -665,7 +665,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/fees'
-    | '/insights'
     | '/parent-portal'
     | '/register'
     | '/star-players'
@@ -674,6 +673,7 @@ export interface FileRouteTypes {
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
+    | '/dashboard/insights'
     | '/dashboard/leads'
     | '/dashboard/profile'
     | '/dashboard/registrations'
@@ -728,7 +728,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/fees'
-    | '/insights'
     | '/match-center'
     | '/parent-portal'
     | '/platform-admin'
@@ -739,6 +738,7 @@ export interface FileRouteTypes {
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
+    | '/dashboard/insights'
     | '/dashboard/leads'
     | '/dashboard/profile'
     | '/dashboard/registrations'
@@ -794,7 +794,6 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   FeesRoute: typeof FeesRoute
-  InsightsRoute: typeof InsightsRoute
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
   ParentPortalRoute: typeof ParentPortalRoute
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
@@ -843,13 +842,6 @@ declare module '@tanstack/react-router' {
       path: '/match-center'
       fullPath: '/match-center'
       preLoaderRoute: typeof MatchCenterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/insights': {
-      id: '/insights'
-      path: '/insights'
-      fullPath: '/insights'
-      preLoaderRoute: typeof InsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fees': {
@@ -1118,6 +1110,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLeadsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/insights': {
+      id: '/dashboard/insights'
+      path: '/insights'
+      fullPath: '/dashboard/insights'
+      preLoaderRoute: typeof DashboardInsightsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/fees': {
       id: '/dashboard/fees'
       path: '/fees'
@@ -1270,6 +1269,7 @@ interface DashboardRouteChildren {
   DashboardBatchesRoute: typeof DashboardBatchesRoute
   DashboardFeePlansRoute: typeof DashboardFeePlansRoute
   DashboardFeesRoute: typeof DashboardFeesRoute
+  DashboardInsightsRoute: typeof DashboardInsightsRoute
   DashboardLeadsRoute: typeof DashboardLeadsRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardRegistrationsRoute: typeof DashboardRegistrationsRoute
@@ -1286,6 +1286,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBatchesRoute: DashboardBatchesRoute,
   DashboardFeePlansRoute: DashboardFeePlansRoute,
   DashboardFeesRoute: DashboardFeesRoute,
+  DashboardInsightsRoute: DashboardInsightsRoute,
   DashboardLeadsRoute: DashboardLeadsRoute,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardRegistrationsRoute: DashboardRegistrationsRoute,
@@ -1414,7 +1415,6 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
   FeesRoute: FeesRoute,
-  InsightsRoute: InsightsRoute,
   MatchCenterRoute: MatchCenterRouteWithChildren,
   ParentPortalRoute: ParentPortalRoute,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
