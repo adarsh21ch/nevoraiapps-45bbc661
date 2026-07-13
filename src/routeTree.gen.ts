@@ -26,6 +26,7 @@ import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
 import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
+import { Route as MatchSlugRouteImport } from './routes/match.$slug'
 import { Route as MatchCenterTournamentsRouteImport } from './routes/match-center.tournaments'
 import { Route as MatchCenterSettingsRouteImport } from './routes/match-center.settings'
 import { Route as MatchCenterRecordsRouteImport } from './routes/match-center.records'
@@ -145,6 +146,11 @@ const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
   id: '/new',
   path: '/new',
   getParentRoute: () => PlatformAdminRoute,
+} as any)
+const MatchSlugRoute = MatchSlugRouteImport.update({
+  id: '/match/$slug',
+  path: '/match/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const MatchCenterTournamentsRoute = MatchCenterTournamentsRouteImport.update({
   id: '/tournaments',
@@ -350,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
+  '/match/$slug': typeof MatchSlugRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
@@ -399,6 +406,7 @@ export interface FileRoutesByTo {
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
+  '/match/$slug': typeof MatchSlugRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
@@ -452,6 +460,7 @@ export interface FileRoutesById {
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
+  '/match/$slug': typeof MatchSlugRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
@@ -506,6 +515,7 @@ export interface FileRouteTypes {
     | '/match-center/records'
     | '/match-center/settings'
     | '/match-center/tournaments'
+    | '/match/$slug'
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
@@ -555,6 +565,7 @@ export interface FileRouteTypes {
     | '/match-center/records'
     | '/match-center/settings'
     | '/match-center/tournaments'
+    | '/match/$slug'
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
@@ -607,6 +618,7 @@ export interface FileRouteTypes {
     | '/match-center/records'
     | '/match-center/settings'
     | '/match-center/tournaments'
+    | '/match/$slug'
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
@@ -638,6 +650,7 @@ export interface RootRouteChildren {
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
+  MatchSlugRoute: typeof MatchSlugRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
@@ -763,6 +776,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/platform-admin/new'
       preLoaderRoute: typeof PlatformAdminNewRouteImport
       parentRoute: typeof PlatformAdminRoute
+    }
+    '/match/$slug': {
+      id: '/match/$slug'
+      path: '/match/$slug'
+      fullPath: '/match/$slug'
+      preLoaderRoute: typeof MatchSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/match-center/tournaments': {
       id: '/match-center/tournaments'
@@ -1135,6 +1155,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
+  MatchSlugRoute: MatchSlugRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
