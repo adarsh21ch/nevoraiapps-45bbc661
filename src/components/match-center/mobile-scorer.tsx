@@ -329,19 +329,17 @@ export function MobileScorer(props: MobileScorerProps) {
             </button>
           )}
 
+          <ThisOverStrip balls={props.overBalls} />
+
           <ScoringDock
             disabled={props.disabled}
             onRun={props.onRun}
             onExtra={props.onExtra}
             onOut={props.onOut}
-            onUndo={props.onUndo}
-            onScorecard={props.onOpenScorecard}
-            onMore={() => setMoreOpen(true)}
           />
 
           <LiveInsights
-            className="min-h-[132px]"
-            balls={props.overBalls}
+            className="min-h-[112px]"
             partnership={props.partnership}
             chase={props.chase}
             crr={props.crr}
@@ -349,6 +347,7 @@ export function MobileScorer(props: MobileScorerProps) {
             target={props.target}
             insights={props.insights}
           />
+
         </div>
       </main>
 
