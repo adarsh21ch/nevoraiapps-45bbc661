@@ -81,7 +81,15 @@ const DISMISSAL_MAP: Record<DismissalKind, DismissalType> = {
 
 function ScorerPage() {
   const { matchId } = Route.useParams();
-  const isDemo = matchId === "demo";
+  const isDemoPlaceholder = matchId === "demo";
+  const isDemoMatch = typeof matchId === "string" && matchId.startsWith("demo-");
+
+  // Demo-mode short-circuit: render a read-only demo scorer for any demo-* id.
+  if (isDemoMatch) {
+    return <DemoScorerView matchId={matchId} />;
+  }
+
+  const isDemo = isDemoPlaceholder;
 
   // Auth user
   const userQ = useQuery({
