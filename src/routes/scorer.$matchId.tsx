@@ -1,25 +1,19 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  MatchHeader,
-  PlayerPanel,
-  BowlerPanel,
-  OverTimeline,
   DismissalModal,
   PlayerPickerModal,
   RunOutModal,
   ExtraRunsModal,
   SquadDrawer,
-  CommentaryPanel,
-  type ConnectionStatus,
   type DismissalKind,
   type PlayerOption,
   type BatterStats,
   type BowlerStats,
 } from "@/components/match-center/scoring-ui";
-import { ScoringActions } from "@/components/match-center/scoring-actions";
+import { MobileScorer } from "@/components/match-center/mobile-scorer";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -32,21 +26,19 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
 import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
-import { buildCommentary, ballChipLabel } from "@/lib/mc-commentary";
-import type { DismissalType, MCBallEvent } from "@/lib/mc-ball-events";
+import { ballChipLabel } from "@/lib/mc-commentary";
+import type { DismissalType } from "@/lib/mc-ball-events";
 
 import { LiveScorecard } from "@/components/match-center/live-scorecard";
 import { FinalizationDialog, UnlockMatchDialog } from "@/components/match-center/finalization-ui";
 import { detectMatchResult, type InningsRow, type MatchResult } from "@/lib/mc-finalization";
 import {
-  Users,
-  ClipboardList,
-  ArrowLeft,
   Printer,
   Share2,
   FileText,
   Trophy,
 } from "lucide-react";
+
 
 export const Route = createFileRoute("/scorer/$matchId")({
   head: () => ({
@@ -341,10 +333,8 @@ function ScorerPage() {
   const homeName = teamMap.get(battingTeamId)?.name ?? "Home";
   const awayName = teamMap.get(bowlingTeamId)?.name ?? "Away";
 
-  const connection: ConnectionStatus =
-    typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "online";
+  // (connection status handled implicitly by MobileScorer; kept for future use)
 
-  const commentary = useMemo(() => buildCommentary(session.events), [session.events]);
 
   /* ---------- ball submission ---------- */
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
@@ -514,70 +504,34 @@ function ScorerPage() {
   }, [session.submitBall, session.undo]);
 
   /* ---------- render ---------- */
+  const navigate = useNavigate();
+  const teamAShort =
+    teamMap.get(session.match?.team_a_id ?? "")?.short_name ??
+    teamMap.get(session.match?.team_a_id ?? "")?.name?.slice(0, 3).toUpperCase() ??
+    "A";
+  const teamBShort =
+    teamMap.get(session.match?.team_b_id ?? "")?.short_name ??
+    teamMap.get(session.match?.team_b_id ?? "")?.name?.slice(0, 3).toUpperCase() ??
+    "B";
+  const matchTitle = `${teamAShort} vs ${teamBShort}`;
+  const tournamentLabel = [
+    session.match?.match_format,
+    session.match?.match_type,
+    session.activeInnings ? `Innings ${session.activeInnings.innings_number}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const chase =
+    session.activeInnings?.target != null && stats.team.requiredRuns != null
+      ? {
+          runsNeeded: stats.team.requiredRuns,
+          ballsLeft: stats.team.ballsRemaining ?? 0,
+        }
+      : null;
+
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
-      <MatchHeader
-        homeTeam={homeName}
-        awayTeam={awayName}
-        score={`${stats.team.runs}/${stats.team.wickets}`}
-        overs={stats.team.oversDisplay}
-        crr={String(stats.team.runRate)}
-        rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
-        target={session.activeInnings?.target != null ? String(session.activeInnings.target) : undefined}
-        status={session.activeInnings ? `Innings ${session.activeInnings.innings_number}` : "Setup"}
-        format={session.match?.match_format ?? undefined}
-        ground={session.match?.ground_name ?? undefined}
-        tournament={session.match?.match_type ?? undefined}
-        connection={connection}
-        isLive={!!session.activeInnings && !session.match?.match_locked}
-        date={session.match?.scheduled_date ?? null}
-        currentBatter={striker.name ?? null}
-        currentBowler={bowlerRef.name ?? null}
-      />
-
-      <div className="flex items-center justify-between gap-2 border-b bg-card px-3 py-1.5 text-xs">
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" asChild className="h-8 gap-1.5">
-            <Link to="/match-center/live">
-              <ArrowLeft className="size-3.5" /> Exit
-            </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1.5"
-            onClick={() => setLeftDrawer(true)}
-          >
-            <ClipboardList className="size-3.5" /> Match info
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1.5"
-            onClick={() => setScorecardOpen(true)}
-          >
-            <FileText className="size-3.5" /> Scorecard
-          </Button>
-          {!isDemo && (
-            <Button asChild variant="ghost" size="sm" className="h-8 gap-1.5">
-              <Link to="/match-center/scorebook/$matchId" params={{ matchId }} target="_blank">
-                <ClipboardList className="size-3.5" /> Scorebook
-              </Link>
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1.5"
-            onClick={() => setRightDrawer(true)}
-          >
-            <Users className="size-3.5" /> Squad
-          </Button>
-        </div>
-      </div>
-
       {isDemo ? (
         <div className="grid flex-1 place-items-center p-8 text-center">
           <div className="max-w-md space-y-3">
@@ -612,95 +566,81 @@ function ScorerPage() {
             </div>
           </div>
         </div>
-      ) : (
-        <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-3 overflow-y-auto p-3 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
-          {/* Left: Batters (auto-driven by match state; taps open pickers) */}
-          <div className="flex min-h-0 flex-col gap-3">
-            <button
-              type="button"
-              className="rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={() => setPickStrikerOpen(true)}
-              aria-label="Change striker"
-            >
-              <PlayerPanel striker={strikerStat} nonStriker={nonStrikerStat} />
-            </button>
-            {stats.team.currentPartnership && (
-              <div className="rounded-lg border bg-card p-3 text-xs">
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Partnership
-                </div>
-                <div className="mt-0.5 font-semibold tabular-nums">
-                  {stats.team.currentPartnership.runs} ({stats.team.currentPartnership.balls})
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Center: over timeline + scoring surface */}
-          <div className="flex min-h-0 flex-col gap-3">
-            <OverTimeline balls={session.currentOver.events.map(ballChipLabel)} />
-
-            {noInnings ? (
-              <div className="flex flex-col items-center justify-center gap-3 rounded-xl border bg-card p-6 text-center">
-                <div className="text-sm font-semibold">Ready to start?</div>
-                <p className="text-xs text-muted-foreground">
-                  No innings has been created for this match yet.
-                </p>
-                <Button onClick={startFirstInnings}>Start innings 1</Button>
-              </div>
-            ) : (
-              <ScoringActions
-                onRun={onRun}
-                onExtra={(k) => setExtraKind(k)}
-                onOut={() => setDismissOpen(true)}
-                onUndo={() => void session.undo()}
-                onSwapStrike={() => {
-                  const s = { ...session.striker };
-                  session.setStriker({ ...session.nonStriker, onStrike: true });
-                  session.setNonStriker({ ...s, onStrike: false });
-                }}
-                onChangeStriker={() => setPickStrikerOpen(true)}
-                onChangeNonStriker={() => setPickNonStrikerOpen(true)}
-                onChangeBowler={() => setPickBowlerOpen(true)}
-                onRetiredHurt={() => void finalizeWicket("retired_hurt")}
-                onFinishInnings={
-                  session.activeInnings?.innings_number === 1 ? startSecondInnings : undefined
-                }
-                showFinishInnings={session.activeInnings?.innings_number === 1}
-                onEndMatch={finalizeMatch}
-              />
-            )}
-
-            <CommentaryPanel
-              entries={commentary.slice(0, 12)}
-              collapsed={commentaryCollapsed}
-              onToggle={() => setCommentaryCollapsed((v) => !v)}
-            />
-          </div>
-
-          {/* Right: Bowler (tap to change) */}
-          <div className="flex min-h-0 flex-col gap-3">
-            <button
-              type="button"
-              className="rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={() => setPickBowlerOpen(true)}
-              aria-label="Change bowler"
-            >
-              <BowlerPanel bowler={bowlerStat} />
-            </button>
-            {session.matchState.innings.awaitingNewBatter && (
-              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
-                Waiting for next batter…
-              </div>
-            )}
-            {session.matchState.innings.awaitingNewBowler && (
-              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
-                Over complete — pick next bowler.
-              </div>
-            )}
-          </div>
+      ) : noInnings ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+          <div className="text-base font-semibold">Ready to start?</div>
+          <p className="max-w-xs text-xs text-muted-foreground">
+            No innings has been created for this match yet.
+          </p>
+          <Button onClick={startFirstInnings}>Start innings 1</Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => void navigate({ to: "/match-center/live" })}
+          >
+            Back
+          </Button>
         </div>
+      ) : (
+        <MobileScorer
+          onExit={() => void navigate({ to: "/match-center/live" })}
+          matchTitle={matchTitle}
+          tournamentLabel={tournamentLabel || undefined}
+          isLive={!!session.activeInnings && !session.match?.match_locked}
+          score={`${stats.team.runs}/${stats.team.wickets}`}
+          overs={stats.team.oversDisplay}
+          crr={String(stats.team.runRate)}
+          target={
+            session.activeInnings?.target != null
+              ? String(session.activeInnings.target)
+              : undefined
+          }
+          chase={chase}
+          striker={strikerStat}
+          nonStriker={nonStrikerStat}
+          bowler={bowlerStat}
+          partnership={
+            stats.team.currentPartnership
+              ? {
+                  runs: stats.team.currentPartnership.runs,
+                  balls: stats.team.currentPartnership.balls,
+                }
+              : null
+          }
+          overBalls={session.currentOver.events.map(ballChipLabel)}
+          onRun={onRun}
+          onExtra={(k) => setExtraKind(k)}
+          onOut={() => setDismissOpen(true)}
+          onOpenStrikerPicker={() => setPickStrikerOpen(true)}
+          onOpenNonStrikerPicker={() => setPickNonStrikerOpen(true)}
+          onOpenBowlerPicker={() => setPickBowlerOpen(true)}
+          onUndo={() => void session.undo()}
+          onSwapStrike={() => {
+            const s = { ...session.striker };
+            session.setStriker({ ...session.nonStriker, onStrike: true });
+            session.setNonStriker({ ...s, onStrike: false });
+          }}
+          onRetiredHurt={() => void finalizeWicket("retired_hurt")}
+          onFinishInnings={
+            session.activeInnings?.innings_number === 1 ? startSecondInnings : undefined
+          }
+          showFinishInnings={session.activeInnings?.innings_number === 1}
+          onEndMatch={finalizeMatch}
+          onOpenScorecard={() => setScorecardOpen(true)}
+          onOpenScorebook={
+            !isDemo
+              ? () =>
+                  void navigate({
+                    to: "/match-center/scorebook/$matchId",
+                    params: { matchId },
+                  })
+              : undefined
+          }
+          awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
+          awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
+        />
       )}
+
 
       {/* ---------- modals ---------- */}
       <DismissalModal
@@ -1185,7 +1125,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   const homeName = battingTeamId === teamA?.id ? teamA?.name ?? "Home" : teamB?.name ?? "Home";
   const awayName = battingTeamId === teamA?.id ? teamB?.name ?? "Away" : teamA?.name ?? "Away";
 
-  const commentary = buildCommentary(session.events);
+  // commentary intentionally omitted from compact mobile UI — available via scorecard.
 
   /* ---------- ball submission ---------- */
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
@@ -1290,8 +1230,6 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     toast.success("Demo match finalized");
   };
 
-  const commentary40 = commentary.slice(0, 40);
-
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
       if (ev.target instanceof HTMLElement && ["INPUT", "TEXTAREA"].includes(ev.target.tagName))
@@ -1309,54 +1247,25 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   }, [session.submitBall, session.undo]);
 
   const isLive = !match.match_locked && (activeInnings?.status as string) === "in_progress";
-  const status = match.match_locked
-    ? "Final"
-    : activeInnings
-      ? `Innings ${activeInnings.innings_number}${isLive ? " · Live" : ""}`
-      : "Setup";
+
+  const navigate = useNavigate();
+  const teamAShort = teamA?.short_name ?? teamA?.name?.slice(0, 3).toUpperCase() ?? "A";
+  const teamBShort = teamB?.short_name ?? teamB?.name?.slice(0, 3).toUpperCase() ?? "B";
+  const matchTitle = `${teamAShort} vs ${teamBShort} · Demo`;
+  const tournamentLabel = [
+    match.match_format,
+    match.match_type,
+    activeInnings ? `Innings ${activeInnings.innings_number}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const chase =
+    activeInnings?.target != null && stats.team.requiredRuns != null
+      ? { runsNeeded: stats.team.requiredRuns, ballsLeft: stats.team.ballsRemaining ?? 0 }
+      : null;
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
-      <MatchHeader
-        homeTeam={homeName}
-        awayTeam={awayName}
-        score={`${stats.team.runs}/${stats.team.wickets}`}
-        overs={stats.team.oversDisplay}
-        crr={String(stats.team.runRate)}
-        rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
-        target={activeInnings?.target != null ? String(activeInnings.target) : undefined}
-        status={status}
-        format={match.match_format ?? undefined}
-        ground={match.ground_name ?? undefined}
-        tournament={match.match_type ?? undefined}
-        connection="online"
-        isLive={isLive}
-        date={match.scheduled_date ?? null}
-        currentBatter={striker.name ?? null}
-        currentBowler={bowlerRef.name ?? null}
-      />
-
-      <div className="flex items-center justify-between gap-2 border-b bg-card px-3 py-1.5 text-xs">
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" asChild className="h-8 gap-1.5">
-            <Link to="/match-center/live">
-              <ArrowLeft className="size-3.5" /> Exit
-            </Link>
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={() => setScorecardOpen(true)}>
-            <FileText className="size-3.5" /> Scorecard
-          </Button>
-          <Button asChild variant="ghost" size="sm" className="h-8 gap-1.5">
-            <Link to="/match-center/scorebook/$matchId" params={{ matchId }} target="_blank">
-              <ClipboardList className="size-3.5" /> Scorebook
-            </Link>
-          </Button>
-        </div>
-        <div className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400">
-          Demo Match
-        </div>
-      </div>
-
       {match.match_locked ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-5xl space-y-4 p-3 sm:p-4">
@@ -1374,88 +1283,55 @@ function DemoScorerView({ matchId }: { matchId: string }) {
                 result: match.result,
               }}
             />
-            {commentary40.length > 0 && (
-              <CommentaryPanel entries={commentary40} collapsed={false} onToggle={() => {}} />
-            )}
           </div>
         </div>
       ) : (
-        <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-3 overflow-y-auto p-3 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
-          {/* Left */}
-          <div className="flex min-h-0 flex-col gap-3">
-            <button
-              type="button"
-              className="rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={() => setPickStrikerOpen(true)}
-              aria-label="Change striker"
-            >
-              <PlayerPanel striker={strikerStat} nonStriker={nonStrikerStat} />
-            </button>
-            {stats.team.currentPartnership && (
-              <div className="rounded-lg border bg-card p-3 text-xs">
-                <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Partnership
-                </div>
-                <div className="mt-0.5 font-semibold tabular-nums">
-                  {stats.team.currentPartnership.runs} ({stats.team.currentPartnership.balls})
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Center */}
-          <div className="flex min-h-0 flex-col gap-3">
-            <OverTimeline balls={session.currentOver.events.map(ballChipLabel)} />
-            <ScoringActions
-              onRun={onRun}
-              onExtra={(k) => setExtraKind(k)}
-              onOut={() => setDismissOpen(true)}
-              onUndo={() => void session.undo()}
-              onSwapStrike={() => {
-                const s = { ...session.striker };
-                session.setStriker({ ...session.nonStriker, onStrike: true });
-                session.setNonStriker({ ...s, onStrike: false });
-              }}
-              onChangeStriker={() => setPickStrikerOpen(true)}
-              onChangeNonStriker={() => setPickNonStrikerOpen(true)}
-              onChangeBowler={() => setPickBowlerOpen(true)}
-              onRetiredHurt={() => void finalizeWicket("retired_hurt")}
-              onFinishInnings={
-                activeInnings?.innings_number === 1 ? startSecondInnings : undefined
-              }
-              showFinishInnings={activeInnings?.innings_number === 1}
-              onEndMatch={finalizeMatch}
-            />
-            <CommentaryPanel
-              entries={commentary.slice(0, 12)}
-              collapsed={commentaryCollapsed}
-              onToggle={() => setCommentaryCollapsed((v) => !v)}
-            />
-          </div>
-
-          {/* Right */}
-          <div className="flex min-h-0 flex-col gap-3">
-            <button
-              type="button"
-              className="rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={() => setPickBowlerOpen(true)}
-              aria-label="Change bowler"
-            >
-              <BowlerPanel bowler={bowlerStat} />
-            </button>
-            {session.matchState.innings.awaitingNewBatter && (
-              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
-                Waiting for next batter…
-              </div>
-            )}
-            {session.matchState.innings.awaitingNewBowler && (
-              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
-                Over complete — pick next bowler.
-              </div>
-            )}
-          </div>
-        </div>
+        <MobileScorer
+          onExit={() => void navigate({ to: "/match-center/live" })}
+          matchTitle={matchTitle}
+          tournamentLabel={tournamentLabel || undefined}
+          isLive={isLive}
+          score={`${stats.team.runs}/${stats.team.wickets}`}
+          overs={stats.team.oversDisplay}
+          crr={String(stats.team.runRate)}
+          target={activeInnings?.target != null ? String(activeInnings.target) : undefined}
+          chase={chase}
+          striker={strikerStat}
+          nonStriker={nonStrikerStat}
+          bowler={bowlerStat}
+          partnership={
+            stats.team.currentPartnership
+              ? {
+                  runs: stats.team.currentPartnership.runs,
+                  balls: stats.team.currentPartnership.balls,
+                }
+              : null
+          }
+          overBalls={session.currentOver.events.map(ballChipLabel)}
+          onRun={onRun}
+          onExtra={(k) => setExtraKind(k)}
+          onOut={() => setDismissOpen(true)}
+          onOpenStrikerPicker={() => setPickStrikerOpen(true)}
+          onOpenNonStrikerPicker={() => setPickNonStrikerOpen(true)}
+          onOpenBowlerPicker={() => setPickBowlerOpen(true)}
+          onUndo={() => void session.undo()}
+          onSwapStrike={() => {
+            const s = { ...session.striker };
+            session.setStriker({ ...session.nonStriker, onStrike: true });
+            session.setNonStriker({ ...s, onStrike: false });
+          }}
+          onRetiredHurt={() => void finalizeWicket("retired_hurt")}
+          onFinishInnings={
+            activeInnings?.innings_number === 1 ? startSecondInnings : undefined
+          }
+          showFinishInnings={activeInnings?.innings_number === 1}
+          onEndMatch={finalizeMatch}
+          onOpenScorecard={() => setScorecardOpen(true)}
+          awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
+          awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
+        />
       )}
+
 
       {/* ---------- modals ---------- */}
       <DismissalModal open={dismissOpen} onOpenChange={setDismissOpen} onSelect={handleDismissal} />
