@@ -275,20 +275,24 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
       if (!activeInnings) throw new Error("Start an innings first.");
       if (activeInnings.status !== "in_progress")
         throw new Error("Innings is not in progress.");
-      if (!striker.athleteId && !striker.name)
+      const currentStriker = strikerRef.current;
+      const currentNonStriker = nonStrikerRef.current;
+      const currentBowler = bowlerRef.current;
+
+      if (!currentStriker.athleteId && !currentStriker.name)
         throw new Error("Select the striker.");
-      if (!bowler.athleteId && !bowler.name)
+      if (!currentBowler.athleteId && !currentBowler.name)
         throw new Error("Select the bowler.");
 
       // Reuse the same rules-engine as production.
       validateBallDraft(
         {
-          strikerAthleteId: striker.athleteId,
-          strikerName: striker.name,
-          nonStrikerAthleteId: nonStriker.athleteId,
-          nonStrikerName: nonStriker.name,
-          bowlerAthleteId: bowler.athleteId,
-          bowlerName: bowler.name,
+          strikerAthleteId: currentStriker.athleteId,
+          strikerName: currentStriker.name,
+          nonStrikerAthleteId: currentNonStriker.athleteId,
+          nonStrikerName: currentNonStriker.name,
+          bowlerAthleteId: currentBowler.athleteId,
+          bowlerName: currentBowler.name,
           ...partial,
         },
         matchStateForSelectedBatters(matchState),
@@ -312,12 +316,12 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
         over_number: pos.overNumber,
         ball_number: pos.ballNumber,
         is_legal_delivery: legal,
-        striker_athlete_id: striker.athleteId,
-        striker_name: striker.name,
-        non_striker_athlete_id: nonStriker.athleteId,
-        non_striker_name: nonStriker.name,
-        bowler_athlete_id: bowler.athleteId,
-        bowler_name: bowler.name,
+        striker_athlete_id: currentStriker.athleteId,
+        striker_name: currentStriker.name,
+        non_striker_athlete_id: currentNonStriker.athleteId,
+        non_striker_name: currentNonStriker.name,
+        bowler_athlete_id: currentBowler.athleteId,
+        bowler_name: currentBowler.name,
         runs_off_bat: partial.runsOffBat ?? 0,
         extra_type: partial.extraType ?? null,
         extra_runs: partial.extraRuns ?? 0,
@@ -330,6 +334,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
         created_at: new Date().toISOString(),
         created_by: null,
       } as unknown as MCBallEvent;
+      eventsRef.current = [...priorEvents, created];
 
       // Update innings aggregate cache too so list views agree at a glance.
       const total = (partial.runsOffBat ?? 0) + (partial.extraRuns ?? 0);
@@ -373,7 +378,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
       ).length;
       const overCompleted = created.is_legal_delivery && legalBefore + 1 >= 6;
       const rotated = applyStrikeAfterBall(
-        { striker, nonStriker },
+        { striker: currentStriker, nonStriker: currentNonStriker },
         created,
         overCompleted,
       );
@@ -390,22 +395,22 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
             nonStriker: { ...rotated.nonStriker, onStrike: false },
           };
       if (
-        next.striker.athleteId !== striker.athleteId ||
-        next.striker.name !== striker.name ||
-        next.nonStriker.athleteId !== nonStriker.athleteId ||
-        next.nonStriker.name !== nonStriker.name
+        next.striker.athleteId !== currentStriker.athleteId ||
+        next.striker.name !== currentStriker.name ||
+        next.nonStriker.athleteId !== currentNonStriker.athleteId ||
+        next.nonStriker.name !== currentNonStriker.name
       ) {
-        setStrikerOverride(next.striker);
-        setNonStrikerOverride(next.nonStriker);
+        setStrikerImmediate(next.striker);
+        setNonStrikerImmediate(next.nonStriker);
       }
       if (overCompleted) {
         // Force the UI to prompt for a new bowler.
-        setBowlerOverride({ athleteId: null, name: null });
+        setBowlerImmediate({ athleteId: null, name: null });
       }
 
       return created;
     },
-    [tenantId, matchId, activeInnings, matchState, match?.status, striker, nonStriker, bowler],
+    [tenantId, matchId, activeInnings, matchState, match?.status, setStrikerImmediate, setNonStrikerImmediate, setBowlerImmediate],
   );
 
   const undo = useCallback<ScoringSession["undo"]>(async () => {
