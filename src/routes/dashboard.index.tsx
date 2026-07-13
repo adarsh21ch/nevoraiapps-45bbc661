@@ -25,7 +25,9 @@ import { getFeatures } from "@/lib/tenant";
 import { candidatePeriods, periodKey, studentDue, tenantFeeCycle } from "@/lib/fees";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { useT } from "@/lib/i18n";
+import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
 import { format } from "date-fns";
+
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
