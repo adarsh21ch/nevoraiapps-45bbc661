@@ -264,7 +264,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
           </div>
         )}
 
-        <main className="flex-1 min-w-0 p-4 md:p-8 max-w-7xl mx-auto w-full pb-24 md:pb-8">
+        <main className="flex-1 min-w-0 p-4 md:p-8 max-w-7xl mx-auto w-full pb-[calc(env(safe-area-inset-bottom)+88px)] md:pb-8 no-tap-highlight">
           {children ?? <Outlet />}
         </main>
       </div>
