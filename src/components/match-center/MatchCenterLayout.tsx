@@ -26,6 +26,7 @@ import {
   Globe,
   HeartHandshake,
   LineChart,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -90,8 +91,12 @@ const NAV_GROUPS: NavGroup[] = [
   },
   {
     label: "System",
-    items: [{ to: "/match-center/settings", label: "Settings", icon: Settings }],
+    items: [
+      { to: "/match-center/scorers", label: "Scorers", icon: ShieldCheck },
+      { to: "/match-center/settings", label: "Settings", icon: Settings },
+    ],
   },
+
 ];
 
 const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
