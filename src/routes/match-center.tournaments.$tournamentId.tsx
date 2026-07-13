@@ -254,6 +254,7 @@ function TeamsTab({ tournamentId, tenantId }: { tournamentId: string; tenantId: 
               <Button
                 variant="ghost"
                 size="icon"
+                aria-label="Remove team from tournament"
                 onClick={() => del.mutate(r.team_id)}
               >
                 <Trash2 className="size-4" />

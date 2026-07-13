@@ -233,7 +233,7 @@ export function TeamCard({
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="-mr-2 -mt-1">
+            <Button variant="ghost" size="icon" className="-mr-2 -mt-1" aria-label="Team actions">
               <MoreVertical className="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -420,7 +420,7 @@ export function PlayerGrid({
             {onAction && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="-mr-1 -mt-1">
+                  <Button variant="ghost" size="icon" className="-mr-1 -mt-1" aria-label="Player actions">
                     <MoreVertical className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
