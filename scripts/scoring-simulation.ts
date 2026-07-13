@@ -130,7 +130,8 @@ class InningsBuilder {
     return this.mk({ extra_type: "wide", extra_runs: extra });
   }
   noBall(off = 0, byes = 0) {
-    return this.mk({ extra_type: "no_ball", runs_off_bat: off, extra_runs: 1 + byes });
+    // extra_runs stores ONLY byes off the no-ball. Penalty added by engine.
+    return this.mk({ extra_type: "no_ball", runs_off_bat: off, extra_runs: byes });
   }
   bye(r: number) {
     return this.mk({ extra_type: "bye", extra_runs: r });
