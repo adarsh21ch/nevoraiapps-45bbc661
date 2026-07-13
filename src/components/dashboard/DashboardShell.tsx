@@ -112,7 +112,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   const primary = withBadges(primaryNav);
   const secondary = withBadges(secondaryNav);
-  const mobileTabs = withBadges(mobilePrimary);
+
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
