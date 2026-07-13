@@ -408,15 +408,41 @@ function ScorerPage() {
     }
   };
 
-  const finalizeMatch = async () => {
-    if (!session.match) return;
-    try {
-      await updateMatchStatus(session.match.id, "completed");
-      toast.success("Match completed");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not finalize match");
-    }
+  const finalizeMatch = () => {
+    setFinalizeDialogOpen(true);
   };
+
+  // Innings rows for result detection
+  const inningsRowsQ = useQuery({
+    enabled: !!session.match,
+    queryKey: ["mc-innings-rows", session.match?.id],
+    queryFn: async () => {
+      if (!session.match) return [] as InningsRow[];
+      const { data } = await supabase
+        .from("mc_innings")
+        .select(
+          "id, innings_number, batting_team_id, bowling_team_id, runs, wickets, balls, overs, target, status",
+        )
+        .eq("match_id", session.match.id)
+        .order("innings_number");
+      return (data ?? []) as InningsRow[];
+    },
+    refetchInterval: 15000,
+  });
+
+  const detectedResult: MatchResult = useMemo(
+    () =>
+      detectMatchResult(inningsRowsQ.data ?? [], {
+        teamAId: session.match?.team_a_id ?? "",
+        teamBId: session.match?.team_b_id ?? "",
+        matchStatus: session.match?.status,
+      }),
+    [inningsRowsQ.data, session.match?.team_a_id, session.match?.team_b_id, session.match?.status],
+  );
+
+  const matchLocked = Boolean(
+    (session.match as { match_locked?: boolean } | null)?.match_locked,
+  );
 
   /* ---------- result string ---------- */
   const resultLine = (() => {
