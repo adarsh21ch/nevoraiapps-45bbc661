@@ -47,7 +47,9 @@ import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-pl
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
+import { Route as MatchCenterTeamsIndexRouteImport } from './routes/match-center.teams.index'
 import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-admin.tenants.$id'
+import { Route as MatchCenterTeamsNewRouteImport } from './routes/match-center.teams.new'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
@@ -244,10 +246,20 @@ const PlatformAdminTenantsIndexRoute =
     path: '/tenants/',
     getParentRoute: () => PlatformAdminRoute,
   } as any)
+const MatchCenterTeamsIndexRoute = MatchCenterTeamsIndexRouteImport.update({
+  id: '/teams/',
+  path: '/teams/',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
 const PlatformAdminTenantsIdRoute = PlatformAdminTenantsIdRouteImport.update({
   id: '/tenants/$id',
   path: '/tenants/$id',
   getParentRoute: () => PlatformAdminRoute,
+} as any)
+const MatchCenterTeamsNewRoute = MatchCenterTeamsNewRouteImport.update({
+  id: '/teams/new',
+  path: '/teams/new',
+  getParentRoute: () => MatchCenterRoute,
 } as any)
 const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
   id: '/$id',
@@ -306,7 +318,9 @@ export interface FileRoutesByFullPath {
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
+  '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
+  '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -347,7 +361,9 @@ export interface FileRoutesByTo {
   '/match-center': typeof MatchCenterIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
+  '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
+  '/match-center/teams': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants': typeof PlatformAdminTenantsIndexRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -392,7 +408,9 @@ export interface FileRoutesById {
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
+  '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
+  '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -438,7 +456,9 @@ export interface FileRouteTypes {
     | '/match-center/'
     | '/platform-admin/'
     | '/dashboard/students/$id'
+    | '/match-center/teams/new'
     | '/platform-admin/tenants/$id'
+    | '/match-center/teams/'
     | '/platform-admin/tenants/'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
@@ -479,7 +499,9 @@ export interface FileRouteTypes {
     | '/match-center'
     | '/platform-admin'
     | '/dashboard/students/$id'
+    | '/match-center/teams/new'
     | '/platform-admin/tenants/$id'
+    | '/match-center/teams'
     | '/platform-admin/tenants'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
@@ -523,7 +545,9 @@ export interface FileRouteTypes {
     | '/match-center/'
     | '/platform-admin/'
     | '/dashboard/students/$id'
+    | '/match-center/teams/new'
     | '/platform-admin/tenants/$id'
+    | '/match-center/teams/'
     | '/platform-admin/tenants/'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
@@ -812,12 +836,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlatformAdminTenantsIndexRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
+    '/match-center/teams/': {
+      id: '/match-center/teams/'
+      path: '/teams'
+      fullPath: '/match-center/teams/'
+      preLoaderRoute: typeof MatchCenterTeamsIndexRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
     '/platform-admin/tenants/$id': {
       id: '/platform-admin/tenants/$id'
       path: '/tenants/$id'
       fullPath: '/platform-admin/tenants/$id'
       preLoaderRoute: typeof PlatformAdminTenantsIdRouteImport
       parentRoute: typeof PlatformAdminRoute
+    }
+    '/match-center/teams/new': {
+      id: '/match-center/teams/new'
+      path: '/teams/new'
+      fullPath: '/match-center/teams/new'
+      preLoaderRoute: typeof MatchCenterTeamsNewRouteImport
+      parentRoute: typeof MatchCenterRoute
     }
     '/dashboard/students/$id': {
       id: '/dashboard/students/$id'
@@ -900,6 +938,8 @@ interface MatchCenterRouteChildren {
   MatchCenterSettingsRoute: typeof MatchCenterSettingsRoute
   MatchCenterTournamentsRoute: typeof MatchCenterTournamentsRoute
   MatchCenterIndexRoute: typeof MatchCenterIndexRoute
+  MatchCenterTeamsNewRoute: typeof MatchCenterTeamsNewRoute
+  MatchCenterTeamsIndexRoute: typeof MatchCenterTeamsIndexRoute
 }
 
 const MatchCenterRouteChildren: MatchCenterRouteChildren = {
@@ -914,6 +954,8 @@ const MatchCenterRouteChildren: MatchCenterRouteChildren = {
   MatchCenterSettingsRoute: MatchCenterSettingsRoute,
   MatchCenterTournamentsRoute: MatchCenterTournamentsRoute,
   MatchCenterIndexRoute: MatchCenterIndexRoute,
+  MatchCenterTeamsNewRoute: MatchCenterTeamsNewRoute,
+  MatchCenterTeamsIndexRoute: MatchCenterTeamsIndexRoute,
 }
 
 const MatchCenterRouteWithChildren = MatchCenterRoute._addFileChildren(
