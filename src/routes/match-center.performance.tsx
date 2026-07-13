@@ -147,7 +147,7 @@ function PerformancePage() {
                     {athlete.student?.name ?? "Unnamed"}
                   </div>
                   <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                    {athlete.cricket?.role ?? "Player"}
+                    {athlete.cricket?.playing_role ?? "Player"}
                   </div>
                 </div>
                 <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
