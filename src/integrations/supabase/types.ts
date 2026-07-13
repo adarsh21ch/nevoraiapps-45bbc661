@@ -531,6 +531,230 @@ export type Database = {
           },
         ]
       }
+      mc_custom_match_types: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_custom_match_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_match_squads: {
+        Row: {
+          athlete_profile_id: string | null
+          batting_order: number | null
+          created_at: string
+          external_player_name: string | null
+          id: string
+          is_captain: boolean
+          is_keeper: boolean
+          is_playing: boolean
+          is_substitute: boolean
+          is_vice_captain: boolean
+          match_id: string
+          role: string | null
+          team_id: string
+          tenant_id: string
+        }
+        Insert: {
+          athlete_profile_id?: string | null
+          batting_order?: number | null
+          created_at?: string
+          external_player_name?: string | null
+          id?: string
+          is_captain?: boolean
+          is_keeper?: boolean
+          is_playing?: boolean
+          is_substitute?: boolean
+          is_vice_captain?: boolean
+          match_id: string
+          role?: string | null
+          team_id: string
+          tenant_id: string
+        }
+        Update: {
+          athlete_profile_id?: string | null
+          batting_order?: number | null
+          created_at?: string
+          external_player_name?: string | null
+          id?: string
+          is_captain?: boolean
+          is_keeper?: boolean
+          is_playing?: boolean
+          is_substitute?: boolean
+          is_vice_captain?: boolean
+          match_id?: string
+          role?: string | null
+          team_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_match_squads_athlete_profile_id_fkey"
+            columns: ["athlete_profile_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_match_squads_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "mc_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_match_squads_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "mc_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_match_squads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_matches: {
+        Row: {
+          ball_type: string | null
+          created_at: string
+          created_by: string | null
+          ground_id: string | null
+          ground_name: string | null
+          id: string
+          match_format: string
+          match_type: string
+          notes: string | null
+          overs: number
+          pitch: string | null
+          result: string | null
+          scheduled_date: string | null
+          scheduled_time: string | null
+          scorer: string | null
+          status: string
+          streaming_url: string | null
+          team_a_id: string
+          team_b_id: string
+          tenant_id: string
+          toss_decision: string | null
+          toss_winner: string | null
+          tournament_id: string | null
+          umpire: string | null
+          updated_at: string
+          visibility: string
+          weather: string | null
+          winner_team: string | null
+        }
+        Insert: {
+          ball_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          ground_id?: string | null
+          ground_name?: string | null
+          id?: string
+          match_format?: string
+          match_type?: string
+          notes?: string | null
+          overs?: number
+          pitch?: string | null
+          result?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          scorer?: string | null
+          status?: string
+          streaming_url?: string | null
+          team_a_id: string
+          team_b_id: string
+          tenant_id: string
+          toss_decision?: string | null
+          toss_winner?: string | null
+          tournament_id?: string | null
+          umpire?: string | null
+          updated_at?: string
+          visibility?: string
+          weather?: string | null
+          winner_team?: string | null
+        }
+        Update: {
+          ball_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          ground_id?: string | null
+          ground_name?: string | null
+          id?: string
+          match_format?: string
+          match_type?: string
+          notes?: string | null
+          overs?: number
+          pitch?: string | null
+          result?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          scorer?: string | null
+          status?: string
+          streaming_url?: string | null
+          team_a_id?: string
+          team_b_id?: string
+          tenant_id?: string
+          toss_decision?: string | null
+          toss_winner?: string | null
+          tournament_id?: string | null
+          umpire?: string | null
+          updated_at?: string
+          visibility?: string
+          weather?: string | null
+          winner_team?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_matches_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
+            referencedRelation: "mc_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_matches_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "mc_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_matches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_team_players: {
         Row: {
           added_at: string
@@ -604,11 +828,13 @@ export type Database = {
           age_group_custom: string | null
           assistant_coach_name: string | null
           captain_student_id: string | null
+          city: string | null
           coach_name: string | null
           created_at: string
           created_by: string | null
           description: string | null
           id: string
+          is_external: boolean
           keeper_student_id: string | null
           logo_url: string | null
           name: string
@@ -626,11 +852,13 @@ export type Database = {
           age_group_custom?: string | null
           assistant_coach_name?: string | null
           captain_student_id?: string | null
+          city?: string | null
           coach_name?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
+          is_external?: boolean
           keeper_student_id?: string | null
           logo_url?: string | null
           name: string
@@ -648,11 +876,13 @@ export type Database = {
           age_group_custom?: string | null
           assistant_coach_name?: string | null
           captain_student_id?: string | null
+          city?: string | null
           coach_name?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
+          is_external?: boolean
           keeper_student_id?: string | null
           logo_url?: string | null
           name?: string
