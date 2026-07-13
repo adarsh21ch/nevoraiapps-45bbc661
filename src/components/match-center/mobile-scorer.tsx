@@ -223,7 +223,7 @@ export function MobileScorer(props: MobileScorerProps) {
   return (
     <div className="scorer-native-page flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
       <header className="z-20 shrink-0 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="grid h-12 grid-cols-[44px_minmax(0,1fr)_44px] items-center px-1">
+        <div className="grid h-12 grid-cols-[44px_minmax(0,1fr)_auto] items-center px-1">
           <button
             type="button"
             onClick={props.onExit}
@@ -248,16 +248,37 @@ export function MobileScorer(props: MobileScorerProps) {
               </div>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => setMoreOpen(true)}
-            className="grid size-11 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
-            aria-label="More"
-          >
-            <MoreHorizontal className="size-5" />
-          </button>
+          <div className="flex items-center pr-1">
+            <button
+              type="button"
+              onClick={props.onUndo}
+              className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
+              aria-label="Undo last ball"
+              title="Undo"
+            >
+              <Undo2 className="size-[18px]" />
+            </button>
+            <button
+              type="button"
+              onClick={props.onOpenScorecard}
+              className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
+              aria-label="Scorecard"
+              title="Scorecard"
+            >
+              <FileText className="size-[18px]" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
+              aria-label="More"
+            >
+              <MoreHorizontal className="size-5" />
+            </button>
+          </div>
         </div>
       </header>
+
 
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
         <div className="flex min-h-full flex-col gap-2 px-3 py-2">
