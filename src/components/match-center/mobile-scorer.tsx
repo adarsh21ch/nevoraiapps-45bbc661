@@ -224,7 +224,7 @@ export function MobileScorer(props: MobileScorerProps) {
   return (
     <div className="scorer-native-page flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
       <header className="z-20 shrink-0 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="grid h-12 grid-cols-[44px_minmax(0,1fr)_auto] items-center px-1">
+        <div className="grid h-12 grid-cols-[44px_minmax(0,1fr)_44px] items-center px-1">
           <button
             type="button"
             onClick={props.onExit}
@@ -249,34 +249,7 @@ export function MobileScorer(props: MobileScorerProps) {
               </div>
             )}
           </div>
-          <div className="flex items-center pr-1">
-            <button
-              type="button"
-              onClick={props.onUndo}
-              className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
-              aria-label="Undo last ball"
-              title="Undo"
-            >
-              <Undo2 className="size-[18px]" />
-            </button>
-            <button
-              type="button"
-              onClick={props.onOpenScorecard}
-              className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
-              aria-label="Scorecard"
-              title="Scorecard"
-            >
-              <FileText className="size-[18px]" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setMoreOpen(true)}
-              className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
-              aria-label="More"
-            >
-              <MoreHorizontal className="size-5" />
-            </button>
-          </div>
+          <span aria-hidden />
         </div>
       </header>
 
@@ -332,13 +305,6 @@ export function MobileScorer(props: MobileScorerProps) {
 
           <ThisOverStrip balls={props.overBalls} />
 
-          <ScoringDock
-            disabled={props.disabled}
-            onRun={props.onRun}
-            onExtra={props.onExtra}
-            onOut={props.onOut}
-          />
-
           <LiveInsights
             className="min-h-[112px]"
             partnership={props.partnership}
@@ -351,6 +317,27 @@ export function MobileScorer(props: MobileScorerProps) {
 
         </div>
       </main>
+
+      <div
+        className="z-20 shrink-0 border-t bg-background/95 backdrop-blur-xl"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="px-3 pt-2">
+          <ScoringDock
+            disabled={props.disabled}
+            onRun={props.onRun}
+            onExtra={props.onExtra}
+            onOut={props.onOut}
+          />
+        </div>
+        <div className="grid grid-cols-4 gap-1 px-2 pb-1 pt-1">
+          <FooterAction icon={<Undo2 className="size-[18px]" />} label="Undo" onClick={props.onUndo} />
+          <FooterAction icon={<Redo2 className="size-[18px]" />} label="Redo" onClick={() => {}} disabled title="Redo coming soon" />
+          <FooterAction icon={<FileText className="size-[18px]" />} label="Scorecard" onClick={props.onOpenScorecard} />
+          <FooterAction icon={<MoreHorizontal className="size-[18px]" />} label="More" onClick={() => setMoreOpen(true)} />
+        </div>
+      </div>
+
 
       <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
         <DialogContent className="max-h-[85dvh] gap-3 overflow-y-auto rounded-2xl bg-card/95 p-0 backdrop-blur-xl sm:max-w-md">
