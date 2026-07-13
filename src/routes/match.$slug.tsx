@@ -57,17 +57,23 @@ function PublicMatchPage() {
 
   if (q.isLoading) {
     return (
-      <div className="max-w-5xl mx-auto p-6 space-y-4">
-        <Skeleton className="h-24" />
-        <Skeleton className="h-96" />
+      <div className="flex min-h-dvh flex-col bg-background">
+        <div className="mx-auto w-full max-w-5xl flex-1 space-y-4 p-6">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-96" />
+        </div>
       </div>
     );
   }
   if (!q.data) {
     return (
-      <div className="max-w-3xl mx-auto p-10 text-center">
-        <h1 className="text-2xl font-semibold">Match not found</h1>
-        <p className="text-muted-foreground mt-2">This public link is invalid or was disabled.</p>
+      <div className="flex min-h-dvh flex-col bg-background">
+        <div className="mx-auto flex w-full max-w-3xl flex-1 items-center justify-center p-10 text-center">
+          <div>
+            <h1 className="text-2xl font-semibold">Match not found</h1>
+            <p className="text-muted-foreground mt-2">This public link is invalid or was disabled.</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -78,7 +84,7 @@ function PublicMatchPage() {
   const events = (b.ball_events as unknown as MCBallEvent[]) ?? [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <header className="border-b bg-card">
         <div className="max-w-5xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -111,7 +117,7 @@ function PublicMatchPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
         <InningsCards bundle={b} />
 
         <Tabs defaultValue="scorecard" className="mt-6">
@@ -147,7 +153,10 @@ function PublicMatchPage() {
         </Tabs>
       </main>
 
-      <footer className="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-muted-foreground">
+      <footer
+        className="mt-auto border-t bg-card/60 px-4 py-4 text-center text-xs text-muted-foreground backdrop-blur"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}
+      >
         Powered by Academy OS · Read-only public match link
       </footer>
     </div>
