@@ -142,6 +142,12 @@ export function FinalizationDialog({
         if (rec.broken.length > 0) {
           toast.success(`Academy record broken: ${rec.broken[0]}`);
         }
+        // Recognition Engine: auto-suggest match awards (coach approves).
+        const { processMatchRecognitions } = await import("@/lib/mc-recognition-engine");
+        const recog = await processMatchRecognitions(matchId);
+        if (recog.inserted > 0) {
+          toast.success(`${recog.inserted} recognition${recog.inserted === 1 ? "" : "s"} suggested`);
+        }
       } catch (careerErr) {
         console.error("Career/records update failed", careerErr);
         toast.error("Match finalized, but downstream update failed. Rebuild manually.");
