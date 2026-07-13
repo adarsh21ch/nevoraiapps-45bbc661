@@ -13,6 +13,8 @@ import {
   type CoachInsight,
 } from "@/lib/mc-performance-analytics";
 import { getAthlete } from "@/lib/mc-athletes";
+import { useMCPlayerCareer, useMCPlayerPerformance } from "@/lib/mc-data";
+import { useDemoData } from "@/lib/mc-demo/store";
 import {
   LineChartSVG,
   BarChartSVG,
