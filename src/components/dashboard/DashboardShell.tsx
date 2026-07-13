@@ -163,21 +163,18 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 function MobileTabBar({
   items,
-  profile,
 }: {
-  items: (NavItem & { badge?: number })[];
-  profile?: NavItem & { badge?: number };
+  items: (NavItem & { badge?: number; live?: boolean })[];
 }) {
   const location = useLocation();
-  const { t } = useT();
-  const allTabs = profile ? [...items, profile] : items;
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 md:hidden border-t border-border bg-background/95 backdrop-blur"
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 6px)", paddingTop: "6px" }}
+      aria-label="Primary"
     >
       <div className="grid grid-cols-5">
-        {allTabs.map((n) => {
+        {items.map((n) => {
           const active =
             n.to === "/dashboard"
               ? location.pathname === "/dashboard"
@@ -192,8 +189,16 @@ function MobileTabBar({
                 active ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              <Icon className="size-[22px]" />
-              <span className="truncate max-w-[68px] leading-none">{n.label ?? t("Profile")}</span>
+              <span className="relative inline-flex">
+                <Icon className="size-[22px]" />
+                {n.live ? (
+                  <span
+                    aria-hidden
+                    className="absolute -top-0.5 -right-1 size-2 rounded-full bg-rose-600 ring-2 ring-background animate-pulse"
+                  />
+                ) : null}
+              </span>
+              <span className="truncate max-w-[68px] leading-none">{n.label}</span>
               {active && (
                 <span
                   className="absolute top-0 left-1/2 -translate-x-1/2 h-[3px] w-10 rounded-b-full"
