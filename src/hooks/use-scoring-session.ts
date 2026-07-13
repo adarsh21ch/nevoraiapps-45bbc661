@@ -253,8 +253,10 @@ export function useScoringSession(
       const active = pickActiveInnings(inningsList);
       if (active) {
         const evs = await listBallEvents(active.id);
+        eventsRef.current = evs;
         setEvents(evs);
       } else {
+        eventsRef.current = [];
         setEvents([]);
       }
     } catch (e) {
@@ -361,6 +363,7 @@ export function useScoringSession(
         matchId,
       });
       setInnings((prev) => [...prev, created]);
+      eventsRef.current = [];
       setEvents([]);
       return created;
     },

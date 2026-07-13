@@ -264,6 +264,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
         );
         d.innings.push(created);
       });
+      eventsRef.current = [];
       return created;
     },
     [tenantId, demo, matchId],
