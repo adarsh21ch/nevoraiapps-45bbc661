@@ -992,17 +992,48 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 /* =========================================================================
- * Demo Scorer View — read-only surface for demo-* match ids.
- * Reuses MatchHeader, LiveScorecard, CommentaryPanel and the shared
- * statistics engine. Never queries Supabase. Never mounts useScoringSession.
+ * Demo Scorer View — fully interactive scorer backed by the local DemoStore.
+ * Reuses MatchHeader, LiveScorecard, CommentaryPanel and every scoring UI
+ * primitive. Never queries Supabase. All ball events flow through the same
+ * rules engine and statistics engine as production.
  * =======================================================================*/
 
 import { findDemoDatasetByMatchId } from "@/lib/mc-demo/store";
+import { useDemoScoringSession, finalizeDemoMatch } from "@/hooks/use-demo-scoring-session";
+import { ballHelpers } from "@/hooks/use-scoring-session";
 
 function DemoScorerView({ matchId }: { matchId: string }) {
-  const dataset = useMemo(() => findDemoDatasetByMatchId(matchId), [matchId]);
+  const dataset = findDemoDatasetByMatchId(matchId);
+  const session = useDemoScoringSession(matchId);
 
-  if (!dataset) {
+  /* ---------- modal state ---------- */
+  const [dismissOpen, setDismissOpen] = useState(false);
+  const [caughtOpen, setCaughtOpen] = useState(false);
+  const [runOutOpen, setRunOutOpen] = useState(false);
+  const [newBatterOpen, setNewBatterOpen] = useState(false);
+  const [newBowlerOpen, setNewBowlerOpen] = useState(false);
+  const [pickStrikerOpen, setPickStrikerOpen] = useState(false);
+  const [pickNonStrikerOpen, setPickNonStrikerOpen] = useState(false);
+  const [pickBowlerOpen, setPickBowlerOpen] = useState(false);
+  const [extraKind, setExtraKind] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
+  const [scorecardOpen, setScorecardOpen] = useState(false);
+  const [inningsCompleteOpen, setInningsCompleteOpen] = useState(false);
+  const [matchCompleteOpen, setMatchCompleteOpen] = useState(false);
+  const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (session.matchState.inningsShouldEnd && !inningsCompleteOpen) {
+      setInningsCompleteOpen(true);
+    }
+  }, [session.matchState.inningsShouldEnd, inningsCompleteOpen]);
+
+  useEffect(() => {
+    if (session.matchState.matchShouldEnd && !matchCompleteOpen) {
+      setMatchCompleteOpen(true);
+    }
+  }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
+
+  if (!dataset || !session.match) {
     return (
       <div className="flex h-dvh flex-col items-center justify-center gap-4 bg-background p-6 text-center">
         <div className="max-w-sm space-y-3">
@@ -1024,29 +1055,230 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     );
   }
 
-  const { data: demo } = dataset;
-  const match = demo.matches.find((m) => m.id === matchId)!;
-  const inningsList = demo.innings.filter((i) => i.match_id === matchId);
-  const activeInnings =
-    inningsList.find((i) => (i.status as string) === "in_progress") ??
-    inningsList[inningsList.length - 1] ??
-    null;
-  const events = demo.ballEvents.filter(
-    (e) => e.match_id === matchId && (!activeInnings || e.innings_id === activeInnings.id),
-  );
+  const match = session.match;
+  const activeInnings = session.activeInnings;
+  const demo = dataset.data;
 
-  const stats = calculateInningsStatistics(events, {
+  /* ---------- player option lists ---------- */
+  const battingOptions: PlayerOption[] = session.battingSquad.map((p) => ({
+    id: p.athlete_profile_id ?? `ext:${p.id}`,
+    name:
+      demo.players.find((pl) => pl.id === p.athlete_profile_id)?.student?.name ??
+      p.external_player_name ??
+      "Player",
+    role: p.role ?? undefined,
+  }));
+  const bowlingOptions: PlayerOption[] = session.bowlingSquad.map((p) => ({
+    id: p.athlete_profile_id ?? `ext:${p.id}`,
+    name:
+      demo.players.find((pl) => pl.id === p.athlete_profile_id)?.student?.name ??
+      p.external_player_name ??
+      "Player",
+    role: p.role ?? undefined,
+  }));
+
+  const setPlayer = (
+    slot: "striker" | "nonStriker" | "bowler",
+    opt: PlayerOption,
+  ) => {
+    const payload = { athleteId: opt.id.startsWith("ext:") ? null : opt.id, name: opt.name };
+    if (slot === "striker") session.setStriker({ ...payload, onStrike: true });
+    else if (slot === "nonStriker") session.setNonStriker({ ...payload, onStrike: false });
+    else session.setBowler(payload);
+  };
+
+  /* ---------- stats & headers ---------- */
+  const stats = calculateInningsStatistics(session.events, {
     totalOvers: match.overs ?? null,
     target: activeInnings?.target ?? null,
   });
+  const striker = session.striker;
+  const nonStriker = session.nonStriker;
+  const bowlerRef = session.bowler;
+
+  const strikerKey = striker.athleteId
+    ? `id:${striker.athleteId}`
+    : striker.name ? `name:${striker.name.toLowerCase()}` : null;
+  const nonStrikerKey = nonStriker.athleteId
+    ? `id:${nonStriker.athleteId}`
+    : nonStriker.name ? `name:${nonStriker.name.toLowerCase()}` : null;
+  const bowlerKey = bowlerRef.athleteId
+    ? `id:${bowlerRef.athleteId}`
+    : bowlerRef.name ? `name:${bowlerRef.name.toLowerCase()}` : null;
+
+  const strikerStat: BatterStats | undefined = strikerKey
+    ? (() => {
+        const s = stats.batting.byKey.get(strikerKey);
+        return {
+          name: striker.name ?? undefined,
+          runs: s?.runs ?? 0,
+          balls: s?.balls ?? 0,
+          fours: s?.fours ?? 0,
+          sixes: s?.sixes ?? 0,
+          strikeRate: s ? String(s.strikeRate) : "0.0",
+          last5: session.events
+            .filter((e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name)
+            .slice(-5)
+            .map(ballChipLabel),
+          onStrike: true,
+        };
+      })()
+    : undefined;
+
+  const nonStrikerStat: BatterStats | undefined = nonStrikerKey
+    ? (() => {
+        const s = stats.batting.byKey.get(nonStrikerKey);
+        return {
+          name: nonStriker.name ?? undefined,
+          runs: s?.runs ?? 0,
+          balls: s?.balls ?? 0,
+          strikeRate: s ? String(s.strikeRate) : "0.0",
+        };
+      })()
+    : undefined;
+
+  const bowlerStat: BowlerStats | undefined = bowlerKey
+    ? (() => {
+        const b = stats.bowling.byKey.get(bowlerKey);
+        return {
+          name: bowlerRef.name ?? undefined,
+          overs: b?.oversDisplay ?? "0.0",
+          runs: b?.runsConceded ?? 0,
+          wickets: b?.wickets ?? 0,
+          economy: b ? String(b.economy) : "–",
+          lastOver: session.currentOver.events.map(ballChipLabel),
+        };
+      })()
+    : undefined;
 
   const teamA = match.team_a;
   const teamB = match.team_b;
   const battingTeamId = activeInnings?.batting_team_id ?? teamA?.id ?? "";
-  const homeName =
-    battingTeamId === teamA?.id ? teamA?.name ?? "Home" : teamB?.name ?? "Home";
-  const awayName =
-    battingTeamId === teamA?.id ? teamB?.name ?? "Away" : teamA?.name ?? "Away";
+  const homeName = battingTeamId === teamA?.id ? teamA?.name ?? "Home" : teamB?.name ?? "Home";
+  const awayName = battingTeamId === teamA?.id ? teamB?.name ?? "Away" : teamA?.name ?? "Away";
+
+  const commentary = buildCommentary(session.events);
+
+  /* ---------- ball submission ---------- */
+  const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
+    try {
+      await session.submitBall(partial);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to record ball");
+    }
+  };
+  const onRun = (r: 0 | 1 | 2 | 3 | 4 | 6) => submit(ballHelpers.run(r));
+  const onExtraRuns = (runs: number) => {
+    if (!extraKind) return;
+    const kind = extraKind;
+    setExtraKind(null);
+    if (kind === "Wide") submit(ballHelpers.wide(runs));
+    else if (kind === "No Ball") submit(ballHelpers.noBall(Math.max(0, runs - 1)));
+    else if (kind === "Bye") submit(ballHelpers.bye(runs));
+    else if (kind === "Leg Bye") submit(ballHelpers.legBye(runs));
+  };
+  const finalizeWicket = async (
+    kind: DismissalType,
+    opts?: { fielder?: PlayerOption | null; dismissed?: "striker" | "non-striker" },
+  ) => {
+    const dismissedRef =
+      opts?.dismissed === "non-striker"
+        ? { id: nonStriker.athleteId, name: nonStriker.name }
+        : { id: striker.athleteId, name: striker.name };
+    await submit(
+      ballHelpers.wicket(kind, {
+        fielderAthleteId: opts?.fielder?.id ?? null,
+        fielderName: opts?.fielder?.name ?? null,
+        dismissedAthleteId: dismissedRef.id,
+        dismissedName: dismissedRef.name,
+      }),
+    );
+    setNewBatterOpen(true);
+  };
+  const handleDismissal = (kind: DismissalKind) => {
+    setDismissOpen(false);
+    if (kind === "Caught") setCaughtOpen(true);
+    else if (kind === "Run Out") setRunOutOpen(true);
+    else void finalizeWicket(DISMISSAL_MAP[kind]);
+  };
+
+  const startSecondInnings = async () => {
+    if (!match || !activeInnings) return;
+    const target = session.matchState.innings.runs + 1;
+    try {
+      await session.startInnings({
+        inningsNumber: 2,
+        battingTeamId: activeInnings.bowling_team_id,
+        bowlingTeamId: activeInnings.batting_team_id,
+        target,
+      });
+      session.setStriker({ athleteId: null, name: null, onStrike: true });
+      session.setNonStriker({ athleteId: null, name: null, onStrike: false });
+      session.setBowler({ athleteId: null, name: null });
+      setInningsCompleteOpen(false);
+      toast.success(`Innings 2 · target ${target}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not start next innings");
+    }
+  };
+
+  const resultLine = (() => {
+    const ms = session.matchState;
+    if (ms.inningsShouldEnd === "target_achieved" && session.matchState.innings) {
+      const wicketsLeft = 10 - ms.innings.wickets;
+      return `${homeName} won by ${wicketsLeft} wicket${wicketsLeft === 1 ? "" : "s"}`;
+    }
+    if (ms.inningsShouldEnd === "all_out" || ms.inningsShouldEnd === "overs_finished") {
+      if (activeInnings?.target != null) {
+        const diff = activeInnings.target - 1 - ms.innings.runs;
+        if (diff > 0) return `${awayName} won by ${diff} run${diff === 1 ? "" : "s"}`;
+        if (diff === 0) return "Match tied";
+      }
+      return "Innings complete";
+    }
+    return null;
+  })();
+
+  const finalizeMatch = () => {
+    if (!session.tenantId) return;
+    // Winner from result / matchState
+    let winnerTeamId: string | null = null;
+    const ms = session.matchState;
+    if (ms.inningsShouldEnd === "target_achieved") {
+      winnerTeamId = activeInnings?.batting_team_id ?? null;
+    } else if (activeInnings?.target != null) {
+      const diff = activeInnings.target - 1 - ms.innings.runs;
+      winnerTeamId = diff > 0 ? activeInnings.bowling_team_id : null;
+    }
+    const topBat = stats.summary.highestScorer?.player;
+    const pomId = topBat?.athleteId ?? null;
+    finalizeDemoMatch(session.tenantId, matchId, {
+      winnerTeamId,
+      result: resultLine ?? "Match complete",
+      pomAthleteId: pomId,
+    });
+    setMatchCompleteOpen(false);
+    setInningsCompleteOpen(false);
+    toast.success("Demo match finalized");
+  };
+
+  const commentary40 = commentary.slice(0, 40);
+
+  useEffect(() => {
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.target instanceof HTMLElement && ["INPUT", "TEXTAREA"].includes(ev.target.tagName))
+        return;
+      if (ev.key >= "0" && ev.key <= "6" && ev.key !== "5") {
+        onRun(Number(ev.key) as 0 | 1 | 2 | 3 | 4 | 6);
+      } else if (ev.key.toLowerCase() === "w") setDismissOpen(true);
+      else if (ev.key.toLowerCase() === "u") void session.undo();
+      else if (ev.key.toLowerCase() === "d") setExtraKind("Wide");
+      else if (ev.key.toLowerCase() === "n") setExtraKind("No Ball");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.submitBall, session.undo]);
 
   const isLive = !match.match_locked && (activeInnings?.status as string) === "in_progress";
   const status = match.match_locked
@@ -1054,8 +1286,6 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     : activeInnings
       ? `Innings ${activeInnings.innings_number}${isLive ? " · Live" : ""}`
       : "Setup";
-
-  const commentary = buildCommentary(events);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
@@ -1074,18 +1304,8 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         connection="online"
         isLive={isLive}
         date={match.scheduled_date ?? null}
-        tossLine={
-          match.toss_decision
-            ? `${match.team_a?.name ?? "Team A"} chose to ${match.toss_decision}`
-            : null
-        }
-        playerOfMatch={
-          match.match_locked && match.player_of_match_athlete_id
-            ? demo.players.find((p) => p.id === match.player_of_match_athlete_id)?.student?.name ?? null
-            : null
-        }
-        currentBatter={stats.summary.highestScorer?.player.name ?? null}
-        currentBowler={stats.summary.bestBowler?.player.name ?? null}
+        currentBatter={striker.name ?? null}
+        currentBowler={bowlerRef.name ?? null}
       />
 
       <div className="flex items-center justify-between gap-2 border-b bg-card px-3 py-1.5 text-xs">
@@ -1095,38 +1315,297 @@ function DemoScorerView({ matchId }: { matchId: string }) {
               <ArrowLeft className="size-3.5" /> Exit
             </Link>
           </Button>
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={() => setScorecardOpen(true)}>
+            <FileText className="size-3.5" /> Scorecard
+          </Button>
           <Button asChild variant="ghost" size="sm" className="h-8 gap-1.5">
             <Link to="/match-center/scorebook/$matchId" params={{ matchId }} target="_blank">
-              <FileText className="size-3.5" /> Scorebook
+              <ClipboardList className="size-3.5" /> Scorebook
             </Link>
           </Button>
         </div>
         <div className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400">
-          Demo · Read-only
+          Demo Match
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-5xl space-y-4 p-3 sm:p-4">
+      {match.match_locked ? (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-5xl space-y-4 p-3 sm:p-4">
+            <LiveScorecard
+              events={session.events}
+              innings={activeInnings}
+              totalOvers={match.overs ?? null}
+              matchInfo={{
+                ground: match.ground_name,
+                tournament: match.match_type,
+                date: match.scheduled_date,
+                format: match.match_format,
+                homeTeam: homeName,
+                awayTeam: awayName,
+                result: match.result,
+              }}
+            />
+            {commentary40.length > 0 && (
+              <CommentaryPanel entries={commentary40} collapsed={false} onToggle={() => {}} />
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
+          {/* Left */}
+          <div className="flex min-h-0 flex-col gap-3">
+            <PlayerPanel striker={strikerStat} nonStriker={nonStrikerStat} />
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" size="sm" onClick={() => setPickStrikerOpen(true)}>
+                {striker.name ? "Change striker" : "Select striker"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPickNonStrikerOpen(true)}>
+                {nonStriker.name ? "Change non-striker" : "Select non-striker"}
+              </Button>
+            </div>
+            {stats.team.currentPartnership && (
+              <div className="rounded-lg border bg-card p-3 text-xs">
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Partnership
+                </div>
+                <div className="mt-0.5 font-semibold tabular-nums">
+                  {stats.team.currentPartnership.runs} ({stats.team.currentPartnership.balls})
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Center */}
+          <div className="flex min-h-0 flex-col gap-3">
+            <OverTimeline balls={session.currentOver.events.map(ballChipLabel)} />
+            <div className="grid grid-cols-6 gap-2">
+              {([0, 1, 2, 3, 4, 6] as const).map((r) => (
+                <RunsButton key={r} value={r} onClick={() => onRun(r)} />
+              ))}
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              <ExtraButton label="Wide" onClick={() => setExtraKind("Wide")} />
+              <ExtraButton label="No Ball" onClick={() => setExtraKind("No Ball")} />
+              <ExtraButton label="Bye" onClick={() => setExtraKind("Bye")} />
+              <ExtraButton label="Leg Bye" onClick={() => setExtraKind("Leg Bye")} />
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <ScoreButton
+                label="OUT"
+                tone="wicket"
+                size="xl"
+                onClick={() => setDismissOpen(true)}
+                className="sm:col-span-2"
+              />
+              <ScoreButton
+                label="Swap"
+                tone="neutral"
+                sublabel="Strike"
+                onClick={() => {
+                  const s = { ...session.striker };
+                  session.setStriker({ ...session.nonStriker, onStrike: true });
+                  session.setNonStriker({ ...s, onStrike: false });
+                }}
+              />
+              <ScoreButton label="End" tone="danger" sublabel="Match" onClick={finalizeMatch} />
+            </div>
+            <CommentaryPanel
+              entries={commentary.slice(0, 12)}
+              collapsed={commentaryCollapsed}
+              onToggle={() => setCommentaryCollapsed((v) => !v)}
+            />
+          </div>
+
+          {/* Right */}
+          <div className="flex min-h-0 flex-col gap-3">
+            <BowlerPanel bowler={bowlerStat} />
+            <Button variant="outline" size="sm" onClick={() => setPickBowlerOpen(true)}>
+              {bowlerRef.name ? "Change bowler" : "Select bowler"}
+            </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <UndoButton onClick={() => void session.undo()} />
+              <Button variant="secondary" size="lg" className="h-14 gap-2" onClick={() => setScorecardOpen(true)}>
+                <FileText className="size-4" /> Card
+              </Button>
+            </div>
+            {session.matchState.innings.awaitingNewBatter && (
+              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
+                Waiting for next batter…
+                <Button size="sm" className="mt-2 w-full" onClick={() => setNewBatterOpen(true)}>
+                  Select
+                </Button>
+              </div>
+            )}
+            {session.matchState.innings.awaitingNewBowler && (
+              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs">
+                Over complete — assign next bowler.
+                <Button size="sm" className="mt-2 w-full" onClick={() => setNewBowlerOpen(true)}>
+                  Select
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ---------- modals ---------- */}
+      <DismissalModal open={dismissOpen} onOpenChange={setDismissOpen} onSelect={handleDismissal} />
+      <PlayerPickerModal
+        open={caughtOpen}
+        onOpenChange={setCaughtOpen}
+        title="Who took the catch?"
+        players={bowlingOptions}
+        recent={bowlingOptions.slice(0, 3)}
+        onSelect={(p) => {
+          setCaughtOpen(false);
+          void finalizeWicket("caught", { fielder: p });
+        }}
+      />
+      <RunOutModal
+        open={runOutOpen}
+        onOpenChange={setRunOutOpen}
+        onSelect={(who) => {
+          setRunOutOpen(false);
+          void finalizeWicket("run_out", { dismissed: who });
+        }}
+      />
+      <PlayerPickerModal
+        open={newBatterOpen}
+        onOpenChange={setNewBatterOpen}
+        title="Select next batter"
+        description="Choose the incoming batter."
+        players={battingOptions.filter(
+          (o) =>
+            o.id !== (session.striker.athleteId ?? `name:${session.striker.name}`) &&
+            o.id !== (session.nonStriker.athleteId ?? `name:${session.nonStriker.name}`),
+        )}
+        onSelect={(p) => {
+          setPlayer("striker", p);
+          setNewBatterOpen(false);
+        }}
+      />
+      <PlayerPickerModal
+        open={newBowlerOpen}
+        onOpenChange={setNewBowlerOpen}
+        title="Select next bowler"
+        players={bowlingOptions}
+        onSelect={(p) => {
+          setPlayer("bowler", p);
+          setNewBowlerOpen(false);
+        }}
+      />
+      <PlayerPickerModal
+        open={pickStrikerOpen}
+        onOpenChange={setPickStrikerOpen}
+        title="Select striker"
+        players={battingOptions}
+        onSelect={(p) => {
+          setPlayer("striker", p);
+          setPickStrikerOpen(false);
+        }}
+      />
+      <PlayerPickerModal
+        open={pickNonStrikerOpen}
+        onOpenChange={setPickNonStrikerOpen}
+        title="Select non-striker"
+        players={battingOptions}
+        onSelect={(p) => {
+          setPlayer("nonStriker", p);
+          setPickNonStrikerOpen(false);
+        }}
+      />
+      <PlayerPickerModal
+        open={pickBowlerOpen}
+        onOpenChange={setPickBowlerOpen}
+        title="Select bowler"
+        players={bowlingOptions}
+        onSelect={(p) => {
+          setPlayer("bowler", p);
+          setPickBowlerOpen(false);
+        }}
+      />
+      <ExtraRunsModal
+        open={!!extraKind}
+        onOpenChange={(v) => !v && setExtraKind(null)}
+        kind={extraKind ?? ""}
+        onSelect={onExtraRuns}
+      />
+
+      {/* Scorecard drawer */}
+      <Dialog open={scorecardOpen} onOpenChange={setScorecardOpen}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Scorecard</DialogTitle>
+            <DialogDescription>Demo match · derived from ball events.</DialogDescription>
+          </DialogHeader>
           <LiveScorecard
-            events={events}
+            events={session.events}
             innings={activeInnings}
             totalOvers={match.overs ?? null}
             matchInfo={{
-              ground: match.ground_name,
-              tournament: match.match_type,
-              date: match.scheduled_date,
-              format: match.match_format,
               homeTeam: homeName,
               awayTeam: awayName,
-              result: match.result,
+              format: match.match_format ?? null,
+              ground: match.ground_name ?? null,
+              tournament: match.match_type ?? null,
+              date: match.scheduled_date ?? null,
+              result: resultLine,
             }}
           />
-          {commentary.length > 0 && (
-            <CommentaryPanel entries={commentary.slice(0, 40)} collapsed={false} onToggle={() => {}} />
-          )}
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Innings complete */}
+      <Dialog open={inningsCompleteOpen} onOpenChange={setInningsCompleteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Innings complete</DialogTitle>
+            <DialogDescription>
+              {session.matchState.inningsShouldEnd === "all_out" && "All out."}
+              {session.matchState.inningsShouldEnd === "overs_finished" && "Overs finished."}
+              {session.matchState.inningsShouldEnd === "target_achieved" && "Target achieved."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border bg-card p-3 text-center">
+            <div className="text-3xl font-black tabular-nums">
+              {stats.team.runs}/{stats.team.wickets}
+            </div>
+            <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setScorecardOpen(true)}>Review</Button>
+            {session.matchState.matchShouldEnd ? (
+              <Button onClick={finalizeMatch}>Finalize match</Button>
+            ) : (
+              <Button onClick={startSecondInnings}>Start next innings</Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Match complete */}
+      <Dialog open={matchCompleteOpen} onOpenChange={setMatchCompleteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trophy className="size-5 text-primary" /> Match complete
+            </DialogTitle>
+            <DialogDescription>{resultLine ?? "Match ended."}</DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border bg-card p-4 text-center">
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Final score</div>
+            <div className="mt-1 text-3xl font-black tabular-nums">
+              {stats.team.runs}/{stats.team.wickets}
+            </div>
+            <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setScorecardOpen(true)}>View scorecard</Button>
+            <Button onClick={finalizeMatch}>Finalize</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

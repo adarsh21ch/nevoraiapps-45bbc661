@@ -83,6 +83,9 @@ export type DemoLiveState = {
   overs: string;
 };
 
+export type DemoSquadPlayer = { id: string; name: string };
+export type DemoMatchSquads = Record<string, DemoSquadPlayer[]>;
+
 export type DemoData = {
   __v: number;
   tenantId: string;
@@ -94,6 +97,7 @@ export type DemoData = {
   innings: MCInnings[];
   ballEvents: MCBallEvent[];
   liveState: DemoLiveState;
+  matchSquads: Record<string, DemoMatchSquads>;
   records: Array<{ id: string; record_type: string; title: string; player_name: string; value: string }>;
   recognitions: Array<{ id: string; title: string; recognition_type: string; player_name: string; awarded_at: string }>;
   hallOfFame: Array<{ id: string; player_name: string; era: string; note: string }>;
@@ -791,6 +795,12 @@ export function generateDemoData(tenantId: string): DemoData {
     })),
   ];
 
+  const matchSquads: Record<string, DemoMatchSquads> = {
+    [m1.id]: { [m1.teamA.id]: teamSquads[m1.teamA.id], [m1.teamB.id]: teamSquads[m1.teamB.id] },
+    [m2.id]: { [m2.teamA.id]: teamSquads[m2.teamA.id], [m2.teamB.id]: teamSquads[m2.teamB.id] },
+    [liveMatchId]: { [liveTeamA.id]: teamSquads[liveTeamA.id], [liveTeamB.id]: teamSquads[liveTeamB.id] },
+  };
+
   return {
     __v: 0,
     tenantId,
@@ -802,6 +812,7 @@ export function generateDemoData(tenantId: string): DemoData {
     innings,
     ballEvents,
     liveState,
+    matchSquads,
     records,
     recognitions,
     hallOfFame,
