@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StarPlayersRouteImport } from './routes/star-players'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
+import { Route as ParentPortalRouteImport } from './routes/parent-portal'
 import { Route as MatchCenterRouteImport } from './routes/match-center'
 import { Route as FeesRouteImport } from './routes/fees'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -74,6 +75,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const PlatformAdminRoute = PlatformAdminRouteImport.update({
   id: '/platform-admin',
   path: '/platform-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParentPortalRoute = ParentPortalRouteImport.update({
+  id: '/parent-portal',
+  path: '/parent-portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MatchCenterRoute = MatchCenterRouteImport.update({
@@ -331,6 +337,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
   '/match-center': typeof MatchCenterRouteWithChildren
+  '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
@@ -382,6 +389,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/fees': typeof FeesRoute
+  '/parent-portal': typeof ParentPortalRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
@@ -435,6 +443,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
   '/match-center': typeof MatchCenterRouteWithChildren
+  '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
@@ -490,6 +499,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fees'
     | '/match-center'
+    | '/parent-portal'
     | '/platform-admin'
     | '/register'
     | '/star-players'
@@ -541,6 +551,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/fees'
+    | '/parent-portal'
     | '/register'
     | '/star-players'
     | '/dashboard/attendance'
@@ -593,6 +604,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fees'
     | '/match-center'
+    | '/parent-portal'
     | '/platform-admin'
     | '/register'
     | '/star-players'
@@ -647,6 +659,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   FeesRoute: typeof FeesRoute
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
+  ParentPortalRoute: typeof ParentPortalRoute
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
@@ -677,6 +690,13 @@ declare module '@tanstack/react-router' {
       path: '/platform-admin'
       fullPath: '/platform-admin'
       preLoaderRoute: typeof PlatformAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parent-portal': {
+      id: '/parent-portal'
+      path: '/parent-portal'
+      fullPath: '/parent-portal'
+      preLoaderRoute: typeof ParentPortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/match-center': {
@@ -1152,6 +1172,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   FeesRoute: FeesRoute,
   MatchCenterRoute: MatchCenterRouteWithChildren,
+  ParentPortalRoute: ParentPortalRoute,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
