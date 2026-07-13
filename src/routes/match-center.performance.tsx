@@ -10,6 +10,8 @@ import { StatPill, TrendArrow } from "@/components/match-center/perf-charts";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { listAcademyPerformance } from "@/lib/mc-performance-analytics";
+import { useDemoOverlay } from "@/lib/mc-demo/overlay";
+import { useDemoData } from "@/lib/mc-demo/store";
 
 export const Route = createFileRoute("/match-center/performance")({
   head: () => ({
@@ -40,15 +42,32 @@ function PerformancePage() {
       ),
   });
 
+  const athletes = useDemoOverlay(tenant.id, athletesQ.data, (d) => d.players);
+  const demo = useDemoData(tenant.id);
+
   const rows = useMemo(() => {
-    const athletes = athletesQ.data ?? [];
     const overview = overviewQ.data ?? [];
     const byId = new Map(overview.map((r) => [r.athleteId, r]));
-    return athletes.map((a) => ({
-      athlete: a,
-      row: byId.get(a.id),
-    }));
-  }, [athletesQ.data, overviewQ.data]);
+    const demoById = new Map((demo?.perfRows ?? []).map((r) => [r.athleteId, r]));
+    return athletes.map((a) => {
+      const real = byId.get(a.id);
+      const d = demoById.get(a.id);
+      const row = real ?? (d
+        ? {
+            athleteId: a.id,
+            matches: d.matches,
+            runs: d.runs,
+            wickets: d.wickets,
+            average: d.average,
+            economy: d.economy,
+            consistency: 0,
+            trend: "flat" as const,
+            formAvg: 0,
+          }
+        : undefined);
+      return { athlete: a, row };
+    });
+  }, [athletes, overviewQ.data, demo]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();

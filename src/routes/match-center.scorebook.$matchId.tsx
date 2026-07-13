@@ -7,6 +7,9 @@ import { OfficialScorebook, type ScorebookInnings, type ScorebookTeam } from "@/
 import { LoadingSkeleton } from "@/components/match-center/ui";
 import { Button } from "@/components/ui/button";
 import type { MCBallEvent } from "@/lib/mc-ball-events";
+import { useDashboard } from "@/lib/dashboard-context";
+import { useDemoEntity } from "@/lib/mc-demo/store";
+import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
 
 export const Route = createFileRoute("/match-center/scorebook/$matchId")({
   head: () => ({
@@ -21,8 +24,11 @@ export const Route = createFileRoute("/match-center/scorebook/$matchId")({
 
 function ScorebookPage() {
   const { matchId } = Route.useParams();
+  const { tenant } = useDashboard();
+  const demoEntity = useDemoEntity(tenant.id, matchId);
 
   const matchQ = useQuery({
+    enabled: !demoEntity,
     queryKey: ["scorebook-match", matchId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -137,6 +143,20 @@ function ScorebookPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchId]);
+
+  if (demoEntity) {
+    return (
+      <div className="max-w-5xl mx-auto p-4 md:p-6">
+        <DemoDetailStub
+          entity={demoEntity}
+          backLabel="Matches"
+          backTo="/match-center/matches"
+          parentLabel="Scorebook"
+          parentTo="/match-center/matches"
+        />
+      </div>
+    );
+  }
 
   if (matchQ.isLoading) {
     return (

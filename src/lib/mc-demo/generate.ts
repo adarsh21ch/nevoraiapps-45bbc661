@@ -39,6 +39,30 @@ function name(rng: Rng): string {
 }
 
 /* ---------- types ---------- */
+export type DemoPerfRow = {
+  athleteId: string;
+  matches: number;
+  runs: number;
+  wickets: number;
+  average: number;
+  strikeRate: number;
+  economy: number;
+  fifties: number;
+  hundreds: number;
+  bestBat: string;
+  bestBowl: string;
+};
+
+export type DemoAIReport = {
+  id: string;
+  report_type: "match" | "player" | "team" | "tournament" | "academy_monthly";
+  title: string;
+  summary: string;
+  generated_at: string;
+  key_findings: Array<{ label: string; detail?: string }>;
+  strengths: Array<{ label: string; detail?: string }>;
+};
+
 export type DemoData = {
   __v: number;
   tenantId: string;
@@ -50,6 +74,8 @@ export type DemoData = {
   records: Array<{ id: string; record_type: string; title: string; player_name: string; value: string }>;
   recognitions: Array<{ id: string; title: string; recognition_type: string; player_name: string; awarded_at: string }>;
   hallOfFame: Array<{ id: string; player_name: string; era: string; note: string }>;
+  perfRows: DemoPerfRow[];
+  aiReports: DemoAIReport[];
 };
 
 /* ---------- generator ---------- */
@@ -324,6 +350,67 @@ export function generateDemoData(tenantId: string): DemoData {
     note: "Represented the academy at state level. Legendary contribution.",
   }));
 
+  /* --- perf rows (per-athlete rollup used by Performance Analysis) --- */
+  const perfRows: DemoPerfRow[] = players.map((p) => {
+    const role = p.cricket?.playing_role ?? "batter";
+    const matches = rng.int(4, 28);
+    const bat = role === "bowler" ? rng.chance(0.3) : true;
+    const bowl = role === "batter" ? rng.chance(0.3) : true;
+    const runs = bat ? rng.int(matches * 8, matches * 55) : rng.int(0, matches * 8);
+    const wickets = bowl ? rng.int(0, Math.round(matches * 1.8)) : rng.int(0, 2);
+    const notOuts = rng.int(0, Math.max(1, Math.round(matches * 0.2)));
+    const dismissed = Math.max(1, matches - notOuts);
+    const average = runs / dismissed;
+    const strikeRate = 80 + rng.int(0, 80);
+    const economy = 4 + rng.next() * 4;
+    return {
+      athleteId: p.id,
+      matches,
+      runs,
+      wickets,
+      average: Math.round(average * 10) / 10,
+      strikeRate: Math.round(strikeRate * 10) / 10,
+      economy: Math.round(economy * 100) / 100,
+      fifties: Math.max(0, Math.floor(runs / 250)),
+      hundreds: runs > 900 ? rng.int(1, 3) : 0,
+      bestBat: `${rng.int(35, 145)}${rng.chance(0.3) ? "*" : ""}`,
+      bestBowl: `${rng.int(2, 6)}/${rng.int(8, 34)}`,
+    };
+  });
+
+  /* --- AI reports --- */
+  const aiReports: DemoAIReport[] = [
+    {
+      id: "demo-ai-academy",
+      report_type: "academy_monthly",
+      title: "Academy Monthly Review",
+      summary:
+        "Strong month across senior and U16 squads. Batting depth improved; new-ball bowling remains the growth area.",
+      generated_at: iso(-2),
+      key_findings: [
+        { label: "Top run scorer", detail: `${players[0].student!.name} — ${perfRows[0].runs} runs` },
+        { label: "Leading wicket taker", detail: `${players[5].student!.name} — ${perfRows[5].wickets} wickets` },
+        { label: "Win rate", detail: "62% across 21 matches" },
+      ],
+      strengths: [
+        { label: "Middle-order stability" },
+        { label: "Spin bowling in death overs" },
+      ],
+    },
+    ...players.slice(0, 8).map((p, i): DemoAIReport => ({
+      id: `demo-ai-player-${i + 1}`,
+      report_type: "player",
+      title: `${p.student!.name} — Player Report`,
+      summary: `Consistent performer averaging ${perfRows[i].average.toFixed(1)} across ${perfRows[i].matches} matches.`,
+      generated_at: iso(-rng.int(3, 40)),
+      key_findings: [
+        { label: `${perfRows[i].runs} runs`, detail: `SR ${perfRows[i].strikeRate.toFixed(0)}` },
+        { label: `${perfRows[i].wickets} wickets`, detail: `Econ ${perfRows[i].economy.toFixed(2)}` },
+      ],
+      strengths: [{ label: "Composed under pressure" }, { label: "High conversion rate on starts" }],
+    })),
+  ];
+
   return {
     __v: 0, // set by writer
     tenantId,
@@ -335,5 +422,7 @@ export function generateDemoData(tenantId: string): DemoData {
     records,
     recognitions,
     hallOfFame,
+    perfRows,
+    aiReports,
   };
 }

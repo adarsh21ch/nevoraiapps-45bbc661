@@ -38,6 +38,7 @@ import { listTeams } from "@/lib/mc-teams";
 import { listAthletes } from "@/lib/mc-athletes";
 import { listTournaments } from "@/lib/mc-tournaments";
 import { listRecognitions, listAcademyTimeline } from "@/lib/mc-recognition-engine";
+import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/dashboard")({
   head: () => ({
@@ -90,10 +91,10 @@ function MatchCenterDashboard() {
     queryFn: () => listAcademyTimeline(tenantId, 8),
   });
 
-  const matches = matchesQ.data ?? [];
-  const teams = teamsQ.data ?? [];
-  const athletes = athletesQ.data ?? [];
-  const tournaments = tournamentsQ.data ?? [];
+  const matches = useDemoOverlay(tenantId, matchesQ.data, (d) => d.matches);
+  const teams = useDemoOverlay(tenantId, teamsQ.data, (d) => d.teams);
+  const athletes = useDemoOverlay(tenantId, athletesQ.data, (d) => d.players);
+  const tournaments = useDemoOverlay(tenantId, tournamentsQ.data, (d) => d.tournaments);
   const recognitions = recognitionsQ.data ?? [];
   const timeline = timelineQ.data ?? [];
 

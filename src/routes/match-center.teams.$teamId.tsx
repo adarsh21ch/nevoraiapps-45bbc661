@@ -44,6 +44,8 @@ import {
   updateTeam,
 } from "@/lib/mc-teams";
 import { toast } from "sonner";
+import { useDemoEntity } from "@/lib/mc-demo/store";
+import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
 
 export const Route = createFileRoute("/match-center/teams/$teamId")({
   head: () => ({ meta: [{ title: "Team · Match Center" }, { name: "robots", content: "noindex" }] }),
@@ -68,8 +70,10 @@ function TeamProfilePage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<TabId>("overview");
   const [addOpen, setAddOpen] = useState(false);
+  const demoEntity = useDemoEntity(tenant.id, teamId);
 
   const teamQ = useQuery({
+    enabled: !demoEntity,
     queryKey: ["mc-team", tenant.id, teamId],
     queryFn: () => getTeam(tenant.id, teamId),
   });
@@ -159,6 +163,18 @@ function TeamProfilePage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  if (demoEntity) {
+    return (
+      <DemoDetailStub
+        entity={demoEntity}
+        backLabel="All teams"
+        backTo="/match-center/teams"
+        parentLabel="Teams"
+        parentTo="/match-center/teams"
+      />
+    );
+  }
 
   if (teamQ.isLoading) {
     return (

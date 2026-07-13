@@ -7,6 +7,7 @@ import { EmptyState, LoadingSkeleton } from "@/components/match-center/ui";
 import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/lib/dashboard-context";
 import { listMatches } from "@/lib/mc-matches";
+import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/live")({
   head: () => ({ meta: [{ title: "Live · Match Center" }, { name: "robots", content: "noindex" }] }),
@@ -21,13 +22,14 @@ function LivePage() {
     refetchInterval: 15000,
   });
 
+  const overlaid = useDemoOverlay(tenant.id, matchesQ.data, (d) => d.matches);
   const live = useMemo(
-    () => (matchesQ.data ?? []).filter((m) => m.status === "live"),
-    [matchesQ.data],
+    () => overlaid.filter((m) => m.status === "live"),
+    [overlaid],
   );
   const completed = useMemo(
-    () => (matchesQ.data ?? []).filter((m) => m.status === "completed").slice(0, 8),
-    [matchesQ.data],
+    () => overlaid.filter((m) => m.status === "completed").slice(0, 8),
+    [overlaid],
   );
 
   return (
