@@ -59,8 +59,10 @@ function PerformancePage() {
             runs: d.runs,
             wickets: d.wickets,
             average: d.average,
-            strikeRate: d.strikeRate,
             economy: d.economy,
+            consistency: 0,
+            trend: "flat" as const,
+            formAvg: 0,
           }
         : undefined);
       return { athlete: a, row };
