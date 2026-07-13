@@ -321,6 +321,53 @@ export type Database = {
           },
         ]
       }
+      mc_academy_timeline: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          image_url: string | null
+          metadata: Json
+          reference_id: string | null
+          reference_type: string | null
+          tenant_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_type: string
+          id?: string
+          image_url?: string | null
+          metadata?: Json
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          image_url?: string | null
+          metadata?: Json
+          reference_id?: string | null
+          reference_type?: string | null
+          tenant_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_academy_timeline_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_athlete_achievements: {
         Row: {
           athlete_profile_id: string
@@ -677,6 +724,62 @@ export type Database = {
           },
           {
             foreignKeyName: "mc_ball_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_certificate_templates: {
+        Row: {
+          background_image: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          logo: string | null
+          name: string
+          primary_color: string
+          secondary_color: string
+          signature_image: string | null
+          signature_name: string | null
+          template_type: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          background_image?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          logo?: string | null
+          name: string
+          primary_color?: string
+          secondary_color?: string
+          signature_image?: string | null
+          signature_name?: string | null
+          template_type?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          background_image?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          logo?: string | null
+          name?: string
+          primary_color?: string
+          secondary_color?: string
+          signature_image?: string | null
+          signature_name?: string | null
+          template_type?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_certificate_templates_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -1402,6 +1505,108 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_recognitions: {
+        Row: {
+          athlete_profile_id: string | null
+          awarded_at: string | null
+          awarded_by: string | null
+          badge: string | null
+          certificate_template: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          match_id: string | null
+          metadata: Json
+          period: string | null
+          recognition_type: string
+          status: string
+          team_id: string | null
+          tenant_id: string
+          title: string
+          tournament_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          athlete_profile_id?: string | null
+          awarded_at?: string | null
+          awarded_by?: string | null
+          badge?: string | null
+          certificate_template?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          match_id?: string | null
+          metadata?: Json
+          period?: string | null
+          recognition_type: string
+          status?: string
+          team_id?: string | null
+          tenant_id: string
+          title: string
+          tournament_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          athlete_profile_id?: string | null
+          awarded_at?: string | null
+          awarded_by?: string | null
+          badge?: string | null
+          certificate_template?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          match_id?: string | null
+          metadata?: Json
+          period?: string | null
+          recognition_type?: string
+          status?: string
+          team_id?: string | null
+          tenant_id?: string
+          title?: string
+          tournament_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_recognitions_athlete_profile_id_fkey"
+            columns: ["athlete_profile_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_recognitions_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "mc_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_recognitions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "mc_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_recognitions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_recognitions_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "mc_tournaments"
             referencedColumns: ["id"]
           },
         ]
