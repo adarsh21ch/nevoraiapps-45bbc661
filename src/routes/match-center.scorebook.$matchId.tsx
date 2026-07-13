@@ -98,16 +98,17 @@ function ScorebookPage() {
   });
 
   const pomQ = useQuery({
-    enabled: !!matchQ.data?.id && !!matchQ.data?.match_locked,
-    queryKey: ["scorebook-pom", matchId],
+    enabled: !!matchQ.data?.player_of_match_athlete_id,
+    queryKey: ["scorebook-pom", matchQ.data?.player_of_match_athlete_id],
     queryFn: async () => {
+      const athleteId = matchQ.data?.player_of_match_athlete_id;
+      if (!athleteId) return null;
       const { data } = await supabase
-        .from("mc_match_awards")
-        .select("player_name, athlete_profile_id")
-        .eq("match_id", matchId)
-        .eq("award_type", "player_of_match")
+        .from("mc_athlete_profiles")
+        .select("students:student_id(name)")
+        .eq("id", athleteId)
         .maybeSingle();
-      return (data as { player_name?: string | null } | null)?.player_name ?? null;
+      return (data as { students: { name: string } | null } | null)?.students?.name ?? null;
     },
   });
 
