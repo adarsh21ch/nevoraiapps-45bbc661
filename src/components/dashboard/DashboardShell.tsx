@@ -25,6 +25,7 @@ import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { LanguageToggle } from "@/components/dashboard/LanguageToggle";
 import { useT } from "@/lib/i18n";
 import { StoragedImage } from "@/components/site/StoragedImage";
+import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
 
 type NavItem = {
   to: string;
