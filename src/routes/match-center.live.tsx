@@ -109,6 +109,18 @@ function LivePage() {
                 {m.result && (
                   <div className="mt-2 text-xs font-medium text-primary">{m.result}</div>
                 )}
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px]">
+                  {(m as { match_locked?: boolean }).match_locked && (
+                    <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                      Final
+                    </span>
+                  )}
+                  {m.match_type && (
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                      {m.match_type}
+                    </span>
+                  )}
+                </div>
               </Link>
             ))}
           </div>
