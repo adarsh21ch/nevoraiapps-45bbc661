@@ -233,7 +233,7 @@ function AthleteProfilePage() {
       {tab === "overview" && (
         <OverviewTab athlete={athlete} teamName={teamQ.data?.name ?? null} />
       )}
-      {tab === "career" && <CareerTab />}
+      {tab === "career" && <CareerTab athleteId={athlete.id} />}
       {tab === "statistics" && <PlaceholderTab title="Statistics" />}
       {tab === "achievements" && <AchievementsTab athleteId={athlete.id} tenantId={tenant.id} />}
       {tab === "awards" && <AwardsTab athleteId={athlete.id} tenantId={tenant.id} />}
