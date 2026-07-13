@@ -40,6 +40,7 @@ function PlayerPerformancePage() {
   const { tenant } = useDashboard();
   const demoPerf = useMCPlayerPerformance(tenant.id, athleteId);
   const demoCareer = useMCPlayerCareer(tenant.id, athleteId);
+  const demoData = useDemoData(tenant.id);
   const isDemo = demoPerf !== null;
 
   const athleteQ = useQuery({
@@ -79,29 +80,12 @@ function PlayerPerformancePage() {
     }
   };
 
-  const demoPlayer = isDemo
-    ? { student: { name: demoCareer ? undefined : undefined } }
-    : null;
-  void demoPlayer;
-
-  const athlete = isDemo
-    ? ({
-        student: {
-          name:
-            // Prefer the athlete's student name from demoCareer via matchHistory opponents isn't ideal;
-            // fall back to the id-derived label if no name.
-            "Player",
-        },
-        cricket: null,
-        height_cm: null,
-        weight_kg: null,
-        fitness_status: null,
-        current_status: null,
-        medical_notes: null,
-      } as unknown as ReturnType<typeof getAthlete> extends Promise<infer T> ? T : never)
-    : athleteQ.data;
+  const demoAthlete = isDemo ? demoData?.players.find((p) => p.id === athleteId) : null;
+  const athlete = isDemo ? (demoAthlete ?? null) : (athleteQ.data ?? null);
   const perf = isDemo
-    ? (demoPerf as unknown as NonNullable<ReturnType<typeof buildPlayerPerformance> extends Promise<infer T> ? T : never>)
+    ? (demoPerf as unknown as NonNullable<
+        ReturnType<typeof buildPlayerPerformance> extends Promise<infer T> ? T : never
+      >)
     : perfQ.data;
   const career = isDemo
     ? ({ catches: demoCareer?.fielding.catches ?? 0 } as Record<string, unknown>)
