@@ -4,16 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetDescription,
@@ -609,28 +602,29 @@ export function DismissalModal({
   onSelect: (kind: DismissalKind) => void;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>How is the batter out?</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
+        <SheetHeader className="px-4 pb-2 pt-3 text-left">
+          <SheetTitle className="text-base">How is the batter out?</SheetTitle>
+          <SheetDescription className="text-xs">
             Select the mode of dismissal. Further details next.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          </SheetDescription>
+        </SheetHeader>
+        <div className="grid grid-cols-3 gap-2 px-3 pb-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}>
           {DISMISSALS.map((d) => (
             <Button
               key={d}
               variant="outline"
-              className="h-14 text-sm font-semibold"
+              className="h-11 px-1 text-[12px] font-semibold"
               onClick={() => onSelect(d)}
             >
               {d}
             </Button>
           ))}
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -666,25 +660,28 @@ export function PlayerPickerModal({
     [q, players],
   );
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
-        </DialogHeader>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            autoFocus
-            placeholder="Search players…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="pl-9"
-          />
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="max-h-[76dvh] overflow-hidden rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
+        <SheetHeader className="px-4 pb-2 pt-3 text-left">
+          <SheetTitle className="truncate text-base">{title}</SheetTitle>
+          {description && <SheetDescription className="text-xs">{description}</SheetDescription>}
+        </SheetHeader>
+        <div className="border-y px-3 py-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              autoFocus
+              placeholder="Search players…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              className="h-10 rounded-xl border-0 bg-muted pl-9 text-[16px] shadow-none"
+            />
+          </div>
         </div>
         {recent && recent.length > 0 && !q && (
-          <div>
-            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <div className="px-3 pt-2">
+            <div className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Recent
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -701,40 +698,43 @@ export function PlayerPickerModal({
             </div>
           </div>
         )}
-        <div>
-          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <div className="min-h-0 flex-1 px-0 pt-2">
+          <div className="mb-1.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Team
           </div>
-          <div className="grid max-h-72 grid-cols-2 gap-1.5 overflow-y-auto sm:grid-cols-3">
+          <div className="max-h-[48dvh] overflow-y-auto pb-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}>
+            <ul className="divide-y divide-border/70">
             {filtered.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => onSelect(p)}
-                className="flex items-center gap-2 rounded-lg border bg-card p-2 text-left transition hover:bg-muted"
-              >
-                <Avatar name={p.name} />
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold">
-                    {p.name}
-                  </div>
-                  {p.role && (
-                    <div className="truncate text-[11px] text-muted-foreground">
-                      {p.role}
-                    </div>
-                  )}
-                </div>
-              </button>
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => onSelect(p)}
+                  className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted"
+                >
+                  <Avatar name={p.name} />
+                  <span className="min-w-0">
+                    <span className="block truncate text-[14px] font-semibold leading-tight">
+                      {p.name}
+                    </span>
+                    {p.role && (
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {p.role}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              </li>
             ))}
             {filtered.length === 0 && (
-              <div className="col-span-full py-6 text-center text-sm text-muted-foreground">
+              <li className="py-6 text-center text-sm text-muted-foreground">
                 No players found.
-              </div>
+              </li>
             )}
+            </ul>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -748,32 +748,33 @@ export function RunOutModal({
   onSelect: (who: "striker" | "non-striker") => void;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Who is out?</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
+        <SheetHeader className="px-4 pb-2 pt-3 text-left">
+          <SheetTitle className="text-base">Who is out?</SheetTitle>
+          <SheetDescription className="text-xs">
             Tap the batter dismissed on this run out.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid grid-cols-2 gap-2">
+          </SheetDescription>
+        </SheetHeader>
+        <div className="grid grid-cols-2 gap-2 px-3 pb-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}>
           <Button
             variant="outline"
-            className="h-16 text-base font-semibold"
+            className="h-12 text-sm font-semibold"
             onClick={() => onSelect("striker")}
           >
             Striker
           </Button>
           <Button
             variant="outline"
-            className="h-16 text-base font-semibold"
+            className="h-12 text-sm font-semibold"
             onClick={() => onSelect("non-striker")}
           >
             Non-striker
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -789,33 +790,34 @@ export function ExtraRunsModal({
   onSelect: (runs: number) => void;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{kind} — how many runs?</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
+        <SheetHeader className="px-4 pb-2 pt-3 text-left">
+          <SheetTitle className="text-base">{kind} — how many runs?</SheetTitle>
+          <SheetDescription className="text-xs">
             Total runs conceded on this ball including the {kind.toLowerCase()}.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid grid-cols-5 gap-2">
+          </SheetDescription>
+        </SheetHeader>
+        <div className="grid grid-cols-5 gap-2 px-3">
           {[1, 2, 3, 4, 5].map((r) => (
             <Button
               key={r}
               variant="outline"
-              className="h-16 text-2xl font-black tabular-nums"
+              className="h-12 text-xl font-black tabular-nums"
               onClick={() => onSelect(r)}
             >
               {r}
             </Button>
           ))}
         </div>
-        <DialogFooter>
+        <SheetFooter className="px-3 pb-3 pt-2" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 
