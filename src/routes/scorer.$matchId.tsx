@@ -1431,29 +1431,35 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         onSelect={onExtraRuns}
       />
 
-      {/* Scorecard drawer */}
-      <Dialog open={scorecardOpen} onOpenChange={setScorecardOpen}>
-        <DialogContent className="max-w-5xl">
-          <DialogHeader>
-            <DialogTitle>Scorecard</DialogTitle>
-            <DialogDescription>Demo match · derived from ball events.</DialogDescription>
-          </DialogHeader>
-          <LiveScorecard
-            events={session.events}
-            innings={activeInnings}
-            totalOvers={match.overs ?? null}
-            matchInfo={{
-              homeTeam: homeName,
-              awayTeam: awayName,
-              format: match.match_format ?? null,
-              ground: match.ground_name ?? null,
-              tournament: match.match_type ?? null,
-              date: match.scheduled_date ?? null,
-              result: resultLine,
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Scorecard sheet */}
+      <Sheet open={scorecardOpen} onOpenChange={setScorecardOpen}>
+        <SheetContent
+          side="bottom"
+          className="flex h-[90dvh] flex-col rounded-t-[28px] border-t-0 p-0 pb-[env(safe-area-inset-bottom)] shadow-2xl"
+        >
+          <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
+          <SheetHeader className="shrink-0 space-y-0.5 px-5 pt-3 pb-2 text-left">
+            <SheetTitle className="text-[22px] font-black tracking-tight">Scorecard</SheetTitle>
+            <SheetDescription className="text-[12px]">Demo match · derived from ball events.</SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 min-h-0 overflow-hidden px-4">
+            <LiveScorecard
+              events={session.events}
+              innings={activeInnings}
+              totalOvers={match.overs ?? null}
+              matchInfo={{
+                homeTeam: homeName,
+                awayTeam: awayName,
+                format: match.match_format ?? null,
+                ground: match.ground_name ?? null,
+                tournament: match.match_type ?? null,
+                date: match.scheduled_date ?? null,
+                result: resultLine,
+              }}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Innings complete */}
       <Dialog open={inningsCompleteOpen} onOpenChange={setInningsCompleteOpen}>
