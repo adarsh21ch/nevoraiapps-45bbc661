@@ -22,7 +22,7 @@ import type {
   ExtraType,
   MCBallEvent,
 } from "@/lib/mc-ball-events";
-import { isLegalDelivery } from "@/lib/mc-ball-events";
+import { isLegalDelivery } from "@/lib/mc-ball-events-core";
 import {
   ballSwapsStrike,
   isBowlerCredited,

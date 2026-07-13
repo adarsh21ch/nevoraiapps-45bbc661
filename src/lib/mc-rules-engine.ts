@@ -21,7 +21,7 @@ import type {
   MCBallEvent,
   MCInnings,
 } from "@/lib/mc-ball-events";
-import { BallEventError, isLegalDelivery } from "@/lib/mc-ball-events";
+import { BallEventError, isLegalDelivery } from "@/lib/mc-ball-events-core";
 
 /* ---------------- Modern dismissal set (MCC Laws) ---------------- */
 
