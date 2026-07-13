@@ -21,6 +21,7 @@ import {
   Medal,
   ClipboardList,
   Rocket,
+  BookOpen,
 } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import {
@@ -155,18 +156,11 @@ function MatchCenterDashboard() {
         description="Your live sports command center — everything happening in your academy, at a glance."
         breadcrumbs={[{ label: "Academy OS", to: "/dashboard" }, { label: "Match Center" }]}
         actions={
-          <>
-            <Button variant="outline" asChild>
-              <Link to="/match-center/matches">
-                <Swords className="size-4 mr-1.5" /> All matches
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link to="/match-center/create">
-                <PlusCircle className="size-4 mr-1.5" /> Start match
-              </Link>
-            </Button>
-          </>
+          <Button asChild>
+            <Link to="/match-center/create">
+              <PlusCircle className="size-4 mr-1.5" /> Start match
+            </Link>
+          </Button>
         }
       />
 
@@ -497,13 +491,21 @@ function LiveHero({ match, extra }: { match: MatchWithTeams; extra: number }) {
             </span>
           </div>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
           <Button asChild size="lg">
             <Link
-              to="/match-center/matches"
-              search={{}}
+              to="/scorer/$matchId"
+              params={{ matchId: match.id }}
             >
-              <Radio className="size-4 mr-1.5" /> Open live
+              <Radio className="size-4 mr-1.5" /> Open scorer
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link
+              to="/match-center/scorebook/$matchId"
+              params={{ matchId: match.id }}
+            >
+              <BookOpen className="size-4 mr-1.5" /> Scorecard
             </Link>
           </Button>
         </div>
