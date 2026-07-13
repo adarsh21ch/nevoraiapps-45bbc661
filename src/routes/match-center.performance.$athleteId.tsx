@@ -254,11 +254,11 @@ function PlayerPerformancePage() {
                 <ProfileField label="Height" value={athlete.height_cm ? `${athlete.height_cm} cm` : "—"} />
                 <ProfileField label="Weight" value={athlete.weight_kg ? `${athlete.weight_kg} kg` : "—"} />
                 <ProfileField label="Fitness" value={athlete.fitness_status ?? "—"} />
-                <ProfileField label="Status" value={athlete.status ?? "—"} />
+                <ProfileField label="Status" value={athlete.current_status ?? "—"} />
               </div>
-              {athlete.notes && (
+              {athlete.medical_notes && (
                 <p className="mt-3 text-[12px] text-muted-foreground italic">
-                  Coach notes: {athlete.notes}
+                  Medical notes: {athlete.medical_notes}
                 </p>
               )}
             </SectionCard>
