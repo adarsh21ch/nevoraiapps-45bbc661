@@ -325,10 +325,14 @@ export function LoadingSkeleton({
   className?: string;
 }) {
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-3", className)} role="status" aria-label="Loading">
       {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} className="h-16 w-full rounded-xl" />
+        <div
+          key={i}
+          className="h-16 w-full rounded-xl ds-shimmer border border-border/40"
+        />
       ))}
+      <span className="sr-only">Loading…</span>
     </div>
   );
 }
