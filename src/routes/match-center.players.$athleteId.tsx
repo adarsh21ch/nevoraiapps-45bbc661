@@ -125,6 +125,18 @@ function AthleteProfilePage() {
     enabled: !!athleteQ.data?.student_id,
   });
 
+  if (demoEntity) {
+    return (
+      <DemoDetailStub
+        entity={demoEntity}
+        backLabel="Athletes"
+        backTo="/match-center/players"
+        parentLabel="Athletes"
+        parentTo="/match-center/players"
+      />
+    );
+  }
+
   if (athleteQ.isLoading) {
     return (
       <div>
