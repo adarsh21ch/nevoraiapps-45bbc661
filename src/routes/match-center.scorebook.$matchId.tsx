@@ -143,18 +143,8 @@ function ScorebookPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchId]);
 
-  if (demoEntity) {
-    return (
-      <div className="max-w-5xl mx-auto p-4 md:p-6">
-        <DemoDetailStub
-          entity={demoEntity}
-          backLabel="Matches"
-          backTo="/match-center/matches"
-          parentLabel="Scorebook"
-          parentTo="/match-center/matches"
-        />
-      </div>
-    );
+  if (demoEntity && demoEntity.kind === "match") {
+    return <DemoScorebook matchId={matchId} tenantId={tenant.id} />;
   }
 
   if (matchQ.isLoading) {
