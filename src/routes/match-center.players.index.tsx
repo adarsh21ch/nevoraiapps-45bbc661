@@ -78,8 +78,7 @@ function PlayersPage() {
       <div className="mb-6 max-w-xl">
         <SearchBar
           placeholder="Search by name, player ID, sport or role…"
-          value={q}
-          onChange={setQ}
+          onQuery={setQ}
         />
       </div>
 
