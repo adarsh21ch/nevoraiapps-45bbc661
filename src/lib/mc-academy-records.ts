@@ -494,10 +494,10 @@ export async function analyzeMatchInsights(matchId: string): Promise<MatchInsigh
       if (!bestPship || p.runs > bestPship.runs) {
         bestPship = {
           matchId,
-          p1Name: p.p1.name ?? "Unknown",
-          p2Name: p.p2.name ?? "Unknown",
-          p1AthleteId: p.p1.athleteId,
-          p2AthleteId: p.p2.athleteId,
+          p1Name: p.batterA?.name ?? "Unknown",
+          p2Name: p.batterB?.name ?? "Unknown",
+          p1AthleteId: p.batterA?.athleteId ?? null,
+          p2AthleteId: p.batterB?.athleteId ?? null,
           runs: p.runs,
           balls: p.balls,
         };
