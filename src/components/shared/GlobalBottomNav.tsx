@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { getFeatures } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
+import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
 
 type Tab = {
   to: string;
@@ -31,25 +32,8 @@ export function GlobalBottomNav() {
   const location = useLocation();
   const features = getFeatures(tenant);
 
-  const pendingRegs = useQuery({
-    queryKey: ["d", "regs-plus-leads-count", tenant.id],
-    queryFn: async () => {
-      const [regs, leads] = await Promise.all([
-        supabase
-          .from("registrations")
-          .select("id", { count: "exact", head: true })
-          .eq("tenant_id", tenant.id)
-          .eq("status", "new"),
-        supabase
-          .from("leads" as never)
-          .select("id", { count: "exact", head: true })
-          .eq("tenant_id", tenant.id)
-          .eq("status", "new"),
-      ]);
-      return (regs.count ?? 0) + (leads.count ?? 0);
-    },
-    refetchInterval: 30_000,
-  });
+  const newRegs = useNewRegistrationsCount(tenant.id);
+
 
   const liveMatches = useQuery({
     queryKey: ["mc-live-count", tenant.id],
