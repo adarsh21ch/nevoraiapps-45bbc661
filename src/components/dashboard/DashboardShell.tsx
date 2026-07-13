@@ -80,6 +80,21 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     refetchInterval: 30_000,
   });
 
+  // Live match indicator for the Match Center tab.
+  const liveMatchCount = useQuery({
+    queryKey: ["mc-live-count", tenant.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("matches" as never)
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", tenant.id)
+        .eq("status", "live");
+      return count ?? 0;
+    },
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
+
   const features = getFeatures(tenant);
   const withBadges = (items: NavItem[]) =>
     items
@@ -87,14 +102,16 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       .map((n) => {
         const label = t(n.label);
         let badge: number | undefined;
+        let live = false;
+        if (n.to === "/dashboard/students" && newRegCount.data) badge = newRegCount.data;
         if (n.to === "/dashboard/registrations" && newRegCount.data) badge = newRegCount.data;
-        return { ...n, label, badge };
+        if (n.to === "/match-center" && (liveMatchCount.data ?? 0) > 0) live = true;
+        return { ...n, label, badge, live };
       });
 
   const primary = withBadges(primaryNav);
   const secondary = withBadges(secondaryNav);
   const mobileTabs = withBadges(mobilePrimary);
-  const profileEntry = secondary.find((s) => s.to === "/dashboard/profile");
 
   return (
     <div className="min-h-screen bg-background text-foreground">
