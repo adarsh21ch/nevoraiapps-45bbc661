@@ -18,6 +18,7 @@ import { Route as FeesRouteImport } from './routes/fees'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AppLaunchRouteImport } from './routes/app-launch'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
@@ -111,6 +112,11 @@ const ContactRoute = ContactRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppLaunchRoute = AppLaunchRouteImport.update({
+  id: '/app-launch',
+  path: '/app-launch',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -371,6 +377,7 @@ const ApiPublicHooksFeeRemindersRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/app-launch': typeof AppLaunchRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
@@ -431,6 +438,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/app-launch': typeof AppLaunchRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/fees': typeof FeesRoute
@@ -489,6 +497,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/app-launch': typeof AppLaunchRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
@@ -551,6 +560,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/app-launch'
     | '/auth'
     | '/contact'
     | '/dashboard'
@@ -611,6 +621,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/app-launch'
     | '/auth'
     | '/contact'
     | '/fees'
@@ -668,6 +679,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/app-launch'
     | '/auth'
     | '/contact'
     | '/dashboard'
@@ -729,6 +741,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AppLaunchRoute: typeof AppLaunchRoute
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
@@ -808,6 +821,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app-launch': {
+      id: '/app-launch'
+      path: '/app-launch'
+      fullPath: '/app-launch'
+      preLoaderRoute: typeof AppLaunchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -1307,6 +1327,7 @@ const PlatformAdminRouteWithChildren = PlatformAdminRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AppLaunchRoute: AppLaunchRoute,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,

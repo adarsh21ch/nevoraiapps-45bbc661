@@ -88,18 +88,32 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           tenant?.tagline ?? "Register, view fees, and stay in touch with your academy.";
 
         const manifest = {
+          id: "/app-launch",
           name,
           short_name: shortName,
           description,
-          start_url: "/",
+          // Installed launcher opens the app router at /app-launch, which
+          // decides between /dashboard (authenticated) and /auth (guest)
+          // without ever flashing the marketing homepage.
+          start_url: "/app-launch",
           scope: "/",
           display: "standalone",
+          display_override: ["standalone", "minimal-ui"],
           orientation: "portrait",
           theme_color: themeColor,
           background_color: bgColor,
+          categories: ["sports", "education", "productivity"],
+          lang: "en",
+          dir: "ltr",
+          prefer_related_applications: false,
+          launch_handler: {
+            client_mode: ["focus-existing", "navigate-existing", "auto"],
+          },
           icons: [
             { src: iconUrl, sizes: "192x192", type: "image/png", purpose: "any" },
-            { src: iconUrl, sizes: "512x512", type: "image/png", purpose: "any maskable" },
+            { src: iconUrl, sizes: "512x512", type: "image/png", purpose: "any" },
+            { src: iconUrl, sizes: "192x192", type: "image/png", purpose: "maskable" },
+            { src: iconUrl, sizes: "512x512", type: "image/png", purpose: "maskable" },
           ],
         };
 
@@ -114,3 +128,4 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
     },
   },
 });
+
