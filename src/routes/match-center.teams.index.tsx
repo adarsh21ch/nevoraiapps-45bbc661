@@ -109,7 +109,7 @@ function TeamsListPage() {
 
       <div className="mb-6 grid gap-3">
         <SearchBar placeholder="Search teams by name or short code…" onQuery={setQ} />
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [&>*]:shrink-0">
           <FilterSelect
             label="Age"
             value={ageGroup}
