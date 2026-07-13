@@ -26,7 +26,6 @@ import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platfor
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
 import { Route as MatchCenterTournamentsRouteImport } from './routes/match-center.tournaments'
-import { Route as MatchCenterTeamsRouteImport } from './routes/match-center.teams'
 import { Route as MatchCenterSettingsRouteImport } from './routes/match-center.settings'
 import { Route as MatchCenterRecordsRouteImport } from './routes/match-center.records'
 import { Route as MatchCenterPlayersRouteImport } from './routes/match-center.players'
@@ -137,11 +136,6 @@ const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
 const MatchCenterTournamentsRoute = MatchCenterTournamentsRouteImport.update({
   id: '/tournaments',
   path: '/tournaments',
-  getParentRoute: () => MatchCenterRoute,
-} as any)
-const MatchCenterTeamsRoute = MatchCenterTeamsRouteImport.update({
-  id: '/teams',
-  path: '/teams',
   getParentRoute: () => MatchCenterRoute,
 } as any)
 const MatchCenterSettingsRoute = MatchCenterSettingsRouteImport.update({
@@ -304,7 +298,6 @@ export interface FileRoutesByFullPath {
   '/match-center/players': typeof MatchCenterPlayersRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
-  '/match-center/teams': typeof MatchCenterTeamsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
@@ -346,7 +339,6 @@ export interface FileRoutesByTo {
   '/match-center/players': typeof MatchCenterPlayersRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
-  '/match-center/teams': typeof MatchCenterTeamsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
@@ -392,7 +384,6 @@ export interface FileRoutesById {
   '/match-center/players': typeof MatchCenterPlayersRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
-  '/match-center/teams': typeof MatchCenterTeamsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
@@ -439,7 +430,6 @@ export interface FileRouteTypes {
     | '/match-center/players'
     | '/match-center/records'
     | '/match-center/settings'
-    | '/match-center/teams'
     | '/match-center/tournaments'
     | '/platform-admin/new'
     | '/platform-admin/settings'
@@ -481,7 +471,6 @@ export interface FileRouteTypes {
     | '/match-center/players'
     | '/match-center/records'
     | '/match-center/settings'
-    | '/match-center/teams'
     | '/match-center/tournaments'
     | '/platform-admin/new'
     | '/platform-admin/settings'
@@ -526,7 +515,6 @@ export interface FileRouteTypes {
     | '/match-center/players'
     | '/match-center/records'
     | '/match-center/settings'
-    | '/match-center/teams'
     | '/match-center/tournaments'
     | '/platform-admin/new'
     | '/platform-admin/settings'
@@ -675,13 +663,6 @@ declare module '@tanstack/react-router' {
       path: '/tournaments'
       fullPath: '/match-center/tournaments'
       preLoaderRoute: typeof MatchCenterTournamentsRouteImport
-      parentRoute: typeof MatchCenterRoute
-    }
-    '/match-center/teams': {
-      id: '/match-center/teams'
-      path: '/teams'
-      fullPath: '/match-center/teams'
-      preLoaderRoute: typeof MatchCenterTeamsRouteImport
       parentRoute: typeof MatchCenterRoute
     }
     '/match-center/settings': {
@@ -917,7 +898,6 @@ interface MatchCenterRouteChildren {
   MatchCenterPlayersRoute: typeof MatchCenterPlayersRoute
   MatchCenterRecordsRoute: typeof MatchCenterRecordsRoute
   MatchCenterSettingsRoute: typeof MatchCenterSettingsRoute
-  MatchCenterTeamsRoute: typeof MatchCenterTeamsRoute
   MatchCenterTournamentsRoute: typeof MatchCenterTournamentsRoute
   MatchCenterIndexRoute: typeof MatchCenterIndexRoute
 }
@@ -932,7 +912,6 @@ const MatchCenterRouteChildren: MatchCenterRouteChildren = {
   MatchCenterPlayersRoute: MatchCenterPlayersRoute,
   MatchCenterRecordsRoute: MatchCenterRecordsRoute,
   MatchCenterSettingsRoute: MatchCenterSettingsRoute,
-  MatchCenterTeamsRoute: MatchCenterTeamsRoute,
   MatchCenterTournamentsRoute: MatchCenterTournamentsRoute,
   MatchCenterIndexRoute: MatchCenterIndexRoute,
 }
