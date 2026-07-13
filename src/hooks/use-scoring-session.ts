@@ -368,6 +368,7 @@ export function useScoringSession(
     nonStriker,
     bowler,
     currentOver,
+    matchState,
     setStriker,
     setNonStriker,
     setBowler,
