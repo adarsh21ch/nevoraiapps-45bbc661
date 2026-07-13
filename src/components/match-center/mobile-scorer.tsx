@@ -393,12 +393,14 @@ export function MobileScorer(props: MobileScorerProps) {
         isDisabled={isIllegalBowler}
         onOpenChange={(v) => !v && setPickerOpen(null)}
         lockedMessage={pickerOpen === "bowler" ? "Cannot bowl consecutive overs" : undefined}
+        bowledIds={pickerOpen === "bowler" ? props.bowledBowlerIds ?? [] : []}
         onSelect={(p) => {
           if (!pickerOpen || isIllegalBowler(p)) return;
           props.onPickPlayer?.(pickerOpen, p);
           setPickerOpen(null);
         }}
       />
+
 
       <AlertDialog open={!!confirm} onOpenChange={(v) => !v && setConfirm(null)}>
         <AlertDialogContent>
