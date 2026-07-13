@@ -79,10 +79,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      // viewport-fit=cover → respects notch/Dynamic Island safe areas.
+      // maximum-scale=1 + user-scalable=no → disables pinch-zoom & double-tap zoom
+      // so the installed app doesn't feel like a website. Inputs are already 16px+
+      // so iOS won't auto-zoom on focus.
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+      },
       { title: "Academy OS" },
       { name: "description", content: "Academy OS — the white-label operating system for sports academies, gyms and coaching centres." },
       { name: "author", content: "Lovable" },
+      // PWA / standalone app hints so installed app launches without browser chrome.
+      { name: "theme-color", content: "#0a0a0a" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Academy OS" },
+      { name: "application-name", content: "Academy OS" },
+      { name: "format-detection", content: "telephone=no" },
       { property: "og:title", content: "Academy OS" },
       { property: "og:description", content: "Academy OS — the white-label operating system for sports academies, gyms and coaching centres." },
       { property: "og:type", content: "website" },
@@ -99,6 +114,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      // Default (platform) manifest — the tenant provider swaps in a per-tenant
+      // manifest once the tenant is resolved so each academy installs with its
+      // own name/icon/colors.
+      { rel: "manifest", href: "/api/public/manifest/webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -107,6 +126,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
