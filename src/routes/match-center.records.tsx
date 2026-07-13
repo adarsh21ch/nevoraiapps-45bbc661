@@ -91,6 +91,7 @@ function RecordsPage() {
   const tenantId = tenant.id;
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebouncedValue(searchTerm, 300);
 
   const overviewQ = useQuery({
     queryKey: ["mc-academy-overview", tenantId],
