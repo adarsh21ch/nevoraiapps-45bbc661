@@ -106,9 +106,9 @@ export type PageHeaderProps = {
 
 export function PageHeader({ title, description, breadcrumbs, actions }: PageHeaderProps) {
   return (
-    <div className="mb-5 sm:mb-8">
+    <div className="mb-4 sm:mb-8">
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 overflow-x-auto whitespace-nowrap">
+        <nav className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground mb-3 overflow-x-auto whitespace-nowrap">
           {breadcrumbs.map((b, i) => (
             <span key={i} className="flex items-center gap-1.5">
               {i > 0 && <ChevronRight className="size-3 shrink-0" />}
@@ -123,14 +123,14 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
           ))}
         </nav>
       )}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 sm:gap-4">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight [text-wrap:balance]">
+          <h1 className="truncate text-[19px] sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight sm:whitespace-normal sm:[text-wrap:balance]">
             {title}
           </h1>
           {description && (
             <p
-              className="mt-1 sm:mt-1.5 text-[13px] sm:text-sm text-muted-foreground max-w-2xl overflow-hidden"
+              className="mt-0.5 sm:mt-1.5 text-[12.5px] sm:text-sm text-muted-foreground max-w-2xl overflow-hidden"
               style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
             >
               {description}
@@ -138,12 +138,13 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
           )}
         </div>
         {actions && (
-          <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">{actions}</div>
+          <div className="flex shrink-0 items-center justify-end gap-2">{actions}</div>
         )}
       </div>
     </div>
   );
 }
+
 
 export function SearchBar({
   placeholder = "Search players, teams, matches, tournaments…",
@@ -184,9 +185,9 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       {/* Top bar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-        <div className="flex items-center gap-3 px-3 py-2.5 md:px-6 md:py-3">
+        <div className="flex h-12 items-center gap-2 px-2 md:h-auto md:gap-3 md:px-6 md:py-3">
           <button
-            className="md:hidden -ml-1 grid tap-target place-items-center rounded-lg hover:bg-accent/50 no-tap-highlight"
+            className="md:hidden -ml-1 grid size-11 place-items-center rounded-lg hover:bg-accent/50 no-tap-highlight"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle navigation"
           >
@@ -199,16 +200,19 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
             <ArrowLeft className="size-3.5" /> Academy OS
           </button>
           <div className="hidden md:block w-px h-5 bg-border" />
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1 md:flex-initial">
             <div
-              className="size-8 rounded-lg grid place-items-center text-white text-base shrink-0"
+              className="size-7 md:size-8 rounded-lg grid place-items-center text-white text-sm md:text-base shrink-0"
               style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
             >
               🏏
             </div>
             <div className="min-w-0">
-              <div className="text-sm font-semibold truncate leading-tight">Match Center</div>
-              <div className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">
+              <div className="text-[13px] md:text-sm font-semibold truncate leading-tight">
+                <span className="md:hidden">{tenant.name}</span>
+                <span className="hidden md:inline">Match Center</span>
+              </div>
+              <div className="hidden md:block text-[10px] uppercase tracking-wide text-muted-foreground truncate">
                 {tenant.name}
               </div>
             </div>
@@ -218,7 +222,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
             <SearchBar />
           </div>
 
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="ml-auto flex items-center gap-0.5 md:gap-1.5">
             <DemoBadge />
             <Button
               size="sm"
@@ -230,7 +234,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
             <Button
               variant="ghost"
               size="icon"
-              className="tap-target relative rounded-full"
+              className="size-11 rounded-full"
               aria-label="Notifications"
             >
               <Bell className="size-4" />
@@ -247,6 +251,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
           </div>
         </div>
       </header>
+
 
       <div className="flex">
         {/* Desktop sidebar */}
@@ -291,10 +296,11 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
 
         <main
           key={location.pathname}
-          className="flex-1 min-w-0 p-4 md:p-8 max-w-7xl mx-auto w-full pb-[calc(env(safe-area-inset-bottom)+88px)] md:pb-8 no-tap-highlight page-enter"
+          className="flex-1 min-w-0 p-3 sm:p-4 md:p-8 max-w-7xl mx-auto w-full pb-[calc(env(safe-area-inset-bottom)+88px)] md:pb-8 no-tap-highlight page-enter"
         >
           {children ?? <Outlet />}
         </main>
+
       </div>
 
       {/* Unified mobile bottom nav — shared with Academy OS shell. */}
