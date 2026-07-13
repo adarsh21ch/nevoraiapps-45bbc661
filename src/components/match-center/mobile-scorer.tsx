@@ -380,14 +380,12 @@ export function MobileScorer(props: MobileScorerProps) {
               <SheetRow icon={<Undo2 className="size-4" />} label="Undo last ball" onClick={() => { setMoreOpen(false); props.onUndo(); }} />
               <SheetRow icon={<Trash2 className="size-4" />} label="Delete last ball" onClick={() => setConfirm({ kind: "delete-ball" })} />
             </Section>
-            <Section title="Match" danger>
-              {props.showFinishInnings && props.onFinishInnings && (
+            {props.showFinishInnings && props.onFinishInnings && (
+              <Section title="Match" danger>
                 <SheetRow icon={<Flag className="size-4" />} label="Finish innings" tone="danger" onClick={() => setConfirm({ kind: "finish-innings" })} />
-              )}
-              {!props.hideEndMatch && (
-                <SheetRow icon={<StopCircle className="size-4" />} label="End match" tone="danger" onClick={() => setConfirm({ kind: "end-match" })} />
-              )}
-            </Section>
+              </Section>
+            )}
+
           </div>
         </DialogContent>
       </Dialog>
