@@ -11,7 +11,7 @@ import {
   Swords,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useDashboard } from "@/lib/dashboard-context";
+import { useTenant } from "@/lib/tenant-context";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
