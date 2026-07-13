@@ -242,7 +242,7 @@ export async function extractMatchContributions(
     finalizedAt: match.finalized_at,
   };
 
-  const events = await listBallEventsForMatch(matchId);
+  const events = await listMatchBallEvents(matchId);
 
   const { data: squads } = await supabase
     .from("mc_match_squads")
