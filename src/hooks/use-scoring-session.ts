@@ -436,10 +436,16 @@ export const ballHelpers = {
     extraType: "wide" as const,
     extraRuns: runs,
   }),
-  noBall: (batRuns: number = 0) => ({
+  /**
+   * No-ball. The +1 penalty is added by the rules engine automatically.
+   * `batRuns` = runs off the bat while the ball was live (0..6).
+   * `byes`    = bye/leg-bye runs completed off the no-ball (rare).
+   * `extra_runs` on a no-ball stores ONLY those byes — never the penalty.
+   */
+  noBall: (batRuns: number = 0, byes: number = 0) => ({
     runsOffBat: batRuns,
     extraType: "no_ball" as const,
-    extraRuns: 1,
+    extraRuns: byes,
   }),
   bye: (runs: number) => ({
     runsOffBat: 0,
