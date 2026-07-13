@@ -104,6 +104,8 @@ export interface MobileScorerProps {
 
   onOpenScorecard: () => void;
   onOpenScorebook?: () => void;
+  onShareMatch?: () => void;
+
 }
 
 
@@ -406,11 +408,17 @@ export function MobileScorer(props: MobileScorerProps) {
               <SheetRow icon={<Undo2 className="size-4" />} label="Undo last ball" onClick={() => { setMoreOpen(false); props.onUndo(); }} />
               <SheetRow icon={<Trash2 className="size-4" />} label="Delete last ball" onClick={() => setConfirm({ kind: "delete-ball" })} />
             </Section>
+            {props.onShareMatch && (
+              <Section title="Share">
+                <SheetRow icon={<Share2 className="size-4" />} label="Share live match" onClick={() => { setMoreOpen(false); props.onShareMatch?.(); }} />
+              </Section>
+            )}
             {props.showFinishInnings && props.onFinishInnings && (
               <Section title="Match" danger>
                 <SheetRow icon={<Flag className="size-4" />} label="Finish innings" tone="danger" onClick={() => setConfirm({ kind: "finish-innings" })} />
               </Section>
             )}
+
 
           </div>
         </DialogContent>
