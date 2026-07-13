@@ -368,6 +368,105 @@ export type Database = {
           },
         ]
       }
+      mc_ai_reports: {
+        Row: {
+          academy_id: string
+          created_at: string
+          generated_at: string
+          generated_by: string
+          id: string
+          key_findings: Json
+          metadata: Json
+          recommendations: Json
+          reference_id: string | null
+          reference_type: string
+          report_type: string
+          strengths: Json
+          summary: string | null
+          title: string
+          updated_at: string
+          weaknesses: Json
+        }
+        Insert: {
+          academy_id: string
+          created_at?: string
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          key_findings?: Json
+          metadata?: Json
+          recommendations?: Json
+          reference_id?: string | null
+          reference_type: string
+          report_type: string
+          strengths?: Json
+          summary?: string | null
+          title: string
+          updated_at?: string
+          weaknesses?: Json
+        }
+        Update: {
+          academy_id?: string
+          created_at?: string
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          key_findings?: Json
+          metadata?: Json
+          recommendations?: Json
+          reference_id?: string | null
+          reference_type?: string
+          report_type?: string
+          strengths?: Json
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          weaknesses?: Json
+        }
+        Relationships: []
+      }
+      mc_ai_settings: {
+        Row: {
+          academy_id: string
+          auto_generate_match_reports: boolean
+          auto_generate_monthly_reports: boolean
+          auto_generate_player_reports: boolean
+          auto_generate_tournament_reports: boolean
+          coach_review_required: boolean
+          created_at: string
+          id: string
+          language: string
+          tone: string
+          updated_at: string
+        }
+        Insert: {
+          academy_id: string
+          auto_generate_match_reports?: boolean
+          auto_generate_monthly_reports?: boolean
+          auto_generate_player_reports?: boolean
+          auto_generate_tournament_reports?: boolean
+          coach_review_required?: boolean
+          created_at?: string
+          id?: string
+          language?: string
+          tone?: string
+          updated_at?: string
+        }
+        Update: {
+          academy_id?: string
+          auto_generate_match_reports?: boolean
+          auto_generate_monthly_reports?: boolean
+          auto_generate_player_reports?: boolean
+          auto_generate_tournament_reports?: boolean
+          coach_review_required?: boolean
+          created_at?: string
+          id?: string
+          language?: string
+          tone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mc_athlete_achievements: {
         Row: {
           athlete_profile_id: string
