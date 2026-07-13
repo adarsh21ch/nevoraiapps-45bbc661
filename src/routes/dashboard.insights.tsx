@@ -113,10 +113,10 @@ function InsightsPage() {
           tone="indigo"
         />
         <InsightTile
-          to="/star-players"
+          to="/match-center/recognition"
           icon={<Sparkles className="size-5" />}
-          title="Star players"
-          desc="Standout performers"
+          title="Star performers"
+          desc="Standout innings & spells"
           tone="emerald"
         />
         <InsightTile
