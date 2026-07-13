@@ -50,6 +50,7 @@ import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform
 import { Route as MatchCenterTeamsIndexRouteImport } from './routes/match-center.teams.index'
 import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-admin.tenants.$id'
 import { Route as MatchCenterTeamsNewRouteImport } from './routes/match-center.teams.new'
+import { Route as MatchCenterTeamsTeamIdRouteImport } from './routes/match-center.teams.$teamId'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
@@ -261,6 +262,11 @@ const MatchCenterTeamsNewRoute = MatchCenterTeamsNewRouteImport.update({
   path: '/teams/new',
   getParentRoute: () => MatchCenterRoute,
 } as any)
+const MatchCenterTeamsTeamIdRoute = MatchCenterTeamsTeamIdRouteImport.update({
+  id: '/teams/$teamId',
+  path: '/teams/$teamId',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
 const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -318,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
+  '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
   '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
@@ -361,6 +368,7 @@ export interface FileRoutesByTo {
   '/match-center': typeof MatchCenterIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
+  '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
   '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/match-center/teams': typeof MatchCenterTeamsIndexRoute
@@ -408,6 +416,7 @@ export interface FileRoutesById {
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
+  '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
   '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
@@ -456,6 +465,7 @@ export interface FileRouteTypes {
     | '/match-center/'
     | '/platform-admin/'
     | '/dashboard/students/$id'
+    | '/match-center/teams/$teamId'
     | '/match-center/teams/new'
     | '/platform-admin/tenants/$id'
     | '/match-center/teams/'
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/match-center'
     | '/platform-admin'
     | '/dashboard/students/$id'
+    | '/match-center/teams/$teamId'
     | '/match-center/teams/new'
     | '/platform-admin/tenants/$id'
     | '/match-center/teams'
@@ -545,6 +556,7 @@ export interface FileRouteTypes {
     | '/match-center/'
     | '/platform-admin/'
     | '/dashboard/students/$id'
+    | '/match-center/teams/$teamId'
     | '/match-center/teams/new'
     | '/platform-admin/tenants/$id'
     | '/match-center/teams/'
@@ -857,6 +869,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchCenterTeamsNewRouteImport
       parentRoute: typeof MatchCenterRoute
     }
+    '/match-center/teams/$teamId': {
+      id: '/match-center/teams/$teamId'
+      path: '/teams/$teamId'
+      fullPath: '/match-center/teams/$teamId'
+      preLoaderRoute: typeof MatchCenterTeamsTeamIdRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
     '/dashboard/students/$id': {
       id: '/dashboard/students/$id'
       path: '/$id'
@@ -938,6 +957,7 @@ interface MatchCenterRouteChildren {
   MatchCenterSettingsRoute: typeof MatchCenterSettingsRoute
   MatchCenterTournamentsRoute: typeof MatchCenterTournamentsRoute
   MatchCenterIndexRoute: typeof MatchCenterIndexRoute
+  MatchCenterTeamsTeamIdRoute: typeof MatchCenterTeamsTeamIdRoute
   MatchCenterTeamsNewRoute: typeof MatchCenterTeamsNewRoute
   MatchCenterTeamsIndexRoute: typeof MatchCenterTeamsIndexRoute
 }
@@ -954,6 +974,7 @@ const MatchCenterRouteChildren: MatchCenterRouteChildren = {
   MatchCenterSettingsRoute: MatchCenterSettingsRoute,
   MatchCenterTournamentsRoute: MatchCenterTournamentsRoute,
   MatchCenterIndexRoute: MatchCenterIndexRoute,
+  MatchCenterTeamsTeamIdRoute: MatchCenterTeamsTeamIdRoute,
   MatchCenterTeamsNewRoute: MatchCenterTeamsNewRoute,
   MatchCenterTeamsIndexRoute: MatchCenterTeamsIndexRoute,
 }
