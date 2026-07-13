@@ -171,13 +171,18 @@ export function MatchCard({
         )}
       </div>
 
-      {onStart && match.status === "scheduled" && (
-        <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+        <Button asChild size="sm" variant="outline">
+          <Link to="/match-center/scorebook/$matchId" params={{ matchId: match.id }}>
+            <BookOpen className="size-4 mr-1.5" /> Scorebook
+          </Link>
+        </Button>
+        {onStart && match.status === "scheduled" && (
           <Button size="sm" onClick={() => onStart(match)}>
             <Play className="size-4 mr-1.5" /> Start match
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
