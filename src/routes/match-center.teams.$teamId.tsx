@@ -165,6 +165,9 @@ function TeamProfilePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  if (demoEntity && demoEntity.kind === "team") {
+    return <DemoTeamWrapper tenantId={tenant.id} teamId={demoEntity.team.id} />;
+  }
   if (demoEntity) {
     return (
       <DemoDetailStub
@@ -176,6 +179,7 @@ function TeamProfilePage() {
       />
     );
   }
+
 
   if (teamQ.isLoading) {
     return (
