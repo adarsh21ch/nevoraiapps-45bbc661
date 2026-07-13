@@ -30,7 +30,7 @@ export const Route = createFileRoute("/insights")({
 });
 
 function InsightsPage() {
-  const { tenant } = useDashboard();
+  const tenant = useTenant();
 
   const liveQ = useQuery({
     queryKey: ["insights-live", tenant.id],
