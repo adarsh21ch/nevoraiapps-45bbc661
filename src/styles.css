@@ -99,6 +99,17 @@
   --brand: #E8873C;
   --brand-ink: #ffffff;
 
+  /* Semantic accents — used sparingly for meaning, not decoration. */
+  --accent-live: oklch(0.65 0.19 250);
+  --accent-success: oklch(0.68 0.17 155);
+  --accent-tournament: oklch(0.72 0.17 60);
+  --accent-ai: oklch(0.62 0.2 300);
+  --accent-award: oklch(0.74 0.15 85);
+  --accent-wicket: oklch(0.62 0.22 25);
+  --accent-analytics: oklch(0.68 0.13 200);
+
+  --shadow-soft: 0 1px 2px 0 oklch(0 0 0 / 6%), 0 1px 3px 0 oklch(0 0 0 / 4%);
+  --shadow-elev: 0 4px 14px -3px oklch(0 0 0 / 10%), 0 2px 6px -2px oklch(0 0 0 / 5%);
 }
 
 .dark {
@@ -138,6 +149,16 @@
   --brand: #F0932B;
   --brand-ink: #0f0f0f;
 
+  --accent-live: oklch(0.72 0.18 250);
+  --accent-success: oklch(0.75 0.17 155);
+  --accent-tournament: oklch(0.78 0.17 60);
+  --accent-ai: oklch(0.7 0.2 300);
+  --accent-award: oklch(0.82 0.15 85);
+  --accent-wicket: oklch(0.7 0.22 25);
+  --accent-analytics: oklch(0.75 0.13 200);
+
+  --shadow-soft: 0 1px 2px 0 oklch(0 0 0 / 40%), 0 1px 3px 0 oklch(0 0 0 / 30%);
+  --shadow-elev: 0 8px 24px -6px oklch(0 0 0 / 50%), 0 2px 8px -2px oklch(0 0 0 / 30%);
 }
 
 @layer base {

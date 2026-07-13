@@ -33,22 +33,55 @@ type NavItem = {
   exact?: boolean;
 };
 
-const NAV: NavItem[] = [
-  { to: "/match-center/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/match-center/live", label: "Live Matches", icon: Radio },
-  { to: "/match-center/create", label: "Create Match", icon: PlusCircle },
-  { to: "/match-center/matches", label: "Matches", icon: Swords },
-  { to: "/match-center/teams", label: "Teams", icon: Users2 },
-  { to: "/match-center/players", label: "Players", icon: User },
-  { to: "/match-center/tournaments", label: "Tournaments", icon: Trophy },
-  { to: "/match-center/leaderboards", label: "Leaderboards", icon: ListOrdered },
-  { to: "/match-center/records", label: "Records", icon: Medal },
-  { to: "/match-center/awards", label: "Awards", icon: Award },
-  { to: "/match-center/recognition", label: "Recognition", icon: Award },
-  { to: "/match-center/ai-insights", label: "AI Insights", icon: Award },
-  { to: "/match-center/settings", label: "Settings", icon: Settings },
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
 
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: "Home",
+    items: [{ to: "/match-center/dashboard", label: "Dashboard", icon: LayoutDashboard }],
+  },
+  {
+    label: "Live",
+    items: [
+      { to: "/match-center/live", label: "Live Matches", icon: Radio },
+      { to: "/match-center/create", label: "Create Match", icon: PlusCircle },
+    ],
+  },
+  {
+    label: "Matches",
+    items: [
+      { to: "/match-center/matches", label: "Matches", icon: Swords },
+      { to: "/match-center/teams", label: "Teams", icon: Users2 },
+      { to: "/match-center/players", label: "Players", icon: User },
+    ],
+  },
+  {
+    label: "Competitions",
+    items: [
+      { to: "/match-center/tournaments", label: "Tournaments", icon: Trophy },
+      { to: "/match-center/leaderboards", label: "Leaderboards", icon: ListOrdered },
+      { to: "/match-center/records", label: "Records", icon: Medal },
+    ],
+  },
+  {
+    label: "Insights",
+    items: [
+      { to: "/match-center/awards", label: "Awards", icon: Award },
+      { to: "/match-center/recognition", label: "Recognition", icon: Award },
+      { to: "/match-center/ai-insights", label: "AI Insights", icon: Award },
+    ],
+  },
+  {
+    label: "System",
+    items: [{ to: "/match-center/settings", label: "Settings", icon: Settings }],
+  },
 ];
+
+const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
+
 
 export type PageHeaderProps = {
   title: string;
@@ -215,36 +248,45 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
 function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
   const location = useLocation();
   return (
-    <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto h-full">
-      {NAV.map((n) => {
-        const active = location.pathname === n.to || location.pathname.startsWith(n.to + "/");
-        const Icon = n.icon;
-        return (
-          <Link
-            key={n.to}
-            to={n.to}
-            onClick={onNavigate}
-            className={cn(
-              "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-              active
-                ? "font-semibold text-foreground bg-accent/50"
-                : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
-            )}
-          >
-            {active && (
-              <span
-                className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[2px] rounded-r-full"
-                style={{ backgroundColor: "var(--brand)" }}
-              />
-            )}
-            <Icon className="size-4" />
-            <span>{n.label}</span>
-          </Link>
-        );
-      })}
+    <nav className="flex-1 p-2 space-y-4 overflow-y-auto h-full">
+      {NAV_GROUPS.map((group) => (
+        <div key={group.label} className="space-y-0.5">
+          <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+            {group.label}
+          </div>
+          {group.items.map((n) => {
+            const active =
+              location.pathname === n.to || location.pathname.startsWith(n.to + "/");
+            const Icon = n.icon;
+            return (
+              <Link
+                key={n.to}
+                to={n.to}
+                onClick={onNavigate}
+                className={cn(
+                  "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                  active
+                    ? "font-semibold text-foreground bg-accent/50"
+                    : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
+                )}
+              >
+                {active && (
+                  <span
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[2px] rounded-r-full"
+                    style={{ backgroundColor: "var(--brand)" }}
+                  />
+                )}
+                <Icon className="size-4" />
+                <span>{n.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 }
+
 
 function MobileBottomNav() {
   const location = useLocation();
