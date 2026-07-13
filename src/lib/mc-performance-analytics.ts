@@ -553,11 +553,11 @@ export async function listAcademyPerformance(
       const career = await getCareer(id);
       results.push({
         athleteId: id,
-        runs: career?.total_runs ?? 0,
-        wickets: career?.total_wickets ?? 0,
-        matches: career?.matches_played ?? 0,
-        average: career?.batting_average ?? 0,
-        economy: career?.bowling_economy ?? 0,
+        runs: career?.runs ?? 0,
+        wickets: career?.wickets ?? 0,
+        matches: career?.matches ?? 0,
+        average: career?.average ?? 0,
+        economy: career?.economy ?? 0,
         consistency: 0,
         trend: "flat",
         formAvg: 0,
