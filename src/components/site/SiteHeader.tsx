@@ -19,10 +19,12 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header
-      className="sticky z-40 border-b border-border/60 bg-background/85 backdrop-blur-lg"
-      style={{ top: "env(safe-area-inset-top)" }}
-    >
+    <>
+      <div aria-hidden="true" className="bg-background" style={{ height: "env(safe-area-inset-top)" }} />
+      <header
+        className="sticky z-40 border-b border-border/60 bg-background/85 backdrop-blur-lg"
+        style={{ top: "env(safe-area-inset-top)" }}
+      >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           {tenant.logo_url ? (
@@ -137,6 +139,7 @@ export function SiteHeader() {
           </div>
         </div>
       ) : null}
-    </header>
+      </header>
+    </>
   );
 }
