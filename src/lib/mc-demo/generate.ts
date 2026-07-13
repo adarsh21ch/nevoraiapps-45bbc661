@@ -39,6 +39,30 @@ function name(rng: Rng): string {
 }
 
 /* ---------- types ---------- */
+export type DemoPerfRow = {
+  athleteId: string;
+  matches: number;
+  runs: number;
+  wickets: number;
+  average: number;
+  strikeRate: number;
+  economy: number;
+  fifties: number;
+  hundreds: number;
+  bestBat: string;
+  bestBowl: string;
+};
+
+export type DemoAIReport = {
+  id: string;
+  report_type: "match" | "player" | "team" | "tournament" | "academy_monthly";
+  title: string;
+  summary: string;
+  generated_at: string;
+  key_findings: Array<{ label: string; detail?: string }>;
+  strengths: Array<{ label: string; detail?: string }>;
+};
+
 export type DemoData = {
   __v: number;
   tenantId: string;
@@ -50,6 +74,8 @@ export type DemoData = {
   records: Array<{ id: string; record_type: string; title: string; player_name: string; value: string }>;
   recognitions: Array<{ id: string; title: string; recognition_type: string; player_name: string; awarded_at: string }>;
   hallOfFame: Array<{ id: string; player_name: string; era: string; note: string }>;
+  perfRows: DemoPerfRow[];
+  aiReports: DemoAIReport[];
 };
 
 /* ---------- generator ---------- */
