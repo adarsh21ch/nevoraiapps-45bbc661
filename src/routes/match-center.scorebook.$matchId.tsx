@@ -8,8 +8,7 @@ import { LoadingSkeleton } from "@/components/match-center/ui";
 import { Button } from "@/components/ui/button";
 import type { MCBallEvent } from "@/lib/mc-ball-events";
 import { useDashboard } from "@/lib/dashboard-context";
-import { useDemoEntity } from "@/lib/mc-demo/store";
-import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
+import { useDemoEntity, useDemoData } from "@/lib/mc-demo/store";
 
 export const Route = createFileRoute("/match-center/scorebook/$matchId")({
   head: () => ({
