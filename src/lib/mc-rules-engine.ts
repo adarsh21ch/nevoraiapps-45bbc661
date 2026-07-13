@@ -211,8 +211,6 @@ export function replayInnings(
   const completed: OverSummary[] = [];
   const dismissedIds = new Set<string>();
   const dismissedNames = new Set<string>();
-  const unavailableIds = new Set<string>();
-  const unavailableNames = new Set<string>();
 
   let curOverNum = 0;
   let curOverEvents: MCBallEvent[] = [];
@@ -283,19 +281,11 @@ export function replayInnings(
     const dt = e.dismissal_type as DismissalType | null;
     if (isWicketDismissal(dt)) {
       wickets += 1;
-      if (e.dismissed_athlete_id) {
-        dismissedIds.add(e.dismissed_athlete_id);
-        unavailableIds.add(e.dismissed_athlete_id);
-      }
-      if (e.dismissed_name) {
-        dismissedNames.add(e.dismissed_name);
-        unavailableNames.add(e.dismissed_name);
-      }
+      if (e.dismissed_athlete_id) dismissedIds.add(e.dismissed_athlete_id);
+      if (e.dismissed_name) dismissedNames.add(e.dismissed_name);
       awaitingNewBatter = true;
     } else if (dt === "retired_hurt") {
       // Not a wicket, but the batter leaves; scorer must send a replacement.
-      if (e.dismissed_athlete_id) unavailableIds.add(e.dismissed_athlete_id);
-      if (e.dismissed_name) unavailableNames.add(e.dismissed_name);
       awaitingNewBatter = true;
     }
 
@@ -324,20 +314,6 @@ export function replayInnings(
       curOverBowlerName = null;
     } else {
       awaitingNewBowler = false;
-    }
-
-    if (awaitingNewBatter && !dt) {
-      const strikerAvailable =
-        Boolean(striker.athleteId || striker.name) &&
-        !(striker.athleteId && unavailableIds.has(striker.athleteId)) &&
-        !(striker.name && unavailableNames.has(striker.name));
-      const nonStrikerAvailable =
-        Boolean(nonStriker.athleteId || nonStriker.name) &&
-        !(nonStriker.athleteId && unavailableIds.has(nonStriker.athleteId)) &&
-        !(nonStriker.name && unavailableNames.has(nonStriker.name));
-      if (strikerAvailable && nonStrikerAvailable) {
-        awaitingNewBatter = false;
-      }
     }
   }
 

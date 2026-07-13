@@ -145,6 +145,28 @@ function clearDismissedBatter(
   return pair;
 }
 
+function matchStateForSelectedBatters(
+  state: MatchState,
+  striker: CurrentBatterState,
+  nonStriker: CurrentBatterState,
+): MatchState {
+  if (!state.innings.awaitingNewBatter) return state;
+  const strikerReady = Boolean(striker.athleteId || striker.name) &&
+    !(striker.athleteId && state.innings.dismissedIds.has(striker.athleteId)) &&
+    !(striker.name && state.innings.dismissedNames.has(striker.name));
+  const nonStrikerReady = Boolean(nonStriker.athleteId || nonStriker.name) &&
+    !(nonStriker.athleteId && state.innings.dismissedIds.has(nonStriker.athleteId)) &&
+    !(nonStriker.name && state.innings.dismissedNames.has(nonStriker.name));
+  if (!strikerReady || !nonStrikerReady || samePlayerRef(striker, nonStriker)) return state;
+  return {
+    ...state,
+    innings: {
+      ...state.innings,
+      awaitingNewBatter: false,
+    },
+  };
+}
+
 /* ---------- hook ---------- */
 
 export function useScoringSession(
@@ -353,7 +375,7 @@ export function useScoringSession(
           bowlerName: bowler.name,
           ...partial,
         },
-        matchState,
+        matchStateForSelectedBatters(matchState, striker, nonStriker),
         {
           innings: activeInnings,
           events: eventsRef.current,

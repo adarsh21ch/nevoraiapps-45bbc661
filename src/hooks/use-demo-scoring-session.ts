@@ -175,6 +175,24 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     return pair;
   };
 
+  const matchStateForSelectedBatters = (state: MatchState): MatchState => {
+    if (!state.innings.awaitingNewBatter) return state;
+    const strikerReady = Boolean(striker.athleteId || striker.name) &&
+      !(striker.athleteId && state.innings.dismissedIds.has(striker.athleteId)) &&
+      !(striker.name && state.innings.dismissedNames.has(striker.name));
+    const nonStrikerReady = Boolean(nonStriker.athleteId || nonStriker.name) &&
+      !(nonStriker.athleteId && state.innings.dismissedIds.has(nonStriker.athleteId)) &&
+      !(nonStriker.name && state.innings.dismissedNames.has(nonStriker.name));
+    if (!strikerReady || !nonStrikerReady || samePlayerRef(striker, nonStriker)) return state;
+    return {
+      ...state,
+      innings: {
+        ...state.innings,
+        awaitingNewBatter: false,
+      },
+    };
+  };
+
   const currentOver = useMemo<CurrentOverState>(() => {
     if (events.length === 0) return { overNumber: 0, ballsBowled: 0, events: [] };
     const lastOver = events[events.length - 1].over_number;
@@ -252,7 +270,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
           bowlerName: bowler.name,
           ...partial,
         },
-        matchState,
+        matchStateForSelectedBatters(matchState),
         {
           innings: activeInnings,
           events: eventsRef.current,
