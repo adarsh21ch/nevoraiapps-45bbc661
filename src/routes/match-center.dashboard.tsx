@@ -9,7 +9,7 @@ import {
   Trophy,
   PlusCircle,
   Users2,
-  Swords,
+  Radio as RadioIcon,
   Search,
   Activity,
   Zap,
@@ -716,6 +716,91 @@ function OnboardingChecklist() {
           );
         })}
       </ol>
+    </div>
+  );
+}
+
+function FixturesTabs({
+  live,
+  upcoming,
+  recent,
+}: {
+  live: MatchWithTeams[];
+  upcoming: MatchWithTeams[];
+  recent: MatchWithTeams[];
+}) {
+  const initial: "live" | "upcoming" | "recent" =
+    live.length > 0 ? "live" : upcoming.length > 0 ? "upcoming" : "recent";
+  const [tab, setTab] = useState<"live" | "upcoming" | "recent">(initial);
+
+  const tabs = [
+    { key: "live" as const, label: "Live", count: live.length, icon: RadioIcon },
+    { key: "upcoming" as const, label: "Upcoming", count: upcoming.length, icon: CalendarClock },
+    { key: "recent" as const, label: "Recent", count: recent.length, icon: Activity },
+  ];
+
+  const list = tab === "live" ? live : tab === "upcoming" ? upcoming : recent;
+
+  return (
+    <div>
+      <div className="mb-3 inline-flex rounded-full border border-border bg-background/60 p-0.5">
+        {tabs.map((t) => {
+          const active = tab === t.key;
+          return (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => setTab(t.key)}
+              className={
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors " +
+                (active
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground")
+              }
+            >
+              <t.icon className="size-3.5" />
+              <span>{t.label}</span>
+              {t.count > 0 && (
+                <span
+                  className={
+                    "ml-0.5 rounded-full px-1.5 text-[10px] font-semibold tabular-nums " +
+                    (active ? "bg-background/20" : "bg-muted text-muted-foreground")
+                  }
+                >
+                  {t.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      {list.length === 0 ? (
+        <EmptyState
+          icon={tab === "live" ? RadioIcon : tab === "upcoming" ? CalendarClock : Activity}
+          title={
+            tab === "live"
+              ? "No live matches"
+              : tab === "upcoming"
+                ? "No upcoming matches"
+                : "No completed matches yet"
+          }
+          description={
+            tab === "live"
+              ? "Start a match to see it live here."
+              : tab === "upcoming"
+                ? "Schedule a match to see fixtures here."
+                : "Completed matches will appear here."
+          }
+          actionLabel={tab === "recent" ? undefined : "Create match"}
+          actionTo={tab === "recent" ? undefined : "/match-center/create"}
+        />
+      ) : (
+        <div className="divide-y divide-border/60 -mx-1">
+          {list.map((m) => (
+            <MatchRow key={m.id} match={m} completed={tab === "recent"} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
