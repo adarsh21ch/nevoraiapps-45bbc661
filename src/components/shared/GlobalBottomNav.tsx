@@ -17,7 +17,7 @@ type Tab = {
 const TABS: Tab[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/dashboard/students", label: "Students", icon: Users },
-  { to: "/insights", label: "Insights", icon: BarChart3 },
+  { to: "/dashboard/insights", label: "Insights", icon: BarChart3 },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
@@ -68,7 +68,7 @@ export function GlobalBottomNav() {
               : location.pathname === n.to || location.pathname.startsWith(n.to + "/");
           const Icon = n.icon;
           const badge = n.to === "/dashboard/students" ? newRegs : 0;
-          const live = n.to === "/insights" && (liveMatches.data ?? 0) > 0;
+          const live = n.to === "/dashboard/insights" && (liveMatches.data ?? 0) > 0;
           const ariaLabel = live
             ? `${n.label} (live match in progress)`
             : badge > 0
