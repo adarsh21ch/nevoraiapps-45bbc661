@@ -515,8 +515,8 @@ export async function computeTournamentRecords(
         rec.highestPartnership = {
           matchId,
           runs: p.runs,
-          a: p.a.name,
-          b: p.b.name,
+          a: p.batterA?.name ?? null,
+          b: p.batterB?.name ?? null,
         };
       }
     }
