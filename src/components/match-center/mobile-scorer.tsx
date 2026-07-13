@@ -10,6 +10,13 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -34,6 +41,7 @@ import {
   UserCog,
   UserPlus,
 } from "lucide-react";
+
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
 
 export interface MobileScorerInsight {
