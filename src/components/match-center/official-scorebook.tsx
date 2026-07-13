@@ -491,11 +491,14 @@ function InningsBlock({
 
 function SectionBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mt-4 first:mt-0">
-      <h3 className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-        <span>{title}</span>
-        <span className="h-px flex-1 bg-border" aria-hidden="true" />
-      </h3>
+    <div className="mt-5 first:mt-0">
+      <div className="mb-2 flex items-center gap-3">
+        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-border" aria-hidden="true" />
+        <h3 className="text-[11px] font-black uppercase tracking-[0.28em] text-foreground/80">
+          {title}
+        </h3>
+        <span className="h-px flex-1 bg-gradient-to-l from-transparent via-border to-border" aria-hidden="true" />
+      </div>
       <div className="rounded-xl border bg-background/40 p-3 sm:p-4">
         {children}
       </div>
