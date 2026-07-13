@@ -864,3 +864,28 @@ export function computeInningsStatisticsMemo(
   }
   return cached;
 }
+
+/* ================================================================
+ * Public pure-function API (framework-agnostic aliases)
+ * ----------------------------------------------------------------
+ * Import these anywhere — scorecards, player profiles, tournaments,
+ * reports, AI prompts, PDF/CSV exports, server functions. They take
+ * a Ball Event log and return plain data. No React. No Supabase.
+ * No side effects. Safe to run in Node, Workers, or the browser.
+ *
+ *   import { calculateBattingStats } from "@/lib/mc-statistics-engine";
+ *   const batting = calculateBattingStats(events);
+ * ================================================================ */
+
+export const calculateBattingStats = computeBatting;
+export const calculateBowlingStats = computeBowling;
+export const calculateFieldingStats = computeFielding;
+export const calculateTeamStats = computeTeamStats;
+export const calculateExtras = computeExtras;
+export const calculateOverSummaries = computeOverSummaries;
+export const calculateFallOfWickets = computeFallOfWickets;
+export const calculatePartnerships = computePartnerships;
+export const calculateMatchSummary = computeMatchSummary;
+export const calculateInningsStatistics = computeInningsStatistics;
+export const calculateInningsStatisticsCached = computeInningsStatisticsMemo;
+
