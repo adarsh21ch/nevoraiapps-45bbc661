@@ -15,6 +15,12 @@ import {
   type MCBallEvent,
   type MCInnings,
 } from "@/lib/mc-ball-events";
+import {
+  applyStrikeAfterBall,
+  replayInnings,
+  validateBallDraft,
+  type MatchState,
+} from "@/lib/mc-rules-engine";
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
