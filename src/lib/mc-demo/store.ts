@@ -94,3 +94,23 @@ export function useDemoData(tenantId: string): DemoData | null {
 export function isDemoId(id: string | null | undefined): boolean {
   return typeof id === "string" && id.startsWith("demo-");
 }
+
+export type DemoEntity =
+  | { kind: "player"; player: DemoData["players"][number] }
+  | { kind: "team"; team: DemoData["teams"][number] }
+  | { kind: "tournament"; tournament: DemoData["tournaments"][number] }
+  | { kind: "match"; match: DemoData["matches"][number] };
+
+export function useDemoEntity(tenantId: string, id: string | undefined | null): DemoEntity | null {
+  const demo = useDemoData(tenantId);
+  if (!demo || !id || !isDemoId(id)) return null;
+  const match = demo.matches.find((m) => m.id === id);
+  if (match) return { kind: "match", match };
+  const player = demo.players.find((p) => p.id === id);
+  if (player) return { kind: "player", player };
+  const team = demo.teams.find((t) => t.id === id);
+  if (team) return { kind: "team", team };
+  const tournament = demo.tournaments.find((t) => t.id === id);
+  if (tournament) return { kind: "tournament", tournament };
+  return null;
+}
