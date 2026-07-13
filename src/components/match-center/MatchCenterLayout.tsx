@@ -1,8 +1,9 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   Radio,
@@ -15,7 +16,7 @@ import {
   ListOrdered,
   Settings,
   Search,
-  Bell,
+  Menu,
   LogOut,
   ArrowLeft,
   Swords,
@@ -97,7 +98,7 @@ const NAV_GROUPS: NavGroup[] = [
 
 ];
 
-const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
+
 
 
 export type PageHeaderProps = {
@@ -182,6 +183,10 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
   const { tenant, signOut } = useDashboard();
   const navigate = useNavigate();
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -246,9 +251,10 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
               variant="ghost"
               size="icon"
               className="size-11 rounded-full"
-              aria-label="Notifications"
+              aria-label="Open navigation menu"
+              onClick={() => setMenuOpen(true)}
             >
-              <Bell className="size-4" />
+              <Menu className="size-5" />
             </Button>
 
             <Button
@@ -261,36 +267,19 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
             </Button>
           </div>
         </div>
-
-        {/* Mobile section chips — replaces sidebar on small screens */}
-        <div className="md:hidden border-t border-border/60 bg-background/95">
-          <nav
-            className="flex gap-1.5 overflow-x-auto px-3 py-2 no-scrollbar"
-            aria-label="Match Center sections"
-          >
-            {NAV.map((n) => {
-              const active =
-                location.pathname === n.to || location.pathname.startsWith(n.to + "/");
-              const Icon = n.icon;
-              return (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  className={cn(
-                    "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
-                    active
-                      ? "border-transparent bg-foreground text-background"
-                      : "border-border bg-card text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <Icon className="size-3.5" />
-                  <span className="whitespace-nowrap">{n.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
       </header>
+
+      {/* Mobile navigation sheet (top-right menu) */}
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SheetContent side="right" className="w-[86vw] max-w-sm p-0 md:hidden">
+          <SheetHeader className="border-b border-border px-4 py-3">
+            <SheetTitle className="text-left text-sm font-semibold">Match Center</SheetTitle>
+          </SheetHeader>
+          <div className="h-[calc(100dvh-3.25rem)] overflow-y-auto">
+            <SidebarInner onNavigate={() => setMenuOpen(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
 
 
       <div className="flex">
