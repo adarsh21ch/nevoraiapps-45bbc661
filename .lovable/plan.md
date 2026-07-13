@@ -1,68 +1,127 @@
-## Goal
+# Create Match Redesign + Rich Demo Mode
 
-A **Demo Mode** toggle inside Match Center → Settings that overlays realistic sample data across every module. Real academy data is never written to or modified. When OFF, only real data is visible.
+## Goals
 
-## Approach — client-side overlay (no DB writes)
-
-Writing 150 players, 80 matches, ball events, careers, recognitions etc. into Supabase would (a) mix with real data, (b) require RLS/tenant-safe seeding, (c) break the "never touch real data" rule the moment a scorer edits the live demo match. Instead:
-
-- Demo data lives in a deterministic **in-memory fixture module** (`src/lib/mc-demo/*`), generated once with a seeded PRNG and cached in `localStorage` (per-tenant key).
-- A **`useDemoMode()` hook** reads a per-tenant flag from `localStorage` (`mc:demo:<tenantId>` = `on|off`, default `off`).
-- Read paths (list pages, dashboards, profiles, website, parent portal, scorebook, performance) are wrapped by small **`withDemo()` selectors** that, when demo is ON, return `[...realData, ...demoData]` (or purely demo if the academy is empty). Real DB queries are unchanged.
-- Write paths (create/update/delete, scorer ball events) short-circuit for demo IDs: mutations against a demo entity update the in-memory fixture and re-render, never hitting Supabase. All demo IDs are prefixed `demo-` so this is a cheap check.
-
-This satisfies "reuse existing engines" — the Statistics Engine, Ball Event aggregator, Performance Analytics, Scorebook, Career calculator all run on the demo fixture the exact same way they run on real data.
-
-## Fixture generator
-
-`src/lib/mc-demo/generate.ts` — pure function, seeded by `tenantId`:
-
-- 150 players (names, roles, DOB, photo URLs from a curated placeholder set, `player_id = DEMO001…`)
-- 10 teams (Junior, Senior, Girls, U13/15/17/19, Practice, Tournament, Representative)
-- 5 tournaments (Summer Cup, Winter Cup, Practice League, District League, State Qualifier) with fixtures + standings
-- 80 completed matches — each with innings, ball events, POM, scorebook-ready data
-- 3 upcoming matches
-- **1 live match** — Sky Cricket Academy U16 vs Royal, 126/4 after 10.5 overs; ball events populated up to that point, `status = 'live'`
-- Career rows derived by running the existing `calculateInningsStatistics` over demo ball events
-- Academy records, recognitions, hall of fame, AI reports (canned but realistic text tied to actual stats), parent links
-
-Cached in `localStorage` under `mc:demo:data:<tenantId>` (JSON, ~1–2 MB). Regenerated only on **Reset Demo Data** or version bump.
-
-## UI touch points
-
-1. **Settings → Demo Data card** (`src/routes/match-center.settings.tsx` or the settings surface used today) — toggle + "Reset Demo Data" button.
-2. **Global demo badge** — `🟡 Demo Data` pill in `MatchCenterLayout` top bar when demo is ON.
-3. **Read overlays** — thin wrappers in ~15 route/component files (matches list, teams, players, tournaments, dashboard, website public bundle preview, parent portal, performance center, scorebook, recognition, records, hall of fame). Each is a 3-5 line change: `const data = useDemoOverlay(realData, demoSlice)`.
-4. **Scorer** — when `matchId.startsWith('demo-')`, ball-event writes go to the demo store; realtime subscriptions are replaced by a local event emitter. Score, scorebook, career, records, website, parent portal, performance all recompute because they read from the same fixture.
-
-## Files
-
-**Created**
-- `src/lib/mc-demo/rng.ts` — seeded PRNG
-- `src/lib/mc-demo/names.ts` — name/photo pools
-- `src/lib/mc-demo/generate.ts` — fixture generator (players/teams/tournaments/matches/careers/etc.)
-- `src/lib/mc-demo/store.ts` — localStorage-backed store, `useDemoMode`, `useDemoData`, `resetDemoData`, `isDemoId`
-- `src/lib/mc-demo/overlay.ts` — `withDemo(list, demoList)` + per-entity selectors
-- `src/lib/mc-demo/scorer.ts` — in-memory ball-event handler for `demo-*` matches
-- `src/components/match-center/demo-badge.tsx`
-- `src/components/match-center/demo-settings-card.tsx`
-
-**Modified** (small, presentation-only)
-- `src/components/match-center/MatchCenterLayout.tsx` — mount demo badge
-- Settings route — mount `DemoSettingsCard`
-- Matches / teams / players / tournaments / dashboard / performance / scorebook / website preview / parent portal routes — wrap reads with overlay
-- Scorer route — branch on `isDemoId(matchId)` before Supabase writes
-
-## Non-goals
-
-- No DB migrations, no RLS changes, no engine edits, no new statistics, no new APIs.
-- No demo data for platform-admin surfaces (out of scope).
-- No server-side demo mode (per-tenant admin toggle is client-local; that is sufficient for a "make the product feel alive" demo).
-
-## Deliverables at end
-
-Files created / modified, list of demo entities generated, live-match walkthrough, reset behavior, perf note (fixture cached, generated once, ~50 ms), typecheck result.
+1. A first-time coach starts a match in < 20 seconds without leaving the page.
+2. No database terminology ("External Team", "Search Team"). Human language only.
+3. Demo Academy behaves like a mature academy — every list is populated, every search returns results.
 
 ---
 
-**Scope check before I build:** this is a large surface (~15 files touched for overlays, plus the fixture generator itself). Approve the client-side overlay approach and I'll implement it. If instead you want demo data **actually seeded into Supabase under the current tenant** (so it appears identically on every device / to real logins), say so — that is a different, larger change with tenant-safety implications.
+## Part 1 — Create Match Flow (`src/routes/match-center.create.tsx`)
+
+Replace the current 1093-line Quick/Advanced dual layout with one linear form.
+
+### Layout (top → bottom)
+
+```text
+1. Match Type       [Practice] [Friendly] [League] [Tournament]
+2. Format           [T10] [T20] [30] [40] [50] [Test]  ← sets overs
+3. Team A
+   ┌────────────────────────────────────────────┐
+   │ ○ Use existing team                        │
+   │ ○ Create team for this match               │
+   │ ○ Guest team                               │
+   └────────────────────────────────────────────┘
+   (contextual body renders under the chosen option)
+4. Team B  (same three-option picker)
+5. ▸ Advanced match settings (collapsible)
+      Ground · Pitch · Toss · Umpires · Scorers · Streaming · Notes
+6. Summary card
+   ┌────────────────────────────────────────────┐
+   │ Practice · T20 · 20 overs                  │
+   │ Sai U16   vs   Sky Cricket Academy         │
+   │ 11 vs 11 · Ready to start                  │
+   │ [ Start Match ]                            │
+   └────────────────────────────────────────────┘
+```
+
+Remove the Quick / Advanced toggle entirely; everything is visible, advanced settings live only in the one collapsible.
+
+### The three team-source options (new `TeamSourcePicker` component)
+
+- **Use existing team** — team combobox (searchable). On select, load the team's saved XI into an editable player list. Coach can remove/add players inline using the same academy-player search that already exists (`listStudentsSearch`).
+- **Create team for this match** — text input for team name + inline academy-player search. Selected players append to a chips list. Persisted as a real academy team on submit (so it appears next time under "Use existing team"). Optional: "Save this team for later" toggle (default on).
+- **Guest team** — text input for opponent name + a "Add player" row that just types a name and hits Enter. Chips list of temporary players. Persisted as an `is_external` team; players stored as external squad names (existing `createExternalTeam` + name-only squad rows).
+
+All three options collapse into a single `<TeamPanel side="A" | "B" />` component that owns its own state and emits a normalised `{ teamId, squad }` to the parent.
+
+### Removed / renamed strings
+
+- "External Team" → not shown anywhere in copy. Underlying `is_external` flag stays.
+- "Search Team" empty box → replaced by the three-option picker with a real placeholder ("Search academy teams…").
+- "Quick match" / "Advanced" tabs → deleted. Advanced settings live only in one `<Collapsible>`.
+
+### Interaction rules
+
+- No modals for team creation. Everything inline.
+- Empty search returns *suggested teams* (top 5 recent) instead of "No teams found".
+- Player search shows a "+ Add guest player 'name'" row when zero matches, only inside the Guest team panel.
+- Advanced panel starts collapsed; a small badge shows count of filled-in fields.
+- Start Match button is disabled with a plain reason string ("Add at least 2 players to Team A") — never a silent disable.
+
+---
+
+## Part 2 — Demo Academy Enrichment (`src/lib/mc-demo/generate.ts`)
+
+Extend the existing deterministic generator (no DB writes; overlay pattern is already there).
+
+### Named team roster (replaces the current random names)
+
+Academy teams — always present:
+- Sai Sports Academy U12
+- Sai Sports Academy U14
+- Sai Sports Academy U16
+- Sai Sports Academy U19
+- Senior Team
+- Girls Team
+
+Opponent teams (`is_external: true`):
+- Sky Cricket Academy
+- Royal Cricket Club
+- City Cricket Academy
+- Lions CC
+- Warriors CC
+
+Each team gets 14–18 players with realistic Indian names (extend the existing FIRST/LAST pools, ensure the 5 example names — Rahul Sharma, Aman Patel, Aryan Singh, Mohit Verma, Rohit Yadav — appear in the U16 squad).
+
+### Other surfaces (already generated deterministically; ensure non-empty)
+
+- Grounds: "Sai Main Ground", "Practice Ground", "Indoor Nets" (add to `GROUNDS` constant).
+- Tournaments: "Summer Cup", "Academy League", "Weekend Practice".
+- Matches: one upcoming, one in-progress (live), five completed with full ball-event logs (already supported by the simulator in `generate.ts`).
+- Statistics / awards / records / leaderboards derive automatically from the ball events via the existing stats engine — nothing extra to seed.
+
+### Search behaviour
+
+- The teams combobox in Create Match uses fuzzy/substring match on team name + on member names (so `rah` matches "Rahul Sharma" → surfaces "U16"). Implemented as a small ranked filter (substring on lowercased strings, then prefix boost, then initials boost — no external dep).
+- When the query is empty, show a "Suggested" section (top 5 by recent match participation, falling back to first 5).
+
+---
+
+## Files touched
+
+- `src/routes/match-center.create.tsx` — rewrite as the new linear flow.
+- `src/components/match-center/create-match/` (new folder):
+  - `TeamPanel.tsx` — the three-option picker + squad editor.
+  - `PlayerChips.tsx` — reusable chips list.
+  - `TeamCombobox.tsx` — searchable team picker with fuzzy match + suggested fallback.
+  - `PlayerCombobox.tsx` — searchable academy-player picker with optional guest-add row.
+  - `SummaryCard.tsx` — the bottom recap + Start button.
+- `src/lib/mc-matches.ts` — small helper additions if needed (e.g. a `createAcademyTeamWithSquad` helper that today lives inline in the route).
+- `src/lib/mc-demo/generate.ts` — named team roster + expanded name pool + grounds/tournaments constants.
+
+No DB migrations. No changes to the scoring engine, statistics engine, ball-event schema, or existing API surface. Demo mode continues to work purely through the existing in-memory overlay.
+
+## Out of scope for this pass
+
+- Match reschedule / edit flow.
+- Persisting "guest players" as real athlete profiles (they remain squad-name-only rows).
+- Live search on remote opponent teams from other academies.
+- Design-system token changes.
+
+## Validation
+
+- Manual: on a fresh demo tenant, opening `/match-center/create` shows populated team lists immediately; typing `rah`, `sky`, `u16` returns the expected matches; a full match can be created and "Start Match" navigates to the scorer with 11-v-11 squads.
+- `bunx tsgo --noEmit` clean.
+- Existing scoring-simulation harness still passes.

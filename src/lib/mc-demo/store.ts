@@ -3,7 +3,7 @@ import { generateDemoData, type DemoData } from "./generate";
 
 const FLAG_KEY = (tenantId: string) => `mc:demo:${tenantId}`;
 const DATA_KEY = (tenantId: string) => `mc:demo:data:${tenantId}`;
-const VERSION = 3;
+const VERSION = 4;
 
 const listeners = new Set<() => void>();
 const dataCache = new Map<string, DemoData>();
