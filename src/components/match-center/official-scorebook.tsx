@@ -513,77 +513,134 @@ type Stats = ReturnType<typeof calculateInningsStatistics>;
 function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: string | null }) {
   const pomKey = playerOfMatch?.trim().toLowerCase() ?? "";
   const topKey = stats.summary.highestScorer?.player.key ?? null;
+  const rows = stats.batting.ordered;
   return (
-    <div className="overflow-x-auto">
-      <table className="sb-sticky-thead w-full border-collapse text-[12px]">
-        <thead>
-          <tr className="border-y bg-muted/40">
-            <Th className="text-left">Batter</Th>
-            <Th className="text-left">Dismissal</Th>
-            <Th className="text-left">Bowler</Th>
-            <Th className="text-right">R</Th>
-            <Th className="text-right">B</Th>
-            <Th className="text-right">4s</Th>
-            <Th className="text-right">6s</Th>
-            <Th className="text-right">SR</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {stats.batting.ordered.map((b, i) => {
-            const name = b.player.name ?? "";
-            const isPom = pomKey && name.trim().toLowerCase() === pomKey;
-            const isTop = topKey && b.player.key === topKey && b.runs > 0;
-            return (
-              <tr
-                key={b.player.key}
-                className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isPom ? "bg-amber-500/10" : isTop ? "bg-emerald-500/5" : ""}`}
-              >
-                <td className="py-2 pl-2 font-semibold">
-                  {isPom ? (
-                    <span className="mr-1 text-amber-600 dark:text-amber-400" title="Player of the Match">★</span>
-                  ) : isTop ? (
-                    <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Top scorer">◆</span>
-                  ) : null}
-                  {b.player.name ?? "—"}
-                  {b.notOut && <span className="ml-1 text-muted-foreground">*</span>}
+    <>
+      {/* Mobile: stacked cards */}
+      <ul className="grid gap-2 sm:hidden">
+        {rows.length === 0 && (
+          <li className="rounded-lg border border-dashed py-4 text-center text-[12px] text-muted-foreground">
+            No balls faced.
+          </li>
+        )}
+        {rows.map((b) => {
+          const name = b.player.name ?? "—";
+          const isPom = pomKey && name.trim().toLowerCase() === pomKey;
+          const isTop = topKey && b.player.key === topKey && b.runs > 0;
+          return (
+            <li
+              key={b.player.key}
+              className={`rounded-lg border bg-card px-3 py-2.5 ${isPom ? "border-amber-500/40 bg-amber-500/5" : isTop ? "border-emerald-500/30 bg-emerald-500/5" : ""}`}
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="min-w-0 truncate text-[13px] font-semibold">
+                  {isPom ? <span className="mr-1 text-amber-600 dark:text-amber-400">★</span>
+                    : isTop ? <span className="mr-1 text-emerald-600 dark:text-emerald-400">◆</span>
+                    : null}
+                  {name}
+                  {b.notOut && <span className="ml-0.5 text-muted-foreground">*</span>}
+                </div>
+                <div className="shrink-0 tabular-nums text-[15px] font-black">
+                  {b.runs}
+                  <span className="text-[11px] font-medium text-muted-foreground"> ({b.balls})</span>
+                </div>
+              </div>
+              <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                {b.notOut ? "not out" : (b.dismissalType ?? "—")}
+                {b.dismissedBy?.name ? ` · b ${b.dismissedBy.name}` : ""}
+              </div>
+              <div className="mt-1 flex gap-3 text-[10.5px] text-muted-foreground tabular-nums">
+                <span>4s <b className="text-foreground">{b.fours}</b></span>
+                <span>6s <b className="text-foreground">{b.sixes}</b></span>
+                <span>SR <b className="text-foreground">{b.strikeRate ? b.strikeRate.toFixed(1) : "—"}</b></span>
+              </div>
+            </li>
+          );
+        })}
+        <li className="mt-1 flex items-baseline justify-between rounded-lg border-2 border-foreground/70 bg-foreground/5 px-3 py-2 text-[11px] font-black uppercase tracking-widest">
+          <span>Total</span>
+          <span className="tabular-nums text-[15px]">
+            {stats.team.runs}/{stats.team.wickets}
+            <span className="ml-1 text-[10px] font-semibold text-muted-foreground">
+              ({stats.team.oversDisplay} ov · RR {stats.team.runRate.toFixed(2)})
+            </span>
+          </span>
+        </li>
+      </ul>
+
+      {/* Desktop: full table */}
+      <div className="hidden sm:block overflow-x-auto">
+        <table className="sb-sticky-thead w-full border-collapse text-[12px]">
+          <thead>
+            <tr className="border-y bg-muted/40">
+              <Th className="text-left">Batter</Th>
+              <Th className="text-left">Dismissal</Th>
+              <Th className="text-left">Bowler</Th>
+              <Th className="text-right">R</Th>
+              <Th className="text-right">B</Th>
+              <Th className="text-right">4s</Th>
+              <Th className="text-right">6s</Th>
+              <Th className="text-right">SR</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((b, i) => {
+              const name = b.player.name ?? "";
+              const isPom = pomKey && name.trim().toLowerCase() === pomKey;
+              const isTop = topKey && b.player.key === topKey && b.runs > 0;
+              return (
+                <tr
+                  key={b.player.key}
+                  className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isPom ? "bg-amber-500/10" : isTop ? "bg-emerald-500/5" : ""}`}
+                >
+                  <td className="py-2 pl-2 font-semibold">
+                    {isPom ? (
+                      <span className="mr-1 text-amber-600 dark:text-amber-400" title="Player of the Match">★</span>
+                    ) : isTop ? (
+                      <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Top scorer">◆</span>
+                    ) : null}
+                    {b.player.name ?? "—"}
+                    {b.notOut && <span className="ml-1 text-muted-foreground">*</span>}
+                  </td>
+                  <td className="text-[11px] text-muted-foreground">
+                    {b.notOut ? "not out" : b.dismissalType ?? "—"}
+                  </td>
+                  <td className="text-[11px] text-muted-foreground">
+                    {b.dismissedBy?.name ?? "—"}
+                  </td>
+                  <Td className="pr-2 text-sm font-black">{b.runs}</Td>
+                  <Td>{b.balls}</Td>
+                  <Td>{b.fours}</Td>
+                  <Td>{b.sixes}</Td>
+                  <Td>{b.strikeRate ? b.strikeRate.toFixed(1) : "—"}</Td>
+                </tr>
+              );
+            })}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={8} className="py-4 text-center text-muted-foreground">
+                  No balls faced.
                 </td>
-                <td className="text-[11px] text-muted-foreground">
-                  {b.notOut ? "not out" : b.dismissalType ?? "—"}
-                </td>
-                <td className="text-[11px] text-muted-foreground">
-                  {b.dismissedBy?.name ?? "—"}
-                </td>
-                <Td className="pr-2 text-sm font-black">{b.runs}</Td>
-                <Td>{b.balls}</Td>
-                <Td>{b.fours}</Td>
-                <Td>{b.sixes}</Td>
-                <Td>{b.strikeRate ? b.strikeRate.toFixed(1) : "—"}</Td>
               </tr>
-            );
-          })}
-          {stats.batting.ordered.length === 0 && (
-            <tr>
-              <td colSpan={8} className="py-4 text-center text-muted-foreground">
-                No balls faced.
+            )}
+          </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-foreground/80 bg-foreground/5">
+              <td colSpan={3} className="py-2 pl-2 text-[11px] font-black uppercase tracking-widest">
+                Total
+              </td>
+              <td className="pr-2 text-right text-base font-black tabular-nums">{stats.team.runs}</td>
+              <td colSpan={4} className="pr-2 text-right text-[11px] font-semibold text-muted-foreground">
+                {stats.team.wickets} wkts · {stats.team.oversDisplay} ov · RR {stats.team.runRate.toFixed(2)}
               </td>
             </tr>
-          )}
-        </tbody>
-        <tfoot>
-          <tr className="border-t-2 border-foreground/80 bg-foreground/5">
-            <td colSpan={3} className="py-2 pl-2 text-[11px] font-black uppercase tracking-widest">
-              Total
-            </td>
-            <td className="pr-2 text-right text-base font-black tabular-nums">{stats.team.runs}</td>
-            <td colSpan={4} className="pr-2 text-right text-[11px] font-semibold text-muted-foreground">
-              {stats.team.wickets} wkts · {stats.team.oversDisplay} ov · RR {stats.team.runRate.toFixed(2)}
-            </td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
+          </tfoot>
+        </table>
+      </div>
+    </>
   );
 }
+
 
 function ExtrasLine({ stats }: { stats: Stats }) {
   const e = stats.team.extras;
