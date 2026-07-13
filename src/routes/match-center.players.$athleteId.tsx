@@ -305,33 +305,164 @@ function OverviewTab({
 }
 
 /* ==================== CAREER ==================== */
-function CareerTab() {
-  return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {[
-        { label: "Matches", value: 0 },
-        { label: "Runs", value: 0 },
-        { label: "Wickets", value: 0 },
-        { label: "Awards", value: 0 },
-      ].map((k) => (
-        <div key={k.label} className="rounded-2xl border border-border bg-card p-5">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {k.label}
-          </div>
-          <div className="mt-2 text-3xl font-bold tracking-tight">{k.value}</div>
-          <div className="mt-1 text-xs text-muted-foreground">No matches yet</div>
+function CareerTab({ athleteId }: { athleteId: string }) {
+  const qc = useQueryClient();
+  const careerQ = useQuery({
+    queryKey: ["mc-career", athleteId],
+    queryFn: () => getCareer(athleteId),
+  });
+  const timelineQ = useQuery({
+    queryKey: ["mc-career-timeline", athleteId],
+    queryFn: () => getCareerTimeline(athleteId),
+  });
+  const rebuild = useMutation({
+    mutationFn: () => rebuildCareer(athleteId),
+    onSuccess: () => {
+      toast.success("Career rebuilt from finalized matches");
+      qc.invalidateQueries({ queryKey: ["mc-career", athleteId] });
+      qc.invalidateQueries({ queryKey: ["mc-career-timeline", athleteId] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Rebuild failed"),
+  });
+
+  if (careerQ.isLoading) return <LoadingSkeleton />;
+  const c = careerQ.data;
+
+  if (!c || c.matches === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => rebuild.mutate()}
+            disabled={rebuild.isPending}
+          >
+            {rebuild.isPending ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : null}
+            Rebuild career
+          </Button>
         </div>
-      ))}
-      <div className="md:col-span-2 lg:col-span-4">
         <EmptyState
           icon={BarChart3}
-          title="No matches yet"
-          description="Career records will populate automatically once match scoring is enabled."
+          title="No career records yet"
+          description="Career updates automatically after a match is finalized."
         />
+      </div>
+    );
+  }
+
+  const stat = (label: string, value: string | number, hint?: string) => (
+    <div key={label} className="rounded-2xl border border-border bg-card p-5">
+      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-2 text-3xl font-bold tracking-tight">{value}</div>
+      {hint ? <div className="mt-1 text-xs text-muted-foreground">{hint}</div> : null}
+    </div>
+  );
+
+  const points = timelineQ.data ?? [];
+  const maxRuns = Math.max(1, ...points.map((p) => p.runs));
+  const maxWkts = Math.max(1, ...points.map((p) => p.wickets));
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Auto-generated from finalized matches
+          {c.last_rebuilt_at
+            ? ` · updated ${new Date(c.last_rebuilt_at).toLocaleString()}`
+            : ""}
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => rebuild.mutate()}
+          disabled={rebuild.isPending}
+        >
+          {rebuild.isPending ? (
+            <Loader2 className="mr-2 size-4 animate-spin" />
+          ) : null}
+          Rebuild career
+        </Button>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {stat("Matches", c.matches)}
+        {stat("Runs", c.runs, `${c.innings} innings · ${c.not_outs} NO`)}
+        {stat(
+          "Highest",
+          `${c.highest_score}${c.highest_score_not_out ? "*" : ""}`,
+        )}
+        {stat("Average", c.average.toFixed(2))}
+        {stat("Strike Rate", c.strike_rate.toFixed(2))}
+        {stat("50s / 100s", `${c.fifties} / ${c.hundreds}`)}
+        {stat("Wickets", c.wickets, `${c.overs} overs`)}
+        {stat("Best Bowling", c.best_bowling)}
+        {stat("Economy", c.economy.toFixed(2))}
+        {stat("Catches", c.catches, `${c.stumpings} st · ${c.run_outs} RO`)}
+        {stat(
+          "Captain",
+          `${c.captain_matches}`,
+          `${c.captain_wins}W / ${c.captain_losses}L`,
+        )}
+        {stat("Player of Match", c.player_of_match)}
+      </div>
+
+      {/* Career Graphs (placeholders — reusable sparkline blocks) */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="mb-3 text-sm font-semibold">Runs Timeline</div>
+          <SparkBars values={points.map((p) => p.runs)} max={maxRuns} />
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="mb-3 text-sm font-semibold">Wickets Timeline</div>
+          <SparkBars values={points.map((p) => p.wickets)} max={maxWkts} />
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="mb-3 text-sm font-semibold">Average Timeline</div>
+          <SparkBars
+            values={points.map((p) => p.battingAverageToDate)}
+            max={Math.max(1, ...points.map((p) => p.battingAverageToDate))}
+          />
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="mb-3 text-sm font-semibold">Strike Rate Timeline</div>
+          <SparkBars
+            values={points.map((p) => p.strikeRateToDate)}
+            max={Math.max(1, ...points.map((p) => p.strikeRateToDate))}
+          />
+        </div>
       </div>
     </div>
   );
 }
+
+function SparkBars({ values, max }: { values: number[]; max: number }) {
+  if (values.length === 0) {
+    return (
+      <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">
+        No data yet
+      </div>
+    );
+  }
+  return (
+    <div className="flex h-24 items-end gap-1">
+      {values.map((v, i) => (
+        <div
+          key={i}
+          className="flex-1 rounded-sm bg-foreground/80"
+          style={{ height: `${Math.max(2, (v / max) * 100)}%` }}
+          title={String(v)}
+        />
+      ))}
+    </div>
+  );
+}
+
+
 
 function PlaceholderTab({ title }: { title: string }) {
   return (
