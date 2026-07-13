@@ -68,6 +68,9 @@ export interface ScoringSession {
   bowler: CurrentBowlerState;
   currentOver: CurrentOverState;
 
+  /** Reconstructed match state (pure replay of the event log). */
+  matchState: MatchState;
+
   /* --- setters (UI-driven, no calculations) --- */
   setStriker: (b: CurrentBatterState) => void;
   setNonStriker: (b: CurrentBatterState) => void;
