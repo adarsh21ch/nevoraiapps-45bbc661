@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
   Award,
   Check,
@@ -91,6 +92,7 @@ function RecognitionPage() {
   const tenantId = tenant.id;
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
 
   const suggestionsQ = useQuery({
     queryKey: ["mc-recog", tenantId, "suggested"],
@@ -115,9 +117,9 @@ function RecognitionPage() {
     queryFn: () => listAcademyTimeline(tenantId, 200),
   });
   const searchQ = useQuery({
-    queryKey: ["mc-recog-search", tenantId, search],
-    queryFn: () => searchRecognitions(tenantId, search),
-    enabled: search.trim().length >= 2,
+    queryKey: ["mc-recog-search", tenantId, debouncedSearch],
+    queryFn: () => searchRecognitions(tenantId, debouncedSearch),
+    enabled: debouncedSearch.trim().length >= 2,
   });
 
   const invalidateAll = () => {

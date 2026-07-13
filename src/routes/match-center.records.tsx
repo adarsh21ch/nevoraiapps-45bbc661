@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
   Medal,
   Trophy,
@@ -91,6 +92,7 @@ function RecordsPage() {
   const tenantId = tenant.id;
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebouncedValue(searchTerm, 300);
 
   const overviewQ = useQuery({
     queryKey: ["mc-academy-overview", tenantId],
@@ -120,9 +122,9 @@ function RecordsPage() {
   });
 
   const searchQ = useQuery({
-    queryKey: ["mc-records-search", tenantId, searchTerm],
-    queryFn: () => globalSearch(tenantId, searchTerm),
-    enabled: searchTerm.trim().length >= 2,
+    queryKey: ["mc-records-search", tenantId, debouncedSearch],
+    queryFn: () => globalSearch(tenantId, debouncedSearch),
+    enabled: debouncedSearch.trim().length >= 2,
   });
 
   const rebuildMut = useMutation({
