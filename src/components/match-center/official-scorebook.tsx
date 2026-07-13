@@ -656,57 +656,98 @@ function ExtrasLine({ stats }: { stats: Stats }) {
 
 function BowlingTable({ stats }: { stats: Stats }) {
   const bestKey = stats.summary.bestBowler?.player.key ?? null;
+  const rows = stats.bowling.ordered;
   return (
-    <div className="overflow-x-auto">
-      <table className="sb-sticky-thead w-full border-collapse text-[12px]">
-        <thead>
-          <tr className="border-y bg-muted/40">
-            <Th className="text-left">Bowler</Th>
-            <Th className="text-right">O</Th>
-            <Th className="text-right">M</Th>
-            <Th className="text-right">R</Th>
-            <Th className="text-right">W</Th>
-            <Th className="text-right">Econ</Th>
-            <Th className="text-right">Dots</Th>
-            <Th className="text-right">Wd</Th>
-            <Th className="text-right">Nb</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {stats.bowling.ordered.map((b, i) => {
-            const isBest = bestKey && b.player.key === bestKey && b.wickets > 0;
-            return (
-              <tr
-                key={b.player.key}
-                className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isBest ? "bg-emerald-500/5" : ""}`}
-              >
-                <td className="py-2 pl-2 font-semibold">
-                  {isBest && <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Best bowler">◆</span>}
+    <>
+      {/* Mobile: stacked cards */}
+      <ul className="grid gap-2 sm:hidden">
+        {rows.length === 0 && (
+          <li className="rounded-lg border border-dashed py-4 text-center text-[12px] text-muted-foreground">
+            No overs bowled.
+          </li>
+        )}
+        {rows.map((b) => {
+          const isBest = bestKey && b.player.key === bestKey && b.wickets > 0;
+          return (
+            <li
+              key={b.player.key}
+              className={`rounded-lg border bg-card px-3 py-2.5 ${isBest ? "border-emerald-500/30 bg-emerald-500/5" : ""}`}
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="min-w-0 truncate text-[13px] font-semibold">
+                  {isBest && <span className="mr-1 text-emerald-600 dark:text-emerald-400">◆</span>}
                   {b.player.name ?? "—"}
-                </td>
-                <Td>{b.oversDisplay}</Td>
-                <Td>{b.maidens}</Td>
-                <Td>{b.runsConceded}</Td>
-                <Td className="pr-2 text-sm font-black">{b.wickets}</Td>
-                <Td>{b.economy ? b.economy.toFixed(2) : "—"}</Td>
-                <Td>{b.dotBalls}</Td>
-                <Td>{b.wides}</Td>
-                <Td>{b.noBalls}</Td>
-              </tr>
-            );
-          })}
-          {stats.bowling.ordered.length === 0 && (
-            <tr>
-              <td colSpan={9} className="py-4 text-center text-muted-foreground">
-                No overs bowled.
-              </td>
+                </div>
+                <div className="shrink-0 tabular-nums text-[15px] font-black">
+                  {b.wickets}/{b.runsConceded}
+                  <span className="text-[11px] font-medium text-muted-foreground"> ({b.oversDisplay})</span>
+                </div>
+              </div>
+              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10.5px] text-muted-foreground tabular-nums">
+                <span>M <b className="text-foreground">{b.maidens}</b></span>
+                <span>Econ <b className="text-foreground">{b.economy ? b.economy.toFixed(2) : "—"}</b></span>
+                <span>Dots <b className="text-foreground">{b.dotBalls}</b></span>
+                <span>Wd <b className="text-foreground">{b.wides}</b></span>
+                <span>Nb <b className="text-foreground">{b.noBalls}</b></span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* Desktop: full table */}
+      <div className="hidden sm:block overflow-x-auto">
+        <table className="sb-sticky-thead w-full border-collapse text-[12px]">
+          <thead>
+            <tr className="border-y bg-muted/40">
+              <Th className="text-left">Bowler</Th>
+              <Th className="text-right">O</Th>
+              <Th className="text-right">M</Th>
+              <Th className="text-right">R</Th>
+              <Th className="text-right">W</Th>
+              <Th className="text-right">Econ</Th>
+              <Th className="text-right">Dots</Th>
+              <Th className="text-right">Wd</Th>
+              <Th className="text-right">Nb</Th>
             </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {rows.map((b, i) => {
+              const isBest = bestKey && b.player.key === bestKey && b.wickets > 0;
+              return (
+                <tr
+                  key={b.player.key}
+                  className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isBest ? "bg-emerald-500/5" : ""}`}
+                >
+                  <td className="py-2 pl-2 font-semibold">
+                    {isBest && <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Best bowler">◆</span>}
+                    {b.player.name ?? "—"}
+                  </td>
+                  <Td>{b.oversDisplay}</Td>
+                  <Td>{b.maidens}</Td>
+                  <Td>{b.runsConceded}</Td>
+                  <Td className="pr-2 text-sm font-black">{b.wickets}</Td>
+                  <Td>{b.economy ? b.economy.toFixed(2) : "—"}</Td>
+                  <Td>{b.dotBalls}</Td>
+                  <Td>{b.wides}</Td>
+                  <Td>{b.noBalls}</Td>
+                </tr>
+              );
+            })}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={9} className="py-4 text-center text-muted-foreground">
+                  No overs bowled.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
+
 
 function FallOfWicketsTable({ stats }: { stats: Stats }) {
   if (stats.team.fallOfWickets.length === 0) {
