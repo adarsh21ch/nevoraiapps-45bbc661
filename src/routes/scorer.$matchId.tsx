@@ -81,7 +81,15 @@ const DISMISSAL_MAP: Record<DismissalKind, DismissalType> = {
 
 function ScorerPage() {
   const { matchId } = Route.useParams();
-  const isDemo = matchId === "demo";
+  const isDemoPlaceholder = matchId === "demo";
+  const isDemoMatch = typeof matchId === "string" && matchId.startsWith("demo-");
+
+  // Demo-mode short-circuit: render a read-only demo scorer for any demo-* id.
+  if (isDemoMatch) {
+    return <DemoScorerView matchId={matchId} />;
+  }
+
+  const isDemo = isDemoPlaceholder;
 
   // Auth user
   const userQ = useQuery({
@@ -558,8 +566,21 @@ function ScorerPage() {
           Loading match…
         </div>
       ) : session.error ? (
-        <div className="grid flex-1 place-items-center text-sm text-destructive">
-          {session.error}
+        <div className="grid flex-1 place-items-center p-6 text-center">
+          <div className="max-w-sm space-y-3">
+            <div className="text-base font-semibold">Unable to load match</div>
+            <p className="text-xs text-muted-foreground">
+              We couldn't reach the match data. Check your connection and try again.
+            </p>
+            <div className="flex justify-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => void session.reload()}>
+                Retry
+              </Button>
+              <Button size="sm" variant="ghost" asChild>
+                <Link to="/match-center/matches">Back to matches</Link>
+              </Button>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -962,6 +983,132 @@ function InfoRow({ label, value }: { label: string; value: string }) {
         {label}
       </div>
       <div className="mt-0.5 text-sm">{value}</div>
+    </div>
+  );
+}
+
+/* =========================================================================
+ * Demo Scorer View — read-only surface for demo-* match ids.
+ * Reuses MatchHeader, LiveScorecard, CommentaryPanel and the shared
+ * statistics engine. Never queries Supabase. Never mounts useScoringSession.
+ * =======================================================================*/
+
+import { findDemoDatasetByMatchId } from "@/lib/mc-demo/store";
+
+function DemoScorerView({ matchId }: { matchId: string }) {
+  const dataset = useMemo(() => findDemoDatasetByMatchId(matchId), [matchId]);
+
+  if (!dataset) {
+    return (
+      <div className="flex h-dvh flex-col items-center justify-center gap-4 bg-background p-6 text-center">
+        <div className="max-w-sm space-y-3">
+          <div className="text-lg font-semibold">Demo match unavailable</div>
+          <p className="text-sm text-muted-foreground">
+            The demo fixtures aren't loaded on this device. Turn on Demo Mode
+            from Match Center → Settings, then reopen this match.
+          </p>
+          <div className="flex justify-center gap-2">
+            <Button asChild size="sm" variant="outline">
+              <Link to="/match-center/matches">Back to matches</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link to="/match-center">Match Center</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { data: demo } = dataset;
+  const match = demo.matches.find((m) => m.id === matchId)!;
+  const inningsList = demo.innings.filter((i) => i.match_id === matchId);
+  const activeInnings =
+    inningsList.find((i) => (i.status as string) === "in_progress") ??
+    inningsList[inningsList.length - 1] ??
+    null;
+  const events = demo.ballEvents.filter(
+    (e) => e.match_id === matchId && (!activeInnings || e.innings_id === activeInnings.id),
+  );
+
+  const stats = calculateInningsStatistics(events, {
+    totalOvers: match.overs ?? null,
+    target: activeInnings?.target ?? null,
+  });
+
+  const teamA = match.team_a;
+  const teamB = match.team_b;
+  const battingTeamId = activeInnings?.batting_team_id ?? teamA?.id ?? "";
+  const homeName =
+    battingTeamId === teamA?.id ? teamA?.name ?? "Home" : teamB?.name ?? "Home";
+  const awayName =
+    battingTeamId === teamA?.id ? teamB?.name ?? "Away" : teamA?.name ?? "Away";
+
+  const isLive = !match.match_locked && (activeInnings?.status as string) === "in_progress";
+  const status = match.match_locked
+    ? "Final"
+    : activeInnings
+      ? `Innings ${activeInnings.innings_number}${isLive ? " · Live" : ""}`
+      : "Setup";
+
+  const commentary = buildCommentary(events);
+
+  return (
+    <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+      <MatchHeader
+        homeTeam={homeName}
+        awayTeam={awayName}
+        score={`${stats.team.runs}/${stats.team.wickets}`}
+        overs={stats.team.oversDisplay}
+        crr={String(stats.team.runRate)}
+        rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
+        target={activeInnings?.target != null ? String(activeInnings.target) : undefined}
+        status={status}
+        format={match.match_format ?? undefined}
+        ground={match.ground_name ?? undefined}
+        tournament={match.match_type ?? undefined}
+        connection="online"
+      />
+
+      <div className="flex items-center justify-between gap-2 border-b bg-card px-3 py-1.5 text-xs">
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" asChild className="h-8 gap-1.5">
+            <Link to="/match-center/live">
+              <ArrowLeft className="size-3.5" /> Exit
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="sm" className="h-8 gap-1.5">
+            <Link to="/match-center/scorebook/$matchId" params={{ matchId }} target="_blank">
+              <FileText className="size-3.5" /> Scorebook
+            </Link>
+          </Button>
+        </div>
+        <div className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400">
+          Demo · Read-only
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-5xl space-y-4 p-3 sm:p-4">
+          <LiveScorecard
+            events={events}
+            innings={activeInnings}
+            totalOvers={match.overs ?? null}
+            matchInfo={{
+              ground: match.ground_name,
+              tournament: match.match_type,
+              date: match.scheduled_date,
+              format: match.match_format,
+              homeTeam: homeName,
+              awayTeam: awayName,
+              result: match.result,
+            }}
+          />
+          {commentary.length > 0 && (
+            <CommentaryPanel entries={commentary.slice(0, 40)} collapsed={false} onToggle={() => {}} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

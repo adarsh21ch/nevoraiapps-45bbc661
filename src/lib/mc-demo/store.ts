@@ -95,6 +95,49 @@ export function isDemoId(id: string | null | undefined): boolean {
   return typeof id === "string" && id.startsWith("demo-");
 }
 
+/**
+ * Look up a demo dataset for any tenant that contains the given match id.
+ * Used by routes (e.g. /scorer/$matchId) that live outside the DashboardProvider
+ * and don't know the tenant id up-front. If no dataset is found but a demo
+ * flag is on for some tenant, the caller can regenerate via useDemoData.
+ */
+export function findDemoDatasetByMatchId(matchId: string): { tenantId: string; data: DemoData } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (!key || !key.startsWith("mc:demo:data:")) continue;
+      const raw = window.localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw) as DemoData & { __v?: number };
+      if (parsed?.__v !== VERSION) continue;
+      if (parsed.matches?.some((m) => m.id === matchId)) {
+        return { tenantId: key.slice("mc:demo:data:".length), data: parsed };
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+/** Find any tenant that currently has demo mode enabled. */
+export function findAnyDemoTenant(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (!key || !key.startsWith("mc:demo:") || key.startsWith("mc:demo:data:")) continue;
+      if (window.localStorage.getItem(key) === "on") {
+        return key.slice("mc:demo:".length);
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
 export type DemoEntity =
   | { kind: "player"; player: DemoData["players"][number] }
   | { kind: "team"; team: DemoData["teams"][number] }
