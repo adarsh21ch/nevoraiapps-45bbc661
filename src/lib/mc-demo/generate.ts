@@ -29,11 +29,21 @@ const LAST_NAMES = [
 ];
 const CITIES = ["Bengaluru", "Mumbai", "Chennai", "Delhi", "Hyderabad", "Pune", "Kolkata", "Ahmedabad"];
 const GROUNDS = [
-  "Chinnaswamy Ground", "Wankhede Practice Field", "Feroz Shah Nets", "Eden Turf",
-  "MA Chidambaram Practice", "Rajiv Gandhi Stadium", "Sardar Patel Ground", "Green Park",
+  "Sai Main Ground",
+  "Practice Ground",
+  "Indoor Nets",
+  "Chinnaswamy Ground",
+  "Wankhede Practice Field",
+  "Sardar Patel Ground",
 ];
 const TEAM_COLORS = ["#E8873C", "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#0EA5E9", "#EC4899", "#22C55E", "#F97316", "#14B8A6", "#A855F7"];
 const ROLES = ["batter", "bowler", "all_rounder", "wicket_keeper"] as const;
+
+/** Named players that must always appear in the demo dataset so search
+ * behaves predictably (e.g. typing "rah" surfaces Rahul Sharma → U16). */
+const NAMED_U16_PLAYERS = [
+  "Rahul Sharma", "Aman Patel", "Aryan Singh", "Mohit Verma", "Rohit Yadav",
+] as const;
 
 function photo(seed: string) {
   return `https://i.pravatar.cc/240?u=${encodeURIComponent(seed)}`;
@@ -347,9 +357,11 @@ export function generateDemoData(tenantId: string): DemoData {
   };
   const isoDate = (offsetDays: number) => iso(offsetDays).slice(0, 10);
 
-  /* --- 150 players --- */
+  /* --- 150 players. Slots 0..4 are the pre-planted named U16 stars so
+     * search "rah" / "aman" / "aryan" / "mohit" / "rohit" surfaces them and
+     * (through the squad assignment below) the U16 team. */
   const players: AthleteWithStudent[] = Array.from({ length: 150 }, (_, i) => {
-    const pn = name(rng);
+    const pn = i < NAMED_U16_PLAYERS.length ? NAMED_U16_PLAYERS[i] : name(rng);
     const role = rng.pick(ROLES);
     const age = rng.int(11, 24);
     const dob = `${now.getFullYear() - age}-${String(rng.int(1, 12)).padStart(2, "0")}-${String(rng.int(1, 28)).padStart(2, "0")}`;
@@ -385,20 +397,24 @@ export function generateDemoData(tenantId: string): DemoData {
 
   const asPlayer = (p: AthleteWithStudent): Player => ({ id: p.id, name: p.student?.name ?? "Player" });
 
-  /* --- 12 teams --- */
-  const teamDefs = [
-    { name: "Sky Cricket Academy U16", short: "SKY", age: "U16", color: "#3B82F6", coach: "Coach V. Menon", city: "Bengaluru", external: false },
-    { name: "Royal Cricket Academy", short: "RCA", age: "U16", color: "#EF4444", coach: "Coach P. Sharma", city: "Mumbai", external: true },
-    { name: "Junior Development", short: "JDV", age: "U12", color: "#10B981", coach: "Coach R. Kulkarni", city: "Bengaluru", external: false },
-    { name: "Under-13 Colts", short: "U13", age: "U14", color: "#F59E0B", coach: "Coach S. Iyer", city: "Bengaluru", external: false },
-    { name: "Under-15 Blues", short: "U15", age: "U16", color: "#0EA5E9", coach: "Coach A. Khan", city: "Bengaluru", external: false },
-    { name: "Under-17 Titans", short: "U17", age: "U16", color: "#8B5CF6", coach: "Coach V. Menon", city: "Chennai", external: false },
-    { name: "Under-19 Kings", short: "U19", age: "U19", color: "#E8873C", coach: "Coach P. Sharma", city: "Hyderabad", external: false },
-    { name: "Senior Squad", short: "SEN", age: "Senior", color: "#22C55E", coach: "Coach R. Kulkarni", city: "Bengaluru", external: false },
-    { name: "Girls Elite", short: "GIR", age: "Girls", color: "#EC4899", coach: "Coach A. Khan", city: "Delhi", external: false },
-    { name: "Practice XI", short: "PRA", age: "Senior", color: "#14B8A6", coach: "Coach S. Iyer", city: "Bengaluru", external: false },
-    { name: "Tournament Squad", short: "TRN", age: "Senior", color: "#A855F7", coach: "Coach V. Menon", city: "Pune", external: false },
-    { name: "Representative XI", short: "REP", age: "Senior", color: "#F97316", coach: "Coach R. Kulkarni", city: "Bengaluru", external: false },
+  /* --- 11 teams: 6 academy + 5 external opponents --- */
+  const teamDefs: Array<{
+    name: string; short: string; age: string; color: string;
+    coach: string; city: string; external: boolean;
+  }> = [
+    // teams[0] is the live-match academy team. Keep the id "demo-team-live-a".
+    { name: "Sai Sports Academy U16", short: "SAI_U16", age: "U16", color: "#3B82F6", coach: "Coach V. Menon", city: "Bengaluru", external: false },
+    // teams[1] is the live-match opponent. Keep the id "demo-team-live-b".
+    { name: "Sky Cricket Academy", short: "SKY", age: "U16", color: "#EF4444", coach: "Coach P. Sharma", city: "Mumbai", external: true },
+    { name: "Sai Sports Academy U12", short: "SAI_U12", age: "U12", color: "#10B981", coach: "Coach R. Kulkarni", city: "Bengaluru", external: false },
+    { name: "Sai Sports Academy U14", short: "SAI_U14", age: "U14", color: "#F59E0B", coach: "Coach S. Iyer", city: "Bengaluru", external: false },
+    { name: "Sai Sports Academy U19", short: "SAI_U19", age: "U19", color: "#0EA5E9", coach: "Coach A. Khan", city: "Bengaluru", external: false },
+    { name: "Sai Sports Academy Senior Team", short: "SAI_SEN", age: "Senior", color: "#22C55E", coach: "Coach R. Kulkarni", city: "Bengaluru", external: false },
+    { name: "Sai Sports Academy Girls Team", short: "SAI_GIR", age: "Girls", color: "#EC4899", coach: "Coach A. Khan", city: "Bengaluru", external: false },
+    { name: "Royal Cricket Club", short: "ROY", age: "Senior", color: "#8B5CF6", coach: "Coach D. Rao", city: "Mumbai", external: true },
+    { name: "City Cricket Academy", short: "CIT", age: "U19", color: "#E8873C", coach: "Coach N. Gupta", city: "Chennai", external: true },
+    { name: "Lions CC", short: "LIO", age: "Senior", color: "#F97316", coach: "Coach A. Bhatt", city: "Pune", external: true },
+    { name: "Warriors CC", short: "WAR", age: "Senior", color: "#A855F7", coach: "Coach K. Malhotra", city: "Delhi", external: true },
   ];
   const teams: TeamWithCount[] = teamDefs.map((t, i) => ({
     id: i === 0 ? "demo-team-live-a" : i === 1 ? "demo-team-live-b" : `demo-team-${i + 1}`,
@@ -418,12 +434,15 @@ export function generateDemoData(tenantId: string): DemoData {
     player_count: 14 + rng.int(0, 4),
   } as unknown as TeamWithCount));
 
-  // Assign 12 players per team so squads look real
+  // 14 players per team so squads look real. First team (U16) uses the
+  // pre-planted named players (Rahul Sharma, Aman Patel, ...) which live at
+  // players[0..4], so search "rah" / "aman" surfaces the U16 squad.
   const teamSquads: Record<string, Player[]> = {};
+  const SQUAD_SIZE = 14;
   teams.forEach((t, ti) => {
-    const start = (ti * 12) % players.length;
+    const start = (ti * SQUAD_SIZE) % players.length;
     const squad: Player[] = [];
-    for (let k = 0; k < 12; k++) squad.push(asPlayer(players[(start + k) % players.length]));
+    for (let k = 0; k < SQUAD_SIZE; k++) squad.push(asPlayer(players[(start + k) % players.length]));
     teamSquads[t.id] = squad;
   });
 
@@ -433,8 +452,8 @@ export function generateDemoData(tenantId: string): DemoData {
    * ============================================================ */
   const m1 = {
     id: "demo-match-1",
-    teamA: teams.find((t) => t.short_name === "SEN")!,
-    teamB: teams.find((t) => t.short_name === "U19")!,
+    teamA: teams.find((t) => t.short_name === "SAI_SEN")!,
+    teamB: teams.find((t) => t.short_name === "SAI_U19")!,
     date: isoDate(-4),
     ground: "Chinnaswamy Ground",
     tournamentId: "demo-tournament-1",
@@ -463,8 +482,8 @@ export function generateDemoData(tenantId: string): DemoData {
    * ============================================================ */
   const m2 = {
     id: "demo-match-2",
-    teamA: teams.find((t) => t.short_name === "U17")!,
-    teamB: teams.find((t) => t.short_name === "U15")!,
+    teamA: teams.find((t) => t.short_name === "SAI_U19")!,
+    teamB: teams.find((t) => t.short_name === "SAI_U14")!,
     date: isoDate(-10),
     ground: "Sardar Patel Ground",
     tournamentId: "demo-tournament-2",
@@ -667,10 +686,10 @@ export function generateDemoData(tenantId: string): DemoData {
 
   /* --- 5 tournaments --- */
   const tournamentNames = [
-    { name: "Summer Cup 2026", type: "league", season: "Summer 2026" },
-    { name: "Winter Cup 2025", type: "knockout", season: "Winter 2025" },
-    { name: "Practice League", type: "practice_series", season: "2026" },
-    { name: "District League", type: "league", season: "2026" },
+    { name: "Summer Cup", type: "league", season: "Summer 2026" },
+    { name: "Academy League", type: "league", season: "2026" },
+    { name: "Weekend Practice", type: "practice_series", season: "2026" },
+    { name: "District Championship", type: "knockout", season: "2026" },
     { name: "State Qualifier", type: "league_knockout", season: "2026" },
   ];
   const tournaments: MCTournament[] = tournamentNames.map((t, i) => ({
