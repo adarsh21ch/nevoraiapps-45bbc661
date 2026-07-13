@@ -45,8 +45,8 @@ import {
 } from "@/lib/mc-teams";
 import { toast } from "sonner";
 import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
-import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
 import { DemoTeamProfile } from "@/components/match-center/demo-team-profile";
+
 
 export const Route = createFileRoute("/match-center/teams/$teamId")({
   head: () => ({ meta: [{ title: "Team · Match Center" }, { name: "robots", content: "noindex" }] }),
@@ -169,16 +169,16 @@ function TeamProfilePage() {
     return <DemoTeamWrapper tenantId={tenant.id} teamId={demoEntity.team.id} />;
   }
   if (demoEntity) {
+    // Non-team demo entity landed on a team route — send them back.
     return (
-      <DemoDetailStub
-        entity={demoEntity}
-        backLabel="All teams"
-        backTo="/match-center/teams"
-        parentLabel="Teams"
-        parentTo="/match-center/teams"
+      <EmptyState
+        icon={Users2}
+        title="Not a team"
+        description="This demo entity is not a team."
       />
     );
   }
+
 
 
   if (teamQ.isLoading) {

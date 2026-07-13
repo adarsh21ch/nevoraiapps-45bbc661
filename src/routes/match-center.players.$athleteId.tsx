@@ -81,7 +81,7 @@ import {
 } from "@/lib/mc-career-engine";
 import { toast } from "sonner";
 import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
-import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
+
 import { DemoPlayerProfile } from "@/components/match-center/demo-player-profile";
 import type { DemoData } from "@/lib/mc-demo/generate";
 
@@ -132,15 +132,14 @@ function AthleteProfilePage() {
   }
   if (demoEntity) {
     return (
-      <DemoDetailStub
-        entity={demoEntity}
-        backLabel="Athletes"
-        backTo="/match-center/players"
-        parentLabel="Athletes"
-        parentTo="/match-center/players"
+      <EmptyState
+        icon={User}
+        title="Not a player"
+        description="This demo entity is not a player."
       />
     );
   }
+
 
   if (athleteQ.isLoading) {
     return (
