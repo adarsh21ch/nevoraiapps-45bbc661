@@ -88,6 +88,7 @@ export interface MobileScorerProps {
   awaitingNewBowler?: boolean;
   previousBowlerName?: string | null;
   previousBowlerId?: string | null;
+  bowledBowlerIds?: string[];
 
   onUndo: () => void;
   onSwapStrike: () => void;
@@ -100,6 +101,7 @@ export interface MobileScorerProps {
   onOpenScorecard: () => void;
   onOpenScorebook?: () => void;
 }
+
 
 type PickerKind = "striker" | "nonStriker" | "bowler";
 
