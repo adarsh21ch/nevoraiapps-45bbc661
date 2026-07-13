@@ -169,5 +169,172 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Focus rings — visible, consistent, tone-aware. */
+  :where(button, a, [role="button"], input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-md);
+  }
+
+  /* Minimum touch target on interactive controls for coarse pointers. */
+  @media (pointer: coarse) {
+    :where(button, a[role="button"], [role="button"]) {
+      min-height: 44px;
+    }
+  }
+
+  /* Refined scrollbars — subtle, not decorative. */
+  .ds-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .ds-scroll::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, var(--muted-foreground) 30%, transparent);
+    border-radius: 999px;
+  }
+  .ds-scroll::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklch, var(--muted-foreground) 50%, transparent);
+  }
+  .ds-scroll::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
+
+/* ============================================================
+ * Design system tokens (extended)
+ * Duration / spacing / z-index / typography scale.
+ * ============================================================ */
+:root {
+  /* Animation durations */
+  --ds-duration-instant: 80ms;
+  --ds-duration-fast: 140ms;
+  --ds-duration-normal: 220ms;
+  --ds-duration-slow: 320ms;
+
+  /* Easing */
+  --ds-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ds-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Z-index scale */
+  --ds-z-base: 0;
+  --ds-z-sticky: 20;
+  --ds-z-drawer: 40;
+  --ds-z-topbar: 50;
+  --ds-z-dropdown: 60;
+  --ds-z-dialog: 70;
+  --ds-z-toast: 80;
+
+  /* Spacing rhythm (multiples of 4px) */
+  --ds-space-1: 0.25rem;
+  --ds-space-2: 0.5rem;
+  --ds-space-3: 0.75rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1.25rem;
+  --ds-space-6: 1.5rem;
+  --ds-space-8: 2rem;
+  --ds-space-10: 2.5rem;
+  --ds-space-12: 3rem;
+  --ds-space-16: 4rem;
+
+  /* Container widths */
+  --ds-container-sm: 640px;
+  --ds-container-md: 768px;
+  --ds-container-lg: 1024px;
+  --ds-container-xl: 1280px;
+  --ds-container-2xl: 1440px;
+}
+
+/* ============================================================
+ * Typography utilities — semantic type scale.
+ * Every text element on Academy OS should map to one of these.
+ * ============================================================ */
+@utility ds-display {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+@utility ds-h1 {
+  font-size: clamp(1.5rem, 2.6vw, 1.875rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+@utility ds-h2 {
+  font-size: 1.25rem;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+@utility ds-h3 {
+  font-size: 1rem;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  font-weight: 600;
+}
+@utility ds-body {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  font-weight: 400;
+}
+@utility ds-caption {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+@utility ds-eyebrow {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+@utility ds-stat {
+  font-size: clamp(1.75rem, 3vw, 2rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+ * Motion utilities
+ * ============================================================ */
+@utility ds-transition {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-timing-function: var(--ds-ease-out);
+  transition-duration: var(--ds-duration-normal);
+}
+@utility ds-hover-lift {
+  transition:
+    transform var(--ds-duration-normal) var(--ds-ease-out),
+    box-shadow var(--ds-duration-normal) var(--ds-ease-out),
+    border-color var(--ds-duration-normal) var(--ds-ease-out);
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-elev);
+  }
+}
+
+@keyframes ds-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@utility ds-shimmer {
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklch, var(--muted) 60%, transparent) 0%,
+    color-mix(in oklch, var(--muted-foreground) 12%, transparent) 50%,
+    color-mix(in oklch, var(--muted) 60%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: ds-shimmer 1.4s var(--ds-ease-in-out) infinite;
+}
+
