@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowRight, TrendingUp, TrendingDown, Minus, Check, Sparkles } from "lucide-react";
 
 /** Semantic accent tone — maps to CSS custom properties defined in styles.css. */
 export type AccentTone =
@@ -231,8 +231,10 @@ export function EmptyState({
   actionTo,
   onAction,
   secondaryHelp,
+  secondaryHelpTo,
   tone = "neutral",
   illustration = "pitch",
+  nextSteps,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
@@ -241,18 +243,26 @@ export function EmptyState({
   actionTo?: string;
   onAction?: () => void;
   secondaryHelp?: string;
+  secondaryHelpTo?: string;
   tone?: AccentTone;
   /** Ambient sports-themed backdrop. Set to "none" to disable. */
   illustration?: "pitch" | "trophy" | "none";
+  /** Optional onboarding checklist rendered below the CTA. */
+  nextSteps?: string[];
 }) {
   const isTrophy = illustration === "trophy";
+  const accent =
+    tone === "neutral" ? "var(--tenant-brand, var(--brand, #E8873C))" : toneVar[tone];
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-dashed border-border bg-card/40 py-14 px-6 text-center",
+        "relative overflow-hidden rounded-3xl border border-border/70 bg-card px-6 py-14 text-center shadow-[var(--shadow-soft)]",
         illustration === "pitch" && "pitch-lines",
         isTrophy && "trophy-glow",
       )}
+      style={{
+        backgroundImage: `radial-gradient(120% 80% at 50% -20%, color-mix(in oklch, ${accent} 14%, transparent) 0%, transparent 60%)`,
+      }}
     >
       {/* Subtle cricket-ball seam arc, decorative */}
       {illustration !== "none" && (
@@ -278,7 +288,7 @@ export function EmptyState({
         </svg>
       )}
       <div
-        className="relative mx-auto mb-4 grid size-16 place-items-center rounded-2xl shadow-[var(--shadow-elev)]"
+        className="relative mx-auto mb-5 grid size-16 place-items-center rounded-2xl shadow-[var(--shadow-elev)] ring-1 ring-border/60"
         style={
           tone === "neutral"
             ? {
@@ -286,32 +296,81 @@ export function EmptyState({
                 color: "#fff",
               }
             : {
-                backgroundColor: `color-mix(in oklch, ${toneVar[tone]} 18%, transparent)`,
+                backgroundColor: `color-mix(in oklch, ${toneVar[tone]} 22%, transparent)`,
                 color: toneVar[tone],
               }
         }
       >
-        <Icon className="size-7" />
+        <Icon className="size-7" aria-hidden />
       </div>
-      <h3 className="relative text-lg font-semibold tracking-tight">{title}</h3>
-      <p className="relative mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
+      <h3 className="relative text-lg font-semibold tracking-tight sm:text-xl">{title}</h3>
+      <p className="relative mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">
         {description}
       </p>
       {actionLabel && (actionTo || onAction) && (
-        <div className="relative mt-6">
+        <div className="relative mt-6 flex justify-center">
           {actionTo ? (
-            <Button asChild size="lg" className="rounded-full px-6">
-              <Link to={actionTo}>{actionLabel}</Link>
+            <Button
+              asChild
+              size="lg"
+              className="rounded-full px-6 min-h-11 shadow-[var(--shadow-elev)]"
+            >
+              <Link to={actionTo}>
+                <Sparkles className="size-4" aria-hidden />
+                <span>{actionLabel}</span>
+              </Link>
             </Button>
           ) : (
-            <Button size="lg" className="rounded-full px-6" onClick={onAction}>
-              {actionLabel}
+            <Button
+              size="lg"
+              className="rounded-full px-6 min-h-11 shadow-[var(--shadow-elev)]"
+              onClick={onAction}
+            >
+              <Sparkles className="size-4" aria-hidden />
+              <span>{actionLabel}</span>
             </Button>
           )}
         </div>
       )}
       {secondaryHelp && (
-        <p className="relative mt-3 text-xs text-muted-foreground/80">{secondaryHelp}</p>
+        <p className="relative mt-3 text-xs text-muted-foreground/80">
+          {secondaryHelpTo ? (
+            <Link
+              to={secondaryHelpTo}
+              className="underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none"
+            >
+              {secondaryHelp}
+            </Link>
+          ) : (
+            secondaryHelp
+          )}
+        </p>
+      )}
+      {nextSteps && nextSteps.length > 0 && (
+        <ol className="relative mx-auto mt-8 grid max-w-md gap-2 text-left">
+          {nextSteps.map((step, i) => (
+            <li
+              key={i}
+              className="flex items-start gap-3 rounded-xl border border-border/60 bg-background/60 px-3 py-2.5 text-sm text-foreground/90 backdrop-blur-sm"
+            >
+              <span
+                className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-[10px] font-bold"
+                style={{
+                  backgroundColor: `color-mix(in oklch, ${accent} 18%, transparent)`,
+                  color: accent,
+                }}
+                aria-hidden
+              >
+                {i + 1}
+              </span>
+              <span className="min-w-0 flex-1 leading-snug">{step}</span>
+              <Check
+                className="mt-0.5 size-4 shrink-0 text-muted-foreground/40"
+                aria-hidden
+              />
+            </li>
+          ))}
+        </ol>
       )}
     </div>
   );
