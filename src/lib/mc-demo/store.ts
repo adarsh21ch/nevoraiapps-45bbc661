@@ -169,7 +169,7 @@ export function findDemoDatasetByMatchId(
   if (typeof window === "undefined") return null;
   // Try cache first
   for (const [tenantId, data] of dataCache) {
-    if (data.matches?.some((m) => m.id === matchId)) return { tenantId, data };
+    if (data.matches?.some((m) => m.id === matchId) || data.liveMatch?.id === matchId) return { tenantId, data };
   }
   try {
     for (let i = 0; i < window.localStorage.length; i++) {
@@ -179,7 +179,7 @@ export function findDemoDatasetByMatchId(
       if (!raw) continue;
       const parsed = JSON.parse(raw) as DemoData & { __v?: number };
       if (parsed?.__v !== VERSION) continue;
-      if (parsed.matches?.some((m) => m.id === matchId)) {
+      if (parsed.matches?.some((m) => m.id === matchId) || parsed.liveMatch?.id === matchId) {
         const tenantId = key.slice("mc:demo:data:".length);
         dataCache.set(tenantId, parsed);
         return { tenantId, data: parsed };
