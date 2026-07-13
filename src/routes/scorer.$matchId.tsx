@@ -1151,8 +1151,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
       })()
     : undefined;
 
-  const teamA = match.team_a;
-  const teamB = match.team_b;
+  const matchWithTeams = (demo.matches.find((m) => m.id === matchId) ?? match) as MatchWithTeams;
+  const teamA = matchWithTeams.team_a;
+  const teamB = matchWithTeams.team_b;
   const battingTeamId = activeInnings?.batting_team_id ?? teamA?.id ?? "";
   const homeName = battingTeamId === teamA?.id ? teamA?.name ?? "Home" : teamB?.name ?? "Home";
   const awayName = battingTeamId === teamA?.id ? teamB?.name ?? "Away" : teamA?.name ?? "Away";
