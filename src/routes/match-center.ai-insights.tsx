@@ -363,7 +363,7 @@ function AIInsightsPage() {
           breadcrumbs={[{ label: "Match Center", to: "/match-center/dashboard" }, { label: "AI Insights" }]}
         />
         <div className="space-y-3">
-          {demoReports.map((r) => (
+          {demoReports.map((r: DemoAIReport) => (
             <Card key={r.id} className="p-4 space-y-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="outline" className="capitalize">
