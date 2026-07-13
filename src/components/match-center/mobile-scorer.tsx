@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { NumberRoll } from "@/components/ui/number-roll";
+import { useSwipe } from "@/hooks/use-swipe";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
