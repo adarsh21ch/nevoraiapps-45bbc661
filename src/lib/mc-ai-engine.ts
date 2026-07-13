@@ -442,33 +442,59 @@ export async function generateTeamReport(
   tenantId: string,
   teamId: string,
 ): Promise<AIReportPayload> {
-  const { data: team } = await supabase
-    .from("mc_teams")
-    .select("id, name")
-    .eq("id", teamId)
-    .maybeSingle();
+  const [{ data: team }, { data: matches }] = await Promise.all([
+    supabase.from("mc_teams").select("id, name").eq("id", teamId).maybeSingle(),
+    supabase
+      .from("mc_matches")
+      .select("id, team_a_id, team_b_id, winner_team, victory_type, match_locked")
+      .eq("tenant_id", tenantId)
+      .eq("match_locked", true)
+      .or(`team_a_id.eq.${teamId},team_b_id.eq.${teamId}`),
+  ]);
   const teamName = team?.name ?? "Team";
 
-  const teamRecords = await computeTeamRecords(tenantId);
-  const row = teamRecords.rows.find((r) => r.teamId === teamId);
+  let played = 0;
+  let wins = 0;
+  let losses = 0;
+  let ties = 0;
+  for (const m of matches ?? []) {
+    played += 1;
+    if (m.victory_type === "tie") ties += 1;
+    else if (m.winner_team === teamId) wins += 1;
+    else if (m.winner_team && m.winner_team !== teamId) losses += 1;
+  }
+  const winPct = played > 0 ? (wins / played) * 100 : 0;
 
-  const keyFindings: AIFinding[] = row
+  // Highest team score across finalized matches
+  const matchIds = (matches ?? []).map((m) => m.id);
+  let highestScore = 0;
+  if (matchIds.length > 0) {
+    const { data: innings } = await supabase
+      .from("mc_innings")
+      .select("runs, batting_team_id, match_id")
+      .in("match_id", matchIds)
+      .eq("batting_team_id", teamId);
+    for (const i of innings ?? []) if (i.runs > highestScore) highestScore = i.runs;
+  }
+
+  const keyFindings: AIFinding[] = played
     ? [
-        { label: "Matches", detail: String(row.matches) },
-        { label: "Won", detail: String(row.wins) },
-        { label: "Lost", detail: String(row.losses) },
-        { label: "Win rate", detail: `${Number(row.winPct).toFixed(1)}%` },
-        { label: "Highest team score", detail: row.highestScore ? String(row.highestScore) : "—" },
+        { label: "Matches", detail: String(played) },
+        { label: "Won", detail: String(wins) },
+        { label: "Lost", detail: String(losses) },
+        { label: "Tied", detail: String(ties) },
+        { label: "Win rate", detail: `${winPct.toFixed(1)}%` },
+        { label: "Highest team score", detail: highestScore ? String(highestScore) : "—" },
       ]
     : [{ label: "No finalized matches yet" }];
 
   const strengths: AIFinding[] = [];
   const weaknesses: AIFinding[] = [];
-  if (row) {
-    if (row.winPct >= 60) strengths.push({ label: "Strong win-rate", detail: `${row.winPct.toFixed(0)}% wins.` });
-    if (row.highestScore && row.highestScore >= 150) strengths.push({ label: "Batting depth", detail: `High score ${row.highestScore}.` });
-    if (row.winPct < 40 && row.matches >= 3) weaknesses.push({ label: "Win-rate below par", detail: `${row.winPct.toFixed(0)}%.` });
-    if (row.matches >= 3 && (!row.highestScore || row.highestScore < 100)) weaknesses.push({ label: "Batting totals low", detail: "Struggle to post competitive totals." });
+  if (played > 0) {
+    if (winPct >= 60) strengths.push({ label: "Strong win-rate", detail: `${winPct.toFixed(0)}% wins.` });
+    if (highestScore >= 150) strengths.push({ label: "Batting depth", detail: `High score ${highestScore}.` });
+    if (winPct < 40 && played >= 3) weaknesses.push({ label: "Win-rate below par", detail: `${winPct.toFixed(0)}%.` });
+    if (played >= 3 && highestScore < 100) weaknesses.push({ label: "Batting totals low", detail: "Struggle to post competitive totals." });
   }
 
   const recommendations: AIFinding[] = [];
@@ -476,8 +502,8 @@ export async function generateTeamReport(
   if (weaknesses.some((w) => w.label.includes("Win-rate"))) recommendations.push(RECS.captaincy, RECS.deathBowling);
   if (recommendations.length === 0) recommendations.push(RECS.fitness, RECS.fielding);
 
-  const summary = row
-    ? `${teamName}: ${row.wins}W-${row.losses}L in ${row.matches} matches (${row.winPct.toFixed(0)}% wins).`
+  const summary = played
+    ? `${teamName}: ${wins}W-${losses}L in ${played} matches (${winPct.toFixed(0)}% wins).`
     : `${teamName}: no finalized matches yet.`;
 
   return {
@@ -490,7 +516,7 @@ export async function generateTeamReport(
     strengths,
     weaknesses,
     recommendations,
-    metadata: { teamName, row },
+    metadata: { teamName, played, wins, losses, ties, winPct, highestScore },
   };
 }
 
@@ -510,8 +536,12 @@ export async function generateCaptainReport(
   tenantId: string,
   athleteProfileId: string,
 ): Promise<AIReportPayload> {
-  const capRows = await computeCaptainRecords(tenantId);
-  const row = capRows.find((r) => r.athleteId === athleteProfileId);
+  const { data: careers } = await supabase
+    .from("mc_player_careers")
+    .select("*")
+    .eq("tenant_id", tenantId);
+  const capRows = computeCaptainRecords((careers ?? []) as unknown as Array<Record<string, unknown>>);
+  const row = capRows.find((r) => r.athleteProfileId === athleteProfileId);
   const name = row?.name ?? "Captain";
 
   const keyFindings: AIFinding[] = row
@@ -558,34 +588,52 @@ export async function generateTournamentReport(
   tenantId: string,
   tournamentId: string,
 ): Promise<AIReportPayload> {
-  const { data: tournament } = await supabase
-    .from("mc_tournaments")
-    .select("id, name")
-    .eq("id", tournamentId)
-    .maybeSingle();
-  const tName = tournament?.name ?? "Tournament";
-
-  const [standings, orange, purple, records] = await Promise.all([
-    computeStandings(tournamentId),
-    computeOrangeCap(tournamentId, 5),
-    computePurpleCap(tournamentId, 5),
+  const [{ data: tournament }, { data: tTeams }, orange, purple, records] = await Promise.all([
+    supabase.from("mc_tournaments").select("id, name").eq("id", tournamentId).maybeSingle(),
+    supabase
+      .from("mc_tournament_teams")
+      .select("team_id, points, wins, losses, matches, nrr, mc_teams(name)")
+      .eq("tournament_id", tournamentId)
+      .order("points", { ascending: false }),
+    computeOrangeCap(tournamentId),
+    computePurpleCap(tournamentId),
     computeTournamentRecords(tournamentId),
   ]);
+  const tName = tournament?.name ?? "Tournament";
+
+  type StandingsRow = {
+    team_id: string;
+    points: number;
+    wins: number;
+    losses: number;
+    matches: number;
+    nrr: number;
+    mc_teams: { name?: string } | null;
+  };
+  const standings = ((tTeams ?? []) as unknown as StandingsRow[]).map((s) => ({
+    teamId: s.team_id,
+    teamName: s.mc_teams?.name ?? "Team",
+    points: Number(s.points ?? 0),
+    wins: Number(s.wins ?? 0),
+    losses: Number(s.losses ?? 0),
+    matches: Number(s.matches ?? 0),
+    nrr: Number(s.nrr ?? 0),
+  }));
 
   const keyFindings: AIFinding[] = [];
   if (standings[0]) keyFindings.push({ label: "Leader", detail: `${standings[0].teamName} — ${standings[0].points} pts` });
-  if (orange[0]) keyFindings.push({ label: "Orange Cap", detail: `${orange[0].name} — ${orange[0].runs} runs` });
-  if (purple[0]) keyFindings.push({ label: "Purple Cap", detail: `${purple[0].name} — ${purple[0].wickets} wickets` });
-  if (records.highestTeamScore) keyFindings.push({ label: "Highest team score", detail: `${records.highestTeamScore.teamName} — ${records.highestTeamScore.runs}` });
-  if (records.highestIndividualScore) keyFindings.push({ label: "Highest individual", detail: `${records.highestIndividualScore.name} — ${records.highestIndividualScore.runs}` });
+  if (orange[0]) keyFindings.push({ label: "Orange Cap", detail: `${orange[0].name ?? "—"} — ${orange[0].runs} runs` });
+  if (purple[0]) keyFindings.push({ label: "Purple Cap", detail: `${purple[0].name ?? "—"} — ${purple[0].wickets} wickets` });
+  if (records.highestTeamScore) keyFindings.push({ label: "Highest team score", detail: `${records.highestTeamScore.runs}/${records.highestTeamScore.wickets}` });
+  if (records.bestBowling) keyFindings.push({ label: "Best bowling", detail: `${records.bestBowling.name ?? "—"} ${records.bestBowling.wickets}/${records.bestBowling.runs}` });
 
   const strengths: AIFinding[] = standings.slice(0, 3).map((s) => ({
     label: `${s.teamName} — top form`,
     detail: `${s.wins}W-${s.losses}L, NRR ${s.nrr.toFixed(2)}`,
   }));
   const weaknesses: AIFinding[] = standings
-    .slice(-2)
     .filter((s) => s.matches >= 2)
+    .slice(-2)
     .map((s) => ({ label: `${s.teamName} — struggling`, detail: `${s.wins}W-${s.losses}L` }));
 
   return {
@@ -623,25 +671,33 @@ export async function generateAcademyMonthlyReport(
   const now = new Date();
   const label = periodLabel ?? `${now.toLocaleString("en", { month: "long" })} ${now.getFullYear()}`;
 
+  const { data: careers } = await supabase
+    .from("mc_player_careers")
+    .select("*")
+    .eq("tenant_id", tenantId);
+  const careersTyped = (careers ?? []) as unknown as Array<
+    Record<string, unknown> & { runs: number; wickets: number; athlete_profile_id: string }
+  >;
+
   const [overview, topRuns, topWickets, topCareer] = await Promise.all([
     computeAcademyOverview(tenantId),
-    leaderboardMostRuns(tenantId, 5),
-    leaderboardMostWickets(tenantId, 5),
-    leaderboardCareer(tenantId, 5),
+    Promise.resolve(leaderboardMostRuns(careersTyped, 5)),
+    Promise.resolve(leaderboardMostWickets(careersTyped, 5)),
+    Promise.resolve(leaderboardCareer(careersTyped, "matches", 5)),
   ]);
 
   const keyFindings: AIFinding[] = [
-    { label: "Matches finalized", detail: String(overview.totals.matches) },
-    { label: "Players tracked", detail: String(overview.totals.players) },
-    { label: "Runs scored", detail: String(overview.totals.runs) },
-    { label: "Wickets taken", detail: String(overview.totals.wickets) },
+    { label: "Matches finalized", detail: String(overview.totalFinalizedMatches) },
+    { label: "Runs scored", detail: String(overview.totalRuns) },
+    { label: "Wickets taken", detail: String(overview.totalWickets) },
+    { label: "Boundaries", detail: `${overview.totalFours}×4, ${overview.totalSixes}×6` },
   ];
-  if (topRuns[0]) keyFindings.push({ label: "Top run scorer", detail: `${topRuns[0].name} — ${topRuns[0].value} runs` });
-  if (topWickets[0]) keyFindings.push({ label: "Top wicket taker", detail: `${topWickets[0].name} — ${topWickets[0].value} wickets` });
+  if (topRuns[0]) keyFindings.push({ label: "Top run scorer", detail: `${topRuns[0].athleteName} — ${topRuns[0].value} runs` });
+  if (topWickets[0]) keyFindings.push({ label: "Top wicket taker", detail: `${topWickets[0].athleteName} — ${topWickets[0].value} wickets` });
 
   const strengths: AIFinding[] = topCareer.slice(0, 3).map((r) => ({
-    label: `${r.name} — all-round contributor`,
-    detail: r.subtitle ?? undefined,
+    label: `${r.athleteName} — all-round contributor`,
+    detail: `${r.value} matches`,
   }));
 
   return {
@@ -649,10 +705,11 @@ export async function generateAcademyMonthlyReport(
     referenceType: "academy",
     referenceId: tenantId,
     title: `Academy Report — ${label}`,
-    summary: `${overview.totals.matches} matches, ${overview.totals.runs} runs, ${overview.totals.wickets} wickets across ${overview.totals.players} tracked players.`,
+    summary: `${overview.totalFinalizedMatches} finalized matches, ${overview.totalRuns} runs, ${overview.totalWickets} wickets.`,
     keyFindings,
     strengths,
     weaknesses: [],
+
     recommendations: [RECS.fitness, RECS.consistency, RECS.fielding],
     metadata: { period: label, overview, topRuns, topWickets },
   };
