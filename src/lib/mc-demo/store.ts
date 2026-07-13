@@ -86,6 +86,8 @@ export function resetDemoData(tenantId: string) {
   } catch {
     /* noop */
   }
+  const pending = pendingWrites.get(tenantId);
+  if (pending) window.clearTimeout(pending);
   pendingWrites.delete(tenantId);
   dataCache.delete(tenantId);
   // Immediately regenerate so subsequent reads are consistent
