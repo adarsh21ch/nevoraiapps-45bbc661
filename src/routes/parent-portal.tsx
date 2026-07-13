@@ -41,6 +41,7 @@ function ParentPortal() {
   const navigate = useNavigate();
   const [userChecked, setUserChecked] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const demoTenantId = typeof window !== "undefined" ? findAnyDemoTenant() : null;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -52,6 +53,13 @@ function ParentPortal() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // Demo bypass: if a demo tenant exists, render the derived demo view.
+  if (demoTenantId) {
+    return <DemoParentPortal tenantId={demoTenantId} />;
+  }
+
+
 
   const kidsQ = useQuery({
     queryKey: ["parent-children"],
