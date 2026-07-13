@@ -81,6 +81,7 @@ export interface ScoringSession {
   submitBall: (
     input: Omit<
       AppendBallInput,
+      | "eventId"
       | "tenantId"
       | "matchId"
       | "inningsId"
@@ -165,6 +166,13 @@ function matchStateForSelectedBatters(
       awaitingNewBatter: false,
     },
   };
+}
+
+function makeClientEventId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 /* ---------- hook ---------- */
@@ -383,7 +391,41 @@ export function useScoringSession(
         },
       );
 
-      const created = await appendBallEvent({
+      const priorEvents = eventsRef.current;
+      const pos = nextPosition(priorEvents);
+      const optimistic: MCBallEvent = {
+        id: makeClientEventId(),
+        tenant_id: opts.tenantId,
+        match_id: matchId,
+        innings_id: activeInnings.id,
+        sequence_number: pos.sequenceNumber,
+        over_number: pos.overNumber,
+        ball_number: pos.ballNumber,
+        is_legal_delivery: isLegalDelivery(partial.extraType ?? null),
+        striker_athlete_id: striker.athleteId,
+        striker_name: striker.name,
+        non_striker_athlete_id: nonStriker.athleteId,
+        non_striker_name: nonStriker.name,
+        bowler_athlete_id: bowler.athleteId,
+        bowler_name: bowler.name,
+        runs_off_bat: partial.runsOffBat ?? 0,
+        extra_type: partial.extraType ?? null,
+        extra_runs: partial.extraRuns ?? 0,
+        dismissal_type: partial.dismissalType ?? null,
+        dismissed_athlete_id: partial.dismissedAthleteId ?? null,
+        dismissed_name: partial.dismissedName ?? null,
+        fielder_athlete_id: partial.fielderAthleteId ?? null,
+        fielder_name: partial.fielderName ?? null,
+        comment: partial.comment ?? null,
+        created_at: new Date().toISOString(),
+        created_by: opts.userId ?? null,
+      } as MCBallEvent;
+
+      eventsRef.current = [...priorEvents, optimistic];
+      setEvents(eventsRef.current);
+
+      void appendBallEvent({
+        eventId: optimistic.id,
         tenantId: opts.tenantId,
         matchId,
         inningsId: activeInnings.id,
@@ -394,33 +436,33 @@ export function useScoringSession(
         bowlerAthleteId: bowler.athleteId,
         bowlerName: bowler.name,
         createdBy: opts.userId ?? null,
-        priorEvents: eventsRef.current,
+        priorEvents,
         ...partial,
+      }).catch((e) => {
+        eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
+        setEvents(eventsRef.current);
+        setError(e instanceof Error ? e.message : "Failed to record ball.");
       });
-      // Optimistic append (realtime will dedupe by id).
-      setEvents((prev) =>
-        prev.some((e) => e.id === created.id) ? prev : [...prev, created],
-      );
 
       // Auto strike rotation for the UI pointer (state is still derived from
       // events — this only updates the *selected* striker/non-striker).
-      const legalBefore = eventsRef.current.filter(
-        (e) => e.over_number === created.over_number && e.is_legal_delivery,
+      const legalBefore = priorEvents.filter(
+        (e) => e.over_number === optimistic.over_number && e.is_legal_delivery,
       ).length;
       const overCompleted =
-        created.is_legal_delivery && legalBefore + 1 >= 6;
+        optimistic.is_legal_delivery && legalBefore + 1 >= 6;
       const rotated = applyStrikeAfterBall(
         { striker, nonStriker },
-        created,
+        optimistic,
         overCompleted,
       );
-      const next = created.dismissal_type
+      const next = optimistic.dismissal_type
         ? clearDismissedBatter(
             {
               striker: { ...rotated.striker, onStrike: true },
               nonStriker: { ...rotated.nonStriker, onStrike: false },
             },
-            created,
+            optimistic,
           )
         : {
             striker: { ...rotated.striker, onStrike: true },
@@ -436,7 +478,7 @@ export function useScoringSession(
         setNonStriker(next.nonStriker);
       }
 
-      return created;
+      return optimistic;
     },
     [
       matchId,
