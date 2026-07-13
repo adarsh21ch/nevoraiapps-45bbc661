@@ -1312,3 +1312,15 @@ function SelectField({
     </div>
   );
 }
+
+function DemoPlayerWrapper({
+  tenantId,
+  player,
+}: {
+  tenantId: string;
+  player: DemoData["players"][number];
+}) {
+  const demo = useDemoData(tenantId);
+  if (!demo) return null;
+  return <DemoPlayerProfile demo={demo} player={player} />;
+}
