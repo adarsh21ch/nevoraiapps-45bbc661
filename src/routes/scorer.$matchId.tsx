@@ -519,7 +519,7 @@ function ScorerPage() {
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+    <div className="scorer-root fixed inset-0 z-40 flex flex-col overflow-hidden bg-background text-foreground">
       {isDemo ? (
         <div className="grid flex-1 place-items-center p-8 text-center">
           <div className="max-w-md space-y-3">
