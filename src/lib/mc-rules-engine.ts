@@ -470,11 +470,42 @@ export function validateBallDraft(
     throw new BallEventError("INVALID_EXTRAS", "Extras out of range.");
 
   // State-based rules
-  if (state.innings.awaitingNewBatter)
-    throw new BallEventError(
-      "AWAITING_NEW_BATTER",
-      "Select the incoming batter before continuing.",
+  if (state.innings.awaitingNewBatter) {
+    const sameRef = (
+      a: { athleteId?: string | null; name?: string | null },
+      b: { athleteId?: string | null; name?: string | null },
+    ) =>
+      Boolean(a.athleteId && b.athleteId && a.athleteId === b.athleteId) ||
+      Boolean(!a.athleteId && !b.athleteId && a.name && b.name && a.name === b.name);
+    const isDismissed = (athleteId?: string | null, name?: string | null) =>
+      Boolean(
+        (athleteId && state.innings.dismissedIds.has(athleteId)) ||
+          (name && state.innings.dismissedNames.has(name)),
+      );
+    const strikerStillDismissed = isDismissed(
+      draft.strikerAthleteId,
+      draft.strikerName,
     );
+    const nonStrikerStillDismissed = isDismissed(
+      draft.nonStrikerAthleteId,
+      draft.nonStrikerName,
+    );
+    const unchangedPair =
+      sameRef(
+        { athleteId: draft.strikerAthleteId, name: draft.strikerName },
+        state.innings.striker,
+      ) &&
+      sameRef(
+        { athleteId: draft.nonStrikerAthleteId, name: draft.nonStrikerName },
+        state.innings.nonStriker,
+      );
+    if (strikerStillDismissed || nonStrikerStillDismissed || unchangedPair) {
+      throw new BallEventError(
+        "AWAITING_NEW_BATTER",
+        "Select the incoming batter before continuing.",
+      );
+    }
+  }
   if (state.innings.awaitingNewBowler) {
     // A new bowler must be assigned. Verify he isn't the previous over's bowler.
     const prevOver =
