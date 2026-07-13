@@ -314,14 +314,7 @@ function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
                     style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
                   />
                 )}
-                <Icon
-                  className={cn("size-4 transition-colors", active && "text-foreground")}
-                  style={
-                    active
-                      ? { color: "var(--tenant-brand, var(--brand, #E8873C))" }
-                      : undefined
-                  }
-                />
+                <Icon className={cn("size-4 transition-colors", active && "text-foreground")} />
                 <span className="truncate">{n.label}</span>
               </Link>
             );
