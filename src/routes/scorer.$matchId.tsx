@@ -656,7 +656,9 @@ function ScorerPage() {
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
           previousBowlerId={previousOverBowler?.bowlerAthleteId ?? null}
           previousBowlerName={previousOverBowler?.bowlerName ?? null}
+          bowledBowlerIds={bowledBowlerIds}
         />
+
       )}
 
 
