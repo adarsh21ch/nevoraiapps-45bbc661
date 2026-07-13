@@ -445,6 +445,9 @@ export function UnlockMatchDialog({
       try {
         await rebuildCareersAfterUnlock(matchId);
         await updateTournamentForMatch(matchId);
+        // Academy Records must be rebuilt (a broken record may need to revert).
+        const { rebuildAcademyRecords } = await import("@/lib/mc-academy-records");
+        await rebuildAcademyRecords(tenantId);
       } catch (careerErr) {
         console.error("Career rebuild after unlock failed", careerErr);
       }
