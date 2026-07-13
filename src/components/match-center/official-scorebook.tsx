@@ -6,7 +6,7 @@
  * consumes Ball Event Engine data. The Ball Event log remains the
  * single source of truth.
  * ================================================================ */
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Printer,
