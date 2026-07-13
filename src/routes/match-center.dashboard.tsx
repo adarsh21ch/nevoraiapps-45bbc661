@@ -66,28 +66,29 @@ function MatchCenterDashboard() {
   const { tenant, profile } = useDashboard();
   const tenantId = tenant.id;
 
+  // Shared cache keys with list routes so dashboard warms Teams/Players/etc.
   const matchesQ = useQuery({
-    queryKey: ["mc", "dashboard", "matches", tenantId],
+    queryKey: ["mc-matches", tenantId],
     queryFn: () => listMatches(tenantId),
   });
   const teamsQ = useQuery({
-    queryKey: ["mc", "dashboard", "teams", tenantId],
+    queryKey: ["mc-teams", tenantId],
     queryFn: () => listTeams(tenantId),
   });
   const athletesQ = useQuery({
-    queryKey: ["mc", "dashboard", "athletes", tenantId],
+    queryKey: ["mc-athletes", tenantId],
     queryFn: () => listAthletes(tenantId),
   });
   const tournamentsQ = useQuery({
-    queryKey: ["mc", "dashboard", "tournaments", tenantId],
+    queryKey: ["mc-tournaments", tenantId],
     queryFn: () => listTournaments(tenantId),
   });
   const recognitionsQ = useQuery({
-    queryKey: ["mc", "dashboard", "recognitions", tenantId],
+    queryKey: ["mc-recognitions", tenantId],
     queryFn: () => listRecognitions(tenantId),
   });
   const timelineQ = useQuery({
-    queryKey: ["mc", "dashboard", "timeline", tenantId],
+    queryKey: ["mc-academy-timeline", tenantId, 8],
     queryFn: () => listAcademyTimeline(tenantId, 8),
   });
 
