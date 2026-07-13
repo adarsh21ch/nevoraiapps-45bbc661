@@ -18,38 +18,39 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  MoreHorizontal,
-  RefreshCw,
-  UserCog,
-  Undo2,
-  Trash2,
-  Flag,
-  StopCircle,
-  HeartPulse,
-  UserPlus,
   ArrowLeft,
   FileText,
+  Flag,
+  HeartPulse,
+  MoreHorizontal,
+  RefreshCw,
   Search,
+  Shield,
+  StopCircle,
+  Trash2,
+  Undo2,
+  UserCog,
+  UserPlus,
   X,
 } from "lucide-react";
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
 
-/**
- * Compact, thumb-first cricket scoring surface. Presentation-only — no MCC /
- * statistics / ball-event change. Layout inspired by CricHeroes / Cricbuzz
- * scoring: a dense info stack on top and a fixed control block at the bottom.
- * Everything a scorer needs in normal play fits without scrolling.
- */
+export interface MobileScorerInsight {
+  partnership?: string;
+  projected?: string;
+  lastWicket?: string;
+  extras?: string;
+  recentOvers?: { label: string; runs: number; wickets: number }[];
+}
+
 export interface MobileScorerProps {
-  // header
   onExit: () => void;
   tournamentLabel?: string;
   matchTitle: string;
   isLive?: boolean;
 
-  // scoreboard
-  score: string; // "48/2"
-  overs: string; // "5.3"
+  score: string;
+  overs: string;
   crr?: string;
   rrr?: string;
   target?: string;
@@ -58,29 +59,27 @@ export interface MobileScorerProps {
   striker?: BatterStats;
   nonStriker?: BatterStats;
   bowler?: BowlerStats;
-
   partnership?: { runs: number; balls: number } | null;
-
-  // over strip — last 6 legal deliveries or in-progress over
   overBalls: string[];
+  insights?: MobileScorerInsight;
 
-  // keypad handlers
   disabled?: boolean;
   onRun: (r: 0 | 1 | 2 | 3 | 4 | 6) => void;
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   onOut: () => void;
 
-  // player pickers (fallback: opens external modal)
   onOpenStrikerPicker: () => void;
   onOpenNonStrikerPicker: () => void;
   onOpenBowlerPicker: () => void;
-
-  // inline player picker (preferred when provided — replaces modals)
   battingOptions?: PlayerOption[];
   bowlingOptions?: PlayerOption[];
-  onPickPlayer?: (role: "striker" | "nonStriker" | "bowler", p: PlayerOption) => void;
+  onPickPlayer?: (role: PickerKind, p: PlayerOption) => void;
+  awaitingNewBatter?: boolean;
+  awaitingNewBatterRole?: "striker" | "nonStriker";
+  awaitingNewBowler?: boolean;
+  previousBowlerName?: string | null;
+  previousBowlerId?: string | null;
 
-  // secondary actions (bottom-sheet)
   onUndo: () => void;
   onSwapStrike: () => void;
   onRetiredHurt: () => void;
@@ -89,43 +88,38 @@ export interface MobileScorerProps {
   showFinishInnings?: boolean;
   hideEndMatch?: boolean;
 
-  // footer quick actions
   onOpenScorecard: () => void;
   onOpenScorebook?: () => void;
-
-  // status banners
-  awaitingNewBatter?: boolean;
-  awaitingNewBowler?: boolean;
 }
 
-type InlinePickerKind = "striker" | "nonStriker" | "bowler";
+type PickerKind = "striker" | "nonStriker" | "bowler";
 
 export function MobileScorer(props: MobileScorerProps) {
   const [moreOpen, setMoreOpen] = useState(false);
-  const [confirm, setConfirm] = useState<
-    | null
-    | { kind: "end-match" | "finish-innings" | "delete-ball" }
-  >(null);
-  const [inlinePicker, setInlinePicker] = useState<InlinePickerKind | null>(null);
+  const [pickerOpen, setPickerOpen] = useState<PickerKind | null>(null);
   const [pickerQuery, setPickerQuery] = useState("");
+  const [confirm, setConfirm] = useState<
+    null | { kind: "end-match" | "finish-innings" | "delete-ball" }
+  >(null);
 
-  const inlineEnabled = !!(props.battingOptions && props.bowlingOptions && props.onPickPlayer);
+  const sheetPickerEnabled = Boolean(
+    props.battingOptions && props.bowlingOptions && props.onPickPlayer,
+  );
 
-  // Auto-open inline picker when the innings is waiting for a batter/bowler.
   useEffect(() => {
-    if (!inlineEnabled) return;
-    if (props.awaitingNewBatter) setInlinePicker("striker");
-    else if (props.awaitingNewBowler) setInlinePicker("bowler");
-  }, [inlineEnabled, props.awaitingNewBatter, props.awaitingNewBowler]);
+    if (!sheetPickerEnabled || !props.awaitingNewBowler) return;
+    setPickerOpen("bowler");
+  }, [sheetPickerEnabled, props.awaitingNewBowler]);
 
-  // reset search when picker kind changes
   useEffect(() => {
     setPickerQuery("");
-  }, [inlinePicker]);
+  }, [pickerOpen]);
 
-  const openPicker = (kind: InlinePickerKind) => {
-    if (inlineEnabled) {
-      setInlinePicker(kind);
+  const waitingBatterRole = props.awaitingNewBatterRole ?? "striker";
+
+  const openPicker = (kind: PickerKind) => {
+    if (sheetPickerEnabled) {
+      setPickerOpen(kind);
       return;
     }
     if (kind === "striker") props.onOpenStrikerPicker();
@@ -133,22 +127,16 @@ export function MobileScorer(props: MobileScorerProps) {
     else props.onOpenBowlerPicker();
   };
 
-  const pickerCandidates = useMemo<PlayerOption[]>(() => {
-    if (!inlinePicker || !inlineEnabled) return [];
-    const base =
-      inlinePicker === "bowler"
-        ? props.bowlingOptions ?? []
-        : props.battingOptions ?? [];
-    if (inlinePicker !== "bowler") {
-      const excluded = new Set<string>();
-      const s = props.striker?.name;
-      const n = props.nonStriker?.name;
-      if (inlinePicker === "striker" && n) excluded.add(n);
-      if (inlinePicker === "nonStriker" && s) excluded.add(s);
-      return base.filter((p) => !excluded.has(p.name));
-    }
-    return base;
-  }, [inlinePicker, inlineEnabled, props.battingOptions, props.bowlingOptions, props.striker?.name, props.nonStriker?.name]);
+  const pickerCandidates = useMemo(() => {
+    if (!pickerOpen || !sheetPickerEnabled) return [];
+    const base = pickerOpen === "bowler" ? props.bowlingOptions ?? [] : props.battingOptions ?? [];
+    if (pickerOpen === "bowler") return base;
+
+    const excluded = new Set<string>();
+    if (pickerOpen === "striker" && props.nonStriker?.name) excluded.add(props.nonStriker.name);
+    if (pickerOpen === "nonStriker" && props.striker?.name) excluded.add(props.striker.name);
+    return base.filter((p) => !excluded.has(p.name));
+  }, [pickerOpen, sheetPickerEnabled, props.battingOptions, props.bowlingOptions, props.striker?.name, props.nonStriker?.name]);
 
   const filteredCandidates = useMemo(() => {
     const q = pickerQuery.trim().toLowerCase();
@@ -156,41 +144,45 @@ export function MobileScorer(props: MobileScorerProps) {
     return pickerCandidates.filter((p) => p.name.toLowerCase().includes(q));
   }, [pickerCandidates, pickerQuery]);
 
+  const isIllegalBowler = (p: PlayerOption) => {
+    if (pickerOpen !== "bowler") return false;
+    if (!props.awaitingNewBowler) return false;
+    if (props.previousBowlerId && p.id === props.previousBowlerId) return true;
+    return Boolean(props.previousBowlerName && p.name === props.previousBowlerName);
+  };
+
   const closeAll = () => {
     setMoreOpen(false);
     setConfirm(null);
   };
 
-
-
   const confirmMeta = (() => {
     if (!confirm) return null;
-    if (confirm.kind === "end-match")
+    if (confirm.kind === "end-match") {
       return {
         title: "End match?",
-        description:
-          "This finalises the match. The action cannot be undone once the match is locked.",
+        description: "This finalises the match. This action cannot be undone once the match is locked.",
         action: "End match",
         run: () => {
           closeAll();
           props.onEndMatch();
         },
       };
-    if (confirm.kind === "finish-innings")
+    }
+    if (confirm.kind === "finish-innings") {
       return {
         title: "Finish innings?",
-        description:
-          "The current innings will be marked complete. You can start the next innings after confirming.",
+        description: "The current innings will be marked complete. You can start the next innings after confirming.",
         action: "Finish innings",
         run: () => {
           closeAll();
           props.onFinishInnings?.();
         },
       };
+    }
     return {
       title: "Delete last ball?",
-      description:
-        "The most recent delivery will be removed and the score will be recomputed from the event log.",
+      description: "The most recent delivery will be removed and the score will be recomputed from the event log.",
       action: "Delete ball",
       run: () => {
         closeAll();
@@ -200,347 +192,164 @@ export function MobileScorer(props: MobileScorerProps) {
   })();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background">
-      {/* ---------------- Compact sticky top bar ---------------- */}
-      <div className="sticky top-0 z-20 flex h-10 items-center gap-2 border-b bg-card/95 px-2 backdrop-blur">
-        <button
-          type="button"
-          onClick={props.onExit}
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-foreground/80 hover:bg-muted active:scale-95 transition duration-100"
-          aria-label="Exit scorer"
-        >
-          <ArrowLeft className="size-4" />
-        </button>
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <div className="truncate text-[13px] font-bold leading-tight">
-              {props.matchTitle}
-            </div>
-            {props.isLive && (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-rose-500/50 bg-rose-500/10 px-1 py-[1px] text-[9px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                <span className="inline-block size-1 animate-pulse rounded-full bg-rose-500" />
-                Live
-              </span>
-            )}
-          </div>
-          {props.tournamentLabel && (
-            <div className="truncate text-[9px] font-medium uppercase tracking-widest text-muted-foreground leading-tight">
-              {props.tournamentLabel}
-            </div>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={() => setMoreOpen(true)}
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-foreground/80 hover:bg-muted active:scale-95 transition duration-100"
-          aria-label="More options"
-        >
-          <MoreHorizontal className="size-4" />
-        </button>
-      </div>
-
-      {/* ---------------- Compact info stack ---------------- */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-xl px-3 pt-3 pb-2 space-y-3">
-          {/* Score header — hero */}
-          <div className="flex items-end justify-between gap-3">
-            <div className="flex items-baseline gap-2 min-w-0">
-              <div className="text-[40px] font-black leading-none tracking-tight tabular-nums transition-[font-size] duration-100">
-                {props.score}
-              </div>
-              <div className="text-[13px] font-semibold text-muted-foreground tabular-nums">
-                {props.overs} ov
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-0.5 text-[11px] tabular-nums">
-              {props.crr && (
-                <span className="text-muted-foreground">
-                  CRR <span className="font-bold text-foreground">{props.crr}</span>
-                </span>
-              )}
-              {props.rrr && (
-                <span className="text-muted-foreground">
-                  RRR <span className="font-bold text-foreground">{props.rrr}</span>
-                </span>
-              )}
-              {props.target && (
-                <span className="text-muted-foreground">
-                  Tgt <span className="font-bold text-foreground">{props.target}</span>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {props.chase && (
-            <div className="-mt-2 text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-              Need {props.chase.runsNeeded} off {props.chase.ballsLeft} balls
-            </div>
-          )}
-
-          {/* Batters — two chips */}
-          <div className="grid grid-cols-2 gap-2">
-            <PlayerChip
-              onClick={() => openPicker("striker")}
-              name={props.striker?.name ?? "Striker"}
-              onStrike
-              value={`${props.striker?.runs ?? 0}${
-                props.striker ? ` (${props.striker.balls})` : ""
-              }`}
-              sub={
-                props.striker
-                  ? `4s ${props.striker.fours ?? 0} · 6s ${props.striker.sixes ?? 0} · SR ${props.striker.strikeRate ?? "0.0"}`
-                  : "Tap to select"
-              }
-            />
-            <PlayerChip
-              onClick={() => openPicker("nonStriker")}
-              name={props.nonStriker?.name ?? "Non-striker"}
-              value={`${props.nonStriker?.runs ?? 0}${
-                props.nonStriker ? ` (${props.nonStriker.balls})` : ""
-              }`}
-              sub={
-                props.nonStriker
-                  ? `SR ${props.nonStriker.strikeRate ?? "0.0"}`
-                  : "Tap to select"
-              }
-            />
-          </div>
-
-          {/* Bowler row */}
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
+      <header className="z-20 shrink-0 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
+        <div className="grid h-12 grid-cols-[44px_minmax(0,1fr)_44px] items-center px-1">
           <button
             type="button"
-            onClick={() => openPicker("bowler")}
-            className="flex w-full items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2 text-left transition duration-100 hover:bg-muted/50 active:scale-[0.99]"
+            onClick={props.onExit}
+            className="grid size-11 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
+            aria-label="Back"
           >
-            <span className="inline-block size-1.5 shrink-0 rounded-full bg-indigo-500" />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="truncate text-[13px] font-semibold">
-                  {props.bowler?.name ?? "Bowler"}
-                </span>
-                <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Bowling
-                </span>
-              </div>
-              <div className="text-[11px] text-muted-foreground tabular-nums leading-tight">
-                {props.bowler
-                  ? `${props.bowler.overs} ov · ${props.bowler.wickets}/${props.bowler.runs} · Econ ${props.bowler.economy ?? "–"}`
-                  : "Tap to select"}
-              </div>
-            </div>
+            <ArrowLeft className="size-5" />
           </button>
-
-          {/* Stat chips — partnership, projected, need */}
-          {(props.partnership || props.chase) && (
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] tabular-nums">
-              {props.partnership && (
-                <StatChip label="P'ship" value={`${props.partnership.runs}(${props.partnership.balls})`} />
-              )}
-              {props.chase && (
-                <>
-                  <StatChip label="Need" value={`${props.chase.runsNeeded}`} />
-                  <StatChip label="Balls" value={`${props.chase.ballsLeft}`} />
-                </>
+          <div className="min-w-0 text-center">
+            <div className="flex min-w-0 items-center justify-center gap-1.5">
+              <span className="truncate text-[13px] font-bold leading-none">{props.matchTitle}</span>
+              {props.isLive && (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wider text-destructive">
+                  <span className="size-1.5 animate-pulse rounded-full bg-destructive" />
+                  Live
+                </span>
               )}
             </div>
-          )}
-
-          {/* This over */}
-          <div className="flex h-9 items-center gap-2 rounded-xl border border-border/60 bg-card/60 px-2.5">
-            <div className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground shrink-0">
-              This over
-            </div>
-            <div className="flex flex-1 items-center gap-1 overflow-x-auto scrollbar-none">
-              {props.overBalls.length === 0 ? (
-                <span className="text-[11px] text-muted-foreground">—</span>
-              ) : (
-                props.overBalls.map((b, i) => (
-                  <span key={i} className="text-[12px] font-bold tabular-nums text-muted-foreground">
-                    {i > 0 && <span className="mx-1 text-border">•</span>}
-                    <BallText label={b} />
-                  </span>
-                ))
-              )}
-            </div>
+            {props.tournamentLabel && (
+              <div className="mt-0.5 truncate text-[9px] font-medium uppercase leading-none tracking-widest text-muted-foreground">
+                {props.tournamentLabel}
+              </div>
+            )}
           </div>
+          <button
+            type="button"
+            onClick={() => setMoreOpen(true)}
+            className="grid size-11 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
+            aria-label="More"
+          >
+            <MoreHorizontal className="size-5" />
+          </button>
+        </div>
+      </header>
 
-          {(props.awaitingNewBatter || props.awaitingNewBowler) && !inlinePicker && (
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div className="flex min-h-full flex-col gap-2 px-3 py-2">
+          <section className="shrink-0">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
+              <div className="min-w-0">
+                <div className="flex min-w-0 items-baseline gap-2">
+                  <h1 className="truncate text-[44px] font-black leading-none tracking-normal tabular-nums sm:text-[48px]">
+                    {props.score}
+                  </h1>
+                  <span className="shrink-0 text-[14px] font-bold text-muted-foreground tabular-nums">
+                    ({props.overs} ov)
+                  </span>
+                </div>
+                {props.chase && (
+                  <div className="mt-1 text-[12px] font-semibold text-[var(--score-success-fg)] tabular-nums">
+                    Need {props.chase.runsNeeded} from {props.chase.ballsLeft} balls
+                  </div>
+                )}
+              </div>
+              <div className="grid min-w-[92px] gap-1 text-right text-[11px] leading-tight tabular-nums">
+                <MetricInline label="CRR" value={props.crr ?? "–"} />
+                {props.rrr && <MetricInline label="RRR" value={props.rrr} accent />}
+                {props.target && <MetricInline label="TGT" value={props.target} />}
+              </div>
+            </div>
+          </section>
+
+          <ScorebookBatters
+            striker={props.striker}
+            nonStriker={props.nonStriker}
+            onPickStriker={() => openPicker("striker")}
+            onPickNonStriker={() => openPicker("nonStriker")}
+          />
+
+          <BowlerLine bowler={props.bowler} onClick={() => openPicker("bowler")} />
+
+          {props.awaitingNewBatter && (
             <button
               type="button"
-              onClick={() =>
-                openPicker(props.awaitingNewBatter ? "striker" : "bowler")
-              }
-              className="flex h-9 w-full items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 text-[11px] font-medium text-amber-700 transition active:scale-[0.98] duration-100 dark:text-amber-400"
+              onClick={() => openPicker(waitingBatterRole)}
+              className="grid h-11 w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-[var(--score-wait-border)] bg-[var(--score-wait-bg)] px-3 text-left text-[12px] font-semibold text-[var(--score-wait-fg)] transition duration-100 active:scale-[0.98]"
               aria-live="polite"
             >
               <span aria-hidden>⚠</span>
-              <span className="truncate">
-                {props.awaitingNewBatter
-                  ? "Waiting for next batter"
-                  : "Over complete — pick next bowler"}
-              </span>
-              <span className="ml-auto shrink-0 text-[10px] opacity-70">Tap to select</span>
+              <span className="truncate">Waiting for next batter</span>
+              <span className="text-[11px] opacity-75">Tap to select</span>
             </button>
           )}
 
-          {/* Inline player picker — fills remaining space, replaces modal */}
-          {inlinePicker && inlineEnabled && (
-            <InlinePlayerPicker
-              kind={inlinePicker}
-              query={pickerQuery}
-              onQuery={setPickerQuery}
-              players={filteredCandidates}
-              onSelect={(p) => {
-                props.onPickPlayer?.(inlinePicker, p);
-                setInlinePicker(null);
-              }}
-              onClose={() => setInlinePicker(null)}
-              dismissible={!props.awaitingNewBatter && !props.awaitingNewBowler}
-            />
-          )}
+          <LiveInsights
+            className="min-h-[132px] flex-1"
+            balls={props.overBalls}
+            partnership={props.partnership}
+            chase={props.chase}
+            crr={props.crr}
+            rrr={props.rrr}
+            target={props.target}
+            insights={props.insights}
+          />
         </div>
-      </div>
+      </main>
 
+      <ScoringDock
+        disabled={props.disabled}
+        onRun={props.onRun}
+        onExtra={props.onExtra}
+        onOut={props.onOut}
+        onUndo={props.onUndo}
+        onScorecard={props.onOpenScorecard}
+        onMore={() => setMoreOpen(true)}
+      />
 
-
-      {/* ---------------- Floating scoring dock ---------------- */}
-      <div
-        className="sticky bottom-0 z-10 bg-gradient-to-t from-background via-background/95 to-transparent pt-2"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-      >
-        <div className="mx-auto w-full max-w-xl px-2 pb-2">
-          <div className="rounded-t-2xl border border-b-0 bg-card/95 px-2 pt-2 pb-2 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.2)] backdrop-blur">
-            {/* Row 1 — runs 0-6 */}
-            <div className="grid grid-cols-6 gap-2">
-              <RunKey value={0} onClick={() => !props.disabled && props.onRun(0)} />
-              <RunKey value={1} onClick={() => !props.disabled && props.onRun(1)} />
-              <RunKey value={2} onClick={() => !props.disabled && props.onRun(2)} />
-              <RunKey value={3} onClick={() => !props.disabled && props.onRun(3)} />
-              <RunKey value={4} tone="four" onClick={() => !props.disabled && props.onRun(4)} />
-              <RunKey value={6} tone="six" onClick={() => !props.disabled && props.onRun(6)} />
-            </div>
-            {/* Row 2 — events */}
-            <div className="mt-2 grid grid-cols-5 gap-2">
-              <ExtraKey label="Wide" tone="wide" onClick={() => !props.disabled && props.onExtra("Wide")} />
-              <ExtraKey label="No Ball" tone="nb" onClick={() => !props.disabled && props.onExtra("No Ball")} />
-              <ExtraKey label="Bye" tone="bye" onClick={() => !props.disabled && props.onExtra("Bye")} />
-              <ExtraKey label="Leg Bye" tone="lb" onClick={() => !props.disabled && props.onExtra("Leg Bye")} />
-              <ExtraKey label="OUT" tone="out" onClick={() => !props.disabled && props.onOut()} />
-            </div>
-
-            {/* Bottom bar — Undo · Scorecard · More */}
-            <div className="mt-2 grid grid-cols-3 gap-2 border-t pt-2">
-              <FooterAction
-                icon={<Undo2 className="size-3.5" />}
-                label="Undo"
-                onClick={props.onUndo}
-              />
-              <FooterAction
-                icon={<FileText className="size-3.5" />}
-                label="Scorecard"
-                onClick={props.onOpenScorecard}
-              />
-              <FooterAction
-                icon={<MoreHorizontal className="size-3.5" />}
-                label="More"
-                onClick={() => setMoreOpen(true)}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      {/* ---------------- More sheet ---------------- */}
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent
-          side="bottom"
-          className="max-h-[85dvh] overflow-y-auto rounded-t-2xl"
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-        >
-          <SheetHeader className="text-left">
-            <SheetTitle>More options</SheetTitle>
-            <SheetDescription>
-              Secondary actions — the scoring surface stays fast.
-            </SheetDescription>
+        <SheetContent side="bottom" className="max-h-[82dvh] overflow-y-auto rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
+          <SheetHeader className="px-4 pb-2 pt-3 text-left">
+            <SheetTitle className="text-base">More actions</SheetTitle>
+            <SheetDescription className="sr-only">Secondary scoring controls</SheetDescription>
           </SheetHeader>
-
-          <div className="mt-4 space-y-4 pb-6">
+          <div className="space-y-4 px-3 pb-6" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}>
             <Section title="Batting">
-              <SheetRow
-                icon={<UserCog className="size-4" />}
-                label="Change striker"
-                onClick={() => {
-                  setMoreOpen(false);
-                  openPicker("striker");
-                }}
-              />
-              <SheetRow
-                icon={<UserCog className="size-4" />}
-                label="Change non-striker"
-                onClick={() => {
-                  setMoreOpen(false);
-                  openPicker("nonStriker");
-                }}
-              />
-              <SheetRow
-                icon={<RefreshCw className="size-4" />}
-                label="Swap strike"
-                onClick={() => {
-                  setMoreOpen(false);
-                  props.onSwapStrike();
-                }}
-              />
-              <SheetRow
-                icon={<HeartPulse className="size-4" />}
-                label="Retired hurt"
-                onClick={() => {
-                  setMoreOpen(false);
-                  props.onRetiredHurt();
-                }}
-              />
+              <SheetRow icon={<UserCog className="size-4" />} label="Change striker" onClick={() => { setMoreOpen(false); openPicker("striker"); }} />
+              <SheetRow icon={<UserCog className="size-4" />} label="Change non-striker" onClick={() => { setMoreOpen(false); openPicker("nonStriker"); }} />
+              <SheetRow icon={<RefreshCw className="size-4" />} label="Swap strike" onClick={() => { setMoreOpen(false); props.onSwapStrike(); }} />
+              <SheetRow icon={<HeartPulse className="size-4" />} label="Retired hurt" onClick={() => { setMoreOpen(false); props.onRetiredHurt(); }} />
             </Section>
-
             <Section title="Bowling">
-              <SheetRow
-                icon={<UserPlus className="size-4" />}
-                label="Change bowler"
-                onClick={() => {
-                  setMoreOpen(false);
-                  openPicker("bowler");
-                }}
-              />
+              <SheetRow icon={<UserPlus className="size-4" />} label="Change bowler" onClick={() => { setMoreOpen(false); openPicker("bowler"); }} />
             </Section>
-
             <Section title="Corrections">
-              <SheetRow
-                icon={<Trash2 className="size-4" />}
-                label="Delete last ball"
-                onClick={() => setConfirm({ kind: "delete-ball" })}
-              />
+              <SheetRow icon={<Undo2 className="size-4" />} label="Undo last ball" onClick={() => { setMoreOpen(false); props.onUndo(); }} />
+              <SheetRow icon={<Trash2 className="size-4" />} label="Delete last ball" onClick={() => setConfirm({ kind: "delete-ball" })} />
             </Section>
-
             <Section title="Match" danger>
               {props.showFinishInnings && props.onFinishInnings && (
-                <SheetRow
-                  icon={<Flag className="size-4" />}
-                  label="Finish innings"
-                  tone="danger"
-                  onClick={() => setConfirm({ kind: "finish-innings" })}
-                />
+                <SheetRow icon={<Flag className="size-4" />} label="Finish innings" tone="danger" onClick={() => setConfirm({ kind: "finish-innings" })} />
               )}
               {!props.hideEndMatch && (
-                <SheetRow
-                  icon={<StopCircle className="size-4" />}
-                  label="End match"
-                  tone="danger"
-                  onClick={() => setConfirm({ kind: "end-match" })}
-                />
+                <SheetRow icon={<StopCircle className="size-4" />} label="End match" tone="danger" onClick={() => setConfirm({ kind: "end-match" })} />
               )}
             </Section>
           </div>
         </SheetContent>
       </Sheet>
+
+      <PlayerPickerSheet
+        open={!!pickerOpen}
+        kind={pickerOpen}
+        query={pickerQuery}
+        onQuery={setPickerQuery}
+        players={filteredCandidates}
+        isDisabled={isIllegalBowler}
+        onOpenChange={(v) => !v && setPickerOpen(null)}
+        lockedMessage={pickerOpen === "bowler" ? "Cannot bowl consecutive overs" : undefined}
+        onSelect={(p) => {
+          if (!pickerOpen || isIllegalBowler(p)) return;
+          props.onPickPlayer?.(pickerOpen, p);
+          setPickerOpen(null);
+        }}
+      />
 
       <AlertDialog open={!!confirm} onOpenChange={(v) => !v && setConfirm(null)}>
         <AlertDialogContent>
@@ -548,16 +357,11 @@ export function MobileScorer(props: MobileScorerProps) {
             <>
               <AlertDialogHeader>
                 <AlertDialogTitle>{confirmMeta.title}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {confirmMeta.description}
-                </AlertDialogDescription>
+                <AlertDialogDescription>{confirmMeta.description}</AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={confirmMeta.run}
-                >
+                <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={confirmMeta.run}>
                   {confirmMeta.action}
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -569,209 +373,253 @@ export function MobileScorer(props: MobileScorerProps) {
   );
 }
 
-/* ---------------- primitives ---------------- */
-
-function InlinePlayerPicker({
-  kind,
-  query,
-  onQuery,
-  players,
-  onSelect,
-  onClose,
-  dismissible,
-}: {
-  kind: InlinePickerKind;
-  query: string;
-  onQuery: (v: string) => void;
-  players: PlayerOption[];
-  onSelect: (p: PlayerOption) => void;
-  onClose: () => void;
-  dismissible: boolean;
-}) {
-  const heading =
-    kind === "striker"
-      ? "Select striker"
-      : kind === "nonStriker"
-        ? "Select non-striker"
-        : "Select bowler";
+function MetricInline({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="mt-1 flex min-h-[220px] flex-col overflow-hidden rounded-xl border border-border/60 bg-card animate-in fade-in-0 slide-in-from-bottom-1 duration-150">
-      <div className="flex items-center gap-2 border-b border-border/60 px-2.5 py-1.5">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          {heading}
-        </span>
-        <span className="text-[10px] text-muted-foreground/70 tabular-nums">
-          {players.length}
-        </span>
-        {dismissible && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="ml-auto inline-flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted active:scale-95 transition duration-100"
-            aria-label="Close picker"
-          >
-            <X className="size-3.5" />
-          </button>
-        )}
-      </div>
-      <div className="border-b border-border/60 px-2.5 py-1.5">
-        <label className="flex items-center gap-2 rounded-lg bg-muted/60 px-2 py-1.5">
-          <Search className="size-3.5 shrink-0 text-muted-foreground" />
-          <input
-            type="text"
-            inputMode="search"
-            autoFocus
-            value={query}
-            onChange={(e) => onQuery(e.target.value)}
-            placeholder="Search player…"
-            className="w-full min-w-0 bg-transparent text-[13px] outline-none placeholder:text-muted-foreground"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => onQuery("")}
-              aria-label="Clear search"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="size-3.5" />
-            </button>
-          )}
-        </label>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        {players.length === 0 ? (
-          <div className="grid h-full min-h-[120px] place-items-center px-4 text-center text-[12px] text-muted-foreground">
-            No matching players.
-          </div>
-        ) : (
-          <ul className="divide-y divide-border/50">
-            {players.map((p) => (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  onClick={() => onSelect(p)}
-                  className="flex w-full items-center gap-2.5 px-2.5 py-2 text-left transition active:scale-[0.99] active:bg-muted duration-100"
-                >
-                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-[11px] font-bold text-foreground/80">
-                    {initials(p.name)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13px] font-semibold">{p.name}</div>
-                    {p.role && (
-                      <div className="truncate text-[10px] text-muted-foreground">{p.role}</div>
-                    )}
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+    <div className="flex items-baseline justify-end gap-1.5 whitespace-nowrap">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={cn("font-black", accent && "text-[var(--score-success-fg)]")}>{value}</span>
     </div>
   );
 }
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).slice(0, 2);
-  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "?";
-}
-
-
-function StatChip({ label, value }: { label: string; value: string }) {
+function ScorebookBatters({
+  striker,
+  nonStriker,
+  onPickStriker,
+  onPickNonStriker,
+}: {
+  striker?: BatterStats;
+  nonStriker?: BatterStats;
+  onPickStriker: () => void;
+  onPickNonStriker: () => void;
+}) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-md bg-muted/70 px-1.5 py-0.5">
-      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
-      <span className="text-[11px] font-bold text-foreground tabular-nums">{value}</span>
-    </span>
+    <section className="overflow-hidden rounded-xl border bg-card/70">
+      <BatterLine batter={striker} striker onClick={onPickStriker} />
+      <div className="h-px bg-border/70" />
+      <BatterLine batter={nonStriker} onClick={onPickNonStriker} />
+    </section>
   );
 }
 
-
-function PlayerChip({
-  onClick,
-  name,
-  onStrike,
-  value,
-  sub,
-}: {
-  onClick: () => void;
-  name: string;
-  onStrike?: boolean;
-  value: string;
-  sub?: string;
-}) {
+function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; striker?: boolean; onClick: () => void }) {
+  const name = batter?.name ?? (striker ? "Select striker" : "Select non-striker");
+  const sr = batter?.strikeRate ?? "0.0";
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full items-center gap-2 rounded-lg border bg-card px-2 py-1.5 text-left hover:bg-muted/50",
-        onStrike && "border-emerald-500/50 bg-emerald-500/5",
+        "grid h-[52px] w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 text-left transition duration-100 active:scale-[0.995] active:bg-muted/70",
+        striker && "bg-[var(--score-striker-bg)]",
       )}
     >
-      <span
-        className={cn(
-          "inline-block size-1.5 shrink-0 rounded-full",
-          onStrike ? "bg-emerald-500" : "bg-muted-foreground/40",
-        )}
-      />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between gap-1.5">
-          <span className="truncate text-[12px] font-semibold">{name}</span>
-          <span className="shrink-0 text-[12px] font-black tabular-nums">
-            {value}
-          </span>
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-1.5">
+          {striker && (
+            <span className="grid size-5 shrink-0 place-items-center rounded-full bg-[var(--score-striker-dot)] text-[var(--score-action-foreground)] text-[11px] font-black">
+              *
+            </span>
+          )}
+          <span className="truncate text-[13px] font-bold leading-tight">{name}</span>
         </div>
-        {sub && (
-          <div className="truncate text-[10px] text-muted-foreground tabular-nums leading-tight">
-            {sub}
-          </div>
-        )}
+        <div className="mt-0.5 flex min-w-0 items-center gap-2 overflow-hidden text-[10.5px] leading-tight text-muted-foreground tabular-nums">
+          <span>4s {batter?.fours ?? 0}</span>
+          <span>6s {batter?.sixes ?? 0}</span>
+          <span>SR {sr}</span>
+        </div>
+      </div>
+      <div className="text-right tabular-nums">
+        <div className="text-[17px] font-black leading-none">
+          {batter?.runs ?? 0}
+          <span className="ml-1 text-[12px] font-bold text-muted-foreground">({batter?.balls ?? 0})</span>
+        </div>
       </div>
     </button>
   );
 }
 
-function BallText({ label }: { label: string }) {
-  const isBoundary = label === "4" || label === "6";
-  const isWicket = /W/i.test(label);
-  const isExtra = /wd|nb|b|lb/i.test(label) && !isBoundary && !isWicket;
-  return (
-    <span
-      className={cn(
-        "font-bold",
-        isWicket && "text-rose-600 dark:text-rose-400",
-        !isWicket && isBoundary && label === "4" && "text-blue-600 dark:text-blue-400",
-        !isWicket && isBoundary && label === "6" && "text-violet-600 dark:text-violet-400",
-        !isWicket && isExtra && "text-amber-600 dark:text-amber-400",
-        !isWicket && !isBoundary && !isExtra && "text-foreground",
-      )}
-    >
-      {label}
-    </span>
-  );
-}
-
-function RunKey({
-  value,
-  tone,
-  onClick,
-}: {
-  value: 0 | 1 | 2 | 3 | 4 | 6;
-  tone?: "four" | "six";
-  onClick: () => void;
-}) {
+function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      className="grid h-12 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border bg-card/70 px-3 text-left transition duration-100 active:scale-[0.995] active:bg-muted/70"
+    >
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="grid size-5 shrink-0 place-items-center rounded-full bg-[var(--score-bowler-bg)] text-[var(--score-bowler-fg)]">
+            <Shield className="size-3" />
+          </span>
+          <span className="truncate text-[13px] font-bold">{bowler?.name ?? "Select bowler"}</span>
+          <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Bowling</span>
+        </div>
+      </div>
+      <div className="text-right text-[11px] font-semibold text-muted-foreground tabular-nums">
+        <span className="text-foreground">{bowler?.wickets ?? 0}/{bowler?.runs ?? 0}</span>
+        <span> · {bowler?.overs ?? "0.0"} ov</span>
+        <span> · Econ {bowler?.economy ?? "–"}</span>
+      </div>
+    </button>
+  );
+}
+
+function LiveInsights({
+  balls,
+  partnership,
+  chase,
+  crr,
+  rrr,
+  target,
+  insights,
+  className,
+}: {
+  balls: string[];
+  partnership?: { runs: number; balls: number } | null;
+  chase?: { runsNeeded: number; ballsLeft: number } | null;
+  crr?: string;
+  rrr?: string;
+  target?: string;
+  insights?: MobileScorerInsight;
+  className?: string;
+}) {
+  const recentOvers = insights?.recentOvers ?? [];
+  return (
+    <section className={cn("flex flex-col gap-2 overflow-hidden rounded-xl border bg-muted/25 p-2", className)}>
+      <div className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-card/70 px-2.5">
+        <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">This over</span>
+        <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+          {balls.length === 0 ? (
+            <span className="text-[12px] text-muted-foreground">Ready</span>
+          ) : (
+            balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
+          )}
+        </div>
+      </div>
+
+      <div className="grid shrink-0 grid-cols-4 gap-1.5">
+        <InfoTile label="P'ship" value={insights?.partnership ?? (partnership ? `${partnership.runs}(${partnership.balls})` : "0(0)")} />
+        <InfoTile label={chase ? "Need" : "Proj"} value={chase ? `${chase.runsNeeded}` : insights?.projected ?? "–"} accent={Boolean(chase)} />
+        <InfoTile label={chase ? "Balls" : "Extras"} value={chase ? `${chase.ballsLeft}` : insights?.extras ?? "0"} />
+        <InfoTile label="FOW" value={insights?.lastWicket ?? "–"} />
+      </div>
+
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-2 overflow-hidden">
+        <div className="min-w-0 rounded-lg bg-card/55 p-2">
+          <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recent overs</div>
+          {recentOvers.length === 0 ? (
+            <div className="text-[12px] text-muted-foreground">Ball-by-ball data appears here.</div>
+          ) : (
+            <div className="space-y-1">
+              {recentOvers.slice(-3).map((over) => (
+                <div key={over.label} className="grid grid-cols-[44px_1fr_auto] items-center gap-2 text-[12px] tabular-nums">
+                  <span className="font-bold text-muted-foreground">{over.label}</span>
+                  <span className="h-1.5 rounded-full bg-[var(--score-over-track)]">
+                    <span className="block h-full rounded-full bg-[var(--score-over-fill)]" style={{ width: `${Math.min(100, Math.max(8, over.runs * 7))}%` }} />
+                  </span>
+                  <span className="font-black">{over.runs}{over.wickets ? `/${over.wickets}` : ""}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="grid min-w-[76px] content-center gap-1 rounded-lg bg-card/55 p-2 text-right text-[11px] tabular-nums">
+          <MetricInline label="CRR" value={crr ?? "–"} />
+          {rrr && <MetricInline label="RRR" value={rrr} accent />}
+          {target && <MetricInline label="T" value={target} />}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function InfoTile({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="min-w-0 rounded-lg bg-card/70 px-2 py-1.5 text-center tabular-nums">
+      <div className="truncate text-[9px] font-black uppercase tracking-widest text-muted-foreground">{label}</div>
+      <div className={cn("truncate text-[12px] font-black", accent && "text-[var(--score-success-fg)]")}>{value}</div>
+    </div>
+  );
+}
+
+function BallBubble({ label }: { label: string }) {
+  const upper = label.toUpperCase();
+  const wicket = /W/.test(upper);
+  const four = upper === "4";
+  const six = upper === "6";
+  const extra = /WD|NB|LB|B/.test(upper) && !four && !six && !wicket;
+  return (
+    <span
       className={cn(
-        "grid h-10 w-full place-items-center rounded-xl border border-border/60 text-[19px] font-semibold tabular-nums transition active:scale-[0.95] duration-100",
-        tone === "four" &&
-          "border-transparent bg-blue-500 text-white shadow-sm hover:bg-blue-600",
-        tone === "six" &&
-          "border-transparent bg-violet-500 text-white shadow-sm hover:bg-violet-600",
-        !tone && "border-border bg-card text-foreground hover:bg-muted",
+        "grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-black tabular-nums",
+        wicket && "bg-destructive text-destructive-foreground",
+        four && "bg-[var(--score-four)] text-[var(--score-action-foreground)]",
+        six && "bg-[var(--score-six)] text-[var(--score-action-foreground)]",
+        extra && "bg-[var(--score-extra-bg)] text-[var(--score-extra-fg)]",
+        !wicket && !four && !six && !extra && "bg-muted text-foreground",
+      )}
+    >
+      {upper}
+    </span>
+  );
+}
+
+function ScoringDock({
+  disabled,
+  onRun,
+  onExtra,
+  onOut,
+  onUndo,
+  onScorecard,
+  onMore,
+}: {
+  disabled?: boolean;
+  onRun: (r: 0 | 1 | 2 | 3 | 4 | 6) => void;
+  onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
+  onOut: () => void;
+  onUndo: () => void;
+  onScorecard: () => void;
+  onMore: () => void;
+}) {
+  return (
+    <div className="shrink-0 bg-gradient-to-t from-background via-background to-background/80 pt-1">
+      <div className="px-2" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <div className="rounded-t-[22px] border border-b-0 bg-card/95 p-2 shadow-[0_-8px_24px_-16px_oklch(0_0_0/55%)] backdrop-blur-xl">
+          <div className="grid grid-cols-6 gap-2">
+            {([0, 1, 2, 3, 4, 6] as const).map((run) => (
+              <RunKey key={run} value={run} disabled={disabled} onClick={() => onRun(run)} />
+            ))}
+          </div>
+          <div className="mt-2 grid grid-cols-5 gap-2">
+            <ExtraKey label="Wide" tone="wide" disabled={disabled} onClick={() => onExtra("Wide")} />
+            <ExtraKey label="No Ball" tone="nb" disabled={disabled} onClick={() => onExtra("No Ball")} />
+            <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
+            <ExtraKey label="Leg Bye" tone="lb" disabled={disabled} onClick={() => onExtra("Leg Bye")} />
+            <ExtraKey label="OUT" tone="out" disabled={disabled} onClick={onOut} />
+          </div>
+          <div className="mt-2 grid h-9 grid-cols-3 border-t border-border/70 pt-1.5">
+            <FooterAction icon={<Undo2 className="size-3.5" />} label="Undo" onClick={onUndo} />
+            <FooterAction icon={<FileText className="size-3.5" />} label="Scorecard" onClick={onScorecard} />
+            <FooterAction icon={<MoreHorizontal className="size-3.5" />} label="More" onClick={onMore} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RunKey({ value, disabled, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 6; disabled?: boolean; onClick: () => void }) {
+  const tone = value === 4 ? "four" : value === 6 ? "six" : "neutral";
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "grid h-11 w-full place-items-center rounded-xl border text-[20px] font-black tabular-nums transition duration-100 active:scale-[0.95] disabled:opacity-40",
+        tone === "four" && "border-transparent bg-[var(--score-four)] text-[var(--score-action-foreground)]",
+        tone === "six" && "border-transparent bg-[var(--score-six)] text-[var(--score-action-foreground)]",
+        tone === "neutral" && "border-border/80 bg-background text-foreground active:bg-muted",
       )}
     >
       {value}
@@ -779,31 +627,19 @@ function RunKey({
   );
 }
 
-function ExtraKey({
-  label,
-  tone,
-  onClick,
-}: {
-  label: string;
-  tone: "wide" | "nb" | "bye" | "lb" | "out";
-  onClick: () => void;
-}) {
+function ExtraKey({ label, tone, disabled, onClick }: { label: string; tone: "wide" | "nb" | "bye" | "lb" | "out"; disabled?: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
+      disabled={disabled}
       onClick={onClick}
       className={cn(
-        "grid h-10 w-full place-items-center rounded-xl border border-border/60 px-1 text-[11px] font-semibold uppercase tracking-wide transition active:scale-[0.95] duration-100",
-        tone === "wide" &&
-          "border-orange-500/50 bg-orange-500/10 text-orange-700 hover:bg-orange-500/20 dark:text-orange-400",
-        tone === "nb" &&
-          "border-amber-500/50 bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 dark:text-amber-400",
-        tone === "bye" &&
-          "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400",
-        tone === "lb" &&
-          "border-teal-500/50 bg-teal-500/10 text-teal-700 hover:bg-teal-500/20 dark:text-teal-400",
-        tone === "out" &&
-          "border-transparent bg-rose-600 text-white shadow-sm hover:bg-rose-700",
+        "grid h-11 w-full place-items-center rounded-xl border px-1 text-[10px] font-black uppercase leading-none tracking-wide transition duration-100 active:scale-[0.95] disabled:opacity-40",
+        tone === "wide" && "border-[var(--score-wide-border)] bg-[var(--score-wide-bg)] text-[var(--score-wide-fg)]",
+        tone === "nb" && "border-[var(--score-nb-border)] bg-[var(--score-nb-bg)] text-[var(--score-nb-fg)]",
+        tone === "bye" && "border-[var(--score-bye-border)] bg-[var(--score-bye-bg)] text-[var(--score-bye-fg)]",
+        tone === "lb" && "border-[var(--score-lb-border)] bg-[var(--score-lb-bg)] text-[var(--score-lb-fg)]",
+        tone === "out" && "border-transparent bg-destructive text-destructive-foreground",
       )}
     >
       {label}
@@ -811,83 +647,128 @@ function ExtraKey({
   );
 }
 
-function FooterAction({
-  icon,
-  label,
-  onClick,
-  disabled,
-}: {
-  icon: ReactNode;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
+function FooterAction({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
-      className="flex h-10 items-center justify-center gap-1.5 rounded-xl text-[12px] font-semibold text-foreground/80 transition hover:bg-muted disabled:opacity-40 active:scale-[0.95] duration-100"
+      className="flex items-center justify-center gap-1.5 rounded-lg text-[12px] font-bold text-muted-foreground transition duration-100 active:scale-[0.95] active:bg-muted active:text-foreground"
     >
       {icon}
-      {label}
+      <span>{label}</span>
     </button>
   );
 }
 
-function Section({
-  title,
-  danger,
-  children,
+function PlayerPickerSheet({
+  open,
+  kind,
+  players,
+  query,
+  onQuery,
+  onOpenChange,
+  onSelect,
+  isDisabled,
+  lockedMessage,
 }: {
-  title: string;
-  danger?: boolean;
-  children: ReactNode;
+  open: boolean;
+  kind: PickerKind | null;
+  players: PlayerOption[];
+  query: string;
+  onQuery: (v: string) => void;
+  onOpenChange: (v: boolean) => void;
+  onSelect: (p: PlayerOption) => void;
+  isDisabled: (p: PlayerOption) => boolean;
+  lockedMessage?: string;
 }) {
+  const title = kind === "bowler" ? "Select bowler" : kind === "nonStriker" ? "Select non-striker" : "Select striker";
   return (
-    <div>
-      <div
-        className={cn(
-          "mb-1.5 text-[10px] font-semibold uppercase tracking-widest",
-          danger ? "text-destructive" : "text-muted-foreground",
-        )}
-      >
-        {title}
-      </div>
-      <div className="overflow-hidden rounded-xl border bg-card">{children}</div>
-    </div>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="bottom" className="max-h-[74dvh] overflow-hidden rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
+        <SheetHeader className="px-4 pb-2 pt-3 text-left">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+            <div className="min-w-0">
+              <SheetTitle className="truncate text-base">{title}</SheetTitle>
+              <SheetDescription className="text-xs">Tap once to continue scoring</SheetDescription>
+            </div>
+            <button type="button" onClick={() => onOpenChange(false)} className="grid size-9 place-items-center rounded-full bg-muted text-muted-foreground" aria-label="Close picker">
+              <X className="size-4" />
+            </button>
+          </div>
+        </SheetHeader>
+        <div className="border-y px-3 py-2">
+          <label className="flex h-10 items-center gap-2 rounded-xl bg-muted px-3">
+            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <input
+              autoFocus
+              type="search"
+              value={query}
+              onChange={(event) => onQuery(event.target.value)}
+              placeholder="Search player"
+              className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground"
+            />
+          </label>
+        </div>
+        <div className="max-h-[52dvh] overflow-y-auto pb-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}>
+          {players.length === 0 ? (
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">No players found.</div>
+          ) : (
+            <ul className="divide-y divide-border/70">
+              {players.map((player) => {
+                const locked = isDisabled(player);
+                return (
+                  <li key={player.id}>
+                    <button
+                      type="button"
+                      disabled={locked}
+                      onClick={() => onSelect(player)}
+                      className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted disabled:opacity-45"
+                    >
+                      <span className="grid size-9 place-items-center rounded-full bg-muted text-[12px] font-black text-foreground/80">{initials(player.name)}</span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-[14px] font-bold leading-tight">{player.name}</span>
+                        <span className="block truncate text-[11px] text-muted-foreground">{locked ? lockedMessage : player.role || "Player"}</span>
+                      </span>
+                      {locked && <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Locked</span>}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
-function SheetRow({
-  icon,
-  label,
-  onClick,
-  tone,
-}: {
-  icon: ReactNode;
-  label: string;
-  onClick: () => void;
-  tone?: "danger";
-}) {
+function Section({ title, danger, children }: { title: string; danger?: boolean; children: ReactNode }) {
+  return (
+    <section>
+      <div className={cn("mb-1.5 px-1 text-[10px] font-black uppercase tracking-widest", danger ? "text-destructive" : "text-muted-foreground")}>{title}</div>
+      <div className="overflow-hidden rounded-2xl border bg-background/60">{children}</div>
+    </section>
+  );
+}
+
+function SheetRow({ icon, label, onClick, tone }: { icon: ReactNode; label: string; onClick: () => void; tone?: "danger" }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full items-center gap-3 border-b px-4 py-3 text-left text-sm font-medium last:border-b-0 active:bg-muted",
+        "grid h-12 w-full grid-cols-[32px_minmax(0,1fr)] items-center gap-3 border-b px-3 text-left text-[14px] font-semibold last:border-b-0 active:bg-muted",
         tone === "danger" ? "text-destructive" : "text-foreground",
       )}
     >
-      <span
-        className={cn(
-          "grid size-8 place-items-center rounded-lg",
-          tone === "danger" ? "bg-destructive/10 text-destructive" : "bg-muted text-foreground",
-        )}
-      >
-        {icon}
-      </span>
-      <span className="flex-1">{label}</span>
+      <span className={cn("grid size-8 place-items-center rounded-xl", tone === "danger" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground")}>{icon}</span>
+      <span className="truncate">{label}</span>
     </button>
   );
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((part) => part[0]?.toUpperCase() ?? "").join("") || "?";
 }
