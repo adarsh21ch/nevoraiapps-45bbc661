@@ -114,7 +114,7 @@ export async function generateMatchRecognitions(
   const suggestions: RecognitionSuggestion[] = [];
 
   // ---- Player of the Match (delegated to finalization heuristic) ----
-  const pom = suggestPlayerOfMatch(events);
+  const pom = suggestPlayerOfMatch(events)[0];
   if (pom && pom.athleteId) {
     suggestions.push({
       tenant_id: tenantId,
