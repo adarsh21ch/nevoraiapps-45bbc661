@@ -33,26 +33,26 @@ type NavItem = {
   requiresFeature?: "fee_tracking";
 };
 
-// Primary nav — Leads folded into Registrations.
+// Primary nav — 5 tabs: Home, Students (incl. Registrations), Match Center, Fees, Profile.
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
   { to: "/dashboard/students", label: "Students", icon: Users },
-  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
+  { to: "/match-center", label: "Match Center", icon: Swords },
+  { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
-// Mobile bottom tabs — 4 primary + Profile (navigates to full page).
+// Mobile bottom tabs mirror the primary nav (5 tabs, one-hand friendly).
 const mobilePrimary: NavItem[] = primaryNav;
 
 // Secondary — reached from Profile page or desktop sidebar Settings section.
 const secondaryNav: NavItem[] = [
-  { to: "/match-center", label: "Match Center", icon: Swords },
+  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/dashboard/reminders", label: "Reminders", icon: BellRing, requiresFeature: "fee_tracking" },
   { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
   { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet, requiresFeature: "fee_tracking" },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3, requiresFeature: "fee_tracking" },
-  { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
