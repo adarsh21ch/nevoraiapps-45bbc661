@@ -249,10 +249,10 @@ export function MobileScorer(props: MobileScorerProps) {
               <div className="min-w-0">
                 <div className="flex min-w-0 items-baseline gap-2">
                   <h1 className="truncate text-[44px] font-black leading-none tracking-normal tabular-nums sm:text-[48px]">
-                    {props.score}
+                    <NumberRoll value={props.score} />
                   </h1>
                   <span className="shrink-0 text-[14px] font-bold text-muted-foreground tabular-nums">
-                    ({props.overs} ov)
+                    (<NumberRoll value={props.overs} /> ov)
                   </span>
                 </div>
                 {props.chase && (
