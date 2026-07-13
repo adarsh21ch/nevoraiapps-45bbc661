@@ -518,8 +518,9 @@ function ScorerPage() {
   );
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const bowledBowlerIds: string[] = Array.from(stats.bowling.byKey.values())
-    .filter((b) => b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0)
-    .map((b) => (b.player.athleteId ? b.player.athleteId : `ext:${b.player.name}`));
+    .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
+    .map((b) => b.player.athleteId as string);
+
 
 
   return (
