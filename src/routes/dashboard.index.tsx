@@ -139,6 +139,21 @@ function DashboardHome() {
         </p>
       </header>
 
+      {newRegs > 0 ? (
+        <Link
+          to="/dashboard/registrations"
+          className="flex items-center gap-3 h-12 px-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-sm font-semibold text-rose-600 hover:bg-rose-500/15 transition-colors"
+        >
+          <Inbox className="size-4 shrink-0" />
+          <span className="flex-1 truncate">
+            {newRegs} {newRegs === 1 ? t("new registration") : t("new registrations")}
+          </span>
+          <ArrowRight className="size-4 shrink-0" />
+        </Link>
+      ) : null}
+
+
+
       {/* Compact KPI hero — 2×2 on mobile, 4-across on desktop, all in one card */}
       <Card className="p-0 overflow-hidden">
         <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-border">
