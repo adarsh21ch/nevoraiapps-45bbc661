@@ -11,7 +11,7 @@ import {
   Swords,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useDashboard } from "@/lib/dashboard-context";
+import { useTenant } from "@/lib/tenant-context";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/insights")({
 });
 
 function InsightsPage() {
-  const { tenant } = useDashboard();
+  const tenant = useTenant();
 
   const liveQ = useQuery({
     queryKey: ["insights-live", tenant.id],
