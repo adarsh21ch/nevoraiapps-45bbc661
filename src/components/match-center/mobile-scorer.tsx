@@ -570,7 +570,7 @@ function RunKey({
       type="button"
       onClick={onClick}
       className={cn(
-        "grid h-11 w-full place-items-center rounded-lg border text-base font-black tabular-nums transition active:scale-[0.95] duration-100",
+        "grid h-10 w-full place-items-center rounded-xl border border-border/60 text-[19px] font-semibold tabular-nums transition active:scale-[0.95] duration-100",
         tone === "four" &&
           "border-transparent bg-blue-500 text-white shadow-sm hover:bg-blue-600",
         tone === "six" &&
@@ -597,7 +597,7 @@ function ExtraKey({
       type="button"
       onClick={onClick}
       className={cn(
-        "grid h-11 w-full place-items-center rounded-lg border px-1 text-[11px] font-black uppercase tracking-wider transition active:scale-[0.95] duration-100",
+        "grid h-10 w-full place-items-center rounded-xl border border-border/60 px-1 text-[11px] font-semibold uppercase tracking-wide transition active:scale-[0.95] duration-100",
         tone === "wide" &&
           "border-orange-500/50 bg-orange-500/10 text-orange-700 hover:bg-orange-500/20 dark:text-orange-400",
         tone === "nb" &&
@@ -631,7 +631,7 @@ function FooterAction({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex h-9 items-center justify-center gap-1.5 rounded-lg border bg-background text-[11px] font-semibold text-foreground/80 transition hover:bg-muted disabled:opacity-40 active:scale-[0.97] duration-100"
+      className="flex h-10 items-center justify-center gap-1.5 rounded-xl text-[12px] font-semibold text-foreground/80 transition hover:bg-muted disabled:opacity-40 active:scale-[0.95] duration-100"
     >
       {icon}
       {label}
