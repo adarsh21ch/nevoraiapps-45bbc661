@@ -122,7 +122,7 @@ function DashboardHome() {
   const pendingCount = kpis?.pendingFeeCount ?? pendingListQ.data?.pendingRows.length ?? 0;
   const paidCount = pendingListQ.data?.paidCount ?? 0;
   const totalMonthly = pendingListQ.data?.totalStudents ?? 0;
-  const newRegs = kpis?.newRegsThisWeek ?? 0;
+  const newRegsThisWeek = kpis?.newRegsThisWeek ?? 0;
   const pct = expectedMonth > 0 ? Math.round((collectedMonth / expectedMonth) * 100) : 0;
 
   const empty = !kpisQ.isLoading && active === 0 && newRegs === 0;
