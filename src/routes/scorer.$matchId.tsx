@@ -370,7 +370,6 @@ function ScorerPage() {
         dismissedName: dismissedRef.name,
       }),
     );
-    setNewBatterOpen(true);
   };
 
   const handleDismissal = (kind: DismissalKind) => {
