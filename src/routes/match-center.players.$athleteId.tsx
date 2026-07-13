@@ -80,8 +80,10 @@ import {
   type CareerTimelinePoint,
 } from "@/lib/mc-career-engine";
 import { toast } from "sonner";
-import { useDemoEntity } from "@/lib/mc-demo/store";
+import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
 import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
+import { DemoPlayerProfile } from "@/components/match-center/demo-player-profile";
+import type { DemoData } from "@/lib/mc-demo/generate";
 
 export const Route = createFileRoute("/match-center/players/$athleteId")({
   head: () => ({
@@ -125,6 +127,9 @@ function AthleteProfilePage() {
     enabled: !!athleteQ.data?.student_id,
   });
 
+  if (demoEntity && demoEntity.kind === "player") {
+    return <DemoPlayerWrapper tenantId={tenant.id} player={demoEntity.player} />;
+  }
   if (demoEntity) {
     return (
       <DemoDetailStub
@@ -1306,4 +1311,16 @@ function SelectField({
       </select>
     </div>
   );
+}
+
+function DemoPlayerWrapper({
+  tenantId,
+  player,
+}: {
+  tenantId: string;
+  player: DemoData["players"][number];
+}) {
+  const demo = useDemoData(tenantId);
+  if (!demo) return null;
+  return <DemoPlayerProfile demo={demo} player={player} />;
 }

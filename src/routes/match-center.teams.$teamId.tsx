@@ -44,8 +44,9 @@ import {
   updateTeam,
 } from "@/lib/mc-teams";
 import { toast } from "sonner";
-import { useDemoEntity } from "@/lib/mc-demo/store";
+import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
 import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
+import { DemoTeamProfile } from "@/components/match-center/demo-team-profile";
 
 export const Route = createFileRoute("/match-center/teams/$teamId")({
   head: () => ({ meta: [{ title: "Team · Match Center" }, { name: "robots", content: "noindex" }] }),
@@ -164,6 +165,9 @@ function TeamProfilePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  if (demoEntity && demoEntity.kind === "team") {
+    return <DemoTeamWrapper tenantId={tenant.id} teamId={demoEntity.team.id} />;
+  }
   if (demoEntity) {
     return (
       <DemoDetailStub
@@ -175,6 +179,7 @@ function TeamProfilePage() {
       />
     );
   }
+
 
   if (teamQ.isLoading) {
     return (
@@ -721,4 +726,12 @@ function AddPlayersDialogBody({
       </DialogFooter>
     </>
   );
+}
+
+function DemoTeamWrapper({ tenantId, teamId }: { tenantId: string; teamId: string }) {
+  const demo = useDemoData(tenantId);
+  if (!demo) return null;
+  const team = demo.teams.find((t) => t.id === teamId);
+  if (!team) return null;
+  return <DemoTeamProfile demo={demo} team={team} />;
 }
