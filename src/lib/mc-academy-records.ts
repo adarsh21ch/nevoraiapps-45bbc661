@@ -489,7 +489,7 @@ export async function analyzeMatchInsights(matchId: string): Promise<MatchInsigh
     }
 
     // Partnerships
-    const partnerships = computePartnerships(inningsEvents);
+    const { partnerships } = computePartnerships(inningsEvents);
     for (const p of partnerships) {
       if (!bestPship || p.runs > bestPship.runs) {
         bestPship = {
