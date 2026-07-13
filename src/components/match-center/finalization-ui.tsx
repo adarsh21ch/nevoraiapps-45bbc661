@@ -48,6 +48,7 @@ import {
   updateCareersForMatch,
   rebuildCareersAfterUnlock,
 } from "@/lib/mc-career-engine";
+import { updateTournamentForMatch } from "@/lib/mc-tournament-engine";
 
 /* ============================================================
  * Finalization dialog
@@ -135,6 +136,7 @@ export function FinalizationDialog({
       // Career Engine: refresh every participant's cache from finalized matches.
       try {
         await updateCareersForMatch(matchId);
+        await updateTournamentForMatch(matchId);
       } catch (careerErr) {
         console.error("Career update failed", careerErr);
         toast.error("Match finalized, but career update failed. Rebuild manually.");
@@ -437,6 +439,7 @@ export function UnlockMatchDialog({
       // Career Engine: rebuild affected athletes so unlocked match is excluded.
       try {
         await rebuildCareersAfterUnlock(matchId);
+        await updateTournamentForMatch(matchId);
       } catch (careerErr) {
         console.error("Career rebuild after unlock failed", careerErr);
       }

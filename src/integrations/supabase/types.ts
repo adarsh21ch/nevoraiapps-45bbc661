@@ -1436,6 +1436,186 @@ export type Database = {
           },
         ]
       }
+      mc_tournament_teams: {
+        Row: {
+          created_at: string
+          id: string
+          last_rebuilt_at: string
+          lost: number
+          net_run_rate: number
+          no_result: number
+          overs_bowled: number
+          overs_faced: number
+          played: number
+          points: number
+          position: number
+          runs_conceded: number
+          runs_scored: number
+          team_id: string
+          tenant_id: string
+          tied: number
+          tournament_id: string
+          updated_at: string
+          wickets_lost: number
+          wickets_taken: number
+          won: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_rebuilt_at?: string
+          lost?: number
+          net_run_rate?: number
+          no_result?: number
+          overs_bowled?: number
+          overs_faced?: number
+          played?: number
+          points?: number
+          position?: number
+          runs_conceded?: number
+          runs_scored?: number
+          team_id: string
+          tenant_id: string
+          tied?: number
+          tournament_id: string
+          updated_at?: string
+          wickets_lost?: number
+          wickets_taken?: number
+          won?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_rebuilt_at?: string
+          lost?: number
+          net_run_rate?: number
+          no_result?: number
+          overs_bowled?: number
+          overs_faced?: number
+          played?: number
+          points?: number
+          position?: number
+          runs_conceded?: number
+          runs_scored?: number
+          team_id?: string
+          tenant_id?: string
+          tied?: number
+          tournament_id?: string
+          updated_at?: string
+          wickets_lost?: number
+          wickets_taken?: number
+          won?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_tournament_teams_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "mc_teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_teams_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_teams_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "mc_tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_tournaments: {
+        Row: {
+          age_group: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          format: string
+          ground_name: string | null
+          id: string
+          logo_url: string | null
+          max_teams: number
+          name: string
+          overs: number
+          points_for_loss: number
+          points_for_no_result: number
+          points_for_tie: number
+          points_for_win: number
+          season: string | null
+          start_date: string | null
+          status: string
+          tenant_id: string
+          tournament_type: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          age_group?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          format?: string
+          ground_name?: string | null
+          id?: string
+          logo_url?: string | null
+          max_teams?: number
+          name: string
+          overs?: number
+          points_for_loss?: number
+          points_for_no_result?: number
+          points_for_tie?: number
+          points_for_win?: number
+          season?: string | null
+          start_date?: string | null
+          status?: string
+          tenant_id: string
+          tournament_type?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          age_group?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          format?: string
+          ground_name?: string | null
+          id?: string
+          logo_url?: string | null
+          max_teams?: number
+          name?: string
+          overs?: number
+          points_for_loss?: number
+          points_for_no_result?: number
+          points_for_tie?: number
+          points_for_win?: number
+          season?: string | null
+          start_date?: string | null
+          status?: string
+          tenant_id?: string
+          tournament_type?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_tournaments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number

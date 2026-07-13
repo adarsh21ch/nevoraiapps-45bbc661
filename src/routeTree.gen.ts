@@ -50,6 +50,7 @@ import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform
 import { Route as MatchCenterTeamsIndexRouteImport } from './routes/match-center.teams.index'
 import { Route as MatchCenterPlayersIndexRouteImport } from './routes/match-center.players.index'
 import { Route as PlatformAdminTenantsIdRouteImport } from './routes/platform-admin.tenants.$id'
+import { Route as MatchCenterTournamentsTournamentIdRouteImport } from './routes/match-center.tournaments.$tournamentId'
 import { Route as MatchCenterTeamsNewRouteImport } from './routes/match-center.teams.new'
 import { Route as MatchCenterTeamsTeamIdRouteImport } from './routes/match-center.teams.$teamId'
 import { Route as MatchCenterPlayersAthleteIdRouteImport } from './routes/match-center.players.$athleteId'
@@ -264,6 +265,12 @@ const PlatformAdminTenantsIdRoute = PlatformAdminTenantsIdRouteImport.update({
   path: '/tenants/$id',
   getParentRoute: () => PlatformAdminRoute,
 } as any)
+const MatchCenterTournamentsTournamentIdRoute =
+  MatchCenterTournamentsTournamentIdRouteImport.update({
+    id: '/$tournamentId',
+    path: '/$tournamentId',
+    getParentRoute: () => MatchCenterTournamentsRoute,
+  } as any)
 const MatchCenterTeamsNewRoute = MatchCenterTeamsNewRouteImport.update({
   id: '/teams/new',
   path: '/teams/new',
@@ -328,7 +335,7 @@ export interface FileRoutesByFullPath {
   '/match-center/matches': typeof MatchCenterMatchesRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
-  '/match-center/tournaments': typeof MatchCenterTournamentsRoute
+  '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
@@ -340,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/match-center/players/$athleteId': typeof MatchCenterPlayersAthleteIdRoute
   '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
   '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
+  '/match-center/tournaments/$tournamentId': typeof MatchCenterTournamentsTournamentIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/match-center/players/': typeof MatchCenterPlayersIndexRoute
   '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
@@ -374,7 +382,7 @@ export interface FileRoutesByTo {
   '/match-center/matches': typeof MatchCenterMatchesRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
-  '/match-center/tournaments': typeof MatchCenterTournamentsRoute
+  '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
@@ -386,6 +394,7 @@ export interface FileRoutesByTo {
   '/match-center/players/$athleteId': typeof MatchCenterPlayersAthleteIdRoute
   '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
   '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
+  '/match-center/tournaments/$tournamentId': typeof MatchCenterTournamentsTournamentIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/match-center/players': typeof MatchCenterPlayersIndexRoute
   '/match-center/teams': typeof MatchCenterTeamsIndexRoute
@@ -424,7 +433,7 @@ export interface FileRoutesById {
   '/match-center/matches': typeof MatchCenterMatchesRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
-  '/match-center/tournaments': typeof MatchCenterTournamentsRoute
+  '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
@@ -436,6 +445,7 @@ export interface FileRoutesById {
   '/match-center/players/$athleteId': typeof MatchCenterPlayersAthleteIdRoute
   '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
   '/match-center/teams/new': typeof MatchCenterTeamsNewRoute
+  '/match-center/tournaments/$tournamentId': typeof MatchCenterTournamentsTournamentIdRoute
   '/platform-admin/tenants/$id': typeof PlatformAdminTenantsIdRoute
   '/match-center/players/': typeof MatchCenterPlayersIndexRoute
   '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
@@ -487,6 +497,7 @@ export interface FileRouteTypes {
     | '/match-center/players/$athleteId'
     | '/match-center/teams/$teamId'
     | '/match-center/teams/new'
+    | '/match-center/tournaments/$tournamentId'
     | '/platform-admin/tenants/$id'
     | '/match-center/players/'
     | '/match-center/teams/'
@@ -533,6 +544,7 @@ export interface FileRouteTypes {
     | '/match-center/players/$athleteId'
     | '/match-center/teams/$teamId'
     | '/match-center/teams/new'
+    | '/match-center/tournaments/$tournamentId'
     | '/platform-admin/tenants/$id'
     | '/match-center/players'
     | '/match-center/teams'
@@ -582,6 +594,7 @@ export interface FileRouteTypes {
     | '/match-center/players/$athleteId'
     | '/match-center/teams/$teamId'
     | '/match-center/teams/new'
+    | '/match-center/tournaments/$tournamentId'
     | '/platform-admin/tenants/$id'
     | '/match-center/players/'
     | '/match-center/teams/'
@@ -895,6 +908,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlatformAdminTenantsIdRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
+    '/match-center/tournaments/$tournamentId': {
+      id: '/match-center/tournaments/$tournamentId'
+      path: '/$tournamentId'
+      fullPath: '/match-center/tournaments/$tournamentId'
+      preLoaderRoute: typeof MatchCenterTournamentsTournamentIdRouteImport
+      parentRoute: typeof MatchCenterTournamentsRoute
+    }
     '/match-center/teams/new': {
       id: '/match-center/teams/new'
       path: '/teams/new'
@@ -985,6 +1005,21 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
   DashboardRouteChildren,
 )
 
+interface MatchCenterTournamentsRouteChildren {
+  MatchCenterTournamentsTournamentIdRoute: typeof MatchCenterTournamentsTournamentIdRoute
+}
+
+const MatchCenterTournamentsRouteChildren: MatchCenterTournamentsRouteChildren =
+  {
+    MatchCenterTournamentsTournamentIdRoute:
+      MatchCenterTournamentsTournamentIdRoute,
+  }
+
+const MatchCenterTournamentsRouteWithChildren =
+  MatchCenterTournamentsRoute._addFileChildren(
+    MatchCenterTournamentsRouteChildren,
+  )
+
 interface MatchCenterRouteChildren {
   MatchCenterAwardsRoute: typeof MatchCenterAwardsRoute
   MatchCenterCreateRoute: typeof MatchCenterCreateRoute
@@ -994,7 +1029,7 @@ interface MatchCenterRouteChildren {
   MatchCenterMatchesRoute: typeof MatchCenterMatchesRoute
   MatchCenterRecordsRoute: typeof MatchCenterRecordsRoute
   MatchCenterSettingsRoute: typeof MatchCenterSettingsRoute
-  MatchCenterTournamentsRoute: typeof MatchCenterTournamentsRoute
+  MatchCenterTournamentsRoute: typeof MatchCenterTournamentsRouteWithChildren
   MatchCenterIndexRoute: typeof MatchCenterIndexRoute
   MatchCenterPlayersAthleteIdRoute: typeof MatchCenterPlayersAthleteIdRoute
   MatchCenterTeamsTeamIdRoute: typeof MatchCenterTeamsTeamIdRoute
@@ -1012,7 +1047,7 @@ const MatchCenterRouteChildren: MatchCenterRouteChildren = {
   MatchCenterMatchesRoute: MatchCenterMatchesRoute,
   MatchCenterRecordsRoute: MatchCenterRecordsRoute,
   MatchCenterSettingsRoute: MatchCenterSettingsRoute,
-  MatchCenterTournamentsRoute: MatchCenterTournamentsRoute,
+  MatchCenterTournamentsRoute: MatchCenterTournamentsRouteWithChildren,
   MatchCenterIndexRoute: MatchCenterIndexRoute,
   MatchCenterPlayersAthleteIdRoute: MatchCenterPlayersAthleteIdRoute,
   MatchCenterTeamsTeamIdRoute: MatchCenterTeamsTeamIdRoute,
