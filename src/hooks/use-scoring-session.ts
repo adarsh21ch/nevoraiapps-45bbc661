@@ -15,6 +15,12 @@ import {
   type MCBallEvent,
   type MCInnings,
 } from "@/lib/mc-ball-events";
+import {
+  applyStrikeAfterBall,
+  replayInnings,
+  validateBallDraft,
+  type MatchState,
+} from "@/lib/mc-rules-engine";
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
@@ -61,6 +67,9 @@ export interface ScoringSession {
   nonStriker: CurrentBatterState;
   bowler: CurrentBowlerState;
   currentOver: CurrentOverState;
+
+  /** Reconstructed match state (pure replay of the event log). */
+  matchState: MatchState;
 
   /* --- setters (UI-driven, no calculations) --- */
   setStriker: (b: CurrentBatterState) => void;
@@ -240,6 +249,18 @@ export function useScoringSession(
 
   const currentOver = useMemo(() => buildCurrentOver(events), [events]);
 
+  /* ---------- reconstructed match state (pure replay) ---------- */
+
+  const matchState = useMemo<MatchState>(
+    () =>
+      replayInnings(events, {
+        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
+        maxWickets: 10,
+        target: activeInnings?.target ?? null,
+      }),
+    [events, match, activeInnings?.target],
+  );
+
   /* ---------- mutations ---------- */
 
   const startInnings = useCallback(
@@ -291,6 +312,25 @@ export function useScoringSession(
       if (!bowler.athleteId && !bowler.name)
         throw new BallEventError("NO_BOWLER", "Select the bowler.");
 
+      // Rules-engine validation against the reconstructed state.
+      validateBallDraft(
+        {
+          strikerAthleteId: striker.athleteId,
+          strikerName: striker.name,
+          nonStrikerAthleteId: nonStriker.athleteId,
+          nonStrikerName: nonStriker.name,
+          bowlerAthleteId: bowler.athleteId,
+          bowlerName: bowler.name,
+          ...partial,
+        },
+        matchState,
+        {
+          innings: activeInnings,
+          events: eventsRef.current,
+          matchStatus: match?.status ?? null,
+        },
+      );
+
       const created = await appendBallEvent({
         tenantId: opts.tenantId,
         matchId,
@@ -309,6 +349,27 @@ export function useScoringSession(
       setEvents((prev) =>
         prev.some((e) => e.id === created.id) ? prev : [...prev, created],
       );
+
+      // Auto strike rotation for the UI pointer (state is still derived from
+      // events — this only updates the *selected* striker/non-striker).
+      const legalBefore = eventsRef.current.filter(
+        (e) => e.over_number === created.over_number && e.is_legal_delivery,
+      ).length;
+      const overCompleted =
+        created.is_legal_delivery && legalBefore + 1 >= 6;
+      const next = applyStrikeAfterBall(
+        { striker, nonStriker },
+        created,
+        overCompleted,
+      );
+      if (
+        next.striker.athleteId !== striker.athleteId ||
+        next.striker.name !== striker.name
+      ) {
+        setStriker({ ...next.striker, onStrike: true });
+        setNonStriker({ ...next.nonStriker, onStrike: false });
+      }
+
       return created;
     },
     [
@@ -320,6 +381,7 @@ export function useScoringSession(
       striker,
       nonStriker,
       bowler,
+      matchState,
     ],
   );
 
@@ -347,6 +409,7 @@ export function useScoringSession(
     nonStriker,
     bowler,
     currentOver,
+    matchState,
     setStriker,
     setNonStriker,
     setBowler,
