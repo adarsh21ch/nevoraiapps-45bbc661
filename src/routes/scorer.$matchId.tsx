@@ -1284,6 +1284,15 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     activeInnings?.target != null && stats.team.requiredRuns != null
       ? { runsNeeded: stats.team.requiredRuns, ballsLeft: stats.team.ballsRemaining ?? 0 }
       : null;
+  const strikerDismissed = Boolean(
+    (striker.athleteId && session.matchState.innings.dismissedIds.has(striker.athleteId)) ||
+      (striker.name && session.matchState.innings.dismissedNames.has(striker.name)),
+  );
+  const nonStrikerDismissed = Boolean(
+    (nonStriker.athleteId && session.matchState.innings.dismissedIds.has(nonStriker.athleteId)) ||
+      (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
+  );
+  const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
@@ -1315,6 +1324,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           score={`${stats.team.runs}/${stats.team.wickets}`}
           overs={stats.team.oversDisplay}
           crr={String(stats.team.runRate)}
+          rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={activeInnings?.target != null ? String(activeInnings.target) : undefined}
           chase={chase}
           striker={strikerStat}
@@ -1329,6 +1339,24 @@ function DemoScorerView({ matchId }: { matchId: string }) {
               : null
           }
           overBalls={session.currentOver.events.map(ballChipLabel)}
+          insights={{
+            partnership: stats.team.currentPartnership
+              ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
+              : "0(0)",
+            projected:
+              match.overs && stats.team.legalBalls > 0
+                ? String(Math.round(stats.team.runRate * match.overs))
+                : "–",
+            lastWicket: stats.team.fallOfWickets.at(-1)
+              ? `${stats.team.fallOfWickets.at(-1)?.score}/${stats.team.fallOfWickets.at(-1)?.wicketNumber}`
+              : "–",
+            extras: String(stats.team.extras.total),
+            recentOvers: stats.team.overs_summary.slice(-3).map((over) => ({
+              label: `${over.overNumber + 1}`,
+              runs: over.runs,
+              wickets: over.wickets,
+            })),
+          }}
           onRun={onRun}
           onExtra={(k) => setExtraKind(k)}
           onOut={() => setDismissOpen(true)}
@@ -1352,7 +1380,10 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           bowlingOptions={bowlingOptions}
           onPickPlayer={(role, p) => setPlayer(role, p)}
           awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
+          awaitingNewBatterRole={nonStrikerDismissed && !strikerDismissed ? "nonStriker" : "striker"}
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
+          previousBowlerId={previousOverBowler?.bowlerAthleteId ?? null}
+          previousBowlerName={previousOverBowler?.bowlerName ?? null}
         />
       )}
 
