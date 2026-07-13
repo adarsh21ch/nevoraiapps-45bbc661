@@ -913,7 +913,7 @@ function ScorerPage() {
             tenantId={session.match.tenant_id}
             actorId={userQ.data?.id ?? null}
             role="owner"
-            onUnlocked={() => void session.refresh?.()}
+            onUnlocked={() => { /* refresh handled by realtime */ }}
           />
         </>
       )}
