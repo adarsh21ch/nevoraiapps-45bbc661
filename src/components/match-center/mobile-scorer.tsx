@@ -621,17 +621,11 @@ function ScoringDock({
   onRun,
   onExtra,
   onOut,
-  onUndo,
-  onScorecard,
-  onMore,
 }: {
   disabled?: boolean;
   onRun: (r: 0 | 1 | 2 | 3 | 4 | 6) => void;
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   onOut: () => void;
-  onUndo: () => void;
-  onScorecard: () => void;
-  onMore: () => void;
 }) {
   return (
     <div className="rounded-2xl border bg-card/95 p-2 shadow-[0_4px_20px_-12px_oklch(0_0_0/45%)] backdrop-blur-xl">
@@ -647,14 +641,10 @@ function ScoringDock({
         <ExtraKey label="Leg Bye" tone="lb" disabled={disabled} onClick={() => onExtra("Leg Bye")} />
         <ExtraKey label="OUT" tone="out" disabled={disabled} onClick={onOut} />
       </div>
-      <div className="mt-2 grid h-9 grid-cols-3 border-t border-border/70 pt-1.5">
-        <FooterAction icon={<Undo2 className="size-3.5" />} label="Undo" onClick={onUndo} />
-        <FooterAction icon={<FileText className="size-3.5" />} label="Scorecard" onClick={onScorecard} />
-        <FooterAction icon={<MoreHorizontal className="size-3.5" />} label="More" onClick={onMore} />
-      </div>
     </div>
   );
 }
+
 
 function RunKey({ value, disabled, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 6; disabled?: boolean; onClick: () => void }) {
   const tone = value === 4 ? "four" : value === 6 ? "six" : "neutral";
