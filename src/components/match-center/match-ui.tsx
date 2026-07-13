@@ -100,9 +100,10 @@ export function MatchCard({
           <span className="inline-flex items-center rounded-md bg-accent/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
             {match.match_format} · {match.overs} ov
           </span>
-          <span className="hidden xs:inline-flex items-center rounded-md bg-accent/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+          <span className="hidden sm:inline-flex items-center rounded-md bg-accent/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
             {typeLabel}
           </span>
+
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
