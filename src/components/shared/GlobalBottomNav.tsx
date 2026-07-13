@@ -66,7 +66,7 @@ export function GlobalBottomNav() {
               ? location.pathname === "/dashboard"
               : location.pathname === n.to || location.pathname.startsWith(n.to + "/");
           const Icon = n.icon;
-          const badge = n.to === "/dashboard/students" ? pendingRegs.data ?? 0 : 0;
+          const badge = n.to === "/dashboard/students" ? newRegs : 0;
           const live = n.to === "/match-center" && (liveMatches.data ?? 0) > 0;
           const ariaLabel = live
             ? `${n.label} (live)`
