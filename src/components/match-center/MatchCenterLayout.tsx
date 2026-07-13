@@ -106,7 +106,7 @@ export type PageHeaderProps = {
 
 export function PageHeader({ title, description, breadcrumbs, actions }: PageHeaderProps) {
   return (
-    <div className="mb-4 sm:mb-8">
+    <div className="mb-5 sm:mb-8">
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground mb-3 overflow-x-auto whitespace-nowrap">
           {breadcrumbs.map((b, i) => (
