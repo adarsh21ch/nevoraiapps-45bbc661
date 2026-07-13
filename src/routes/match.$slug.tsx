@@ -57,9 +57,11 @@ function PublicMatchPage() {
 
   if (q.isLoading) {
     return (
-      <div className="max-w-5xl mx-auto p-6 space-y-4">
-        <Skeleton className="h-24" />
-        <Skeleton className="h-96" />
+      <div className="flex min-h-dvh flex-col bg-background">
+        <div className="mx-auto w-full max-w-5xl flex-1 space-y-4 p-6">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-96" />
+        </div>
       </div>
     );
   }
