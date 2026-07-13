@@ -657,6 +657,9 @@ function ScorerPage() {
           previousBowlerId={previousOverBowler?.bowlerAthleteId ?? null}
           previousBowlerName={previousOverBowler?.bowlerName ?? null}
           bowledBowlerIds={bowledBowlerIds}
+          dismissedBatterIds={Array.from(session.matchState.innings.dismissedIds)}
+          dismissedBatterNames={Array.from(session.matchState.innings.dismissedNames)}
+
         />
 
       )}
