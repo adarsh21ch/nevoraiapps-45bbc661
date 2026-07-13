@@ -44,6 +44,7 @@ const NAV: NavItem[] = [
   { to: "/match-center/leaderboards", label: "Leaderboards", icon: ListOrdered },
   { to: "/match-center/records", label: "Records", icon: Medal },
   { to: "/match-center/awards", label: "Awards", icon: Award },
+  { to: "/match-center/recognition", label: "Recognition", icon: Award },
   { to: "/match-center/settings", label: "Settings", icon: Settings },
 ];
 
