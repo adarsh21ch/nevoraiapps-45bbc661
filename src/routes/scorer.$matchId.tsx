@@ -74,11 +74,8 @@ const DISMISSAL_MAP: Record<DismissalKind, DismissalType> = {
   "Timed Out": "timed_out",
 };
 
-function short(name: string | null | undefined) {
-  return (name ?? "").split(" ").map((p) => p[0]).join("").slice(0, 3).toUpperCase();
-}
 
-/* ---------------- page ---------------- */
+
 
 function ScorerPage() {
   const { matchId } = Route.useParams();
@@ -195,7 +192,7 @@ function ScorerPage() {
 
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
-  const [pendingDismissal, setPendingDismissal] = useState<DismissalKind | null>(null);
+
   const [caughtOpen, setCaughtOpen] = useState(false);
   const [runOutOpen, setRunOutOpen] = useState(false);
   const [newBatterOpen, setNewBatterOpen] = useState(false);
