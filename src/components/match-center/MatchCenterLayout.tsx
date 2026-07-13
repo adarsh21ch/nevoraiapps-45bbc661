@@ -299,7 +299,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
 
         <main
           key={location.pathname}
-          className="flex-1 min-w-0 p-3 sm:p-4 md:p-8 max-w-7xl mx-auto w-full pb-[calc(env(safe-area-inset-bottom)+88px)] md:pb-8 no-tap-highlight page-enter"
+          className="flex-1 min-w-0 px-3 pt-5 pb-[calc(env(safe-area-inset-bottom)+88px)] sm:px-4 sm:pt-6 md:p-8 md:pb-8 max-w-7xl mx-auto w-full no-tap-highlight page-enter"
         >
           {children ?? <Outlet />}
         </main>
