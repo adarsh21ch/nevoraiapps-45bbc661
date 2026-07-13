@@ -1105,7 +1105,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             }}
           />
           {commentary.length > 0 && (
-            <CommentaryPanel items={commentary.slice(-40).reverse()} collapsed={false} onToggle={() => {}} />
+            <CommentaryPanel entries={commentary.slice(0, 40)} collapsed={false} onToggle={() => {}} />
           )}
         </div>
       </div>
