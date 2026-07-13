@@ -278,8 +278,8 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile bottom nav (top 5 items) */}
-      <MobileBottomNav />
+      {/* Unified mobile bottom nav — shared with Academy OS shell. */}
+      <GlobalBottomNav />
     </div>
   );
 }
