@@ -244,7 +244,7 @@ export function suggestPlayerOfMatch(
   if (topBatter && topBatter.runs > 0) {
     suggestions.push({
       athleteId: topBatter.player.athleteId,
-      name: topBatter.player.name,
+      name: topBatter.player.name ?? "Unknown",
       reason: `Top scorer — ${topBatter.runs} (${topBatter.balls})`,
       category: "batting",
       score: battingScore(topBatter),
@@ -253,7 +253,7 @@ export function suggestPlayerOfMatch(
   if (topBowler && topBowler.wickets > 0) {
     suggestions.push({
       athleteId: topBowler.player.athleteId,
-      name: topBowler.player.name,
+      name: topBowler.player.name ?? "Unknown",
       reason: `Best bowler — ${topBowler.bestBowlingDisplay} (${topBowler.oversDisplay})`,
       category: "bowling",
       score: bowlingScore(topBowler),
@@ -263,7 +263,7 @@ export function suggestPlayerOfMatch(
     suggestions.push({
       athleteId:
         allRounder.batting.player.athleteId ?? allRounder.bowling.player.athleteId,
-      name: allRounder.batting.player.name,
+      name: allRounder.batting.player.name ?? allRounder.bowling.player.name ?? "Unknown",
       reason: `All-rounder — ${allRounder.batting.runs} & ${allRounder.bowling.wickets} wkts`,
       category: "allrounder",
       score: allRounder.score,
