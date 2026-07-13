@@ -113,7 +113,7 @@ export async function trackWebsiteEvent(
     await supabase.rpc("track_website_event", {
       _slug: slug,
       _event_type: eventType,
-      _event_key: eventKey ?? null,
+      _event_key: eventKey,
       _metadata: (metadata ?? {}) as never,
     });
   } catch {
