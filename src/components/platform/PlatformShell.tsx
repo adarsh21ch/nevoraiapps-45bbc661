@@ -21,8 +21,12 @@ export function PlatformShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-neutral-950/80 backdrop-blur">
-        <div className="flex items-center gap-3 px-4 py-3 md:px-6">
+      <div aria-hidden="true" className="bg-neutral-950" style={{ height: "env(safe-area-inset-top)" }} />
+      <header
+        className="sticky z-40 border-b border-white/10 bg-neutral-950/80 backdrop-blur"
+        style={{ top: "env(safe-area-inset-top)" }}
+      >
+        <div className="flex h-14 items-center gap-3 px-4 md:px-6">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/10">
@@ -56,7 +60,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
       </header>
 
       <div className="flex">
-        <aside className="hidden md:block w-64 border-r border-white/10 bg-neutral-950 sticky top-[57px] h-[calc(100vh-57px)]">
+        <aside className="hidden md:block w-64 border-r border-white/10 bg-neutral-950 sticky top-[calc(env(safe-area-inset-top)+3.5rem)] h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]">
           <Inner onSignOut={signOut} email={session.user.email ?? ""} />
         </aside>
         <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full">{children ?? <Outlet />}</main>

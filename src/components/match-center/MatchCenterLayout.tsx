@@ -184,11 +184,12 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Top bar */}
+      <div aria-hidden="true" className="bg-background" style={{ height: "env(safe-area-inset-top)" }} />
       <header
-        className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        className="sticky z-40 border-b border-border bg-background/95 backdrop-blur"
+        style={{ top: "env(safe-area-inset-top)" }}
       >
-        <div className="flex h-14 items-center gap-2 px-3 md:h-auto md:gap-3 md:px-6 md:py-3">
+        <div className="flex h-14 items-center gap-2 px-3 md:gap-3 md:px-6">
           <button
             className="md:hidden -ml-1 grid size-11 place-items-center rounded-lg hover:bg-accent/50 no-tap-highlight"
             onClick={() => setMobileOpen((v) => !v)}
@@ -258,7 +259,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
 
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="hidden md:block w-60 border-r border-border bg-card sticky top-[57px] h-[calc(100vh-57px)]">
+        <aside className="hidden md:block w-60 border-r border-border bg-card sticky top-[calc(env(safe-area-inset-top)+3.5rem)] h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]">
           <SidebarInner onNavigate={() => {}} />
         </aside>
 
