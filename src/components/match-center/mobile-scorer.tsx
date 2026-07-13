@@ -176,10 +176,24 @@ export function MobileScorer(props: MobileScorerProps) {
     if (pickerOpen === "bowler") return base;
 
     const excluded = new Set<string>();
-    if (pickerOpen === "striker" && props.nonStriker?.name) excluded.add(props.nonStriker.name);
-    if (pickerOpen === "nonStriker" && props.striker?.name) excluded.add(props.striker.name);
-    return base.filter((p) => !excluded.has(p.name));
-  }, [pickerOpen, sheetPickerEnabled, props.battingOptions, props.bowlingOptions, props.striker?.name, props.nonStriker?.name]);
+    const excludedNames = new Set<string>();
+    if (pickerOpen === "striker" && props.nonStriker?.name) excludedNames.add(props.nonStriker.name);
+    if (pickerOpen === "nonStriker" && props.striker?.name) excludedNames.add(props.striker.name);
+    // Exclude anyone already dismissed in this innings.
+    for (const id of props.dismissedBatterIds ?? []) excluded.add(id);
+    for (const name of props.dismissedBatterNames ?? []) excludedNames.add(name);
+    return base.filter((p) => !excluded.has(p.id) && !excludedNames.has(p.name));
+  }, [
+    pickerOpen,
+    sheetPickerEnabled,
+    props.battingOptions,
+    props.bowlingOptions,
+    props.striker?.name,
+    props.nonStriker?.name,
+    props.dismissedBatterIds,
+    props.dismissedBatterNames,
+  ]);
+
 
   const filteredCandidates = useMemo(() => {
     const q = pickerQuery.trim().toLowerCase();
