@@ -143,8 +143,8 @@ export function SearchBar({
 }) {
   const [q, setQ] = useState("");
   return (
-    <div className={cn("relative", className)}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+    <div className={cn("relative group", className)}>
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground transition-colors group-focus-within:text-foreground" />
       <Input
         value={q}
         onChange={(e) => {
@@ -152,8 +152,11 @@ export function SearchBar({
           onQuery?.(e.target.value);
         }}
         placeholder={placeholder}
-        className="pl-9 h-10 bg-card"
+        className="pl-9 pr-14 h-10 rounded-full bg-card border-border/70 focus-visible:border-foreground/30"
       />
+      <kbd className="hidden md:inline-flex absolute right-2 top-1/2 -translate-y-1/2 items-center gap-0.5 rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground pointer-events-none">
+        ⌘K
+      </kbd>
     </div>
   );
 }
