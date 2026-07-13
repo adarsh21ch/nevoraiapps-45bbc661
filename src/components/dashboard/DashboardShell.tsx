@@ -273,8 +273,10 @@ function SidebarInner({
       <Link
         key={n.to}
         to={n.to}
+        aria-current={active ? "page" : undefined}
         className={cn(
           "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+          "outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]",
           active
             ? "font-semibold text-foreground bg-accent/40"
             : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
