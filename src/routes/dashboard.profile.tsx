@@ -119,6 +119,8 @@ function ProfilePage() {
         <h2 className="font-semibold mb-3">Manage</h2>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {[
+            { to: "/match-center", label: "Match Center", icon: Swords },
+            { to: "/match-center/scorers", label: "Scorers", icon: UsersIcon },
             { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
             { to: "/dashboard/reminders", label: "Reminders", icon: BellRing },
             { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
