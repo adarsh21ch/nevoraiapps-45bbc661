@@ -323,50 +323,53 @@ export function MobileScorer(props: MobileScorerProps) {
         </div>
       </div>
 
-      {/* ---------------- Fixed scoring keypad (compact ~124px) ---------------- */}
+      {/* ---------------- Floating scoring dock ---------------- */}
       <div
-        className="border-t bg-card"
+        className="sticky bottom-0 z-10 bg-gradient-to-t from-background via-background/95 to-transparent pt-2"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        <div className="mx-auto w-full max-w-xl px-2 pt-2 pb-2">
-          {/* Row 1 — runs 0-6 */}
-          <div className="grid grid-cols-6 gap-2">
-            <RunKey value={0} onClick={() => !props.disabled && props.onRun(0)} />
-            <RunKey value={1} onClick={() => !props.disabled && props.onRun(1)} />
-            <RunKey value={2} onClick={() => !props.disabled && props.onRun(2)} />
-            <RunKey value={3} onClick={() => !props.disabled && props.onRun(3)} />
-            <RunKey value={4} tone="four" onClick={() => !props.disabled && props.onRun(4)} />
-            <RunKey value={6} tone="six" onClick={() => !props.disabled && props.onRun(6)} />
-          </div>
-          {/* Row 2 — events */}
-          <div className="mt-2 grid grid-cols-5 gap-2">
-            <ExtraKey label="Wide" tone="wide" onClick={() => !props.disabled && props.onExtra("Wide")} />
-            <ExtraKey label="No Ball" tone="nb" onClick={() => !props.disabled && props.onExtra("No Ball")} />
-            <ExtraKey label="Bye" tone="bye" onClick={() => !props.disabled && props.onExtra("Bye")} />
-            <ExtraKey label="Leg Bye" tone="lb" onClick={() => !props.disabled && props.onExtra("Leg Bye")} />
-            <ExtraKey label="OUT" tone="out" onClick={() => !props.disabled && props.onOut()} />
-          </div>
+        <div className="mx-auto w-full max-w-xl px-2 pb-2">
+          <div className="rounded-t-2xl border border-b-0 bg-card/95 px-2 pt-2 pb-2 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.2)] backdrop-blur">
+            {/* Row 1 — runs 0-6 */}
+            <div className="grid grid-cols-6 gap-2">
+              <RunKey value={0} onClick={() => !props.disabled && props.onRun(0)} />
+              <RunKey value={1} onClick={() => !props.disabled && props.onRun(1)} />
+              <RunKey value={2} onClick={() => !props.disabled && props.onRun(2)} />
+              <RunKey value={3} onClick={() => !props.disabled && props.onRun(3)} />
+              <RunKey value={4} tone="four" onClick={() => !props.disabled && props.onRun(4)} />
+              <RunKey value={6} tone="six" onClick={() => !props.disabled && props.onRun(6)} />
+            </div>
+            {/* Row 2 — events */}
+            <div className="mt-2 grid grid-cols-5 gap-2">
+              <ExtraKey label="Wide" tone="wide" onClick={() => !props.disabled && props.onExtra("Wide")} />
+              <ExtraKey label="No Ball" tone="nb" onClick={() => !props.disabled && props.onExtra("No Ball")} />
+              <ExtraKey label="Bye" tone="bye" onClick={() => !props.disabled && props.onExtra("Bye")} />
+              <ExtraKey label="Leg Bye" tone="lb" onClick={() => !props.disabled && props.onExtra("Leg Bye")} />
+              <ExtraKey label="OUT" tone="out" onClick={() => !props.disabled && props.onOut()} />
+            </div>
 
-          {/* Compact icon action bar — Undo · Scorecard · More */}
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            <FooterAction
-              icon={<Undo2 className="size-3.5" />}
-              label="Undo"
-              onClick={props.onUndo}
-            />
-            <FooterAction
-              icon={<FileText className="size-3.5" />}
-              label="Scorecard"
-              onClick={props.onOpenScorecard}
-            />
-            <FooterAction
-              icon={<MoreHorizontal className="size-3.5" />}
-              label="More"
-              onClick={() => setMoreOpen(true)}
-            />
+            {/* Bottom bar — Undo · Scorecard · More */}
+            <div className="mt-2 grid grid-cols-3 gap-2 border-t pt-2">
+              <FooterAction
+                icon={<Undo2 className="size-3.5" />}
+                label="Undo"
+                onClick={props.onUndo}
+              />
+              <FooterAction
+                icon={<FileText className="size-3.5" />}
+                label="Scorecard"
+                onClick={props.onOpenScorecard}
+              />
+              <FooterAction
+                icon={<MoreHorizontal className="size-3.5" />}
+                label="More"
+                onClick={() => setMoreOpen(true)}
+              />
+            </div>
           </div>
         </div>
       </div>
+
 
       {/* ---------------- More sheet ---------------- */}
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
@@ -567,7 +570,7 @@ function RunKey({
       type="button"
       onClick={onClick}
       className={cn(
-        "grid h-11 w-full place-items-center rounded-lg border text-base font-black tabular-nums transition active:scale-[0.95] duration-100",
+        "grid h-10 w-full place-items-center rounded-xl border border-border/60 text-[19px] font-semibold tabular-nums transition active:scale-[0.95] duration-100",
         tone === "four" &&
           "border-transparent bg-blue-500 text-white shadow-sm hover:bg-blue-600",
         tone === "six" &&
@@ -594,7 +597,7 @@ function ExtraKey({
       type="button"
       onClick={onClick}
       className={cn(
-        "grid h-11 w-full place-items-center rounded-lg border px-1 text-[11px] font-black uppercase tracking-wider transition active:scale-[0.95] duration-100",
+        "grid h-10 w-full place-items-center rounded-xl border border-border/60 px-1 text-[11px] font-semibold uppercase tracking-wide transition active:scale-[0.95] duration-100",
         tone === "wide" &&
           "border-orange-500/50 bg-orange-500/10 text-orange-700 hover:bg-orange-500/20 dark:text-orange-400",
         tone === "nb" &&
@@ -628,7 +631,7 @@ function FooterAction({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex h-9 items-center justify-center gap-1.5 rounded-lg border bg-background text-[11px] font-semibold text-foreground/80 transition hover:bg-muted disabled:opacity-40 active:scale-[0.97] duration-100"
+      className="flex h-10 items-center justify-center gap-1.5 rounded-xl text-[12px] font-semibold text-foreground/80 transition hover:bg-muted disabled:opacity-40 active:scale-[0.95] duration-100"
     >
       {icon}
       {label}
