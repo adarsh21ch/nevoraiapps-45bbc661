@@ -141,12 +141,12 @@ export function MobileScorer(props: MobileScorerProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
-      {/* ---------------- Compact top bar (h ~ 36px) ---------------- */}
-      <div className="flex h-9 items-center gap-2 border-b bg-card/90 px-2 backdrop-blur">
+      {/* ---------------- Compact sticky top bar ---------------- */}
+      <div className="sticky top-0 z-20 flex h-10 items-center gap-2 border-b bg-card/95 px-2 backdrop-blur">
         <button
           type="button"
           onClick={props.onExit}
-          className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-foreground/80 hover:bg-muted"
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-foreground/80 hover:bg-muted active:scale-95 transition duration-100"
           aria-label="Exit scorer"
         >
           <ArrowLeft className="size-4" />
@@ -169,6 +169,14 @@ export function MobileScorer(props: MobileScorerProps) {
             </div>
           )}
         </div>
+        <button
+          type="button"
+          onClick={() => setMoreOpen(true)}
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-foreground/80 hover:bg-muted active:scale-95 transition duration-100"
+          aria-label="More options"
+        >
+          <MoreHorizontal className="size-4" />
+        </button>
       </div>
 
       {/* ---------------- Compact info stack ---------------- */}
