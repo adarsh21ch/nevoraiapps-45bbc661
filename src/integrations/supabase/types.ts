@@ -2175,6 +2175,94 @@ export type Database = {
           },
         ]
       }
+      mc_website_analytics: {
+        Row: {
+          created_at: string
+          event_key: string | null
+          event_type: string
+          id: string
+          metadata: Json
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_key?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          event_key?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_website_analytics_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_website_config: {
+        Row: {
+          created_at: string
+          featured_player_ids: Json
+          featured_tournament_ids: Json
+          hero: Json
+          homepage_widget: string
+          id: string
+          is_published: boolean
+          seo: Json
+          tenant_id: string
+          theme: string
+          updated_at: string
+          widgets: Json
+        }
+        Insert: {
+          created_at?: string
+          featured_player_ids?: Json
+          featured_tournament_ids?: Json
+          hero?: Json
+          homepage_widget?: string
+          id?: string
+          is_published?: boolean
+          seo?: Json
+          tenant_id: string
+          theme?: string
+          updated_at?: string
+          widgets?: Json
+        }
+        Update: {
+          created_at?: string
+          featured_player_ids?: Json
+          featured_tournament_ids?: Json
+          hero?: Json
+          homepage_widget?: string
+          id?: string
+          is_published?: boolean
+          seo?: Json
+          tenant_id?: string
+          theme?: string
+          updated_at?: string
+          widgets?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_website_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -2715,6 +2803,7 @@ export type Database = {
       }
       compute_player_prefix: { Args: { _tenant_id: string }; Returns: string }
       get_parent_child_summary: { Args: { _student_id: string }; Returns: Json }
+      get_public_academy_bundle: { Args: { _slug: string }; Returns: Json }
       get_public_match_bundle: { Args: { _slug: string }; Returns: Json }
       is_platform_admin: { Args: { _uid: string }; Returns: boolean }
       is_tenant_member: {
@@ -2757,6 +2846,15 @@ export type Database = {
           _whatsapp?: string
         }
         Returns: string
+      }
+      track_website_event: {
+        Args: {
+          _event_key?: string
+          _event_type: string
+          _metadata?: Json
+          _slug: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
