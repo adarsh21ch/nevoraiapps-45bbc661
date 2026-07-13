@@ -458,34 +458,6 @@ export function useScoringSession(
       eventsRef.current = [...priorEvents, optimistic];
       setEvents(eventsRef.current);
 
-      try {
-        await appendBallEvent({
-          eventId: optimistic.id,
-          tenantId: opts.tenantId,
-          matchId,
-          inningsId: activeInnings.id,
-          strikerAthleteId: currentStriker.athleteId,
-          strikerName: currentStriker.name,
-          nonStrikerAthleteId: currentNonStriker.athleteId,
-          nonStrikerName: currentNonStriker.name,
-          bowlerAthleteId: currentBowler.athleteId,
-          bowlerName: currentBowler.name,
-          createdBy: opts.userId ?? null,
-          priorEvents,
-          ...partial,
-        });
-      } catch (e) {
-        const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
-        eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
-        setEvents(eventsRef.current);
-        if (wasLatest) {
-          setStriker(currentStriker);
-          setNonStriker(currentNonStriker);
-          setBowler(currentBowler);
-        }
-        throw e;
-      }
-
       // Auto strike rotation for the UI pointer (state is still derived from
       // events — this only updates the *selected* striker/non-striker).
       const legalBefore = priorEvents.filter(
@@ -518,6 +490,34 @@ export function useScoringSession(
       ) {
         setStriker(next.striker);
         setNonStriker(next.nonStriker);
+      }
+
+      try {
+        await appendBallEvent({
+          eventId: optimistic.id,
+          tenantId: opts.tenantId,
+          matchId,
+          inningsId: activeInnings.id,
+          strikerAthleteId: currentStriker.athleteId,
+          strikerName: currentStriker.name,
+          nonStrikerAthleteId: currentNonStriker.athleteId,
+          nonStrikerName: currentNonStriker.name,
+          bowlerAthleteId: currentBowler.athleteId,
+          bowlerName: currentBowler.name,
+          createdBy: opts.userId ?? null,
+          priorEvents,
+          ...partial,
+        });
+      } catch (e) {
+        const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
+        eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
+        setEvents(eventsRef.current);
+        if (wasLatest) {
+          setStriker(currentStriker);
+          setNonStriker(currentNonStriker);
+          setBowler(currentBowler);
+        }
+        throw e;
       }
 
       return optimistic;
