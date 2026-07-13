@@ -28,7 +28,7 @@ function ScorebookPage() {
       const { data, error } = await supabase
         .from("mc_matches")
         .select(
-          "id, team_a_id, team_b_id, match_type, match_format, overs, scheduled_date, ground_name, umpire, toss_winner, toss_decision, result, winner_team, match_locked, tournament_id",
+          "id, team_a_id, team_b_id, match_type, match_format, overs, scheduled_date, ground_name, umpire, toss_winner, toss_decision, result, winner_team, match_locked, tournament_id, player_of_match_athlete_id",
         )
         .eq("id", matchId)
         .maybeSingle();
