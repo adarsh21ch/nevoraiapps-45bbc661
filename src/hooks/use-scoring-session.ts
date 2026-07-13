@@ -470,8 +470,14 @@ export function useScoringSession(
         priorEvents,
         ...partial,
       }).catch((e) => {
+        const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
         eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
         setEvents(eventsRef.current);
+        if (wasLatest) {
+          setStriker(currentStriker);
+          setNonStriker(currentNonStriker);
+          setBowler(currentBowler);
+        }
         setError(e instanceof Error ? e.message : "Failed to record ball.");
       });
 
