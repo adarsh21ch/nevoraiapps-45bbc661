@@ -517,6 +517,11 @@ function ScorerPage() {
       (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
   );
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
+  const bowledBowlerIds: string[] = Array.from(stats.bowling.byKey.values())
+    .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
+    .map((b) => b.player.athleteId as string);
+
+
 
   return (
     <div className="scorer-root fixed inset-0 z-40 flex flex-col overflow-hidden bg-background text-foreground">
@@ -651,7 +656,9 @@ function ScorerPage() {
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
           previousBowlerId={previousOverBowler?.bowlerAthleteId ?? null}
           previousBowlerName={previousOverBowler?.bowlerName ?? null}
+          bowledBowlerIds={bowledBowlerIds}
         />
+
       )}
 
 
@@ -1253,6 +1260,10 @@ function DemoScorerView({ matchId }: { matchId: string }) {
       (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
   );
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
+  const bowledBowlerIds: string[] = Array.from(stats.bowling.byKey.values())
+    .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
+    .map((b) => b.player.athleteId as string);
+
 
   return (
     <div className="scorer-root fixed inset-0 z-40 flex flex-col overflow-hidden bg-background text-foreground">
@@ -1344,7 +1355,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
           previousBowlerId={previousOverBowler?.bowlerAthleteId ?? null}
           previousBowlerName={previousOverBowler?.bowlerName ?? null}
+          bowledBowlerIds={bowledBowlerIds}
         />
+
       )}
 
 

@@ -10,6 +10,13 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -34,6 +41,7 @@ import {
   UserCog,
   UserPlus,
 } from "lucide-react";
+
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
 
 export interface MobileScorerInsight {
@@ -80,6 +88,7 @@ export interface MobileScorerProps {
   awaitingNewBowler?: boolean;
   previousBowlerName?: string | null;
   previousBowlerId?: string | null;
+  bowledBowlerIds?: string[];
 
   onUndo: () => void;
   onSwapStrike: () => void;
@@ -92,6 +101,7 @@ export interface MobileScorerProps {
   onOpenScorecard: () => void;
   onOpenScorebook?: () => void;
 }
+
 
 type PickerKind = "striker" | "nonStriker" | "bowler";
 
@@ -213,7 +223,7 @@ export function MobileScorer(props: MobileScorerProps) {
   return (
     <div className="scorer-native-page flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
       <header className="z-20 shrink-0 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="grid h-12 grid-cols-[44px_minmax(0,1fr)_44px] items-center px-1">
+        <div className="grid h-12 grid-cols-[44px_minmax(0,1fr)_auto] items-center px-1">
           <button
             type="button"
             onClick={props.onExit}
@@ -238,16 +248,37 @@ export function MobileScorer(props: MobileScorerProps) {
               </div>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => setMoreOpen(true)}
-            className="grid size-11 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
-            aria-label="More"
-          >
-            <MoreHorizontal className="size-5" />
-          </button>
+          <div className="flex items-center pr-1">
+            <button
+              type="button"
+              onClick={props.onUndo}
+              className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
+              aria-label="Undo last ball"
+              title="Undo"
+            >
+              <Undo2 className="size-[18px]" />
+            </button>
+            <button
+              type="button"
+              onClick={props.onOpenScorecard}
+              className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
+              aria-label="Scorecard"
+              title="Scorecard"
+            >
+              <FileText className="size-[18px]" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setMoreOpen(true)}
+              className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
+              aria-label="More"
+            >
+              <MoreHorizontal className="size-5" />
+            </button>
+          </div>
         </div>
       </header>
+
 
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
         <div className="flex min-h-full flex-col gap-2 px-3 py-2">
@@ -298,19 +329,17 @@ export function MobileScorer(props: MobileScorerProps) {
             </button>
           )}
 
+          <ThisOverStrip balls={props.overBalls} />
+
           <ScoringDock
             disabled={props.disabled}
             onRun={props.onRun}
             onExtra={props.onExtra}
             onOut={props.onOut}
-            onUndo={props.onUndo}
-            onScorecard={props.onOpenScorecard}
-            onMore={() => setMoreOpen(true)}
           />
 
           <LiveInsights
-            className="min-h-[132px]"
-            balls={props.overBalls}
+            className="min-h-[112px]"
             partnership={props.partnership}
             chase={props.chase}
             crr={props.crr}
@@ -318,17 +347,17 @@ export function MobileScorer(props: MobileScorerProps) {
             target={props.target}
             insights={props.insights}
           />
+
         </div>
       </main>
 
-      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="max-h-[82dvh] overflow-y-auto rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
-          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
-          <SheetHeader className="px-4 pb-2 pt-3 text-left">
-            <SheetTitle className="text-base">More actions</SheetTitle>
-            <SheetDescription className="sr-only">Secondary scoring controls</SheetDescription>
-          </SheetHeader>
-          <div className="space-y-4 px-3 pb-6" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}>
+      <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
+        <DialogContent className="max-h-[85dvh] gap-3 overflow-y-auto rounded-2xl bg-card/95 p-0 backdrop-blur-xl sm:max-w-md">
+          <DialogHeader className="px-4 pb-1 pt-4 text-left">
+            <DialogTitle className="text-base">More actions</DialogTitle>
+            <DialogDescription className="sr-only">Secondary scoring controls</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 px-3 pb-4">
             <Section title="Batting">
               <SheetRow icon={<UserCog className="size-4" />} label="Change striker" onClick={() => { setMoreOpen(false); openPicker("striker"); }} />
               <SheetRow icon={<UserCog className="size-4" />} label="Change non-striker" onClick={() => { setMoreOpen(false); openPicker("nonStriker"); }} />
@@ -351,8 +380,9 @@ export function MobileScorer(props: MobileScorerProps) {
               )}
             </Section>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
+
 
       <PlayerPickerSheet
         open={!!pickerOpen}
@@ -363,12 +393,14 @@ export function MobileScorer(props: MobileScorerProps) {
         isDisabled={isIllegalBowler}
         onOpenChange={(v) => !v && setPickerOpen(null)}
         lockedMessage={pickerOpen === "bowler" ? "Cannot bowl consecutive overs" : undefined}
+        bowledIds={pickerOpen === "bowler" ? props.bowledBowlerIds ?? [] : []}
         onSelect={(p) => {
           if (!pickerOpen || isIllegalBowler(p)) return;
           props.onPickPlayer?.(pickerOpen, p);
           setPickerOpen(null);
         }}
       />
+
 
       <AlertDialog open={!!confirm} onOpenChange={(v) => !v && setConfirm(null)}>
         <AlertDialogContent>
@@ -483,8 +515,22 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
   );
 }
 
+function ThisOverStrip({ balls }: { balls: string[] }) {
+  return (
+    <section className="flex h-11 shrink-0 items-center gap-2 rounded-xl border bg-card/70 px-3">
+      <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">This over</span>
+      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto ds-scroll">
+        {balls.length === 0 ? (
+          <span className="text-[12px] text-muted-foreground">Ready</span>
+        ) : (
+          balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
+        )}
+      </div>
+    </section>
+  );
+}
+
 function LiveInsights({
-  balls,
   partnership,
   chase,
   crr,
@@ -493,7 +539,6 @@ function LiveInsights({
   insights,
   className,
 }: {
-  balls: string[];
   partnership?: { runs: number; balls: number } | null;
   chase?: { runsNeeded: number; ballsLeft: number } | null;
   crr?: string;
@@ -505,17 +550,6 @@ function LiveInsights({
   const recentOvers = insights?.recentOvers ?? [];
   return (
     <section className={cn("flex flex-col gap-2 overflow-hidden rounded-xl border bg-muted/25 p-2", className)}>
-      <div className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-card/70 px-2.5">
-        <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">This over</span>
-        <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
-          {balls.length === 0 ? (
-            <span className="text-[12px] text-muted-foreground">Ready</span>
-          ) : (
-            balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
-          )}
-        </div>
-      </div>
-
       <div className="grid shrink-0 grid-cols-4 gap-1.5">
         <InfoTile label="P'ship" value={insights?.partnership ?? (partnership ? `${partnership.runs}(${partnership.balls})` : "0(0)")} />
         <InfoTile label={chase ? "Need" : "Proj"} value={chase ? `${chase.runsNeeded}` : insights?.projected ?? "–"} accent={Boolean(chase)} />
@@ -551,6 +585,7 @@ function LiveInsights({
     </section>
   );
 }
+
 
 function InfoTile({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
@@ -588,17 +623,11 @@ function ScoringDock({
   onRun,
   onExtra,
   onOut,
-  onUndo,
-  onScorecard,
-  onMore,
 }: {
   disabled?: boolean;
   onRun: (r: 0 | 1 | 2 | 3 | 4 | 6) => void;
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   onOut: () => void;
-  onUndo: () => void;
-  onScorecard: () => void;
-  onMore: () => void;
 }) {
   return (
     <div className="rounded-2xl border bg-card/95 p-2 shadow-[0_4px_20px_-12px_oklch(0_0_0/45%)] backdrop-blur-xl">
@@ -614,14 +643,10 @@ function ScoringDock({
         <ExtraKey label="Leg Bye" tone="lb" disabled={disabled} onClick={() => onExtra("Leg Bye")} />
         <ExtraKey label="OUT" tone="out" disabled={disabled} onClick={onOut} />
       </div>
-      <div className="mt-2 grid h-9 grid-cols-3 border-t border-border/70 pt-1.5">
-        <FooterAction icon={<Undo2 className="size-3.5" />} label="Undo" onClick={onUndo} />
-        <FooterAction icon={<FileText className="size-3.5" />} label="Scorecard" onClick={onScorecard} />
-        <FooterAction icon={<MoreHorizontal className="size-3.5" />} label="More" onClick={onMore} />
-      </div>
     </div>
   );
 }
+
 
 function RunKey({ value, disabled, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 6; disabled?: boolean; onClick: () => void }) {
   const tone = value === 4 ? "four" : value === 6 ? "six" : "neutral";
@@ -662,18 +687,6 @@ function ExtraKey({ label, tone, disabled, onClick }: { label: string; tone: "wi
   );
 }
 
-function FooterAction({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex items-center justify-center gap-1.5 rounded-lg text-[12px] font-bold text-muted-foreground transition duration-100 active:scale-[0.95] active:bg-muted active:text-foreground"
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
-  );
-}
 
 function PlayerPickerSheet({
   open,
@@ -685,6 +698,7 @@ function PlayerPickerSheet({
   onSelect,
   isDisabled,
   lockedMessage,
+  bowledIds,
 }: {
   open: boolean;
   kind: PickerKind | null;
@@ -695,8 +709,23 @@ function PlayerPickerSheet({
   onSelect: (p: PlayerOption) => void;
   isDisabled: (p: PlayerOption) => boolean;
   lockedMessage?: string;
+  bowledIds?: string[];
 }) {
   const title = kind === "bowler" ? "Select bowler" : kind === "nonStriker" ? "Select non-striker" : "Select striker";
+  const bowledSet = useMemo(() => new Set(bowledIds ?? []), [bowledIds]);
+  const groups = useMemo(() => {
+    if (kind !== "bowler" || bowledSet.size === 0) {
+      return [{ label: "", items: players }];
+    }
+    const already: PlayerOption[] = [];
+    const rest: PlayerOption[] = [];
+    for (const p of players) (bowledSet.has(p.id) ? already : rest).push(p);
+    return [
+      { label: "Already bowled", items: already },
+      { label: "Yet to bowl", items: rest },
+    ];
+  }, [players, bowledSet, kind]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="max-h-[74dvh] overflow-hidden rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
@@ -726,34 +755,50 @@ function PlayerPickerSheet({
           {players.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">No players found.</div>
           ) : (
-            <ul className="divide-y divide-border/70">
-              {players.map((player) => {
-                const locked = isDisabled(player);
-                return (
-                  <li key={player.id}>
-                    <button
-                      type="button"
-                      disabled={locked}
-                      onClick={() => onSelect(player)}
-                      className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted disabled:opacity-45"
-                    >
-                      <span className="grid size-9 place-items-center rounded-full bg-muted text-[12px] font-black text-foreground/80">{initials(player.name)}</span>
-                      <span className="min-w-0">
-                        <span className="block truncate text-[14px] font-bold leading-tight">{player.name}</span>
-                        <span className="block truncate text-[11px] text-muted-foreground">{locked ? lockedMessage : player.role || "Player"}</span>
-                      </span>
-                      {locked && <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Locked</span>}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            groups.map((group, gi) =>
+              group.items.length === 0 ? null : (
+                <div key={group.label || `g-${gi}`}>
+                  {group.label && (
+                    <div className="sticky top-0 z-10 border-b bg-card/95 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground backdrop-blur">
+                      {group.label}
+                      <span className="ml-1 text-muted-foreground/60">({group.items.length})</span>
+                    </div>
+                  )}
+                  <ul className="divide-y divide-border/70">
+                    {group.items.map((player) => {
+                      const locked = isDisabled(player);
+                      const bowled = bowledSet.has(player.id);
+                      return (
+                        <li key={player.id}>
+                          <button
+                            type="button"
+                            disabled={locked}
+                            onClick={() => onSelect(player)}
+                            className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted disabled:opacity-45"
+                          >
+                            <span className="grid size-9 place-items-center rounded-full bg-muted text-[12px] font-black text-foreground/80">{initials(player.name)}</span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-[14px] font-bold leading-tight">{player.name}</span>
+                              <span className="block truncate text-[11px] text-muted-foreground">
+                                {locked ? lockedMessage : bowled ? "Bowled earlier · Tap to continue" : player.role || "Player"}
+                              </span>
+                            </span>
+                            {locked && <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Locked</span>}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ),
+            )
           )}
         </div>
       </SheetContent>
     </Sheet>
   );
 }
+
 
 function Section({ title, danger, children }: { title: string; danger?: boolean; children: ReactNode }) {
   return (
