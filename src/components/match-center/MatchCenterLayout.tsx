@@ -164,6 +164,7 @@ export function SearchBar({
 export function MatchCenterLayout({ children }: { children?: ReactNode }) {
   const { tenant, signOut } = useDashboard();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
