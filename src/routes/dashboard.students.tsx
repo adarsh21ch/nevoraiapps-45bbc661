@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDashboard } from "@/lib/dashboard-context";
 import {
@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Camera, ChevronRight, Inbox } from "lucide-react";
+import { Plus, Search, Camera, ChevronRight, Inbox, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -91,6 +91,25 @@ function StudentsPage() {
     },
     refetchInterval: 30_000,
   });
+
+  // Dismissible pending-registrations banner: only show when the count exceeds
+  // what the user has already acknowledged for this tenant.
+  const dismissKey = `regs-banner-ack:${tenant.id}`;
+  const [ackCount, setAckCount] = useState(0);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(dismissKey);
+    const n = raw ? Number(raw) : 0;
+    setAckCount(Number.isFinite(n) ? n : 0);
+  }, [dismissKey]);
+  const pendingCount = pendingRegs.data ?? 0;
+  const showRegsBanner = pendingCount > ackCount;
+  const ackBanner = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(dismissKey, String(pendingCount));
+    }
+    setAckCount(pendingCount);
+  };
 
   const today = new Date();
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [periodKey(today)];
@@ -166,24 +185,35 @@ function StudentsPage() {
 
 
 
-      {pendingRegs.data ? (
-        <Link
-          to="/dashboard/registrations"
-          className="group flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 px-4 py-3 transition-colors"
-        >
-          <span className="grid place-items-center size-9 rounded-full bg-rose-600 text-white shrink-0">
-            <Inbox className="size-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-foreground">
-              {pendingRegs.data} pending registration{pendingRegs.data === 1 ? "" : "s"}
+      {showRegsBanner ? (
+        <div className="group flex items-center gap-3 rounded-2xl border border-rose-500/30 bg-rose-500/5 px-4 py-3">
+          <Link
+            to="/dashboard/registrations"
+            onClick={ackBanner}
+            className="flex items-center gap-3 min-w-0 flex-1"
+          >
+            <span className="grid place-items-center size-9 rounded-full bg-rose-600 text-white shrink-0">
+              <Inbox className="size-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold text-foreground">
+                {pendingCount} pending registration{pendingCount === 1 ? "" : "s"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                New admission requests waiting for review
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground">
-              New admission requests waiting for review
-            </div>
-          </div>
-          <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-        </Link>
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </Link>
+          <button
+            type="button"
+            onClick={ackBanner}
+            aria-label="Dismiss"
+            className="grid place-items-center size-8 rounded-full text-muted-foreground hover:bg-rose-500/10 hover:text-foreground shrink-0"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
       ) : null}
 
 
