@@ -44,8 +44,9 @@ import {
   updateTeam,
 } from "@/lib/mc-teams";
 import { toast } from "sonner";
-import { useDemoEntity } from "@/lib/mc-demo/store";
+import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
 import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
+import { DemoTeamProfile } from "@/components/match-center/demo-team-profile";
 
 export const Route = createFileRoute("/match-center/teams/$teamId")({
   head: () => ({ meta: [{ title: "Team · Match Center" }, { name: "robots", content: "noindex" }] }),
