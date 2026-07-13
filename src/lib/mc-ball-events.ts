@@ -1,11 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  BallEventError,
+  ILLEGAL_EXTRAS,
+  LEGAL_EXTRAS,
+  isLegalDelivery,
+  type DismissalType,
+  type ExtraType,
+} from "@/lib/mc-ball-events-core";
 
 /* ================================================================
  * Ball Event Engine — Types
  * ================================================================
  * Every scoring action creates one immutable row in `mc_ball_events`.
  * Innings/match aggregates are DERIVED from the event log.
+ *
+ * Pure primitives (types, ExtraType, isLegalDelivery, BallEventError)
+ * live in `mc-ball-events-core.ts` so engines and simulations can
+ * import them without pulling in Supabase.
  * ================================================================ */
 
 export type MCInnings = Database["public"]["Tables"]["mc_innings"]["Row"];
@@ -19,42 +31,8 @@ export type MCBallEvent =
 export type MCBallEventInsert =
   Database["public"]["Tables"]["mc_ball_events"]["Insert"];
 
-export type ExtraType = "wide" | "no_ball" | "bye" | "leg_bye" | "penalty";
-export type DismissalType =
-  | "bowled"
-  | "caught"
-  | "lbw"
-  | "run_out"
-  | "stumped"
-  | "hit_wicket"
-  | "retired_hurt"
-  | "retired_out"
-  | "timed_out"
-  | "obstructing_field"
-  | "handled_ball"
-  | "hit_ball_twice";
-
-/** A legal delivery counts against the over's 6-ball budget. */
-export const LEGAL_EXTRAS: readonly ExtraType[] = ["bye", "leg_bye", "penalty"];
-export const ILLEGAL_EXTRAS: readonly ExtraType[] = ["wide", "no_ball"];
-
-export function isLegalDelivery(extra: ExtraType | null | undefined): boolean {
-  if (!extra) return true;
-  return (LEGAL_EXTRAS as readonly string[]).includes(extra);
-}
-
-/* ================================================================
- * Errors
- * ================================================================ */
-
-export class BallEventError extends Error {
-  code: string;
-  constructor(code: string, message: string) {
-    super(message);
-    this.code = code;
-    this.name = "BallEventError";
-  }
-}
+export { BallEventError, ILLEGAL_EXTRAS, LEGAL_EXTRAS, isLegalDelivery };
+export type { DismissalType, ExtraType };
 
 /* ================================================================
  * Innings
