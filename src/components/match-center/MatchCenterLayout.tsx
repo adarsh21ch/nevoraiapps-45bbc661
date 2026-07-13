@@ -306,7 +306,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
 function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
   const location = useLocation();
   return (
-    <nav className="flex-1 px-2 py-3 space-y-5 overflow-y-auto h-full">
+    <nav className="px-2 py-3 space-y-5 md:h-full md:overflow-y-auto">
       {NAV_GROUPS.map((group) => (
         <div key={group.label} className="space-y-0.5">
           <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/60">
