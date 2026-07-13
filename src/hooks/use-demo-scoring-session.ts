@@ -284,6 +284,13 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
       if (!currentBowler.athleteId && !currentBowler.name)
         throw new Error("Select the bowler.");
 
+      const priorEvents = eventsRef.current;
+      const latestMatchState = replayInnings(priorEvents, {
+        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
+        maxWickets: 10,
+        target: activeInnings.target ?? null,
+      });
+
       // Reuse the same rules-engine as production.
       validateBallDraft(
         {
@@ -295,15 +302,14 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
           bowlerName: currentBowler.name,
           ...partial,
         },
-        matchStateForSelectedBatters(matchState),
+        matchStateForSelectedBatters(latestMatchState),
         {
           innings: activeInnings,
-          events: eventsRef.current,
+          events: priorEvents,
           matchStatus: match?.status ?? null,
         },
       );
 
-      const priorEvents = eventsRef.current;
       const pos = nextPosition(priorEvents);
       const legal = isLegalDelivery(partial.extraType ?? null);
 
