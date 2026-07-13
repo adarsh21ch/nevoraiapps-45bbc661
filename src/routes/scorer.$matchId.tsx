@@ -23,6 +23,7 @@ import {
   type BatterStats,
   type BowlerStats,
 } from "@/components/match-center/scoring-ui";
+import { ScoringActions } from "@/components/match-center/scoring-actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
