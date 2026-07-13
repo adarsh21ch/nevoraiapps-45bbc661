@@ -102,16 +102,16 @@ export interface MatchHeaderProps {
 export function MatchHeader(props: MatchHeaderProps) {
   return (
     <header className="border-b bg-card">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-2.5 sm:gap-6 sm:px-6">
-        <div className="flex min-w-0 items-center gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 py-2 sm:gap-6 sm:px-6 sm:py-2.5">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <LivePulse />
           <div className="min-w-0">
-            <div className="flex items-baseline gap-2 truncate text-sm font-semibold">
+            <div className="flex items-baseline gap-1.5 truncate text-[13px] sm:text-sm font-semibold">
               <span className="truncate">{props.homeTeam}</span>
-              <span className="text-muted-foreground">vs</span>
+              <span className="text-muted-foreground">v</span>
               <span className="truncate">{props.awayTeam}</span>
             </div>
-            <div className="truncate text-xs text-muted-foreground">
+            <div className="truncate text-[11px] sm:text-xs text-muted-foreground">
               {[props.format, props.tournament, props.ground]
                 .filter(Boolean)
                 .join(" · ")}
@@ -119,13 +119,14 @@ export function MatchHeader(props: MatchHeaderProps) {
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
-          <div className="hidden text-right sm:block">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          {/* Score always visible — including mobile */}
+          <div className="text-right">
+            <div className="hidden sm:block text-[10px] uppercase tracking-wider text-muted-foreground">
               Score
             </div>
-            <div className="text-xl font-black leading-none tabular-nums">
+            <div className="text-2xl sm:text-xl font-black leading-none tabular-nums">
               {props.score}
-              <span className="ml-1 text-sm font-semibold text-muted-foreground">
+              <span className="ml-1 text-xs sm:text-sm font-semibold text-muted-foreground">
                 ({props.overs})
               </span>
             </div>
