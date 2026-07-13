@@ -48,6 +48,7 @@ import {
   updateCareersForMatch,
   rebuildCareersAfterUnlock,
 } from "@/lib/mc-career-engine";
+import { updateTournamentForMatch } from "@/lib/mc-tournament-engine";
 
 /* ============================================================
  * Finalization dialog
