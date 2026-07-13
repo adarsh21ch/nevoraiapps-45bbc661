@@ -134,8 +134,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
-  // Pre-hydration theme boot — prevents light-mode flash and defaults to DARK.
-  const themeBoot = `try{var t=localStorage.getItem('acadaos.theme');if(!t){t='dark';}if(t==='dark'){document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}`;
+  // Pre-hydration theme boot — supports "light" | "dark" | "system" (default: system).
+  const themeBoot = `try{var t=localStorage.getItem('acadaos.theme');if(t!=='light'&&t!=='dark'&&t!=='system'){t='system';}var d=t==='dark'||(t==='system'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){document.documentElement.classList.add('dark');}`;
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -150,12 +150,32 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function ThemeSystemListener() {
+  // Keeps the resolved theme in sync with the OS when the user's stored mode is "system".
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const apply = () => {
+      let mode: string | null = null;
+      try { mode = localStorage.getItem("acadaos.theme"); } catch { /* ignore */ }
+      if (mode !== "system" && mode !== null) return;
+      const dark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
+      const el = document.documentElement;
+      if (dark) el.classList.add("dark"); else el.classList.remove("dark");
+    };
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    mq?.addEventListener?.("change", apply);
+    return () => mq?.removeEventListener?.("change", apply);
+  }, []);
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
       <TenantProvider>
+        <ThemeSystemListener />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         {/* App-wide toast host — without this, every toast.success/error is invisible,
@@ -165,3 +185,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
