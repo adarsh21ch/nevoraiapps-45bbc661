@@ -208,6 +208,8 @@ function ScorerPage() {
   const [scorecardOpen, setScorecardOpen] = useState(false);
   const [inningsCompleteOpen, setInningsCompleteOpen] = useState(false);
   const [matchCompleteOpen, setMatchCompleteOpen] = useState(false);
+  const [finalizeDialogOpen, setFinalizeDialogOpen] = useState(false);
+  const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
 
   /* ---------- innings/match completion detection ---------- */
