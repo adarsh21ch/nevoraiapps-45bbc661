@@ -115,6 +115,58 @@ function buildCurrentOver(events: MCBallEvent[]): CurrentOverState {
   return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
 }
 
+function samePlayerRef(
+  a: { athleteId?: string | null; name?: string | null },
+  b: { athleteId?: string | null; name?: string | null },
+) {
+  return Boolean(a.athleteId && b.athleteId && a.athleteId === b.athleteId) ||
+    Boolean(!a.athleteId && !b.athleteId && a.name && b.name && a.name === b.name);
+}
+
+function clearDismissedBatter(
+  pair: { striker: CurrentBatterState; nonStriker: CurrentBatterState },
+  event: MCBallEvent,
+) {
+  const dismissed = {
+    athleteId: event.dismissed_athlete_id,
+    name: event.dismissed_name,
+  };
+  if (!dismissed.athleteId && !dismissed.name) return pair;
+
+  const emptyStriker: CurrentBatterState = { athleteId: null, name: null, onStrike: true };
+  const emptyNonStriker: CurrentBatterState = { athleteId: null, name: null, onStrike: false };
+
+  if (samePlayerRef(pair.striker, dismissed)) {
+    return { ...pair, striker: emptyStriker };
+  }
+  if (samePlayerRef(pair.nonStriker, dismissed)) {
+    return { ...pair, nonStriker: emptyNonStriker };
+  }
+  return pair;
+}
+
+function matchStateForSelectedBatters(
+  state: MatchState,
+  striker: CurrentBatterState,
+  nonStriker: CurrentBatterState,
+): MatchState {
+  if (!state.innings.awaitingNewBatter) return state;
+  const strikerReady = Boolean(striker.athleteId || striker.name) &&
+    !(striker.athleteId && state.innings.dismissedIds.has(striker.athleteId)) &&
+    !(striker.name && state.innings.dismissedNames.has(striker.name));
+  const nonStrikerReady = Boolean(nonStriker.athleteId || nonStriker.name) &&
+    !(nonStriker.athleteId && state.innings.dismissedIds.has(nonStriker.athleteId)) &&
+    !(nonStriker.name && state.innings.dismissedNames.has(nonStriker.name));
+  if (!strikerReady || !nonStrikerReady || samePlayerRef(striker, nonStriker)) return state;
+  return {
+    ...state,
+    innings: {
+      ...state.innings,
+      awaitingNewBatter: false,
+    },
+  };
+}
+
 /* ---------- hook ---------- */
 
 export function useScoringSession(
@@ -323,7 +375,7 @@ export function useScoringSession(
           bowlerName: bowler.name,
           ...partial,
         },
-        matchState,
+        matchStateForSelectedBatters(matchState, striker, nonStriker),
         {
           innings: activeInnings,
           events: eventsRef.current,
@@ -357,17 +409,31 @@ export function useScoringSession(
       ).length;
       const overCompleted =
         created.is_legal_delivery && legalBefore + 1 >= 6;
-      const next = applyStrikeAfterBall(
+      const rotated = applyStrikeAfterBall(
         { striker, nonStriker },
         created,
         overCompleted,
       );
+      const next = created.dismissal_type
+        ? clearDismissedBatter(
+            {
+              striker: { ...rotated.striker, onStrike: true },
+              nonStriker: { ...rotated.nonStriker, onStrike: false },
+            },
+            created,
+          )
+        : {
+            striker: { ...rotated.striker, onStrike: true },
+            nonStriker: { ...rotated.nonStriker, onStrike: false },
+          };
       if (
         next.striker.athleteId !== striker.athleteId ||
-        next.striker.name !== striker.name
+        next.striker.name !== striker.name ||
+        next.nonStriker.athleteId !== nonStriker.athleteId ||
+        next.nonStriker.name !== nonStriker.name
       ) {
-        setStriker({ ...next.striker, onStrike: true });
-        setNonStriker({ ...next.nonStriker, onStrike: false });
+        setStriker(next.striker);
+        setNonStriker(next.nonStriker);
       }
 
       return created;

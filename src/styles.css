@@ -271,6 +271,17 @@
   .ds-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
+
+  .scorer-native-page {
+    height: 100dvh;
+    max-height: 100dvh;
+    overscroll-behavior: none;
+  }
+
+  .scorer-match-scroll {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable both-edges;
+  }
 }
 
 /* ============================================================
