@@ -61,33 +61,41 @@ export function ShareMatchDialog({ open, onOpenChange, matchId, academyId }: Pro
     if (q.data) setLocal(q.data);
   }, [q.data]);
 
-  const upsertM = useMutation({
-    mutationFn: async (patch: Partial<PublicRow> & { create?: boolean }) => {
-      if (local && !patch.create) {
-        const { error } = await supabase
-          .from("mc_public_matches")
-          .update(patch)
-          .eq("id", local.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("mc_public_matches").insert({
-          match_id: matchId,
-          academy_id: academyId,
-          public_slug: generateSlug(),
-          is_public: true,
-          allow_live_score: true,
-          allow_scorecard: true,
-          allow_player_profiles: true,
-          allow_match_summary: true,
-        });
-        if (error) throw error;
-      }
+  const updateM = useMutation({
+    mutationFn: async (patch: Partial<PublicRow>) => {
+      if (!local) return;
+      const { error } = await supabase
+        .from("mc_public_matches")
+        .update(patch)
+        .eq("id", local.id);
+      if (error) throw error;
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["mc-public-match", matchId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const createM = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("mc_public_matches").insert({
+        match_id: matchId,
+        academy_id: academyId,
+        public_slug: generateSlug(),
+        is_public: true,
+        allow_live_score: true,
+        allow_scorecard: true,
+        allow_player_profiles: true,
+        allow_match_summary: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["mc-public-match", matchId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   const url = local
     ? `${typeof window !== "undefined" ? window.location.origin : ""}/m/${local.public_slug}`

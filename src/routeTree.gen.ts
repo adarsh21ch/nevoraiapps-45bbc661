@@ -33,6 +33,7 @@ import { Route as MatchSlugRouteImport } from './routes/match.$slug'
 import { Route as MatchCenterWebsiteRouteImport } from './routes/match-center.website'
 import { Route as MatchCenterTournamentsRouteImport } from './routes/match-center.tournaments'
 import { Route as MatchCenterSettingsRouteImport } from './routes/match-center.settings'
+import { Route as MatchCenterScorersRouteImport } from './routes/match-center.scorers'
 import { Route as MatchCenterRecordsRouteImport } from './routes/match-center.records'
 import { Route as MatchCenterRecognitionRouteImport } from './routes/match-center.recognition'
 import { Route as MatchCenterPerformanceRouteImport } from './routes/match-center.performance'
@@ -43,6 +44,7 @@ import { Route as MatchCenterDashboardRouteImport } from './routes/match-center.
 import { Route as MatchCenterCreateRouteImport } from './routes/match-center.create'
 import { Route as MatchCenterAwardsRouteImport } from './routes/match-center.awards'
 import { Route as MatchCenterAiInsightsRouteImport } from './routes/match-center.ai-insights'
+import { Route as MSlugRouteImport } from './routes/m.$slug'
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
 import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
@@ -192,6 +194,11 @@ const MatchCenterSettingsRoute = MatchCenterSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => MatchCenterRoute,
 } as any)
+const MatchCenterScorersRoute = MatchCenterScorersRouteImport.update({
+  id: '/scorers',
+  path: '/scorers',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
 const MatchCenterRecordsRoute = MatchCenterRecordsRouteImport.update({
   id: '/records',
   path: '/records',
@@ -241,6 +248,11 @@ const MatchCenterAiInsightsRoute = MatchCenterAiInsightsRouteImport.update({
   id: '/ai-insights',
   path: '/ai-insights',
   getParentRoute: () => MatchCenterRoute,
+} as any)
+const MSlugRoute = MSlugRouteImport.update({
+  id: '/m/$slug',
+  path: '/m/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
   id: '/students',
@@ -413,6 +425,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/m/$slug': typeof MSlugRoute
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
   '/match-center/create': typeof MatchCenterCreateRoute
@@ -423,6 +436,7 @@ export interface FileRoutesByFullPath {
   '/match-center/performance': typeof MatchCenterPerformanceRouteWithChildren
   '/match-center/recognition': typeof MatchCenterRecognitionRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
+  '/match-center/scorers': typeof MatchCenterScorersRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
@@ -473,6 +487,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/m/$slug': typeof MSlugRoute
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
   '/match-center/create': typeof MatchCenterCreateRoute
@@ -483,6 +498,7 @@ export interface FileRoutesByTo {
   '/match-center/performance': typeof MatchCenterPerformanceRouteWithChildren
   '/match-center/recognition': typeof MatchCenterRecognitionRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
+  '/match-center/scorers': typeof MatchCenterScorersRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
@@ -537,6 +553,7 @@ export interface FileRoutesById {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/m/$slug': typeof MSlugRoute
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
   '/match-center/create': typeof MatchCenterCreateRoute
@@ -547,6 +564,7 @@ export interface FileRoutesById {
   '/match-center/performance': typeof MatchCenterPerformanceRouteWithChildren
   '/match-center/recognition': typeof MatchCenterRecognitionRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
+  '/match-center/scorers': typeof MatchCenterScorersRoute
   '/match-center/settings': typeof MatchCenterSettingsRoute
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
@@ -602,6 +620,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/m/$slug'
     | '/match-center/ai-insights'
     | '/match-center/awards'
     | '/match-center/create'
@@ -612,6 +631,7 @@ export interface FileRouteTypes {
     | '/match-center/performance'
     | '/match-center/recognition'
     | '/match-center/records'
+    | '/match-center/scorers'
     | '/match-center/settings'
     | '/match-center/tournaments'
     | '/match-center/website'
@@ -662,6 +682,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/m/$slug'
     | '/match-center/ai-insights'
     | '/match-center/awards'
     | '/match-center/create'
@@ -672,6 +693,7 @@ export interface FileRouteTypes {
     | '/match-center/performance'
     | '/match-center/recognition'
     | '/match-center/records'
+    | '/match-center/scorers'
     | '/match-center/settings'
     | '/match-center/tournaments'
     | '/match-center/website'
@@ -725,6 +747,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/m/$slug'
     | '/match-center/ai-insights'
     | '/match-center/awards'
     | '/match-center/create'
@@ -735,6 +758,7 @@ export interface FileRouteTypes {
     | '/match-center/performance'
     | '/match-center/recognition'
     | '/match-center/records'
+    | '/match-center/scorers'
     | '/match-center/settings'
     | '/match-center/tournaments'
     | '/match-center/website'
@@ -777,6 +801,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
   AcademySlugRoute: typeof AcademySlugRoute
+  MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
@@ -953,6 +978,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchCenterSettingsRouteImport
       parentRoute: typeof MatchCenterRoute
     }
+    '/match-center/scorers': {
+      id: '/match-center/scorers'
+      path: '/scorers'
+      fullPath: '/match-center/scorers'
+      preLoaderRoute: typeof MatchCenterScorersRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
     '/match-center/records': {
       id: '/match-center/records'
       path: '/records'
@@ -1022,6 +1054,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/match-center/ai-insights'
       preLoaderRoute: typeof MatchCenterAiInsightsRouteImport
       parentRoute: typeof MatchCenterRoute
+    }
+    '/m/$slug': {
+      id: '/m/$slug'
+      path: '/m/$slug'
+      fullPath: '/m/$slug'
+      preLoaderRoute: typeof MSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dashboard/students': {
       id: '/dashboard/students'
@@ -1304,6 +1343,7 @@ interface MatchCenterRouteChildren {
   MatchCenterPerformanceRoute: typeof MatchCenterPerformanceRouteWithChildren
   MatchCenterRecognitionRoute: typeof MatchCenterRecognitionRoute
   MatchCenterRecordsRoute: typeof MatchCenterRecordsRoute
+  MatchCenterScorersRoute: typeof MatchCenterScorersRoute
   MatchCenterSettingsRoute: typeof MatchCenterSettingsRoute
   MatchCenterTournamentsRoute: typeof MatchCenterTournamentsRouteWithChildren
   MatchCenterWebsiteRoute: typeof MatchCenterWebsiteRoute
@@ -1327,6 +1367,7 @@ const MatchCenterRouteChildren: MatchCenterRouteChildren = {
   MatchCenterPerformanceRoute: MatchCenterPerformanceRouteWithChildren,
   MatchCenterRecognitionRoute: MatchCenterRecognitionRoute,
   MatchCenterRecordsRoute: MatchCenterRecordsRoute,
+  MatchCenterScorersRoute: MatchCenterScorersRoute,
   MatchCenterSettingsRoute: MatchCenterSettingsRoute,
   MatchCenterTournamentsRoute: MatchCenterTournamentsRouteWithChildren,
   MatchCenterWebsiteRoute: MatchCenterWebsiteRoute,
@@ -1380,6 +1421,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
   AcademySlugRoute: AcademySlugRoute,
+  MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
