@@ -14,6 +14,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
 import { Route as ParentPortalRouteImport } from './routes/parent-portal'
 import { Route as MatchCenterRouteImport } from './routes/match-center'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as FeesRouteImport } from './routes/fees'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -93,6 +94,11 @@ const ParentPortalRoute = ParentPortalRouteImport.update({
 const MatchCenterRoute = MatchCenterRouteImport.update({
   id: '/match-center',
   path: '/match-center',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeesRoute = FeesRouteImport.update({
@@ -388,6 +394,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
+  '/insights': typeof InsightsRoute
   '/match-center': typeof MatchCenterRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
@@ -449,6 +456,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/fees': typeof FeesRoute
+  '/insights': typeof InsightsRoute
   '/parent-portal': typeof ParentPortalRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
@@ -510,6 +518,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
+  '/insights': typeof InsightsRoute
   '/match-center': typeof MatchCenterRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
@@ -574,6 +583,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/fees'
+    | '/insights'
     | '/match-center'
     | '/parent-portal'
     | '/platform-admin'
@@ -635,6 +645,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/fees'
+    | '/insights'
     | '/parent-portal'
     | '/register'
     | '/star-players'
@@ -695,6 +706,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/fees'
+    | '/insights'
     | '/match-center'
     | '/parent-portal'
     | '/platform-admin'
@@ -758,6 +770,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   FeesRoute: typeof FeesRoute
+  InsightsRoute: typeof InsightsRoute
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
   ParentPortalRoute: typeof ParentPortalRoute
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
@@ -805,6 +818,13 @@ declare module '@tanstack/react-router' {
       path: '/match-center'
       fullPath: '/match-center'
       preLoaderRoute: typeof MatchCenterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fees': {
@@ -1353,6 +1373,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
   FeesRoute: FeesRoute,
+  InsightsRoute: InsightsRoute,
   MatchCenterRoute: MatchCenterRouteWithChildren,
   ParentPortalRoute: ParentPortalRoute,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
