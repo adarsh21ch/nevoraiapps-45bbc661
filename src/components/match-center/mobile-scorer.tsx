@@ -513,8 +513,22 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
   );
 }
 
+function ThisOverStrip({ balls }: { balls: string[] }) {
+  return (
+    <section className="flex h-11 shrink-0 items-center gap-2 rounded-xl border bg-card/70 px-3">
+      <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">This over</span>
+      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto ds-scroll">
+        {balls.length === 0 ? (
+          <span className="text-[12px] text-muted-foreground">Ready</span>
+        ) : (
+          balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
+        )}
+      </div>
+    </section>
+  );
+}
+
 function LiveInsights({
-  balls,
   partnership,
   chase,
   crr,
@@ -523,7 +537,6 @@ function LiveInsights({
   insights,
   className,
 }: {
-  balls: string[];
   partnership?: { runs: number; balls: number } | null;
   chase?: { runsNeeded: number; ballsLeft: number } | null;
   crr?: string;
@@ -535,17 +548,6 @@ function LiveInsights({
   const recentOvers = insights?.recentOvers ?? [];
   return (
     <section className={cn("flex flex-col gap-2 overflow-hidden rounded-xl border bg-muted/25 p-2", className)}>
-      <div className="flex h-9 shrink-0 items-center gap-2 rounded-lg bg-card/70 px-2.5">
-        <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">This over</span>
-        <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
-          {balls.length === 0 ? (
-            <span className="text-[12px] text-muted-foreground">Ready</span>
-          ) : (
-            balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
-          )}
-        </div>
-      </div>
-
       <div className="grid shrink-0 grid-cols-4 gap-1.5">
         <InfoTile label="P'ship" value={insights?.partnership ?? (partnership ? `${partnership.runs}(${partnership.balls})` : "0(0)")} />
         <InfoTile label={chase ? "Need" : "Proj"} value={chase ? `${chase.runsNeeded}` : insights?.projected ?? "–"} accent={Boolean(chase)} />
@@ -581,6 +583,7 @@ function LiveInsights({
     </section>
   );
 }
+
 
 function InfoTile({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
