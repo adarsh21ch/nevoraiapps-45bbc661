@@ -155,8 +155,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile bottom tab bar — Profile navigates to /dashboard/profile */}
-      <MobileTabBar items={mobileTabs} profile={profileEntry} />
+      {/* Mobile bottom tab bar — 5 tabs, safe-area padded. */}
+      <MobileTabBar items={mobileTabs} />
     </div>
   );
 }
