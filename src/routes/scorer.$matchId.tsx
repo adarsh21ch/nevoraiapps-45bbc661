@@ -903,7 +903,7 @@ function ScorerPage() {
             onFinalized={() => {
               setMatchCompleteOpen(false);
               setInningsCompleteOpen(false);
-              void session.refresh?.();
+              // refresh handled by realtime
             }}
           />
           <UnlockMatchDialog
