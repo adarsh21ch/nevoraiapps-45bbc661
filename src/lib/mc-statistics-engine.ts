@@ -659,10 +659,11 @@ export function computePartnerships(events: MCBallEvent[]): {
       partnerships.push(active);
       cur = null;
     } else if (ballSwapsStrike(e)) {
-      const tmp = striker;
+      const tmp: PlayerRef | null = striker;
       striker = nonStriker;
       nonStriker = tmp;
     }
+
   }
 
 
