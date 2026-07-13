@@ -61,6 +61,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "attendance_marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "attendance_marks_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -630,6 +637,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_athlete_profiles_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_athlete_profiles_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -926,6 +940,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_coach_remarks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
             referencedColumns: ["id"]
           },
           {
@@ -1487,6 +1508,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_matches_player_of_match_athlete_id_fkey"
+            columns: ["player_of_match_athlete_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_matches_team_a_id_fkey"
             columns: ["team_a_id"]
             isOneToOne: false
@@ -1875,6 +1903,57 @@ export type Database = {
           },
         ]
       }
+      mc_scorers: {
+        Row: {
+          athlete_profile_id: string | null
+          created_at: string
+          created_by: string | null
+          display_name: string | null
+          id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          athlete_profile_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_name?: string | null
+          id?: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          athlete_profile_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          display_name?: string | null
+          id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_scorers_athlete_profile_id_fkey"
+            columns: ["athlete_profile_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_scorers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_team_players: {
         Row: {
           added_at: string
@@ -1924,6 +2003,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_team_players_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
             referencedColumns: ["id"]
           },
           {
@@ -2024,10 +2110,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_teams_captain_student_id_fkey"
+            columns: ["captain_student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_teams_keeper_student_id_fkey"
             columns: ["keeper_student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_teams_keeper_student_id_fkey"
+            columns: ["keeper_student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
             referencedColumns: ["id"]
           },
           {
@@ -2042,6 +2142,13 @@ export type Database = {
             columns: ["vice_captain_student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_teams_vice_captain_student_id_fkey"
+            columns: ["vice_captain_student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
             referencedColumns: ["id"]
           },
         ]
@@ -2363,6 +2470,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payments_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -2576,6 +2690,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminder_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
             referencedColumns: ["id"]
           },
           {
@@ -2837,7 +2958,38 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      students_scorer_view: {
+        Row: {
+          id: string | null
+          name: string | null
+          photo_url: string | null
+          player_id: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          id?: string | null
+          name?: string | null
+          photo_url?: string | null
+          player_id?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          id?: string | null
+          name?: string | null
+          photo_url?: string | null
+          player_id?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       approve_registration: {
@@ -2856,6 +3008,10 @@ export type Database = {
       get_parent_child_summary: { Args: { _student_id: string }; Returns: Json }
       get_public_academy_bundle: { Args: { _slug: string }; Returns: Json }
       get_public_match_bundle: { Args: { _slug: string }; Returns: Json }
+      is_match_scorer: {
+        Args: { _tenant: string; _uid: string }
+        Returns: boolean
+      }
       is_platform_admin: { Args: { _uid: string }; Returns: boolean }
       is_tenant_member: {
         Args: { _tenant: string; _uid: string }
