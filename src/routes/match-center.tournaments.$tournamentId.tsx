@@ -50,6 +50,8 @@ import {
   computeTournamentRecords,
 } from "@/lib/mc-tournament-engine";
 import { listTeams } from "@/lib/mc-teams";
+import { useDemoEntity } from "@/lib/mc-demo/store";
+import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
 
 export const Route = createFileRoute("/match-center/tournaments/$tournamentId")({
   head: () => ({
@@ -78,12 +80,25 @@ function TournamentDetailPage() {
   const { tournamentId } = Route.useParams();
   const { tenant } = useDashboard();
   const [tab, setTab] = useState<TabId>("overview");
+  const demoEntity = useDemoEntity(tenant.id, tournamentId);
 
   const tQ = useQuery({
+    enabled: !demoEntity,
     queryKey: ["mc-tournament", tournamentId],
     queryFn: () => getTournament(tournamentId),
   });
 
+  if (demoEntity) {
+    return (
+      <DemoDetailStub
+        entity={demoEntity}
+        backLabel="Tournaments"
+        backTo="/match-center/tournaments"
+        parentLabel="Tournaments"
+        parentTo="/match-center/tournaments"
+      />
+    );
+  }
   if (tQ.isLoading) return <LoadingSkeleton />;
   if (!tQ.data)
     return (

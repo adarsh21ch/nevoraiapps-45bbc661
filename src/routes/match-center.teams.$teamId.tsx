@@ -164,6 +164,18 @@ function TeamProfilePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  if (demoEntity) {
+    return (
+      <DemoDetailStub
+        entity={demoEntity}
+        backLabel="All teams"
+        backTo="/match-center/teams"
+        parentLabel="Teams"
+        parentTo="/match-center/teams"
+      />
+    );
+  }
+
   if (teamQ.isLoading) {
     return (
       <div className="text-sm text-muted-foreground">Loading team…</div>
