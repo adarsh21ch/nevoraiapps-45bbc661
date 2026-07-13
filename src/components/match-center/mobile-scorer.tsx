@@ -70,10 +70,15 @@ export interface MobileScorerProps {
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   onOut: () => void;
 
-  // player pickers
+  // player pickers (fallback: opens external modal)
   onOpenStrikerPicker: () => void;
   onOpenNonStrikerPicker: () => void;
   onOpenBowlerPicker: () => void;
+
+  // inline player picker (preferred when provided — replaces modals)
+  battingOptions?: PlayerOption[];
+  bowlingOptions?: PlayerOption[];
+  onPickPlayer?: (role: "striker" | "nonStriker" | "bowler", p: PlayerOption) => void;
 
   // secondary actions (bottom-sheet)
   onUndo: () => void;
@@ -92,6 +97,8 @@ export interface MobileScorerProps {
   awaitingNewBatter?: boolean;
   awaitingNewBowler?: boolean;
 }
+
+type InlinePickerKind = "striker" | "nonStriker" | "bowler";
 
 export function MobileScorer(props: MobileScorerProps) {
   const [moreOpen, setMoreOpen] = useState(false);
