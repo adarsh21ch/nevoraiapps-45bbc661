@@ -25,6 +25,7 @@ import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
 import { LanguageToggle } from "@/components/dashboard/LanguageToggle";
 import { useT } from "@/lib/i18n";
 import { StoragedImage } from "@/components/site/StoragedImage";
+import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
 
 type NavItem = {
   to: string;
@@ -111,7 +112,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
   const primary = withBadges(primaryNav);
   const secondary = withBadges(secondaryNav);
-  const mobileTabs = withBadges(mobilePrimary);
+
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -155,68 +157,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile bottom tab bar — 5 tabs, safe-area padded. */}
-      <MobileTabBar items={mobileTabs} />
+      {/* Unified mobile bottom nav — shared with Match Center for a seamless experience. */}
+      <GlobalBottomNav />
     </div>
   );
 }
 
-function MobileTabBar({
-  items,
-}: {
-  items: (NavItem & { badge?: number; live?: boolean })[];
-}) {
-  const location = useLocation();
-  return (
-    <nav
-      className="fixed inset-x-0 bottom-0 z-40 md:hidden border-t border-border bg-background/95 backdrop-blur"
-      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 6px)", paddingTop: "6px" }}
-      aria-label="Primary"
-    >
-      <div className="grid grid-cols-5">
-        {items.map((n) => {
-          const active =
-            n.to === "/dashboard"
-              ? location.pathname === "/dashboard"
-              : location.pathname.startsWith(n.to);
-          const Icon = n.icon;
-          return (
-            <Link
-              key={n.to}
-              to={n.to}
-              className={cn(
-                "relative flex flex-col items-center justify-center gap-1 px-1 pt-2.5 pb-2 min-h-[68px] text-[10.5px] font-medium",
-                active ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              <span className="relative inline-flex">
-                <Icon className="size-[22px]" />
-                {n.live ? (
-                  <span
-                    aria-hidden
-                    className="absolute -top-0.5 -right-1 size-2 rounded-full bg-rose-600 ring-2 ring-background animate-pulse"
-                  />
-                ) : null}
-              </span>
-              <span className="truncate max-w-[68px] leading-none">{n.label}</span>
-              {active && (
-                <span
-                  className="absolute top-0 left-1/2 -translate-x-1/2 h-[3px] w-10 rounded-b-full"
-                  style={{ backgroundColor: "var(--brand)" }}
-                />
-              )}
-              {n.badge ? (
-                <span className="absolute top-1.5 right-[calc(50%-20px)] min-w-[16px] rounded-full px-1 text-[9px] font-bold text-white bg-rose-600">
-                  {n.badge}
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}
 
 function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | null } }) {
   const { t } = useT();
@@ -270,8 +216,10 @@ function SidebarInner({
       <Link
         key={n.to}
         to={n.to}
+        aria-current={active ? "page" : undefined}
         className={cn(
           "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+          "outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]",
           active
             ? "font-semibold text-foreground bg-accent/40"
             : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
