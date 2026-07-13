@@ -13,6 +13,7 @@ import {
   Pencil,
   Trophy,
   Radio,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
