@@ -350,6 +350,66 @@ function SettingsPanel({ tenantId }: { tenantId: string }) {
 function AIInsightsPage() {
   const { tenant } = useDashboard();
   const tenantId = tenant.id;
+  const demoReports = useMCAIReports(tenantId);
+
+  if (demoReports) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="AI Insights"
+          description="Deterministic reports derived from Statistics, Career, Tournament, Records and Recognition engines."
+          breadcrumbs={[{ label: "Match Center", to: "/match-center/dashboard" }, { label: "AI Insights" }]}
+        />
+        <div className="space-y-3">
+          {demoReports.map((r) => (
+            <Card key={r.id} className="p-4 space-y-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="outline" className="capitalize">
+                  {r.report_type.replace("_", " ")}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(r.generated_at).toLocaleString()}
+                </span>
+              </div>
+              <h3 className="font-semibold">{r.title}</h3>
+              {r.summary && <p className="text-sm text-muted-foreground">{r.summary}</p>}
+              {r.key_findings?.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold uppercase text-muted-foreground mb-1">
+                    Key findings
+                  </div>
+                  <ul className="text-sm space-y-0.5">
+                    {r.key_findings.map((f, i) => (
+                      <li key={i}>
+                        • <span className="font-medium">{f.label}</span>
+                        {f.detail ? ` — ${f.detail}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {r.strengths?.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold uppercase text-emerald-600 mb-1">
+                    Strengths
+                  </div>
+                  <ul className="text-sm space-y-0.5">
+                    {r.strengths.map((f, i) => (
+                      <li key={i}>
+                        • {f.label}
+                        {f.detail ? ` — ${f.detail}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
