@@ -333,10 +333,8 @@ function ScorerPage() {
   const homeName = teamMap.get(battingTeamId)?.name ?? "Home";
   const awayName = teamMap.get(bowlingTeamId)?.name ?? "Away";
 
-  const connection: ConnectionStatus =
-    typeof navigator !== "undefined" && !navigator.onLine ? "offline" : "online";
+  // (connection status handled implicitly by MobileScorer; kept for future use)
 
-  const commentary = useMemo(() => buildCommentary(session.events), [session.events]);
 
   /* ---------- ball submission ---------- */
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
