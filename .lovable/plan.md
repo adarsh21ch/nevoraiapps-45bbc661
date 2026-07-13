@@ -1,127 +1,111 @@
-# Create Match Redesign + Rich Demo Mode
+## Goal
 
-## Goals
+Three connected changes:
 
-1. A first-time coach starts a match in < 20 seconds without leaving the page.
-2. No database terminology ("External Team", "Search Team"). Human language only.
-3. Demo Academy behaves like a mature academy — every list is populated, every search returns results.
+1. Rework the mobile bottom navigation so the center tab surfaces **Insights / Records**, and Match Center (create / manage / live scoring entry points) moves under **Manage**.
+2. Introduce a **Scorer** role: the owner can grant a specific player scoring-only access. Scorers can create and score matches from their phone, but cannot see fees, payments, student PII, or admin data.
+3. Add a **share link** for live matches so viewers can watch scoring without touching owner data.
 
 ---
 
-## Part 1 — Create Match Flow (`src/routes/match-center.create.tsx`)
+## 1. Bottom navigation restructure
 
-Replace the current 1093-line Quick/Advanced dual layout with one linear form.
+Current: `Home · Match Center (center) · Manage · Profile`
+New: `Home · Insights · Manage · Profile` (4 tabs, center = Insights)
 
-### Layout (top → bottom)
+- `Insights` route (`/insights`) becomes the record-and-data hub:
+  - Academy records (existing `mc_academy_records`)
+  - Leaderboards, star players, recent match summaries
+  - Player insights entry (search a player → their card)
+  - "Live now" strip at the top when any match is live (deep-links into the public match page or scorer if the user is the scorer)
+- `Manage` gains a **Match Center** section:
+  - Create match
+  - Live / upcoming / completed matches
+  - Teams, tournaments, squad, settings
+  - Assign scorers (see §2)
+- Remove the standalone center "Match Center" tab from `GlobalBottomNav`.
+
+Files touched:
+- `src/components/shared/GlobalBottomNav.tsx` — swap center tab.
+- New `src/routes/insights.tsx` (composes existing records / leaderboards / live widget).
+- `src/routes/dashboard.index.tsx` (Manage home) — add Match Center card group.
+- Existing `/match-center/*` routes stay; only the entry point moves.
+
+---
+
+## 2. Scorer role (limited-access users)
+
+### Data model
+
+Add a `mc_scorers` table so the owner can grant scoring-only access without touching the main roles table:
 
 ```text
-1. Match Type       [Practice] [Friendly] [League] [Tournament]
-2. Format           [T10] [T20] [30] [40] [50] [Test]  ← sets overs
-3. Team A
-   ┌────────────────────────────────────────────┐
-   │ ○ Use existing team                        │
-   │ ○ Create team for this match               │
-   │ ○ Guest team                               │
-   └────────────────────────────────────────────┘
-   (contextual body renders under the chosen option)
-4. Team B  (same three-option picker)
-5. ▸ Advanced match settings (collapsible)
-      Ground · Pitch · Toss · Umpires · Scorers · Streaming · Notes
-6. Summary card
-   ┌────────────────────────────────────────────┐
-   │ Practice · T20 · 20 overs                  │
-   │ Sai U16   vs   Sky Cricket Academy         │
-   │ 11 vs 11 · Ready to start                  │
-   │ [ Start Match ]                            │
-   └────────────────────────────────────────────┘
+mc_scorers
+  id uuid pk
+  tenant_id uuid  → tenants.id
+  user_id uuid    → auth.users.id  (the scorer's login)
+  athlete_profile_id uuid nullable  → mc_athlete_profiles.id  (if they're a player)
+  display_name text
+  status text  (active | revoked)
+  created_by, created_at, updated_at
+  unique(tenant_id, user_id)
 ```
 
-Remove the Quick / Advanced toggle entirely; everything is visible, advanced settings live only in the one collapsible.
+Security-definer helper `public.is_match_scorer(_user_id, _tenant_id)` → boolean, used by RLS.
 
-### The three team-source options (new `TeamSourcePicker` component)
+### RLS scope
 
-- **Use existing team** — team combobox (searchable). On select, load the team's saved XI into an editable player list. Coach can remove/add players inline using the same academy-player search that already exists (`listStudentsSearch`).
-- **Create team for this match** — text input for team name + inline academy-player search. Selected players append to a chips list. Persisted as a real academy team on submit (so it appears next time under "Use existing team"). Optional: "Save this team for later" toggle (default on).
-- **Guest team** — text input for opponent name + a "Add player" row that just types a name and hits Enter. Chips list of temporary players. Persisted as an `is_external` team; players stored as external squad names (existing `createExternalTeam` + name-only squad rows).
+A scorer authenticated as `_user_id` gets:
+- **Read/write** on `mc_matches`, `mc_innings`, `mc_ball_events`, `mc_match_squads`, `mc_teams`, `mc_athlete_profiles` **for their tenant only**.
+- **Read** on `students.name` and basic player identity (via a narrow view `students_scorer_view` exposing only id, name, player_id, photo_url — no phone, dob, guardian info, fees).
+- **No access** to `payments`, `fee_plans`, `registrations`, `leads`, `attendance_*`, `reminder_logs`, full `students` PII, `platform_*`.
 
-All three options collapse into a single `<TeamPanel side="A" | "B" />` component that owns its own state and emits a normalised `{ teamId, squad }` to the parent.
+All existing owner/admin policies stay unchanged; scorer policies are added alongside via `OR public.is_match_scorer(auth.uid(), tenant_id)`.
 
-### Removed / renamed strings
+### UI
 
-- "External Team" → not shown anywhere in copy. Underlying `is_external` flag stays.
-- "Search Team" empty box → replaced by the three-option picker with a real placeholder ("Search academy teams…").
-- "Quick match" / "Advanced" tabs → deleted. Advanced settings live only in one `<Collapsible>`.
+- Manage → Match Center → **Scorers**: owner sees a list of scorers, can add one by picking an existing player (or entering an email to invite) and assigns/revokes.
+- Scorer login: after sign-in, if the user is only a scorer (not a tenant member/admin), the app boots into a **Scorer Home** shell showing only:
+  - Live / upcoming matches they can score
+  - "Create match" button
+  - Their profile / sign-out
+  - No Manage tab, no Insights financials, no Home dashboard tiles.
+- Reuse the existing `MobileScorer` UI as-is.
 
-### Interaction rules
-
-- No modals for team creation. Everything inline.
-- Empty search returns *suggested teams* (top 5 recent) instead of "No teams found".
-- Player search shows a "+ Add guest player 'name'" row when zero matches, only inside the Guest team panel.
-- Advanced panel starts collapsed; a small badge shows count of filled-in fields.
-- Start Match button is disabled with a plain reason string ("Add at least 2 players to Team A") — never a silent disable.
-
----
-
-## Part 2 — Demo Academy Enrichment (`src/lib/mc-demo/generate.ts`)
-
-Extend the existing deterministic generator (no DB writes; overlay pattern is already there).
-
-### Named team roster (replaces the current random names)
-
-Academy teams — always present:
-- Sai Sports Academy U12
-- Sai Sports Academy U14
-- Sai Sports Academy U16
-- Sai Sports Academy U19
-- Senior Team
-- Girls Team
-
-Opponent teams (`is_external: true`):
-- Sky Cricket Academy
-- Royal Cricket Club
-- City Cricket Academy
-- Lions CC
-- Warriors CC
-
-Each team gets 14–18 players with realistic Indian names (extend the existing FIRST/LAST pools, ensure the 5 example names — Rahul Sharma, Aman Patel, Aryan Singh, Mohit Verma, Rohit Yadav — appear in the U16 squad).
-
-### Other surfaces (already generated deterministically; ensure non-empty)
-
-- Grounds: "Sai Main Ground", "Practice Ground", "Indoor Nets" (add to `GROUNDS` constant).
-- Tournaments: "Summer Cup", "Academy League", "Weekend Practice".
-- Matches: one upcoming, one in-progress (live), five completed with full ball-event logs (already supported by the simulator in `generate.ts`).
-- Statistics / awards / records / leaderboards derive automatically from the ball events via the existing stats engine — nothing extra to seed.
-
-### Search behaviour
-
-- The teams combobox in Create Match uses fuzzy/substring match on team name + on member names (so `rah` matches "Rahul Sharma" → surfaces "U16"). Implemented as a small ranked filter (substring on lowercased strings, then prefix boost, then initials boost — no external dep).
-- When the query is empty, show a "Suggested" section (top 5 by recent match participation, falling back to first 5).
+Routing: a pathless layout `_scorer/` route that redirects tenant members to the normal app and shows the scorer shell to scorer-only users.
 
 ---
 
-## Files touched
+## 3. Share link for live matches
 
-- `src/routes/match-center.create.tsx` — rewrite as the new linear flow.
-- `src/components/match-center/create-match/` (new folder):
-  - `TeamPanel.tsx` — the three-option picker + squad editor.
-  - `PlayerChips.tsx` — reusable chips list.
-  - `TeamCombobox.tsx` — searchable team picker with fuzzy match + suggested fallback.
-  - `PlayerCombobox.tsx` — searchable academy-player picker with optional guest-add row.
-  - `SummaryCard.tsx` — the bottom recap + Start button.
-- `src/lib/mc-matches.ts` — small helper additions if needed (e.g. a `createAcademyTeamWithSquad` helper that today lives inline in the route).
-- `src/lib/mc-demo/generate.ts` — named team roster + expanded name pool + grounds/tournaments constants.
+Reuse existing `mc_public_matches` (already has `public_slug`, `is_public`, `allow_live_score`, `allow_scorecard`, `allow_player_profiles`, and RPC `get_public_match_bundle`).
 
-No DB migrations. No changes to the scoring engine, statistics engine, ball-event schema, or existing API surface. Demo mode continues to work purely through the existing in-memory overlay.
+- From Manage → Match → **Share**: toggle "Public share" and copy a link to `/match/<slug>`.
+- Public page shows: live score, current batters/bowler, over strip, scorecard, commentary. Never shows: fees, payments, phone, guardian info, DOB.
+- Owner controls per-match toggles for `allow_scorecard` and `allow_player_profiles` on the share sheet.
 
-## Out of scope for this pass
+Files touched:
+- New `ShareMatchDialog` in `src/components/match-center/`.
+- Wire the dialog from the match detail / scorer "More" sheet header.
+- `src/routes/match.$slug.tsx` already exists — verify it only reads via `get_public_match_bundle` (no direct table reads) and remove any exposed PII fields.
 
-- Match reschedule / edit flow.
-- Persisting "guest players" as real athlete profiles (they remain squad-name-only rows).
-- Live search on remote opponent teams from other academies.
-- Design-system token changes.
+---
 
-## Validation
+## Rollout order
 
-- Manual: on a fresh demo tenant, opening `/match-center/create` shows populated team lists immediately; typing `rah`, `sky`, `u16` returns the expected matches; a full match can be created and "Start Match" navigates to the scorer with 11-v-11 squads.
-- `bunx tsgo --noEmit` clean.
-- Existing scoring-simulation harness still passes.
+1. Migration: `mc_scorers` table + `is_match_scorer` function + scorer-side RLS policies + `students_scorer_view` (schema only — regenerated types come after approval).
+2. Bottom nav swap + `Insights` route (pure UI, no data risk).
+3. Manage → Match Center card + Scorers admin screen.
+4. Scorer-only shell + `_scorer` layout.
+5. Share link dialog + audit of `/match/$slug` for PII leaks.
+
+---
+
+## Open decisions I need from you before starting
+
+1. **Scorer invite**: pick from an existing player list only, or also allow inviting by email (creates an auth user with scorer-only role)?
+2. **Who can create a match?** Owner + admins + any active scorer, or scorer only when the owner has pre-created the match and assigned them to it?
+3. **Insights tab audience**: public-safe (no fees, no PII — same as share link), or owner-only rich view? I recommend public-safe so scorers and parents can share the same route.
+4. Confirm the 4-tab bottom nav (`Home · Insights · Manage · Profile`) vs keeping 5 tabs with Insights + Match Center both visible.
+
+Once you answer these I'll ship the migration first, then the UI in the order above.
