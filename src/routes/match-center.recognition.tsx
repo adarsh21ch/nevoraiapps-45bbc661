@@ -68,6 +68,7 @@ import {
   type MCAcademyTimelineRow,
   type RecognitionSearchHit,
 } from "@/lib/mc-recognition-engine";
+import { useMCRecognitions } from "@/lib/mc-data";
 
 export const Route = createFileRoute("/match-center/recognition")({
   head: () => ({
