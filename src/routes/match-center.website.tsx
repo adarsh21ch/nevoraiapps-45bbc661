@@ -19,7 +19,7 @@ export const Route = createFileRoute("/match-center/website")({
 const THEMES: WebsiteTheme[] = ["classic", "modern", "professional", "minimal", "dark"];
 
 function WebsiteAdmin() {
-  const { tenant } = useTenant();
+  const tenant = useTenant();
   const tenantId = tenant?.id;
   const [config, setConfig] = useState<WebsiteConfig | null>(null);
   const [widgets, setWidgets] = useState<WidgetSlot[]>(DEFAULT_WIDGETS);
