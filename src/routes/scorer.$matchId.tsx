@@ -210,6 +210,7 @@ function ScorerPage() {
   const [rightDrawer, setRightDrawer] = useState(false);
   const [leftDrawer, setLeftDrawer] = useState(false);
   const [scorecardOpen, setScorecardOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [inningsCompleteOpen, setInningsCompleteOpen] = useState(false);
   const [matchCompleteOpen, setMatchCompleteOpen] = useState(false);
   const [finalizeDialogOpen, setFinalizeDialogOpen] = useState(false);
@@ -639,6 +640,7 @@ function ScorerPage() {
           showFinishInnings={session.activeInnings?.innings_number === 1}
           onEndMatch={finalizeMatch}
           onOpenScorecard={() => setScorecardOpen(true)}
+          onShareMatch={!isDemo ? () => setShareOpen(true) : undefined}
           onOpenScorebook={
             !isDemo
               ? () =>
@@ -974,6 +976,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   const [pickBowlerOpen, setPickBowlerOpen] = useState(false);
   const [extraKind, setExtraKind] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
   const [scorecardOpen, setScorecardOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [inningsCompleteOpen, setInningsCompleteOpen] = useState(false);
   const [matchCompleteOpen, setMatchCompleteOpen] = useState(false);
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
@@ -1350,6 +1353,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           showFinishInnings={activeInnings?.innings_number === 1}
           onEndMatch={finalizeMatch}
           onOpenScorecard={() => setScorecardOpen(true)}
+          onShareMatch={() => setShareOpen(true)}
           battingOptions={battingOptions}
           bowlingOptions={bowlingOptions}
           onPickPlayer={(role, p) => setPlayer(role, p)}
