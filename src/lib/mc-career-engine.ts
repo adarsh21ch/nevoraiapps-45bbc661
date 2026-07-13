@@ -16,7 +16,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { listBallEventsForMatch, type MCBallEvent } from "@/lib/mc-ball-events";
+import { listMatchBallEvents } from "@/lib/mc-ball-events";
 import {
   computeBatting,
   computeBowling,
