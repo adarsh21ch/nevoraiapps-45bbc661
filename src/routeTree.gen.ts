@@ -62,6 +62,7 @@ import { Route as MatchCenterTeamsNewRouteImport } from './routes/match-center.t
 import { Route as MatchCenterTeamsTeamIdRouteImport } from './routes/match-center.teams.$teamId'
 import { Route as MatchCenterScorebookMatchIdRouteImport } from './routes/match-center.scorebook.$matchId'
 import { Route as MatchCenterPlayersAthleteIdRouteImport } from './routes/match-center.players.$athleteId'
+import { Route as MatchCenterPerformanceCompareRouteImport } from './routes/match-center.performance.compare'
 import { Route as MatchCenterPerformanceAthleteIdRouteImport } from './routes/match-center.performance.$athleteId'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
@@ -337,6 +338,12 @@ const MatchCenterPlayersAthleteIdRoute =
     path: '/players/$athleteId',
     getParentRoute: () => MatchCenterRoute,
   } as any)
+const MatchCenterPerformanceCompareRoute =
+  MatchCenterPerformanceCompareRouteImport.update({
+    id: '/compare',
+    path: '/compare',
+    getParentRoute: () => MatchCenterPerformanceRoute,
+  } as any)
 const MatchCenterPerformanceAthleteIdRoute =
   MatchCenterPerformanceAthleteIdRouteImport.update({
     id: '/$athleteId',
@@ -408,6 +415,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
+  '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
   '/match-center/players/$athleteId': typeof MatchCenterPlayersAthleteIdRoute
   '/match-center/scorebook/$matchId': typeof MatchCenterScorebookMatchIdRoute
   '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
@@ -464,6 +472,7 @@ export interface FileRoutesByTo {
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
+  '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
   '/match-center/players/$athleteId': typeof MatchCenterPlayersAthleteIdRoute
   '/match-center/scorebook/$matchId': typeof MatchCenterScorebookMatchIdRoute
   '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
@@ -524,6 +533,7 @@ export interface FileRoutesById {
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
+  '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
   '/match-center/players/$athleteId': typeof MatchCenterPlayersAthleteIdRoute
   '/match-center/scorebook/$matchId': typeof MatchCenterScorebookMatchIdRoute
   '/match-center/teams/$teamId': typeof MatchCenterTeamsTeamIdRoute
@@ -585,6 +595,7 @@ export interface FileRouteTypes {
     | '/platform-admin/'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
+    | '/match-center/performance/compare'
     | '/match-center/players/$athleteId'
     | '/match-center/scorebook/$matchId'
     | '/match-center/teams/$teamId'
@@ -641,6 +652,7 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
+    | '/match-center/performance/compare'
     | '/match-center/players/$athleteId'
     | '/match-center/scorebook/$matchId'
     | '/match-center/teams/$teamId'
@@ -700,6 +712,7 @@ export interface FileRouteTypes {
     | '/platform-admin/'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
+    | '/match-center/performance/compare'
     | '/match-center/players/$athleteId'
     | '/match-center/scorebook/$matchId'
     | '/match-center/teams/$teamId'
@@ -1105,6 +1118,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchCenterPlayersAthleteIdRouteImport
       parentRoute: typeof MatchCenterRoute
     }
+    '/match-center/performance/compare': {
+      id: '/match-center/performance/compare'
+      path: '/compare'
+      fullPath: '/match-center/performance/compare'
+      preLoaderRoute: typeof MatchCenterPerformanceCompareRouteImport
+      parentRoute: typeof MatchCenterPerformanceRoute
+    }
     '/match-center/performance/$athleteId': {
       id: '/match-center/performance/$athleteId'
       path: '/$athleteId'
@@ -1183,11 +1203,13 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 interface MatchCenterPerformanceRouteChildren {
   MatchCenterPerformanceAthleteIdRoute: typeof MatchCenterPerformanceAthleteIdRoute
+  MatchCenterPerformanceCompareRoute: typeof MatchCenterPerformanceCompareRoute
 }
 
 const MatchCenterPerformanceRouteChildren: MatchCenterPerformanceRouteChildren =
   {
     MatchCenterPerformanceAthleteIdRoute: MatchCenterPerformanceAthleteIdRoute,
+    MatchCenterPerformanceCompareRoute: MatchCenterPerformanceCompareRoute,
   }
 
 const MatchCenterPerformanceRouteWithChildren =
