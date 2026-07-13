@@ -1115,6 +1115,156 @@ export type Database = {
           },
         ]
       }
+      mc_player_careers: {
+        Row: {
+          athlete_profile_id: string
+          average: number
+          balls: number
+          balls_bowled: number
+          best_bowling: string
+          best_bowling_runs: number
+          best_bowling_wickets: number
+          bowling_average: number
+          bowling_strike_rate: number
+          captain_losses: number
+          captain_matches: number
+          captain_wins: number
+          catches: number
+          created_at: string
+          ducks: number
+          economy: number
+          fifties: number
+          five_wicket_hauls: number
+          fours: number
+          golden_ducks: number
+          highest_score: number
+          highest_score_not_out: boolean
+          hundreds: number
+          id: string
+          innings: number
+          last_rebuilt_at: string
+          maidens: number
+          matches: number
+          not_outs: number
+          overs: number
+          player_of_match: number
+          run_outs: number
+          runs: number
+          runs_conceded: number
+          silver_ducks: number
+          sixes: number
+          strike_rate: number
+          stumpings: number
+          ten_wicket_hauls: number
+          tenant_id: string
+          updated_at: string
+          wickets: number
+        }
+        Insert: {
+          athlete_profile_id: string
+          average?: number
+          balls?: number
+          balls_bowled?: number
+          best_bowling?: string
+          best_bowling_runs?: number
+          best_bowling_wickets?: number
+          bowling_average?: number
+          bowling_strike_rate?: number
+          captain_losses?: number
+          captain_matches?: number
+          captain_wins?: number
+          catches?: number
+          created_at?: string
+          ducks?: number
+          economy?: number
+          fifties?: number
+          five_wicket_hauls?: number
+          fours?: number
+          golden_ducks?: number
+          highest_score?: number
+          highest_score_not_out?: boolean
+          hundreds?: number
+          id?: string
+          innings?: number
+          last_rebuilt_at?: string
+          maidens?: number
+          matches?: number
+          not_outs?: number
+          overs?: number
+          player_of_match?: number
+          run_outs?: number
+          runs?: number
+          runs_conceded?: number
+          silver_ducks?: number
+          sixes?: number
+          strike_rate?: number
+          stumpings?: number
+          ten_wicket_hauls?: number
+          tenant_id: string
+          updated_at?: string
+          wickets?: number
+        }
+        Update: {
+          athlete_profile_id?: string
+          average?: number
+          balls?: number
+          balls_bowled?: number
+          best_bowling?: string
+          best_bowling_runs?: number
+          best_bowling_wickets?: number
+          bowling_average?: number
+          bowling_strike_rate?: number
+          captain_losses?: number
+          captain_matches?: number
+          captain_wins?: number
+          catches?: number
+          created_at?: string
+          ducks?: number
+          economy?: number
+          fifties?: number
+          five_wicket_hauls?: number
+          fours?: number
+          golden_ducks?: number
+          highest_score?: number
+          highest_score_not_out?: boolean
+          hundreds?: number
+          id?: string
+          innings?: number
+          last_rebuilt_at?: string
+          maidens?: number
+          matches?: number
+          not_outs?: number
+          overs?: number
+          player_of_match?: number
+          run_outs?: number
+          runs?: number
+          runs_conceded?: number
+          silver_ducks?: number
+          sixes?: number
+          strike_rate?: number
+          stumpings?: number
+          ten_wicket_hauls?: number
+          tenant_id?: string
+          updated_at?: string
+          wickets?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_player_careers_athlete_profile_id_fkey"
+            columns: ["athlete_profile_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_player_careers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_team_players: {
         Row: {
           added_at: string

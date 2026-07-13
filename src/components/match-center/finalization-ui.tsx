@@ -44,6 +44,10 @@ import {
   notifyFinalResult,
 } from "@/lib/mc-finalization";
 import type { MCBallEvent } from "@/lib/mc-ball-events";
+import {
+  updateCareersForMatch,
+  rebuildCareersAfterUnlock,
+} from "@/lib/mc-career-engine";
 
 /* ============================================================
  * Finalization dialog
@@ -128,6 +132,13 @@ export function FinalizationDialog({
       if (pomName) notifyPlayerOfMatch(pomName);
       notifyFinalResult(detectedResult.summary);
       toast.success("Match finalized and locked");
+      // Career Engine: refresh every participant's cache from finalized matches.
+      try {
+        await updateCareersForMatch(matchId);
+      } catch (careerErr) {
+        console.error("Career update failed", careerErr);
+        toast.error("Match finalized, but career update failed. Rebuild manually.");
+      }
       onFinalized?.();
       onOpenChange(false);
       setStep(1);
@@ -423,6 +434,12 @@ export function UnlockMatchDialog({
     setBusy(true);
     try {
       await unlockMatch({ matchId, tenantId, actorId, reason: reason.trim() });
+      // Career Engine: rebuild affected athletes so unlocked match is excluded.
+      try {
+        await rebuildCareersAfterUnlock(matchId);
+      } catch (careerErr) {
+        console.error("Career rebuild after unlock failed", careerErr);
+      }
       toast.success("Match unlocked");
       onUnlocked?.();
       onOpenChange(false);
