@@ -22,6 +22,9 @@ import {
   ChevronRight,
   Menu,
   X,
+  Sparkles,
+  Globe,
+  HeartHandshake,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
@@ -69,9 +72,16 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Insights",
     items: [
-      { to: "/match-center/awards", label: "Awards", icon: Award },
       { to: "/match-center/recognition", label: "Recognition", icon: Award },
-      { to: "/match-center/ai-insights", label: "AI Insights", icon: Award },
+      { to: "/match-center/awards", label: "Awards", icon: Medal },
+      { to: "/match-center/ai-insights", label: "AI Insights", icon: Sparkles },
+    ],
+  },
+  {
+    label: "Public",
+    items: [
+      { to: "/match-center/website", label: "Website", icon: Globe },
+      { to: "/parent-portal", label: "Parent Portal", icon: HeartHandshake },
     ],
   },
   {
