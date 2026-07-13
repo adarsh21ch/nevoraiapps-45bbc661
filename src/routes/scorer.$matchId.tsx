@@ -630,6 +630,9 @@ function ScorerPage() {
                   })
               : undefined
           }
+          battingOptions={battingOptions}
+          bowlingOptions={bowlingOptions}
+          onPickPlayer={(role, p) => setPlayer(role, p)}
           awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
         />
@@ -1316,6 +1319,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           showFinishInnings={activeInnings?.innings_number === 1}
           onEndMatch={finalizeMatch}
           onOpenScorecard={() => setScorecardOpen(true)}
+          battingOptions={battingOptions}
+          bowlingOptions={bowlingOptions}
+          onPickPlayer={(role, p) => setPlayer(role, p)}
           awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
         />
