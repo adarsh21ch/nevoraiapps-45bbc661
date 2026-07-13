@@ -106,12 +106,12 @@ export type PageHeaderProps = {
 
 export function PageHeader({ title, description, breadcrumbs, actions }: PageHeaderProps) {
   return (
-    <div className="mb-8">
+    <div className="mb-5 sm:mb-8">
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+        <nav className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 overflow-x-auto whitespace-nowrap">
           {breadcrumbs.map((b, i) => (
             <span key={i} className="flex items-center gap-1.5">
-              {i > 0 && <ChevronRight className="size-3" />}
+              {i > 0 && <ChevronRight className="size-3 shrink-0" />}
               {b.to ? (
                 <Link to={b.to} className="hover:text-foreground transition-colors">
                   {b.label}
@@ -123,14 +123,23 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
           ))}
         </nav>
       )}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:justify-between">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start sm:gap-4">
         <div className="min-w-0">
-          <h1 className="truncate text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight [text-wrap:balance]">
+            {title}
+          </h1>
           {description && (
-            <p className="mt-1.5 text-sm text-muted-foreground max-w-2xl">{description}</p>
+            <p
+              className="mt-1 sm:mt-1.5 text-[13px] sm:text-sm text-muted-foreground max-w-2xl overflow-hidden"
+              style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
+            >
+              {description}
+            </p>
           )}
         </div>
-        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+        {actions && (
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">{actions}</div>
+        )}
       </div>
     </div>
   );
@@ -221,7 +230,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
             <Button
               variant="ghost"
               size="icon"
-              className="relative rounded-full"
+              className="tap-target relative rounded-full"
               aria-label="Notifications"
             >
               <Bell className="size-4" />
@@ -250,22 +259,32 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
           <div
             className="fixed inset-0 z-50 md:hidden"
             onClick={() => setMobileOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Match Center navigation"
           >
             <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
             <aside
-              className="absolute left-0 top-0 h-full w-72 border-r border-border bg-card shadow-xl"
+              className="absolute left-0 top-0 flex h-dvh w-[86vw] max-w-[320px] flex-col border-r border-border bg-card shadow-xl"
               onClick={(e) => e.stopPropagation()}
+              style={{
+                paddingTop: "env(safe-area-inset-top)",
+                paddingBottom: "env(safe-area-inset-bottom)",
+              }}
             >
-              <div className="flex items-center justify-between p-4 border-b border-border">
-                <div className="text-sm font-semibold">Match Center</div>
+              <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-card/95 px-4 py-3 backdrop-blur">
+                <div className="text-sm font-semibold truncate">Match Center</div>
                 <button
-                  className="p-1.5 rounded-md hover:bg-accent/50"
+                  className="tap-target no-tap-highlight grid place-items-center rounded-lg hover:bg-accent/50 -mr-1"
                   onClick={() => setMobileOpen(false)}
+                  aria-label="Close navigation"
                 >
-                  <X className="size-4" />
+                  <X className="size-5" />
                 </button>
               </div>
-              <SidebarInner onNavigate={() => setMobileOpen(false)} />
+              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+                <SidebarInner onNavigate={() => setMobileOpen(false)} />
+              </div>
             </aside>
           </div>
         )}
@@ -287,7 +306,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
 function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
   const location = useLocation();
   return (
-    <nav className="flex-1 px-2 py-3 space-y-5 overflow-y-auto h-full">
+    <nav className="px-2 py-3 space-y-5 md:h-full md:overflow-y-auto">
       {NAV_GROUPS.map((group) => (
         <div key={group.label} className="space-y-0.5">
           <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/60">
