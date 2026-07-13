@@ -220,8 +220,8 @@ expect("wide 1 (no run) keeps", ballSwapsStrike(shape({ extra_type: "wide", extr
 expect("wide + 1 additional run rotates", ballSwapsStrike(shape({ extra_type: "wide", extra_runs: 2 }) as any), true);
 expect("bye 1 rotates", ballSwapsStrike(shape({ extra_type: "bye", extra_runs: 1 }) as any), true);
 expect("leg-bye 3 rotates", ballSwapsStrike(shape({ extra_type: "leg_bye", extra_runs: 3 }) as any), true);
-expect("no-ball 0 keeps", ballSwapsStrike(shape({ extra_type: "no_ball", extra_runs: 1 }) as any), false);
-expect("no-ball + 1 rotates", ballSwapsStrike(shape({ extra_type: "no_ball", runs_off_bat: 1, extra_runs: 1 }) as any), true);
+expect("no-ball 0 keeps", ballSwapsStrike(shape({ extra_type: "no_ball", extra_runs: 0 }) as any), false);
+expect("no-ball + 1 rotates", ballSwapsStrike(shape({ extra_type: "no_ball", runs_off_bat: 1, extra_runs: 0 }) as any), true);
 
 /* ================================================================
  * Scenario 3 — Full 20-over innings, chase, tie, all-out
