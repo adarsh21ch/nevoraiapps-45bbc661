@@ -230,7 +230,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
             <Button
               variant="ghost"
               size="icon"
-              className="relative rounded-full"
+              className="tap-target relative rounded-full"
               aria-label="Notifications"
             >
               <Bell className="size-4" />
