@@ -117,7 +117,7 @@ function PublicMatchPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">
         <InningsCards bundle={b} />
 
         <Tabs defaultValue="scorecard" className="mt-6">
@@ -153,7 +153,10 @@ function PublicMatchPage() {
         </Tabs>
       </main>
 
-      <footer className="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-muted-foreground">
+      <footer
+        className="mt-auto border-t bg-card/60 px-4 py-4 text-center text-xs text-muted-foreground backdrop-blur"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}
+      >
         Powered by Academy OS · Read-only public match link
       </footer>
     </div>
