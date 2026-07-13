@@ -710,6 +710,7 @@ function PlayerPickerSheet({
   onSelect,
   isDisabled,
   lockedMessage,
+  bowledIds,
 }: {
   open: boolean;
   kind: PickerKind | null;
@@ -720,8 +721,23 @@ function PlayerPickerSheet({
   onSelect: (p: PlayerOption) => void;
   isDisabled: (p: PlayerOption) => boolean;
   lockedMessage?: string;
+  bowledIds?: string[];
 }) {
   const title = kind === "bowler" ? "Select bowler" : kind === "nonStriker" ? "Select non-striker" : "Select striker";
+  const bowledSet = useMemo(() => new Set(bowledIds ?? []), [bowledIds]);
+  const groups = useMemo(() => {
+    if (kind !== "bowler" || bowledSet.size === 0) {
+      return [{ label: "", items: players }];
+    }
+    const already: PlayerOption[] = [];
+    const rest: PlayerOption[] = [];
+    for (const p of players) (bowledSet.has(p.id) ? already : rest).push(p);
+    return [
+      { label: "Already bowled", items: already },
+      { label: "Yet to bowl", items: rest },
+    ];
+  }, [players, bowledSet, kind]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="max-h-[74dvh] overflow-hidden rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
@@ -751,34 +767,50 @@ function PlayerPickerSheet({
           {players.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">No players found.</div>
           ) : (
-            <ul className="divide-y divide-border/70">
-              {players.map((player) => {
-                const locked = isDisabled(player);
-                return (
-                  <li key={player.id}>
-                    <button
-                      type="button"
-                      disabled={locked}
-                      onClick={() => onSelect(player)}
-                      className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted disabled:opacity-45"
-                    >
-                      <span className="grid size-9 place-items-center rounded-full bg-muted text-[12px] font-black text-foreground/80">{initials(player.name)}</span>
-                      <span className="min-w-0">
-                        <span className="block truncate text-[14px] font-bold leading-tight">{player.name}</span>
-                        <span className="block truncate text-[11px] text-muted-foreground">{locked ? lockedMessage : player.role || "Player"}</span>
-                      </span>
-                      {locked && <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Locked</span>}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            groups.map((group, gi) =>
+              group.items.length === 0 ? null : (
+                <div key={group.label || `g-${gi}`}>
+                  {group.label && (
+                    <div className="sticky top-0 z-10 border-b bg-card/95 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground backdrop-blur">
+                      {group.label}
+                      <span className="ml-1 text-muted-foreground/60">({group.items.length})</span>
+                    </div>
+                  )}
+                  <ul className="divide-y divide-border/70">
+                    {group.items.map((player) => {
+                      const locked = isDisabled(player);
+                      const bowled = bowledSet.has(player.id);
+                      return (
+                        <li key={player.id}>
+                          <button
+                            type="button"
+                            disabled={locked}
+                            onClick={() => onSelect(player)}
+                            className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted disabled:opacity-45"
+                          >
+                            <span className="grid size-9 place-items-center rounded-full bg-muted text-[12px] font-black text-foreground/80">{initials(player.name)}</span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-[14px] font-bold leading-tight">{player.name}</span>
+                              <span className="block truncate text-[11px] text-muted-foreground">
+                                {locked ? lockedMessage : bowled ? "Bowled earlier · Tap to continue" : player.role || "Player"}
+                              </span>
+                            </span>
+                            {locked && <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Locked</span>}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ),
+            )
           )}
         </div>
       </SheetContent>
     </Sheet>
   );
 }
+
 
 function Section({ title, danger, children }: { title: string; danger?: boolean; children: ReactNode }) {
   return (
