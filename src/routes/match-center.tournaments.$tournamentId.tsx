@@ -82,6 +82,7 @@ function TournamentDetailPage() {
   const { tenant } = useDashboard();
   const [tab, setTab] = useState<TabId>("overview");
   const demoEntity = useDemoEntity(tenant.id, tournamentId);
+  const demoData = useDemoData(tenant.id);
 
   const tQ = useQuery({
     enabled: !demoEntity,
@@ -89,17 +90,10 @@ function TournamentDetailPage() {
     queryFn: () => getTournament(tournamentId),
   });
 
-  if (demoEntity) {
-    return (
-      <DemoDetailStub
-        entity={demoEntity}
-        backLabel="Tournaments"
-        backTo="/match-center/tournaments"
-        parentLabel="Tournaments"
-        parentTo="/match-center/tournaments"
-      />
-    );
+  if (demoEntity && demoEntity.kind === "tournament" && demoData) {
+    return <DemoTournamentDetail demo={demoData} tournament={demoEntity.tournament} />;
   }
+
   if (tQ.isLoading) return <LoadingSkeleton />;
   if (!tQ.data)
     return (
