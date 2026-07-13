@@ -571,6 +571,112 @@ export function MobileScorer(props: MobileScorerProps) {
 
 /* ---------------- primitives ---------------- */
 
+function InlinePlayerPicker({
+  kind,
+  query,
+  onQuery,
+  players,
+  onSelect,
+  onClose,
+  dismissible,
+}: {
+  kind: InlinePickerKind;
+  query: string;
+  onQuery: (v: string) => void;
+  players: PlayerOption[];
+  onSelect: (p: PlayerOption) => void;
+  onClose: () => void;
+  dismissible: boolean;
+}) {
+  const heading =
+    kind === "striker"
+      ? "Select striker"
+      : kind === "nonStriker"
+        ? "Select non-striker"
+        : "Select bowler";
+  return (
+    <div className="mt-1 flex min-h-[220px] flex-col overflow-hidden rounded-xl border border-border/60 bg-card animate-in fade-in-0 slide-in-from-bottom-1 duration-150">
+      <div className="flex items-center gap-2 border-b border-border/60 px-2.5 py-1.5">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {heading}
+        </span>
+        <span className="text-[10px] text-muted-foreground/70 tabular-nums">
+          {players.length}
+        </span>
+        {dismissible && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="ml-auto inline-flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted active:scale-95 transition duration-100"
+            aria-label="Close picker"
+          >
+            <X className="size-3.5" />
+          </button>
+        )}
+      </div>
+      <div className="border-b border-border/60 px-2.5 py-1.5">
+        <label className="flex items-center gap-2 rounded-lg bg-muted/60 px-2 py-1.5">
+          <Search className="size-3.5 shrink-0 text-muted-foreground" />
+          <input
+            type="text"
+            inputMode="search"
+            autoFocus
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            placeholder="Search player…"
+            className="w-full min-w-0 bg-transparent text-[13px] outline-none placeholder:text-muted-foreground"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => onQuery("")}
+              aria-label="Clear search"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </label>
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        {players.length === 0 ? (
+          <div className="grid h-full min-h-[120px] place-items-center px-4 text-center text-[12px] text-muted-foreground">
+            No matching players.
+          </div>
+        ) : (
+          <ul className="divide-y divide-border/50">
+            {players.map((p) => (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => onSelect(p)}
+                  className="flex w-full items-center gap-2.5 px-2.5 py-2 text-left transition active:scale-[0.99] active:bg-muted duration-100"
+                >
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-muted text-[11px] font-bold text-foreground/80">
+                    {initials(p.name)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-[13px] font-semibold">{p.name}</div>
+                    {p.role && (
+                      <div className="truncate text-[10px] text-muted-foreground">{p.role}</div>
+                    )}
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "?";
+}
+
+
 function StatChip({ label, value }: { label: string; value: string }) {
   return (
     <span className="inline-flex items-center gap-1 rounded-md bg-muted/70 px-1.5 py-0.5">
