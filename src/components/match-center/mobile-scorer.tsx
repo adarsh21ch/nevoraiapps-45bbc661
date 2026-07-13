@@ -140,12 +140,13 @@ export function MobileScorer(props: MobileScorerProps) {
 
   const waitingBatterRole = missingBatterRole ?? props.awaitingNewBatterRole ?? "striker";
 
-  // Swipe gestures: right = undo last ball, up = open scorecard (More sheet)
+  // Swipe gestures: right = undo last ball. Swipe-up removed to prevent
+  // accidental opening of the More sheet when scrolling.
   const swipeHandlers = useSwipe({
     onSwipeRight: () => props.onUndo(),
-    onSwipeUp: () => setMoreOpen(true),
     threshold: 72,
   });
+
 
   const openPicker = (kind: PickerKind) => {
     if (sheetPickerEnabled) {
@@ -223,8 +224,16 @@ export function MobileScorer(props: MobileScorerProps) {
 
   return (
     <div className="scorer-native-page flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
-      <header className="z-20 shrink-0 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
-        <div className="grid h-12 grid-cols-[44px_minmax(0,1fr)_44px] items-center px-1">
+      <header className="relative z-20 shrink-0 overflow-hidden border-b border-border/60 pt-[env(safe-area-inset-top)]">
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background to-background"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-[radial-gradient(120%_60%_at_0%_0%,color-mix(in_oklab,var(--primary)_28%,transparent)_0%,transparent_60%)]"
+        />
+        <div className="relative grid h-14 grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-2 px-2">
           <button
             type="button"
             onClick={props.onExit}
@@ -233,9 +242,16 @@ export function MobileScorer(props: MobileScorerProps) {
           >
             <ArrowLeft className="size-5" />
           </button>
-          <div className="min-w-0 text-center">
-            <div className="flex min-w-0 items-center justify-center gap-1.5">
-              <span className="truncate text-[13px] font-bold leading-none">{props.matchTitle}</span>
+          <div className="min-w-0 text-left">
+            {props.tournamentLabel && (
+              <div className="truncate text-[9px] font-semibold uppercase leading-none tracking-[0.14em] text-muted-foreground">
+                {props.tournamentLabel}
+              </div>
+            )}
+            <div className="mt-1 flex min-w-0 items-center gap-1.5">
+              <span className="truncate text-[15px] font-black leading-none tracking-tight">
+                {props.matchTitle}
+              </span>
               {props.isLive && (
                 <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wider text-destructive">
                   <span className="size-1.5 animate-pulse rounded-full bg-destructive" />
@@ -243,15 +259,20 @@ export function MobileScorer(props: MobileScorerProps) {
                 </span>
               )}
             </div>
-            {props.tournamentLabel && (
-              <div className="mt-0.5 truncate text-[9px] font-medium uppercase leading-none tracking-widest text-muted-foreground">
-                {props.tournamentLabel}
-              </div>
-            )}
           </div>
-          <span aria-hidden />
+          {!props.hideEndMatch && (
+            <button
+              type="button"
+              onClick={() => setConfirm({ kind: "end-match" })}
+              className="mr-1 inline-flex h-8 items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-3 text-[11px] font-black uppercase tracking-wider text-destructive transition duration-100 active:scale-95"
+            >
+              <StopCircle className="size-3.5" />
+              End
+            </button>
+          )}
         </div>
       </header>
+
 
 
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
@@ -359,14 +380,12 @@ export function MobileScorer(props: MobileScorerProps) {
               <SheetRow icon={<Undo2 className="size-4" />} label="Undo last ball" onClick={() => { setMoreOpen(false); props.onUndo(); }} />
               <SheetRow icon={<Trash2 className="size-4" />} label="Delete last ball" onClick={() => setConfirm({ kind: "delete-ball" })} />
             </Section>
-            <Section title="Match" danger>
-              {props.showFinishInnings && props.onFinishInnings && (
+            {props.showFinishInnings && props.onFinishInnings && (
+              <Section title="Match" danger>
                 <SheetRow icon={<Flag className="size-4" />} label="Finish innings" tone="danger" onClick={() => setConfirm({ kind: "finish-innings" })} />
-              )}
-              {!props.hideEndMatch && (
-                <SheetRow icon={<StopCircle className="size-4" />} label="End match" tone="danger" onClick={() => setConfirm({ kind: "end-match" })} />
-              )}
-            </Section>
+              </Section>
+            )}
+
           </div>
         </DialogContent>
       </Dialog>
