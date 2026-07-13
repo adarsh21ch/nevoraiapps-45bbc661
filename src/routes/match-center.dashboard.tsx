@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Radio,
   CalendarClock,
@@ -282,7 +282,7 @@ function MatchCenterDashboard() {
           {/* PRIMARY GRID ------------------------------------------------- */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
             <DashboardCard
-              title="Upcoming matches"
+              title="Fixtures"
               icon={CalendarClock}
               tone="analytics"
               className="lg:col-span-2"
@@ -295,21 +295,11 @@ function MatchCenterDashboard() {
                 </Link>
               }
             >
-              {upcomingMatches.length === 0 ? (
-                <EmptyState
-                  icon={CalendarClock}
-                  title="No upcoming matches"
-                  description="Schedule a match to see fixtures here."
-                  actionLabel="Create match"
-                  actionTo="/match-center/create"
-                />
-              ) : (
-                <div className="divide-y divide-border/60 -mx-1">
-                  {upcomingMatches.map((m) => (
-                    <MatchRow key={m.id} match={m} />
-                  ))}
-                </div>
-              )}
+              <FixturesTabs
+                live={liveMatches}
+                upcoming={upcomingMatches}
+                recent={recentMatches}
+              />
             </DashboardCard>
 
             <DashboardCard title="Recent activity" icon={Activity} tone="ai">
@@ -349,23 +339,9 @@ function MatchCenterDashboard() {
             </DashboardCard>
           </div>
 
-          {/* PERFORMERS + RECENT ----------------------------------------- */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-            <DashboardCard title="Recent matches" icon={Swords}>
-              {recentMatches.length === 0 ? (
-                <EmptyState
-                  icon={Swords}
-                  title="No matches played yet"
-                  description="Completed matches and scorecards will appear here."
-                />
-              ) : (
-                <div className="divide-y divide-border/60 -mx-1">
-                  {recentMatches.map((m) => (
-                    <MatchRow key={m.id} match={m} completed />
-                  ))}
-                </div>
-              )}
-            </DashboardCard>
+          {/* PERFORMERS -------------------------------------------------- */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+
 
             <DashboardCard title="Recent recognition" icon={Award} tone="award">
               {recentRecognitions.length === 0 ? (
