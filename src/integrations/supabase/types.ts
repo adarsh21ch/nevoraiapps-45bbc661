@@ -790,6 +790,54 @@ export type Database = {
           },
         ]
       }
+      mc_match_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          diff: Json
+          id: string
+          match_id: string
+          reason: string | null
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          diff?: Json
+          id?: string
+          match_id: string
+          reason?: string | null
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          diff?: Json
+          id?: string
+          match_id?: string
+          reason?: string | null
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_match_audit_log_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "mc_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_match_audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_match_squads: {
         Row: {
           athlete_profile_id: string | null
@@ -870,22 +918,76 @@ export type Database = {
           },
         ]
       }
+      mc_match_timeline: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          label: string | null
+          match_id: string
+          occurred_at: string
+          payload: Json
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          label?: string | null
+          match_id: string
+          occurred_at?: string
+          payload?: Json
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          label?: string | null
+          match_id?: string
+          occurred_at?: string
+          payload?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_match_timeline_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "mc_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_match_timeline_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_matches: {
         Row: {
           ball_type: string | null
+          completed_at: string | null
+          completed_by: string | null
           created_at: string
           created_by: string | null
+          finalized_at: string | null
           ground_id: string | null
           ground_name: string | null
           id: string
           match_format: string
+          match_locked: boolean
           match_type: string
           notes: string | null
           overs: number
           pitch: string | null
+          player_of_match_athlete_id: string | null
           result: string | null
           scheduled_date: string | null
           scheduled_time: string | null
+          scorecard_generated: boolean
           scorer: string | null
           status: string
           streaming_url: string | null
@@ -897,25 +999,34 @@ export type Database = {
           tournament_id: string | null
           umpire: string | null
           updated_at: string
+          victory_type: string | null
           visibility: string
           weather: string | null
           winner_team: string | null
+          winning_margin: number | null
+          winning_margin_type: string | null
         }
         Insert: {
           ball_type?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           created_by?: string | null
+          finalized_at?: string | null
           ground_id?: string | null
           ground_name?: string | null
           id?: string
           match_format?: string
+          match_locked?: boolean
           match_type?: string
           notes?: string | null
           overs?: number
           pitch?: string | null
+          player_of_match_athlete_id?: string | null
           result?: string | null
           scheduled_date?: string | null
           scheduled_time?: string | null
+          scorecard_generated?: boolean
           scorer?: string | null
           status?: string
           streaming_url?: string | null
@@ -927,25 +1038,34 @@ export type Database = {
           tournament_id?: string | null
           umpire?: string | null
           updated_at?: string
+          victory_type?: string | null
           visibility?: string
           weather?: string | null
           winner_team?: string | null
+          winning_margin?: number | null
+          winning_margin_type?: string | null
         }
         Update: {
           ball_type?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
           created_at?: string
           created_by?: string | null
+          finalized_at?: string | null
           ground_id?: string | null
           ground_name?: string | null
           id?: string
           match_format?: string
+          match_locked?: boolean
           match_type?: string
           notes?: string | null
           overs?: number
           pitch?: string | null
+          player_of_match_athlete_id?: string | null
           result?: string | null
           scheduled_date?: string | null
           scheduled_time?: string | null
+          scorecard_generated?: boolean
           scorer?: string | null
           status?: string
           streaming_url?: string | null
@@ -957,11 +1077,21 @@ export type Database = {
           tournament_id?: string | null
           umpire?: string | null
           updated_at?: string
+          victory_type?: string | null
           visibility?: string
           weather?: string | null
           winner_team?: string | null
+          winning_margin?: number | null
+          winning_margin_type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "mc_matches_player_of_match_athlete_id_fkey"
+            columns: ["player_of_match_athlete_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mc_matches_team_a_id_fkey"
             columns: ["team_a_id"]

@@ -37,8 +37,10 @@ import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
 import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
 import { buildCommentary, ballChipLabel } from "@/lib/mc-commentary";
 import type { DismissalType, MCBallEvent } from "@/lib/mc-ball-events";
-import { updateMatchStatus } from "@/lib/mc-matches";
+
 import { LiveScorecard } from "@/components/match-center/live-scorecard";
+import { FinalizationDialog, UnlockMatchDialog } from "@/components/match-center/finalization-ui";
+import { detectMatchResult, type InningsRow, type MatchResult } from "@/lib/mc-finalization";
 import {
   Users,
   ClipboardList,
@@ -206,6 +208,8 @@ function ScorerPage() {
   const [scorecardOpen, setScorecardOpen] = useState(false);
   const [inningsCompleteOpen, setInningsCompleteOpen] = useState(false);
   const [matchCompleteOpen, setMatchCompleteOpen] = useState(false);
+  const [finalizeDialogOpen, setFinalizeDialogOpen] = useState(false);
+  const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
 
   /* ---------- innings/match completion detection ---------- */
@@ -404,15 +408,41 @@ function ScorerPage() {
     }
   };
 
-  const finalizeMatch = async () => {
-    if (!session.match) return;
-    try {
-      await updateMatchStatus(session.match.id, "completed");
-      toast.success("Match completed");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not finalize match");
-    }
+  const finalizeMatch = () => {
+    setFinalizeDialogOpen(true);
   };
+
+  // Innings rows for result detection
+  const inningsRowsQ = useQuery({
+    enabled: !!session.match,
+    queryKey: ["mc-innings-rows", session.match?.id],
+    queryFn: async () => {
+      if (!session.match) return [] as InningsRow[];
+      const { data } = await supabase
+        .from("mc_innings")
+        .select(
+          "id, innings_number, batting_team_id, bowling_team_id, runs, wickets, balls, overs, target, status",
+        )
+        .eq("match_id", session.match.id)
+        .order("innings_number");
+      return (data ?? []) as InningsRow[];
+    },
+    refetchInterval: 15000,
+  });
+
+  const detectedResult: MatchResult = useMemo(
+    () =>
+      detectMatchResult(inningsRowsQ.data ?? [], {
+        teamAId: session.match?.team_a_id ?? "",
+        teamBId: session.match?.team_b_id ?? "",
+        matchStatus: session.match?.status,
+      }),
+    [inningsRowsQ.data, session.match?.team_a_id, session.match?.team_b_id, session.match?.status],
+  );
+
+  const matchLocked = Boolean(
+    (session.match as { match_locked?: boolean } | null)?.match_locked,
+  );
 
   /* ---------- result string ---------- */
   const resultLine = (() => {
@@ -856,6 +886,37 @@ function ScorerPage() {
         <InfoRow label="Umpire" value={session.match?.umpire ?? "—"} />
         <InfoRow label="Scorer" value={session.match?.scorer ?? "—"} />
       </SquadDrawer>
+
+      {session.match && (
+        <>
+          <FinalizationDialog
+            open={finalizeDialogOpen}
+            onOpenChange={setFinalizeDialogOpen}
+            matchId={session.match.id}
+            tenantId={session.match.tenant_id}
+            actorId={userQ.data?.id ?? null}
+            role="admin"
+            teamA={{ id: session.match.team_a_id, name: homeName }}
+            teamB={{ id: session.match.team_b_id, name: awayName }}
+            detectedResult={detectedResult}
+            ballEvents={session.events}
+            onFinalized={() => {
+              setMatchCompleteOpen(false);
+              setInningsCompleteOpen(false);
+              // refresh handled by realtime
+            }}
+          />
+          <UnlockMatchDialog
+            open={unlockDialogOpen}
+            onOpenChange={setUnlockDialogOpen}
+            matchId={session.match.id}
+            tenantId={session.match.tenant_id}
+            actorId={userQ.data?.id ?? null}
+            role="owner"
+            onUnlocked={() => { /* refresh handled by realtime */ }}
+          />
+        </>
+      )}
     </div>
   );
 }
