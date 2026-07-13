@@ -364,13 +364,11 @@ export function MobileScorer(props: MobileScorerProps) {
             </div>
           </div>
 
-          {(props.awaitingNewBatter || props.awaitingNewBowler) && (
+          {(props.awaitingNewBatter || props.awaitingNewBowler) && !inlinePicker && (
             <button
               type="button"
-              onClick={
-                props.awaitingNewBatter
-                  ? props.onOpenStrikerPicker
-                  : props.onOpenBowlerPicker
+              onClick={() =>
+                openPicker(props.awaitingNewBatter ? "striker" : "bowler")
               }
               className="flex h-9 w-full items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 text-[11px] font-medium text-amber-700 transition active:scale-[0.98] duration-100 dark:text-amber-400"
               aria-live="polite"
@@ -384,8 +382,25 @@ export function MobileScorer(props: MobileScorerProps) {
               <span className="ml-auto shrink-0 text-[10px] opacity-70">Tap to select</span>
             </button>
           )}
+
+          {/* Inline player picker — fills remaining space, replaces modal */}
+          {inlinePicker && inlineEnabled && (
+            <InlinePlayerPicker
+              kind={inlinePicker}
+              query={pickerQuery}
+              onQuery={setPickerQuery}
+              players={filteredCandidates}
+              onSelect={(p) => {
+                props.onPickPlayer?.(inlinePicker, p);
+                setInlinePicker(null);
+              }}
+              onClose={() => setInlinePicker(null)}
+              dismissible={!props.awaitingNewBatter && !props.awaitingNewBowler}
+            />
+          )}
         </div>
       </div>
+
 
 
       {/* ---------------- Floating scoring dock ---------------- */}
