@@ -44,6 +44,10 @@ import {
   notifyFinalResult,
 } from "@/lib/mc-finalization";
 import type { MCBallEvent } from "@/lib/mc-ball-events";
+import {
+  updateCareersForMatch,
+  rebuildCareersAfterUnlock,
+} from "@/lib/mc-career-engine";
 
 /* ============================================================
  * Finalization dialog
