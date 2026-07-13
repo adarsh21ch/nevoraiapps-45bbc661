@@ -25,6 +25,7 @@ import {
   Sparkles,
   Globe,
   HeartHandshake,
+  LineChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/dashboard/ThemeToggle";
