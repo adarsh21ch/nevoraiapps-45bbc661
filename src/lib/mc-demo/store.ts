@@ -7,6 +7,7 @@ const VERSION = 4;
 
 const listeners = new Set<() => void>();
 const dataCache = new Map<string, DemoData>();
+const pendingWrites = new Map<string, number>();
 
 function emit() {
   for (const l of listeners) l();
@@ -42,6 +43,17 @@ function writeData(tenantId: string, data: DemoData) {
   }
 }
 
+function scheduleWriteData(tenantId: string, data: DemoData) {
+  if (typeof window === "undefined") return;
+  const pending = pendingWrites.get(tenantId);
+  if (pending) window.clearTimeout(pending);
+  const handle = window.setTimeout(() => {
+    pendingWrites.delete(tenantId);
+    writeData(tenantId, dataCache.get(tenantId) ?? data);
+  }, 0);
+  pendingWrites.set(tenantId, handle);
+}
+
 function ensureData(tenantId: string): DemoData {
   const cached = dataCache.get(tenantId);
   if (cached) return cached;
@@ -72,6 +84,7 @@ export function resetDemoData(tenantId: string) {
   } catch {
     /* noop */
   }
+  pendingWrites.delete(tenantId);
   dataCache.delete(tenantId);
   // Immediately regenerate so subsequent reads are consistent
   ensureData(tenantId);
@@ -103,8 +116,8 @@ export function updateDemoData(
   };
   mutator(next);
   dataCache.set(tenantId, next);
-  writeData(tenantId, next);
   emit();
+  scheduleWriteData(tenantId, next);
 }
 
 function subscribe(l: () => void) {
