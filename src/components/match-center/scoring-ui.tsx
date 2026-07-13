@@ -439,10 +439,12 @@ export function ScoreButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "group relative flex flex-col items-center justify-center rounded-2xl border-2 font-black tabular-nums shadow-sm transition active:scale-[0.97] disabled:opacity-50",
+        "no-tap-highlight group relative flex flex-col items-center justify-center rounded-2xl border-2 font-black tabular-nums shadow-sm transition active:scale-[0.97] disabled:opacity-50",
         toneCls[tone],
-        size === "xl" ? "min-h-24 text-4xl" : "min-h-20 text-3xl",
-        "px-4 py-3",
+        size === "xl"
+          ? "min-h-28 sm:min-h-24 text-4xl sm:text-4xl"
+          : "min-h-[76px] sm:min-h-20 text-[32px] sm:text-3xl",
+        "px-3 py-2 sm:px-4 sm:py-3",
         className,
       )}
     >
