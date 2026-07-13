@@ -8,8 +8,10 @@ const VERSION = 4;
 const listeners = new Set<() => void>();
 const dataCache = new Map<string, DemoData>();
 const pendingWrites = new Map<string, number>();
+let revision = 0;
 
 function emit() {
+  revision += 1;
   for (const l of listeners) l();
 }
 
@@ -143,6 +145,14 @@ export function useDemoData(tenantId: string): DemoData | null {
     subscribe,
     () => (readFlag(tenantId) ? ensureData(tenantId) : null),
     () => null,
+  );
+}
+
+export function useDemoRevision(): number {
+  return useSyncExternalStore(
+    subscribe,
+    () => revision,
+    () => 0,
   );
 }
 

@@ -14,7 +14,7 @@ import {
   validateBallDraft,
   type MatchState,
 } from "@/lib/mc-rules-engine";
-import { updateDemoData, findDemoDatasetByMatchId } from "@/lib/mc-demo/store";
+import { updateDemoData, findDemoDatasetByMatchId, useDemoRevision } from "@/lib/mc-demo/store";
 import type { ScoringSession, CurrentBatterState, CurrentBowlerState, CurrentOverState } from "./use-scoring-session";
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
@@ -30,7 +30,8 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
   tenantId: string | null;
   isDemo: true;
 } {
-  const dataset = findDemoDatasetByMatchId(matchId);
+  const demoRevision = useDemoRevision();
+  const dataset = useMemo(() => findDemoDatasetByMatchId(matchId), [matchId, demoRevision]);
   const tenantId = dataset?.tenantId ?? null;
 
   // Subscribe implicitly by reading the store on every render — the callers
