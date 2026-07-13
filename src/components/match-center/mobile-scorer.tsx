@@ -351,14 +351,13 @@ export function MobileScorer(props: MobileScorerProps) {
         </div>
       </main>
 
-      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
-        <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="max-h-[82dvh] overflow-y-auto rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
-          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
-          <SheetHeader className="px-4 pb-2 pt-3 text-left">
-            <SheetTitle className="text-base">More actions</SheetTitle>
-            <SheetDescription className="sr-only">Secondary scoring controls</SheetDescription>
-          </SheetHeader>
-          <div className="space-y-4 px-3 pb-6" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}>
+      <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
+        <DialogContent className="max-h-[85dvh] gap-3 overflow-y-auto rounded-2xl bg-card/95 p-0 backdrop-blur-xl sm:max-w-md">
+          <DialogHeader className="px-4 pb-1 pt-4 text-left">
+            <DialogTitle className="text-base">More actions</DialogTitle>
+            <DialogDescription className="sr-only">Secondary scoring controls</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 px-3 pb-4">
             <Section title="Batting">
               <SheetRow icon={<UserCog className="size-4" />} label="Change striker" onClick={() => { setMoreOpen(false); openPicker("striker"); }} />
               <SheetRow icon={<UserCog className="size-4" />} label="Change non-striker" onClick={() => { setMoreOpen(false); openPicker("nonStriker"); }} />
@@ -381,8 +380,9 @@ export function MobileScorer(props: MobileScorerProps) {
               )}
             </Section>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
+
 
       <PlayerPickerSheet
         open={!!pickerOpen}
