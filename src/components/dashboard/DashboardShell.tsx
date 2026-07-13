@@ -184,8 +184,11 @@ function MobileTabBar({
             <Link
               key={n.to}
               to={n.to}
+              aria-current={active ? "page" : undefined}
+              aria-label={n.live ? `${n.label} (live)` : n.badge ? `${n.label}, ${n.badge} pending` : n.label}
               className={cn(
                 "relative flex flex-col items-center justify-center gap-1 px-1 pt-2.5 pb-2 min-h-[68px] text-[10.5px] font-medium",
+                "outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)] focus-visible:rounded-md",
                 active ? "text-foreground" : "text-muted-foreground",
               )}
             >
