@@ -37,6 +37,7 @@ import { ballChipLabel } from "@/lib/mc-commentary";
 import type { DismissalType } from "@/lib/mc-ball-events";
 
 import { LiveScorecard } from "@/components/match-center/live-scorecard";
+import { ShareMatchDialog } from "@/components/match-center/share-match-dialog";
 import { FinalizationDialog, UnlockMatchDialog } from "@/components/match-center/finalization-ui";
 import { detectMatchResult, type InningsRow, type MatchResult } from "@/lib/mc-finalization";
 import {
@@ -906,8 +907,15 @@ function ScorerPage() {
             role="owner"
             onUnlocked={() => { /* refresh handled by realtime */ }}
           />
+          <ShareMatchDialog
+            open={shareOpen}
+            onOpenChange={setShareOpen}
+            matchId={session.match.id}
+            academyId={session.match.tenant_id}
+          />
         </>
       )}
+
     </div>
   );
 }
