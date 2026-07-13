@@ -1125,7 +1125,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   const homeName = battingTeamId === teamA?.id ? teamA?.name ?? "Home" : teamB?.name ?? "Home";
   const awayName = battingTeamId === teamA?.id ? teamB?.name ?? "Away" : teamA?.name ?? "Away";
 
-  const commentary = buildCommentary(session.events);
+  // commentary intentionally omitted from compact mobile UI — available via scorecard.
 
   /* ---------- ball submission ---------- */
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
