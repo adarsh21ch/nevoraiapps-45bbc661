@@ -566,8 +566,21 @@ function ScorerPage() {
           Loading match…
         </div>
       ) : session.error ? (
-        <div className="grid flex-1 place-items-center text-sm text-destructive">
-          {session.error}
+        <div className="grid flex-1 place-items-center p-6 text-center">
+          <div className="max-w-sm space-y-3">
+            <div className="text-base font-semibold">Unable to load match</div>
+            <p className="text-xs text-muted-foreground">
+              We couldn't reach the match data. Check your connection and try again.
+            </p>
+            <div className="flex justify-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => session.refresh()}>
+                Retry
+              </Button>
+              <Button size="sm" variant="ghost" asChild>
+                <Link to="/match-center/matches">Back to matches</Link>
+              </Button>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
