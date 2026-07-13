@@ -49,6 +49,7 @@ import {
   rebuildCareersAfterUnlock,
 } from "@/lib/mc-career-engine";
 import { updateTournamentForMatch } from "@/lib/mc-tournament-engine";
+import { updateAcademyRecordsForMatch } from "@/lib/mc-academy-records";
 
 /* ============================================================
  * Finalization dialog
@@ -137,9 +138,13 @@ export function FinalizationDialog({
       try {
         await updateCareersForMatch(matchId);
         await updateTournamentForMatch(matchId);
+        const rec = await updateAcademyRecordsForMatch(matchId);
+        if (rec.broken.length > 0) {
+          toast.success(`Academy record broken: ${rec.broken[0]}`);
+        }
       } catch (careerErr) {
-        console.error("Career update failed", careerErr);
-        toast.error("Match finalized, but career update failed. Rebuild manually.");
+        console.error("Career/records update failed", careerErr);
+        toast.error("Match finalized, but downstream update failed. Rebuild manually.");
       }
       onFinalized?.();
       onOpenChange(false);
