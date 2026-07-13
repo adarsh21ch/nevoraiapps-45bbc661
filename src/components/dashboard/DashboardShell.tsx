@@ -253,14 +253,14 @@ function SidebarInner({
   role,
 }: {
   tenant: { name: string };
-  primary: (NavItem & { badge?: number })[];
-  secondary: (NavItem & { badge?: number })[];
+  primary: (NavItem & { badge?: number; live?: boolean })[];
+  secondary: (NavItem & { badge?: number; live?: boolean })[];
   onSignOut: () => void;
   role: string;
 }) {
   const location = useLocation();
   const { t } = useT();
-  const renderItem = (n: NavItem & { badge?: number }) => {
+  const renderItem = (n: NavItem & { badge?: number; live?: boolean }) => {
     const active =
       n.to === "/dashboard"
         ? location.pathname === "/dashboard"
@@ -283,8 +283,21 @@ function SidebarInner({
             style={{ backgroundColor: "var(--brand)" }}
           />
         )}
-        <Icon className="size-4" />
+        <span className="relative inline-flex">
+          <Icon className="size-4" />
+          {n.live ? (
+            <span
+              aria-hidden
+              className="absolute -top-0.5 -right-1 size-1.5 rounded-full bg-rose-600 ring-2 ring-background animate-pulse"
+            />
+          ) : null}
+        </span>
         <span className="flex-1">{n.label}</span>
+        {n.live ? (
+          <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded-full text-white bg-rose-600">
+            LIVE
+          </span>
+        ) : null}
         {n.badge ? (
           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white bg-rose-600">
             {n.badge}
