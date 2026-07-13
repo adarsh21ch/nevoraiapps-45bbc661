@@ -106,7 +106,7 @@ export type PageHeaderProps = {
 
 export function PageHeader({ title, description, breadcrumbs, actions }: PageHeaderProps) {
   return (
-    <div className="mb-4 sm:mb-8">
+    <div className="mb-5 sm:mb-8">
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground mb-3 overflow-x-auto whitespace-nowrap">
           {breadcrumbs.map((b, i) => (
@@ -184,8 +184,11 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-        <div className="flex h-12 items-center gap-2 px-2 md:h-auto md:gap-3 md:px-6 md:py-3">
+      <header
+        className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
+        <div className="flex h-14 items-center gap-2 px-3 md:h-auto md:gap-3 md:px-6 md:py-3">
           <button
             className="md:hidden -ml-1 grid size-11 place-items-center rounded-lg hover:bg-accent/50 no-tap-highlight"
             onClick={() => setMobileOpen((v) => !v)}
@@ -296,7 +299,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
 
         <main
           key={location.pathname}
-          className="flex-1 min-w-0 p-3 sm:p-4 md:p-8 max-w-7xl mx-auto w-full pb-[calc(env(safe-area-inset-bottom)+88px)] md:pb-8 no-tap-highlight page-enter"
+          className="flex-1 min-w-0 px-3 pt-5 pb-[calc(env(safe-area-inset-bottom)+88px)] sm:px-4 sm:pt-6 md:p-8 md:pb-8 max-w-7xl mx-auto w-full no-tap-highlight page-enter"
         >
           {children ?? <Outlet />}
         </main>
