@@ -80,8 +80,10 @@ import {
   type CareerTimelinePoint,
 } from "@/lib/mc-career-engine";
 import { toast } from "sonner";
-import { useDemoEntity } from "@/lib/mc-demo/store";
+import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
 import { DemoDetailStub } from "@/components/match-center/demo-detail-stub";
+import { DemoPlayerProfile } from "@/components/match-center/demo-player-profile";
+import type { DemoData } from "@/lib/mc-demo/generate";
 
 export const Route = createFileRoute("/match-center/players/$athleteId")({
   head: () => ({
