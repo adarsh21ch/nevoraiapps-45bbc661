@@ -180,8 +180,11 @@ export function derivePlayerCareer(
       }
     }
 
-    const isTeamA = m.team_a?.players?.some((p) => p.id === athleteId);
-    const opponentTeamId = isTeamA ? m.team_b_id : m.team_a_id;
+    const squadsForMatch = demo.matchSquads?.[m.id] ?? {};
+    const teamAId = m.team_a_id ?? "";
+    const teamBId = m.team_b_id ?? "";
+    const inTeamA = squadsForMatch[teamAId]?.some((p) => p.id === athleteId) ?? false;
+    const opponentTeamId = inTeamA ? teamBId : teamAId;
     history.push({
       matchId: m.id,
       date: m.scheduled_date ?? null,
