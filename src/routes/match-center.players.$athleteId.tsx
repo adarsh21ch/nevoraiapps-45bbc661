@@ -370,8 +370,8 @@ function CareerTab({ athleteId }: { athleteId: string }) {
   );
 
   const points = timelineQ.data ?? [];
-  const maxRuns = Math.max(1, ...points.map((p) => p.runs));
-  const maxWkts = Math.max(1, ...points.map((p) => p.wickets));
+  const maxRuns = Math.max(1, ...points.map((p: CareerTimelinePoint) => p.runs));
+  const maxWkts = Math.max(1, ...points.map((p: CareerTimelinePoint) => p.wickets));
 
   return (
     <div className="space-y-6">
@@ -421,24 +421,24 @@ function CareerTab({ athleteId }: { athleteId: string }) {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="mb-3 text-sm font-semibold">Runs Timeline</div>
-          <SparkBars values={points.map((p) => p.runs)} max={maxRuns} />
+          <SparkBars values={points.map((p: CareerTimelinePoint) => p.runs)} max={maxRuns} />
         </div>
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="mb-3 text-sm font-semibold">Wickets Timeline</div>
-          <SparkBars values={points.map((p) => p.wickets)} max={maxWkts} />
+          <SparkBars values={points.map((p: CareerTimelinePoint) => p.wickets)} max={maxWkts} />
         </div>
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="mb-3 text-sm font-semibold">Average Timeline</div>
           <SparkBars
-            values={points.map((p) => p.battingAverageToDate)}
-            max={Math.max(1, ...points.map((p) => p.battingAverageToDate))}
+            values={points.map((p: CareerTimelinePoint) => p.battingAverageToDate)}
+            max={Math.max(1, ...points.map((p: CareerTimelinePoint) => p.battingAverageToDate))}
           />
         </div>
         <div className="rounded-2xl border border-border bg-card p-5">
           <div className="mb-3 text-sm font-semibold">Strike Rate Timeline</div>
           <SparkBars
-            values={points.map((p) => p.strikeRateToDate)}
-            max={Math.max(1, ...points.map((p) => p.strikeRateToDate))}
+            values={points.map((p: CareerTimelinePoint) => p.strikeRateToDate)}
+            max={Math.max(1, ...points.map((p: CareerTimelinePoint) => p.strikeRateToDate))}
           />
         </div>
       </div>
