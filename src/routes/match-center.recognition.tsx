@@ -92,6 +92,7 @@ function RecognitionPage() {
   const tenantId = tenant.id;
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
 
   const suggestionsQ = useQuery({
     queryKey: ["mc-recog", tenantId, "suggested"],
