@@ -1,53 +1,41 @@
-import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useHydrated } from "@/hooks/use-hydrated";
+// Theme engine — unchanged storage key, now supports "system".
+// Storage: "light" | "dark" | "system". Default = "system".
 
-// Universal theme key — shared across owner dashboard AND platform admin.
+export type ThemeMode = "light" | "dark" | "system";
+
 export const THEME_KEY = "acadaos.theme";
 
-export function applyTheme(t: "light" | "dark") {
+function systemPrefersDark(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
+  } catch {
+    return true;
+  }
+}
+
+export function resolveTheme(mode: ThemeMode): "light" | "dark" {
+  if (mode === "system") return systemPrefersDark() ? "dark" : "light";
+  return mode;
+}
+
+export function applyTheme(mode: ThemeMode) {
+  if (typeof document === "undefined") return;
   const el = document.documentElement;
-  if (t === "dark") el.classList.add("dark");
+  const resolved = resolveTheme(mode);
+  if (resolved === "dark") el.classList.add("dark");
   else el.classList.remove("dark");
 }
 
-export function readStoredTheme(): "light" | "dark" {
+export function readStoredThemeMode(): ThemeMode {
   try {
     const s = localStorage.getItem(THEME_KEY);
-    if (s === "light" || s === "dark") return s;
+    if (s === "light" || s === "dark" || s === "system") return s;
   } catch { /* ignore */ }
-  return "dark"; // default = dark
+  return "system";
 }
 
-export function ThemeToggle() {
-  const hydrated = useHydrated();
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
-
-  useEffect(() => {
-    const t = readStoredTheme();
-    setTheme(t);
-    applyTheme(t);
-  }, []);
-
-  const toggle = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    try { localStorage.setItem(THEME_KEY, next); } catch { /* ignore */ }
-    applyTheme(next);
-  };
-
-  if (!hydrated) return <div className="size-9" aria-hidden />;
-
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggle}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      className="rounded-full"
-    >
-      {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-    </Button>
-  );
+export function setStoredThemeMode(mode: ThemeMode) {
+  try { localStorage.setItem(THEME_KEY, mode); } catch { /* ignore */ }
+  applyTheme(mode);
 }
