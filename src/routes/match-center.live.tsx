@@ -21,11 +21,18 @@ function LivePage() {
           { label: "Live" },
         ]}
         actions={
-          <Button asChild>
-            <Link to="/match-center/create">
-              <PlusCircle className="size-4 mr-1.5" /> Start match
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/scorer/$matchId" params={{ matchId: "demo" }}>
+                <Radio className="size-4 mr-1.5" /> Open scorer (demo)
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/match-center/create">
+                <PlusCircle className="size-4 mr-1.5" /> Start match
+              </Link>
+            </Button>
+          </div>
         }
       />
       <EmptyState
