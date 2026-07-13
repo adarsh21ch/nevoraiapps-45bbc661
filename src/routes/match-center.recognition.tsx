@@ -68,6 +68,7 @@ import {
   type MCAcademyTimelineRow,
   type RecognitionSearchHit,
 } from "@/lib/mc-recognition-engine";
+import { useMCRecognitions } from "@/lib/mc-data";
 
 export const Route = createFileRoute("/match-center/recognition")({
   head: () => ({
@@ -180,6 +181,8 @@ function RecognitionPage() {
       {search.trim().length >= 2 && (
         <SearchResults hits={searchQ.data ?? []} loading={searchQ.isLoading} />
       )}
+      <DemoDerivedRecognitions tenantId={tenantId} />
+
 
       <Tabs defaultValue="suggestions" className="mt-4">
         <TabsList className="flex flex-wrap h-auto">
@@ -240,6 +243,37 @@ function RecognitionPage() {
           <SettingsTab />
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function DemoDerivedRecognitions({ tenantId }: { tenantId: string }) {
+  const items = useMCRecognitions(tenantId);
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="mt-4">
+      <SectionTitle title="Auto-derived recognitions" />
+      <p className="text-xs text-muted-foreground mb-3">
+        Live from ball events — Player of the Match, centuries, five-wicket hauls and hat tricks.
+      </p>
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {items.slice(0, 30).map((r) => (
+          <Card key={r.id} className="p-4">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <Badge variant="outline" className="mb-1 capitalize">
+                  {r.recognitionType.replace(/_/g, " ")}
+                </Badge>
+                <div className="font-semibold">{r.title}</div>
+                <div className="text-xs text-muted-foreground truncate">{r.athleteName}</div>
+                <p className="text-xs text-muted-foreground mt-1">{r.description}</p>
+                <div className="text-[10px] text-muted-foreground mt-1">{r.matchLabel}</div>
+              </div>
+              <div className="text-2xl shrink-0" aria-hidden>{r.badge}</div>
+            </div>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

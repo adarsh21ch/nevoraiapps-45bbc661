@@ -13,6 +13,8 @@ import {
   type CoachInsight,
 } from "@/lib/mc-performance-analytics";
 import { getAthlete } from "@/lib/mc-athletes";
+import { useMCPlayerCareer, useMCPlayerPerformance } from "@/lib/mc-data";
+import { useDemoData } from "@/lib/mc-demo/store";
 import {
   LineChartSVG,
   BarChartSVG,
@@ -36,15 +38,21 @@ export const Route = createFileRoute("/match-center/performance/$athleteId")({
 function PlayerPerformancePage() {
   const { athleteId } = Route.useParams();
   const { tenant } = useDashboard();
+  const demoPerf = useMCPlayerPerformance(tenant.id, athleteId);
+  const demoCareer = useMCPlayerCareer(tenant.id, athleteId);
+  const demoData = useDemoData(tenant.id);
+  const isDemo = demoPerf !== null;
 
   const athleteQ = useQuery({
     queryKey: ["mc-perf-athlete", tenant.id, athleteId],
     queryFn: () => getAthlete(tenant.id, athleteId),
+    enabled: !isDemo,
   });
 
   const perfQ = useQuery({
     queryKey: ["mc-perf-player", tenant.id, athleteId],
     queryFn: () => buildPlayerPerformance(athleteId, tenant.id),
+    enabled: !isDemo,
   });
 
   const careerQ = useQuery({
@@ -57,6 +65,7 @@ function PlayerPerformancePage() {
         .maybeSingle();
       return data;
     },
+    enabled: !isDemo,
   });
 
   const handleShare = async () => {
@@ -71,9 +80,16 @@ function PlayerPerformancePage() {
     }
   };
 
-  const athlete = athleteQ.data;
-  const perf = perfQ.data;
-  const career = careerQ.data;
+  const demoAthlete = isDemo ? demoData?.players.find((p) => p.id === athleteId) : null;
+  const athlete = isDemo ? (demoAthlete ?? null) : (athleteQ.data ?? null);
+  const perf = isDemo
+    ? (demoPerf as unknown as NonNullable<
+        ReturnType<typeof buildPlayerPerformance> extends Promise<infer T> ? T : never
+      >)
+    : perfQ.data;
+  const career = isDemo
+    ? ({ catches: demoCareer?.fielding.catches ?? 0 } as Record<string, unknown>)
+    : careerQ.data;
 
   return (
     <div className="print:bg-white">
