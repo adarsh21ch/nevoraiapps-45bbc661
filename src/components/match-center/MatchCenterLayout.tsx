@@ -337,8 +337,9 @@ function MobileBottomNav() {
   ];
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 md:hidden border-t border-border bg-background/95 backdrop-blur"
-      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 6px)", paddingTop: "6px" }}
+      className="fixed inset-x-0 bottom-0 z-30 md:hidden border-t border-border bg-background/95 backdrop-blur no-tap-highlight"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 4px)", paddingTop: "4px" }}
+      aria-label="Primary"
     >
       <div className="grid grid-cols-5">
         {tabs.map((n) => {
@@ -349,17 +350,18 @@ function MobileBottomNav() {
             <Link
               key={n.to}
               to={n.to}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1 px-1 pt-2.5 pb-2 min-h-[64px] text-[10px] font-medium",
+                "relative flex flex-col items-center justify-center gap-1 px-1 pt-2 pb-1.5 min-h-[56px] text-[10px] font-semibold",
                 active ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              <Icon className="size-5" />
+              <Icon className={cn("size-[22px]", active && "scale-110")} />
               <span className="truncate max-w-[68px] leading-none">{n.label}</span>
               {active && (
                 <span
-                  className="absolute top-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-b-full"
-                  style={{ backgroundColor: "var(--brand)" }}
+                  className="absolute top-0 left-1/2 -translate-x-1/2 h-[3px] w-9 rounded-b-full"
+                  style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
                 />
               )}
             </Link>
