@@ -189,17 +189,17 @@ export function useScoringSession(
   const [events, setEvents] = useState<MCBallEvent[]>([]);
   const [playingXI, setPlayingXI] = useState<MCMatchSquad[]>([]);
 
-  const [striker, setStriker] = useState<CurrentBatterState>({
+  const [striker, setStrikerState] = useState<CurrentBatterState>({
     athleteId: null,
     name: null,
     onStrike: true,
   });
-  const [nonStriker, setNonStriker] = useState<CurrentBatterState>({
+  const [nonStriker, setNonStrikerState] = useState<CurrentBatterState>({
     athleteId: null,
     name: null,
     onStrike: false,
   });
-  const [bowler, setBowler] = useState<CurrentBowlerState>({
+  const [bowler, setBowlerState] = useState<CurrentBowlerState>({
     athleteId: null,
     name: null,
   });
@@ -207,9 +207,25 @@ export function useScoringSession(
   const activeInnings = useMemo(() => pickActiveInnings(innings), [innings]);
 
   const eventsRef = useRef<MCBallEvent[]>([]);
+  const strikerRef = useRef<CurrentBatterState>(striker);
+  const nonStrikerRef = useRef<CurrentBatterState>(nonStriker);
+  const bowlerRef = useRef<CurrentBowlerState>(bowler);
   useEffect(() => {
     eventsRef.current = events;
   }, [events]);
+
+  const setStriker = useCallback((b: CurrentBatterState) => {
+    strikerRef.current = b;
+    setStrikerState(b);
+  }, []);
+  const setNonStriker = useCallback((b: CurrentBatterState) => {
+    nonStrikerRef.current = b;
+    setNonStrikerState(b);
+  }, []);
+  const setBowler = useCallback((b: CurrentBowlerState) => {
+    bowlerRef.current = b;
+    setBowlerState(b);
+  }, []);
 
   /* ---------- initial load ---------- */
 
@@ -367,23 +383,27 @@ export function useScoringSession(
           "MATCH_COMPLETED",
           "Match is no longer active.",
         );
-      if (!striker.athleteId && !striker.name)
+      const currentStriker = strikerRef.current;
+      const currentNonStriker = nonStrikerRef.current;
+      const currentBowler = bowlerRef.current;
+
+      if (!currentStriker.athleteId && !currentStriker.name)
         throw new BallEventError("NO_STRIKER", "Select the striker.");
-      if (!bowler.athleteId && !bowler.name)
+      if (!currentBowler.athleteId && !currentBowler.name)
         throw new BallEventError("NO_BOWLER", "Select the bowler.");
 
       // Rules-engine validation against the reconstructed state.
       validateBallDraft(
         {
-          strikerAthleteId: striker.athleteId,
-          strikerName: striker.name,
-          nonStrikerAthleteId: nonStriker.athleteId,
-          nonStrikerName: nonStriker.name,
-          bowlerAthleteId: bowler.athleteId,
-          bowlerName: bowler.name,
+          strikerAthleteId: currentStriker.athleteId,
+          strikerName: currentStriker.name,
+          nonStrikerAthleteId: currentNonStriker.athleteId,
+          nonStrikerName: currentNonStriker.name,
+          bowlerAthleteId: currentBowler.athleteId,
+          bowlerName: currentBowler.name,
           ...partial,
         },
-        matchStateForSelectedBatters(matchState, striker, nonStriker),
+        matchStateForSelectedBatters(matchState, currentStriker, currentNonStriker),
         {
           innings: activeInnings,
           events: eventsRef.current,
@@ -402,12 +422,12 @@ export function useScoringSession(
         over_number: pos.overNumber,
         ball_number: pos.ballNumber,
         is_legal_delivery: isLegalDelivery(partial.extraType ?? null),
-        striker_athlete_id: striker.athleteId,
-        striker_name: striker.name,
-        non_striker_athlete_id: nonStriker.athleteId,
-        non_striker_name: nonStriker.name,
-        bowler_athlete_id: bowler.athleteId,
-        bowler_name: bowler.name,
+        striker_athlete_id: currentStriker.athleteId,
+        striker_name: currentStriker.name,
+        non_striker_athlete_id: currentNonStriker.athleteId,
+        non_striker_name: currentNonStriker.name,
+        bowler_athlete_id: currentBowler.athleteId,
+        bowler_name: currentBowler.name,
         runs_off_bat: partial.runsOffBat ?? 0,
         extra_type: partial.extraType ?? null,
         extra_runs: partial.extraRuns ?? 0,
@@ -429,12 +449,12 @@ export function useScoringSession(
         tenantId: opts.tenantId,
         matchId,
         inningsId: activeInnings.id,
-        strikerAthleteId: striker.athleteId,
-        strikerName: striker.name,
-        nonStrikerAthleteId: nonStriker.athleteId,
-        nonStrikerName: nonStriker.name,
-        bowlerAthleteId: bowler.athleteId,
-        bowlerName: bowler.name,
+        strikerAthleteId: currentStriker.athleteId,
+        strikerName: currentStriker.name,
+        nonStrikerAthleteId: currentNonStriker.athleteId,
+        nonStrikerName: currentNonStriker.name,
+        bowlerAthleteId: currentBowler.athleteId,
+        bowlerName: currentBowler.name,
         createdBy: opts.userId ?? null,
         priorEvents,
         ...partial,
@@ -452,7 +472,7 @@ export function useScoringSession(
       const overCompleted =
         optimistic.is_legal_delivery && legalBefore + 1 >= 6;
       const rotated = applyStrikeAfterBall(
-        { striker, nonStriker },
+        { striker: currentStriker, nonStriker: currentNonStriker },
         optimistic,
         overCompleted,
       );
@@ -469,10 +489,10 @@ export function useScoringSession(
             nonStriker: { ...rotated.nonStriker, onStrike: false },
           };
       if (
-        next.striker.athleteId !== striker.athleteId ||
-        next.striker.name !== striker.name ||
-        next.nonStriker.athleteId !== nonStriker.athleteId ||
-        next.nonStriker.name !== nonStriker.name
+        next.striker.athleteId !== currentStriker.athleteId ||
+        next.striker.name !== currentStriker.name ||
+        next.nonStriker.athleteId !== currentNonStriker.athleteId ||
+        next.nonStriker.name !== currentNonStriker.name
       ) {
         setStriker(next.striker);
         setNonStriker(next.nonStriker);
