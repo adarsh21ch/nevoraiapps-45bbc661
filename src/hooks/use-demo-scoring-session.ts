@@ -307,7 +307,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
           bowlerName: currentBowler.name,
           ...partial,
         },
-        matchStateForSelectedBatters(latestMatchState),
+        matchStateForSelectedBatters(latestMatchState, currentStriker, currentNonStriker),
         {
           innings: activeInnings,
           events: priorEvents,
