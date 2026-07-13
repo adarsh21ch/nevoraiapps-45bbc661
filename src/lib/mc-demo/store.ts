@@ -1,11 +1,13 @@
-import { useSyncExternalStore, useMemo } from "react";
+import { useSyncExternalStore } from "react";
 import { generateDemoData, type DemoData } from "./generate";
 
 const FLAG_KEY = (tenantId: string) => `mc:demo:${tenantId}`;
 const DATA_KEY = (tenantId: string) => `mc:demo:data:${tenantId}`;
-const VERSION = 2;
+const VERSION = 3;
 
 const listeners = new Set<() => void>();
+const dataCache = new Map<string, DemoData>();
+
 function emit() {
   for (const l of listeners) l();
 }
@@ -36,8 +38,21 @@ function writeData(tenantId: string, data: DemoData) {
   try {
     window.localStorage.setItem(DATA_KEY(tenantId), JSON.stringify(data));
   } catch {
-    // storage full / unavailable – demo just won't persist
+    /* storage full / unavailable */
   }
+}
+
+function ensureData(tenantId: string): DemoData {
+  const cached = dataCache.get(tenantId);
+  if (cached) return cached;
+  let d = readData(tenantId);
+  if (!d) {
+    d = generateDemoData(tenantId);
+    d.__v = VERSION;
+    writeData(tenantId, d);
+  }
+  dataCache.set(tenantId, d);
+  return d;
 }
 
 export function setDemoMode(tenantId: string, on: boolean) {
@@ -50,12 +65,45 @@ export function setDemoMode(tenantId: string, on: boolean) {
   emit();
 }
 
+/** Reset the entire demo academy back to freshly seeded state. */
 export function resetDemoData(tenantId: string) {
   try {
     window.localStorage.removeItem(DATA_KEY(tenantId));
   } catch {
     /* noop */
   }
+  dataCache.delete(tenantId);
+  // Immediately regenerate so subsequent reads are consistent
+  ensureData(tenantId);
+  emit();
+}
+
+/**
+ * Mutate the demo dataset for a tenant. Produces a shallow-cloned snapshot,
+ * runs the mutator, persists and emits so every subscriber re-renders.
+ */
+export function updateDemoData(
+  tenantId: string,
+  mutator: (draft: DemoData) => void,
+) {
+  const cur = ensureData(tenantId);
+  const next: DemoData = {
+    ...cur,
+    players: cur.players.slice(),
+    teams: cur.teams.slice(),
+    tournaments: cur.tournaments.slice(),
+    matches: cur.matches.slice(),
+    innings: cur.innings.slice(),
+    ballEvents: cur.ballEvents.slice(),
+    records: cur.records.slice(),
+    recognitions: cur.recognitions.slice(),
+    hallOfFame: cur.hallOfFame.slice(),
+    perfRows: cur.perfRows.slice(),
+    aiReports: cur.aiReports.slice(),
+  };
+  mutator(next);
+  dataCache.set(tenantId, next);
+  writeData(tenantId, next);
   emit();
 }
 
@@ -78,31 +126,26 @@ export function useDemoMode(tenantId: string): boolean {
 }
 
 export function useDemoData(tenantId: string): DemoData | null {
-  const on = useDemoMode(tenantId);
-  return useMemo(() => {
-    if (!on) return null;
-    let d = readData(tenantId);
-    if (!d) {
-      d = generateDemoData(tenantId);
-      d.__v = VERSION;
-      writeData(tenantId, d);
-    }
-    return d;
-  }, [on, tenantId]);
+  return useSyncExternalStore(
+    subscribe,
+    () => (readFlag(tenantId) ? ensureData(tenantId) : null),
+    () => null,
+  );
 }
 
 export function isDemoId(id: string | null | undefined): boolean {
   return typeof id === "string" && id.startsWith("demo-");
 }
 
-/**
- * Look up a demo dataset for any tenant that contains the given match id.
- * Used by routes (e.g. /scorer/$matchId) that live outside the DashboardProvider
- * and don't know the tenant id up-front. If no dataset is found but a demo
- * flag is on for some tenant, the caller can regenerate via useDemoData.
- */
-export function findDemoDatasetByMatchId(matchId: string): { tenantId: string; data: DemoData } | null {
+/** Look up a demo dataset for any tenant that contains the given match id. */
+export function findDemoDatasetByMatchId(
+  matchId: string,
+): { tenantId: string; data: DemoData } | null {
   if (typeof window === "undefined") return null;
+  // Try cache first
+  for (const [tenantId, data] of dataCache) {
+    if (data.matches?.some((m) => m.id === matchId)) return { tenantId, data };
+  }
   try {
     for (let i = 0; i < window.localStorage.length; i++) {
       const key = window.localStorage.key(i);
@@ -112,7 +155,9 @@ export function findDemoDatasetByMatchId(matchId: string): { tenantId: string; d
       const parsed = JSON.parse(raw) as DemoData & { __v?: number };
       if (parsed?.__v !== VERSION) continue;
       if (parsed.matches?.some((m) => m.id === matchId)) {
-        return { tenantId: key.slice("mc:demo:data:".length), data: parsed };
+        const tenantId = key.slice("mc:demo:data:".length);
+        dataCache.set(tenantId, parsed);
+        return { tenantId, data: parsed };
       }
     }
   } catch {
@@ -144,7 +189,10 @@ export type DemoEntity =
   | { kind: "tournament"; tournament: DemoData["tournaments"][number] }
   | { kind: "match"; match: DemoData["matches"][number] };
 
-export function useDemoEntity(tenantId: string, id: string | undefined | null): DemoEntity | null {
+export function useDemoEntity(
+  tenantId: string,
+  id: string | undefined | null,
+): DemoEntity | null {
   const demo = useDemoData(tenantId);
   if (!demo || !id || !isDemoId(id)) return null;
   const match = demo.matches.find((m) => m.id === id);
