@@ -490,13 +490,21 @@ function LiveHero({ match, extra }: { match: MatchWithTeams; extra: number }) {
             </span>
           </div>
         </div>
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
           <Button asChild size="lg">
             <Link
-              to="/match-center/matches"
-              search={{}}
+              to="/scorer/$matchId"
+              params={{ matchId: match.id }}
             >
-              <Radio className="size-4 mr-1.5" /> Open live
+              <Radio className="size-4 mr-1.5" /> Open scorer
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link
+              to="/match-center/scorebook/$matchId"
+              params={{ matchId: match.id }}
+            >
+              <BookOpen className="size-4 mr-1.5" /> Scorecard
             </Link>
           </Button>
         </div>
