@@ -37,7 +37,7 @@ import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
 import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
 import { buildCommentary, ballChipLabel } from "@/lib/mc-commentary";
 import type { DismissalType, MCBallEvent } from "@/lib/mc-ball-events";
-import { updateMatchStatus } from "@/lib/mc-matches";
+
 import { LiveScorecard } from "@/components/match-center/live-scorecard";
 import { FinalizationDialog, UnlockMatchDialog } from "@/components/match-center/finalization-ui";
 import { detectMatchResult, type InningsRow, type MatchResult } from "@/lib/mc-finalization";
