@@ -36,15 +36,20 @@ export const Route = createFileRoute("/match-center/performance/$athleteId")({
 function PlayerPerformancePage() {
   const { athleteId } = Route.useParams();
   const { tenant } = useDashboard();
+  const demoPerf = useMCPlayerPerformance(tenant.id, athleteId);
+  const demoCareer = useMCPlayerCareer(tenant.id, athleteId);
+  const isDemo = demoPerf !== null;
 
   const athleteQ = useQuery({
     queryKey: ["mc-perf-athlete", tenant.id, athleteId],
     queryFn: () => getAthlete(tenant.id, athleteId),
+    enabled: !isDemo,
   });
 
   const perfQ = useQuery({
     queryKey: ["mc-perf-player", tenant.id, athleteId],
     queryFn: () => buildPlayerPerformance(athleteId, tenant.id),
+    enabled: !isDemo,
   });
 
   const careerQ = useQuery({
@@ -57,6 +62,7 @@ function PlayerPerformancePage() {
         .maybeSingle();
       return data;
     },
+    enabled: !isDemo,
   });
 
   const handleShare = async () => {
@@ -71,9 +77,33 @@ function PlayerPerformancePage() {
     }
   };
 
-  const athlete = athleteQ.data;
-  const perf = perfQ.data;
-  const career = careerQ.data;
+  const demoPlayer = isDemo
+    ? { student: { name: demoCareer ? undefined : undefined } }
+    : null;
+  void demoPlayer;
+
+  const athlete = isDemo
+    ? ({
+        student: {
+          name:
+            // Prefer the athlete's student name from demoCareer via matchHistory opponents isn't ideal;
+            // fall back to the id-derived label if no name.
+            "Player",
+        },
+        cricket: null,
+        height_cm: null,
+        weight_kg: null,
+        fitness_status: null,
+        current_status: null,
+        medical_notes: null,
+      } as unknown as ReturnType<typeof getAthlete> extends Promise<infer T> ? T : never)
+    : athleteQ.data;
+  const perf = isDemo
+    ? (demoPerf as unknown as NonNullable<ReturnType<typeof buildPlayerPerformance> extends Promise<infer T> ? T : never>)
+    : perfQ.data;
+  const career = isDemo
+    ? ({ catches: demoCareer?.fielding.catches ?? 0 } as Record<string, unknown>)
+    : careerQ.data;
 
   return (
     <div className="print:bg-white">
