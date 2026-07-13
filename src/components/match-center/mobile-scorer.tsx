@@ -140,12 +140,13 @@ export function MobileScorer(props: MobileScorerProps) {
 
   const waitingBatterRole = missingBatterRole ?? props.awaitingNewBatterRole ?? "striker";
 
-  // Swipe gestures: right = undo last ball, up = open scorecard (More sheet)
+  // Swipe gestures: right = undo last ball. Swipe-up removed to prevent
+  // accidental opening of the More sheet when scrolling.
   const swipeHandlers = useSwipe({
     onSwipeRight: () => props.onUndo(),
-    onSwipeUp: () => setMoreOpen(true),
     threshold: 72,
   });
+
 
   const openPicker = (kind: PickerKind) => {
     if (sheetPickerEnabled) {
