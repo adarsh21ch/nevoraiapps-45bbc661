@@ -1000,7 +1000,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 import { findDemoDatasetByMatchId } from "@/lib/mc-demo/store";
 import { useDemoScoringSession, finalizeDemoMatch } from "@/hooks/use-demo-scoring-session";
-import { ballHelpers } from "@/hooks/use-scoring-session";
+import type { MatchWithTeams } from "@/lib/mc-matches";
 
 function DemoScorerView({ matchId }: { matchId: string }) {
   const dataset = findDemoDatasetByMatchId(matchId);
