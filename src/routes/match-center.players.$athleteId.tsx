@@ -125,6 +125,9 @@ function AthleteProfilePage() {
     enabled: !!athleteQ.data?.student_id,
   });
 
+  if (demoEntity && demoEntity.kind === "player") {
+    return <DemoPlayerProfileWrapper player={demoEntity.player} />;
+  }
   if (demoEntity) {
     return (
       <DemoDetailStub
