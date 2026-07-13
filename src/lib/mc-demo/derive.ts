@@ -486,10 +486,11 @@ export function deriveRecords(demo: DemoData): RecordRow[] {
       }
     });
 
-    // Team totals
+    // Team totals — resolve batting team via innings map
     const totals = new Map<string, number>();
     for (const e of events) {
-      const t = e.batting_team_id;
+      const inn = inningsMap.get(e.innings_id);
+      const t = inn?.batting;
       if (!t) continue;
       totals.set(t, (totals.get(t) ?? 0) + (e.runs_off_bat ?? 0) + (e.extra_runs ?? 0));
     }
