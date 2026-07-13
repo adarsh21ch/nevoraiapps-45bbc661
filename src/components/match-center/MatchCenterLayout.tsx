@@ -170,9 +170,9 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
     <div className="min-h-screen bg-background text-foreground">
       {/* Top bar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
-        <div className="flex items-center gap-3 px-4 py-3 md:px-6">
+        <div className="flex items-center gap-3 px-3 py-2.5 md:px-6 md:py-3">
           <button
-            className="md:hidden -ml-1 p-2 rounded-lg hover:bg-accent/50"
+            className="md:hidden -ml-1 grid tap-target place-items-center rounded-lg hover:bg-accent/50 no-tap-highlight"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle navigation"
           >
