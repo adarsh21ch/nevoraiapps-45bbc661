@@ -601,27 +601,23 @@ function ScoringDock({
   onMore: () => void;
 }) {
   return (
-    <div className="shrink-0 bg-gradient-to-t from-background via-background to-background/80 pt-1">
-      <div className="px-2" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-        <div className="rounded-t-[22px] border border-b-0 bg-card/95 p-2 shadow-[0_-8px_24px_-16px_oklch(0_0_0/55%)] backdrop-blur-xl">
-          <div className="grid grid-cols-6 gap-2">
-            {([0, 1, 2, 3, 4, 6] as const).map((run) => (
-              <RunKey key={run} value={run} disabled={disabled} onClick={() => onRun(run)} />
-            ))}
-          </div>
-          <div className="mt-2 grid grid-cols-5 gap-2">
-            <ExtraKey label="Wide" tone="wide" disabled={disabled} onClick={() => onExtra("Wide")} />
-            <ExtraKey label="No Ball" tone="nb" disabled={disabled} onClick={() => onExtra("No Ball")} />
-            <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
-            <ExtraKey label="Leg Bye" tone="lb" disabled={disabled} onClick={() => onExtra("Leg Bye")} />
-            <ExtraKey label="OUT" tone="out" disabled={disabled} onClick={onOut} />
-          </div>
-          <div className="mt-2 grid h-9 grid-cols-3 border-t border-border/70 pt-1.5">
-            <FooterAction icon={<Undo2 className="size-3.5" />} label="Undo" onClick={onUndo} />
-            <FooterAction icon={<FileText className="size-3.5" />} label="Scorecard" onClick={onScorecard} />
-            <FooterAction icon={<MoreHorizontal className="size-3.5" />} label="More" onClick={onMore} />
-          </div>
-        </div>
+    <div className="rounded-2xl border bg-card/95 p-2 shadow-[0_4px_20px_-12px_oklch(0_0_0/45%)] backdrop-blur-xl">
+      <div className="grid grid-cols-6 gap-2">
+        {([0, 1, 2, 3, 4, 6] as const).map((run) => (
+          <RunKey key={run} value={run} disabled={disabled} onClick={() => onRun(run)} />
+        ))}
+      </div>
+      <div className="mt-2 grid grid-cols-5 gap-2">
+        <ExtraKey label="Wide" tone="wide" disabled={disabled} onClick={() => onExtra("Wide")} />
+        <ExtraKey label="No Ball" tone="nb" disabled={disabled} onClick={() => onExtra("No Ball")} />
+        <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
+        <ExtraKey label="Leg Bye" tone="lb" disabled={disabled} onClick={() => onExtra("Leg Bye")} />
+        <ExtraKey label="OUT" tone="out" disabled={disabled} onClick={onOut} />
+      </div>
+      <div className="mt-2 grid h-9 grid-cols-3 border-t border-border/70 pt-1.5">
+        <FooterAction icon={<Undo2 className="size-3.5" />} label="Undo" onClick={onUndo} />
+        <FooterAction icon={<FileText className="size-3.5" />} label="Scorecard" onClick={onScorecard} />
+        <FooterAction icon={<MoreHorizontal className="size-3.5" />} label="More" onClick={onMore} />
       </div>
     </div>
   );
