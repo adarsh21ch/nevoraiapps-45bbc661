@@ -439,6 +439,7 @@ export function UnlockMatchDialog({
       // Career Engine: rebuild affected athletes so unlocked match is excluded.
       try {
         await rebuildCareersAfterUnlock(matchId);
+        await updateTournamentForMatch(matchId);
       } catch (careerErr) {
         console.error("Career rebuild after unlock failed", careerErr);
       }
