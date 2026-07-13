@@ -686,6 +686,7 @@ function PartnershipsTable({ stats }: { stats: Stats }) {
   if (rows.length === 0) {
     return <p className="text-[11px] text-muted-foreground">No partnerships yet.</p>;
   }
+  const bestRuns = rows.reduce((m, p) => Math.max(m, p.runs), 0);
   return (
     <table className="sb-sticky-thead w-full border-collapse text-[11.5px]">
       <thead>
@@ -697,19 +698,26 @@ function PartnershipsTable({ stats }: { stats: Stats }) {
         </tr>
       </thead>
       <tbody>
-        {rows.map((p, i) => (
-          <tr key={i} className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
-            <td className="py-1.5 pl-2 font-bold tabular-nums">{p.startWicket + 1}</td>
-            <td>
-              {(p.batterA?.name ?? "?")} & {(p.batterB?.name ?? "?")}
-              {p.endWicket == null && (
-                <span className="ml-1 text-[10px] font-bold uppercase text-primary">Live</span>
-              )}
-            </td>
-            <td className="text-right font-semibold tabular-nums">{p.runs}</td>
-            <td className="pr-2 text-right tabular-nums">{p.balls}</td>
-          </tr>
-        ))}
+        {rows.map((p, i) => {
+          const isBest = bestRuns > 0 && p.runs === bestRuns;
+          return (
+            <tr
+              key={i}
+              className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isBest ? "bg-emerald-500/5" : ""}`}
+            >
+              <td className="py-1.5 pl-2 font-bold tabular-nums">{p.startWicket + 1}</td>
+              <td>
+                {isBest && <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Highest partnership">◆</span>}
+                {(p.batterA?.name ?? "?")} & {(p.batterB?.name ?? "?")}
+                {p.endWicket == null && (
+                  <span className="ml-1 text-[10px] font-bold uppercase text-primary">Live</span>
+                )}
+              </td>
+              <td className="text-right font-semibold tabular-nums">{p.runs}</td>
+              <td className="pr-2 text-right tabular-nums">{p.balls}</td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );
