@@ -598,8 +598,7 @@ function ExtrasLine({ stats }: { stats: Stats }) {
 }
 
 function BowlingTable({ stats }: { stats: Stats }) {
-  const pomKey = ""; // reserved
-  void pomKey;
+  const bestKey = stats.summary.bestBowler?.player.key ?? null;
   return (
     <div className="overflow-x-auto">
       <table className="sb-sticky-thead w-full border-collapse text-[12px]">
@@ -617,19 +616,28 @@ function BowlingTable({ stats }: { stats: Stats }) {
           </tr>
         </thead>
         <tbody>
-          {stats.bowling.ordered.map((b, i) => (
-            <tr key={b.player.key} className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
-              <td className="py-2 pl-2 font-semibold">{b.player.name ?? "—"}</td>
-              <Td>{b.oversDisplay}</Td>
-              <Td>{b.maidens}</Td>
-              <Td>{b.runsConceded}</Td>
-              <Td className="pr-2 text-sm font-black">{b.wickets}</Td>
-              <Td>{b.economy ? b.economy.toFixed(2) : "—"}</Td>
-              <Td>{b.dotBalls}</Td>
-              <Td>{b.wides}</Td>
-              <Td>{b.noBalls}</Td>
-            </tr>
-          ))}
+          {stats.bowling.ordered.map((b, i) => {
+            const isBest = bestKey && b.player.key === bestKey && b.wickets > 0;
+            return (
+              <tr
+                key={b.player.key}
+                className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isBest ? "bg-emerald-500/5" : ""}`}
+              >
+                <td className="py-2 pl-2 font-semibold">
+                  {isBest && <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Best bowler">◆</span>}
+                  {b.player.name ?? "—"}
+                </td>
+                <Td>{b.oversDisplay}</Td>
+                <Td>{b.maidens}</Td>
+                <Td>{b.runsConceded}</Td>
+                <Td className="pr-2 text-sm font-black">{b.wickets}</Td>
+                <Td>{b.economy ? b.economy.toFixed(2) : "—"}</Td>
+                <Td>{b.dotBalls}</Td>
+                <Td>{b.wides}</Td>
+                <Td>{b.noBalls}</Td>
+              </tr>
+            );
+          })}
           {stats.bowling.ordered.length === 0 && (
             <tr>
               <td colSpan={9} className="py-4 text-center text-muted-foreground">
