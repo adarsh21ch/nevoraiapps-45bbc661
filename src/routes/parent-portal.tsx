@@ -169,16 +169,18 @@ function ChildTabs({ studentId, kid }: { studentId: string; kid: ParentChild }) 
   const s = q.data;
 
   return (
-    <Tabs defaultValue="dashboard">
+    <Tabs defaultValue="progress">
       <TabsList className="flex-wrap">
-        <TabsTrigger value="dashboard"><User className="size-4 mr-1" />Dashboard</TabsTrigger>
-        <TabsTrigger value="matches"><Trophy className="size-4 mr-1" />Matches</TabsTrigger>
-        <TabsTrigger value="performance"><BarChart3 className="size-4 mr-1" />Performance</TabsTrigger>
-        <TabsTrigger value="recognitions"><Award className="size-4 mr-1" />Recognitions</TabsTrigger>
-        <TabsTrigger value="achievements"><Medal className="size-4 mr-1" />Achievements</TabsTrigger>
-        <TabsTrigger value="timeline"><Clock className="size-4 mr-1" />Timeline</TabsTrigger>
+        <TabsTrigger value="progress"><FileText className="size-4 mr-1" aria-hidden />Progress</TabsTrigger>
+        <TabsTrigger value="dashboard"><User className="size-4 mr-1" aria-hidden />Dashboard</TabsTrigger>
+        <TabsTrigger value="matches"><Trophy className="size-4 mr-1" aria-hidden />Matches</TabsTrigger>
+        <TabsTrigger value="performance"><BarChart3 className="size-4 mr-1" aria-hidden />Performance</TabsTrigger>
+        <TabsTrigger value="recognitions"><Award className="size-4 mr-1" aria-hidden />Recognitions</TabsTrigger>
+        <TabsTrigger value="achievements"><Medal className="size-4 mr-1" aria-hidden />Achievements</TabsTrigger>
+        <TabsTrigger value="timeline"><Clock className="size-4 mr-1" aria-hidden />Timeline</TabsTrigger>
       </TabsList>
 
+      <TabsContent value="progress" className="pt-4"><ProgressReport summary={s} kid={kid} /></TabsContent>
       <TabsContent value="dashboard" className="pt-4"><DashboardTab summary={s} kid={kid} /></TabsContent>
       <TabsContent value="matches" className="pt-4"><MatchesTab summary={s} /></TabsContent>
       <TabsContent value="performance" className="pt-4"><PerformanceTab summary={s} /></TabsContent>
