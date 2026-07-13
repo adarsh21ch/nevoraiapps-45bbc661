@@ -400,7 +400,6 @@ function FixturesTab({
             >
               <div>
                 <div className="text-sm font-medium">
-                  {/* @ts-expect-error joined shape */}
                   {m.team_a?.name} vs {m.team_b?.name}
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -529,7 +528,6 @@ function ResultsTab({ tournamentId }: { tournamentId: string }) {
           className="rounded-xl border border-border bg-card p-3"
         >
           <div className="text-sm font-medium">
-            {/* @ts-expect-error joined shape */}
             {m.team_a?.name} vs {m.team_b?.name}
           </div>
           <div className="mt-1 text-xs text-muted-foreground">{m.result ?? ""}</div>
