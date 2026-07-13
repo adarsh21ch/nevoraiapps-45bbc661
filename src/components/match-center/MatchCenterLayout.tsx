@@ -20,6 +20,7 @@ import {
   ArrowLeft,
   Swords,
   ChevronRight,
+  Sparkles,
   Globe,
   HeartHandshake,
   LineChart,
