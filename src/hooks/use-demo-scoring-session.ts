@@ -144,6 +144,37 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
   const nonStriker = nonStrikerOverride ?? inferredNonStriker;
   const bowler = bowlerOverride ?? inferredBowler;
 
+  const samePlayerRef = (
+    a: { athleteId?: string | null; name?: string | null },
+    b: { athleteId?: string | null; name?: string | null },
+  ) =>
+    Boolean(a.athleteId && b.athleteId && a.athleteId === b.athleteId) ||
+    Boolean(!a.athleteId && !b.athleteId && a.name && b.name && a.name === b.name);
+
+  const clearDismissedBatter = (
+    pair: { striker: CurrentBatterState; nonStriker: CurrentBatterState },
+    event: MCBallEvent,
+  ) => {
+    const dismissed = {
+      athleteId: event.dismissed_athlete_id,
+      name: event.dismissed_name,
+    };
+    if (!dismissed.athleteId && !dismissed.name) return pair;
+    if (samePlayerRef(pair.striker, dismissed)) {
+      return {
+        ...pair,
+        striker: { athleteId: null, name: null, onStrike: true },
+      };
+    }
+    if (samePlayerRef(pair.nonStriker, dismissed)) {
+      return {
+        ...pair,
+        nonStriker: { athleteId: null, name: null, onStrike: false },
+      };
+    }
+    return pair;
+  };
+
   const currentOver = useMemo<CurrentOverState>(() => {
     if (events.length === 0) return { overNumber: 0, ballsBowled: 0, events: [] };
     const lastOver = events[events.length - 1].over_number;
@@ -302,17 +333,31 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
         (e) => e.over_number === created.over_number && e.is_legal_delivery,
       ).length;
       const overCompleted = created.is_legal_delivery && legalBefore + 1 >= 6;
-      const next = applyStrikeAfterBall(
+      const rotated = applyStrikeAfterBall(
         { striker, nonStriker },
         created,
         overCompleted,
       );
+      const next = created.dismissal_type
+        ? clearDismissedBatter(
+            {
+              striker: { ...rotated.striker, onStrike: true },
+              nonStriker: { ...rotated.nonStriker, onStrike: false },
+            },
+            created,
+          )
+        : {
+            striker: { ...rotated.striker, onStrike: true },
+            nonStriker: { ...rotated.nonStriker, onStrike: false },
+          };
       if (
         next.striker.athleteId !== striker.athleteId ||
-        next.striker.name !== striker.name
+        next.striker.name !== striker.name ||
+        next.nonStriker.athleteId !== nonStriker.athleteId ||
+        next.nonStriker.name !== nonStriker.name
       ) {
-        setStrikerOverride({ ...next.striker, onStrike: true });
-        setNonStrikerOverride({ ...next.nonStriker, onStrike: false });
+        setStrikerOverride(next.striker);
+        setNonStrikerOverride(next.nonStriker);
       }
       if (overCompleted) {
         // Force the UI to prompt for a new bowler.
