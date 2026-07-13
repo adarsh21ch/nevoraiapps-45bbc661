@@ -886,6 +886,37 @@ function ScorerPage() {
         <InfoRow label="Umpire" value={session.match?.umpire ?? "—"} />
         <InfoRow label="Scorer" value={session.match?.scorer ?? "—"} />
       </SquadDrawer>
+
+      {session.match && (
+        <>
+          <FinalizationDialog
+            open={finalizeDialogOpen}
+            onOpenChange={setFinalizeDialogOpen}
+            matchId={session.match.id}
+            tenantId={session.match.tenant_id}
+            actorId={userQ.data?.id ?? null}
+            role="admin"
+            teamA={{ id: session.match.team_a_id, name: homeName }}
+            teamB={{ id: session.match.team_b_id, name: awayName }}
+            detectedResult={detectedResult}
+            ballEvents={session.events}
+            onFinalized={() => {
+              setMatchCompleteOpen(false);
+              setInningsCompleteOpen(false);
+              void session.refresh?.();
+            }}
+          />
+          <UnlockMatchDialog
+            open={unlockDialogOpen}
+            onOpenChange={setUnlockDialogOpen}
+            matchId={session.match.id}
+            tenantId={session.match.tenant_id}
+            actorId={userQ.data?.id ?? null}
+            role="owner"
+            onUnlocked={() => void session.refresh?.()}
+          />
+        </>
+      )}
     </div>
   );
 }
