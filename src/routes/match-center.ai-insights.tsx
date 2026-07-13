@@ -381,7 +381,7 @@ function AIInsightsPage() {
                     Key findings
                   </div>
                   <ul className="text-sm space-y-0.5">
-                    {r.key_findings.map((f, i) => (
+                    {r.key_findings.map((f: { label: string; detail?: string }, i: number) => (
                       <li key={i}>
                         • <span className="font-medium">{f.label}</span>
                         {f.detail ? ` — ${f.detail}` : ""}
@@ -396,7 +396,7 @@ function AIInsightsPage() {
                     Strengths
                   </div>
                   <ul className="text-sm space-y-0.5">
-                    {r.strengths.map((f, i) => (
+                    {r.strengths.map((f: { label: string; detail?: string }, i: number) => (
                       <li key={i}>
                         • {f.label}
                         {f.detail ? ` — ${f.detail}` : ""}
