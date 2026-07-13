@@ -20,8 +20,6 @@ import {
   ArrowLeft,
   Swords,
   ChevronRight,
-  Menu,
-  X,
   Sparkles,
   Globe,
   HeartHandshake,
@@ -184,7 +182,6 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
   const { tenant, signOut } = useDashboard();
   const navigate = useNavigate();
   const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -201,11 +198,11 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
       >
         <div className="flex h-14 items-center gap-2 px-3 md:gap-3 md:px-6">
           <button
+            onClick={() => navigate({ to: "/dashboard" })}
             className="md:hidden -ml-1 grid size-11 place-items-center rounded-lg hover:bg-accent/50 no-tap-highlight"
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Toggle navigation"
+            aria-label="Back to Academy OS"
           >
-            {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            <ArrowLeft className="size-5" />
           </button>
           <button
             onClick={() => navigate({ to: "/dashboard" })}
@@ -223,7 +220,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
             </div>
             <div className="min-w-0">
               <div className="text-[13px] md:text-sm font-semibold truncate leading-tight">
-                <span className="md:hidden">{tenant.name}</span>
+                <span className="md:hidden">Match Center</span>
                 <span className="hidden md:inline">Match Center</span>
               </div>
               <div className="hidden md:block text-[10px] uppercase tracking-wide text-muted-foreground truncate">
@@ -253,7 +250,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
             >
               <Bell className="size-4" />
             </Button>
-            
+
             <Button
               variant="ghost"
               size="sm"
@@ -264,6 +261,35 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
             </Button>
           </div>
         </div>
+
+        {/* Mobile section chips — replaces sidebar on small screens */}
+        <div className="md:hidden border-t border-border/60 bg-background/95">
+          <nav
+            className="flex gap-1.5 overflow-x-auto px-3 py-2 no-scrollbar"
+            aria-label="Match Center sections"
+          >
+            {NAV.map((n) => {
+              const active =
+                location.pathname === n.to || location.pathname.startsWith(n.to + "/");
+              const Icon = n.icon;
+              return (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold transition-colors",
+                    active
+                      ? "border-transparent bg-foreground text-background"
+                      : "border-border bg-card text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <Icon className="size-3.5" />
+                  <span className="whitespace-nowrap">{n.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
       </header>
 
 
@@ -272,41 +298,6 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
         <aside className="hidden md:block w-60 border-r border-border bg-card sticky top-[calc(env(safe-area-inset-top)+3.5rem)] h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]">
           <SidebarInner onNavigate={() => {}} />
         </aside>
-
-        {/* Mobile drawer */}
-        {mobileOpen && (
-          <div
-            className="fixed inset-0 z-50 md:hidden"
-            onClick={() => setMobileOpen(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Match Center navigation"
-          >
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-            <aside
-              className="absolute left-0 top-0 flex h-dvh w-[86vw] max-w-[320px] flex-col border-r border-border bg-card shadow-xl"
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                paddingTop: "env(safe-area-inset-top)",
-                paddingBottom: "env(safe-area-inset-bottom)",
-              }}
-            >
-              <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-card/95 px-4 py-3 backdrop-blur">
-                <div className="text-sm font-semibold truncate">Match Center</div>
-                <button
-                  className="tap-target no-tap-highlight grid place-items-center rounded-lg hover:bg-accent/50 -mr-1"
-                  onClick={() => setMobileOpen(false)}
-                  aria-label="Close navigation"
-                >
-                  <X className="size-5" />
-                </button>
-              </div>
-              <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
-                <SidebarInner onNavigate={() => setMobileOpen(false)} />
-              </div>
-            </aside>
-          </div>
-        )}
 
         <main
           key={location.pathname}
@@ -322,6 +313,7 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
     </div>
   );
 }
+
 
 function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
   const location = useLocation();
