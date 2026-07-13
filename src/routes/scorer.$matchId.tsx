@@ -222,28 +222,7 @@ function ScorerPage() {
     }
   }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
 
-  /* Batter/bowler waiting states are handled inline inside MobileScorer. */
-  useEffect(() => {
-    if (!session.activeInnings) return;
-    if (session.events.length > 0) return;
-    if (!session.striker.name && !pickStrikerOpen && session.battingSquad.length > 0)
-      setPickStrikerOpen(true);
-    else if (session.striker.name && !session.nonStriker.name && !pickNonStrikerOpen)
-      setPickNonStrikerOpen(true);
-    else if (
-      session.striker.name &&
-      session.nonStriker.name &&
-      !session.bowler.name &&
-      !pickBowlerOpen
-    )
-      setPickBowlerOpen(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    session.activeInnings?.id,
-    session.striker.name,
-    session.nonStriker.name,
-    session.bowler.name,
-  ]);
+  /* Batter/bowler setup is handled from the mobile scorer rows and bottom sheets. */
 
   /* ---------- stats ---------- */
   const stats = useMemo(
@@ -999,28 +978,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     }
   }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
 
-  /* Batter/bowler waiting states are handled inline inside MobileScorer. */
-  useEffect(() => {
-    if (!session.activeInnings) return;
-    if (session.events.length > 0) return;
-    if (!session.striker.name && !pickStrikerOpen && session.battingSquad.length > 0)
-      setPickStrikerOpen(true);
-    else if (session.striker.name && !session.nonStriker.name && !pickNonStrikerOpen)
-      setPickNonStrikerOpen(true);
-    else if (
-      session.striker.name &&
-      session.nonStriker.name &&
-      !session.bowler.name &&
-      !pickBowlerOpen
-    )
-      setPickBowlerOpen(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    session.activeInnings?.id,
-    session.striker.name,
-    session.nonStriker.name,
-    session.bowler.name,
-  ]);
+  /* Batter/bowler setup is handled from the mobile scorer rows and bottom sheets. */
 
   if (!dataset || !session.match) {
     return (
