@@ -145,6 +145,25 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
   const striker = strikerOverride ?? inferredStriker;
   const nonStriker = nonStrikerOverride ?? inferredNonStriker;
   const bowler = bowlerOverride ?? inferredBowler;
+  const strikerRef = useRef<CurrentBatterState>(striker);
+  const nonStrikerRef = useRef<CurrentBatterState>(nonStriker);
+  const bowlerRef = useRef<CurrentBowlerState>(bowler);
+  strikerRef.current = striker;
+  nonStrikerRef.current = nonStriker;
+  bowlerRef.current = bowler;
+
+  const setStrikerImmediate = useCallback((s: CurrentBatterState) => {
+    strikerRef.current = s;
+    setStrikerOverride(s);
+  }, []);
+  const setNonStrikerImmediate = useCallback((s: CurrentBatterState) => {
+    nonStrikerRef.current = s;
+    setNonStrikerOverride(s);
+  }, []);
+  const setBowlerImmediate = useCallback((b: CurrentBowlerState) => {
+    bowlerRef.current = b;
+    setBowlerOverride(b);
+  }, []);
 
   const samePlayerRef = (
     a: { athleteId?: string | null; name?: string | null },
