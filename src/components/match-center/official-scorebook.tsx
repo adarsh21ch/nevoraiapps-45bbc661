@@ -793,10 +793,3 @@ function Td({ children, className = "" }: { children: React.ReactNode; className
     <td className={`text-right tabular-nums ${className}`}>{children}</td>
   );
 }
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <h3 className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-      {children}
-    </h3>
-  );
-}
