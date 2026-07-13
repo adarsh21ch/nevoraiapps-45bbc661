@@ -168,13 +168,14 @@ export function ProgressReport({
             onClick={async () => {
               const text = `${kid.student_name} — Player Progress Report\n\n${parentSummary ?? ""}`;
               try {
-                if (typeof navigator !== "undefined" && "share" in navigator) {
-                  await (navigator as Navigator & { share: (data: ShareData) => Promise<void> }).share({
+                const nav = typeof navigator !== "undefined" ? (navigator as Navigator) : null;
+                if (nav && typeof (nav as unknown as { share?: unknown }).share === "function") {
+                  await (nav as Navigator & { share: (data: ShareData) => Promise<void> }).share({
                     title: `${kid.student_name} — Player Progress Report`,
                     text,
                   });
-                } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-                  await navigator.clipboard.writeText(text);
+                } else if (nav && nav.clipboard) {
+                  await nav.clipboard.writeText(text);
                   toast.success("Summary copied to clipboard");
                 }
               } catch {
