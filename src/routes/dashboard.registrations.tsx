@@ -108,7 +108,9 @@ function RegistrationsInbox() {
   );
 
   const openReg = sorted.find((r: any) => r.id === openId) ?? null;
-  const newCount = sorted.filter((r: any) => r.status === "new").length;
+  const newCount = sorted.filter(
+    (r: any) => r.status === "new" || r.status === "reviewed",
+  ).length;
 
   return (
     <div className="space-y-5">
