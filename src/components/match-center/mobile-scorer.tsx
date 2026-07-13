@@ -298,8 +298,18 @@ export function MobileScorer(props: MobileScorerProps) {
             </button>
           )}
 
+          <ScoringDock
+            disabled={props.disabled}
+            onRun={props.onRun}
+            onExtra={props.onExtra}
+            onOut={props.onOut}
+            onUndo={props.onUndo}
+            onScorecard={props.onOpenScorecard}
+            onMore={() => setMoreOpen(true)}
+          />
+
           <LiveInsights
-            className="min-h-[132px] flex-1"
+            className="min-h-[132px]"
             balls={props.overBalls}
             partnership={props.partnership}
             chase={props.chase}
@@ -310,16 +320,6 @@ export function MobileScorer(props: MobileScorerProps) {
           />
         </div>
       </main>
-
-      <ScoringDock
-        disabled={props.disabled}
-        onRun={props.onRun}
-        onExtra={props.onExtra}
-        onOut={props.onOut}
-        onUndo={props.onUndo}
-        onScorecard={props.onOpenScorecard}
-        onMore={() => setMoreOpen(true)}
-      />
 
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
         <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="max-h-[82dvh] overflow-y-auto rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
