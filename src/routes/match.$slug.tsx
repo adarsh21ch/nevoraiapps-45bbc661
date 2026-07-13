@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { commentaryForEvent } from "@/lib/mc-commentary";
+import { commentaryForBall } from "@/lib/mc-commentary";
 import {
   computeBatting,
   computeBowling,
@@ -276,7 +276,7 @@ function Scorecard({ events, bundle }: { events: MCBallEvent[]; bundle: NonNulla
                 <div className="flex flex-wrap gap-2">
                   {fow.map((f, i) => (
                     <Badge key={i} variant="outline">
-                      {f.teamRuns}-{f.wicketNumber} ({f.batterOut?.name ?? "?"}, {f.overs}.{f.balls})
+                      {f.score}-{f.wicketNumber} ({f.batter?.name ?? "?"}, {f.overDisplay})
                     </Badge>
                   ))}
                 </div>
@@ -326,7 +326,7 @@ function Commentary({ events }: { events: MCBallEvent[] }) {
             <span className="text-xs text-muted-foreground mr-2 tabular-nums">
               {ev.over_number}.{ev.ball_number}
             </span>
-            {commentaryForEvent(ev)}
+            {commentaryForBall(ev)}
           </div>
         ))}
       </div>
