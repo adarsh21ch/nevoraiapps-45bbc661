@@ -22,6 +22,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
 import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
 import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
@@ -120,6 +121,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+const ScorerMatchIdRoute = ScorerMatchIdRouteImport.update({
+  id: '/scorer/$matchId',
+  path: '/scorer/$matchId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PlatformAdminSubscriptionsRoute =
   PlatformAdminSubscriptionsRouteImport.update({
@@ -326,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
+  '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
@@ -371,6 +378,7 @@ export interface FileRoutesByTo {
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
+  '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/dashboard': typeof DashboardIndexRoute
   '/match-center': typeof MatchCenterIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
@@ -420,6 +428,7 @@ export interface FileRoutesById {
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
+  '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
@@ -470,6 +479,7 @@ export interface FileRouteTypes {
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
+    | '/scorer/$matchId'
     | '/dashboard/'
     | '/match-center/'
     | '/platform-admin/'
@@ -515,6 +525,7 @@ export interface FileRouteTypes {
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
+    | '/scorer/$matchId'
     | '/dashboard'
     | '/match-center'
     | '/platform-admin'
@@ -563,6 +574,7 @@ export interface FileRouteTypes {
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
+    | '/scorer/$matchId'
     | '/dashboard/'
     | '/match-center/'
     | '/platform-admin/'
@@ -589,6 +601,7 @@ export interface RootRouteChildren {
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
+  ScorerMatchIdRoute: typeof ScorerMatchIdRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
 }
@@ -685,6 +698,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/scorer/$matchId': {
+      id: '/scorer/$matchId'
+      path: '/scorer/$matchId'
+      fullPath: '/scorer/$matchId'
+      preLoaderRoute: typeof ScorerMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/platform-admin/subscriptions': {
       id: '/platform-admin/subscriptions'
@@ -1038,6 +1058,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
+  ScorerMatchIdRoute: ScorerMatchIdRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
 }
