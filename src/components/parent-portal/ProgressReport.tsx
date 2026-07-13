@@ -252,12 +252,13 @@ export function ProgressReport({
         ) : attendanceQ.data ? (
           <div className="grid gap-4 sm:grid-cols-[auto_1fr]">
             <div className="flex items-center gap-4">
-              <ProgressRing
-                value={attendanceQ.data.current.percent}
-                max={100}
-                label="This month"
-                ariaLabel={`Current month attendance ${attendanceQ.data.current.percent}%`}
-              />
+              <div role="img" aria-label={`Current month attendance ${attendanceQ.data.current.percent}%`}>
+                <ProgressRing
+                  value={attendanceQ.data.current.percent}
+                  max={100}
+                  label="This month"
+                />
+              </div>
               <dl className="text-sm space-y-1">
                 <MonthStat label="Present" value={attendanceQ.data.current.present} tone="pos" />
                 <MonthStat label="Late" value={attendanceQ.data.current.late} tone="warn" />
