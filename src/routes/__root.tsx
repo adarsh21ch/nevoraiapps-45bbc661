@@ -14,6 +14,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { TenantProvider } from "../lib/tenant-context";
+import { ImpersonationBanner } from "../components/platform/ImpersonationBanner";
 
 function NotFoundComponent() {
   return (
@@ -187,6 +188,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <TenantProvider>
         <ThemeSystemListener />
+        <ImpersonationBanner />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         {/* App-wide toast host — without this, every toast.success/error is invisible,

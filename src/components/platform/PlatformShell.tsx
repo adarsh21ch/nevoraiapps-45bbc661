@@ -2,7 +2,7 @@ import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { LayoutDashboard, Building2, Plus, Receipt, LogOut, Menu, Shield, Settings } from "lucide-react";
+import { LayoutDashboard, Building2, Plus, Receipt, LogOut, Menu, Shield, Settings, Sparkles, BarChart3, Activity, ScrollText, LifeBuoy, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatform } from "@/lib/platform-context";
 
@@ -11,7 +11,13 @@ const nav = [
   { to: "/platform-admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { to: "/platform-admin/tenants", label: "Tenants", icon: Building2 },
   { to: "/platform-admin/subscriptions", label: "Subscriptions", icon: Receipt },
-  { to: "/platform-admin/new", label: "Onboard new client", icon: Plus },
+  { to: "/platform-admin/flags", label: "Feature flags", icon: Sparkles },
+  { to: "/platform-admin/usage", label: "Usage", icon: BarChart3 },
+  { to: "/platform-admin/health", label: "System health", icon: Activity },
+  { to: "/platform-admin/audit", label: "Audit log", icon: ScrollText },
+  { to: "/platform-admin/support", label: "Support", icon: LifeBuoy },
+  { to: "/platform-admin/search", label: "Search", icon: Search },
+  { to: "/platform-admin/new", label: "Onboard client", icon: Plus },
   { to: "/platform-admin/settings", label: "Contact settings", icon: Settings },
 ];
 

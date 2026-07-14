@@ -4049,6 +4049,48 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_audit_log: {
+        Row: {
+          action: string
+          actor_id: string
+          after_state: Json | null
+          before_state: Json | null
+          created_at: string
+          id: string
+          ip: string | null
+          target_id: string | null
+          target_type: string
+          tenant_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          after_state?: Json | null
+          before_state?: Json | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          target_id?: string | null
+          target_type: string
+          tenant_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          after_state?: Json | null
+          before_state?: Json | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          target_id?: string | null
+          target_type?: string
+          tenant_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           contact_email: string
@@ -4069,6 +4111,57 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      platform_support_notes: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          priority: string
+          resolved_at: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_support_notes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_support_notes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       policy_documents: {
         Row: {
@@ -5017,6 +5110,7 @@ export type Database = {
         }[]
       }
       get_parent_child_summary: { Args: { _student_id: string }; Returns: Json }
+      get_platform_stats: { Args: never; Returns: Json }
       get_public_academy_bundle: { Args: { _slug: string }; Returns: Json }
       get_public_match_bundle: { Args: { _slug: string }; Returns: Json }
       has_profile_role: {
@@ -5051,6 +5145,17 @@ export type Database = {
           student_id: string
           student_name: string
         }[]
+      }
+      log_platform_action: {
+        Args: {
+          _action: string
+          _after?: Json
+          _before?: Json
+          _target_id: string
+          _target_type: string
+          _tenant_id: string
+        }
+        Returns: string
       }
       mark_all_notifications_read: { Args: never; Returns: number }
       mark_notification_read: { Args: { _id: string }; Returns: undefined }
@@ -5116,6 +5221,10 @@ export type Database = {
         Returns: undefined
       }
       send_campaign: { Args: { _campaign_id: string }; Returns: Json }
+      set_tenant_feature: {
+        Args: { _enabled: boolean; _key: string; _tenant_id: string }
+        Returns: undefined
+      }
       slugify: { Args: { _input: string }; Returns: string }
       submit_lead: {
         Args: {

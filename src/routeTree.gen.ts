@@ -45,9 +45,15 @@ import { Route as StudentProfileRouteImport } from './routes/student.profile'
 import { Route as StudentMatchesRouteImport } from './routes/student.matches'
 import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
 import { Route as PoliciesKindRouteImport } from './routes/policies.$kind'
+import { Route as PlatformAdminUsageRouteImport } from './routes/platform-admin.usage'
+import { Route as PlatformAdminSupportRouteImport } from './routes/platform-admin.support'
 import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
+import { Route as PlatformAdminSearchRouteImport } from './routes/platform-admin.search'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
+import { Route as PlatformAdminHealthRouteImport } from './routes/platform-admin.health'
+import { Route as PlatformAdminFlagsRouteImport } from './routes/platform-admin.flags'
+import { Route as PlatformAdminAuditRouteImport } from './routes/platform-admin.audit'
 import { Route as ParentTimelineRouteImport } from './routes/parent.timeline'
 import { Route as ParentProgressRouteImport } from './routes/parent.progress'
 import { Route as ParentProfileRouteImport } from './routes/parent.profile'
@@ -286,6 +292,16 @@ const PoliciesKindRoute = PoliciesKindRouteImport.update({
   path: '/policies/$kind',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlatformAdminUsageRoute = PlatformAdminUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminSupportRoute = PlatformAdminSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
 const PlatformAdminSubscriptionsRoute =
   PlatformAdminSubscriptionsRouteImport.update({
     id: '/subscriptions',
@@ -297,9 +313,29 @@ const PlatformAdminSettingsRoute = PlatformAdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => PlatformAdminRoute,
 } as any)
+const PlatformAdminSearchRoute = PlatformAdminSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
 const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
   id: '/new',
   path: '/new',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminHealthRoute = PlatformAdminHealthRouteImport.update({
+  id: '/health',
+  path: '/health',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminFlagsRoute = PlatformAdminFlagsRouteImport.update({
+  id: '/flags',
+  path: '/flags',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminAuditRoute = PlatformAdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => PlatformAdminRoute,
 } as any)
 const ParentTimelineRoute = ParentTimelineRouteImport.update({
@@ -666,9 +702,15 @@ export interface FileRoutesByFullPath {
   '/parent/profile': typeof ParentProfileRoute
   '/parent/progress': typeof ParentProgressRoute
   '/parent/timeline': typeof ParentTimelineRoute
+  '/platform-admin/audit': typeof PlatformAdminAuditRoute
+  '/platform-admin/flags': typeof PlatformAdminFlagsRoute
+  '/platform-admin/health': typeof PlatformAdminHealthRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
+  '/platform-admin/support': typeof PlatformAdminSupportRoute
+  '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -759,9 +801,15 @@ export interface FileRoutesByTo {
   '/parent/profile': typeof ParentProfileRoute
   '/parent/progress': typeof ParentProgressRoute
   '/parent/timeline': typeof ParentTimelineRoute
+  '/platform-admin/audit': typeof PlatformAdminAuditRoute
+  '/platform-admin/flags': typeof PlatformAdminFlagsRoute
+  '/platform-admin/health': typeof PlatformAdminHealthRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
+  '/platform-admin/support': typeof PlatformAdminSupportRoute
+  '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -858,9 +906,15 @@ export interface FileRoutesById {
   '/parent/profile': typeof ParentProfileRoute
   '/parent/progress': typeof ParentProgressRoute
   '/parent/timeline': typeof ParentTimelineRoute
+  '/platform-admin/audit': typeof PlatformAdminAuditRoute
+  '/platform-admin/flags': typeof PlatformAdminFlagsRoute
+  '/platform-admin/health': typeof PlatformAdminHealthRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
+  '/platform-admin/support': typeof PlatformAdminSupportRoute
+  '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -958,9 +1012,15 @@ export interface FileRouteTypes {
     | '/parent/profile'
     | '/parent/progress'
     | '/parent/timeline'
+    | '/platform-admin/audit'
+    | '/platform-admin/flags'
+    | '/platform-admin/health'
     | '/platform-admin/new'
+    | '/platform-admin/search'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
+    | '/platform-admin/support'
+    | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
     | '/student/matches'
@@ -1051,9 +1111,15 @@ export interface FileRouteTypes {
     | '/parent/profile'
     | '/parent/progress'
     | '/parent/timeline'
+    | '/platform-admin/audit'
+    | '/platform-admin/flags'
+    | '/platform-admin/health'
     | '/platform-admin/new'
+    | '/platform-admin/search'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
+    | '/platform-admin/support'
+    | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
     | '/student/matches'
@@ -1149,9 +1215,15 @@ export interface FileRouteTypes {
     | '/parent/profile'
     | '/parent/progress'
     | '/parent/timeline'
+    | '/platform-admin/audit'
+    | '/platform-admin/flags'
+    | '/platform-admin/health'
     | '/platform-admin/new'
+    | '/platform-admin/search'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
+    | '/platform-admin/support'
+    | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
     | '/student/matches'
@@ -1470,6 +1542,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PoliciesKindRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/platform-admin/usage': {
+      id: '/platform-admin/usage'
+      path: '/usage'
+      fullPath: '/platform-admin/usage'
+      preLoaderRoute: typeof PlatformAdminUsageRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/support': {
+      id: '/platform-admin/support'
+      path: '/support'
+      fullPath: '/platform-admin/support'
+      preLoaderRoute: typeof PlatformAdminSupportRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
     '/platform-admin/subscriptions': {
       id: '/platform-admin/subscriptions'
       path: '/subscriptions'
@@ -1484,11 +1570,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlatformAdminSettingsRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
+    '/platform-admin/search': {
+      id: '/platform-admin/search'
+      path: '/search'
+      fullPath: '/platform-admin/search'
+      preLoaderRoute: typeof PlatformAdminSearchRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
     '/platform-admin/new': {
       id: '/platform-admin/new'
       path: '/new'
       fullPath: '/platform-admin/new'
       preLoaderRoute: typeof PlatformAdminNewRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/health': {
+      id: '/platform-admin/health'
+      path: '/health'
+      fullPath: '/platform-admin/health'
+      preLoaderRoute: typeof PlatformAdminHealthRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/flags': {
+      id: '/platform-admin/flags'
+      path: '/flags'
+      fullPath: '/platform-admin/flags'
+      preLoaderRoute: typeof PlatformAdminFlagsRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/audit': {
+      id: '/platform-admin/audit'
+      path: '/audit'
+      fullPath: '/platform-admin/audit'
+      preLoaderRoute: typeof PlatformAdminAuditRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
     '/parent/timeline': {
@@ -2061,18 +2175,30 @@ const ParentRouteWithChildren =
   ParentRoute._addFileChildren(ParentRouteChildren)
 
 interface PlatformAdminRouteChildren {
+  PlatformAdminAuditRoute: typeof PlatformAdminAuditRoute
+  PlatformAdminFlagsRoute: typeof PlatformAdminFlagsRoute
+  PlatformAdminHealthRoute: typeof PlatformAdminHealthRoute
   PlatformAdminNewRoute: typeof PlatformAdminNewRoute
+  PlatformAdminSearchRoute: typeof PlatformAdminSearchRoute
   PlatformAdminSettingsRoute: typeof PlatformAdminSettingsRoute
   PlatformAdminSubscriptionsRoute: typeof PlatformAdminSubscriptionsRoute
+  PlatformAdminSupportRoute: typeof PlatformAdminSupportRoute
+  PlatformAdminUsageRoute: typeof PlatformAdminUsageRoute
   PlatformAdminIndexRoute: typeof PlatformAdminIndexRoute
   PlatformAdminTenantsIdRoute: typeof PlatformAdminTenantsIdRoute
   PlatformAdminTenantsIndexRoute: typeof PlatformAdminTenantsIndexRoute
 }
 
 const PlatformAdminRouteChildren: PlatformAdminRouteChildren = {
+  PlatformAdminAuditRoute: PlatformAdminAuditRoute,
+  PlatformAdminFlagsRoute: PlatformAdminFlagsRoute,
+  PlatformAdminHealthRoute: PlatformAdminHealthRoute,
   PlatformAdminNewRoute: PlatformAdminNewRoute,
+  PlatformAdminSearchRoute: PlatformAdminSearchRoute,
   PlatformAdminSettingsRoute: PlatformAdminSettingsRoute,
   PlatformAdminSubscriptionsRoute: PlatformAdminSubscriptionsRoute,
+  PlatformAdminSupportRoute: PlatformAdminSupportRoute,
+  PlatformAdminUsageRoute: PlatformAdminUsageRoute,
   PlatformAdminIndexRoute: PlatformAdminIndexRoute,
   PlatformAdminTenantsIdRoute: PlatformAdminTenantsIdRoute,
   PlatformAdminTenantsIndexRoute: PlatformAdminTenantsIndexRoute,
