@@ -226,6 +226,7 @@ interface TodayRow {
   check_in_at: string | null;
   check_out_at: string | null;
   duration_minutes: number | null;
+  visit_count?: number;
 }
 
 function StudentRow({
