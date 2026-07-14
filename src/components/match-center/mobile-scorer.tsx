@@ -690,32 +690,34 @@ function LiveInsights({
         <InfoTile label="FOW" value={insights?.lastWicket ?? "–"} />
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-1.5 overflow-hidden">
-        <div className="min-w-0 rounded-lg bg-card/55 px-2 py-1.5">
-          <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recent overs</div>
-          {recentOvers.length === 0 ? (
-            <div className="text-[11.5px] text-muted-foreground">Ball-by-ball data appears here.</div>
-          ) : (
-            <div className="flex flex-wrap items-center gap-1">
-              {recentOvers.slice(-4).map((over) => (
-                <span
-                  key={over.label}
-                  className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background/70 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums"
-                >
-                  <span className="text-muted-foreground">{over.label}</span>
-                  <span className="font-black text-foreground">
+      <div className="min-h-0 flex-1 rounded-lg bg-card/55 px-2 py-1.5">
+        <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recent overs</div>
+        {recentOvers.length === 0 ? (
+          <div className="text-[11.5px] text-muted-foreground">Ball-by-ball data appears here.</div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {recentOvers.slice(-3).map((over) => {
+              const pct = Math.min(100, Math.round((over.runs / 36) * 100));
+              return (
+                <div key={over.label} className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-2">
+                  <span className="text-[10.5px] font-black tabular-nums text-muted-foreground">{over.label}</span>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted/70">
+                    <div
+                      className={cn(
+                        "h-full rounded-full",
+                        over.wickets > 0 ? "bg-destructive/70" : "bg-primary/70",
+                      )}
+                      style={{ width: `${Math.max(6, pct)}%` }}
+                    />
+                  </div>
+                  <span className="text-[11px] font-black tabular-nums text-foreground">
                     {over.runs}{over.wickets ? `/${over.wickets}` : ""}
                   </span>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="grid min-w-[76px] content-center gap-0.5 rounded-lg bg-card/55 px-2 py-1.5 text-right text-[11px] tabular-nums">
-          <MetricInline label="CRR" value={crr ?? "–"} />
-          {rrr && <MetricInline label="RRR" value={rrr} accent />}
-          {target && <MetricInline label="T" value={target} />}
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
 
