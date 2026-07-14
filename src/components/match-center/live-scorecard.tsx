@@ -14,6 +14,7 @@ interface Props {
   events: MCBallEvent[];
   innings: MCInnings | null;
   totalOvers?: number | null;
+  hideHero?: boolean;
   matchInfo?: {
     ground?: string | null;
     tournament?: string | null;
