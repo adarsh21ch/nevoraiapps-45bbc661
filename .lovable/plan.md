@@ -1,78 +1,210 @@
 
-# Match Center → Public Cricket Platform
+# AcademyOS V2 — Architecture Review
 
-Removed the bottom "Book a call / Register" CTA bar on the academy website already. Everything below is the larger refactor and needs your approval before I start, because it touches the scoring engine, database, realtime, routing, roles and public site — several weeks of surface area.
+No code will change until you approve. This is a pure audit + plan.
 
-I want to ship this in reviewable phases, not a single mega-PR. Each phase leaves the app fully working.
+---
 
-## Guiding principles
+## 1. Architecture Review (what's here today)
 
-- The scoring engine (`src/lib/mc-statistics-engine.ts`) is the ONE source of truth. Every screen (public match page, player profile, team profile, records, insights, website) derives numbers from the same reducer — no per-screen recalculation.
-- One Supabase Realtime channel per match, shared via a provider; every consumer subscribes through it (no duplicate `channel(...)` calls).
-- Every completed / live match, every player, every team gets a public, SEO-indexable URL with SSR head metadata.
-- No off-by-one over labels. Legal-ball count is the only source; wides/no-balls never increment; byes/leg-byes do. Regression tests locked in.
+**Stack**
+- TanStack Start v1 + React 19 + Vite 7, Tailwind v4 (`src/styles.css`)
+- Supabase (Postgres + Auth + Realtime + Storage `tenant-assets`)
+- Server logic via `createServerFn` (`src/lib/*.functions.ts`) + `requireSupabaseAuth`
+- Multi-tenant via `tenants.slug` / `custom_domain`, resolved in `TenantGate` + `tenant-context`
 
-## Phase 1 — Foundations (safe, invisible)
+**Frontend surfaces (66 route files, ~22k LOC)**
+- **Public site**: `index`, `about`, `contact`, `fees`, `register`, `academy.$slug`, `match.$slug`, `m.$slug`, `star-players`
+- **Auth**: `auth.tsx`
+- **Dashboard (Owner/Admin)**: `dashboard.*` — students, batches, fees, attendance, leads, registrations, reminders, reports, insights, site, settings, profile
+- **Match Center**: `match-center.*` (23 files) — dashboard, live, matches, create, scorebook, teams, tournaments, players, performance, recognition, records, awards, insights, ai-insights, website, scorers, settings
+- **Scorer**: `scorer.$matchId.tsx` (1,853 LOC — largest file)
+- **Platform Admin**: `platform-admin.*` — tenants, subscriptions, settings
+- **Parent Portal**: `parent-portal.tsx`
 
-1. Consolidate the engine
-   - Move any stray stat math out of components into `mc-statistics-engine`.
-   - Export pure selectors: `computeInningsSummary`, `computeBatting`, `computeBowling`, `computePartnerships`, `computeFallOfWickets`, `computeOverHistory`, `computeCurrentOverStrip`, `formatOverLabel`.
-   - Formal tests for over label at 1.1, 1.6, 2.1, 10.6, 11.1, wide, no-ball, byes/leg-byes, undo/redo, over transition, innings transition.
-2. Single realtime provider
-   - New `MatchRealtimeProvider` keyed by `matchId` — one Supabase channel for `mc_ball_events`, `mc_innings`, `mc_matches`, `mc_match_squads`.
-   - Every screen consumes via `useMatchLive(matchId)` instead of subscribing itself.
-3. Database audit (migration)
-   - Add indexes: `mc_ball_events(match_id, created_at)`, `mc_ball_events(innings_id, over_number, ball_number)`, `mc_matches(tenant_id, status, scheduled_date)`, `mc_match_squads(match_id, team_id)`.
-   - Unique guard on `(innings_id, over_number, ball_number, sequence)` to prevent duplicate deliveries.
-   - Public read policies for match/player/team pages (`TO anon` narrow SELECT).
-   - `mc_matches.public_slug` populated for every live/completed match (backfill).
+**Backend**
+- 46 tables (audited in schema summary), mostly RLS'd via `is_tenant_member` / `is_platform_admin` / `is_match_scorer` / `has_role` security-definer functions
+- Public read paths via SECURITY DEFINER RPCs: `get_public_match_bundle`, `get_public_academy_bundle`, `get_parent_child_summary`, `list_parent_children`
+- Slug + player_id auto-assignment triggers
+- Realtime enabled on match tables; consolidated through new `useMatchLive` ref-counted hook ✅
 
-## Phase 2 — Public URLs (SSR + SEO)
+**Engines (protected — do not rewrite)**
+- `mc-ball-events-core.ts` + `mc-ball-events.ts` (ball append/undo, extras derivation)
+- `mc-statistics-engine.ts` + `.format.test.ts` (has tests)
+- `mc-rules-engine.ts`, `mc-finalization.ts`, `mc-career-engine.ts`, `mc-recognition-engine.ts`, `mc-tournament-engine.ts`, `mc-ai-engine.ts`, `mc-commentary.ts`, `mc-performance-analytics.ts`
 
-- New routes (all public, SSR head with title/description/OG/twitter/canonical + JSON-LD):
-  - `/match/$slug` — full match page (summary, live/final score, batting, bowling, current partnership, FoW, recent overs, ball-by-ball, over-by-over, CRR/RRR, target, PoM, venue, date, XI).
-  - `/player/$slug` — profile (matches, R, B, avg, SR, HS, 50s, 100s, 4s, 6s, bowling, fielding, career timeline, recent matches, form graph).
-  - `/team/$slug` — profile (P, W, L, runs, wickets, recent, players, top batter, top bowler).
-  - `/records` — academy records (auto-computed).
-  - `/insights` — public leaderboards and charts.
-- Public server functions (publishable-key client + narrow `TO anon` SELECT) — no `requireSupabaseAuth` in these loaders.
-- Sitemap generator at `/api/public/sitemap.xml` listing every live/completed match, player, team; `robots.txt` allows all.
-- Ball-by-ball UI mirrors Cricbuzz: collapsed over row (chips), tap to expand to per-ball narration.
+---
 
-## Phase 3 — Match Center app (roles + bottom nav only)
+## 2. Problems Found
 
-- Remove the Match Center sidebar; keep only bottom nav: Live / Matches / Players / Insights / Profile.
-- Live tab: live cards (LIVE badge, teams, score, overs, target, need, CRR, RRR, "Open Scorecard") or "Create Match" empty state.
-- Matches tab: only Live and Completed. Delete Upcoming/Scheduled/Cancelled/Archived/Abandoned UI (data stays; filter surfaces removed). Search across player / team / ground / date.
-- Roles:
-  - OWNER: existing full access.
-  - COACH / SCORER: gated to Match Center only. Add a role check in `_authenticated` layout that redirects non-owners hitting `/fees`, `/finance`, `/academy`, `/settings`, `/website` back to `/match-center`.
-- Current-over strip: on over end, clear to blank until next legal delivery. Bowler-required state: current bowler goes inactive, tapping a scoring button opens bowler picker then replays the intended action (no popup interrupt).
+**Architecture & duplication**
+- Three parallel shells: `DashboardShell`, `PlatformShell`, `MatchCenterLayout` — no unified `AppShell`. Each re-implements header/nav/safe-area.
+- Two bottom navs: `GlobalBottomNav` + `MatchCenterBottomNav` — inconsistent.
+- Design system folder exists (`components/design-system/`) but many routes bypass it and hand-roll cards, KPIs, empty states.
+- Match Center has 6 "demo-*" files (`demo-badge`, `demo-player-profile`, `demo-settings-card`, `demo-team-profile`, `demo-tournament-detail`) mixed with real UI — unclear which are shipped.
+- `scorer.$matchId.tsx` is 1,853 LOC — one file owns scoring UI, state, dialogs, keyboard, undo. Needs decomposition (not rewrite).
+- Two scoring session hooks (`use-scoring-session`, `use-demo-scoring-session`) with overlapping logic.
+- Public match views split across `match.$slug.tsx` and `m.$slug.tsx` — duplicate routing surface.
 
-## Phase 4 — Website sync
+**Design consistency**
+- No enforced token layer. Some components risk hardcoded colors (`text-white`, `bg-black`) — needs sweep.
+- Typography scale scattered; `design-system/typography.tsx` exists but underused.
+- Spacing/radius/shadow tokens partially defined; not universally applied.
 
-- The tenant website's Live/Matches/Records/Players/Teams sections read from the SAME public server functions used by `/match/$slug` etc.
-- Live widget uses `useMatchLive` on the match id, so a scored ball updates hero widget and match page simultaneously.
-- Bottom "Book a call / Register" CTA already removed. Verify no other floating popups occupy the fold.
+**Mobile**
+- Native-app feel is inconsistent: some pages have desktop-first tables (dashboard.students, dashboard.fees, platform-admin.tenants.$id) that horizontal-scroll on mobile.
+- Safe-area (`env(safe-area-inset-*)`) only partially wired — bottom navs overlap iOS home indicator on some routes.
+- Sheets vs Dialogs used inconsistently; mobile should prefer bottom sheets.
+- `FloatingWhatsApp` + `MobileCtaBar` compete for bottom real estate on public site (already partially addressed).
 
-## Phase 5 — Perf & QA
+**Performance**
+- Many routes fetch in `useEffect` + `useState` instead of loader + `useSuspenseQuery`. Causes waterfalls and blank flashes.
+- Some Match Center pages likely re-subscribe to realtime per component before the new `useMatchLive` hook — needs adoption sweep.
+- No route-level `staleTime`/`gcTime` policy; queries refetch aggressively.
+- `types.ts` is large; some client bundles import server-only modules indirectly (needs audit via `bun run build`).
 
-- Route-level code split for scorer, match page, insights, records.
-- Virtualize ball-by-ball (`@tanstack/react-virtual`).
-- `useMemo` on engine selectors keyed by last event id.
-- Playwright end-to-end: score a full over (with wide, no-ball, bye, wicket, undo, redo), assert public match page + player profile + records update live.
+**Auth / roles**
+- Roles live in `profiles.role` + `platform_admins` + `mc_scorers` + `mc_parent_links` — four sources. `has_profile_role` exists but not consistently used in the UI to gate menus.
+- No single `useCurrentRole()` hook — role checks are re-derived in many places.
 
-## Technical notes
+**Routing**
+- Flat file names (`match-center.foo.bar.tsx`) with no `_authenticated` gate for dashboard/match-center; auth checks happen inside components. Prerender-safe today because loaders don't hit protected server fns, but fragile.
+- Public routes and app routes share the same shell wrapper (`TenantGate`), which forces public-site chrome onto app-like screens in edge cases.
 
-- No new business logic in components — they call selectors from `mc-statistics-engine`.
-- Server functions for public reads use the server publishable client from `tanstack-supabase-integration`, not `supabaseAdmin`.
-- Slugs stored in `mc_matches.public_slug`, `students.public_slug`, `mc_teams.public_slug`; unique per tenant; backfilled with a migration.
-- Head metadata set in each leaf route's `head()`, derived from loader data. `og:image` only at the leaf; never on `__root`.
+**Data model observations (no changes proposed yet)**
+- `mc_matches` is 38 columns — some derived fields could live in a view.
+- `mc_public_matches` gates public visibility per-match — good.
+- Grants look present on schema summary; will verify on any new table.
 
-## What I need from you before I start
+---
 
-1. Confirm you want this shipped in the 5 phases above (each phase is a separate turn / PR).
-2. Slug format for public URLs — is `sai-u16-vs-sky-u16-2026-07-14` OK for matches, `firstname-lastname-<playerId>` for players, `team-slug` for teams? Prevents collisions and keeps SEO clean.
-3. For COACH / SCORER, is "Match Center only" strict (no read access to student profiles outside a match)? Or can they view player profiles too?
+## 3. Reusable Component Set (design system v2)
 
-Once you confirm, I'll start Phase 1 (engine consolidation + realtime provider + DB indexes) — that phase is invisible to end users but unlocks everything else.
+Build once in `src/components/ds/` (new namespace) and migrate incrementally:
+
+**Primitives**
+- `AppShell` — header slot, nav slot, safe-area, scroll container
+- `TopBar` (title, back, action) / `BottomNav` (role-aware items)
+- `Screen` — page container with consistent padding + max-width
+- `Section` / `SectionHeader`
+
+**Content**
+- `Card`, `StatCard` (KPI), `ListItem`, `PlayerRow`, `MatchRow`, `TeamRow`
+- `Table` (desktop) with automatic `MobileList` fallback
+- `EmptyState`, `ErrorState`, `LoadingState` (skeletons per shape: list/card/detail)
+- `Badge`, `Chip`, `Avatar` (person/team/logo variants)
+
+**Interaction**
+- `Button` variants, `IconButton`, `SegmentedControl`, `Tabs`
+- `Sheet` (bottom-sheet first on mobile, dialog on desktop)
+- `SearchBar`, `Filter`, `Sort`
+- `Form` primitives (Field, Label, Error, Hint), `NumberStepper`, `PhoneInput`, `Money`
+
+**Match-specific atoms** (already partially exist — consolidate)
+- `Scorecard`, `LiveStrip`, `OverBar`, `RunButtons`, `ExtrasPad`, `WicketPad`, `PartnershipCard`
+
+All tokens live in `styles.css` `@theme` — no hex in components.
+
+---
+
+## 4. Refactoring Strategy (safe, incremental)
+
+Guardrails:
+- **Never** touch `mc-ball-events*`, `mc-statistics-engine*`, `mc-rules-engine*`, `mc-finalization*`, `mc-*-engine*` internals. Wrap, don't rewrite.
+- **Never** rename existing tables/columns. Add views/RPCs if needed.
+- **Preserve** all public URLs (`/academy/:slug`, `/match/:slug`, `/m/:slug`).
+- Every migration keeps existing RLS + adds GRANTs.
+
+Approach:
+1. Introduce `ds/` primitives alongside old components. Old components keep working.
+2. Migrate routes one surface at a time (Match Center Live → Match Center Dashboard → Dashboard Students → …).
+3. Delete demo-* + old shells only after their consumers migrate.
+4. Adopt `useMatchLive` everywhere match realtime is used; remove ad-hoc `supabase.channel` calls.
+5. Convert `useEffect+fetch` pages to loader + `useSuspenseQuery` using existing `dashboard-queries` / `platform-queries` / `site-queries` patterns.
+6. Split `scorer.$matchId.tsx` into `<ScorerScreen>` + `useScorerController` + pad components — no logic changes.
+
+---
+
+## 5. Implementation Roadmap (phased)
+
+**Phase 0 — Foundations (no user-visible change)**
+- Design tokens sweep in `styles.css`
+- `ds/` primitives: AppShell, Screen, TopBar, BottomNav, Card, StatCard, ListItem, EmptyState, LoadingState, Sheet, Button, Tabs, SegmentedControl
+- `useCurrentRole()` + role-aware nav config
+- Safe-area utilities
+
+**Phase 1 — Public site polish**
+- `academy.$slug`, `match.$slug`, `m.$slug`, `star-players`, `index`, `about`, `contact` on new primitives
+- Live match widget uses `useMatchLive`
+- SEO/head metadata sweep per route (og:image at leaves only)
+
+**Phase 2 — Match Center (mobile-first)**
+- Consolidate bottom nav
+- Migrate `match-center.live`, `.dashboard`, `.matches`, `.scorebook.$matchId`
+- Decompose `scorer.$matchId.tsx` (behavior-preserving)
+- Remove `demo-*` files after parity confirmed
+
+**Phase 3 — Dashboard (Owner/Admin)**
+- Students, Batches, Attendance, Fees, Registrations, Leads → mobile-first cards + desktop tables
+- Reports/Insights → StatCard grid
+
+**Phase 4 — Roles & Navigation**
+- Owner / Admin / Student / Parent nav configs
+- Route gating via `_authenticated` layout where safe (respect SSR/prerender rules)
+
+**Phase 5 — Platform Admin**
+- Tenants list/detail, subscriptions, settings on new primitives
+
+**Phase 6 — Cleanup**
+- Delete dead code, old shells, demo files
+- Bundle audit + `bun run build` size check
+- Realtime subscription audit
+
+---
+
+## 6. Risks
+
+- **Scorer regressions** — highest risk. Mitigation: no engine changes; snapshot the current scoring flow with a manual test script + preserve `mc-statistics-engine.format.test.ts`; migrate UI in a branch-like sequence.
+- **Realtime cost** — a botched migration could double-subscribe. Mitigation: ban raw `supabase.channel` in match code; route everything through `useMatchLive`.
+- **SSR/prerender breakage** — moving loaders under auth without gating. Mitigation: keep protected data in components via `useServerFn`, not in public loaders.
+- **Design drift** during long migration — mixed old/new components. Mitigation: freeze old components (no new usages) once `ds/` primitive lands.
+- **Tenant routing** — public site and app share `TenantGate`. Mitigation: split into `PublicTenantGate` + `AppTenantGate` in Phase 0.
+
+---
+
+## 7. Estimated Files Changed
+
+Rough scope (no engine files):
+
+| Area | Files touched | New files |
+|---|---|---|
+| Design system primitives | — | ~25 in `src/components/ds/` |
+| Tokens / styles | 1 (`src/styles.css`) | — |
+| Public site routes | ~9 | — |
+| Match Center routes | ~23 (light edits, 3–4 deep) | ~6 (scorer split) |
+| Dashboard routes | ~14 | — |
+| Platform admin | ~6 | — |
+| Shells / nav | delete 3, replace with 2 | 2 |
+| Hooks | +2 (`useCurrentRole`, `useSafeArea`) | 2 |
+| Migrations | 0 required for Phase 0–2; possibly 1 for a public leaderboard view later | — |
+
+Total: **~60 files edited, ~35 files added, ~10 files deleted**. Zero engine rewrites.
+
+---
+
+## 8. Development Phases — order of execution
+
+1. Phase 0 Foundations
+2. Phase 1 Public site
+3. Phase 2 Match Center + Scorer split
+4. Phase 3 Dashboard
+5. Phase 4 Roles & Nav gating
+6. Phase 5 Platform Admin
+7. Phase 6 Cleanup + perf pass
+
+Each phase ends with: build passes, no realtime leaks, no console errors, screenshots on mobile viewport.
+
+---
+
+**Approve this plan and I'll start with Phase 0 (foundations, no visible changes).**
+Reply with any changes to scope, priorities, or phase order before I begin.
