@@ -239,8 +239,7 @@ function StudentRow({
   const state: AttendanceState = row?.current_state ?? "not_marked";
   const checkIn = useCheckIn();
   const checkOut = useCheckOut(tenantId);
-  const markAbsent = useMarkAbsent();
-  const busy = checkIn.isPending || checkOut.isPending || markAbsent.isPending;
+  const busy = checkIn.isPending || checkOut.isPending;
 
   const onCheckIn = () => {
     checkIn.mutate(
@@ -261,48 +260,25 @@ function StudentRow({
       },
     );
   };
-  const onAbsent = () => {
-    markAbsent.mutate(
-      { tenantId, batchId, studentId: student.id },
-      {
-        onSuccess: () => toast(`${student.name} marked absent`),
-        onError: (e: Error) => toast.error(e.message || "Failed to mark absent"),
-      },
-    );
-  };
 
   return (
     <ListItem
       leading={<PersonAvatar name={student.name} src={student.photo_url} className="size-10" />}
       title={student.name}
-      subtitle={
-        <StateSummary state={state} row={row} />
-      }
+      subtitle={<StateSummary state={state} row={row} />}
       trailing={
         canMark ? (
           <div className="flex items-center gap-1.5">
             {state === "not_marked" ? (
-              <>
-                <Button
-                  size="sm"
-                  onClick={onCheckIn}
-                  disabled={busy}
-                  className="min-h-9"
-                  aria-label={`Check in ${student.name}`}
-                >
-                  <LogIn className="size-4" /> In
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={onAbsent}
-                  disabled={busy}
-                  className="min-h-9 min-w-9 px-2"
-                  aria-label={`Mark ${student.name} absent`}
-                >
-                  <UserX className="size-4" />
-                </Button>
-              </>
+              <Button
+                size="sm"
+                onClick={onCheckIn}
+                disabled={busy}
+                className="min-h-9"
+                aria-label={`Check in ${student.name}`}
+              >
+                <LogIn className="size-4" /> In
+              </Button>
             ) : state === "in_academy" ? (
               <Button
                 size="sm"
