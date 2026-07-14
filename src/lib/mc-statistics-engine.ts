@@ -894,3 +894,32 @@ export const calculateMatchSummary = computeMatchSummary;
 export const calculateInningsStatistics = computeInningsStatistics;
 export const calculateInningsStatisticsCached = computeInningsStatisticsMemo;
 
+/**
+ * Single source of truth for the live over label.
+ *
+ * Cricket UX convention (per MCC over count): while the current over is in
+ * progress the label reads "N.M" (e.g. "13.4"). The moment the sixth legal
+ * ball completes, the innings sits in a PRE-OVER state waiting for the next
+ * bowler. In that state we NEVER expose "N.0" — instead we render
+ * "Over N+1" to signal that the next over is about to begin. As soon as the
+ * first legal delivery of that over is recorded, the label rolls to
+ * "N+1.1".
+ *
+ * @param legalBalls total legal deliveries bowled in the innings
+ */
+export function formatLiveOver(legalBalls: number): string {
+  const overs = Math.floor(legalBalls / 6);
+  const balls = legalBalls % 6;
+  if (balls === 0) return `Over ${overs + 1}`;
+  return `${overs}.${balls}`;
+}
+
+/** Compact numeric variant for stat tables — collapses "N.0" to "N". */
+export function formatOversCompact(legalBalls: number): string {
+  const overs = Math.floor(legalBalls / 6);
+  const balls = legalBalls % 6;
+  if (balls === 0) return String(overs);
+  return `${overs}.${balls}`;
+}
+
+

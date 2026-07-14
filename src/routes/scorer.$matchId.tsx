@@ -32,7 +32,11 @@ import {
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
-import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
+import {
+  calculateInningsStatistics,
+  formatLiveOver,
+  formatOversCompact,
+} from "@/lib/mc-statistics-engine";
 import { ballChipLabel } from "@/lib/mc-commentary";
 import type { DismissalType, ExtraType } from "@/lib/mc-ball-events";
 
@@ -340,7 +344,7 @@ function ScorerPage() {
         const b = stats.bowling.byKey.get(bowlerKey);
         return {
           name: bowlerRef.name ?? undefined,
-          overs: b?.oversDisplay ?? "0.0",
+          overs: b ? formatOversCompact(b.legalBalls) : "0",
           runs: b?.runsConceded ?? 0,
           wickets: b?.wickets ?? 0,
           economy: b ? String(b.economy) : "–",
@@ -349,12 +353,11 @@ function ScorerPage() {
       })()
     : undefined;
 
-  const currentOverLabel = (() => {
-    if (!session.currentOver.events.length || session.currentOver.ballsBowled >= 6) {
-      return stats.team.oversDisplay;
-    }
-    return `${session.currentOver.overNumber}.${session.currentOver.ballsBowled}`;
-  })();
+  // Single formatter for all live over labels — header, over strip, viewers.
+  // After the 6th legal ball of over N, we enter a PRE-OVER state and render
+  // "Over N+1"; never "N.0". First legal ball of that over rolls to "N+1.1".
+  const currentOverLabel = formatLiveOver(stats.team.legalBalls);
+
 
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
@@ -385,6 +388,12 @@ function ScorerPage() {
   const newBowlerStillNeeded = Boolean(
     session.matchState.innings.awaitingNewBowler && (!bowlerSelected || sameAsPreviousBowler),
   );
+  const bowlerPickerNeededForBall = newBowlerStillNeeded || !bowlerSelected;
+  // Auto-open picker rules:
+  //   - Batter picker opens only when a wicket falls / a slot is empty.
+  //   - Bowler picker DOES NOT force open at end-of-over. It only auto-opens
+  //     when the scorer taps a scoring button and there's no bowler yet
+  //     (i.e. a pendingBallIntent is queued).
   const requiredPicker = session.matchState.inningsShouldEnd
     ? null
     : incomingBatterRole
@@ -393,9 +402,10 @@ function ScorerPage() {
         ? "striker"
         : !nonStrikerSelected
           ? "nonStriker"
-          : newBowlerStillNeeded || !bowlerSelected
+          : bowlerPickerNeededForBall && pendingBallIntent
             ? "bowler"
             : null;
+
 
   /* ---------- header text ---------- */
   const teamMap = new Map((teamsQ.data ?? []).map((t) => [t.id, t]));
@@ -425,12 +435,19 @@ function ScorerPage() {
     }
   };
   const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
-    if (requiredPicker) {
+    const needsBatter =
+      Boolean(incomingBatterRole) ||
+      !strikerSelected ||
+      !nonStrikerSelected ||
+      strikerDismissed ||
+      nonStrikerDismissed;
+    if (needsBatter || bowlerPickerNeededForBall) {
       setPendingBallIntent(partial);
       return;
     }
     void submit(partial);
   };
+
 
   useEffect(() => {
     if (!pendingBallIntent || requiredPicker) return;
@@ -716,7 +733,7 @@ function ScorerPage() {
           tournamentLabel={tournamentLabel || undefined}
           isLive={!!session.activeInnings && !session.match?.match_locked}
           score={`${stats.team.runs}/${stats.team.wickets}`}
-          overs={stats.team.oversDisplay}
+          overs={currentOverLabel}
           crr={String(stats.team.runRate)}
           rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={
@@ -963,7 +980,7 @@ function ScorerPage() {
             <div className="text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
+            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>
@@ -996,7 +1013,7 @@ function ScorerPage() {
             <div className="mt-1 text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
+            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>
@@ -1271,7 +1288,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         const b = stats.bowling.byKey.get(bowlerKey);
         return {
           name: bowlerRef.name ?? undefined,
-          overs: b?.oversDisplay ?? "0.0",
+          overs: b ? formatOversCompact(b.legalBalls) : "0",
           runs: b?.runsConceded ?? 0,
           wickets: b?.wickets ?? 0,
           economy: b ? String(b.economy) : "–",
@@ -1280,12 +1297,8 @@ function DemoScorerView({ matchId }: { matchId: string }) {
       })()
     : undefined;
 
-  const currentOverLabel = (() => {
-    if (!session.currentOver.events.length || session.currentOver.ballsBowled >= 6) {
-      return stats.team.oversDisplay;
-    }
-    return `${session.currentOver.overNumber}.${session.currentOver.ballsBowled}`;
-  })();
+  // Single formatter — never expose "N.0" to the scorer (see mc-statistics-engine).
+  const currentOverLabel = formatLiveOver(stats.team.legalBalls);
 
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
@@ -1316,6 +1329,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   const newBowlerStillNeeded = Boolean(
     session.matchState.innings.awaitingNewBowler && (!bowlerSelected || sameAsPreviousBowler),
   );
+  const bowlerPickerNeededForBall = newBowlerStillNeeded || !bowlerSelected;
+  // Auto-open picker: never forces bowler at end-of-over — only when a
+  // scoring intent is queued and no bowler is set.
   const requiredPicker = session.matchState.inningsShouldEnd
     ? null
     : incomingBatterRole
@@ -1324,9 +1340,10 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         ? "striker"
         : !nonStrikerSelected
           ? "nonStriker"
-          : newBowlerStillNeeded || !bowlerSelected
+          : bowlerPickerNeededForBall && pendingBallIntent
             ? "bowler"
             : null;
+
 
   const matchWithTeams = (demo.matches.find((m) => m.id === matchId) ?? match) as MatchWithTeams;
   const teamA = matchWithTeams.team_a;
@@ -1355,12 +1372,19 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     }
   };
   const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
-    if (requiredPicker) {
+    const needsBatter =
+      Boolean(incomingBatterRole) ||
+      !strikerSelected ||
+      !nonStrikerSelected ||
+      strikerDismissed ||
+      nonStrikerDismissed;
+    if (needsBatter || bowlerPickerNeededForBall) {
       setPendingBallIntent(partial);
       return;
     }
     void submit(partial);
   };
+
 
   useEffect(() => {
     if (!pendingBallIntent || requiredPicker) return;
@@ -1558,7 +1582,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           tournamentLabel={tournamentLabel || undefined}
           isLive={isLive}
           score={`${stats.team.runs}/${stats.team.wickets}`}
-          overs={stats.team.oversDisplay}
+          overs={currentOverLabel}
           crr={String(stats.team.runRate)}
           rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={activeInnings?.target != null ? String(activeInnings.target) : undefined}
@@ -1776,7 +1800,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             <div className="text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
+            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>Review</Button>
@@ -1803,7 +1827,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             <div className="mt-1 text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
+            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>View scorecard</Button>
