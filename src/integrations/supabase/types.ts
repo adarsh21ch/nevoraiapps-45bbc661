@@ -3887,6 +3887,7 @@ export type Database = {
           state: string | null
           status: string
           tenant_id: string
+          user_id: string | null
         }
         Insert: {
           address?: string | null
@@ -3924,6 +3925,7 @@ export type Database = {
           state?: string | null
           status?: string
           tenant_id: string
+          user_id?: string | null
         }
         Update: {
           address?: string | null
@@ -3961,6 +3963,7 @@ export type Database = {
           state?: string | null
           status?: string
           tenant_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -4414,6 +4417,18 @@ export type Database = {
         }
         Returns: string
       }
+      get_my_student_context: {
+        Args: never
+        Returns: {
+          athlete_profile_id: string
+          email: string
+          name: string
+          photo_url: string
+          player_id: string
+          student_id: string
+          tenant_id: string
+        }[]
+      }
       get_parent_child_summary: { Args: { _student_id: string }; Returns: Json }
       get_public_academy_bundle: { Args: { _slug: string }; Returns: Json }
       get_public_match_bundle: { Args: { _slug: string }; Returns: Json }
@@ -4425,6 +4440,7 @@ export type Database = {
         Args: { _tenant: string; _uid: string }
         Returns: boolean
       }
+      is_my_student: { Args: { _student_id: string }; Returns: boolean }
       is_platform_admin: { Args: { _uid: string }; Returns: boolean }
       is_tenant_member: {
         Args: { _tenant: string; _uid: string }
