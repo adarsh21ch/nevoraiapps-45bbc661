@@ -295,7 +295,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
 
-      <div className="shrink-0 border-b border-border/40 bg-background/80 px-3 py-1.5 backdrop-blur-xl">
+      <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-1.5 backdrop-blur-xl">
         <ThisOverStrip balls={props.overBalls} overs={props.overs} />
       </div>
 
@@ -493,8 +493,11 @@ function ScoreHeroCard({
   const [runsPart, wicketsPart] = score.split("/");
   const wickets = wicketsPart ?? "0";
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-card p-3 shadow-sm">
-
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/12 via-card to-card p-3 shadow-[0_10px_30px_-16px_color-mix(in_oklab,var(--primary)_35%,transparent),inset_0_1px_0_0_color-mix(in_oklab,white_20%,transparent)]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+      />
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <div className="min-w-0">
           <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
@@ -631,19 +634,19 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
 
 function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
   return (
-    <section className="flex h-11 shrink-0 items-center gap-3 px-1">
-      <div className="flex shrink-0 items-baseline gap-1.5 leading-none">
-        <span className="text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
+    <section className="flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10">
+      <div className="flex shrink-0 flex-col leading-none">
+        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
           Over
         </span>
         {overs && (
-          <span className="text-[15px] font-black tabular-nums text-foreground">{overs}</span>
+          <span className="mt-0.5 text-[13px] font-black tabular-nums text-foreground">{overs}</span>
         )}
       </div>
-      <div className="h-4 w-px shrink-0 bg-border/60" />
-      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto ds-scroll">
+      <div className="h-6 w-px shrink-0 bg-border/70" />
+      <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto ds-scroll">
         {balls.length === 0 ? (
-          <span className="text-[11.5px] text-muted-foreground">Ready</span>
+          <span className="text-[12px] text-muted-foreground">Ready</span>
         ) : (
           balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
         )}
