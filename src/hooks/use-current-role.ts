@@ -60,11 +60,10 @@ export type RestrictedFeature =
  * React hook — reads the current role from DashboardContext when available.
  * Falls back to "student" if no dashboard context is mounted (public pages).
  */
-import { useContext } from "react";
-import { DashboardContext } from "@/lib/dashboard-context";
+import { useDashboardOptional } from "@/lib/dashboard-context";
 
 export function useCurrentRole(): AppRole {
-  const ctx = useContext(DashboardContext);
+  const ctx = useDashboardOptional();
   if (!ctx) return "student";
   return normalizeAppRole(ctx.profile?.role, Boolean(ctx.profile));
 }
