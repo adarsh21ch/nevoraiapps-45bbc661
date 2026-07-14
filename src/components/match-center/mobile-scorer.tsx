@@ -676,20 +676,27 @@ function BowlerLine({
 
 
 function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
+  // The parent may pass either "N.M" (in-progress) or "Over N+1" (pre-over
+  // state after a completed over). We strip the redundant "Over " prefix so
+  // the fixed label above the number never doubles up.
+  const isPreOver = overs?.startsWith("Over ") ?? false;
+  const value = isPreOver ? overs!.slice(5) : overs;
   return (
     <section className="flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10">
       <div className="flex shrink-0 flex-col leading-none">
         <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
           Over
         </span>
-        {overs && (
-          <span className="mt-0.5 text-[13px] font-black tabular-nums text-foreground">{overs}</span>
+        {value && (
+          <span className="mt-0.5 text-[13px] font-black tabular-nums text-foreground">{value}</span>
         )}
       </div>
       <div className="h-6 w-px shrink-0 bg-border/70" />
       <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto ds-scroll">
         {balls.length === 0 ? (
-          <span className="text-[12px] text-muted-foreground">Ready</span>
+          <span className="text-[12px] text-muted-foreground">
+            {isPreOver ? "Next over ready" : "Ready"}
+          </span>
         ) : (
           balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
         )}
@@ -697,6 +704,7 @@ function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
     </section>
   );
 }
+
 
 
 function LiveInsights({
