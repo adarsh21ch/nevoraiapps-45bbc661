@@ -472,6 +472,13 @@ body {
   overscroll-behavior-y: contain;
 }
 
+/* Match Center shell — clip stray horizontal overflow from any descendant
+ * without breaking sticky/fixed elements (unlike overflow-x: hidden). */
+@utility mc-shell {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
 /* Inputs at 16px+ on mobile prevents iOS auto-zoom on focus. */
 @media (max-width: 640px) {
   input:not([type="checkbox"]):not([type="radio"]),
