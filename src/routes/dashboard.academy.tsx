@@ -53,7 +53,7 @@ const operations: Item[] = [
 const management: Item[] = [
   { to: "/dashboard/reports", label: "Reports", hint: "Attendance, fees, performance", icon: BarChart3 },
   { to: "/dashboard/insights", label: "Insights", hint: "Trends & AI signals", icon: Sparkles },
-  { to: "/dashboard/notifications", label: "Notifications", hint: "Reminders & broadcasts", icon: BellRing, keywords: ["whatsapp", "sms", "push"] },
+  { to: "/dashboard/communications", label: "Communications", hint: "Broadcasts, templates & scheduling", icon: BellRing, keywords: ["whatsapp", "sms", "push", "broadcast", "announcement"] },
   { to: "/dashboard/site", label: "Website", hint: "Public academy page", icon: Globe },
 ];
 

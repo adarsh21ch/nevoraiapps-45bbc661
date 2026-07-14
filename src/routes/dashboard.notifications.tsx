@@ -21,11 +21,14 @@ function NotificationsEntry() {
           <div className="flex-1">
             <h1 className="text-lg font-semibold">Notifications</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Reminders, broadcasts, WhatsApp and push notifications. This module is coming next — the attendance and fee architecture already emits events it will consume.
+              Send broadcasts, save templates, and schedule messages. Delivered through the same in-app / push / WhatsApp / SMS / email pipeline every module already uses.
             </p>
-            <div className="mt-4">
-              <Link to="/dashboard/reminders" className="text-sm font-medium" style={{ color: "var(--brand)" }}>
-                Open Fee Reminders →
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link to="/dashboard/communications" className="text-sm font-medium" style={{ color: "var(--brand)" }}>
+                Open Communication Hub →
+              </Link>
+              <Link to="/dashboard/reminders" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+                Fee Reminders →
               </Link>
             </div>
           </div>
