@@ -238,11 +238,748 @@ export type Database = {
           },
         ]
       }
+      billing_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          after_state: Json | null
+          before_state: Json | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json
+          tenant_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          after_state?: Json | null
+          before_state?: Json | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          metadata?: Json
+          tenant_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          after_state?: Json | null
+          before_state?: Json | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_charges: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          id: string
+          period_end: string
+          period_key: string
+          period_start: string
+          status: string
+          student_id: string
+          subscription_id: string | null
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          id?: string
+          period_end: string
+          period_key: string
+          period_start: string
+          status?: string
+          student_id: string
+          subscription_id?: string | null
+          tenant_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          id?: string
+          period_end?: string
+          period_key?: string
+          period_start?: string
+          status?: string
+          student_id?: string
+          subscription_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_charges_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_charges_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_charges_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "billing_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_charges_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_charges_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_discounts: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          ends_on: string | null
+          id: string
+          kind: string
+          name: string
+          notes: string | null
+          starts_on: string
+          subscription_id: string
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          ends_on?: string | null
+          id?: string
+          kind: string
+          name: string
+          notes?: string | null
+          starts_on?: string
+          subscription_id: string
+          tenant_id: string
+          updated_at?: string
+          updated_by?: string | null
+          value: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          ends_on?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          notes?: string | null
+          starts_on?: string
+          subscription_id?: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_discounts_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "billing_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_discounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_discounts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_invoice_adjustments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string
+          kind: string
+          metadata: Json
+          reason: string
+          tenant_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          kind: string
+          metadata?: Json
+          reason: string
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          kind?: string
+          metadata?: Json
+          reason?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_invoice_adjustments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "billing_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoice_adjustments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoice_adjustments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_invoice_lines: {
+        Row: {
+          amount: number
+          charge_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          invoice_id: string
+          line_type: string
+          period_end: string | null
+          period_start: string | null
+          quantity: number
+          sort_order: number
+          tenant_id: string
+          unit_amount: number
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          charge_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          invoice_id: string
+          line_type: string
+          period_end?: string | null
+          period_start?: string | null
+          quantity?: number
+          sort_order?: number
+          tenant_id: string
+          unit_amount: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          charge_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          invoice_id?: string
+          line_type?: string
+          period_end?: string | null
+          period_start?: string | null
+          quantity?: number
+          sort_order?: number
+          tenant_id?: string
+          unit_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_invoice_lines_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "billing_charges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "billing_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoice_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoice_lines_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_invoices: {
+        Row: {
+          amount_paid: number
+          balance: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          discount_total: number
+          due_date: string | null
+          id: string
+          issue_date: string | null
+          issued_at: string | null
+          notes: string | null
+          number: string | null
+          period_end: string | null
+          period_start: string | null
+          status: string
+          student_id: string
+          subscription_id: string | null
+          subtotal: number
+          tax_total: number
+          tenant_id: string
+          total: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount_paid?: number
+          balance?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          discount_total?: number
+          due_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issued_at?: string | null
+          notes?: string | null
+          number?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          student_id: string
+          subscription_id?: string | null
+          subtotal?: number
+          tax_total?: number
+          tenant_id: string
+          total?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          balance?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          discount_total?: number
+          due_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issued_at?: string | null
+          notes?: string | null
+          number?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          student_id?: string
+          subscription_id?: string | null
+          subtotal?: number
+          tax_total?: number
+          tenant_id?: string
+          total?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_invoices_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoices_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "billing_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_invoices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_payment_allocations: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string
+          payment_id: string
+          tenant_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          payment_id: string
+          tenant_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          payment_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_payment_allocations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "billing_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payment_allocations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "billing_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payment_allocations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payment_allocations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_payments: {
+        Row: {
+          amount: number
+          collected_at: string
+          collected_by: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          gateway: string | null
+          gateway_payload: Json | null
+          gateway_reference: string | null
+          id: string
+          idempotency_key: string | null
+          method: string
+          reference_number: string | null
+          remarks: string | null
+          status: string
+          student_id: string
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount: number
+          collected_at?: string
+          collected_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          gateway?: string | null
+          gateway_payload?: Json | null
+          gateway_reference?: string | null
+          id?: string
+          idempotency_key?: string | null
+          method: string
+          reference_number?: string | null
+          remarks?: string | null
+          status?: string
+          student_id: string
+          tenant_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount?: number
+          collected_at?: string
+          collected_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          gateway?: string | null
+          gateway_payload?: Json | null
+          gateway_reference?: string | null
+          id?: string
+          idempotency_key?: string | null
+          method?: string
+          reference_number?: string | null
+          remarks?: string | null
+          status?: string
+          student_id?: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_subscriptions: {
+        Row: {
+          billing_cycle: string
+          cancel_reason: string | null
+          canceled_at: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          cycle_anchor_day: number
+          end_date: string | null
+          enrollment_id: string | null
+          fee_plan_id: string | null
+          id: string
+          notes: string | null
+          pause_end: string | null
+          pause_start: string | null
+          start_date: string
+          status: string
+          student_id: string
+          tenant_id: string
+          unit_amount: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          billing_cycle?: string
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          cycle_anchor_day?: number
+          end_date?: string | null
+          enrollment_id?: string | null
+          fee_plan_id?: string | null
+          id?: string
+          notes?: string | null
+          pause_end?: string | null
+          pause_start?: string | null
+          start_date?: string
+          status?: string
+          student_id: string
+          tenant_id: string
+          unit_amount: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          billing_cycle?: string
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          cycle_anchor_day?: number
+          end_date?: string | null
+          enrollment_id?: string | null
+          fee_plan_id?: string | null
+          id?: string
+          notes?: string | null
+          pause_end?: string | null
+          pause_start?: string | null
+          start_date?: string
+          status?: string
+          student_id?: string
+          tenant_id?: string
+          unit_amount?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_subscriptions_fee_plan_id_fkey"
+            columns: ["fee_plan_id"]
+            isOneToOne: false
+            referencedRelation: "fee_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fee_plans: {
         Row: {
           active: boolean
           amount: number
+          billing_cycle: string | null
           created_at: string
+          currency: string
+          cycle_anchor_day: number | null
           description: string | null
           id: string
           name: string
@@ -252,7 +989,10 @@ export type Database = {
         Insert: {
           active?: boolean
           amount: number
+          billing_cycle?: string | null
           created_at?: string
+          currency?: string
+          cycle_anchor_day?: number | null
           description?: string | null
           id?: string
           name: string
@@ -262,7 +1002,10 @@ export type Database = {
         Update: {
           active?: boolean
           amount?: number
+          billing_cycle?: string | null
           created_at?: string
+          currency?: string
+          cycle_anchor_day?: number | null
           description?: string | null
           id?: string
           name?: string
@@ -3662,6 +4405,15 @@ export type Database = {
             }
             Returns: string
           }
+      create_billing_adjustment: {
+        Args: {
+          _amount: number
+          _invoice_id: string
+          _kind: string
+          _reason: string
+        }
+        Returns: string
+      }
       get_parent_child_summary: { Args: { _student_id: string }; Returns: Json }
       get_public_academy_bundle: { Args: { _slug: string }; Returns: Json }
       get_public_match_bundle: { Args: { _slug: string }; Returns: Json }
@@ -3678,6 +4430,11 @@ export type Database = {
         Args: { _tenant: string; _uid: string }
         Returns: boolean
       }
+      is_tenant_owner: {
+        Args: { _tenant: string; _uid: string }
+        Returns: boolean
+      }
+      issue_billing_invoice: { Args: { _invoice_id: string }; Returns: string }
       list_parent_children: {
         Args: never
         Returns: {
@@ -3690,6 +4447,23 @@ export type Database = {
           student_id: string
           student_name: string
         }[]
+      }
+      record_billing_payment: {
+        Args: {
+          _allocations: Json
+          _amount: number
+          _collected_at?: string
+          _gateway?: string
+          _gateway_reference?: string
+          _idempotency_key?: string
+          _method: string
+          _reference_number?: string
+          _remarks?: string
+          _status?: string
+          _student_id: string
+          _tenant_id: string
+        }
+        Returns: string
       }
       slugify: { Args: { _input: string }; Returns: string }
       submit_lead: {
@@ -3724,6 +4498,10 @@ export type Database = {
           _slug: string
         }
         Returns: undefined
+      }
+      void_billing_invoice: {
+        Args: { _invoice_id: string; _reason: string }
+        Returns: string
       }
     }
     Enums: {
