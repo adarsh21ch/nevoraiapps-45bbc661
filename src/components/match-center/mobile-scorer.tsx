@@ -321,7 +321,12 @@ export function MobileScorer(props: MobileScorerProps) {
             onPickNonStriker={() => openPicker("nonStriker")}
           />
 
-          <BowlerLine bowler={props.bowler} onClick={() => openPicker("bowler")} />
+          <BowlerLine
+            bowler={props.bowler}
+            onClick={() => openPicker("bowler")}
+            awaiting={Boolean(props.awaitingNewBowler) || !props.bowler?.name}
+          />
+
 
           {effectiveAwaitingNewBatter && (
             <button
