@@ -18,7 +18,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -682,4 +682,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function _unused(_: Badge) { return null; } // eslint-disable-line
+
