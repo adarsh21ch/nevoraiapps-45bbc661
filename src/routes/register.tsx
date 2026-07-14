@@ -67,6 +67,26 @@ function RegisterContent() {
     gender: "",
   });
 
+  // Prefill from originating lead when arriving via /register?lead=<id>
+  useEffect(() => {
+    if (!leadId) return;
+    let cancelled = false;
+    supabase
+      .from("leads")
+      .select("name, phone, message, tenant_id")
+      .eq("id", leadId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data || data.tenant_id !== tenant.id) return;
+        setForm((f) => ({
+          ...f,
+          name: f.name || data.name || "",
+          phone: f.phone || data.phone || "",
+        }));
+      });
+    return () => { cancelled = true; };
+  }, [leadId, tenant.id]);
+
   const allRequiredAccepted = requiredPolicies.every((p) => accepted[p.id]);
 
   async function submitForm(e: React.FormEvent) {
