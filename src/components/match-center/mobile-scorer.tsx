@@ -562,6 +562,7 @@ function ScorebookBatters({
 function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; striker?: boolean; onClick: () => void }) {
   const name = batter?.name ?? (striker ? "Select striker" : "Select non-striker");
   const sr = batter?.strikeRate ?? "0.0";
+  const order = batter?.order;
   return (
     <button
       type="button"
@@ -573,14 +574,22 @@ function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; strike
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-1.5">
-          {striker ? (
-            <span className="grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-striker-dot)] text-[var(--score-action-foreground)] text-[11px] font-black leading-none">
-              ★
+          {order ? (
+            <span className="grid size-[18px] shrink-0 place-items-center rounded-full border border-border/70 bg-muted/60 text-[10px] font-black leading-none text-muted-foreground tabular-nums">
+              {order}
             </span>
           ) : (
             <span className="size-[18px] shrink-0" aria-hidden />
           )}
           <span className="truncate text-[14px] font-bold leading-tight">{name}</span>
+          {striker && batter?.name && (
+            <span
+              aria-label="on strike"
+              className="ml-0.5 shrink-0 text-[13px] leading-none text-[var(--score-striker-dot)]"
+            >
+              ★
+            </span>
+          )}
         </div>
         <div className="mt-1 pl-[26px] truncate text-[11px] leading-tight text-muted-foreground tabular-nums">
           4s {batter?.fours ?? 0} · 6s {batter?.sixes ?? 0} · SR {sr}
