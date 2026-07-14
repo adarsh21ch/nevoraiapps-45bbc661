@@ -10,6 +10,19 @@ import { formatLiveOver, formatOversCompact } from "./mc-statistics-engine";
  * ============================================================== */
 
 describe("formatLiveOver — never pre-increments to the next ball", () => {
+  it("matches the required completed-legal-ball sequence exactly", () => {
+    expect(formatLiveOver(0)).toBe("Over 1");
+    expect(formatLiveOver(1)).toBe("1.1");
+    expect(formatLiveOver(2)).toBe("1.2");
+    expect(formatLiveOver(3)).toBe("1.3");
+    expect(formatLiveOver(4)).toBe("1.4");
+    expect(formatLiveOver(5)).toBe("1.5");
+    expect(formatLiveOver(6)).toBe("1.6");
+    expect(formatLiveOver(6, { preOver: true })).toBe("Over 2");
+    expect(formatLiveOver(7)).toBe("2.1");
+    expect(formatLiveOver(8)).toBe("2.2");
+  });
+
   it("renders 'Over 1' before any ball has been bowled", () => {
     expect(formatLiveOver(0)).toBe("Over 1");
     expect(formatLiveOver(0, { preOver: true })).toBe("Over 1");
@@ -77,6 +90,7 @@ describe("formatLiveOver — never pre-increments to the next ball", () => {
   it("guards against negative / bad input", () => {
     expect(formatLiveOver(-1)).toBe("Over 1");
     expect(formatLiveOver(-100)).toBe("Over 1");
+    expect(formatLiveOver(1.9)).toBe("1.1");
   });
 });
 

@@ -902,18 +902,19 @@ export const calculateInningsStatisticsCached = computeInningsStatisticsMemo;
  *   legalBalls = 0             → "Over 1"   (pre-first-over)
  *   legalBalls = 1             → "1.1"
  *   legalBalls = 6             → "1.6"      (6th ball of over 1 just recorded)
- *   legalBalls = 6, preOver    → "Over 2"   (waiting for next bowler)
+ *   legalBalls = 6, preOver    → "Over 2"   (idle/waiting for next bowler)
  *   legalBalls = 7             → "2.1"      (first ball of over 2)
  *   legalBalls = 89            → "15.5"
  *   legalBalls = 90            → "15.6"
  *   legalBalls = 90, preOver   → "Over 16"
  *   legalBalls = 91            → "16.1"
  *
- * The label ALWAYS represents the last legal ball that has actually been
- * bowled — never pre-increments to the next delivery. The transition into
- * the pre-over "Over N+1" state is opt-in via `preOver` so the caller can
- * decide when the innings is truly waiting for the next over (typically
- * driven by MatchState.innings.awaitingNewBowler).
+ * The input MUST be completed legal deliveries only — never nextBallIndex,
+ * never completedLegalBalls + 1. The label ALWAYS represents the last legal
+ * ball that has actually been bowled. The transition into the pre-over
+ * "Over N+1" idle state is opt-in via `preOver` so the caller can decide
+ * when the innings is truly waiting for the next over (typically driven by
+ * MatchState.innings.awaitingNewBowler).
  *
  * @param legalBalls total legal deliveries bowled in the innings so far
  * @param opts.preOver render the "Over N+1" pre-over label when the over
@@ -923,9 +924,11 @@ export function formatLiveOver(
   legalBalls: number,
   opts?: { preOver?: boolean },
 ): string {
-  if (legalBalls <= 0) return "Over 1";
-  const currentOver = Math.ceil(legalBalls / 6);
-  const ballInOver = ((legalBalls - 1) % 6) + 1;
+  const completedLegalBalls = Math.max(0, Math.trunc(legalBalls));
+  if (completedLegalBalls === 0) return "Over 1";
+  const completedOversBeforeCurrentBall = Math.floor((completedLegalBalls - 1) / 6);
+  const currentOver = completedOversBeforeCurrentBall + 1;
+  const ballInOver = ((completedLegalBalls - 1) % 6) + 1;
   if (opts?.preOver && ballInOver === 6) {
     return `Over ${currentOver + 1}`;
   }

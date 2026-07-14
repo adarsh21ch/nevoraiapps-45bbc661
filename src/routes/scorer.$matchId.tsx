@@ -353,10 +353,11 @@ function ScorerPage() {
       })()
     : undefined;
 
-  // Single formatter for all live over labels — header, over strip, viewers.
-  // After the 6th legal ball of over N, we enter a PRE-OVER state and render
-  // "Over N+1"; never "N.0". First legal ball of that over rolls to "N+1.1".
-  const currentOverLabel = formatLiveOver(stats.team.legalBalls, {
+  // Formatter receives completed legal deliveries only — never nextBallIndex
+  // or completedLegalBalls + 1. The preOver flag only changes the idle label
+  // between completed overs from "N.6" to "Over N+1".
+  const completedLegalBalls = stats.team.legalBalls;
+  const currentOverLabel = formatLiveOver(completedLegalBalls, {
     preOver: session.matchState.innings.awaitingNewBowler,
   });
 
@@ -1299,8 +1300,11 @@ function DemoScorerView({ matchId }: { matchId: string }) {
       })()
     : undefined;
 
-  // Single formatter — never expose "N.0" to the scorer (see mc-statistics-engine).
-  const currentOverLabel = formatLiveOver(stats.team.legalBalls, {
+  // Formatter receives completed legal deliveries only — never nextBallIndex
+  // or completedLegalBalls + 1. The preOver flag only changes the idle label
+  // between completed overs from "N.6" to "Over N+1".
+  const completedLegalBalls = stats.team.legalBalls;
+  const currentOverLabel = formatLiveOver(completedLegalBalls, {
     preOver: session.matchState.innings.awaitingNewBowler,
   });
 

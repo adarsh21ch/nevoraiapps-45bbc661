@@ -14,11 +14,26 @@ import {
   validateBallDraft,
   type MatchState,
 } from "@/lib/mc-rules-engine";
+import { formatLiveOver } from "@/lib/mc-statistics-engine";
 import { updateDemoData, findDemoDatasetByMatchId, useDemoRevision } from "@/lib/mc-demo/store";
 import type { ScoringSession, CurrentBatterState, CurrentBowlerState, CurrentOverState } from "./use-scoring-session";
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
+
+function countCompletedLegalDeliveries(events: MCBallEvent[]) {
+  return events.filter((e) => isLegalDelivery(e.extra_type as AppendBallInput["extraType"])).length;
+}
+
+function logScoringOverCheckpoint(
+  phase: "before recording" | "after recording",
+  completedLegalBalls: number,
+) {
+  console.info(`[scoring-event] ${phase}`, {
+    completedLegalBalls,
+    formattedOver: formatLiveOver(completedLegalBalls),
+  });
+}
 
 /**
  * Local, write-through scoring session for demo-* matches.
@@ -290,6 +305,8 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
         throw new Error("Select the bowler.");
 
       const priorEvents = eventsRef.current;
+      const completedLegalBallsBefore = countCompletedLegalDeliveries(priorEvents);
+      logScoringOverCheckpoint("before recording", completedLegalBallsBefore);
       const latestMatchState = replayInnings(priorEvents, {
         totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
         maxWickets: 10,
@@ -346,13 +363,15 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
         created_by: null,
       } as unknown as MCBallEvent;
       eventsRef.current = [...priorEvents, created];
+      logScoringOverCheckpoint(
+        "after recording",
+        completedLegalBallsBefore + (legal ? 1 : 0),
+      );
 
       // Update innings aggregate cache too so list views agree at a glance.
       const total = (partial.runsOffBat ?? 0) + (partial.extraRuns ?? 0);
       const wicket = partial.dismissalType ? 1 : 0;
-      const legalBallsAfter =
-        priorEvents.filter((e) => isLegalDelivery(e.extra_type as AppendBallInput["extraType"])).length +
-        (legal ? 1 : 0);
+      const legalBallsAfter = completedLegalBallsBefore + (legal ? 1 : 0);
 
       updateDemoData(tenantId, (d) => {
         d.ballEvents = [...d.ballEvents, created];
