@@ -35,10 +35,12 @@ import { Route as MatchCenterSettingsRouteImport } from './routes/match-center.s
 import { Route as MatchCenterScorersRouteImport } from './routes/match-center.scorers'
 import { Route as MatchCenterRecordsRouteImport } from './routes/match-center.records'
 import { Route as MatchCenterRecognitionRouteImport } from './routes/match-center.recognition'
+import { Route as MatchCenterProfileRouteImport } from './routes/match-center.profile'
 import { Route as MatchCenterPerformanceRouteImport } from './routes/match-center.performance'
 import { Route as MatchCenterMatchesRouteImport } from './routes/match-center.matches'
 import { Route as MatchCenterLiveRouteImport } from './routes/match-center.live'
 import { Route as MatchCenterLeaderboardsRouteImport } from './routes/match-center.leaderboards'
+import { Route as MatchCenterInsightsRouteImport } from './routes/match-center.insights'
 import { Route as MatchCenterDashboardRouteImport } from './routes/match-center.dashboard'
 import { Route as MatchCenterCreateRouteImport } from './routes/match-center.create'
 import { Route as MatchCenterAwardsRouteImport } from './routes/match-center.awards'
@@ -204,6 +206,11 @@ const MatchCenterRecognitionRoute = MatchCenterRecognitionRouteImport.update({
   path: '/recognition',
   getParentRoute: () => MatchCenterRoute,
 } as any)
+const MatchCenterProfileRoute = MatchCenterProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
 const MatchCenterPerformanceRoute = MatchCenterPerformanceRouteImport.update({
   id: '/performance',
   path: '/performance',
@@ -222,6 +229,11 @@ const MatchCenterLiveRoute = MatchCenterLiveRouteImport.update({
 const MatchCenterLeaderboardsRoute = MatchCenterLeaderboardsRouteImport.update({
   id: '/leaderboards',
   path: '/leaderboards',
+  getParentRoute: () => MatchCenterRoute,
+} as any)
+const MatchCenterInsightsRoute = MatchCenterInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => MatchCenterRoute,
 } as any)
 const MatchCenterDashboardRoute = MatchCenterDashboardRouteImport.update({
@@ -430,10 +442,12 @@ export interface FileRoutesByFullPath {
   '/match-center/awards': typeof MatchCenterAwardsRoute
   '/match-center/create': typeof MatchCenterCreateRoute
   '/match-center/dashboard': typeof MatchCenterDashboardRoute
+  '/match-center/insights': typeof MatchCenterInsightsRoute
   '/match-center/leaderboards': typeof MatchCenterLeaderboardsRoute
   '/match-center/live': typeof MatchCenterLiveRoute
   '/match-center/matches': typeof MatchCenterMatchesRoute
   '/match-center/performance': typeof MatchCenterPerformanceRouteWithChildren
+  '/match-center/profile': typeof MatchCenterProfileRoute
   '/match-center/recognition': typeof MatchCenterRecognitionRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/scorers': typeof MatchCenterScorersRoute
@@ -492,10 +506,12 @@ export interface FileRoutesByTo {
   '/match-center/awards': typeof MatchCenterAwardsRoute
   '/match-center/create': typeof MatchCenterCreateRoute
   '/match-center/dashboard': typeof MatchCenterDashboardRoute
+  '/match-center/insights': typeof MatchCenterInsightsRoute
   '/match-center/leaderboards': typeof MatchCenterLeaderboardsRoute
   '/match-center/live': typeof MatchCenterLiveRoute
   '/match-center/matches': typeof MatchCenterMatchesRoute
   '/match-center/performance': typeof MatchCenterPerformanceRouteWithChildren
+  '/match-center/profile': typeof MatchCenterProfileRoute
   '/match-center/recognition': typeof MatchCenterRecognitionRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/scorers': typeof MatchCenterScorersRoute
@@ -558,10 +574,12 @@ export interface FileRoutesById {
   '/match-center/awards': typeof MatchCenterAwardsRoute
   '/match-center/create': typeof MatchCenterCreateRoute
   '/match-center/dashboard': typeof MatchCenterDashboardRoute
+  '/match-center/insights': typeof MatchCenterInsightsRoute
   '/match-center/leaderboards': typeof MatchCenterLeaderboardsRoute
   '/match-center/live': typeof MatchCenterLiveRoute
   '/match-center/matches': typeof MatchCenterMatchesRoute
   '/match-center/performance': typeof MatchCenterPerformanceRouteWithChildren
+  '/match-center/profile': typeof MatchCenterProfileRoute
   '/match-center/recognition': typeof MatchCenterRecognitionRoute
   '/match-center/records': typeof MatchCenterRecordsRoute
   '/match-center/scorers': typeof MatchCenterScorersRoute
@@ -625,10 +643,12 @@ export interface FileRouteTypes {
     | '/match-center/awards'
     | '/match-center/create'
     | '/match-center/dashboard'
+    | '/match-center/insights'
     | '/match-center/leaderboards'
     | '/match-center/live'
     | '/match-center/matches'
     | '/match-center/performance'
+    | '/match-center/profile'
     | '/match-center/recognition'
     | '/match-center/records'
     | '/match-center/scorers'
@@ -687,10 +707,12 @@ export interface FileRouteTypes {
     | '/match-center/awards'
     | '/match-center/create'
     | '/match-center/dashboard'
+    | '/match-center/insights'
     | '/match-center/leaderboards'
     | '/match-center/live'
     | '/match-center/matches'
     | '/match-center/performance'
+    | '/match-center/profile'
     | '/match-center/recognition'
     | '/match-center/records'
     | '/match-center/scorers'
@@ -752,10 +774,12 @@ export interface FileRouteTypes {
     | '/match-center/awards'
     | '/match-center/create'
     | '/match-center/dashboard'
+    | '/match-center/insights'
     | '/match-center/leaderboards'
     | '/match-center/live'
     | '/match-center/matches'
     | '/match-center/performance'
+    | '/match-center/profile'
     | '/match-center/recognition'
     | '/match-center/records'
     | '/match-center/scorers'
@@ -991,6 +1015,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchCenterRecognitionRouteImport
       parentRoute: typeof MatchCenterRoute
     }
+    '/match-center/profile': {
+      id: '/match-center/profile'
+      path: '/profile'
+      fullPath: '/match-center/profile'
+      preLoaderRoute: typeof MatchCenterProfileRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
     '/match-center/performance': {
       id: '/match-center/performance'
       path: '/performance'
@@ -1017,6 +1048,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboards'
       fullPath: '/match-center/leaderboards'
       preLoaderRoute: typeof MatchCenterLeaderboardsRouteImport
+      parentRoute: typeof MatchCenterRoute
+    }
+    '/match-center/insights': {
+      id: '/match-center/insights'
+      path: '/insights'
+      fullPath: '/match-center/insights'
+      preLoaderRoute: typeof MatchCenterInsightsRouteImport
       parentRoute: typeof MatchCenterRoute
     }
     '/match-center/dashboard': {
@@ -1338,10 +1376,12 @@ interface MatchCenterRouteChildren {
   MatchCenterAwardsRoute: typeof MatchCenterAwardsRoute
   MatchCenterCreateRoute: typeof MatchCenterCreateRoute
   MatchCenterDashboardRoute: typeof MatchCenterDashboardRoute
+  MatchCenterInsightsRoute: typeof MatchCenterInsightsRoute
   MatchCenterLeaderboardsRoute: typeof MatchCenterLeaderboardsRoute
   MatchCenterLiveRoute: typeof MatchCenterLiveRoute
   MatchCenterMatchesRoute: typeof MatchCenterMatchesRoute
   MatchCenterPerformanceRoute: typeof MatchCenterPerformanceRouteWithChildren
+  MatchCenterProfileRoute: typeof MatchCenterProfileRoute
   MatchCenterRecognitionRoute: typeof MatchCenterRecognitionRoute
   MatchCenterRecordsRoute: typeof MatchCenterRecordsRoute
   MatchCenterScorersRoute: typeof MatchCenterScorersRoute
@@ -1362,10 +1402,12 @@ const MatchCenterRouteChildren: MatchCenterRouteChildren = {
   MatchCenterAwardsRoute: MatchCenterAwardsRoute,
   MatchCenterCreateRoute: MatchCenterCreateRoute,
   MatchCenterDashboardRoute: MatchCenterDashboardRoute,
+  MatchCenterInsightsRoute: MatchCenterInsightsRoute,
   MatchCenterLeaderboardsRoute: MatchCenterLeaderboardsRoute,
   MatchCenterLiveRoute: MatchCenterLiveRoute,
   MatchCenterMatchesRoute: MatchCenterMatchesRoute,
   MatchCenterPerformanceRoute: MatchCenterPerformanceRouteWithChildren,
+  MatchCenterProfileRoute: MatchCenterProfileRoute,
   MatchCenterRecognitionRoute: MatchCenterRecognitionRoute,
   MatchCenterRecordsRoute: MatchCenterRecordsRoute,
   MatchCenterScorersRoute: MatchCenterScorersRoute,

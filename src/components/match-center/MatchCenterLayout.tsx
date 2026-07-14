@@ -1,110 +1,14 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import {
-  LayoutDashboard,
-  Radio,
-  PlusCircle,
-  Trophy,
-  Users2,
-  User,
-  Medal,
-  Award,
-  ListOrdered,
-  Settings,
-  Search,
-  Menu,
-  LogOut,
-  ArrowLeft,
-  Swords,
-  ChevronRight,
-  ChevronDown,
-  Sparkles,
-  Globe,
-  HeartHandshake,
-  LineChart,
-  ShieldCheck,
-  X,
-  BadgeCheck,
-} from "lucide-react";
+import { PlusCircle, Search, ArrowLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-
 import { DemoBadge } from "@/components/match-center/demo-badge";
-import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
-
-type NavItem = {
-  to: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  exact?: boolean;
-};
-
-type NavGroup = {
-  label: string;
-  items: NavItem[];
-};
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: "Home",
-    items: [{ to: "/match-center/dashboard", label: "Dashboard", icon: LayoutDashboard }],
-  },
-  {
-    label: "Live",
-    items: [
-      { to: "/match-center/live", label: "Live Matches", icon: Radio },
-      { to: "/match-center/create", label: "Create Match", icon: PlusCircle },
-    ],
-  },
-  {
-    label: "Matches",
-    items: [
-      { to: "/match-center/matches", label: "Matches", icon: Swords },
-      { to: "/match-center/teams", label: "Teams", icon: Users2 },
-      { to: "/match-center/players", label: "Players", icon: User },
-    ],
-  },
-  {
-    label: "Competitions",
-    items: [
-      { to: "/match-center/tournaments", label: "Tournaments", icon: Trophy },
-      { to: "/match-center/leaderboards", label: "Leaderboards", icon: ListOrdered },
-      { to: "/match-center/records", label: "Records", icon: Medal },
-    ],
-  },
-  {
-    label: "Insights",
-    items: [
-      { to: "/match-center/performance", label: "Performance", icon: LineChart },
-      { to: "/match-center/recognition", label: "Recognition", icon: Award },
-      { to: "/match-center/awards", label: "Awards", icon: Medal },
-      { to: "/match-center/ai-insights", label: "AI Insights", icon: Sparkles },
-    ],
-  },
-  {
-    label: "Public",
-    items: [
-      { to: "/match-center/website", label: "Website", icon: Globe },
-      { to: "/parent-portal", label: "Parent Portal", icon: HeartHandshake },
-    ],
-  },
-  {
-    label: "System",
-    items: [
-      { to: "/match-center/scorers", label: "Scorers", icon: ShieldCheck },
-      { to: "/match-center/settings", label: "Settings", icon: Settings },
-    ],
-  },
-
-];
-
-
-
+import { MatchCenterBottomNav } from "@/components/match-center/MatchCenterBottomNav";
+import { isOwner } from "@/lib/roles";
 
 export type PageHeaderProps = {
   title: string;
@@ -154,7 +58,6 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
   );
 }
 
-
 export function SearchBar({
   placeholder = "Search players, teams, matches, tournaments…",
   onQuery,
@@ -177,431 +80,77 @@ export function SearchBar({
         placeholder={placeholder}
         className="pl-9 pr-14 h-10 rounded-full bg-card border-border/70 focus-visible:border-foreground/30"
       />
-      <kbd className="hidden md:inline-flex absolute right-2 top-1/2 -translate-y-1/2 items-center gap-0.5 rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground pointer-events-none">
-        ⌘K
-      </kbd>
     </div>
   );
 }
 
 export function MatchCenterLayout({ children }: { children?: ReactNode }) {
-  const { tenant, profile, signOut } = useDashboard();
+  const { tenant, profile } = useDashboard();
   const navigate = useNavigate();
   const location = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [location.pathname]);
+  const owner = isOwner(profile);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Top bar */}
+      {/* Safe-area top spacer */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-background"
         style={{ height: "env(safe-area-inset-top)" }}
       />
       <div aria-hidden="true" className="bg-background" style={{ height: "env(safe-area-inset-top)" }} />
+
+      {/* Compact native top bar — no hamburger, no sidebar. */}
       <header
-        className="sticky z-40 border-b border-border bg-background/95 backdrop-blur"
+        className="sticky z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl"
         style={{ top: "env(safe-area-inset-top)" }}
       >
-        <div className="flex h-14 items-center gap-2 px-3 md:gap-3 md:px-6">
-          <button
-            onClick={() => navigate({ to: "/dashboard" })}
-            className="md:hidden -ml-1 grid size-11 place-items-center rounded-lg hover:bg-accent/50 no-tap-highlight"
-            aria-label="Back to Academy OS"
-          >
-            <ArrowLeft className="size-5" />
-          </button>
-          <button
-            onClick={() => navigate({ to: "/dashboard" })}
-            className="hidden md:inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="size-3.5" /> Academy OS
-          </button>
-          <div className="hidden md:block w-px h-5 bg-border" />
-          <div className="flex items-center gap-2 min-w-0 flex-1 md:flex-initial">
+        <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-3 md:px-4">
+          {owner && (
+            <button
+              onClick={() => navigate({ to: "/dashboard" })}
+              className="-ml-1 grid size-10 place-items-center rounded-full hover:bg-accent/50 no-tap-highlight"
+              aria-label="Back to Academy"
+            >
+              <ArrowLeft className="size-5" />
+            </button>
+          )}
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <div
-              className="size-7 md:size-8 rounded-lg grid place-items-center text-white text-sm md:text-base shrink-0"
+              className="grid size-7 shrink-0 place-items-center rounded-lg text-white text-sm"
               style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
             >
               🏏
             </div>
             <div className="min-w-0">
-              <div className="text-[13px] md:text-sm font-semibold truncate leading-tight">
-                <span className="md:hidden">Match Center</span>
-                <span className="hidden md:inline">Match Center</span>
-              </div>
-              <div className="hidden md:block text-[10px] uppercase tracking-wide text-muted-foreground truncate">
+              <div className="text-[14px] font-semibold leading-tight truncate">Match Center</div>
+              <div className="text-[10.5px] uppercase tracking-wide text-muted-foreground truncate">
                 {tenant.name}
               </div>
             </div>
           </div>
 
-          <div className="hidden lg:block flex-1 max-w-md mx-6">
-            <SearchBar />
-          </div>
-
-          <div className="ml-auto flex items-center gap-0.5 md:gap-1.5">
-            <DemoBadge />
-            <Button
-              size="sm"
-              className="hidden md:inline-flex rounded-full h-9"
-              onClick={() => navigate({ to: "/match-center/create" })}
-            >
-              <PlusCircle className="size-4 mr-1.5" /> New match
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-11 rounded-full"
-              aria-label="Open navigation menu"
-              onClick={() => setMenuOpen(true)}
-            >
-              <Menu className="size-5" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={signOut}
-              className="hidden md:inline-flex"
-            >
-              <LogOut className="size-4 mr-1" /> Sign out
-            </Button>
-          </div>
+          <DemoBadge />
+          <Button
+            size="sm"
+            variant="ghost"
+            className="rounded-full h-10 px-3"
+            onClick={() => navigate({ to: "/match-center/create" })}
+            aria-label="New match"
+          >
+            <PlusCircle className="size-[18px]" />
+          </Button>
         </div>
       </header>
 
-      {/* Mobile navigation drawer — native iOS-style */}
-      <NativeMobileDrawer
-        open={menuOpen}
-        onOpenChange={setMenuOpen}
-        tenantName={tenant.name}
-        role={profile.role ?? "Administrator"}
-        onSignOut={signOut}
-        onNavigate={() => setMenuOpen(false)}
-      />
+      <main
+        key={location.pathname}
+        className="mx-auto w-full max-w-2xl px-3 pt-5 pb-[calc(env(safe-area-inset-bottom)+82px)] sm:px-4 no-tap-highlight page-enter"
+      >
+        {children ?? <Outlet />}
+      </main>
 
-
-
-
-      <div className="flex">
-        {/* Desktop sidebar */}
-        <aside className="hidden md:block w-60 border-r border-border bg-card sticky top-[calc(env(safe-area-inset-top)+3.5rem)] h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]">
-          <SidebarInner onNavigate={() => {}} />
-        </aside>
-
-        <main
-          key={location.pathname}
-          className="flex-1 min-w-0 px-3 pt-5 pb-[calc(env(safe-area-inset-bottom)+88px)] sm:px-4 sm:pt-6 md:p-8 md:pb-8 max-w-7xl mx-auto w-full no-tap-highlight page-enter"
-        >
-          {children ?? <Outlet />}
-        </main>
-
-      </div>
-
-      {/* Unified mobile bottom nav — shared with Academy OS shell. */}
-      <GlobalBottomNav />
+      <MatchCenterBottomNav />
     </div>
   );
 }
-
-
-function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
-  const location = useLocation();
-  return (
-    <nav className="px-2 py-3 space-y-5 md:h-full md:overflow-y-auto">
-      {NAV_GROUPS.map((group) => (
-        <div key={group.label} className="space-y-0.5">
-          <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/60">
-            {group.label}
-          </div>
-          {group.items.map((n) => {
-            const active =
-              location.pathname === n.to || location.pathname.startsWith(n.to + "/");
-            const Icon = n.icon;
-            return (
-              <Link
-                key={n.to}
-                to={n.to}
-                onClick={onNavigate}
-                className={cn(
-                  "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150",
-                  active
-                    ? "font-semibold text-foreground"
-                    : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
-                )}
-                style={
-                  active
-                    ? {
-                        backgroundColor:
-                          "color-mix(in oklch, var(--tenant-brand, var(--brand, #E8873C)) 12%, transparent)",
-                      }
-                    : undefined
-                }
-              >
-                {active && (
-                  <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full"
-                    style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
-                  />
-                )}
-                <Icon className={cn("size-4 transition-colors", active && "text-foreground")} />
-                <span className="truncate">{n.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      ))}
-    </nav>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Native iOS-style Mobile Drawer                                     */
-/* ------------------------------------------------------------------ */
-
-type DrawerProps = {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  tenantName: string;
-  role: string;
-  onSignOut: () => void | Promise<void>;
-  onNavigate: () => void;
-};
-
-const DEFAULT_OPEN_GROUPS = new Set(["Home", "Live"]);
-
-function NativeMobileDrawer({
-  open,
-  onOpenChange,
-  tenantName,
-  role,
-  onSignOut,
-  onNavigate,
-}: DrawerProps) {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  // Auto-expand the group that contains the current route
-  const activeGroup = useMemo(() => {
-    for (const g of NAV_GROUPS) {
-      if (g.items.some((i) => location.pathname === i.to || location.pathname.startsWith(i.to + "/"))) {
-        return g.label;
-      }
-    }
-    return null;
-  }, [location.pathname]);
-
-  const [openGroups, setOpenGroups] = useState<Set<string>>(() => {
-    const s = new Set(DEFAULT_OPEN_GROUPS);
-    if (activeGroup) s.add(activeGroup);
-    return s;
-  });
-
-  useEffect(() => {
-    if (activeGroup) {
-      setOpenGroups((prev) => {
-        if (prev.has(activeGroup)) return prev;
-        const next = new Set(prev);
-        next.add(activeGroup);
-        return next;
-      });
-    }
-  }, [activeGroup]);
-
-  const toggleGroup = (label: string) => {
-    setOpenGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(label)) next.delete(label);
-      else next.add(label);
-      return next;
-    });
-  };
-
-  const initials = tenantName
-    .split(/\s+/)
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="left"
-        overlayClassName="bg-black/50 backdrop-blur-[2px] md:hidden"
-        className={cn(
-          "md:hidden flex flex-col p-0 gap-0",
-          "w-[82vw] max-w-[340px] border-r-0",
-          "rounded-r-[28px] overflow-hidden",
-          "bg-background/95 backdrop-blur-xl",
-          "pt-[env(safe-area-inset-top)] pb-0",
-          // Hide default sheet close button
-          "[&>button.absolute]:hidden",
-        )}
-      >
-        <VisuallyHidden>
-          <SheetTitle>Match Center navigation</SheetTitle>
-          <SheetDescription>Primary navigation drawer</SheetDescription>
-        </VisuallyHidden>
-
-        {/* Compact header */}
-        <div className="flex items-center justify-between px-4 pt-3 pb-2">
-          <div className="flex items-center gap-2">
-            <Menu className="size-4 text-muted-foreground" />
-            <span className="text-[13px] font-semibold tracking-tight">Match Center</span>
-          </div>
-          <button
-            onClick={() => onOpenChange(false)}
-            aria-label="Close menu"
-            className="grid size-10 place-items-center rounded-full bg-muted/60 text-foreground/80 no-tap-highlight active:scale-95 transition"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-
-        {/* User / Academy card */}
-        <div className="mx-4 mt-1 mb-3 rounded-2xl border border-border/60 bg-card/70 px-3 py-2.5 flex items-center gap-3">
-          <div
-            className="grid size-11 shrink-0 place-items-center rounded-xl text-white text-[15px] font-bold"
-            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
-          >
-            {initials || "🏏"}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[15px] font-semibold leading-tight">{tenantName}</div>
-            <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted-foreground">
-              <span className="truncate capitalize">{role}</span>
-              <span className="text-muted-foreground/50">·</span>
-              <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-foreground/70">
-                <BadgeCheck className="size-3" /> Pro
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick actions */}
-        <div className="px-4 pb-3 grid grid-cols-2 gap-2">
-          <button
-            onClick={() => {
-              onOpenChange(false);
-              navigate({ to: "/match-center/create" });
-            }}
-            className="flex items-center justify-center gap-1.5 h-11 rounded-xl text-white text-[13px] font-semibold no-tap-highlight active:scale-[0.98] transition"
-            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
-          >
-            <PlusCircle className="size-4" /> Create
-          </button>
-          <button
-            onClick={() => {
-              onOpenChange(false);
-              navigate({ to: "/match-center/live" });
-            }}
-            className="flex items-center justify-center gap-1.5 h-11 rounded-xl bg-muted/70 text-foreground text-[13px] font-semibold no-tap-highlight active:scale-[0.98] transition"
-          >
-            <Radio className="size-4" /> Live
-          </button>
-        </div>
-
-        {/* Menu — scrollable middle */}
-        <nav className="flex-1 overflow-y-auto px-2 pb-2 ds-scroll">
-          {NAV_GROUPS.map((group) => {
-            const isOpen = openGroups.has(group.label);
-            const groupHasActive = group.items.some(
-              (i) => location.pathname === i.to || location.pathname.startsWith(i.to + "/"),
-            );
-            return (
-              <div key={group.label} className="px-2 pt-2">
-                <button
-                  onClick={() => toggleGroup(group.label)}
-                  className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70 no-tap-highlight"
-                >
-                  <span>{group.label}</span>
-                  <ChevronDown
-                    className={cn(
-                      "size-3.5 transition-transform duration-200",
-                      isOpen ? "rotate-0" : "-rotate-90",
-                    )}
-                  />
-                </button>
-                <div
-                  className={cn(
-                    "grid transition-[grid-template-rows] duration-200 ease-out",
-                    isOpen || groupHasActive ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-                  )}
-                >
-                  <div className="overflow-hidden">
-                    <div className="pt-0.5 space-y-0.5">
-                      {group.items.map((n) => {
-                        const active =
-                          location.pathname === n.to || location.pathname.startsWith(n.to + "/");
-                        const Icon = n.icon;
-                        return (
-                          <Link
-                            key={n.to}
-                            to={n.to}
-                            onClick={onNavigate}
-                            className={cn(
-                              "relative flex items-center gap-3 h-11 px-3 rounded-[14px] text-[15px] font-medium transition-colors no-tap-highlight",
-                              active
-                                ? "text-foreground"
-                                : "text-foreground/75 active:bg-accent/40",
-                            )}
-                            style={
-                              active
-                                ? {
-                                    backgroundColor:
-                                      "color-mix(in oklch, var(--tenant-brand, var(--brand, #E8873C)) 12%, transparent)",
-                                  }
-                                : undefined
-                            }
-                          >
-                            {active && (
-                              <span
-                                className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full"
-                                style={{
-                                  backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))",
-                                }}
-                              />
-                            )}
-                            <Icon className={cn("size-5 shrink-0", active && "stroke-[2.25]")} />
-                            <span className="truncate">{n.label}</span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </nav>
-
-        {/* Sticky footer */}
-        <div
-          className="border-t border-border/60 bg-background/80 backdrop-blur px-4 py-3"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
-        >
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-2">
-            <span>Storage · 1.2 GB</span>
-            <span>v1.0.3</span>
-          </div>
-          <button
-            onClick={() => {
-              onOpenChange(false);
-              void onSignOut();
-            }}
-            className="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-destructive/10 text-destructive text-[14px] font-semibold no-tap-highlight active:scale-[0.98] transition"
-          >
-            <LogOut className="size-4" /> Log out
-          </button>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
-
