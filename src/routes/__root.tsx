@@ -191,7 +191,13 @@ function RootComponent() {
         <Outlet />
         {/* App-wide toast host — without this, every toast.success/error is invisible,
             making uploads and form validation look like "nothing happened". */}
-        <Toaster richColors position="top-center" theme="dark" />
+        <Toaster
+          richColors
+          position="top-center"
+          theme="dark"
+          offset="calc(env(safe-area-inset-top) + 3.25rem)"
+          toastOptions={{ className: "scorer-safe-toast" }}
+        />
       </TenantProvider>
     </QueryClientProvider>
   );
