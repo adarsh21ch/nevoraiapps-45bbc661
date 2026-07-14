@@ -304,37 +304,14 @@ export function MobileScorer(props: MobileScorerProps) {
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
         <div className="flex min-h-full flex-col gap-2 px-3 py-2">
           <section className="shrink-0">
-            <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/12 via-card to-card p-3 shadow-[0_10px_30px_-16px_color-mix(in_oklab,var(--primary)_35%,transparent),inset_0_1px_0_0_color-mix(in_oklab,white_20%,transparent)]">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
-              />
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                <div className="min-w-0">
-                  <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
-                    Score
-                  </div>
-                  <div className="flex min-w-0 items-baseline gap-2">
-                    <h1 className="truncate text-[46px] font-black leading-[0.9] tracking-tight tabular-nums sm:text-[52px]">
-                      <NumberRoll value={props.score} />
-                    </h1>
-                    <span className="shrink-0 rounded-md bg-muted/60 px-1.5 py-0.5 text-[12px] font-bold tabular-nums text-muted-foreground">
-                      <NumberRoll value={props.overs} /> ov
-                    </span>
-                  </div>
-                  {props.chase && (
-                    <div className="mt-1.5 text-[12px] font-semibold text-[var(--score-success-fg)] tabular-nums">
-                      Need {props.chase.runsNeeded} from {props.chase.ballsLeft} balls
-                    </div>
-                  )}
-                </div>
-                <div className="grid grid-flow-col gap-1.5 text-center tabular-nums">
-                  <MetricPill label="CRR" value={props.crr ?? "–"} />
-                  {props.rrr && <MetricPill label="RRR" value={props.rrr} accent />}
-                  {props.target && <MetricPill label="TGT" value={props.target} />}
-                </div>
-              </div>
-            </div>
+            <ScoreHeroCard
+              score={props.score}
+              overs={props.overs}
+              crr={props.crr}
+              rrr={props.rrr}
+              target={props.target}
+              chase={props.chase}
+            />
           </section>
 
 
