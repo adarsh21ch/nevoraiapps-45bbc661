@@ -197,31 +197,14 @@ export async function checkOutStudent(input: CheckOutInput): Promise<void> {
   if (error) throw error;
 }
 
-export interface MarkAbsentInput {
-  tenantId: string;
-  batchId: string;
-  studentId: string;
-  note?: string;
-  markedBy?: string | null;
-}
-
-export async function markStudentAbsent(input: MarkAbsentInput): Promise<void> {
-  const dateISO = todayISO();
-  const sessionId = await ensureSession(input.tenantId, input.batchId, dateISO);
-  const { error } = await supabase.from("attendance_marks").insert({
-    tenant_id: input.tenantId,
-    session_id: sessionId,
-    student_id: input.studentId,
-    status: "absent",
-    source: "manual",
-    marked_by: input.markedBy ?? null,
-    note: input.note ?? null,
-  });
-  if (error) throw error;
-}
+// NOTE: We intentionally do NOT expose a `markStudentAbsent` mutation.
+// Absent is DERIVED (any active student who is `not_marked` at end of day is
+// counted as absent for reporting). This matches how sports academies operate —
+// players arrive when they arrive; there is no forced session close.
+// Corrections may still create absent rows via the `correct_attendance` RPC.
 
 // ---------------------------------------------------------------------------
-// Mutation hooks — thin wrappers with optimistic invalidation
+// Mutation hooks
 // ---------------------------------------------------------------------------
 export function useCheckIn() {
   const qc = useQueryClient();
@@ -239,16 +222,6 @@ export function useCheckOut(tenantId: string) {
     mutationFn: checkOutStudent,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: attendanceKeys.today(tenantId) });
-    },
-  });
-}
-
-export function useMarkAbsent() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: markStudentAbsent,
-    onSuccess: (_data, vars) => {
-      qc.invalidateQueries({ queryKey: attendanceKeys.today(vars.tenantId) });
     },
   });
 }

@@ -10,7 +10,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { LogIn, LogOut, UserX, Clock } from "lucide-react";
+import { LogIn, LogOut, Clock } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -36,7 +36,6 @@ import {
   useAttendanceRealtime,
   useCheckIn,
   useCheckOut,
-  useMarkAbsent,
 } from "@/lib/attendance/queries";
 import {
   attendanceStateLabels,
@@ -101,20 +100,20 @@ function AttendancePage() {
     return m;
   }, [todayQ.data, effectiveBatchId]);
 
-  // KPIs across this batch
+  // KPIs across this batch. Absent is DERIVED: not_marked at EOD ⇒ absent for reports.
+  // During the day we only show live states (In Academy / Checked Out / Not Marked).
   const kpis = useMemo(() => {
     let inAcademy = 0;
     let checkedIn = 0;
     let checkedOut = 0;
-    let absent = 0;
     for (const s of batchStudents) {
       const row = stateByStudent.get(s.id);
       const state: AttendanceState = row?.current_state ?? "not_marked";
       if (state === "in_academy") { inAcademy++; checkedIn++; }
       else if (state === "checked_out") { checkedIn++; checkedOut++; }
-      else if (state === "absent") absent++;
     }
-    return { inAcademy, checkedIn, checkedOut, absent, notMarked: batchStudents.length - checkedIn - absent };
+    const notMarked = batchStudents.length - checkedIn;
+    return { inAcademy, checkedIn, checkedOut, notMarked, total: batchStudents.length };
   }, [batchStudents, stateByStudent]);
 
   const isLoading = batchesQ.isLoading || studentsQ.isLoading || todayQ.isLoading;
@@ -170,13 +169,13 @@ function AttendancePage() {
             </Section>
           ) : null}
 
-          {/* KPI strip — 2 up on mobile */}
+          {/* KPI strip — live sports-academy counts. Absent is derived at EOD. */}
           <Section>
             <div className="grid grid-cols-2 gap-2">
               <StatCard label="In Academy Now" value={kpis.inAcademy} tone="success" />
               <StatCard label="Checked Out" value={kpis.checkedOut} tone="default" />
-              <StatCard label="Absent" value={kpis.absent} tone="danger" />
               <StatCard label="Not Marked" value={kpis.notMarked} tone="default" />
+              <StatCard label="Total" value={kpis.total} tone="default" />
             </div>
           </Section>
 
@@ -240,8 +239,7 @@ function StudentRow({
   const state: AttendanceState = row?.current_state ?? "not_marked";
   const checkIn = useCheckIn();
   const checkOut = useCheckOut(tenantId);
-  const markAbsent = useMarkAbsent();
-  const busy = checkIn.isPending || checkOut.isPending || markAbsent.isPending;
+  const busy = checkIn.isPending || checkOut.isPending;
 
   const onCheckIn = () => {
     checkIn.mutate(
@@ -262,48 +260,25 @@ function StudentRow({
       },
     );
   };
-  const onAbsent = () => {
-    markAbsent.mutate(
-      { tenantId, batchId, studentId: student.id },
-      {
-        onSuccess: () => toast(`${student.name} marked absent`),
-        onError: (e: Error) => toast.error(e.message || "Failed to mark absent"),
-      },
-    );
-  };
 
   return (
     <ListItem
       leading={<PersonAvatar name={student.name} src={student.photo_url} className="size-10" />}
       title={student.name}
-      subtitle={
-        <StateSummary state={state} row={row} />
-      }
+      subtitle={<StateSummary state={state} row={row} />}
       trailing={
         canMark ? (
           <div className="flex items-center gap-1.5">
             {state === "not_marked" ? (
-              <>
-                <Button
-                  size="sm"
-                  onClick={onCheckIn}
-                  disabled={busy}
-                  className="min-h-9"
-                  aria-label={`Check in ${student.name}`}
-                >
-                  <LogIn className="size-4" /> In
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={onAbsent}
-                  disabled={busy}
-                  className="min-h-9 min-w-9 px-2"
-                  aria-label={`Mark ${student.name} absent`}
-                >
-                  <UserX className="size-4" />
-                </Button>
-              </>
+              <Button
+                size="sm"
+                onClick={onCheckIn}
+                disabled={busy}
+                className="min-h-9"
+                aria-label={`Check in ${student.name}`}
+              >
+                <LogIn className="size-4" /> In
+              </Button>
             ) : state === "in_academy" ? (
               <Button
                 size="sm"
