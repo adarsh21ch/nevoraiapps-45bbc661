@@ -895,31 +895,61 @@ export const calculateInningsStatistics = computeInningsStatistics;
 export const calculateInningsStatisticsCached = computeInningsStatisticsMemo;
 
 /**
- * Single source of truth for the live over label.
+ * Single source of truth for the live over label displayed to the scorer.
  *
- * Cricket UX convention (per MCC over count): while the current over is in
- * progress the label reads "N.M" (e.g. "13.4"). The moment the sixth legal
- * ball completes, the innings sits in a PRE-OVER state waiting for the next
- * bowler. In that state we NEVER expose "N.0" — instead we render
- * "Over N+1" to signal that the next over is about to begin. As soon as the
- * first legal delivery of that over is recorded, the label rolls to
- * "N+1.1".
+ * Convention (1-indexed current-over labelling, matching the scorer UX):
  *
- * @param legalBalls total legal deliveries bowled in the innings
+ *   legalBalls = 0             → "Over 1"   (pre-first-over)
+ *   legalBalls = 1             → "1.1"
+ *   legalBalls = 6             → "1.6"      (6th ball of over 1 just recorded)
+ *   legalBalls = 6, preOver    → "Over 2"   (waiting for next bowler)
+ *   legalBalls = 7             → "2.1"      (first ball of over 2)
+ *   legalBalls = 89            → "15.5"
+ *   legalBalls = 90            → "15.6"
+ *   legalBalls = 90, preOver   → "Over 16"
+ *   legalBalls = 91            → "16.1"
+ *
+ * The label ALWAYS represents the last legal ball that has actually been
+ * bowled — never pre-increments to the next delivery. The transition into
+ * the pre-over "Over N+1" state is opt-in via `preOver` so the caller can
+ * decide when the innings is truly waiting for the next over (typically
+ * driven by MatchState.innings.awaitingNewBowler).
+ *
+ * @param legalBalls total legal deliveries bowled in the innings so far
+ * @param opts.preOver render the "Over N+1" pre-over label when the over
+ *   has just been completed (legalBalls % 6 === 0 && legalBalls > 0).
  */
-export function formatLiveOver(legalBalls: number): string {
-  const overs = Math.floor(legalBalls / 6);
-  const balls = legalBalls % 6;
-  if (balls === 0) return `Over ${overs + 1}`;
-  return `${overs}.${balls}`;
+export function formatLiveOver(
+  legalBalls: number,
+  opts?: { preOver?: boolean },
+): string {
+  if (legalBalls <= 0) return "Over 1";
+  const currentOver = Math.ceil(legalBalls / 6);
+  const ballInOver = ((legalBalls - 1) % 6) + 1;
+  if (opts?.preOver && ballInOver === 6) {
+    return `Over ${currentOver + 1}`;
+  }
+  return `${currentOver}.${ballInOver}`;
 }
 
-/** Compact numeric variant for stat tables — collapses "N.0" to "N". */
+/**
+ * Compact numeric variant for stat tables (bowler figures, final totals).
+ *
+ * Uses the standard cricket "completed_overs.balls_into_next" convention
+ * and collapses trailing ".0" so a fully-completed over reads as "4" not
+ * "4.0". Examples:
+ *
+ *   legalBalls = 0   → "0"
+ *   legalBalls = 5   → "0.5"
+ *   legalBalls = 6   → "1"
+ *   legalBalls = 25  → "4.1"
+ */
 export function formatOversCompact(legalBalls: number): string {
-  const overs = Math.floor(legalBalls / 6);
-  const balls = legalBalls % 6;
+  const overs = Math.floor(Math.max(0, legalBalls) / 6);
+  const balls = Math.max(0, legalBalls) % 6;
   if (balls === 0) return String(overs);
   return `${overs}.${balls}`;
 }
+
 
 
