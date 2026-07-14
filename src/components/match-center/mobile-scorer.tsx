@@ -634,19 +634,19 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
 
 function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
   return (
-    <section className="flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10">
-      <div className="flex shrink-0 flex-col leading-none">
-        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+    <section className="flex h-11 shrink-0 items-center gap-3 px-1">
+      <div className="flex shrink-0 items-baseline gap-1.5 leading-none">
+        <span className="text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
           Over
         </span>
         {overs && (
-          <span className="mt-0.5 text-[13px] font-black tabular-nums text-foreground">{overs}</span>
+          <span className="text-[15px] font-black tabular-nums text-foreground">{overs}</span>
         )}
       </div>
-      <div className="h-6 w-px shrink-0 bg-border/70" />
-      <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto ds-scroll">
+      <div className="h-4 w-px shrink-0 bg-border/60" />
+      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto ds-scroll">
         {balls.length === 0 ? (
-          <span className="text-[12px] text-muted-foreground">Ready</span>
+          <span className="text-[11.5px] text-muted-foreground">Ready</span>
         ) : (
           balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
         )}
