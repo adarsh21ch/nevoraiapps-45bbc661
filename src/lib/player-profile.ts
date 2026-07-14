@@ -64,21 +64,60 @@ export async function fetchPlayerCareer(athleteProfileId: string): Promise<Playe
   return (data as PlayerCareer | null) ?? null;
 }
 
-export async function fetchRecentMatches(athleteProfileId: string, limit = 8) {
-  // Match appearances from the frozen Match Center. Per-ball scoring lives in
-  // mc_ball_events; we surface appearances + role here and defer detailed
-  // per-match runs to a future scorecard integration.
+export type PlayerMatchAppearance = {
+  id: string;
+  is_captain: boolean | null;
+  is_keeper: boolean | null;
+  is_substitute: boolean | null;
+  role: string | null;
+  is_player_of_match: boolean;
+  match: {
+    id: string;
+    scheduled_date: string | null;
+    status: string | null;
+    match_format: string | null;
+    result: string | null;
+    ground_name: string | null;
+    player_of_match_athlete_id: string | null;
+  } | null;
+};
+
+export async function fetchRecentMatches(
+  athleteProfileId: string,
+  limit = 8,
+): Promise<PlayerMatchAppearance[]> {
   const { data, error } = await supabase
     .from("mc_match_squads")
     .select(
-      "id, is_captain, is_keeper, is_substitute, role, match:mc_matches!inner(id, name, match_date, status, format)",
+      "id, is_captain, is_keeper, is_substitute, role, match:mc_matches!inner(id, scheduled_date, status, match_format, result, ground_name, player_of_match_athlete_id)",
     )
     .eq("athlete_profile_id", athleteProfileId)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map((row) => {
+    const r = row as unknown as {
+      id: string;
+      is_captain: boolean | null;
+      is_keeper: boolean | null;
+      is_substitute: boolean | null;
+      role: string | null;
+      match: PlayerMatchAppearance["match"] | PlayerMatchAppearance["match"][] | null;
+    };
+    const match = Array.isArray(r.match) ? (r.match[0] ?? null) : r.match;
+    return {
+      id: r.id,
+      is_captain: r.is_captain,
+      is_keeper: r.is_keeper,
+      is_substitute: r.is_substitute,
+      role: r.role,
+      match,
+      is_player_of_match:
+        !!match && match.player_of_match_athlete_id === athleteProfileId,
+    };
+  });
 }
+
 
 
 export type PlayerRemark = {
