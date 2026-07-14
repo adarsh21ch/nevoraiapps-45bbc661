@@ -188,6 +188,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <TenantProvider>
         <ThemeSystemListener />
+        <ImpersonationBanner />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         {/* App-wide toast host — without this, every toast.success/error is invisible,
