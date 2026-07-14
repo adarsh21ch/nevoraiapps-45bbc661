@@ -5,7 +5,7 @@ import { Radio, PlusCircle, MapPin, ChevronRight } from "lucide-react";
 import { LoadingSkeleton } from "@/components/match-center/ui";
 import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/lib/dashboard-context";
-import { listMatches } from "@/lib/mc-matches";
+import { listMatches, type MatchWithTeams } from "@/lib/mc-matches";
 import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/live")({
@@ -63,7 +63,7 @@ function LivePage() {
   );
 }
 
-function LiveHeroCard({ match }: { match: ReturnType<typeof useDemoOverlay>[number] }) {
+function LiveHeroCard({ match }: { match: MatchWithTeams }) {
   const teamA = match.team_a?.name ?? "Team A";
   const teamB = match.team_b?.name ?? "Team B";
   const meta = [match.match_format, match.overs ? `${match.overs} ov` : null, match.match_type]
