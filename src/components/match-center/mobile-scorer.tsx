@@ -515,11 +515,12 @@ function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; strike
       </div>
 
       <div className="text-right tabular-nums">
-        <div className="text-[17px] font-black leading-none">
+        <div className="text-[20px] font-black leading-none">
           {batter?.runs ?? 0}
           <span className="ml-1 text-[12px] font-bold text-muted-foreground">({batter?.balls ?? 0})</span>
         </div>
       </div>
+
     </button>
   );
 }
