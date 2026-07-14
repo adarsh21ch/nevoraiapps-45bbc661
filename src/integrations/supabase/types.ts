@@ -84,7 +84,7 @@ export type Database = {
             foreignKeyName: "attendance_marks_corrects_id_fkey"
             columns: ["corrects_id"]
             isOneToOne: false
-            referencedRelation: "attendance_today"
+            referencedRelation: "attendance_visits"
             referencedColumns: ["mark_id"]
           },
           {
@@ -119,7 +119,7 @@ export type Database = {
             foreignKeyName: "attendance_marks_superseded_by_fkey"
             columns: ["superseded_by"]
             isOneToOne: false
-            referencedRelation: "attendance_today"
+            referencedRelation: "attendance_visits"
             referencedColumns: ["mark_id"]
           },
           {
@@ -3031,6 +3031,62 @@ export type Database = {
           duration_minutes: number | null
           mark_id: string | null
           marked_by: string | null
+          session_date: string | null
+          session_id: string | null
+          source: string | null
+          status: Database["public"]["Enums"]["attendance_status"] | null
+          student_id: string | null
+          tenant_id: string | null
+          visit_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_marks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_sessions_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance_visits: {
+        Row: {
+          batch_id: string | null
+          check_in_at: string | null
+          check_out_at: string | null
+          created_at: string | null
+          duration_minutes: number | null
+          mark_id: string | null
+          marked_by: string | null
+          note: string | null
           session_date: string | null
           session_id: string | null
           source: Database["public"]["Enums"]["attendance_source"] | null

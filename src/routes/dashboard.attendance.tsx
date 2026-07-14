@@ -100,20 +100,23 @@ function AttendancePage() {
     return m;
   }, [todayQ.data, effectiveBatchId]);
 
-  // KPIs across this batch. Absent is DERIVED: not_marked at EOD ⇒ absent for reports.
-  // During the day we only show live states (In Academy / Checked Out / Not Marked).
+  // KPIs across this batch. Attendance supports multiple visits per player per
+  // day. All summary values are DERIVED from raw visit rows — never stored.
   const kpis = useMemo(() => {
-    let inAcademy = 0;
-    let checkedIn = 0;
-    let checkedOut = 0;
+    let inAcademy = 0;      // players currently checked in (open visit)
+    let present = 0;        // players with ≥1 visit today
+    let checkedOutToday = 0;// players whose latest state is checked_out
+    let visitsCheckIn = 0;  // total check-ins today (all visits)
+    let visitsCheckOut = 0; // total check-outs today (all visits)
     for (const s of batchStudents) {
       const row = stateByStudent.get(s.id);
       const state: AttendanceState = row?.current_state ?? "not_marked";
-      if (state === "in_academy") { inAcademy++; checkedIn++; }
-      else if (state === "checked_out") { checkedIn++; checkedOut++; }
+      const visits = row?.visit_count ?? 0;
+      if (state === "in_academy") { inAcademy++; present++; visitsCheckIn += visits; visitsCheckOut += Math.max(visits - 1, 0); }
+      else if (state === "checked_out") { checkedOutToday++; present++; visitsCheckIn += visits; visitsCheckOut += visits; }
     }
-    const notMarked = batchStudents.length - checkedIn;
-    return { inAcademy, checkedIn, checkedOut, notMarked, total: batchStudents.length };
+    const notArrived = batchStudents.length - present;
+    return { inAcademy, present, checkedOutToday, notArrived, visitsCheckIn, visitsCheckOut, total: batchStudents.length };
   }, [batchStudents, stateByStudent]);
 
   const isLoading = batchesQ.isLoading || studentsQ.isLoading || todayQ.isLoading;
@@ -169,13 +172,15 @@ function AttendancePage() {
             </Section>
           ) : null}
 
-          {/* KPI strip — live sports-academy counts. Absent is derived at EOD. */}
+          {/* KPI strip — supports multiple visits/day. All values derived. */}
           <Section>
             <div className="grid grid-cols-2 gap-2">
               <StatCard label="In Academy Now" value={kpis.inAcademy} tone="success" />
-              <StatCard label="Checked Out" value={kpis.checkedOut} tone="default" />
-              <StatCard label="Not Marked" value={kpis.notMarked} tone="default" />
-              <StatCard label="Total" value={kpis.total} tone="default" />
+              <StatCard label="Present Today" value={kpis.present} tone="default" />
+              <StatCard label="Checked Out" value={kpis.checkedOutToday} tone="default" />
+              <StatCard label="Not Yet Arrived" value={kpis.notArrived} tone="default" />
+              <StatCard label="Check-ins" value={kpis.visitsCheckIn} tone="default" />
+              <StatCard label="Check-outs" value={kpis.visitsCheckOut} tone="default" />
             </div>
           </Section>
 
@@ -221,6 +226,7 @@ interface TodayRow {
   check_in_at: string | null;
   check_out_at: string | null;
   duration_minutes: number | null;
+  visit_count?: number;
 }
 
 function StudentRow({
@@ -269,17 +275,7 @@ function StudentRow({
       trailing={
         canMark ? (
           <div className="flex items-center gap-1.5">
-            {state === "not_marked" ? (
-              <Button
-                size="sm"
-                onClick={onCheckIn}
-                disabled={busy}
-                className="min-h-9"
-                aria-label={`Check in ${student.name}`}
-              >
-                <LogIn className="size-4" /> In
-              </Button>
-            ) : state === "in_academy" ? (
+            {state === "in_academy" ? (
               <Button
                 size="sm"
                 variant="secondary"
@@ -290,7 +286,19 @@ function StudentRow({
               >
                 <LogOut className="size-4" /> Out
               </Button>
-            ) : null}
+            ) : (
+              // not_marked OR checked_out — both allow a fresh check-in (multiple visits/day)
+              <Button
+                size="sm"
+                variant={state === "checked_out" ? "outline" : "default"}
+                onClick={onCheckIn}
+                disabled={busy}
+                className="min-h-9"
+                aria-label={`Check in ${student.name}`}
+              >
+                <LogIn className="size-4" /> {state === "checked_out" ? "In again" : "In"}
+              </Button>
+            )}
           </div>
         ) : null
       }
@@ -315,10 +323,12 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
     );
   }
   if (state === "checked_out" && row?.check_in_at && row?.check_out_at) {
+    const visits = row.visit_count ?? 1;
     return (
       <span className={cn("inline-flex items-center gap-1", toneClass)}>
         <Clock className="size-3" />
         {format(new Date(row.check_in_at), "h:mm a")} – {format(new Date(row.check_out_at), "h:mm a")} · {formatDuration(row.duration_minutes)}
+        {visits > 1 ? ` · ${visits} visits` : ""}
       </span>
     );
   }
