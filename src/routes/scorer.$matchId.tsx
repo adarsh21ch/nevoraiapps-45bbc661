@@ -1300,7 +1300,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     : undefined;
 
   // Single formatter — never expose "N.0" to the scorer (see mc-statistics-engine).
-  const currentOverLabel = formatLiveOver(stats.team.legalBalls);
+  const currentOverLabel = formatLiveOver(stats.team.legalBalls, {
+    preOver: session.matchState.innings.awaitingNewBowler,
+  });
 
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
