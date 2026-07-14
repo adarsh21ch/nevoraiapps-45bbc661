@@ -65,11 +65,13 @@ export async function fetchPlayerCareer(athleteProfileId: string): Promise<Playe
 }
 
 export async function fetchRecentMatches(athleteProfileId: string, limit = 8) {
-  // Reuse mc_match_squads → mc_matches for the player's recent appearances.
+  // Match appearances from the frozen Match Center. Per-ball scoring lives in
+  // mc_ball_events; we surface appearances + role here and defer detailed
+  // per-match runs to a future scorecard integration.
   const { data, error } = await supabase
     .from("mc_match_squads")
     .select(
-      "id, batting_runs, batting_balls, wickets_taken, is_player_of_match, mc_matches!inner(id, name, match_date, status, format)",
+      "id, is_captain, is_keeper, is_substitute, role, match:mc_matches!inner(id, name, match_date, status, format)",
     )
     .eq("athlete_profile_id", athleteProfileId)
     .order("created_at", { ascending: false })
@@ -77,6 +79,7 @@ export async function fetchRecentMatches(athleteProfileId: string, limit = 8) {
   if (error) throw error;
   return data ?? [];
 }
+
 
 export type PlayerRemark = {
   id: string;
