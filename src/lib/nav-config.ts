@@ -39,10 +39,10 @@ export const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],
   student: [
-    { to: "/parent-portal", label: "Home", icon: LayoutDashboard },
-    { to: "/match-center/matches", label: "Matches", icon: Swords },
-    { to: "/parent-portal", label: "Activity", icon: Activity },
-    { to: "/parent-portal", label: "Progress", icon: TrendingUp },
-    { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
+    { to: "/student", label: "Home", icon: LayoutDashboard },
+    { to: "/student/progress", label: "Progress", icon: TrendingUp },
+    { to: "/student/matches", label: "Matches", icon: Swords },
+    { to: "/student/profile", label: "Profile", icon: UserCircle },
   ],
+
 };

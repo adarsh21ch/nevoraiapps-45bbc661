@@ -26,6 +26,9 @@ import { Route as StudentIndexRouteImport } from './routes/student.index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
 import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as StudentProgressRouteImport } from './routes/student.progress'
+import { Route as StudentProfileRouteImport } from './routes/student.profile'
+import { Route as StudentMatchesRouteImport } from './routes/student.matches'
 import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
 import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
@@ -167,6 +170,21 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+const StudentProgressRoute = StudentProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentProfileRoute = StudentProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentMatchesRoute = StudentMatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => StudentRoute,
 } as any)
 const ScorerMatchIdRoute = ScorerMatchIdRouteImport.update({
   id: '/scorer/$matchId',
@@ -514,6 +532,9 @@ export interface FileRoutesByFullPath {
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/matches': typeof StudentMatchesRoute
+  '/student/profile': typeof StudentProfileRoute
+  '/student/progress': typeof StudentProgressRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
@@ -585,6 +606,9 @@ export interface FileRoutesByTo {
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/matches': typeof StudentMatchesRoute
+  '/student/profile': typeof StudentProfileRoute
+  '/student/progress': typeof StudentProgressRoute
   '/dashboard': typeof DashboardIndexRoute
   '/match-center': typeof MatchCenterIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
@@ -661,6 +685,9 @@ export interface FileRoutesById {
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/matches': typeof StudentMatchesRoute
+  '/student/profile': typeof StudentProfileRoute
+  '/student/progress': typeof StudentProgressRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
@@ -738,6 +765,9 @@ export interface FileRouteTypes {
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
     | '/scorer/$matchId'
+    | '/student/matches'
+    | '/student/profile'
+    | '/student/progress'
     | '/dashboard/'
     | '/match-center/'
     | '/platform-admin/'
@@ -809,6 +839,9 @@ export interface FileRouteTypes {
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
     | '/scorer/$matchId'
+    | '/student/matches'
+    | '/student/profile'
+    | '/student/progress'
     | '/dashboard'
     | '/match-center'
     | '/platform-admin'
@@ -884,6 +917,9 @@ export interface FileRouteTypes {
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
     | '/scorer/$matchId'
+    | '/student/matches'
+    | '/student/profile'
+    | '/student/progress'
     | '/dashboard/'
     | '/match-center/'
     | '/platform-admin/'
@@ -1046,6 +1082,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/student/progress': {
+      id: '/student/progress'
+      path: '/progress'
+      fullPath: '/student/progress'
+      preLoaderRoute: typeof StudentProgressRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/profile': {
+      id: '/student/profile'
+      path: '/profile'
+      fullPath: '/student/profile'
+      preLoaderRoute: typeof StudentProfileRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/matches': {
+      id: '/student/matches'
+      path: '/matches'
+      fullPath: '/student/matches'
+      preLoaderRoute: typeof StudentMatchesRouteImport
+      parentRoute: typeof StudentRoute
     }
     '/scorer/$matchId': {
       id: '/scorer/$matchId'
@@ -1613,10 +1670,16 @@ const PlatformAdminRouteWithChildren = PlatformAdminRoute._addFileChildren(
 )
 
 interface StudentRouteChildren {
+  StudentMatchesRoute: typeof StudentMatchesRoute
+  StudentProfileRoute: typeof StudentProfileRoute
+  StudentProgressRoute: typeof StudentProgressRoute
   StudentIndexRoute: typeof StudentIndexRoute
 }
 
 const StudentRouteChildren: StudentRouteChildren = {
+  StudentMatchesRoute: StudentMatchesRoute,
+  StudentProfileRoute: StudentProfileRoute,
+  StudentProgressRoute: StudentProgressRoute,
   StudentIndexRoute: StudentIndexRoute,
 }
 
