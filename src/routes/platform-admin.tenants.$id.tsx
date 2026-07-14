@@ -82,6 +82,7 @@ function TenantDetail() {
           <DomainEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
         </div>
         <div className="space-y-4">
+          <PlatformActions tenant={tenant} onSaved={() => { qc.invalidateQueries({ queryKey: pqk.tenant(id) }); qc.invalidateQueries({ queryKey: pqk.tenants }); }} />
           <SubscriptionCard
             tenant={tenant}
             priceLog={priceLog}
@@ -92,9 +93,64 @@ function TenantDetail() {
             }}
           />
           <SuspendCard tenant={tenant} onSaved={() => { qc.invalidateQueries({ queryKey: pqk.tenant(id) }); qc.invalidateQueries({ queryKey: pqk.tenants }); }} />
+          <AuditFeed tenantId={tenant.id} limit={30} />
         </div>
       </div>
     </div>
+  );
+}
+
+function PlatformActions({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void }) {
+  const { session } = usePlatform();
+  const [confirmName, setConfirmName] = useState("");
+  const busy = useMutation({
+    mutationFn: async (status: "active" | "suspended" | "archived") => setTenantStatus(tenant.id, status),
+    onSuccess: () => { toast.success("Status updated"); onSaved(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  async function impersonate() {
+    if (confirmName.trim().toLowerCase() !== tenant.name.trim().toLowerCase()) {
+      toast.error("Type the exact academy name to confirm");
+      return;
+    }
+    try {
+      await startImpersonation(session.user.id, tenant.id, tenant.name);
+      toast.success("Impersonation started — a banner is visible while active");
+      window.location.href = "/dashboard";
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  }
+  return (
+    <Panel title="Platform actions">
+      <div className="grid grid-cols-3 gap-2">
+        <Button variant="outline" size="sm" disabled={busy.isPending || tenant.status === "active"}
+          onClick={() => busy.mutate("active")}
+          className="border-white/10 text-white hover:bg-white/10">
+          <Play className="size-3 mr-1" /> Activate
+        </Button>
+        <Button variant="outline" size="sm" disabled={busy.isPending || tenant.status === "suspended"}
+          onClick={() => busy.mutate("suspended")}
+          className="border-white/10 text-amber-300 hover:bg-white/10">
+          <Pause className="size-3 mr-1" /> Suspend
+        </Button>
+        <Button variant="outline" size="sm" disabled={busy.isPending || tenant.status === "archived"}
+          onClick={() => busy.mutate("archived")}
+          className="border-white/10 text-rose-300 hover:bg-white/10">
+          <ShieldAlert className="size-3 mr-1" /> Archive
+        </Button>
+      </div>
+      <div className="mt-4 space-y-2 rounded-md border border-rose-500/30 bg-rose-950/30 p-3">
+        <div className="flex items-center gap-2 text-xs text-rose-200">
+          <UserCog className="size-3" /> Impersonate — every action is audited
+        </div>
+        <Input value={confirmName} onChange={(e) => setConfirmName(e.target.value)}
+          placeholder={`Type "${tenant.name}" to confirm`}
+          className="bg-neutral-950 border-white/10 text-white" />
+        <Button size="sm" onClick={impersonate}
+          className="w-full bg-rose-500 hover:bg-rose-400 text-white">Start impersonation</Button>
+      </div>
+    </Panel>
   );
 }
 
