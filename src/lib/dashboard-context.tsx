@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tenant } from "./tenant";
+import { getImpersonation } from "./platform-impersonation";
 
 type Profile = { user_id: string; tenant_id: string; role: string };
 
