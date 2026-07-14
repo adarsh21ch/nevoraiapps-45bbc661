@@ -1,93 +1,127 @@
-## Phase 03.1 — Notifications & Communication Platform
 
-### Architecture Review & Challenge
+# Phase 03.2 — Academy Website & CMS
 
-**Proposed model:** single append-only `notifications` table + per-channel outbox tables (queued for future workers). Events are published by modules via a single `publish_notification()` SECURITY DEFINER RPC — no module owns delivery logic. Realtime reuses Supabase `postgres_changes` on the `notifications` table filtered by `recipient_user_id` (one channel per signed-in user across the whole app).
+## Architecture Review (challenging current state)
 
-**Challenge / simpler alternative considered:**
-- *Event log + fan-out worker* (Kafka-style): overkill for current scale, adds a worker dependency. Rejected.
-- *Per-module notification tables*: duplicates logic, breaks unified center. Rejected.
-- *Direct row inserts from each module*: too easy to drift on shape/RLS. Rejected in favor of one `publish_notification` RPC that stamps type, priority, payload, dedupe key.
+Audited existing website surface before proposing anything new:
 
-**Chosen design (recommended):**
-```
-notifications              → canonical user-facing row (read/unread/archived)
-notification_preferences   → per-user per-type per-channel opt-in (future)
-notification_deliveries    → per-channel attempt log (in_app | push | email | whatsapp)
-notification_outbox        → queued rows for future push/email/whatsapp workers
-```
-- `publish_notification(recipient_user_id, tenant_id, type, title, body, deep_link, priority, payload, dedupe_key, expires_at)` is the ONE write path.
-- In-app delivery: row insert into `notifications`; realtime pushes to client.
-- Other channels: also insert into `notification_outbox` with `channel` + `status='queued'`. Workers (Phase 03.2+) drain it. No provider code yet.
-- Role scoping: notifications are recipient-scoped by `user_id` — role is implicit (owner/admin/coach/student/parent all use the same table). Module publishers decide who gets what.
+- **`public.site_content`** table already exists (tenant_id, section, content jsonb, sort_order). It is the CMS store — no new table needed for section content.
+- **`public.tenants`** already holds logo, favicon, colors, socials, whatsapp, upi, address, custom_domain, tagline, seo bits. All theme fields live here.
+- **`src/lib/site-queries.ts`** already exposes `siteContentQuery` / `feePlansQuery` / `batchesQuery`.
+- **`src/components/dashboard/SiteContentTabs.tsx`** (412 lines) is the existing section editor.
+- **`src/routes/dashboard.site.tsx`** is the Owner CMS entry.
+- **`src/routes/academy.$slug.tsx`** + **`src/routes/index.tsx`** (641 lines, tenant home), **`about.tsx`**, **`contact.tsx`** are the public site.
+- **`src/components/site/*`** ships SiteHeader, SiteFooter, TenantGate, FloatingWhatsApp, PageHero, PersonAvatar, StoragedImage, MobileCtaBar.
+- **`src/components/website/widgets/`** already has LiveMatchWidget, ListWidget, WidgetCard, WidgetRenderer.
+- **Registration** (`/register`), **Billing** (`fee_plans`), **Match Center feeds** (`match-feeds.ts` + `CricketToday`), **Player achievements** (`mc_athlete_achievements/awards`, `mc_recognitions`, `mc_hall_of_fame`, `mc_academy_records`, `mc_academy_timeline`), **Notifications** (`publish_notification`), **`get_public_academy_bundle` RPC** all exist.
 
-### Database Changes (one migration)
+**Verdict**: the platform already has 80% of what this phase asks for. The gap is (1) missing public pages for several sections, (2) no CMS editors for a few sections, (3) no policy pages / acceptance tracking, (4) no printable registration PDFs, (5) SEO polish. **We extend, we do not rebuild.**
 
-Tables (all with GRANTs + RLS + `updated_at` trigger):
-- `public.notifications` — id, recipient_user_id, tenant_id, type, category, title, body, deep_link, priority (`low|normal|high|urgent`), payload jsonb, read_at, archived_at, dedupe_key, expires_at, created_at
-- `public.notification_deliveries` — id, notification_id, channel (`in_app|push|email|whatsapp`), status (`queued|sent|delivered|failed|skipped`), attempted_at, error
-- `public.notification_outbox` — id, notification_id, channel, status, scheduled_for, attempts, last_error, payload
-- `public.notification_preferences` — user_id, type, channel, enabled (default true)
+**Simplifications**:
+- Keep one CMS table (`site_content`); every new section is a new `section` key + a form in `SiteContentTabs`.
+- Keep one theme store (`tenants`); reuse existing `dashboard.branding.tsx` and contact editor.
+- Reuse `TenantGate` + `SiteHeader` + `SiteFooter` on every new public route.
+- Reuse existing `match-feeds.ts`, `mc-academy-records.ts`, achievements queries — no new query layer.
 
-Enums: `notification_priority`, `notification_channel`, `notification_delivery_status`, `notification_type` (open text kept as text for extensibility — enum on category only).
+## Database Changes (minimal)
 
-RLS:
-- `notifications`: SELECT/UPDATE where `recipient_user_id = auth.uid()`; INSERT blocked (must go through RPC).
-- `notification_deliveries` / `outbox`: no client access; service_role only.
-- `notification_preferences`: user-owned.
+One migration:
 
-RPCs (SECURITY DEFINER):
-- `publish_notification(...)` — validates tenant membership of publisher OR platform admin OR self; upserts on `dedupe_key`; inserts deliveries + outbox rows per enabled channel.
-- `mark_notification_read(_id)`, `mark_all_read(_tenant_id?)`, `archive_notification(_id)`.
-- `unread_notification_count(_tenant_id?)`.
+1. **`policy_documents`** table — versioned CMS pages for terms/privacy/refund/fee/conduct/leave/medical.
+   Columns: `id`, `tenant_id`, `kind` (enum), `version` (int), `title`, `body_md`, `published_at`, `created_at`.
+   GRANT SELECT to `anon, authenticated`; INSERT/UPDATE to `authenticated` gated to tenant owners; ALL to `service_role`. RLS: public read of latest published version per (tenant, kind); write via `has_role('owner')` or tenant-member check consistent with existing patterns.
+2. **`registrations.policy_acceptances` jsonb column** — appends `{kind, version, accepted_at}` at submit time. No new table; extends the existing frozen Registration module minimally through its server function.
+3. Extend `get_public_academy_bundle` RPC to include `policies: [{kind, version, title, body_md}]` (latest published only) so public pages hit one round-trip.
 
-Realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications`.
+No changes to any frozen module's schema (attendance, billing, matches, notifications, tenants columns unchanged).
 
-**No changes** to Attendance / Billing / Registration / Match Center schemas. Modules call `publish_notification` from existing server functions (Phase 03.2 will wire more; this phase wires a curated first set).
+## New Routes (public)
 
-### Files Created
+Each is a leaf route with its own `head()` (title/description/og/canonical), wrapped by `TenantGate` + `SiteHeader` + `SiteFooter`.
 
-- `src/lib/notifications.ts` — types, `queryOptions`, React Query hooks (`useNotifications`, `useUnreadCount`, `useMarkRead`, `useMarkAllRead`, `useArchive`), realtime subscription hook `useNotificationsRealtime()` (one channel per user).
-- `src/lib/notifications.functions.ts` — server fns wrapping the RPCs above (`listNotifications`, `getUnreadCount`, `markRead`, `markAllRead`, `archive`, `publish` — internal helper reused by other server fns).
-- `src/lib/notification-publishers.ts` — typed helpers (`notifyAttendance*`, `notifyBilling*`, `notifyMatch*`, `notifyRegistration*`, `notifyCoach*`, `notifySystem*`) that call `publish` server-side only. Wired to existing hooks where trivial.
-- `src/components/notifications/NotificationBell.tsx` — bell + unread badge (top nav).
-- `src/components/notifications/NotificationCenter.tsx` — sheet/drawer with filter + search + groups (Today / Yesterday / Earlier).
-- `src/components/notifications/NotificationCard.tsx` — single card, priority accent, deep-link, mark-read on click, archive swipe.
-- `src/routes/notifications.tsx` — full-page center for mobile / power users (reuses components).
-- One migration file (via `supabase--migration`).
+- `/programs` — reads `site_content[section=programs]` + `batchesQuery`
+- `/coaches` — reads `site_content[section=coaches]`
+- `/facilities` — reads `site_content[section=facilities]`
+- `/achievements` — reuses `mc_academy_records` + `mc_hall_of_fame` + `mc_athlete_awards`
+- `/gallery` — reads `site_content[section=gallery_albums]`, lazy `<img loading="lazy">`
+- `/matches` — reuses `match-feeds.ts` (upcoming/live/completed tabs)
+- `/testimonials` — `site_content[section=testimonials]`
+- `/faq` — `site_content[section=faq]`
+- `/admissions` — CTA into existing `/register` route (no duplicate form)
+- `/fees` — extends existing `/fees` (already present); adds owner-controlled display mode (hide / show / contact / demo) from `tenants.fee_display_mode` (add via migration as tenant column? — NO, store in `site_content[section=fees_display]` to avoid touching tenants schema)
+- `/policies/$kind` — renders `policy_documents` latest published
+- `/location` — reuses tenant address + google maps embed
 
-### Files Edited (minimal, non-frozen surface only)
+## New CMS editors (Owner-only, in `dashboard.site.tsx`)
 
-- `src/components/app-shell/*` (top nav) — inject `<NotificationBell />` for authenticated users. If the shell is frozen, the bell mounts via the existing header slot only.
-- `src/routes/__root.tsx` — mount `useNotificationsRealtime()` once inside authenticated context.
+Add tabs / sections inside existing `SiteContentTabs` for: coaches, facilities, testimonials, faq, gallery_albums, why_choose_us, admissions_cta, fees_display, footer_extras. All write to `site_content`. Add a **Policies** tab that CRUDs `policy_documents` with a "Publish new version" button (bumps `version`, sets `published_at`).
 
-**No edits** to frozen module UIs. Publishing is wired in the existing server functions that already own writes (billing invoice issue, registration approval, match finalization, attendance check-in/out) — those files call `notify*` helpers as a side effect only.
+## Registration PDF
 
-### Reuse
+New file `src/lib/registration-pdf.ts` already exists (per file listing). Extend it to output two vector PDFs via `pdf-lib`:
+1. Filled — pulled from registration row.
+2. Blank — same template, empty fields, uses academy logo/tagline/colors.
 
-- Design system: `Card`, `Sheet`, `Badge`, `Button`, `ScrollArea`, `Tabs`, `Input`, `Separator` — no new primitives.
-- Realtime: `useMatchRealtime` pattern (ref-counted single channel) generalized into `notifications-realtime` — one channel per `auth.uid()`.
-- React Query cache: single key prefix `["notifications", userId]`; mutations invalidate list + count together.
+Add "Download filled PDF" on registration success screen + "Download blank form" on `/admissions`. No image rasterization.
 
-### Security
+## SEO
 
-- All writes go through SECURITY DEFINER RPCs with membership checks.
-- No direct INSERT policy on `notifications`.
-- Recipients see only their own rows.
-- Outbox / deliveries are service_role only.
+- Add `og:image`, JSON-LD `Organization` + `SportsClub` (with address, telephone, url, sameAs socials) on public leaf routes.
+- Existing `sitemap.xml`/`robots.txt` — verify and extend `entries` to include new public routes.
+- Canonical + og:url per-route (leaf only).
 
-### Performance
+## Security
 
-- Cursor pagination on `created_at desc`; page size 30.
-- Composite index `(recipient_user_id, archived_at, created_at desc)` + partial index for unread.
-- Single realtime channel per user; badge count derived from cached list + separate lightweight count query invalidated on realtime INSERT.
-- `expires_at` filter server-side; cleanup cron (Phase 03.2).
+- New `policy_documents` table gets full RLS + GRANTs (public SELECT of published rows only; owner writes via `has_role`).
+- No new service-role paths; policy CRUD is a `createServerFn` guarded by `requireSupabaseAuth` + owner check.
+- No frontend service key exposure.
 
-### Out of scope this phase
+## Performance
 
-- Actual push/email/whatsapp providers (only queue rows written).
-- Preference UI (schema ready, UI in 03.2).
-- Digest / batching.
-- Cron cleanup (schema ready).
+- One RPC call (`get_public_academy_bundle` extended) hydrates most public pages.
+- Shared `siteContentQuery` cache reused across all public routes.
+- Lazy image loading + `srcset` on gallery.
+- Route-level code-splitting is automatic (file-based routing).
+- No new realtime channels.
 
-Approve to proceed with the migration + code.
+## Reuse Ledger (planned)
+
+**Components reused**: TenantGate, SiteHeader, SiteFooter, FloatingWhatsApp, PageHero, StoragedImage, MobileCtaBar, PersonAvatar, LiveMatchWidget, WidgetRenderer, CricketToday, SiteContentTabs.
+
+**Hooks/queries reused**: `siteContentQuery`, `feePlansQuery`, `batchesQuery`, `match-feeds.ts` hooks, `mc-academy-records`, `mc-athletes` achievements, `notifications` publisher.
+
+**RPCs reused**: `get_public_academy_bundle` (extended, not replaced), `publish_notification`, `has_role`.
+
+**Tables reused**: `tenants`, `site_content`, `batches`, `fee_plans`, `registrations`, `mc_*`, `notifications`.
+
+**New code (only where necessary)**:
+- `policy_documents` table + editor + `/policies/$kind` route (no existing equivalent).
+- Public routes listed above (each ~80–150 lines, mostly composition of existing components/queries).
+- Registration PDF generator (vector, `pdf-lib`) — no existing PDF pipeline for registration output.
+- Minor extension to `get_public_academy_bundle` to include policies.
+
+## Out of scope for 03.2 (explicit)
+
+- Drag-and-drop page builder (not requested; forms are enough).
+- Multi-language site copy.
+- Custom domain provisioning UI (existing routing already supports `custom_domain`).
+- Analytics dashboards for site traffic.
+
+## Deliverables order
+
+1. Migration (`policy_documents` + extend RPC + `registrations.policy_acceptances`).
+2. Owner CMS extensions in `SiteContentTabs` + new Policies editor.
+3. Public routes (programs, coaches, facilities, achievements, gallery, matches, testimonials, faq, admissions, policies/$kind).
+4. Registration PDF (filled + blank).
+5. SEO metadata + sitemap entries.
+6. Final audit report (14 sections requested).
+
+## Risk / Rollback
+
+- Every new public route is additive — removing them cannot break frozen modules.
+- Migration is purely additive (new table + new column + RPC replacement is backward-compatible if column list stays a superset).
+- If policy acceptance breaks Registration, we short-circuit by defaulting `policy_acceptances = '[]'` and hiding the checkbox.
+
+---
+
+**Approve this scope and I'll execute in the order above.** If any section should be dropped (e.g., skip PDF, skip policies), tell me now so the migration only creates what we'll actually use.
