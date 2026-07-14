@@ -466,7 +466,9 @@ export function useScoringSession(
       // Auto strike rotation for the UI pointer (state is still derived from
       // events — this only updates the *selected* striker/non-striker).
       const legalBefore = priorEvents.filter(
-        (e) => e.over_number === optimistic.over_number && e.is_legal_delivery,
+        (e) =>
+          e.over_number === optimistic.over_number &&
+          isLegalDelivery(e.extra_type as ExtraType | null),
       ).length;
       const overCompleted =
         optimistic.is_legal_delivery && legalBefore + 1 >= 6;

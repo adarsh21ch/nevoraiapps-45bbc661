@@ -232,7 +232,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     if (events.length === 0) return { overNumber: 0, ballsBowled: 0, events: [] };
     const lastOver = events[events.length - 1].over_number;
     const overEvents = events.filter((e) => e.over_number === lastOver);
-    const legal = overEvents.filter((e) => e.is_legal_delivery).length;
+    const legal = overEvents.filter((e) => isLegalDelivery(e.extra_type as AppendBallInput["extraType"])).length;
     return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
   }, [events]);
 
@@ -351,7 +351,8 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
       const total = (partial.runsOffBat ?? 0) + (partial.extraRuns ?? 0);
       const wicket = partial.dismissalType ? 1 : 0;
       const legalBallsAfter =
-        priorEvents.filter((e) => e.is_legal_delivery).length + (legal ? 1 : 0);
+        priorEvents.filter((e) => isLegalDelivery(e.extra_type as AppendBallInput["extraType"])).length +
+        (legal ? 1 : 0);
 
       updateDemoData(tenantId, (d) => {
         d.ballEvents = [...d.ballEvents, created];
@@ -385,7 +386,9 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
 
       // Strike rotation for local UI pointer.
       const legalBefore = priorEvents.filter(
-        (e) => e.over_number === created.over_number && e.is_legal_delivery,
+        (e) =>
+          e.over_number === created.over_number &&
+          isLegalDelivery(e.extra_type as AppendBallInput["extraType"]),
       ).length;
       const overCompleted = created.is_legal_delivery && legalBefore + 1 >= 6;
       const rotated = applyStrikeAfterBall(
