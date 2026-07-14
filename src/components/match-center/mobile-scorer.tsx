@@ -101,7 +101,6 @@ export interface MobileScorerProps {
 type PickerKind = "striker" | "nonStriker" | "bowler";
 
 export function MobileScorer(props: MobileScorerProps) {
-  const [moreOpen, setMoreOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState<PickerKind | null>(null);
   const [pickerQuery, setPickerQuery] = useState("");
   const [confirm, setConfirm] = useState<
