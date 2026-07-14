@@ -542,6 +542,8 @@ function OverviewTab({
         <CoachNotes tenantId={tenantId} studentId={studentId} authorName={student.name} />
       </Card>
 
+      <AdmissionTimelineCard tenantId={tenantId} studentId={studentId} />
+
       <Card className="p-4">
         <SectionHeader icon={Activity} title="Current Form" />
         <FormStrip athleteId={athleteId} />
