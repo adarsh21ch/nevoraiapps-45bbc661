@@ -45,7 +45,7 @@ export function TopBar({
             type="button"
             onClick={back}
             aria-label="Back"
-            className="inline-grid place-items-center size-9 -ml-1 rounded-full hover:bg-accent"
+            className="inline-grid place-items-center min-h-11 min-w-11 -ml-1 rounded-full hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]/50"
           >
             <ChevronLeft className="size-5" />
           </button>
