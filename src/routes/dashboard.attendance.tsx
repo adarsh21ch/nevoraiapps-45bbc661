@@ -275,17 +275,7 @@ function StudentRow({
       trailing={
         canMark ? (
           <div className="flex items-center gap-1.5">
-            {state === "not_marked" ? (
-              <Button
-                size="sm"
-                onClick={onCheckIn}
-                disabled={busy}
-                className="min-h-9"
-                aria-label={`Check in ${student.name}`}
-              >
-                <LogIn className="size-4" /> In
-              </Button>
-            ) : state === "in_academy" ? (
+            {state === "in_academy" ? (
               <Button
                 size="sm"
                 variant="secondary"
@@ -296,7 +286,19 @@ function StudentRow({
               >
                 <LogOut className="size-4" /> Out
               </Button>
-            ) : null}
+            ) : (
+              // not_marked OR checked_out — both allow a fresh check-in (multiple visits/day)
+              <Button
+                size="sm"
+                variant={state === "checked_out" ? "outline" : "default"}
+                onClick={onCheckIn}
+                disabled={busy}
+                className="min-h-9"
+                aria-label={`Check in ${student.name}`}
+              >
+                <LogIn className="size-4" /> {state === "checked_out" ? "In again" : "In"}
+              </Button>
+            )}
           </div>
         ) : null
       }
