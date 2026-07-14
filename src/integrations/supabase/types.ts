@@ -133,11 +133,7 @@ export type Database = {
       }
       attendance_sessions: {
         Row: {
-          auto_close_at: string | null
           batch_id: string
-          close_source: string | null
-          closed_at: string | null
-          closed_by: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -147,11 +143,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          auto_close_at?: string | null
           batch_id: string
-          close_source?: string | null
-          closed_at?: string | null
-          closed_by?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -161,11 +153,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          auto_close_at?: string | null
           batch_id?: string
-          close_source?: string | null
-          closed_at?: string | null
-          closed_by?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -195,7 +183,6 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
-          end_time: string | null
           id: string
           name: string
           tenant_id: string
@@ -204,7 +191,6 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
-          end_time?: string | null
           id?: string
           name: string
           tenant_id: string
@@ -213,7 +199,6 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
-          end_time?: string | null
           id?: string
           name?: string
           tenant_id?: string
@@ -3046,7 +3031,6 @@ export type Database = {
           duration_minutes: number | null
           mark_id: string | null
           marked_by: string | null
-          session_closed_at: string | null
           session_date: string | null
           session_id: string | null
           source: Database["public"]["Enums"]["attendance_source"] | null
@@ -3134,14 +3118,9 @@ export type Database = {
         Args: { _payment_ref: string; _registration_id: string }
         Returns: undefined
       }
-      auto_close_overdue_sessions: { Args: never; Returns: number }
       claim_registration_payment: {
         Args: { p_payment_ref: string; p_registration_id: string }
         Returns: boolean
-      }
-      close_attendance_session: {
-        Args: { _auto?: boolean; _session_id: string }
-        Returns: Json
       }
       compute_player_prefix: { Args: { _tenant_id: string }; Returns: string }
       correct_attendance: {
