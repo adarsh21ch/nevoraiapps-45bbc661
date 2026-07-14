@@ -122,23 +122,21 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
         {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} />}
       </div>
 
-      <Dialog open={!!openBatter} onOpenChange={(o) => !o && setOpenBatter(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="truncate">{openBatter?.player.name ?? "Batter"}</DialogTitle>
-          </DialogHeader>
-          {openBatter && <BatterCard b={openBatter} />}
-        </DialogContent>
-      </Dialog>
+      <BatterDetailSheet
+        open={!!openBatter}
+        onOpenChange={(o) => !o && setOpenBatter(null)}
+        batter={openBatter}
+        events={events}
+        partnerships={stats.team.partnerships}
+      />
 
-      <Dialog open={!!openBowler} onOpenChange={(o) => !o && setOpenBowler(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="truncate">{openBowler?.player.name ?? "Bowler"}</DialogTitle>
-          </DialogHeader>
-          {openBowler && <BowlerCard b={openBowler} />}
-        </DialogContent>
-      </Dialog>
+      <BowlerDetailSheet
+        open={!!openBowler}
+        onOpenChange={(o) => !o && setOpenBowler(null)}
+        bowler={openBowler}
+        events={events}
+        overs={stats.team.overs_summary}
+      />
     </div>
   );
 }
@@ -149,49 +147,66 @@ function BattingTable({ batters, onSelect }: { batters: BattingStat[]; onSelect?
   if (batters.length === 0) return <EmptyState text="No balls yet." />;
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
-      <table className="w-full text-[12px] tabular-nums">
-        <thead className="sticky top-0 z-[1] bg-muted/70 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-          <tr>
-            <th className="px-2.5 py-2 text-left">Batter</th>
-            <th className="px-1.5 py-2 text-right">R</th>
-            <th className="px-1.5 py-2 text-right">B</th>
-            <th className="px-1.5 py-2 text-right">4s</th>
-            <th className="px-1.5 py-2 text-right">6s</th>
-            <th className="px-2.5 py-2 text-right">SR</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border/60">
-          {batters.map((b) => {
-            const dismissal = b.notOut
-              ? "not out"
-              : `${b.dismissalType ?? "out"}${b.dismissedBy?.name ? ` b ${b.dismissedBy.name}` : ""}`;
-            return (
-              <tr
-                key={b.player.key}
-                onClick={() => onSelect?.(b)}
-                className={cn("align-top", onSelect && "cursor-pointer transition-colors hover:bg-muted/40 active:bg-muted/60")}
-              >
-                <td className="min-w-0 px-2.5 py-2 text-left">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <span className="truncate font-semibold">{b.player.name ?? "—"}</span>
-                    {b.notOut && (
-                      <span className="shrink-0 rounded-full bg-primary/15 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary">
-                        *
-                      </span>
-                    )}
-                  </div>
-                  <div className="truncate text-[10px] text-muted-foreground">{dismissal}</div>
-                </td>
-                <td className="px-1.5 py-2 text-right font-black">{b.runs}</td>
-                <td className="px-1.5 py-2 text-right">{b.balls}</td>
-                <td className="px-1.5 py-2 text-right">{b.fours}</td>
-                <td className="px-1.5 py-2 text-right">{b.sixes}</td>
-                <td className="px-2.5 py-2 text-right">{b.strikeRate}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      {/* Header row — semantic grid so columns align perfectly with each row. */}
+      <div className="sticky top-0 z-[1] grid grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem_2.25rem_3rem] items-center gap-x-2 border-b border-border/60 bg-muted/60 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        <div className="text-left">Batter</div>
+        <div className="text-right">R</div>
+        <div className="text-right">B</div>
+        <div className="text-right">4s</div>
+        <div className="text-right">6s</div>
+        <div className="text-right">SR</div>
+      </div>
+      <ul className="divide-y divide-border/40">
+        {batters.map((b) => {
+          const dismissal = b.notOut
+            ? "not out"
+            : `${b.dismissalType ?? "out"}${b.dismissedBy?.name ? ` b ${b.dismissedBy.name}` : ""}`;
+          return (
+            <li
+              key={b.player.key}
+              onClick={() => onSelect?.(b)}
+              onKeyDown={(e) => {
+                if (!onSelect) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelect(b);
+                }
+              }}
+              role={onSelect ? "button" : undefined}
+              tabIndex={onSelect ? 0 : undefined}
+              className={cn(
+                "grid grid-cols-[minmax(0,1fr)_2.25rem_2.25rem_2.25rem_2.25rem_3rem] items-center gap-x-2 px-3 py-3 min-h-14 tabular-nums text-[13px]",
+                onSelect &&
+                  "cursor-pointer transition-colors hover:bg-muted/40 active:bg-muted/60 focus:outline-none focus-visible:bg-muted/40",
+              )}
+            >
+              <div className="min-w-0 text-left">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span className="truncate text-[14px] font-bold leading-tight">
+                    {b.player.name ?? "—"}
+                  </span>
+                  {b.notOut && (
+                    <span
+                      className="shrink-0 text-[13px] font-black leading-none text-primary"
+                      aria-label="not out"
+                    >
+                      *
+                    </span>
+                  )}
+                </div>
+                <div className="truncate text-[10.5px] font-medium text-muted-foreground">
+                  {dismissal}
+                </div>
+              </div>
+              <div className="text-right font-black">{b.runs}</div>
+              <div className="text-right">{b.balls}</div>
+              <div className="text-right">{b.fours}</div>
+              <div className="text-right">{b.sixes}</div>
+              <div className="text-right">{b.strikeRate}</div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -200,42 +215,52 @@ function BowlingTable({ bowlers, onSelect }: { bowlers: BowlingStat[]; onSelect?
   if (bowlers.length === 0) return <EmptyState text="No balls yet." />;
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
-      <table className="w-full text-[12px] tabular-nums">
-        <thead className="sticky top-0 z-[1] bg-muted/70 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-          <tr>
-            <th className="px-2.5 py-2 text-left">Bowler</th>
-            <th className="px-1.5 py-2 text-right">O</th>
-            <th className="px-1.5 py-2 text-right">M</th>
-            <th className="px-1.5 py-2 text-right">R</th>
-            <th className="px-1.5 py-2 text-right">W</th>
-            <th className="px-2.5 py-2 text-right">Econ</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border/60">
-          {bowlers.map((b) => (
-            <tr
-              key={b.player.key}
-              onClick={() => onSelect?.(b)}
-              className={cn(onSelect && "cursor-pointer transition-colors hover:bg-muted/40 active:bg-muted/60")}
-            >
-              <td className="min-w-0 px-2.5 py-2 text-left">
-                <div className="truncate font-semibold">{b.player.name ?? "—"}</div>
-                <div className="truncate text-[10px] text-muted-foreground">
-                  {b.dotBalls} dots · {b.wides}wd · {b.noBalls}nb
-                </div>
-              </td>
-              <td className="px-1.5 py-2 text-right">{b.oversDisplay}</td>
-              <td className="px-1.5 py-2 text-right">{b.maidens}</td>
-              <td className="px-1.5 py-2 text-right">{b.runsConceded}</td>
-              <td className="px-1.5 py-2 text-right font-black">{b.wickets}</td>
-              <td className="px-2.5 py-2 text-right">{b.economy}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="sticky top-0 z-[1] grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.25rem_3rem] items-center gap-x-2 border-b border-border/60 bg-muted/60 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        <div className="text-left">Bowler</div>
+        <div className="text-right">O</div>
+        <div className="text-right">R</div>
+        <div className="text-right">W</div>
+        <div className="text-right">Econ</div>
+      </div>
+      <ul className="divide-y divide-border/40">
+        {bowlers.map((b) => (
+          <li
+            key={b.player.key}
+            onClick={() => onSelect?.(b)}
+            onKeyDown={(e) => {
+              if (!onSelect) return;
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(b);
+              }
+            }}
+            role={onSelect ? "button" : undefined}
+            tabIndex={onSelect ? 0 : undefined}
+            className={cn(
+              "grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.25rem_3rem] items-center gap-x-2 px-3 py-3 min-h-14 tabular-nums text-[13px]",
+              onSelect &&
+                "cursor-pointer transition-colors hover:bg-muted/40 active:bg-muted/60 focus:outline-none focus-visible:bg-muted/40",
+            )}
+          >
+            <div className="min-w-0 text-left">
+              <div className="truncate text-[14px] font-bold leading-tight">
+                {b.player.name ?? "—"}
+              </div>
+              <div className="truncate text-[10.5px] font-medium text-muted-foreground">
+                {b.dotBalls} dots • {b.wides} wd • {b.noBalls} nb • {b.maidens} {b.maidens === 1 ? "maiden" : "maidens"}
+              </div>
+            </div>
+            <div className="text-right">{b.oversDisplay}</div>
+            <div className="text-right">{b.runsConceded}</div>
+            <div className="text-right font-black">{b.wickets}</div>
+            <div className="text-right">{b.economy}</div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
+
 
 
 /* --------------------------------- Panes --------------------------------- */
