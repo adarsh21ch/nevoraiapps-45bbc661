@@ -23,7 +23,6 @@ import {
   ArrowLeft,
   ChevronDown,
   CircleDot,
-  Clock,
   FileText,
   Flag,
   Redo2,
@@ -711,8 +710,28 @@ function ThisOverStrip({
   // the fixed label above the number never doubles up.
   const isPreOver = overs?.startsWith("Over ") ?? false;
   const value = isPreOver ? overs!.slice(5) : overs;
+  const clickable = Boolean(onOpenHistory);
   return (
-    <section className="flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10">
+    <section
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      aria-label={clickable ? "Open over history" : undefined}
+      onClick={onOpenHistory}
+      onKeyDown={
+        clickable
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpenHistory?.();
+              }
+            }
+          : undefined
+      }
+      className={cn(
+        "flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10",
+        clickable && "cursor-pointer transition duration-100 active:scale-[0.99] hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+      )}
+    >
       <div className="flex shrink-0 flex-col leading-none">
         <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
           Over
@@ -731,19 +750,10 @@ function ThisOverStrip({
           balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
         )}
       </div>
-      {onOpenHistory && (
-        <button
-          type="button"
-          onClick={onOpenHistory}
-          aria-label="Open over history"
-          className="ml-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background/70 text-muted-foreground transition duration-100 active:scale-95 hover:text-foreground"
-        >
-          <Clock className="size-4" />
-        </button>
-      )}
     </section>
   );
 }
+
 
 
 
