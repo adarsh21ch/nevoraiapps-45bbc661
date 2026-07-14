@@ -642,7 +642,6 @@ function FormStrip({ athleteId }: { athleteId: string | null }) {
   );
 }
 
-}
 
 /* ------------------------ Coach Notes ------------------------ */
 
