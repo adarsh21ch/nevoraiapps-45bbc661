@@ -733,7 +733,7 @@ function ScorerPage() {
           tournamentLabel={tournamentLabel || undefined}
           isLive={!!session.activeInnings && !session.match?.match_locked}
           score={`${stats.team.runs}/${stats.team.wickets}`}
-          overs={stats.team.oversDisplay}
+          overs={currentOverLabel}
           crr={String(stats.team.runRate)}
           rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={
