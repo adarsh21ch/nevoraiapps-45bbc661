@@ -72,7 +72,6 @@ import { Route as MatchCenterPlayersAthleteIdRouteImport } from './routes/match-
 import { Route as MatchCenterPerformanceCompareRouteImport } from './routes/match-center.performance.compare'
 import { Route as MatchCenterPerformanceAthleteIdRouteImport } from './routes/match-center.performance.$athleteId'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
-import { Route as ApiPublicResetPwOnceRouteImport } from './routes/api/public/reset-pw-once'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 
@@ -398,11 +397,6 @@ const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => DashboardStudentsRoute,
 } as any)
-const ApiPublicResetPwOnceRoute = ApiPublicResetPwOnceRouteImport.update({
-  id: '/api/public/reset-pw-once',
-  path: '/api/public/reset-pw-once',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicManifestWebmanifestRoute =
   ApiPublicManifestWebmanifestRouteImport.update({
     id: '/api/public/manifest/webmanifest',
@@ -468,7 +462,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
-  '/api/public/reset-pw-once': typeof ApiPublicResetPwOnceRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
   '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
@@ -533,7 +526,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/match-center': typeof MatchCenterIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
-  '/api/public/reset-pw-once': typeof ApiPublicResetPwOnceRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
   '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
@@ -602,7 +594,6 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
-  '/api/public/reset-pw-once': typeof ApiPublicResetPwOnceRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
   '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
@@ -672,7 +663,6 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/match-center/'
     | '/platform-admin/'
-    | '/api/public/reset-pw-once'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
     | '/match-center/performance/compare'
@@ -737,7 +727,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/match-center'
     | '/platform-admin'
-    | '/api/public/reset-pw-once'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
     | '/match-center/performance/compare'
@@ -805,7 +794,6 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/match-center/'
     | '/platform-admin/'
-    | '/api/public/reset-pw-once'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
     | '/match-center/performance/compare'
@@ -839,7 +827,6 @@ export interface RootRouteChildren {
   MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
-  ApiPublicResetPwOnceRoute: typeof ApiPublicResetPwOnceRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
 }
@@ -1287,13 +1274,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentsIdRouteImport
       parentRoute: typeof DashboardStudentsRoute
     }
-    '/api/public/reset-pw-once': {
-      id: '/api/public/reset-pw-once'
-      path: '/api/public/reset-pw-once'
-      fullPath: '/api/public/reset-pw-once'
-      preLoaderRoute: typeof ApiPublicResetPwOnceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/manifest/webmanifest': {
       id: '/api/public/manifest/webmanifest'
       path: '/api/public/manifest/webmanifest'
@@ -1486,20 +1466,9 @@ const rootRouteChildren: RootRouteChildren = {
   MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
-  ApiPublicResetPwOnceRoute: ApiPublicResetPwOnceRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
