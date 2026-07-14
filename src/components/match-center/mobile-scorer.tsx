@@ -322,14 +322,14 @@ export function MobileScorer(props: MobileScorerProps) {
           </section>
 
 
+          <ThisOverStrip balls={props.overBalls} overs={props.overs} />
+
           <ScorebookBatters
             striker={props.striker}
             nonStriker={props.nonStriker}
             onPickStriker={() => openPicker("striker")}
             onPickNonStriker={() => openPicker("nonStriker")}
           />
-
-          <ThisOverStrip balls={props.overBalls} />
 
           <BowlerLine bowler={props.bowler} onClick={() => openPicker("bowler")} />
 
