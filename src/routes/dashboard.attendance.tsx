@@ -125,7 +125,7 @@ function AttendancePage() {
       <TopBar
         title="Attendance"
         subtitle={format(new Date(), "EEE, d MMM · h:mm a")}
-        rightSlot={<LiveBadge state="live" />}
+        trailing={<LiveBadge state="live" />}
       />
 
       {isError ? (
@@ -174,9 +174,9 @@ function AttendancePage() {
           <Section>
             <div className="grid grid-cols-2 gap-2">
               <StatCard label="In Academy Now" value={kpis.inAcademy} tone="success" />
-              <StatCard label="Checked Out" value={kpis.checkedOut} tone="info" />
+              <StatCard label="Checked Out" value={kpis.checkedOut} tone="default" />
               <StatCard label="Absent" value={kpis.absent} tone="danger" />
-              <StatCard label="Not Marked" value={kpis.notMarked} tone="neutral" />
+              <StatCard label="Not Marked" value={kpis.notMarked} tone="default" />
             </div>
           </Section>
 
@@ -274,7 +274,7 @@ function StudentRow({
 
   return (
     <ListItem
-      leading={<PersonAvatar name={student.name} photoUrl={student.photo_url} className="size-10" />}
+      leading={<PersonAvatar name={student.name} src={student.photo_url} className="size-10" />}
       title={student.name}
       subtitle={
         <StateSummary state={state} row={row} />
