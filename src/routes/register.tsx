@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -21,7 +21,12 @@ import { generateBlankRegistrationPdf } from "@/lib/registration-pdf";
 // registration on paperwork the academy hasn't uploaded yet.
 const REQUIRED_POLICIES: PolicyKind[] = ["terms", "privacy", "fee", "medical"];
 
+type RegisterSearch = { lead?: string };
+
 export const Route = createFileRoute("/register")({
+  validateSearch: (s: Record<string, unknown>): RegisterSearch => ({
+    lead: typeof s.lead === "string" ? s.lead : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Register" },
@@ -39,6 +44,7 @@ export const Route = createFileRoute("/register")({
 
 function RegisterContent() {
   const tenant = useTenant();
+  const { lead: leadId } = Route.useSearch();
   const { data: batches = [] } = useQuery(batchesQuery(tenant.id));
   const { data: fees = [] } = useQuery(feePlansQuery(tenant.id));
   const { data: policies = [] } = useQuery(publishedPoliciesQuery(tenant.id));
