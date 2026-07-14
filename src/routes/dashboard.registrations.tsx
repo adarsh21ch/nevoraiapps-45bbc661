@@ -546,6 +546,7 @@ function RegistrationDetails({
   onAccept: () => void;
   onRequestDelete: () => void;
 }) {
+  const { tenant } = useDashboard();
   const plan = reg.fee_plans as { name?: string; amount?: number } | null;
   const batch = reg.batches as { name?: string } | null;
   const paid = reg.payment_status === "verified" || reg.payment_status === "claimed_paid";
