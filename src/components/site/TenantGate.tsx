@@ -5,7 +5,7 @@ import { DomainNotConfigured } from "./DomainNotConfigured";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
 import { FloatingWhatsApp } from "./FloatingWhatsApp";
-import { MobileCtaBar } from "./MobileCtaBar";
+
 import { isReservedPlatformHost } from "@/lib/tenant";
 
 /**
