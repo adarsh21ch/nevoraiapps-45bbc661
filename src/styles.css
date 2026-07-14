@@ -476,9 +476,13 @@ html {
 }
 body {
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+  /* NOTE: Do NOT set `touch-action: manipulation` on the body — on some
+     Android WebViews and older iOS Safari builds this interferes with
+     vertical panning of the page. Apply it only to interactive controls
+     (buttons/links) via their own styles. */
   overscroll-behavior-y: contain;
 }
+
 
 /* Match Center shell — clip stray horizontal overflow from any descendant
  * without breaking sticky/fixed elements (unlike overflow-x: hidden). */
