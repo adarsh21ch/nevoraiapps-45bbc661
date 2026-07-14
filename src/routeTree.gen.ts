@@ -60,6 +60,7 @@ import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insigh
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
 import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
 import { Route as DashboardBrandingRouteImport } from './routes/dashboard.branding'
+import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
@@ -336,6 +337,11 @@ const DashboardBrandingRoute = DashboardBrandingRouteImport.update({
   path: '/branding',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardBillingRoute = DashboardBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardBatchesRoute = DashboardBatchesRouteImport.update({
   id: '/batches',
   path: '/batches',
@@ -458,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
+  '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -527,6 +534,7 @@ export interface FileRoutesByTo {
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
+  '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -600,6 +608,7 @@ export interface FileRoutesById {
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
+  '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -674,6 +683,7 @@ export interface FileRouteTypes {
     | '/dashboard/admins'
     | '/dashboard/attendance'
     | '/dashboard/batches'
+    | '/dashboard/billing'
     | '/dashboard/branding'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
@@ -743,6 +753,7 @@ export interface FileRouteTypes {
     | '/dashboard/admins'
     | '/dashboard/attendance'
     | '/dashboard/batches'
+    | '/dashboard/billing'
     | '/dashboard/branding'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
@@ -815,6 +826,7 @@ export interface FileRouteTypes {
     | '/dashboard/admins'
     | '/dashboard/attendance'
     | '/dashboard/batches'
+    | '/dashboard/billing'
     | '/dashboard/branding'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
@@ -1250,6 +1262,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBrandingRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/billing': {
+      id: '/dashboard/billing'
+      path: '/billing'
+      fullPath: '/dashboard/billing'
+      preLoaderRoute: typeof DashboardBillingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/batches': {
       id: '/dashboard/batches'
       path: '/batches'
@@ -1402,6 +1421,7 @@ interface DashboardRouteChildren {
   DashboardAdminsRoute: typeof DashboardAdminsRoute
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardBatchesRoute: typeof DashboardBatchesRoute
+  DashboardBillingRoute: typeof DashboardBillingRoute
   DashboardBrandingRoute: typeof DashboardBrandingRoute
   DashboardFeePlansRoute: typeof DashboardFeePlansRoute
   DashboardFeesRoute: typeof DashboardFeesRoute
@@ -1424,6 +1444,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminsRoute: DashboardAdminsRoute,
   DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardBatchesRoute: DashboardBatchesRoute,
+  DashboardBillingRoute: DashboardBillingRoute,
   DashboardBrandingRoute: DashboardBrandingRoute,
   DashboardFeePlansRoute: DashboardFeePlansRoute,
   DashboardFeesRoute: DashboardFeesRoute,
@@ -1577,13 +1598,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
