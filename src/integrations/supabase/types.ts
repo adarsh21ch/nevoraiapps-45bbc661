@@ -1399,6 +1399,7 @@ export type Database = {
           overs: number
           pitch: string | null
           player_of_match_athlete_id: string | null
+          public_slug: string | null
           result: string | null
           scheduled_date: string | null
           scheduled_time: string | null
@@ -1438,6 +1439,7 @@ export type Database = {
           overs?: number
           pitch?: string | null
           player_of_match_athlete_id?: string | null
+          public_slug?: string | null
           result?: string | null
           scheduled_date?: string | null
           scheduled_time?: string | null
@@ -1477,6 +1479,7 @@ export type Database = {
           overs?: number
           pitch?: string | null
           player_of_match_athlete_id?: string | null
+          public_slug?: string | null
           result?: string | null
           scheduled_date?: string | null
           scheduled_time?: string | null
@@ -2044,6 +2047,7 @@ export type Database = {
           keeper_student_id: string | null
           logo_url: string | null
           name: string
+          public_slug: string | null
           season: string | null
           short_name: string | null
           sport: string
@@ -2068,6 +2072,7 @@ export type Database = {
           keeper_student_id?: string | null
           logo_url?: string | null
           name: string
+          public_slug?: string | null
           season?: string | null
           short_name?: string | null
           sport?: string
@@ -2092,6 +2097,7 @@ export type Database = {
           keeper_student_id?: string | null
           logo_url?: string | null
           name?: string
+          public_slug?: string | null
           season?: string | null
           short_name?: string | null
           sport?: string
@@ -2761,6 +2767,7 @@ export type Database = {
           phone: string
           photo_url: string | null
           player_id: string | null
+          public_slug: string | null
           status: string
           tenant_id: string
         }
@@ -2781,6 +2788,7 @@ export type Database = {
           phone: string
           photo_url?: string | null
           player_id?: string | null
+          public_slug?: string | null
           status?: string
           tenant_id: string
         }
@@ -2801,6 +2809,7 @@ export type Database = {
           phone?: string
           photo_url?: string | null
           player_id?: string | null
+          public_slug?: string | null
           status?: string
           tenant_id?: string
         }
@@ -3034,6 +3043,7 @@ export type Database = {
           student_name: string
         }[]
       }
+      slugify: { Args: { _input: string }; Returns: string }
       submit_lead: {
         Args: {
           _message?: string
