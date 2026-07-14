@@ -35,6 +35,9 @@ import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
 import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
+import { Route as ParentTimelineRouteImport } from './routes/parent.timeline'
+import { Route as ParentProgressRouteImport } from './routes/parent.progress'
+import { Route as ParentProfileRouteImport } from './routes/parent.profile'
 import { Route as MatchSlugRouteImport } from './routes/match.$slug'
 import { Route as MatchCenterWebsiteRouteImport } from './routes/match-center.website'
 import { Route as MatchCenterTournamentsRouteImport } from './routes/match-center.tournaments'
@@ -218,6 +221,21 @@ const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
   id: '/new',
   path: '/new',
   getParentRoute: () => PlatformAdminRoute,
+} as any)
+const ParentTimelineRoute = ParentTimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
+  getParentRoute: () => ParentRoute,
+} as any)
+const ParentProgressRoute = ParentProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => ParentRoute,
+} as any)
+const ParentProfileRoute = ParentProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => ParentRoute,
 } as any)
 const MatchSlugRoute = MatchSlugRouteImport.update({
   id: '/match/$slug',
@@ -541,6 +559,9 @@ export interface FileRoutesByFullPath {
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
+  '/parent/profile': typeof ParentProfileRoute
+  '/parent/progress': typeof ParentProgressRoute
+  '/parent/timeline': typeof ParentTimelineRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
@@ -616,6 +637,9 @@ export interface FileRoutesByTo {
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
+  '/parent/profile': typeof ParentProfileRoute
+  '/parent/progress': typeof ParentProgressRoute
+  '/parent/timeline': typeof ParentTimelineRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
@@ -697,6 +721,9 @@ export interface FileRoutesById {
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
+  '/parent/profile': typeof ParentProfileRoute
+  '/parent/progress': typeof ParentProgressRoute
+  '/parent/timeline': typeof ParentTimelineRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
@@ -779,6 +806,9 @@ export interface FileRouteTypes {
     | '/match-center/tournaments'
     | '/match-center/website'
     | '/match/$slug'
+    | '/parent/profile'
+    | '/parent/progress'
+    | '/parent/timeline'
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
@@ -854,6 +884,9 @@ export interface FileRouteTypes {
     | '/match-center/tournaments'
     | '/match-center/website'
     | '/match/$slug'
+    | '/parent/profile'
+    | '/parent/progress'
+    | '/parent/timeline'
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
@@ -934,6 +967,9 @@ export interface FileRouteTypes {
     | '/match-center/tournaments'
     | '/match-center/website'
     | '/match/$slug'
+    | '/parent/profile'
+    | '/parent/progress'
+    | '/parent/timeline'
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
@@ -1168,6 +1204,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/platform-admin/new'
       preLoaderRoute: typeof PlatformAdminNewRouteImport
       parentRoute: typeof PlatformAdminRoute
+    }
+    '/parent/timeline': {
+      id: '/parent/timeline'
+      path: '/timeline'
+      fullPath: '/parent/timeline'
+      preLoaderRoute: typeof ParentTimelineRouteImport
+      parentRoute: typeof ParentRoute
+    }
+    '/parent/progress': {
+      id: '/parent/progress'
+      path: '/progress'
+      fullPath: '/parent/progress'
+      preLoaderRoute: typeof ParentProgressRouteImport
+      parentRoute: typeof ParentRoute
+    }
+    '/parent/profile': {
+      id: '/parent/profile'
+      path: '/profile'
+      fullPath: '/parent/profile'
+      preLoaderRoute: typeof ParentProfileRouteImport
+      parentRoute: typeof ParentRoute
     }
     '/match/$slug': {
       id: '/match/$slug'
@@ -1685,10 +1742,16 @@ const MatchCenterRouteWithChildren = MatchCenterRoute._addFileChildren(
 )
 
 interface ParentRouteChildren {
+  ParentProfileRoute: typeof ParentProfileRoute
+  ParentProgressRoute: typeof ParentProgressRoute
+  ParentTimelineRoute: typeof ParentTimelineRoute
   ParentIndexRoute: typeof ParentIndexRoute
 }
 
 const ParentRouteChildren: ParentRouteChildren = {
+  ParentProfileRoute: ParentProfileRoute,
+  ParentProgressRoute: ParentProgressRoute,
+  ParentTimelineRoute: ParentTimelineRoute,
   ParentIndexRoute: ParentIndexRoute,
 }
 
