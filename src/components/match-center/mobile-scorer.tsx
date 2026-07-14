@@ -118,6 +118,7 @@ export function MobileScorer(props: MobileScorerProps) {
   const [confirm, setConfirm] = useState<
     null | { kind: "end-match" | "finish-innings" | "delete-ball" }
   >(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const sheetPickerEnabled = Boolean(
     props.battingOptions && props.bowlingOptions && props.onPickPlayer,
