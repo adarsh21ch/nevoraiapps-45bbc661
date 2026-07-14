@@ -998,10 +998,10 @@ function ScorerPage() {
             <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setScorecardOpen(true)}>
+            <Button variant="outline" onClick={() => { setMatchCompleteOpen(false); setScorecardOpen(true); }}>
               View scorecard
             </Button>
-            <Button onClick={finalizeMatch}>Finalize</Button>
+            <Button onClick={() => { setMatchCompleteOpen(false); finalizeMatch(); }}>Finalize</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
