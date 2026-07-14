@@ -21,17 +21,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ArrowLeft,
+  CircleDot,
   FileText,
   Flag,
-  
   Redo2,
   Search,
-  Shield,
   StopCircle,
   Undo2,
   UserPlus,
   Share2,
 } from "lucide-react";
+
 
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
 
@@ -282,12 +282,13 @@ export function MobileScorer(props: MobileScorerProps) {
             <button
               type="button"
               onClick={() => setConfirm({ kind: "end-match" })}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-destructive/40 bg-destructive/10 px-3.5 text-[11px] font-black uppercase tracking-wider text-destructive transition duration-100 active:scale-95"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-destructive/25 bg-destructive/[0.06] px-3 text-[10.5px] font-black uppercase tracking-wider text-destructive/90 transition duration-100 active:scale-95"
             >
-              <StopCircle className="size-4" />
+              <StopCircle className="size-3.5" />
               End
             </button>
           )}
+
         </div>
       </header>
 
@@ -295,30 +296,31 @@ export function MobileScorer(props: MobileScorerProps) {
 
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
         <div className="flex min-h-full flex-col gap-2 px-3 py-2">
-          <section className="shrink-0">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
+          <section className="shrink-0 pt-1 pb-1.5">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
               <div className="min-w-0">
-                <div className="flex min-w-0 items-baseline gap-2">
-                  <h1 className="truncate text-[44px] font-black leading-none tracking-normal tabular-nums sm:text-[48px]">
+                <div className="flex min-w-0 items-baseline gap-2.5">
+                  <h1 className="truncate text-[52px] font-black leading-[0.9] tracking-tight tabular-nums sm:text-[56px]">
                     <NumberRoll value={props.score} />
                   </h1>
-                  <span className="shrink-0 text-[14px] font-bold text-muted-foreground tabular-nums">
+                  <span className="shrink-0 text-[15px] font-bold text-muted-foreground tabular-nums">
                     (<NumberRoll value={props.overs} /> ov)
                   </span>
                 </div>
                 {props.chase && (
-                  <div className="mt-1 text-[12px] font-semibold text-[var(--score-success-fg)] tabular-nums">
+                  <div className="mt-1.5 text-[12.5px] font-semibold text-[var(--score-success-fg)] tabular-nums">
                     Need {props.chase.runsNeeded} from {props.chase.ballsLeft} balls
                   </div>
                 )}
               </div>
-              <div className="grid min-w-[92px] gap-1 text-right text-[11px] leading-tight tabular-nums">
+              <div className="grid min-w-[96px] gap-1.5 text-right text-[12px] leading-tight tabular-nums">
                 <MetricInline label="CRR" value={props.crr ?? "–"} />
                 {props.rrr && <MetricInline label="RRR" value={props.rrr} accent />}
                 {props.target && <MetricInline label="TGT" value={props.target} />}
               </div>
             </div>
           </section>
+
 
           <ScorebookBatters
             striker={props.striker}
@@ -498,25 +500,27 @@ function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; strike
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-1.5">
-          {striker && (
-            <span className="grid size-5 shrink-0 place-items-center rounded-full bg-[var(--score-striker-dot)] text-[var(--score-action-foreground)] text-[11px] font-black">
-              *
+          {striker ? (
+            <span className="grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-striker-dot)] text-[var(--score-action-foreground)] text-[11px] font-black leading-none">
+              ★
             </span>
+          ) : (
+            <span className="size-[18px] shrink-0" aria-hidden />
           )}
-          <span className="truncate text-[13px] font-bold leading-tight">{name}</span>
+          <span className="truncate text-[14px] font-bold leading-tight">{name}</span>
         </div>
-        <div className="mt-0.5 flex min-w-0 items-center gap-2 overflow-hidden text-[10.5px] leading-tight text-muted-foreground tabular-nums">
-          <span>4s {batter?.fours ?? 0}</span>
-          <span>6s {batter?.sixes ?? 0}</span>
-          <span>SR {sr}</span>
+        <div className="mt-1 pl-[26px] truncate text-[11px] leading-tight text-muted-foreground tabular-nums">
+          {(batter?.fours ?? 0)}×4 • {(batter?.sixes ?? 0)}×6 • SR {sr}
         </div>
       </div>
+
       <div className="text-right tabular-nums">
-        <div className="text-[17px] font-black leading-none">
+        <div className="text-[20px] font-black leading-none">
           {batter?.runs ?? 0}
           <span className="ml-1 text-[12px] font-bold text-muted-foreground">({batter?.balls ?? 0})</span>
         </div>
       </div>
+
     </button>
   );
 }
@@ -530,27 +534,28 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
     >
       <div className="min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="grid size-5 shrink-0 place-items-center rounded-full bg-[var(--score-bowler-bg)] text-[var(--score-bowler-fg)]">
-            <Shield className="size-3" />
+          <span className="grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-bowler-bg)] text-[var(--score-bowler-fg)]">
+            <CircleDot className="size-3" strokeWidth={2.25} />
           </span>
-          <span className="truncate text-[13px] font-bold">{bowler?.name ?? "Select bowler"}</span>
+          <span className="truncate text-[14px] font-bold">{bowler?.name ?? "Select bowler"}</span>
           <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Bowling</span>
         </div>
       </div>
-      <div className="text-right text-[11px] font-semibold text-muted-foreground tabular-nums">
+      <div className="text-right text-[11.5px] font-semibold text-muted-foreground tabular-nums">
         <span className="text-foreground">{bowler?.wickets ?? 0}/{bowler?.runs ?? 0}</span>
         <span> · {bowler?.overs ?? "0.0"} ov</span>
         <span> · Econ {bowler?.economy ?? "–"}</span>
       </div>
+
     </button>
   );
 }
 
 function ThisOverStrip({ balls }: { balls: string[] }) {
   return (
-    <section className="flex h-11 shrink-0 items-center gap-2 rounded-xl border bg-card/70 px-3">
+    <section className="flex h-10 shrink-0 items-center gap-2 rounded-xl border bg-card/70 px-3">
       <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">This over</span>
-      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto ds-scroll">
+      <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto ds-scroll">
         {balls.length === 0 ? (
           <span className="text-[12px] text-muted-foreground">Ready</span>
         ) : (
@@ -560,6 +565,7 @@ function ThisOverStrip({ balls }: { balls: string[] }) {
     </section>
   );
 }
+
 
 function LiveInsights({
   partnership,
@@ -580,7 +586,7 @@ function LiveInsights({
 }) {
   const recentOvers = insights?.recentOvers ?? [];
   return (
-    <section className={cn("flex flex-col gap-2 overflow-hidden rounded-xl border bg-muted/25 p-2", className)}>
+    <section className={cn("flex flex-col gap-1.5 overflow-hidden rounded-xl border bg-muted/25 p-1.5", className)}>
       <div className="grid shrink-0 grid-cols-4 gap-1.5">
         <InfoTile label="P'ship" value={insights?.partnership ?? (partnership ? `${partnership.runs}(${partnership.balls})` : "0(0)")} />
         <InfoTile label={chase ? "Need" : "Proj"} value={chase ? `${chase.runsNeeded}` : insights?.projected ?? "–"} accent={Boolean(chase)} />
@@ -588,41 +594,45 @@ function LiveInsights({
         <InfoTile label="FOW" value={insights?.lastWicket ?? "–"} />
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-2 overflow-hidden">
-        <div className="min-w-0 rounded-lg bg-card/55 p-2">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-1.5 overflow-hidden">
+        <div className="min-w-0 rounded-lg bg-card/55 px-2 py-1.5">
           <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recent overs</div>
           {recentOvers.length === 0 ? (
-            <div className="text-[12px] text-muted-foreground">Ball-by-ball data appears here.</div>
+            <div className="text-[11.5px] text-muted-foreground">Ball-by-ball data appears here.</div>
           ) : (
-            <div className="space-y-1">
-              {recentOvers.slice(-3).map((over) => (
-                <div key={over.label} className="grid grid-cols-[44px_1fr_auto] items-center gap-2 text-[12px] tabular-nums">
-                  <span className="font-bold text-muted-foreground">{over.label}</span>
-                  <span className="h-1.5 rounded-full bg-[var(--score-over-track)]">
-                    <span className="block h-full rounded-full bg-[var(--score-over-fill)]" style={{ width: `${Math.min(100, Math.max(8, over.runs * 7))}%` }} />
+            <div className="flex flex-wrap items-center gap-1">
+              {recentOvers.slice(-4).map((over) => (
+                <span
+                  key={over.label}
+                  className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background/70 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums"
+                >
+                  <span className="text-muted-foreground">{over.label}</span>
+                  <span className="font-black text-foreground">
+                    {over.runs}{over.wickets ? `/${over.wickets}` : ""}
                   </span>
-                  <span className="font-black">{over.runs}{over.wickets ? `/${over.wickets}` : ""}</span>
-                </div>
+                </span>
               ))}
             </div>
           )}
         </div>
-        <div className="grid min-w-[76px] content-center gap-1 rounded-lg bg-card/55 p-2 text-right text-[11px] tabular-nums">
+        <div className="grid min-w-[76px] content-center gap-0.5 rounded-lg bg-card/55 px-2 py-1.5 text-right text-[11px] tabular-nums">
           <MetricInline label="CRR" value={crr ?? "–"} />
           {rrr && <MetricInline label="RRR" value={rrr} accent />}
           {target && <MetricInline label="T" value={target} />}
         </div>
       </div>
     </section>
+
   );
 }
 
 
 function InfoTile({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="min-w-0 rounded-lg bg-card/70 px-2 py-1.5 text-center tabular-nums">
+    <div className="min-w-0 rounded-lg bg-card/70 px-2 py-1 text-center tabular-nums">
       <div className="truncate text-[9px] font-black uppercase tracking-widest text-muted-foreground">{label}</div>
-      <div className={cn("truncate text-[12px] font-black", accent && "text-[var(--score-success-fg)]")}>{value}</div>
+      <div className={cn("truncate text-[12.5px] font-black leading-tight", accent && "text-[var(--score-success-fg)]")}>{value}</div>
+
     </div>
   );
 }
