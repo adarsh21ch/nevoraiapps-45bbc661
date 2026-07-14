@@ -575,7 +575,7 @@ function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; strike
           <span className="truncate text-[14px] font-bold leading-tight">{name}</span>
         </div>
         <div className="mt-1 pl-[26px] truncate text-[11px] leading-tight text-muted-foreground tabular-nums">
-          {(batter?.fours ?? 0)}×4 • {(batter?.sixes ?? 0)}×6 • SR {sr}
+          4s {batter?.fours ?? 0} · 6s {batter?.sixes ?? 0} · SR {sr}
         </div>
       </div>
 
