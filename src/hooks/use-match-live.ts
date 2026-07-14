@@ -56,10 +56,10 @@ function acquire(matchId: string, listener: Listener): () => void {
       const filter =
         table === "mc_matches" ? `id=eq.${matchId}` : `match_id=eq.${matchId}`;
       channel.on(
-        // @ts-expect-error postgres_changes is valid on RealtimeChannel
-        "postgres_changes",
+        "postgres_changes" as never,
         { event: "*", schema: "public", table, filter },
         (payload: { eventType: MatchLiveEvent["eventType"] }) => {
+
           const evt: MatchLiveEvent = { table, eventType: payload.eventType };
           for (const cb of listeners) {
             try {
