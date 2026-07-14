@@ -152,9 +152,13 @@ export function nextPosition(events: MCBallEvent[]): OverBallPosition {
   const last = events[events.length - 1];
   const nextSeq = (last.sequence_number ?? events.length) + 1;
 
-  // Count legal deliveries so far in `last.over_number`.
+  // Count legal deliveries so far in `last.over_number`. Re-derive from
+  // extra_type — a stale `is_legal_delivery` flag must never influence the
+  // position of the next ball.
   const legalInOver = events.filter(
-    (e) => e.over_number === last.over_number && e.is_legal_delivery,
+    (e) =>
+      e.over_number === last.over_number &&
+      isLegalDelivery(e.extra_type as ExtraType | null),
   ).length;
 
   if (legalInOver >= 6) {
