@@ -177,7 +177,10 @@ function ParentLayout() {
             }}
           />
         </div>
-        <Outlet context={{ child: ctxQ.data, childRow: selectedChild }} />
+        <ParentCtx.Provider value={{ child: ctxQ.data, childRow: selectedChild }}>
+          <Outlet />
+        </ParentCtx.Provider>
+
       </div>
 
       <nav
