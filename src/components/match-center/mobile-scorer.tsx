@@ -286,9 +286,9 @@ export function MobileScorer(props: MobileScorerProps) {
             <button
               type="button"
               onClick={() => setConfirm({ kind: "end-match" })}
-              className="mr-1 inline-flex h-8 items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-3 text-[11px] font-black uppercase tracking-wider text-destructive transition duration-100 active:scale-95"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-destructive/40 bg-destructive/10 px-3.5 text-[11px] font-black uppercase tracking-wider text-destructive transition duration-100 active:scale-95"
             >
-              <StopCircle className="size-3.5" />
+              <StopCircle className="size-4" />
               End
             </button>
           )}
