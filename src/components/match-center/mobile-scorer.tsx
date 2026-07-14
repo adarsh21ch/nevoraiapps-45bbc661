@@ -822,31 +822,6 @@ function PlayerPickerSheet({
 }
 
 
-function Section({ title, danger, children }: { title: string; danger?: boolean; children: ReactNode }) {
-  return (
-    <section>
-      <div className={cn("mb-1.5 px-1 text-[10px] font-black uppercase tracking-widest", danger ? "text-destructive" : "text-muted-foreground")}>{title}</div>
-      <div className="overflow-hidden rounded-2xl border bg-background/60">{children}</div>
-    </section>
-  );
-}
-
-function SheetRow({ icon, label, onClick, tone }: { icon: ReactNode; label: string; onClick: () => void; tone?: "danger" }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "grid h-12 w-full grid-cols-[32px_minmax(0,1fr)] items-center gap-3 border-b px-3 text-left text-[14px] font-semibold last:border-b-0 active:bg-muted",
-        tone === "danger" ? "text-destructive" : "text-foreground",
-      )}
-    >
-      <span className={cn("grid size-8 place-items-center rounded-xl", tone === "danger" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground")}>{icon}</span>
-      <span className="truncate">{label}</span>
-    </button>
-  );
-}
-
 function FooterAction({ icon, label, onClick, disabled, title, tone }: { icon: ReactNode; label: string; onClick: () => void; disabled?: boolean; title?: string; tone?: "danger" }) {
   return (
     <button
