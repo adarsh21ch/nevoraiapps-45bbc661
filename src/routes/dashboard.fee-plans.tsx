@@ -16,7 +16,7 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/fee-plans")({
-  component: FeePlansPage,
+  component: () => (<OwnerOnly><FeePlansPage /></OwnerOnly>),
 });
 
 type PlanForm = { id?: string; name: string; description: string; amount: string; type: string; active: boolean };
