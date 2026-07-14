@@ -14,6 +14,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { TenantProvider } from "../lib/tenant-context";
+import { ImpersonationBanner } from "../components/platform/ImpersonationBanner";
 
 function NotFoundComponent() {
   return (
