@@ -118,6 +118,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   if (profileQ.isLoading || tenantQ.isLoading) return <FullPage>Loading your academy…</FullPage>;
   if (!profileQ.data) {
+    // When a platform admin is impersonating, synthesize a "viewer" profile
+    // scoped to the impersonated tenant so the dashboard can render.
+    if (impersonation && tenantQ.data) {
+      const viewerProfile: Profile = {
+        user_id: session.user.id,
+        tenant_id: impersonation.tenant_id,
+        role: "owner",
+      };
+      const value: DashboardCtx = {
+        session,
+        profile: viewerProfile,
+        tenant: tenantQ.data,
+        signOut: async () => { await supabase.auth.signOut(); },
+      };
+      return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+    }
     // Platform admins won't have a tenant profile — send them to their control room.
     if (typeof window !== "undefined") {
       supabase.from("platform_admins").select("user_id").eq("user_id", session.user.id).maybeSingle().then(({ data }) => {
