@@ -26,6 +26,8 @@ import { candidatePeriods, periodKey, studentDue, tenantFeeCycle } from "@/lib/f
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { useT } from "@/lib/i18n";
 import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
+import { useInAcademyCount } from "@/lib/attendance/queries";
+import { LiveBadge } from "@/components/ds";
 import { format } from "date-fns";
 
 
