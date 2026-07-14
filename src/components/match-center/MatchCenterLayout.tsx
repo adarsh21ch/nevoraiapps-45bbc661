@@ -271,11 +271,14 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
 
       {/* Mobile navigation sheet (top-right menu) */}
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetContent side="right" className="w-[86vw] max-w-sm p-0 md:hidden">
+        <SheetContent
+          side="right"
+          className="w-[86vw] max-w-sm p-0 pt-[calc(env(safe-area-inset-top)+3.5rem)] pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:hidden flex flex-col"
+        >
           <SheetHeader className="border-b border-border px-4 py-3">
             <SheetTitle className="text-left text-sm font-semibold">Match Center</SheetTitle>
           </SheetHeader>
-          <div className="h-[calc(100dvh-3.25rem)] overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             <SidebarInner onNavigate={() => setMenuOpen(false)} />
           </div>
         </SheetContent>
