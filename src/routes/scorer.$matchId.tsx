@@ -1416,7 +1416,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           onOpenStrikerPicker={() => setPickStrikerOpen(true)}
           onOpenNonStrikerPicker={() => setPickNonStrikerOpen(true)}
           onOpenBowlerPicker={() => setPickBowlerOpen(true)}
-          onUndo={() => void session.undo()}
+          onUndo={() => void handleUndo()}
+          onRedo={() => void handleRedo()}
+          canRedo={redoStack.length > 0}
           onSwapStrike={() => {
             const s = { ...session.striker };
             session.setStriker({ ...session.nonStriker, onStrike: true });
