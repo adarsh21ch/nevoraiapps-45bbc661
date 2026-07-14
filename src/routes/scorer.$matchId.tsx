@@ -1575,6 +1575,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
               : null
           }
           overBalls={session.currentOver.events.map(ballChipLabel)}
+          currentOver={{ number: session.currentOver.overNumber + 1, ballsBowled: session.currentOver.ballsBowled }}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
