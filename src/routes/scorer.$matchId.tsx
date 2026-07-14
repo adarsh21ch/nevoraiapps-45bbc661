@@ -217,6 +217,7 @@ function ScorerPage() {
   const [finalizeDialogOpen, setFinalizeDialogOpen] = useState(false);
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
+  const [pendingBallIntent, setPendingBallIntent] = useState<Parameters<typeof session.submitBall>[0] | null>(null);
 
   /* ---------- innings/match completion detection ---------- */
   useEffect(() => {
@@ -308,6 +309,30 @@ function ScorerPage() {
       })()
     : undefined;
 
+  const strikerSelected = Boolean(striker.athleteId || striker.name);
+  const nonStrikerSelected = Boolean(nonStriker.athleteId || nonStriker.name);
+  const bowlerSelected = Boolean(bowlerRef.athleteId || bowlerRef.name);
+  const strikerDismissed = Boolean(
+    (striker.athleteId && session.matchState.innings.dismissedIds.has(striker.athleteId)) ||
+      (striker.name && session.matchState.innings.dismissedNames.has(striker.name)),
+  );
+  const nonStrikerDismissed = Boolean(
+    (nonStriker.athleteId && session.matchState.innings.dismissedIds.has(nonStriker.athleteId)) ||
+      (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
+  );
+  const incomingBatterRole = nonStrikerDismissed && !strikerDismissed ? "nonStriker" : "striker";
+  const requiredPicker = session.matchState.inningsShouldEnd
+    ? null
+    : session.matchState.innings.awaitingNewBatter
+      ? incomingBatterRole
+      : !strikerSelected
+        ? "striker"
+        : !nonStrikerSelected
+          ? "nonStriker"
+          : session.matchState.innings.awaitingNewBowler || !bowlerSelected
+            ? "bowler"
+            : null;
+
   /* ---------- header text ---------- */
   const teamMap = new Map((teamsQ.data ?? []).map((t) => [t.id, t]));
   const battingTeamId = session.activeInnings?.batting_team_id ?? session.match?.team_a_id ?? "";
@@ -330,6 +355,21 @@ function ScorerPage() {
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
     }
   };
+  const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
+    if (requiredPicker) {
+      setPendingBallIntent(partial);
+      return;
+    }
+    void submit(partial);
+  };
+
+  useEffect(() => {
+    if (!pendingBallIntent || requiredPicker) return;
+    const next = pendingBallIntent;
+    setPendingBallIntent(null);
+    void submit(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingBallIntent, requiredPicker]);
   const handleUndo = async () => {
     try {
       const removed = await session.undo();
@@ -360,7 +400,7 @@ function ScorerPage() {
     }
   };
 
-  const onRun = (r: 0 | 1 | 2 | 3 | 4 | 6) => submit(ballHelpers.run(r));
+  const onRun = (r: 0 | 1 | 2 | 3 | 4 | 6) => requestSubmit(ballHelpers.run(r));
 
   const onExtraRuns = (runs: number) => {
     if (!extraKind) return;
@@ -543,14 +583,6 @@ function ScorerPage() {
           ballsLeft: stats.team.ballsRemaining ?? 0,
         }
       : null;
-  const strikerDismissed = Boolean(
-    (striker.athleteId && session.matchState.innings.dismissedIds.has(striker.athleteId)) ||
-      (striker.name && session.matchState.innings.dismissedNames.has(striker.name)),
-  );
-  const nonStrikerDismissed = Boolean(
-    (nonStriker.athleteId && session.matchState.innings.dismissedIds.has(nonStriker.athleteId)) ||
-      (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
-  );
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const bowledBowlerIds: string[] = Array.from(stats.bowling.byKey.values())
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
@@ -706,8 +738,9 @@ function ScorerPage() {
           battingOptions={battingOptions}
           bowlingOptions={bowlingOptions}
           onPickPlayer={(role, p) => setPlayer(role, p)}
+          requiredPicker={requiredPicker}
           awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
-          awaitingNewBatterRole={nonStrikerDismissed && !strikerDismissed ? "nonStriker" : "striker"}
+          awaitingNewBatterRole={incomingBatterRole}
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
           previousBowlerId={previousOverBowler?.bowlerAthleteId ?? null}
           previousBowlerName={previousOverBowler?.bowlerName ?? null}
