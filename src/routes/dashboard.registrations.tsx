@@ -24,7 +24,8 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { CheckCheck, Trash2, Phone, Share2, Copy } from "lucide-react";
+import { CheckCheck, Trash2, Phone, Share2, Copy, FileDown } from "lucide-react";
+import { generateFilledRegistrationPdf } from "@/lib/registration-pdf";
 
 export const Route = createFileRoute("/dashboard/registrations")({
   component: RegistrationsInbox,
