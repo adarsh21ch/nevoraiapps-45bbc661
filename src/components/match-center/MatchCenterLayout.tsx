@@ -279,10 +279,11 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
         open={menuOpen}
         onOpenChange={setMenuOpen}
         tenantName={tenant.name}
-        role={(tenant as unknown as { role?: string }).role ?? "Administrator"}
+        role={profile.role ?? "Administrator"}
         onSignOut={signOut}
         onNavigate={() => setMenuOpen(false)}
       />
+
 
 
 
