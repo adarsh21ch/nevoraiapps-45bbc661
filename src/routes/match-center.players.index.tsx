@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { User, UserPlus, Loader2 } from "lucide-react";
+import { User, PlusCircle, UserPlus, Loader2 } from "lucide-react";
 import { SearchBar } from "@/components/match-center/MatchCenterLayout";
 import { EmptyState, LoadingSkeleton } from "@/components/match-center/ui";
 import { AthleteCard } from "@/components/match-center/athlete-ui";
