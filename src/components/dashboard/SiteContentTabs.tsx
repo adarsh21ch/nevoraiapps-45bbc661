@@ -25,9 +25,13 @@ export function SiteContentTabs({ tenantId }: { tenantId: string }) {
         <TabsTrigger value="about">About</TabsTrigger>
         <TabsTrigger value="founder">Founder</TabsTrigger>
         <TabsTrigger value="coaches">Coaches</TabsTrigger>
+        <TabsTrigger value="programs">Programs</TabsTrigger>
+        <TabsTrigger value="facilities">Facilities</TabsTrigger>
         <TabsTrigger value="spotlight">Spotlight</TabsTrigger>
         <TabsTrigger value="stars">Star players</TabsTrigger>
         <TabsTrigger value="gallery">Gallery</TabsTrigger>
+        <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
+        <TabsTrigger value="faq">FAQ</TabsTrigger>
         <TabsTrigger value="cta">CTA banner</TabsTrigger>
         <TabsTrigger value="map">Map</TabsTrigger>
         <TabsTrigger value="pricing">Pricing</TabsTrigger>
@@ -67,6 +71,21 @@ export function SiteContentTabs({ tenantId }: { tenantId: string }) {
             { key: "bio", label: "Short bio", multiline: true, rows: 2 },
           ]} imageField="photo_url" />
       </TabsContent>
+      <TabsContent value="programs" className="pt-4">
+        <MultiSectionEditor tenantId={tenantId} rows={rows} section="programs"
+          fields={[
+            { key: "title", label: "Program title" },
+            { key: "age_group", label: "Age group (optional)", placeholder: "U-12, U-16, Adults…" },
+            { key: "description", label: "Description", multiline: true, rows: 3 },
+          ]} />
+      </TabsContent>
+      <TabsContent value="facilities" className="pt-4">
+        <MultiSectionEditor tenantId={tenantId} rows={rows} section="facilities"
+          fields={[
+            { key: "title", label: "Facility name" },
+            { key: "description", label: "Description", multiline: true, rows: 3 },
+          ]} imageField="image_url" />
+      </TabsContent>
       <TabsContent value="spotlight" className="pt-4">
         <MultiSectionEditor tenantId={tenantId} rows={rows} section="spotlight"
           fields={[
@@ -85,6 +104,21 @@ export function SiteContentTabs({ tenantId }: { tenantId: string }) {
       <TabsContent value="gallery" className="pt-4">
         <MultiSectionEditor tenantId={tenantId} rows={rows} section="gallery"
           fields={[{ key: "caption", label: "Caption (optional)" }]} imageField="url" />
+      </TabsContent>
+      <TabsContent value="testimonials" className="pt-4">
+        <MultiSectionEditor tenantId={tenantId} rows={rows} section="testimonials"
+          fields={[
+            { key: "name", label: "Name" },
+            { key: "role", label: "Role (e.g. Parent, Student)" },
+            { key: "quote", label: "Quote", multiline: true, rows: 4 },
+          ]} />
+      </TabsContent>
+      <TabsContent value="faq" className="pt-4">
+        <MultiSectionEditor tenantId={tenantId} rows={rows} section="faq"
+          fields={[
+            { key: "question", label: "Question" },
+            { key: "answer", label: "Answer", multiline: true, rows: 4 },
+          ]} />
       </TabsContent>
       <TabsContent value="cta" className="pt-4">
         <HeroLikeEditor tenantId={tenantId} rows={rows} section="cta"
