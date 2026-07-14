@@ -43,7 +43,7 @@ export const Route = createFileRoute("/dashboard/fees")({
     const f = search.filter;
     return f === "pending" || f === "paid" || f === "all" ? { filter: f } : {};
   },
-  component: FeeRegister,
+  component: () => (<OwnerOnly><FeeRegister /></OwnerOnly>),
 });
 
 
