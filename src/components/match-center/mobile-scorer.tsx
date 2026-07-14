@@ -65,6 +65,8 @@ export interface MobileScorerProps {
   partnership?: { runs: number; balls: number } | null;
   overBalls: string[];
   currentOverLabel?: string;
+  overHistory?: OverHistoryRow[];
+  inningsLabel?: string;
   insights?: MobileScorerInsight;
 
   disabled?: boolean;
