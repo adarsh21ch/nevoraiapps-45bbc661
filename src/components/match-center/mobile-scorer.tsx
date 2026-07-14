@@ -21,17 +21,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ArrowLeft,
+  CircleDot,
   FileText,
   Flag,
-  
   Redo2,
   Search,
-  Shield,
   StopCircle,
   Undo2,
   UserPlus,
   Share2,
 } from "lucide-react";
+
 
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
 
