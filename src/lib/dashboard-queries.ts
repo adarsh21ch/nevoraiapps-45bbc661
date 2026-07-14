@@ -308,3 +308,112 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
     birthdays: birthdays.slice(0, 8),
   };
 }
+
+// -----------------------------------------------------------------------------
+// Today's Activity feed — chronological, cross-module event stream. Derived
+// live from the source-of-truth tables; nothing stored. Newest first.
+//   • attendance check-ins / check-outs (from attendance_marks)
+//   • fee payments received (from payments)
+//   • new registrations (from registrations)
+// Match Center events will plug in later without a schema change.
+// -----------------------------------------------------------------------------
+
+export type ActivityEvent = {
+  id: string;
+  at: string; // ISO timestamp — newest first
+  kind: "check_in" | "check_out" | "payment" | "registration";
+  actorName: string;
+  detail?: string;
+  amount?: number;
+  href?: string;
+  params?: Record<string, string>;
+};
+
+export async function fetchDashboardActivity(
+  tenantId: string,
+  opts: { includeFees?: boolean; limit?: number } = {},
+): Promise<ActivityEvent[]> {
+  const includeFees = opts.includeFees !== false;
+  const limit = opts.limit ?? 20;
+  const sinceISO = new Date(Date.now() - 36 * 3600 * 1000).toISOString();
+
+  const attendanceP = supabase
+    .from("attendance_marks")
+    .select("id, student_id, check_in_at, check_out_at, created_at, students!inner(name)")
+    .eq("tenant_id", tenantId)
+    .is("superseded_by", null)
+    .gte("created_at", sinceISO)
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  const regsP = supabase
+    .from("registrations")
+    .select("id, name, created_at, status")
+    .eq("tenant_id", tenantId)
+    .gte("created_at", sinceISO)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  const paysP = includeFees
+    ? supabase
+        .from("payments")
+        .select("id, amount, created_at, student_id, students(name)")
+        .eq("tenant_id", tenantId)
+        .gte("created_at", sinceISO)
+        .order("created_at", { ascending: false })
+        .limit(10)
+    : Promise.resolve({ data: [] as never[], error: null });
+
+  const [att, regs, pays] = await Promise.all([attendanceP, regsP, paysP]);
+
+  const events: ActivityEvent[] = [];
+
+  for (const m of att.data ?? []) {
+    const name = (m as any).students?.name ?? "Player";
+    if (m.check_out_at) {
+      events.push({
+        id: `${m.id}-out`,
+        at: m.check_out_at,
+        kind: "check_out",
+        actorName: name,
+        detail: "Checked out",
+      });
+    }
+    if (m.check_in_at) {
+      events.push({
+        id: `${m.id}-in`,
+        at: m.check_in_at,
+        kind: "check_in",
+        actorName: name,
+        detail: "Checked in",
+      });
+    }
+  }
+
+  for (const r of regs.data ?? []) {
+    events.push({
+      id: `reg-${r.id}`,
+      at: r.created_at as string,
+      kind: "registration",
+      actorName: r.name,
+      detail: r.status === "approved" ? "Registration approved" : "New registration",
+      href: "/dashboard/registrations",
+    });
+  }
+
+  for (const p of pays.data ?? []) {
+    const name = (p as any).students?.name ?? "Player";
+    events.push({
+      id: `pay-${p.id}`,
+      at: p.created_at as string,
+      kind: "payment",
+      actorName: name,
+      amount: Number(p.amount ?? 0),
+      detail: "Fee received",
+      href: "/dashboard/fees",
+    });
+  }
+
+  events.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+  return events.slice(0, limit);
+}
