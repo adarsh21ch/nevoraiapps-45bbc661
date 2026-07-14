@@ -126,6 +126,7 @@ function RegisterContent() {
       _guardian_phone: null,
       _whatsapp: null,
       _policy_acceptances: acceptances as unknown as never,
+      _lead_id: leadId ?? null,
     } as never);
     const extras: Record<string, string> = {};
     if (form.address.trim()) extras.address = form.address.trim();
