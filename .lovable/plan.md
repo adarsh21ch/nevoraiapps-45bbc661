@@ -1,111 +1,111 @@
-## Goal
+# Match Center Restructure — Bottom Nav + Roles
 
-Three connected changes:
+Match Center becomes a self-contained mini-app with its own 5-tab bottom navigation. Owners keep full Academy access; Coaches are locked to Match Center only. No changes to scoring engine, ball events, or match schema.
 
-1. Rework the mobile bottom navigation so the center tab surfaces **Insights / Records**, and Match Center (create / manage / live scoring entry points) moves under **Manage**.
-2. Introduce a **Scorer** role: the owner can grant a specific player scoring-only access. Scorers can create and score matches from their phone, but cannot see fees, payments, student PII, or admin data.
-3. Add a **share link** for live matches so viewers can watch scoring without touching owner data.
+## 1. Roles
 
----
+Current state: `profiles.role` is a free-text column with only `"owner"` present. We formalize two values:
 
-## 1. Bottom navigation restructure
+- `owner` — full Academy + full Match Center.
+- `coach` — Match Center only.
 
-Current: `Home · Match Center (center) · Manage · Profile`
-New: `Home · Insights · Manage · Profile` (4 tabs, center = Insights)
+Migration:
+- Add CHECK constraint (or enum) restricting `profiles.role` to `owner | coach`.
+- Add `has_role(uid, role)` SECURITY DEFINER helper (per user-roles guidance, kept on `profiles` since roles are already there and single-tenant-per-user).
+- No data change for existing rows (all owners).
+- Update RLS on finance-adjacent tables (`fee_plans`, `payments`, `students` financial fields, `tenants` settings columns exposed via UI) so coaches cannot read/write them — even though the UI hides them, backend must enforce.
 
-- `Insights` route (`/insights`) becomes the record-and-data hub:
-  - Academy records (existing `mc_academy_records`)
-  - Leaderboards, star players, recent match summaries
-  - Player insights entry (search a player → their card)
-  - "Live now" strip at the top when any match is live (deep-links into the public match page or scorer if the user is the scorer)
-- `Manage` gains a **Match Center** section:
-  - Create match
-  - Live / upcoming / completed matches
-  - Teams, tournaments, squad, settings
-  - Assign scorers (see §2)
-- Remove the standalone center "Match Center" tab from `GlobalBottomNav`.
+## 2. Frontend Navigation
 
-Files touched:
-- `src/components/shared/GlobalBottomNav.tsx` — swap center tab.
-- New `src/routes/insights.tsx` (composes existing records / leaderboards / live widget).
-- `src/routes/dashboard.index.tsx` (Manage home) — add Match Center card group.
-- Existing `/match-center/*` routes stay; only the entry point moves.
+Delete:
+- `SidebarInner` and the desktop `<aside>` in `src/components/match-center/MatchCenterLayout.tsx`.
+- The `NativeMobileDrawer` sheet + hamburger `Menu` button in the top bar.
+- The current shared `GlobalBottomNav` for Match Center routes (Academy OS still uses it on `/dashboard/*`).
 
----
-
-## 2. Scorer role (limited-access users)
-
-### Data model
-
-Add a `mc_scorers` table so the owner can grant scoring-only access without touching the main roles table:
+Add: `MatchCenterBottomNav` (new file) with exactly five tabs:
 
 ```text
-mc_scorers
-  id uuid pk
-  tenant_id uuid  → tenants.id
-  user_id uuid    → auth.users.id  (the scorer's login)
-  athlete_profile_id uuid nullable  → mc_athlete_profiles.id  (if they're a player)
-  display_name text
-  status text  (active | revoked)
-  created_by, created_at, updated_at
-  unique(tenant_id, user_id)
+LIVE       MATCHES    PLAYERS    INSIGHTS   PROFILE
+Radio      Swords     Users      LineChart  UserCircle
 ```
 
-Security-definer helper `public.is_match_scorer(_user_id, _tenant_id)` → boolean, used by RLS.
+Each tab is a route parent that owns its sub-pages:
 
-### RLS scope
+- **LIVE** → `/match-center/live` (index shows empty state or Resume card; deep links to `/match-center/create` when no live match).
+- **MATCHES** → `/match-center/matches` (list + filter + search; card grid; opens `/match-center/scorebook/$matchId`).
+- **PLAYERS** → `/match-center/players` (list, search; player detail unchanged).
+- **INSIGHTS** → `/match-center/insights` (new umbrella page consolidating Leaderboards, Records, Performance, AI Insights, Recognition, Awards into tabbed sections).
+- **PROFILE** → `/match-center/profile` (new): coach details, notifications, settings link, logout — **or** "Switch to Academy" for owners.
 
-A scorer authenticated as `_user_id` gets:
-- **Read/write** on `mc_matches`, `mc_innings`, `mc_ball_events`, `mc_match_squads`, `mc_teams`, `mc_athlete_profiles` **for their tenant only**.
-- **Read** on `students.name` and basic player identity (via a narrow view `students_scorer_view` exposing only id, name, player_id, photo_url — no phone, dob, guardian info, fees).
-- **No access** to `payments`, `fee_plans`, `registrations`, `leads`, `attendance_*`, `reminder_logs`, full `students` PII, `platform_*`.
+Routes to consolidate under Insights (kept as sub-routes, no data changes): `leaderboards`, `records`, `performance`, `recognition`, `awards`, `ai-insights`.
 
-All existing owner/admin policies stay unchanged; scorer policies are added alongside via `OR public.is_match_scorer(auth.uid(), tenant_id)`.
+Routes to move / hide from top nav (still reachable via deep link but not on bottom bar): `tournaments`, `teams`, `scorers`, `website`, `settings`, `dashboard`. These become entries inside Matches (teams, tournaments), Profile (settings, scorers), or removed from Match Center surfaces.
 
-### UI
+## 3. Bottom Nav Component
 
-- Manage → Match Center → **Scorers**: owner sees a list of scorers, can add one by picking an existing player (or entering an email to invite) and assigns/revokes.
-- Scorer login: after sign-in, if the user is only a scorer (not a tenant member/admin), the app boots into a **Scorer Home** shell showing only:
-  - Live / upcoming matches they can score
-  - "Create match" button
-  - Their profile / sign-out
-  - No Manage tab, no Insights financials, no Home dashboard tiles.
-- Reuse the existing `MobileScorer` UI as-is.
+Fixed at bottom, `env(safe-area-inset-bottom)`, 60px tall, five equal columns, active state uses the tenant brand accent bar + label color change. iOS-style: rounded top corners, soft top shadow, subtle blur backdrop. Large tap targets (min 48px). Live tab shows a pulsing red dot when a live match exists (reuses existing `mc-live-count` query).
 
-Routing: a pathless layout `_scorer/` route that redirects tenant members to the normal app and shows the scorer shell to scorer-only users.
+Only rendered inside `/match-center/*` routes. The Academy OS bottom nav stays on `/dashboard/*`.
 
----
+## 4. LIVE Tab Empty & Resume States
 
-## 3. Share link for live matches
+Empty state: centered illustration + "No Live Match" + primary `Create Match` button → `/match-center/create`.
 
-Reuse existing `mc_public_matches` (already has `public_slug`, `is_public`, `allow_live_score`, `allow_scorecard`, `allow_player_profiles`, and RPC `get_public_match_bundle`).
+Resume state (when a live match exists): score card with team scores, overs, venue, current batters, and `Resume Live Match` primary button → `/match-center/scorebook/$matchId`. Uses the existing live match query; no new data.
 
-- From Manage → Match → **Share**: toggle "Public share" and copy a link to `/match/<slug>`.
-- Public page shows: live score, current batters/bowler, over strip, scorecard, commentary. Never shows: fees, payments, phone, guardian info, DOB.
-- Owner controls per-match toggles for `allow_scorecard` and `allow_player_profiles` on the share sheet.
+## 5. Owner vs Coach Routing
 
-Files touched:
-- New `ShareMatchDialog` in `src/components/match-center/`.
-- Wire the dialog from the match detail / scorer "More" sheet header.
-- `src/routes/match.$slug.tsx` already exists — verify it only reads via `get_public_match_bundle` (no direct table reads) and remove any exposed PII fields.
+- Root Academy shell (`/dashboard/*`): coaches redirected to `/match-center/live` in a `beforeLoad` gate under `_authenticated/dashboard`.
+- `/match-center/*`: allowed for both roles.
+- Profile tab renders different footer based on role:
+  - Owner: "Switch to Academy" button → `navigate({ to: "/dashboard" })`.
+  - Coach: "Logout" button (existing `signOut`).
+- Auth flow post-login: read role, redirect owner → `/dashboard`, coach → `/match-center/live`.
 
----
+## 6. Backend Authorization
 
-## Rollout order
+- Add SECURITY DEFINER `has_role(uid, role)` helper.
+- Add RLS policies keyed on `has_role`:
+  - `fee_plans`, `payments`, `tenant_price_changes` → owner only.
+  - `tenants` writes → owner only (reads already scoped by tenant).
+  - `students` financial columns → owner only (already partly enforced; verify).
+- Match Center tables (`mc_*`) — no policy changes (both roles have full access as today).
 
-1. Migration: `mc_scorers` table + `is_match_scorer` function + scorer-side RLS policies + `students_scorer_view` (schema only — regenerated types come after approval).
-2. Bottom nav swap + `Insights` route (pure UI, no data risk).
-3. Manage → Match Center card + Scorers admin screen.
-4. Scorer-only shell + `_scorer` layout.
-5. Share link dialog + audit of `/match/$slug` for PII leaks.
+## 7. Layout Cleanup
 
----
+`MatchCenterLayout`:
+- Remove desktop sidebar `<aside>`.
+- Remove hamburger menu, drawer, and its Sheet.
+- Keep top header (back to Academy for owners, hidden for coaches).
+- Main content becomes full-width with `pb-[calc(env(safe-area-inset-bottom)+72px)]` to clear bottom nav.
+- Replace `<GlobalBottomNav />` with `<MatchCenterBottomNav />`.
 
-## Open decisions I need from you before starting
+## 8. Out of Scope
 
-1. **Scorer invite**: pick from an existing player list only, or also allow inviting by email (creates an auth user with scorer-only role)?
-2. **Who can create a match?** Owner + admins + any active scorer, or scorer only when the owner has pre-created the match and assigned them to it?
-3. **Insights tab audience**: public-safe (no fees, no PII — same as share link), or owner-only rich view? I recommend public-safe so scorers and parents can share the same route.
-4. Confirm the 4-tab bottom nav (`Home · Insights · Manage · Profile`) vs keeping 5 tabs with Insights + Match Center both visible.
+- No changes to `mc_ball_events`, scoring engine, or MCC rules.
+- No changes to match creation flow logic.
+- Player, match, and scorebook detail pages keep their current internals.
+- Academy OS (`/dashboard/*`) sidebar/nav for owners unchanged.
 
-Once you answer these I'll ship the migration first, then the UI in the order above.
+## Technical Details
+
+**Files added**
+- `src/components/match-center/MatchCenterBottomNav.tsx`
+- `src/routes/match-center.insights.tsx` (umbrella with sub-tabs)
+- `src/routes/match-center.profile.tsx`
+- `src/lib/roles.ts` (typed helper: `isOwner(profile)`, `isCoach(profile)`)
+
+**Files edited**
+- `src/components/match-center/MatchCenterLayout.tsx` — strip sidebar/drawer, mount new bottom nav.
+- `src/routes/_authenticated/route.tsx` (or existing gate) — post-auth redirect by role.
+- `src/routes/dashboard.tsx` (Academy shell) — `beforeLoad` bounces coaches to `/match-center/live`.
+- `src/routes/match-center.live.tsx` — empty/resume state.
+
+**Migration**
+- `role` CHECK constraint: `role IN ('owner','coach')`.
+- Create `has_role(_uid uuid, _role text)` SECURITY DEFINER.
+- Coach-forbidden RLS on finance tables via `has_role(auth.uid(),'owner')`.
+
+**Non-goals**
+- No new role table (single role per profile is sufficient here; can migrate later if multi-role is needed).
+- No PWA / manifest changes.

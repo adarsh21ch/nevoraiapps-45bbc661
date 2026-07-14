@@ -3008,6 +3008,10 @@ export type Database = {
       get_parent_child_summary: { Args: { _student_id: string }; Returns: Json }
       get_public_academy_bundle: { Args: { _slug: string }; Returns: Json }
       get_public_match_bundle: { Args: { _slug: string }; Returns: Json }
+      has_profile_role: {
+        Args: { _role: string; _uid: string }
+        Returns: boolean
+      }
       is_match_scorer: {
         Args: { _tenant: string; _uid: string }
         Returns: boolean
