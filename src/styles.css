@@ -222,14 +222,21 @@
     border-color: var(--color-border);
   }
 
-  /* Native mobile app feel — never allow horizontal scroll on the shell.
-     Elements that intentionally scroll horizontally (chip rows, tables,
-     carousels) must opt-in locally with overflow-x-auto. */
+  /* Native mobile app feel — prevent horizontal scroll without creating a
+     scroll container. `overflow-x: clip` (unlike `overflow-x: hidden`) does
+     NOT establish a scroll context, so it never accidentally freezes the
+     vertical page scroll on iOS Safari / Android Chrome. Elements that
+     intentionally scroll horizontally (chip rows, tables, carousels) still
+     opt-in locally with overflow-x-auto. */
   html,
-  body,
+  body {
+    overflow-x: clip;
+  }
+  /* Root container must never establish its own vertical scroll — the body
+     is the single scroll container for the document. */
   #root {
-    overflow-x: hidden;
-    max-width: 100vw;
+    overflow-x: clip;
+    min-height: 100dvh;
   }
 
   body {
@@ -240,6 +247,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
+
 
 
   /* Focus rings — visible, consistent, tone-aware. */
