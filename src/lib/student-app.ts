@@ -57,7 +57,7 @@ export type StudentHome = {
   todayVisit: AttendanceVisit | null;
   latestRemark: PlayerRemark | null;
   upcomingMatch: PlayerMatchAppearance | null;
-  recentAchievement: { title: string; occurred_on: string | null } | null;
+  recentAchievement: { title: string; event_date: string | null } | null;
 };
 
 function computeStreak(visits: AttendanceVisit[]): number {
@@ -117,9 +117,9 @@ export async function fetchStudentHome(ctx: StudentContext): Promise<StudentHome
 
     const { data: ach } = await supabase
       .from("mc_athlete_achievements")
-      .select("title, occurred_on")
+      .select("title, event_date")
       .eq("athlete_profile_id", ctx.athlete_profile_id)
-      .order("occurred_on", { ascending: false, nullsFirst: false })
+      .order("event_date", { ascending: false, nullsFirst: false })
       .limit(1)
       .maybeSingle();
     recentAchievement = (ach as StudentHome["recentAchievement"]) ?? null;
@@ -212,7 +212,7 @@ export async function fetchStudentMatches(ctx: StudentContext): Promise<{
   upcoming: PlayerMatchAppearance[];
   recent: PlayerMatchAppearance[];
   career: PlayerCareer | null;
-  awards: { id: string; title: string; awarded_on: string | null }[];
+  awards: { id: string; title: string; event_date: string | null }[];
 }> {
   if (!ctx.athlete_profile_id) {
     return { upcoming: [], recent: [], career: null, awards: [] };
@@ -237,14 +237,14 @@ export async function fetchStudentMatches(ctx: StudentContext): Promise<{
 
   const { data: awardRows } = await supabase
     .from("mc_athlete_awards")
-    .select("id, title, awarded_on")
+    .select("id, title, event_date")
     .eq("athlete_profile_id", ctx.athlete_profile_id)
-    .order("awarded_on", { ascending: false, nullsFirst: false })
+    .order("event_date", { ascending: false, nullsFirst: false })
     .limit(20);
   const awards = ((awardRows ?? []) as {
     id: string;
     title: string;
-    awarded_on: string | null;
+    event_date: string | null;
   }[]);
 
   return { upcoming, recent, career, awards };
@@ -255,8 +255,8 @@ export async function fetchStudentMatches(ctx: StudentContext): Promise<{
 export type StudentProfileFull = {
   student: Record<string, unknown> & { id: string };
   athlete: (Record<string, unknown> & { id: string }) | null;
-  achievements: { id: string; title: string; occurred_on: string | null }[];
-  awards: { id: string; title: string; awarded_on: string | null }[];
+  achievements: { id: string; title: string; event_date: string | null }[];
+  awards: { id: string; title: string; event_date: string | null }[];
 };
 
 export async function fetchStudentProfile(ctx: StudentContext): Promise<StudentProfileFull> {
@@ -277,14 +277,14 @@ export async function fetchStudentProfile(ctx: StudentContext): Promise<StudentP
     const [{ data: a }, { data: w }] = await Promise.all([
       supabase
         .from("mc_athlete_achievements")
-        .select("id, title, occurred_on")
+        .select("id, title, event_date")
         .eq("athlete_profile_id", ctx.athlete_profile_id)
-        .order("occurred_on", { ascending: false, nullsFirst: false }),
+        .order("event_date", { ascending: false, nullsFirst: false }),
       supabase
         .from("mc_athlete_awards")
-        .select("id, title, awarded_on")
+        .select("id, title, event_date")
         .eq("athlete_profile_id", ctx.athlete_profile_id)
-        .order("awarded_on", { ascending: false, nullsFirst: false }),
+        .order("event_date", { ascending: false, nullsFirst: false }),
     ]);
     achievements = (a ?? []) as StudentProfileFull["achievements"];
     awards = (w ?? []) as StudentProfileFull["awards"];
