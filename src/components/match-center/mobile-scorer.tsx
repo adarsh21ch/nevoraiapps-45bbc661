@@ -297,7 +297,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
 
-      <div className="shrink-0 border-b border-border/60 bg-background/95 px-3 py-1.5 backdrop-blur-xl">
+      <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-2 backdrop-blur-xl">
         <ThisOverStrip balls={props.overBalls} overs={props.overs} />
       </div>
 
@@ -582,9 +582,14 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
 
 function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
   return (
-    <section className="flex h-11 shrink-0 items-center gap-2 rounded-xl border bg-card/70 px-3">
+    <section className="flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10">
       <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
         This over
+        {overs && (
+          <span className="ml-1 rounded-md bg-primary/15 px-1.5 py-0.5 text-[10.5px] font-black tabular-nums text-primary">
+            {overs}
+          </span>
+        )}
       </span>
       <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto ds-scroll">
         {balls.length === 0 ? (
@@ -593,11 +598,6 @@ function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
           balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
         )}
       </div>
-      {overs && (
-        <span className="shrink-0 rounded-md bg-muted/60 px-1.5 py-0.5 text-[10.5px] font-black tabular-nums text-muted-foreground">
-          {overs}
-        </span>
-      )}
     </section>
   );
 }
@@ -805,7 +805,10 @@ function PlayerPickerSheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-md gap-0 overflow-hidden rounded-2xl bg-card p-0 sm:max-w-md">
+      <DialogContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="w-[calc(100vw-1.5rem)] max-w-md gap-0 overflow-hidden rounded-2xl bg-card p-0 sm:max-w-md"
+      >
         <DialogHeader className="border-b border-border/70 px-4 pb-3 pt-4 text-left">
           <DialogTitle className="text-base font-black">{title}</DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
