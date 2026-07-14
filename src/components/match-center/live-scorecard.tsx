@@ -9,7 +9,10 @@ import {
   type FallOfWicket,
 } from "@/lib/mc-statistics-engine";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  BatterDetailSheet,
+  BowlerDetailSheet,
+} from "@/components/match-center/scorecard-detail-sheets";
 
 interface Props {
   events: MCBallEvent[];
