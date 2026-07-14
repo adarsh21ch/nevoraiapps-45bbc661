@@ -34,7 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
 import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
 import { ballChipLabel } from "@/lib/mc-commentary";
-import type { DismissalType } from "@/lib/mc-ball-events";
+import type { DismissalType, ExtraType } from "@/lib/mc-ball-events";
 
 import { LiveScorecard } from "@/components/match-center/live-scorecard";
 import { ShareMatchDialog } from "@/components/match-center/share-match-dialog";
