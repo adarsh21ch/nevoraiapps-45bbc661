@@ -295,7 +295,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
 
-      <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-1.5 backdrop-blur-xl">
+      <div className="shrink-0 border-b border-border/40 bg-background/80 px-3 py-1.5 backdrop-blur-xl">
         <ThisOverStrip balls={props.overBalls} overs={props.overs} />
       </div>
 
