@@ -693,12 +693,16 @@ export function computeTeamStats(
   let dotBalls = 0;
 
   for (const e of events) {
+    // Single source of truth: derive legality from extra_type — wide / no_ball
+    // never count toward the over budget, everything else does. Ignore the
+    // stored flag so a stale row cannot double-increment the ball count.
+    const legal = isLegalDelivery(e.extra_type as ExtraType | null);
     runs += totalRunsForBall(e);
-    if (e.is_legal_delivery) legalBalls += 1;
+    if (legal) legalBalls += 1;
     else illegalBalls += 1;
     if ((e.runs_off_bat ?? 0) === 4) fours += 1;
     else if ((e.runs_off_bat ?? 0) === 6) sixes += 1;
-    if (e.is_legal_delivery && totalRunsForBall(e) === 0) dotBalls += 1;
+    if (legal && totalRunsForBall(e) === 0) dotBalls += 1;
     if (isWicketDismissal(e.dismissal_type as DismissalType | null))
       wickets += 1;
   }
