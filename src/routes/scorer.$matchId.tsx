@@ -320,15 +320,15 @@ function ScorerPage() {
     (nonStriker.athleteId && session.matchState.innings.dismissedIds.has(nonStriker.athleteId)) ||
       (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
   );
-  const incomingBatterRole = nonStrikerDismissed && !strikerDismissed ? "nonStriker" : "striker";
+  const incomingBatterRole = !strikerSelected || strikerDismissed
+    ? "striker"
+    : !nonStrikerSelected || nonStrikerDismissed
+      ? "nonStriker"
+      : null;
   const requiredPicker = session.matchState.inningsShouldEnd
     ? null
-    : session.matchState.innings.awaitingNewBatter
-      ? !strikerSelected
-        ? "striker"
-        : !nonStrikerSelected
-          ? "nonStriker"
-          : incomingBatterRole
+    : incomingBatterRole
+      ? incomingBatterRole
       : !strikerSelected
         ? "striker"
         : !nonStrikerSelected
@@ -744,7 +744,7 @@ function ScorerPage() {
           onPickPlayer={(role, p) => setPlayer(role, p)}
           requiredPicker={requiredPicker}
           awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
-          awaitingNewBatterRole={incomingBatterRole}
+          awaitingNewBatterRole={incomingBatterRole ?? "striker"}
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
           previousBowlerId={previousOverBowler?.bowlerAthleteId ?? null}
           previousBowlerName={previousOverBowler?.bowlerName ?? null}
@@ -1222,15 +1222,15 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     (nonStriker.athleteId && session.matchState.innings.dismissedIds.has(nonStriker.athleteId)) ||
       (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
   );
-  const incomingBatterRole = nonStrikerDismissed && !strikerDismissed ? "nonStriker" : "striker";
+  const incomingBatterRole = !strikerSelected || strikerDismissed
+    ? "striker"
+    : !nonStrikerSelected || nonStrikerDismissed
+      ? "nonStriker"
+      : null;
   const requiredPicker = session.matchState.inningsShouldEnd
     ? null
-    : session.matchState.innings.awaitingNewBatter
-      ? !strikerSelected
-        ? "striker"
-        : !nonStrikerSelected
-          ? "nonStriker"
-          : incomingBatterRole
+    : incomingBatterRole
+      ? incomingBatterRole
       : !strikerSelected
         ? "striker"
         : !nonStrikerSelected
@@ -1544,7 +1544,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           onPickPlayer={(role, p) => setPlayer(role, p)}
           requiredPicker={requiredPicker}
           awaitingNewBatter={session.matchState.innings.awaitingNewBatter}
-          awaitingNewBatterRole={incomingBatterRole}
+          awaitingNewBatterRole={incomingBatterRole ?? "striker"}
           awaitingNewBowler={session.matchState.innings.awaitingNewBowler}
           previousBowlerId={previousOverBowler?.bowlerAthleteId ?? null}
           previousBowlerName={previousOverBowler?.bowlerName ?? null}
