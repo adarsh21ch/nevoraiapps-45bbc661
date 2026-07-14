@@ -1,107 +1,93 @@
-# Phase 03.0 — Match Center Polish & Integration
+## Phase 03.1 — Notifications & Communication Platform
 
-## Architecture Review (challenges before coding)
+### Architecture Review & Challenge
 
-The Match Center is already mature: 27 routes, 23 `mc-*` library modules (Ball, Stats, Rules, Career, Finalization, Recognition, Tournament engines all present), and a rich `match-center.dashboard` page. Rebuilding is unnecessary. What is missing is **integration across shells** and **shared, cached primitives**.
+**Proposed model:** single append-only `notifications` table + per-channel outbox tables (queued for future workers). Events are published by modules via a single `publish_notification()` SECURITY DEFINER RPC — no module owns delivery logic. Realtime reuses Supabase `postgres_changes` on the `notifications` table filtered by `recipient_user_id` (one channel per signed-in user across the whole app).
 
-Concrete gaps found:
+**Challenge / simpler alternative considered:**
+- *Event log + fan-out worker* (Kafka-style): overkill for current scale, adds a worker dependency. Rejected.
+- *Per-module notification tables*: duplicates logic, breaks unified center. Rejected.
+- *Direct row inserts from each module*: too easy to drift on shape/RLS. Rejected in favor of one `publish_notification` RPC that stamps type, priority, payload, dedupe key.
 
-1. **No shared "match feeds" module.** Owner Dashboard, Student App, Parent Portal each fetch matches differently, so cache keys and RLS-safe scopes diverge. Result: duplicate queries and inconsistent shapes.
-2. **`match-center.dashboard.tsx` is the only place matches surface in a dashboard shell.** The Owner Dashboard (`/dashboard`), Admin panels, `/student`, and `/parent` don't yet show live/upcoming/recent match cards.
-3. **Realtime is duplicated.** `mobile-scorer.tsx`, `live-scorecard.tsx`, and `match.$slug.tsx` each open their own `mc_ball_events` channel. Should route through one hook.
-4. **Match Center home is a redirect to `/live`.** Spec asks for a proper home surface — but `match-center.dashboard.tsx` already implements it. Fix by pointing the index redirect at `/dashboard` (or renaming) instead of building a third home.
-5. **Player Profile timeline events**: Career & Recognition engines already write `mc_athlete_timeline` on finalization. Verify wiring exists; add missing event types (Debut, Milestone) via a small append-only helper — do NOT modify the Finalization engine.
-6. **Insights**: `mc-performance-analytics.ts` already computes highest partnership, top scorer, best bowling, etc. Expose as reusable `useMatchInsights(...)` hooks; don't rewrite math.
-7. **Search & filters**: `match-center.matches.tsx` has filtering — extend with URL search params (`validateSearch` + `zodValidator`) so links/back-button work.
+**Chosen design (recommended):**
+```
+notifications              → canonical user-facing row (read/unread/archived)
+notification_preferences   → per-user per-type per-channel opt-in (future)
+notification_deliveries    → per-channel attempt log (in_app | push | email | whatsapp)
+notification_outbox        → queued rows for future push/email/whatsapp workers
+```
+- `publish_notification(recipient_user_id, tenant_id, type, title, body, deep_link, priority, payload, dedupe_key, expires_at)` is the ONE write path.
+- In-app delivery: row insert into `notifications`; realtime pushes to client.
+- Other channels: also insert into `notification_outbox` with `channel` + `status='queued'`. Workers (Phase 03.2+) drain it. No provider code yet.
+- Role scoping: notifications are recipient-scoped by `user_id` — role is implicit (owner/admin/coach/student/parent all use the same table). Module publishers decide who gets what.
 
-## What will be built
+### Database Changes (one migration)
 
-### 1. Shared match feeds (`src/lib/match-feeds.ts`) — NEW
-One small module exporting typed React Query hooks reused everywhere:
-- `useLiveMatches(tenantId)` — status = 'live'
-- `useUpcomingMatches(tenantId, limit)` — status = 'scheduled', future
-- `useRecentMatches(tenantId, limit)` — status = 'completed', last N
-- `useTodaysMatches(tenantId)`
-- `useMatchesForStudent(studentId)` — squads join → my matches
-- `useMatchesForParentChild(studentId)` — same, RLS-scoped
-- `useTopPerformerToday(tenantId)` — thin wrapper over existing analytics
+Tables (all with GRANTs + RLS + `updated_at` trigger):
+- `public.notifications` — id, recipient_user_id, tenant_id, type, category, title, body, deep_link, priority (`low|normal|high|urgent`), payload jsonb, read_at, archived_at, dedupe_key, expires_at, created_at
+- `public.notification_deliveries` — id, notification_id, channel (`in_app|push|email|whatsapp`), status (`queued|sent|delivered|failed|skipped`), attempted_at, error
+- `public.notification_outbox` — id, notification_id, channel, status, scheduled_for, attempts, last_error, payload
+- `public.notification_preferences` — user_id, type, channel, enabled (default true)
 
-All hooks reuse existing loaders in `mc-matches.ts`, `mc-athletes.ts`, `mc-performance-analytics.ts`. Cache keys share prefixes (`["mc","matches",tenantId,…]`) so a single fetch warms every shell.
+Enums: `notification_priority`, `notification_channel`, `notification_delivery_status`, `notification_type` (open text kept as text for extensibility — enum on category only).
 
-### 2. Shared realtime hook (`src/lib/mc-realtime.ts`) — NEW
-- `useMatchRealtime(matchId)` — one Supabase channel per match, ref-counted across mounts; invalidates the shared match queries.
-- `useTenantMatchesRealtime(tenantId)` — one channel for status/score changes on the tenant's matches, invalidates feed queries.
+RLS:
+- `notifications`: SELECT/UPDATE where `recipient_user_id = auth.uid()`; INSERT blocked (must go through RPC).
+- `notification_deliveries` / `outbox`: no client access; service_role only.
+- `notification_preferences`: user-owned.
 
-Refactor `live-scorecard.tsx`, `match.$slug.tsx`, `mobile-scorer.tsx` to consume the hook instead of opening channels themselves. Scoring engine files untouched.
+RPCs (SECURITY DEFINER):
+- `publish_notification(...)` — validates tenant membership of publisher OR platform admin OR self; upserts on `dedupe_key`; inserts deliveries + outbox rows per enabled channel.
+- `mark_notification_read(_id)`, `mark_all_read(_tenant_id?)`, `archive_notification(_id)`.
+- `unread_notification_count(_tenant_id?)`.
 
-### 3. Cross-shell match widgets (`src/components/match-center/widgets/`) — NEW, tiny presentational
-- `LiveMatchCard`, `UpcomingMatchCard`, `RecentResultCard`, `TopPerformerCard`, `MyNextMatchCard`, `MyRecentPerformanceCard`.
-- Reuse existing `StatusChip`, `DashboardCard`, `SectionTitle` from `components/match-center/ui.tsx`. No new design tokens.
+Realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications`.
 
-### 4. Dashboard integration (no redesign of frozen shells)
-- `src/routes/dashboard.index.tsx` — inject a **"Cricket today"** section: `LiveMatchCard` + `TopPerformerCard` + `RecentResultCard` list. Only added if the tenant has matches; otherwise section hides.
-- `src/routes/student.index.tsx` — inject `MyNextMatchCard` + `MyRecentPerformanceCard` below existing motivational content.
-- `src/routes/parent.index.tsx` — inject the same two cards scoped by `is_my_child`.
-- All additions are additive; no reordering or replacement.
+**No changes** to Attendance / Billing / Registration / Match Center schemas. Modules call `publish_notification` from existing server functions (Phase 03.2 will wire more; this phase wires a curated first set).
 
-### 5. Match Center home polish
-- Change `match-center.index.tsx` redirect target from `/match-center/live` to `/match-center/dashboard` so the polished home is the default.
-- Add a **Recent Highlights** strip to `match-center.dashboard.tsx` (reuses `mc_athlete_timeline` from existing recognition engine).
+### Files Created
 
-### 6. Match list — URL-driven search & filters
-- Convert `match-center.matches.tsx` filter state to `validateSearch` (zod) with `q`, `status`, `format`, `tournament`, `venue`, `player`, `dateFrom`, `dateTo`.
-- Read via `Route.useSearch()`, mutate via `navigate({ search: prev => ... })`. Fully shareable/back-button-safe URLs.
+- `src/lib/notifications.ts` — types, `queryOptions`, React Query hooks (`useNotifications`, `useUnreadCount`, `useMarkRead`, `useMarkAllRead`, `useArchive`), realtime subscription hook `useNotificationsRealtime()` (one channel per user).
+- `src/lib/notifications.functions.ts` — server fns wrapping the RPCs above (`listNotifications`, `getUnreadCount`, `markRead`, `markAllRead`, `archive`, `publish` — internal helper reused by other server fns).
+- `src/lib/notification-publishers.ts` — typed helpers (`notifyAttendance*`, `notifyBilling*`, `notifyMatch*`, `notifyRegistration*`, `notifyCoach*`, `notifySystem*`) that call `publish` server-side only. Wired to existing hooks where trivial.
+- `src/components/notifications/NotificationBell.tsx` — bell + unread badge (top nav).
+- `src/components/notifications/NotificationCenter.tsx` — sheet/drawer with filter + search + groups (Today / Yesterday / Earlier).
+- `src/components/notifications/NotificationCard.tsx` — single card, priority accent, deep-link, mark-read on click, archive swipe.
+- `src/routes/notifications.tsx` — full-page center for mobile / power users (reuses components).
+- One migration file (via `supabase--migration`).
 
-### 7. Insights primitives (`src/lib/mc-insights.ts`) — NEW thin wrapper
-- Re-exports `computeHighestPartnership`, `computeTopScorer`, `computeTopWicketTaker`, `computeBestBowling`, `computeFastestFifty`, `computeLongestWinStreak` — all delegating to the existing statistics engine. No new math; no AI.
+### Files Edited (minimal, non-frozen surface only)
 
-### 8. Timeline completeness
-- Verify Career engine writes: `scored_50`, `scored_100`, `four_wickets`, `player_of_match`, `debut`, `tournament_win`.
-- Add ONLY the missing event helpers to `mc-recognition-engine.ts` via non-breaking exports (append-only, called from existing finalization; no engine rewrite).
+- `src/components/app-shell/*` (top nav) — inject `<NotificationBell />` for authenticated users. If the shell is frozen, the bell mounts via the existing header slot only.
+- `src/routes/__root.tsx` — mount `useNotificationsRealtime()` once inside authenticated context.
 
-## Data & security
+**No edits** to frozen module UIs. Publishing is wired in the existing server functions that already own writes (billing invoice issue, registration approval, match finalization, attendance check-in/out) — those files call `notify*` helpers as a side effect only.
 
-- No schema changes required.
-- All new hooks respect existing RLS: match reads via `mc_matches` (tenant scoped), student-scoped reads via `is_my_student` / `is_my_child` helpers already installed.
-- No new tables, policies, or grants.
+### Reuse
 
-## Performance
+- Design system: `Card`, `Sheet`, `Badge`, `Button`, `ScrollArea`, `Tabs`, `Input`, `Separator` — no new primitives.
+- Realtime: `useMatchRealtime` pattern (ref-counted single channel) generalized into `notifications-realtime` — one channel per `auth.uid()`.
+- React Query cache: single key prefix `["notifications", userId]`; mutations invalidate list + count together.
 
-- Single React Query cache; feed hooks share keys with existing list pages so opening any shell warms subsequent pages.
-- One realtime channel per (tenant | match) via ref-counted subscribe.
-- Long match lists get windowed rendering via `@tanstack/react-virtual` in `match-center.matches.tsx` only (already installed? — verify; add if missing).
+### Security
 
-## Files changed
+- All writes go through SECURITY DEFINER RPCs with membership checks.
+- No direct INSERT policy on `notifications`.
+- Recipients see only their own rows.
+- Outbox / deliveries are service_role only.
 
-Created:
-- `src/lib/match-feeds.ts`
-- `src/lib/mc-realtime.ts`
-- `src/lib/mc-insights.ts`
-- `src/components/match-center/widgets/*.tsx` (~6 cards)
+### Performance
 
-Edited:
-- `src/routes/match-center.index.tsx` (redirect target)
-- `src/routes/match-center.dashboard.tsx` (recent highlights)
-- `src/routes/match-center.matches.tsx` (URL search params + virtual list)
-- `src/routes/dashboard.index.tsx` (cricket today section)
-- `src/routes/student.index.tsx` (match cards)
-- `src/routes/parent.index.tsx` (match cards)
-- `src/components/match-center/live-scorecard.tsx`, `mobile-scorer.tsx`, `src/routes/match.$slug.tsx` (swap realtime to shared hook)
+- Cursor pagination on `created_at desc`; page size 30.
+- Composite index `(recipient_user_id, archived_at, created_at desc)` + partial index for unread.
+- Single realtime channel per user; badge count derived from cached list + separate lightweight count query invalidated on realtime INSERT.
+- `expires_at` filter server-side; cleanup cron (Phase 03.2).
 
-Not touched: Ball, Statistics, Rules, Career, Finalization, Recognition, Tournament engines; Attendance; Billing; Registration; Design System; Player Operating System; Academy Workspace; frozen route shells.
+### Out of scope this phase
 
-## Deliverables after implementation
+- Actual push/email/whatsapp providers (only queue rows written).
+- Preference UI (schema ready, UI in 03.2).
+- Digest / batching.
+- Cron cleanup (schema ready).
 
-1. Architecture review (this section, refined)
-2. Database changes → **none**
-3. Files changed
-4. Components created
-5. Components reused
-6. Performance improvements (query dedup, channel dedup, virtualized list)
-7. Security review (RLS unchanged)
-8. UX improvements (shareable filter URLs, cross-shell match presence, one home)
-9. Production readiness score
-10. Top 10 recommendations
-11. Phase 03.1 suggestions (Notifications & Communication reusing widgets)
-
-Approve to proceed.
+Approve to proceed with the migration + code.
