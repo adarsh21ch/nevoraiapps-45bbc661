@@ -24,15 +24,10 @@ import {
   FileText,
   Flag,
   HeartPulse,
-  MoreHorizontal,
-  Redo2,
-  RefreshCw,
   Search,
   Shield,
   StopCircle,
-  Trash2,
   Undo2,
-  UserCog,
   UserPlus,
   Share2,
 } from "lucide-react";
@@ -106,7 +101,6 @@ export interface MobileScorerProps {
 type PickerKind = "striker" | "nonStriker" | "bowler";
 
 export function MobileScorer(props: MobileScorerProps) {
-  const [moreOpen, setMoreOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState<PickerKind | null>(null);
   const [pickerQuery, setPickerQuery] = useState("");
   const [confirm, setConfirm] = useState<
@@ -205,7 +199,6 @@ export function MobileScorer(props: MobileScorerProps) {
   };
 
   const closeAll = () => {
-    setMoreOpen(false);
     setConfirm(null);
   };
 
@@ -286,9 +279,9 @@ export function MobileScorer(props: MobileScorerProps) {
             <button
               type="button"
               onClick={() => setConfirm({ kind: "end-match" })}
-              className="mr-1 inline-flex h-8 items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-3 text-[11px] font-black uppercase tracking-wider text-destructive transition duration-100 active:scale-95"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-destructive/40 bg-destructive/10 px-3.5 text-[11px] font-black uppercase tracking-wider text-destructive transition duration-100 active:scale-95"
             >
-              <StopCircle className="size-3.5" />
+              <StopCircle className="size-4" />
               End
             </button>
           )}
@@ -373,50 +366,48 @@ export function MobileScorer(props: MobileScorerProps) {
             onOut={props.onOut}
           />
         </div>
-        <div className="grid grid-cols-4 gap-1 px-2 pb-1 pt-1">
-          <FooterAction icon={<Undo2 className="size-[18px]" />} label="Undo" onClick={props.onUndo} />
-          <FooterAction icon={<Redo2 className="size-[18px]" />} label="Redo" onClick={() => {}} disabled title="Redo coming soon" />
-          <FooterAction icon={<FileText className="size-[18px]" />} label="Scorecard" onClick={props.onOpenScorecard} />
-          <FooterAction icon={<MoreHorizontal className="size-[18px]" />} label="More" onClick={() => setMoreOpen(true)} />
+        <div
+          className={cn(
+            "grid gap-1 px-2 pb-1 pt-1",
+            props.showFinishInnings && props.onFinishInnings ? "grid-cols-6" : "grid-cols-5",
+          )}
+        >
+          <FooterAction
+            icon={<Undo2 className="size-[18px]" />}
+            label="Undo"
+            onClick={props.onUndo}
+          />
+          <FooterAction
+            icon={<FileText className="size-[18px]" />}
+            label="Scorecard"
+            onClick={props.onOpenScorecard}
+          />
+          <FooterAction
+            icon={<UserPlus className="size-[18px]" />}
+            label="Bowler"
+            onClick={() => openPicker("bowler")}
+          />
+          <FooterAction
+            icon={<HeartPulse className="size-[18px]" />}
+            label="Retired"
+            onClick={props.onRetiredHurt}
+          />
+          <FooterAction
+            icon={<Share2 className="size-[18px]" />}
+            label="Share"
+            onClick={props.onShareMatch ?? (() => {})}
+            disabled={!props.onShareMatch}
+          />
+          {props.showFinishInnings && props.onFinishInnings && (
+            <FooterAction
+              icon={<Flag className="size-[18px]" />}
+              label="Finish"
+              onClick={() => setConfirm({ kind: "finish-innings" })}
+              tone="danger"
+            />
+          )}
         </div>
       </div>
-
-
-      <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
-        <DialogContent className="max-h-[85dvh] gap-3 overflow-y-auto rounded-2xl bg-card/95 p-0 backdrop-blur-xl sm:max-w-md">
-          <DialogHeader className="px-4 pb-1 pt-4 text-left">
-            <DialogTitle className="text-base">More actions</DialogTitle>
-            <DialogDescription className="sr-only">Secondary scoring controls</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 px-3 pb-4">
-            <Section title="Batting">
-              <SheetRow icon={<UserCog className="size-4" />} label="Change striker" onClick={() => { setMoreOpen(false); openPicker("striker"); }} />
-              <SheetRow icon={<UserCog className="size-4" />} label="Change non-striker" onClick={() => { setMoreOpen(false); openPicker("nonStriker"); }} />
-              <SheetRow icon={<RefreshCw className="size-4" />} label="Swap strike" onClick={() => { setMoreOpen(false); props.onSwapStrike(); }} />
-              <SheetRow icon={<HeartPulse className="size-4" />} label="Retired hurt" onClick={() => { setMoreOpen(false); props.onRetiredHurt(); }} />
-            </Section>
-            <Section title="Bowling">
-              <SheetRow icon={<UserPlus className="size-4" />} label="Change bowler" onClick={() => { setMoreOpen(false); openPicker("bowler"); }} />
-            </Section>
-            <Section title="Corrections">
-              <SheetRow icon={<Undo2 className="size-4" />} label="Undo last ball" onClick={() => { setMoreOpen(false); props.onUndo(); }} />
-              <SheetRow icon={<Trash2 className="size-4" />} label="Delete last ball" onClick={() => setConfirm({ kind: "delete-ball" })} />
-            </Section>
-            {props.onShareMatch && (
-              <Section title="Share">
-                <SheetRow icon={<Share2 className="size-4" />} label="Share live match" onClick={() => { setMoreOpen(false); props.onShareMatch?.(); }} />
-              </Section>
-            )}
-            {props.showFinishInnings && props.onFinishInnings && (
-              <Section title="Match" danger>
-                <SheetRow icon={<Flag className="size-4" />} label="Finish innings" tone="danger" onClick={() => setConfirm({ kind: "finish-innings" })} />
-              </Section>
-            )}
-
-
-          </div>
-        </DialogContent>
-      </Dialog>
 
 
       <PlayerPickerSheet
@@ -831,39 +822,17 @@ function PlayerPickerSheet({
 }
 
 
-function Section({ title, danger, children }: { title: string; danger?: boolean; children: ReactNode }) {
-  return (
-    <section>
-      <div className={cn("mb-1.5 px-1 text-[10px] font-black uppercase tracking-widest", danger ? "text-destructive" : "text-muted-foreground")}>{title}</div>
-      <div className="overflow-hidden rounded-2xl border bg-background/60">{children}</div>
-    </section>
-  );
-}
-
-function SheetRow({ icon, label, onClick, tone }: { icon: ReactNode; label: string; onClick: () => void; tone?: "danger" }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "grid h-12 w-full grid-cols-[32px_minmax(0,1fr)] items-center gap-3 border-b px-3 text-left text-[14px] font-semibold last:border-b-0 active:bg-muted",
-        tone === "danger" ? "text-destructive" : "text-foreground",
-      )}
-    >
-      <span className={cn("grid size-8 place-items-center rounded-xl", tone === "danger" ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground")}>{icon}</span>
-      <span className="truncate">{label}</span>
-    </button>
-  );
-}
-
-function FooterAction({ icon, label, onClick, disabled, title }: { icon: ReactNode; label: string; onClick: () => void; disabled?: boolean; title?: string }) {
+function FooterAction({ icon, label, onClick, disabled, title, tone }: { icon: ReactNode; label: string; onClick: () => void; disabled?: boolean; title?: string; tone?: "danger" }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="grid h-12 w-full grid-rows-[auto_auto] place-items-center gap-0.5 rounded-xl text-foreground/85 transition duration-100 active:scale-[0.97] active:bg-muted disabled:opacity-40"
+      className={cn(
+        "grid h-12 w-full grid-rows-[auto_auto] place-items-center gap-0.5 rounded-xl transition duration-100 active:scale-[0.97] active:bg-muted disabled:opacity-40",
+        tone === "danger" ? "text-destructive" : "text-foreground/85",
+      )}
     >
       <span aria-hidden>{icon}</span>
       <span className="text-[10px] font-bold uppercase tracking-wider leading-none">{label}</span>
