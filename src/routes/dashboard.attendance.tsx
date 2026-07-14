@@ -100,20 +100,23 @@ function AttendancePage() {
     return m;
   }, [todayQ.data, effectiveBatchId]);
 
-  // KPIs across this batch. Absent is DERIVED: not_marked at EOD ⇒ absent for reports.
-  // During the day we only show live states (In Academy / Checked Out / Not Marked).
+  // KPIs across this batch. Attendance supports multiple visits per player per
+  // day. All summary values are DERIVED from raw visit rows — never stored.
   const kpis = useMemo(() => {
-    let inAcademy = 0;
-    let checkedIn = 0;
-    let checkedOut = 0;
+    let inAcademy = 0;      // players currently checked in (open visit)
+    let present = 0;        // players with ≥1 visit today
+    let checkedOutToday = 0;// players whose latest state is checked_out
+    let visitsCheckIn = 0;  // total check-ins today (all visits)
+    let visitsCheckOut = 0; // total check-outs today (all visits)
     for (const s of batchStudents) {
       const row = stateByStudent.get(s.id);
       const state: AttendanceState = row?.current_state ?? "not_marked";
-      if (state === "in_academy") { inAcademy++; checkedIn++; }
-      else if (state === "checked_out") { checkedIn++; checkedOut++; }
+      const visits = row?.visit_count ?? 0;
+      if (state === "in_academy") { inAcademy++; present++; visitsCheckIn += visits; visitsCheckOut += Math.max(visits - 1, 0); }
+      else if (state === "checked_out") { checkedOutToday++; present++; visitsCheckIn += visits; visitsCheckOut += visits; }
     }
-    const notMarked = batchStudents.length - checkedIn;
-    return { inAcademy, checkedIn, checkedOut, notMarked, total: batchStudents.length };
+    const notArrived = batchStudents.length - present;
+    return { inAcademy, present, checkedOutToday, notArrived, visitsCheckIn, visitsCheckOut, total: batchStudents.length };
   }, [batchStudents, stateByStudent]);
 
   const isLoading = batchesQ.isLoading || studentsQ.isLoading || todayQ.isLoading;
