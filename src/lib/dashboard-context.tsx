@@ -159,9 +159,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }
   if (!tenantQ.data) return <FullPage>Academy not found.</FullPage>;
 
+  const effectiveProfile: Profile = impersonation
+    ? { ...profileQ.data, tenant_id: impersonation.tenant_id, role: "owner" }
+    : profileQ.data;
   const value: DashboardCtx = {
     session,
-    profile: profileQ.data,
+    profile: effectiveProfile,
     tenant: tenantQ.data,
     signOut: async () => {
       await supabase.auth.signOut();
