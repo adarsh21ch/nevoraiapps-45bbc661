@@ -1115,14 +1115,7 @@ function MatchesTab({ athleteId }: { athleteId: string | null }) {
     );
   }
   if (q.isLoading) return <Skel />;
-  const rows = (q.data ?? []) as Array<{
-    id: string;
-    batting_runs: number | null;
-    batting_balls: number | null;
-    wickets_taken: number | null;
-    is_player_of_match: boolean | null;
-    mc_matches?: { id: string; name: string; match_date: string; status?: string; format?: string } | null;
-  }>;
+  const rows = q.data ?? [];
   if (rows.length === 0) return <Card className="p-6 text-sm text-muted-foreground text-center">No matches yet.</Card>;
 
   return (
@@ -1130,31 +1123,39 @@ function MatchesTab({ athleteId }: { athleteId: string | null }) {
       <ul className="divide-y divide-border">
         {rows.map((m) => (
           <li key={m.id} className="p-3 flex items-center gap-3">
-            <div className="grid place-items-center size-9 rounded-lg" style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)", color: "var(--brand)" }}>
+            <div
+              className="grid place-items-center size-9 rounded-lg"
+              style={{
+                backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)",
+                color: "var(--brand)",
+              }}
+            >
               <Swords className="size-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <div className="text-sm font-medium truncate">{m.mc_matches?.name ?? "Match"}</div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="text-sm font-medium truncate">
+                  {m.match?.ground_name ?? "Match"}
+                </div>
                 {m.is_player_of_match ? (
-                  <span className="inline-flex items-center gap-0.5 text-[9.5px] px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
-                    <Trophy className="size-2.5" /> MoM
-                  </span>
+                  <ChipPill tone="gold">
+                    <Trophy className="size-2.5 mr-0.5" /> MoM
+                  </ChipPill>
                 ) : null}
+                {m.is_captain ? <ChipPill>Captain</ChipPill> : null}
+                {m.is_keeper ? <ChipPill>Keeper</ChipPill> : null}
               </div>
               <div className="text-[11px] text-muted-foreground">
-                {m.mc_matches?.match_date ? format(new Date(m.mc_matches.match_date), "MMM d, yyyy") : ""}
-                {m.mc_matches?.format ? ` · ${m.mc_matches.format}` : ""}
+                {m.match?.scheduled_date
+                  ? format(new Date(m.match.scheduled_date), "MMM d, yyyy")
+                  : ""}
+                {m.match?.match_format ? ` · ${m.match.match_format}` : ""}
               </div>
             </div>
             <div className="text-right shrink-0">
-              <div className="text-sm font-semibold tabular-nums">
-                {m.batting_runs ?? 0}
-                <span className="text-[10px] text-muted-foreground font-normal">
-                  {m.batting_balls ? ` (${m.batting_balls})` : ""}
-                </span>
+              <div className="text-[11px] text-muted-foreground">
+                {m.match?.status === "completed" ? m.match?.result ?? "Completed" : m.match?.status ?? ""}
               </div>
-              <div className="text-[11px] text-muted-foreground">{m.wickets_taken ?? 0} wkts</div>
             </div>
           </li>
         ))}
@@ -1162,6 +1163,7 @@ function MatchesTab({ athleteId }: { athleteId: string | null }) {
     </Card>
   );
 }
+
 
 /* ------------------------ More ------------------------ */
 
