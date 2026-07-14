@@ -25,6 +25,7 @@ import { useT } from "@/lib/i18n";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
 import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 
 type NavItem = {
