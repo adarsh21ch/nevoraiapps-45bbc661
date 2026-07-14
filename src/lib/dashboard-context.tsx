@@ -67,9 +67,21 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     enabled: !!tenantId,
     queryKey: ["dashboard-tenant", tenantId],
     queryFn: async (): Promise<Tenant | null> => {
-      const { data, error } = await supabase.from("tenants").select("*").eq("id", tenantId!).maybeSingle();
+      // Explicit column list — avoids `select('*')` so column-level GRANT
+      // changes or newly added columns can't silently break tenant reads.
+      const { data, error } = await supabase
+        .from("tenants")
+        .select(
+          "id, slug, name, short_name, tagline, custom_domain, logo_url, " +
+            "primary_color, secondary_color, niche, features, phone, whatsapp, " +
+            "email, address, upi_id, upi_qr_url, status, created_at, fee_cycle, " +
+            "monthly_price, setup_fee, billing_day, last_paid_date, " +
+            "subscription_status, platform_notes, player_prefix, show_billing_to_parents",
+        )
+        .eq("id", tenantId!)
+        .maybeSingle();
       if (error) throw error;
-      return data;
+      return data as Tenant | null;
     },
   });
 
