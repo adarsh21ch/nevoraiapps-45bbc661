@@ -1447,6 +1447,22 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           showFinishInnings={activeInnings?.innings_number === 1}
           onEndMatch={finalizeMatch}
           onOpenScorecard={() => setScorecardOpen(true)}
+          scorecardContent={
+            <LiveScorecard
+              events={session.events}
+              innings={activeInnings}
+              totalOvers={match.overs ?? null}
+              matchInfo={{
+                ground: match.ground_name,
+                tournament: match.match_type,
+                date: match.scheduled_date,
+                format: match.match_format,
+                homeTeam: homeName,
+                awayTeam: awayName,
+                result: match.result,
+              }}
+            />
+          }
           onShareMatch={() => setShareOpen(true)}
           battingOptions={battingOptions}
           bowlingOptions={bowlingOptions}
