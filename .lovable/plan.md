@@ -1,111 +1,78 @@
-# Match Center Restructure — Bottom Nav + Roles
 
-Match Center becomes a self-contained mini-app with its own 5-tab bottom navigation. Owners keep full Academy access; Coaches are locked to Match Center only. No changes to scoring engine, ball events, or match schema.
+# Match Center → Public Cricket Platform
 
-## 1. Roles
+Removed the bottom "Book a call / Register" CTA bar on the academy website already. Everything below is the larger refactor and needs your approval before I start, because it touches the scoring engine, database, realtime, routing, roles and public site — several weeks of surface area.
 
-Current state: `profiles.role` is a free-text column with only `"owner"` present. We formalize two values:
+I want to ship this in reviewable phases, not a single mega-PR. Each phase leaves the app fully working.
 
-- `owner` — full Academy + full Match Center.
-- `coach` — Match Center only.
+## Guiding principles
 
-Migration:
-- Add CHECK constraint (or enum) restricting `profiles.role` to `owner | coach`.
-- Add `has_role(uid, role)` SECURITY DEFINER helper (per user-roles guidance, kept on `profiles` since roles are already there and single-tenant-per-user).
-- No data change for existing rows (all owners).
-- Update RLS on finance-adjacent tables (`fee_plans`, `payments`, `students` financial fields, `tenants` settings columns exposed via UI) so coaches cannot read/write them — even though the UI hides them, backend must enforce.
+- The scoring engine (`src/lib/mc-statistics-engine.ts`) is the ONE source of truth. Every screen (public match page, player profile, team profile, records, insights, website) derives numbers from the same reducer — no per-screen recalculation.
+- One Supabase Realtime channel per match, shared via a provider; every consumer subscribes through it (no duplicate `channel(...)` calls).
+- Every completed / live match, every player, every team gets a public, SEO-indexable URL with SSR head metadata.
+- No off-by-one over labels. Legal-ball count is the only source; wides/no-balls never increment; byes/leg-byes do. Regression tests locked in.
 
-## 2. Frontend Navigation
+## Phase 1 — Foundations (safe, invisible)
 
-Delete:
-- `SidebarInner` and the desktop `<aside>` in `src/components/match-center/MatchCenterLayout.tsx`.
-- The `NativeMobileDrawer` sheet + hamburger `Menu` button in the top bar.
-- The current shared `GlobalBottomNav` for Match Center routes (Academy OS still uses it on `/dashboard/*`).
+1. Consolidate the engine
+   - Move any stray stat math out of components into `mc-statistics-engine`.
+   - Export pure selectors: `computeInningsSummary`, `computeBatting`, `computeBowling`, `computePartnerships`, `computeFallOfWickets`, `computeOverHistory`, `computeCurrentOverStrip`, `formatOverLabel`.
+   - Formal tests for over label at 1.1, 1.6, 2.1, 10.6, 11.1, wide, no-ball, byes/leg-byes, undo/redo, over transition, innings transition.
+2. Single realtime provider
+   - New `MatchRealtimeProvider` keyed by `matchId` — one Supabase channel for `mc_ball_events`, `mc_innings`, `mc_matches`, `mc_match_squads`.
+   - Every screen consumes via `useMatchLive(matchId)` instead of subscribing itself.
+3. Database audit (migration)
+   - Add indexes: `mc_ball_events(match_id, created_at)`, `mc_ball_events(innings_id, over_number, ball_number)`, `mc_matches(tenant_id, status, scheduled_date)`, `mc_match_squads(match_id, team_id)`.
+   - Unique guard on `(innings_id, over_number, ball_number, sequence)` to prevent duplicate deliveries.
+   - Public read policies for match/player/team pages (`TO anon` narrow SELECT).
+   - `mc_matches.public_slug` populated for every live/completed match (backfill).
 
-Add: `MatchCenterBottomNav` (new file) with exactly five tabs:
+## Phase 2 — Public URLs (SSR + SEO)
 
-```text
-LIVE       MATCHES    PLAYERS    INSIGHTS   PROFILE
-Radio      Swords     Users      LineChart  UserCircle
-```
+- New routes (all public, SSR head with title/description/OG/twitter/canonical + JSON-LD):
+  - `/match/$slug` — full match page (summary, live/final score, batting, bowling, current partnership, FoW, recent overs, ball-by-ball, over-by-over, CRR/RRR, target, PoM, venue, date, XI).
+  - `/player/$slug` — profile (matches, R, B, avg, SR, HS, 50s, 100s, 4s, 6s, bowling, fielding, career timeline, recent matches, form graph).
+  - `/team/$slug` — profile (P, W, L, runs, wickets, recent, players, top batter, top bowler).
+  - `/records` — academy records (auto-computed).
+  - `/insights` — public leaderboards and charts.
+- Public server functions (publishable-key client + narrow `TO anon` SELECT) — no `requireSupabaseAuth` in these loaders.
+- Sitemap generator at `/api/public/sitemap.xml` listing every live/completed match, player, team; `robots.txt` allows all.
+- Ball-by-ball UI mirrors Cricbuzz: collapsed over row (chips), tap to expand to per-ball narration.
 
-Each tab is a route parent that owns its sub-pages:
+## Phase 3 — Match Center app (roles + bottom nav only)
 
-- **LIVE** → `/match-center/live` (index shows empty state or Resume card; deep links to `/match-center/create` when no live match).
-- **MATCHES** → `/match-center/matches` (list + filter + search; card grid; opens `/match-center/scorebook/$matchId`).
-- **PLAYERS** → `/match-center/players` (list, search; player detail unchanged).
-- **INSIGHTS** → `/match-center/insights` (new umbrella page consolidating Leaderboards, Records, Performance, AI Insights, Recognition, Awards into tabbed sections).
-- **PROFILE** → `/match-center/profile` (new): coach details, notifications, settings link, logout — **or** "Switch to Academy" for owners.
+- Remove the Match Center sidebar; keep only bottom nav: Live / Matches / Players / Insights / Profile.
+- Live tab: live cards (LIVE badge, teams, score, overs, target, need, CRR, RRR, "Open Scorecard") or "Create Match" empty state.
+- Matches tab: only Live and Completed. Delete Upcoming/Scheduled/Cancelled/Archived/Abandoned UI (data stays; filter surfaces removed). Search across player / team / ground / date.
+- Roles:
+  - OWNER: existing full access.
+  - COACH / SCORER: gated to Match Center only. Add a role check in `_authenticated` layout that redirects non-owners hitting `/fees`, `/finance`, `/academy`, `/settings`, `/website` back to `/match-center`.
+- Current-over strip: on over end, clear to blank until next legal delivery. Bowler-required state: current bowler goes inactive, tapping a scoring button opens bowler picker then replays the intended action (no popup interrupt).
 
-Routes to consolidate under Insights (kept as sub-routes, no data changes): `leaderboards`, `records`, `performance`, `recognition`, `awards`, `ai-insights`.
+## Phase 4 — Website sync
 
-Routes to move / hide from top nav (still reachable via deep link but not on bottom bar): `tournaments`, `teams`, `scorers`, `website`, `settings`, `dashboard`. These become entries inside Matches (teams, tournaments), Profile (settings, scorers), or removed from Match Center surfaces.
+- The tenant website's Live/Matches/Records/Players/Teams sections read from the SAME public server functions used by `/match/$slug` etc.
+- Live widget uses `useMatchLive` on the match id, so a scored ball updates hero widget and match page simultaneously.
+- Bottom "Book a call / Register" CTA already removed. Verify no other floating popups occupy the fold.
 
-## 3. Bottom Nav Component
+## Phase 5 — Perf & QA
 
-Fixed at bottom, `env(safe-area-inset-bottom)`, 60px tall, five equal columns, active state uses the tenant brand accent bar + label color change. iOS-style: rounded top corners, soft top shadow, subtle blur backdrop. Large tap targets (min 48px). Live tab shows a pulsing red dot when a live match exists (reuses existing `mc-live-count` query).
+- Route-level code split for scorer, match page, insights, records.
+- Virtualize ball-by-ball (`@tanstack/react-virtual`).
+- `useMemo` on engine selectors keyed by last event id.
+- Playwright end-to-end: score a full over (with wide, no-ball, bye, wicket, undo, redo), assert public match page + player profile + records update live.
 
-Only rendered inside `/match-center/*` routes. The Academy OS bottom nav stays on `/dashboard/*`.
+## Technical notes
 
-## 4. LIVE Tab Empty & Resume States
+- No new business logic in components — they call selectors from `mc-statistics-engine`.
+- Server functions for public reads use the server publishable client from `tanstack-supabase-integration`, not `supabaseAdmin`.
+- Slugs stored in `mc_matches.public_slug`, `students.public_slug`, `mc_teams.public_slug`; unique per tenant; backfilled with a migration.
+- Head metadata set in each leaf route's `head()`, derived from loader data. `og:image` only at the leaf; never on `__root`.
 
-Empty state: centered illustration + "No Live Match" + primary `Create Match` button → `/match-center/create`.
+## What I need from you before I start
 
-Resume state (when a live match exists): score card with team scores, overs, venue, current batters, and `Resume Live Match` primary button → `/match-center/scorebook/$matchId`. Uses the existing live match query; no new data.
+1. Confirm you want this shipped in the 5 phases above (each phase is a separate turn / PR).
+2. Slug format for public URLs — is `sai-u16-vs-sky-u16-2026-07-14` OK for matches, `firstname-lastname-<playerId>` for players, `team-slug` for teams? Prevents collisions and keeps SEO clean.
+3. For COACH / SCORER, is "Match Center only" strict (no read access to student profiles outside a match)? Or can they view player profiles too?
 
-## 5. Owner vs Coach Routing
-
-- Root Academy shell (`/dashboard/*`): coaches redirected to `/match-center/live` in a `beforeLoad` gate under `_authenticated/dashboard`.
-- `/match-center/*`: allowed for both roles.
-- Profile tab renders different footer based on role:
-  - Owner: "Switch to Academy" button → `navigate({ to: "/dashboard" })`.
-  - Coach: "Logout" button (existing `signOut`).
-- Auth flow post-login: read role, redirect owner → `/dashboard`, coach → `/match-center/live`.
-
-## 6. Backend Authorization
-
-- Add SECURITY DEFINER `has_role(uid, role)` helper.
-- Add RLS policies keyed on `has_role`:
-  - `fee_plans`, `payments`, `tenant_price_changes` → owner only.
-  - `tenants` writes → owner only (reads already scoped by tenant).
-  - `students` financial columns → owner only (already partly enforced; verify).
-- Match Center tables (`mc_*`) — no policy changes (both roles have full access as today).
-
-## 7. Layout Cleanup
-
-`MatchCenterLayout`:
-- Remove desktop sidebar `<aside>`.
-- Remove hamburger menu, drawer, and its Sheet.
-- Keep top header (back to Academy for owners, hidden for coaches).
-- Main content becomes full-width with `pb-[calc(env(safe-area-inset-bottom)+72px)]` to clear bottom nav.
-- Replace `<GlobalBottomNav />` with `<MatchCenterBottomNav />`.
-
-## 8. Out of Scope
-
-- No changes to `mc_ball_events`, scoring engine, or MCC rules.
-- No changes to match creation flow logic.
-- Player, match, and scorebook detail pages keep their current internals.
-- Academy OS (`/dashboard/*`) sidebar/nav for owners unchanged.
-
-## Technical Details
-
-**Files added**
-- `src/components/match-center/MatchCenterBottomNav.tsx`
-- `src/routes/match-center.insights.tsx` (umbrella with sub-tabs)
-- `src/routes/match-center.profile.tsx`
-- `src/lib/roles.ts` (typed helper: `isOwner(profile)`, `isCoach(profile)`)
-
-**Files edited**
-- `src/components/match-center/MatchCenterLayout.tsx` — strip sidebar/drawer, mount new bottom nav.
-- `src/routes/_authenticated/route.tsx` (or existing gate) — post-auth redirect by role.
-- `src/routes/dashboard.tsx` (Academy shell) — `beforeLoad` bounces coaches to `/match-center/live`.
-- `src/routes/match-center.live.tsx` — empty/resume state.
-
-**Migration**
-- `role` CHECK constraint: `role IN ('owner','coach')`.
-- Create `has_role(_uid uuid, _role text)` SECURITY DEFINER.
-- Coach-forbidden RLS on finance tables via `has_role(auth.uid(),'owner')`.
-
-**Non-goals**
-- No new role table (single role per profile is sufficient here; can migrate later if multi-role is needed).
-- No PWA / manifest changes.
+Once you confirm, I'll start Phase 1 (engine consolidation + realtime provider + DB indexes) — that phase is invisible to end users but unlocks everything else.
