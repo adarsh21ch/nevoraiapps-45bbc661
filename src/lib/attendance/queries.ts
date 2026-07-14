@@ -90,6 +90,7 @@ export interface AttendanceVisit {
   duration_minutes: number | null;
   source: AttendanceSource;
   marked_by: string | null;
+  visit_type: string | null;
   note: string | null;
   created_at: string;
 }
