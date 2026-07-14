@@ -3,12 +3,12 @@ import { NumberRoll } from "@/components/ui/number-roll";
 import { useSwipe } from "@/hooks/use-swipe";
 import { cn } from "@/lib/utils";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Dialog,
   DialogContent,
