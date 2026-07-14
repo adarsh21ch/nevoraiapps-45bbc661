@@ -191,10 +191,10 @@ function PlayerProfileRoute() {
         <div className="flex items-start gap-4">
           <PersonAvatar
             name={student.name}
-            photoUrl={student.photo_url ?? undefined}
-            size="lg"
+            src={student.photo_url ?? undefined}
             className="size-20 md:size-24 shrink-0"
           />
+
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl md:text-2xl font-semibold tracking-tight truncate">
