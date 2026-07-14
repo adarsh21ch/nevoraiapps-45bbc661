@@ -678,6 +678,7 @@ function ScorerPage() {
           onOpenScorecard={() => setScorecardOpen(true)}
           scorecardContent={
             <LiveScorecard
+              hideHero
               events={session.events}
               innings={session.activeInnings}
               totalOvers={session.match?.overs ?? null}
@@ -1449,6 +1450,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           onOpenScorecard={() => setScorecardOpen(true)}
           scorecardContent={
             <LiveScorecard
+              hideHero
               events={session.events}
               innings={activeInnings}
               totalOvers={match.overs ?? null}
