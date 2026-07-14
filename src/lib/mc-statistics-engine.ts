@@ -949,14 +949,16 @@ export function formatLiveOver(
  * Illegal deliveries (wide/no-ball) do not advance this value.
  */
 export function completedLegalBallsFromEvents(events: MCBallEvent[]): number {
-  for (let i = events.length - 1; i >= 0; i -= 1) {
-    const event = events[i];
-    if (!isLegalDelivery(event.extra_type as ExtraType | null)) continue;
-    const overNumber = Math.max(0, Math.trunc(event.over_number ?? 0));
-    const ballNumber = Math.min(6, Math.max(1, Math.trunc(event.ball_number ?? 1)));
-    return overNumber * 6 + ballNumber;
+  // Count legal deliveries directly from the event log. This is the single
+  // source of truth for "how many legal balls have been bowled". We must NOT
+  // read stored `over_number` / `ball_number` here because different code
+  // paths (live scoring vs demo generator) have historically used 0-indexed
+  // or 1-indexed over numbers, which would make the label +6 off.
+  let count = 0;
+  for (const event of events) {
+    if (isLegalDelivery(event.extra_type as ExtraType | null)) count += 1;
   }
-  return 0;
+  return count;
 }
 
 /**
