@@ -794,7 +794,7 @@ function TimelineTab({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
-        .select("id, amount, period, paid_on, created_at")
+        .select("id, amount, period, created_at")
         .eq("student_id", studentId)
         .order("created_at", { ascending: false })
         .limit(30);
