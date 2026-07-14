@@ -132,6 +132,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "attendance_marks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       attendance_sessions: {
@@ -180,6 +187,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "attendance_sessions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       batches: {
@@ -213,6 +227,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "batches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -254,6 +275,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_plans_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -301,6 +329,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -378,6 +413,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_academy_records_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_academy_records_tournament_id_fkey"
             columns: ["tournament_id"]
             isOneToOne: false
@@ -429,6 +471,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_academy_timeline_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -581,6 +630,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mc_athlete_achievements_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mc_athlete_awards: {
@@ -630,6 +686,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_athlete_awards_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -708,6 +771,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mc_athlete_profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mc_athlete_timeline: {
@@ -757,6 +827,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_athlete_timeline_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -900,6 +977,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mc_ball_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mc_certificate_templates: {
@@ -954,6 +1038,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_certificate_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -1012,6 +1103,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_coach_remarks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -1083,6 +1181,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mc_cricket_profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mc_custom_match_types: {
@@ -1110,6 +1215,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_custom_match_types_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -1170,6 +1282,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_hall_of_fame_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -1261,6 +1380,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mc_innings_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mc_match_audit_log: {
@@ -1307,6 +1433,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_match_audit_log_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -1389,6 +1522,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mc_match_squads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mc_match_timeline: {
@@ -1435,6 +1575,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_match_timeline_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -1594,6 +1741,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_matches_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -1779,6 +1933,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mc_player_careers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mc_public_matches: {
@@ -1956,6 +2117,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_recognitions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_recognitions_tournament_id_fkey"
             columns: ["tournament_id"]
             isOneToOne: false
@@ -2011,6 +2179,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_scorers_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -2085,6 +2260,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_team_players_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -2202,6 +2384,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_teams_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_teams_vice_captain_student_id_fkey"
             columns: ["vice_captain_student_id"]
             isOneToOne: false
@@ -2303,6 +2492,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_tournament_teams_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_tournament_teams_tournament_id_fkey"
             columns: ["tournament_id"]
             isOneToOne: false
@@ -2395,6 +2591,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mc_tournaments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mc_website_analytics: {
@@ -2428,6 +2631,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_website_analytics_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -2481,6 +2691,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: true
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_website_config_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -2545,6 +2762,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -2613,6 +2837,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -2697,6 +2928,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "registrations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       reminder_logs: {
@@ -2770,6 +3008,13 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "reminder_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
       }
       site_content: {
@@ -2805,69 +3050,172 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "site_content_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_status: string
+          previous_status: string | null
+          reason: string | null
+          student_id: string
+          tenant_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_status: string
+          previous_status?: string | null
+          reason?: string | null
+          student_id: string
+          tenant_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_status?: string
+          previous_status?: string | null
+          reason?: string | null
+          student_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_status_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_status_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       students: {
         Row: {
           address: string | null
+          archive_reason: string | null
+          archived_at: string | null
           batch_id: string | null
+          batting_style: string | null
+          blood_group: string | null
+          bowling_arm: string | null
+          bowling_style: string | null
+          city: string | null
+          coach_name: string | null
           created_at: string
           custom_fee: number | null
           dob: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
           fee_plan_id: string | null
           gender: string | null
           guardian_name: string | null
           guardian_phone: string | null
           id: string
           joined_at: string
+          medical_notes: string | null
           name: string
           notes: string | null
           phone: string
           photo_url: string | null
+          pincode: string | null
           player_id: string | null
+          playing_role: string | null
           public_slug: string | null
+          school_college: string | null
+          state: string | null
           status: string
           tenant_id: string
         }
         Insert: {
           address?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
           batch_id?: string | null
+          batting_style?: string | null
+          blood_group?: string | null
+          bowling_arm?: string | null
+          bowling_style?: string | null
+          city?: string | null
+          coach_name?: string | null
           created_at?: string
           custom_fee?: number | null
           dob?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           fee_plan_id?: string | null
           gender?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
           joined_at?: string
+          medical_notes?: string | null
           name: string
           notes?: string | null
           phone: string
           photo_url?: string | null
+          pincode?: string | null
           player_id?: string | null
+          playing_role?: string | null
           public_slug?: string | null
+          school_college?: string | null
+          state?: string | null
           status?: string
           tenant_id: string
         }
         Update: {
           address?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
           batch_id?: string | null
+          batting_style?: string | null
+          blood_group?: string | null
+          bowling_arm?: string | null
+          bowling_style?: string | null
+          city?: string | null
+          coach_name?: string | null
           created_at?: string
           custom_fee?: number | null
           dob?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           fee_plan_id?: string | null
           gender?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
           joined_at?: string
+          medical_notes?: string | null
           name?: string
           notes?: string | null
           phone?: string
           photo_url?: string | null
+          pincode?: string | null
           player_id?: string | null
+          playing_role?: string | null
           public_slug?: string | null
+          school_college?: string | null
+          state?: string | null
           status?: string
           tenant_id?: string
         }
@@ -2891,6 +3239,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -2929,6 +3284,13 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_price_changes_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -3073,6 +3435,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "attendance_marks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "attendance_sessions_batch_id_fkey"
             columns: ["batch_id"]
             isOneToOne: false
@@ -3129,6 +3498,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "attendance_marks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "attendance_sessions_batch_id_fkey"
             columns: ["batch_id"]
             isOneToOne: false
@@ -3167,7 +3543,83 @@ export type Database = {
             referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "students_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      tenants_public_directory: {
+        Row: {
+          address: string | null
+          custom_domain: string | null
+          email: string | null
+          features: Json | null
+          fee_cycle: string | null
+          id: string | null
+          logo_url: string | null
+          name: string | null
+          niche: string | null
+          phone: string | null
+          player_prefix: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          short_name: string | null
+          slug: string | null
+          status: string | null
+          tagline: string | null
+          upi_id: string | null
+          upi_qr_url: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          address?: string | null
+          custom_domain?: string | null
+          email?: string | null
+          features?: Json | null
+          fee_cycle?: string | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          niche?: string | null
+          phone?: string | null
+          player_prefix?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          short_name?: string | null
+          slug?: string | null
+          status?: string | null
+          tagline?: string | null
+          upi_id?: string | null
+          upi_qr_url?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          custom_domain?: string | null
+          email?: string | null
+          features?: Json | null
+          fee_cycle?: string | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          niche?: string | null
+          phone?: string | null
+          player_prefix?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          short_name?: string | null
+          slug?: string | null
+          status?: string | null
+          tagline?: string | null
+          upi_id?: string | null
+          upi_qr_url?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
       }
     }
     Functions: {
