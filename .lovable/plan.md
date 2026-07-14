@@ -1,210 +1,107 @@
+# Phase 03.0 — Match Center Polish & Integration
 
-# AcademyOS V2 — Architecture Review
+## Architecture Review (challenges before coding)
 
-No code will change until you approve. This is a pure audit + plan.
+The Match Center is already mature: 27 routes, 23 `mc-*` library modules (Ball, Stats, Rules, Career, Finalization, Recognition, Tournament engines all present), and a rich `match-center.dashboard` page. Rebuilding is unnecessary. What is missing is **integration across shells** and **shared, cached primitives**.
 
----
+Concrete gaps found:
 
-## 1. Architecture Review (what's here today)
+1. **No shared "match feeds" module.** Owner Dashboard, Student App, Parent Portal each fetch matches differently, so cache keys and RLS-safe scopes diverge. Result: duplicate queries and inconsistent shapes.
+2. **`match-center.dashboard.tsx` is the only place matches surface in a dashboard shell.** The Owner Dashboard (`/dashboard`), Admin panels, `/student`, and `/parent` don't yet show live/upcoming/recent match cards.
+3. **Realtime is duplicated.** `mobile-scorer.tsx`, `live-scorecard.tsx`, and `match.$slug.tsx` each open their own `mc_ball_events` channel. Should route through one hook.
+4. **Match Center home is a redirect to `/live`.** Spec asks for a proper home surface — but `match-center.dashboard.tsx` already implements it. Fix by pointing the index redirect at `/dashboard` (or renaming) instead of building a third home.
+5. **Player Profile timeline events**: Career & Recognition engines already write `mc_athlete_timeline` on finalization. Verify wiring exists; add missing event types (Debut, Milestone) via a small append-only helper — do NOT modify the Finalization engine.
+6. **Insights**: `mc-performance-analytics.ts` already computes highest partnership, top scorer, best bowling, etc. Expose as reusable `useMatchInsights(...)` hooks; don't rewrite math.
+7. **Search & filters**: `match-center.matches.tsx` has filtering — extend with URL search params (`validateSearch` + `zodValidator`) so links/back-button work.
 
-**Stack**
-- TanStack Start v1 + React 19 + Vite 7, Tailwind v4 (`src/styles.css`)
-- Supabase (Postgres + Auth + Realtime + Storage `tenant-assets`)
-- Server logic via `createServerFn` (`src/lib/*.functions.ts`) + `requireSupabaseAuth`
-- Multi-tenant via `tenants.slug` / `custom_domain`, resolved in `TenantGate` + `tenant-context`
+## What will be built
 
-**Frontend surfaces (66 route files, ~22k LOC)**
-- **Public site**: `index`, `about`, `contact`, `fees`, `register`, `academy.$slug`, `match.$slug`, `m.$slug`, `star-players`
-- **Auth**: `auth.tsx`
-- **Dashboard (Owner/Admin)**: `dashboard.*` — students, batches, fees, attendance, leads, registrations, reminders, reports, insights, site, settings, profile
-- **Match Center**: `match-center.*` (23 files) — dashboard, live, matches, create, scorebook, teams, tournaments, players, performance, recognition, records, awards, insights, ai-insights, website, scorers, settings
-- **Scorer**: `scorer.$matchId.tsx` (1,853 LOC — largest file)
-- **Platform Admin**: `platform-admin.*` — tenants, subscriptions, settings
-- **Parent Portal**: `parent-portal.tsx`
+### 1. Shared match feeds (`src/lib/match-feeds.ts`) — NEW
+One small module exporting typed React Query hooks reused everywhere:
+- `useLiveMatches(tenantId)` — status = 'live'
+- `useUpcomingMatches(tenantId, limit)` — status = 'scheduled', future
+- `useRecentMatches(tenantId, limit)` — status = 'completed', last N
+- `useTodaysMatches(tenantId)`
+- `useMatchesForStudent(studentId)` — squads join → my matches
+- `useMatchesForParentChild(studentId)` — same, RLS-scoped
+- `useTopPerformerToday(tenantId)` — thin wrapper over existing analytics
 
-**Backend**
-- 46 tables (audited in schema summary), mostly RLS'd via `is_tenant_member` / `is_platform_admin` / `is_match_scorer` / `has_role` security-definer functions
-- Public read paths via SECURITY DEFINER RPCs: `get_public_match_bundle`, `get_public_academy_bundle`, `get_parent_child_summary`, `list_parent_children`
-- Slug + player_id auto-assignment triggers
-- Realtime enabled on match tables; consolidated through new `useMatchLive` ref-counted hook ✅
+All hooks reuse existing loaders in `mc-matches.ts`, `mc-athletes.ts`, `mc-performance-analytics.ts`. Cache keys share prefixes (`["mc","matches",tenantId,…]`) so a single fetch warms every shell.
 
-**Engines (protected — do not rewrite)**
-- `mc-ball-events-core.ts` + `mc-ball-events.ts` (ball append/undo, extras derivation)
-- `mc-statistics-engine.ts` + `.format.test.ts` (has tests)
-- `mc-rules-engine.ts`, `mc-finalization.ts`, `mc-career-engine.ts`, `mc-recognition-engine.ts`, `mc-tournament-engine.ts`, `mc-ai-engine.ts`, `mc-commentary.ts`, `mc-performance-analytics.ts`
+### 2. Shared realtime hook (`src/lib/mc-realtime.ts`) — NEW
+- `useMatchRealtime(matchId)` — one Supabase channel per match, ref-counted across mounts; invalidates the shared match queries.
+- `useTenantMatchesRealtime(tenantId)` — one channel for status/score changes on the tenant's matches, invalidates feed queries.
 
----
+Refactor `live-scorecard.tsx`, `match.$slug.tsx`, `mobile-scorer.tsx` to consume the hook instead of opening channels themselves. Scoring engine files untouched.
 
-## 2. Problems Found
+### 3. Cross-shell match widgets (`src/components/match-center/widgets/`) — NEW, tiny presentational
+- `LiveMatchCard`, `UpcomingMatchCard`, `RecentResultCard`, `TopPerformerCard`, `MyNextMatchCard`, `MyRecentPerformanceCard`.
+- Reuse existing `StatusChip`, `DashboardCard`, `SectionTitle` from `components/match-center/ui.tsx`. No new design tokens.
 
-**Architecture & duplication**
-- Three parallel shells: `DashboardShell`, `PlatformShell`, `MatchCenterLayout` — no unified `AppShell`. Each re-implements header/nav/safe-area.
-- Two bottom navs: `GlobalBottomNav` + `MatchCenterBottomNav` — inconsistent.
-- Design system folder exists (`components/design-system/`) but many routes bypass it and hand-roll cards, KPIs, empty states.
-- Match Center has 6 "demo-*" files (`demo-badge`, `demo-player-profile`, `demo-settings-card`, `demo-team-profile`, `demo-tournament-detail`) mixed with real UI — unclear which are shipped.
-- `scorer.$matchId.tsx` is 1,853 LOC — one file owns scoring UI, state, dialogs, keyboard, undo. Needs decomposition (not rewrite).
-- Two scoring session hooks (`use-scoring-session`, `use-demo-scoring-session`) with overlapping logic.
-- Public match views split across `match.$slug.tsx` and `m.$slug.tsx` — duplicate routing surface.
+### 4. Dashboard integration (no redesign of frozen shells)
+- `src/routes/dashboard.index.tsx` — inject a **"Cricket today"** section: `LiveMatchCard` + `TopPerformerCard` + `RecentResultCard` list. Only added if the tenant has matches; otherwise section hides.
+- `src/routes/student.index.tsx` — inject `MyNextMatchCard` + `MyRecentPerformanceCard` below existing motivational content.
+- `src/routes/parent.index.tsx` — inject the same two cards scoped by `is_my_child`.
+- All additions are additive; no reordering or replacement.
 
-**Design consistency**
-- No enforced token layer. Some components risk hardcoded colors (`text-white`, `bg-black`) — needs sweep.
-- Typography scale scattered; `design-system/typography.tsx` exists but underused.
-- Spacing/radius/shadow tokens partially defined; not universally applied.
+### 5. Match Center home polish
+- Change `match-center.index.tsx` redirect target from `/match-center/live` to `/match-center/dashboard` so the polished home is the default.
+- Add a **Recent Highlights** strip to `match-center.dashboard.tsx` (reuses `mc_athlete_timeline` from existing recognition engine).
 
-**Mobile**
-- Native-app feel is inconsistent: some pages have desktop-first tables (dashboard.students, dashboard.fees, platform-admin.tenants.$id) that horizontal-scroll on mobile.
-- Safe-area (`env(safe-area-inset-*)`) only partially wired — bottom navs overlap iOS home indicator on some routes.
-- Sheets vs Dialogs used inconsistently; mobile should prefer bottom sheets.
-- `FloatingWhatsApp` + `MobileCtaBar` compete for bottom real estate on public site (already partially addressed).
+### 6. Match list — URL-driven search & filters
+- Convert `match-center.matches.tsx` filter state to `validateSearch` (zod) with `q`, `status`, `format`, `tournament`, `venue`, `player`, `dateFrom`, `dateTo`.
+- Read via `Route.useSearch()`, mutate via `navigate({ search: prev => ... })`. Fully shareable/back-button-safe URLs.
 
-**Performance**
-- Many routes fetch in `useEffect` + `useState` instead of loader + `useSuspenseQuery`. Causes waterfalls and blank flashes.
-- Some Match Center pages likely re-subscribe to realtime per component before the new `useMatchLive` hook — needs adoption sweep.
-- No route-level `staleTime`/`gcTime` policy; queries refetch aggressively.
-- `types.ts` is large; some client bundles import server-only modules indirectly (needs audit via `bun run build`).
+### 7. Insights primitives (`src/lib/mc-insights.ts`) — NEW thin wrapper
+- Re-exports `computeHighestPartnership`, `computeTopScorer`, `computeTopWicketTaker`, `computeBestBowling`, `computeFastestFifty`, `computeLongestWinStreak` — all delegating to the existing statistics engine. No new math; no AI.
 
-**Auth / roles**
-- Roles live in `profiles.role` + `platform_admins` + `mc_scorers` + `mc_parent_links` — four sources. `has_profile_role` exists but not consistently used in the UI to gate menus.
-- No single `useCurrentRole()` hook — role checks are re-derived in many places.
+### 8. Timeline completeness
+- Verify Career engine writes: `scored_50`, `scored_100`, `four_wickets`, `player_of_match`, `debut`, `tournament_win`.
+- Add ONLY the missing event helpers to `mc-recognition-engine.ts` via non-breaking exports (append-only, called from existing finalization; no engine rewrite).
 
-**Routing**
-- Flat file names (`match-center.foo.bar.tsx`) with no `_authenticated` gate for dashboard/match-center; auth checks happen inside components. Prerender-safe today because loaders don't hit protected server fns, but fragile.
-- Public routes and app routes share the same shell wrapper (`TenantGate`), which forces public-site chrome onto app-like screens in edge cases.
+## Data & security
 
-**Data model observations (no changes proposed yet)**
-- `mc_matches` is 38 columns — some derived fields could live in a view.
-- `mc_public_matches` gates public visibility per-match — good.
-- Grants look present on schema summary; will verify on any new table.
+- No schema changes required.
+- All new hooks respect existing RLS: match reads via `mc_matches` (tenant scoped), student-scoped reads via `is_my_student` / `is_my_child` helpers already installed.
+- No new tables, policies, or grants.
 
----
+## Performance
 
-## 3. Reusable Component Set (design system v2)
+- Single React Query cache; feed hooks share keys with existing list pages so opening any shell warms subsequent pages.
+- One realtime channel per (tenant | match) via ref-counted subscribe.
+- Long match lists get windowed rendering via `@tanstack/react-virtual` in `match-center.matches.tsx` only (already installed? — verify; add if missing).
 
-Build once in `src/components/ds/` (new namespace) and migrate incrementally:
+## Files changed
 
-**Primitives**
-- `AppShell` — header slot, nav slot, safe-area, scroll container
-- `TopBar` (title, back, action) / `BottomNav` (role-aware items)
-- `Screen` — page container with consistent padding + max-width
-- `Section` / `SectionHeader`
+Created:
+- `src/lib/match-feeds.ts`
+- `src/lib/mc-realtime.ts`
+- `src/lib/mc-insights.ts`
+- `src/components/match-center/widgets/*.tsx` (~6 cards)
 
-**Content**
-- `Card`, `StatCard` (KPI), `ListItem`, `PlayerRow`, `MatchRow`, `TeamRow`
-- `Table` (desktop) with automatic `MobileList` fallback
-- `EmptyState`, `ErrorState`, `LoadingState` (skeletons per shape: list/card/detail)
-- `Badge`, `Chip`, `Avatar` (person/team/logo variants)
+Edited:
+- `src/routes/match-center.index.tsx` (redirect target)
+- `src/routes/match-center.dashboard.tsx` (recent highlights)
+- `src/routes/match-center.matches.tsx` (URL search params + virtual list)
+- `src/routes/dashboard.index.tsx` (cricket today section)
+- `src/routes/student.index.tsx` (match cards)
+- `src/routes/parent.index.tsx` (match cards)
+- `src/components/match-center/live-scorecard.tsx`, `mobile-scorer.tsx`, `src/routes/match.$slug.tsx` (swap realtime to shared hook)
 
-**Interaction**
-- `Button` variants, `IconButton`, `SegmentedControl`, `Tabs`
-- `Sheet` (bottom-sheet first on mobile, dialog on desktop)
-- `SearchBar`, `Filter`, `Sort`
-- `Form` primitives (Field, Label, Error, Hint), `NumberStepper`, `PhoneInput`, `Money`
+Not touched: Ball, Statistics, Rules, Career, Finalization, Recognition, Tournament engines; Attendance; Billing; Registration; Design System; Player Operating System; Academy Workspace; frozen route shells.
 
-**Match-specific atoms** (already partially exist — consolidate)
-- `Scorecard`, `LiveStrip`, `OverBar`, `RunButtons`, `ExtrasPad`, `WicketPad`, `PartnershipCard`
+## Deliverables after implementation
 
-All tokens live in `styles.css` `@theme` — no hex in components.
+1. Architecture review (this section, refined)
+2. Database changes → **none**
+3. Files changed
+4. Components created
+5. Components reused
+6. Performance improvements (query dedup, channel dedup, virtualized list)
+7. Security review (RLS unchanged)
+8. UX improvements (shareable filter URLs, cross-shell match presence, one home)
+9. Production readiness score
+10. Top 10 recommendations
+11. Phase 03.1 suggestions (Notifications & Communication reusing widgets)
 
----
-
-## 4. Refactoring Strategy (safe, incremental)
-
-Guardrails:
-- **Never** touch `mc-ball-events*`, `mc-statistics-engine*`, `mc-rules-engine*`, `mc-finalization*`, `mc-*-engine*` internals. Wrap, don't rewrite.
-- **Never** rename existing tables/columns. Add views/RPCs if needed.
-- **Preserve** all public URLs (`/academy/:slug`, `/match/:slug`, `/m/:slug`).
-- Every migration keeps existing RLS + adds GRANTs.
-
-Approach:
-1. Introduce `ds/` primitives alongside old components. Old components keep working.
-2. Migrate routes one surface at a time (Match Center Live → Match Center Dashboard → Dashboard Students → …).
-3. Delete demo-* + old shells only after their consumers migrate.
-4. Adopt `useMatchLive` everywhere match realtime is used; remove ad-hoc `supabase.channel` calls.
-5. Convert `useEffect+fetch` pages to loader + `useSuspenseQuery` using existing `dashboard-queries` / `platform-queries` / `site-queries` patterns.
-6. Split `scorer.$matchId.tsx` into `<ScorerScreen>` + `useScorerController` + pad components — no logic changes.
-
----
-
-## 5. Implementation Roadmap (phased)
-
-**Phase 0 — Foundations (no user-visible change)**
-- Design tokens sweep in `styles.css`
-- `ds/` primitives: AppShell, Screen, TopBar, BottomNav, Card, StatCard, ListItem, EmptyState, LoadingState, Sheet, Button, Tabs, SegmentedControl
-- `useCurrentRole()` + role-aware nav config
-- Safe-area utilities
-
-**Phase 1 — Public site polish**
-- `academy.$slug`, `match.$slug`, `m.$slug`, `star-players`, `index`, `about`, `contact` on new primitives
-- Live match widget uses `useMatchLive`
-- SEO/head metadata sweep per route (og:image at leaves only)
-
-**Phase 2 — Match Center (mobile-first)**
-- Consolidate bottom nav
-- Migrate `match-center.live`, `.dashboard`, `.matches`, `.scorebook.$matchId`
-- Decompose `scorer.$matchId.tsx` (behavior-preserving)
-- Remove `demo-*` files after parity confirmed
-
-**Phase 3 — Dashboard (Owner/Admin)**
-- Students, Batches, Attendance, Fees, Registrations, Leads → mobile-first cards + desktop tables
-- Reports/Insights → StatCard grid
-
-**Phase 4 — Roles & Navigation**
-- Owner / Admin / Student / Parent nav configs
-- Route gating via `_authenticated` layout where safe (respect SSR/prerender rules)
-
-**Phase 5 — Platform Admin**
-- Tenants list/detail, subscriptions, settings on new primitives
-
-**Phase 6 — Cleanup**
-- Delete dead code, old shells, demo files
-- Bundle audit + `bun run build` size check
-- Realtime subscription audit
-
----
-
-## 6. Risks
-
-- **Scorer regressions** — highest risk. Mitigation: no engine changes; snapshot the current scoring flow with a manual test script + preserve `mc-statistics-engine.format.test.ts`; migrate UI in a branch-like sequence.
-- **Realtime cost** — a botched migration could double-subscribe. Mitigation: ban raw `supabase.channel` in match code; route everything through `useMatchLive`.
-- **SSR/prerender breakage** — moving loaders under auth without gating. Mitigation: keep protected data in components via `useServerFn`, not in public loaders.
-- **Design drift** during long migration — mixed old/new components. Mitigation: freeze old components (no new usages) once `ds/` primitive lands.
-- **Tenant routing** — public site and app share `TenantGate`. Mitigation: split into `PublicTenantGate` + `AppTenantGate` in Phase 0.
-
----
-
-## 7. Estimated Files Changed
-
-Rough scope (no engine files):
-
-| Area | Files touched | New files |
-|---|---|---|
-| Design system primitives | — | ~25 in `src/components/ds/` |
-| Tokens / styles | 1 (`src/styles.css`) | — |
-| Public site routes | ~9 | — |
-| Match Center routes | ~23 (light edits, 3–4 deep) | ~6 (scorer split) |
-| Dashboard routes | ~14 | — |
-| Platform admin | ~6 | — |
-| Shells / nav | delete 3, replace with 2 | 2 |
-| Hooks | +2 (`useCurrentRole`, `useSafeArea`) | 2 |
-| Migrations | 0 required for Phase 0–2; possibly 1 for a public leaderboard view later | — |
-
-Total: **~60 files edited, ~35 files added, ~10 files deleted**. Zero engine rewrites.
-
----
-
-## 8. Development Phases — order of execution
-
-1. Phase 0 Foundations
-2. Phase 1 Public site
-3. Phase 2 Match Center + Scorer split
-4. Phase 3 Dashboard
-5. Phase 4 Roles & Nav gating
-6. Phase 5 Platform Admin
-7. Phase 6 Cleanup + perf pass
-
-Each phase ends with: build passes, no realtime leaks, no console errors, screenshots on mobile viewport.
-
----
-
-**Approve this plan and I'll start with Phase 0 (foundations, no visible changes).**
-Reply with any changes to scope, priorities, or phase order before I begin.
+Approve to proceed.
