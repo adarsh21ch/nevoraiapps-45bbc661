@@ -57,7 +57,7 @@ export const Route = createFileRoute("/dashboard/billing")({
       { name: "description", content: "Owner-only billing operations: subscriptions, invoices, and payments." },
     ],
   }),
-  component: BillingPage,
+  component: () => (<OwnerOnly><BillingPage /></OwnerOnly>),
 });
 
 function BillingPage() {
