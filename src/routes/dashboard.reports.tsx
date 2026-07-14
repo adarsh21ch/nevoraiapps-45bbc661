@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, subMonths } from "date-fns";
