@@ -108,34 +108,34 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
             </button>
           ))}
         </div>
-        {showViewToggle && (
-          <div className="flex items-center justify-end">
-            <div className="inline-flex rounded-full border border-border/60 bg-card p-0.5 text-[10px] font-bold uppercase tracking-widest">
-              {(["compact", "rich"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setViewMode(m)}
-                  className={cn(
-                    "rounded-full px-2.5 py-1 transition-colors",
-                    viewMode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Scroll content */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 pt-3 pb-4 animate-fade-in">
         {tab === "summary" && <SummaryPane stats={stats} matchInfo={matchInfo} />}
-        {tab === "batting" && (viewMode === "compact" ? <BattingTable batters={stats.batting.ordered} /> : <BattingPane batters={stats.batting.ordered} />)}
-        {tab === "bowling" && (viewMode === "compact" ? <BowlingTable bowlers={stats.bowling.ordered} /> : <BowlingPane bowlers={stats.bowling.ordered} />)}
+        {tab === "batting" && <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />}
+        {tab === "bowling" && <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />}
         {tab === "overs" && <OversPane overs={stats.team.overs_summary} />}
         {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} />}
       </div>
+
+      <Dialog open={!!openBatter} onOpenChange={(o) => !o && setOpenBatter(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="truncate">{openBatter?.player.name ?? "Batter"}</DialogTitle>
+          </DialogHeader>
+          {openBatter && <BatterCard b={openBatter} />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!openBowler} onOpenChange={(o) => !o && setOpenBowler(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="truncate">{openBowler?.player.name ?? "Bowler"}</DialogTitle>
+          </DialogHeader>
+          {openBowler && <BowlerCard b={openBowler} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
