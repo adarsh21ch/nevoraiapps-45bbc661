@@ -59,6 +59,7 @@ import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
 import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
+import { Route as DashboardAcademyRouteImport } from './routes/dashboard.academy'
 import { Route as AcademySlugRouteImport } from './routes/academy.$slug'
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
 import { Route as MatchCenterTeamsIndexRouteImport } from './routes/match-center.teams.index'
@@ -326,6 +327,11 @@ const DashboardAttendanceRoute = DashboardAttendanceRouteImport.update({
   path: '/attendance',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAcademyRoute = DashboardAcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const AcademySlugRoute = AcademySlugRouteImport.update({
   id: '/academy/$slug',
   path: '/academy/$slug',
@@ -424,6 +430,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/academy/$slug': typeof AcademySlugRoute
+  '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
@@ -488,6 +495,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/academy/$slug': typeof AcademySlugRoute
+  '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
@@ -556,6 +564,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/academy/$slug': typeof AcademySlugRoute
+  '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
@@ -625,6 +634,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/star-players'
     | '/academy/$slug'
+    | '/dashboard/academy'
     | '/dashboard/attendance'
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
@@ -689,6 +699,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/star-players'
     | '/academy/$slug'
+    | '/dashboard/academy'
     | '/dashboard/attendance'
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
@@ -756,6 +767,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/star-players'
     | '/academy/$slug'
+    | '/dashboard/academy'
     | '/dashboard/attendance'
     | '/dashboard/batches'
     | '/dashboard/fee-plans'
@@ -1183,6 +1195,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAttendanceRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/academy': {
+      id: '/dashboard/academy'
+      path: '/academy'
+      fullPath: '/dashboard/academy'
+      preLoaderRoute: typeof DashboardAcademyRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/academy/$slug': {
       id: '/academy/$slug'
       path: '/academy/$slug'
@@ -1303,6 +1322,7 @@ const DashboardStudentsRouteWithChildren =
   DashboardStudentsRoute._addFileChildren(DashboardStudentsRouteChildren)
 
 interface DashboardRouteChildren {
+  DashboardAcademyRoute: typeof DashboardAcademyRoute
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardBatchesRoute: typeof DashboardBatchesRoute
   DashboardFeePlansRoute: typeof DashboardFeePlansRoute
@@ -1320,6 +1340,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAcademyRoute: DashboardAcademyRoute,
   DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardBatchesRoute: DashboardBatchesRoute,
   DashboardFeePlansRoute: DashboardFeePlansRoute,
