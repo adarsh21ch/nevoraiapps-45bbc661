@@ -805,7 +805,10 @@ function PlayerPickerSheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-md gap-0 overflow-hidden rounded-2xl bg-card p-0 sm:max-w-md">
+      <DialogContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="w-[calc(100vw-1.5rem)] max-w-md gap-0 overflow-hidden rounded-2xl bg-card p-0 sm:max-w-md"
+      >
         <DialogHeader className="border-b border-border/70 px-4 pb-3 pt-4 text-left">
           <DialogTitle className="text-base font-black">{title}</DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
