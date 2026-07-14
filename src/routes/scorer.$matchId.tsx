@@ -678,6 +678,7 @@ function ScorerPage() {
           onOpenScorecard={() => setScorecardOpen(true)}
           scorecardContent={
             <LiveScorecard
+              hideHero
               events={session.events}
               innings={session.activeInnings}
               totalOvers={session.match?.overs ?? null}
