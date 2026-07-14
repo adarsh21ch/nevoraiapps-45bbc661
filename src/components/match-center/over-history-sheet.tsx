@@ -1,4 +1,5 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { X } from "lucide-react";
+import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import type { OverHistoryRow } from "@/lib/mc-statistics-engine";
 import { cn } from "@/lib/utils";
 
@@ -29,11 +30,14 @@ export function OverHistorySheet({
   const ordered = [...rows].reverse();
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
+      {/* Hide the default absolutely-positioned close button that SheetContent
+          renders as its FIRST direct child; we render our own inline close in
+          the header so it sits on the same horizontal line as the title. */}
       <SheetContent
         side="bottom"
-        className="h-[80vh] rounded-t-2xl p-0 flex flex-col"
+        className="h-[80vh] rounded-t-2xl p-0 flex flex-col [&>button.absolute]:hidden"
       >
-        <SheetHeader className="shrink-0 border-b border-border/60 px-4 py-3 text-left">
+        <header className="shrink-0 flex items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
           <SheetTitle className="flex items-baseline gap-2 text-[15px] font-black uppercase tracking-wider">
             Over History
             {inningsLabel && (
@@ -42,7 +46,14 @@ export function OverHistorySheet({
               </span>
             )}
           </SheetTitle>
-        </SheetHeader>
+          <SheetClose
+            aria-label="Close over history"
+            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-border/60 bg-background/70 px-3 text-[11px] font-black uppercase tracking-wider text-muted-foreground transition duration-100 hover:text-foreground active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          >
+            <X className="size-3.5" />
+            Close
+          </SheetClose>
+        </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll px-3 py-2">
           {ordered.length === 0 ? (
