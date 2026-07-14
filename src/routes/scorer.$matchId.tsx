@@ -356,7 +356,9 @@ function ScorerPage() {
   // Single formatter for all live over labels — header, over strip, viewers.
   // After the 6th legal ball of over N, we enter a PRE-OVER state and render
   // "Over N+1"; never "N.0". First legal ball of that over rolls to "N+1.1".
-  const currentOverLabel = formatLiveOver(stats.team.legalBalls);
+  const currentOverLabel = formatLiveOver(stats.team.legalBalls, {
+    preOver: session.matchState.innings.awaitingNewBowler,
+  });
 
 
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
