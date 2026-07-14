@@ -82,6 +82,7 @@ import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
 import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
 import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
+import { Route as DashboardCommunicationsRouteImport } from './routes/dashboard.communications'
 import { Route as DashboardBrandingRouteImport } from './routes/dashboard.branding'
 import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
@@ -103,6 +104,7 @@ import { Route as MatchCenterPerformanceAthleteIdRouteImport } from './routes/ma
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
+import { Route as ApiPublicHooksDispatchCampaignsRouteImport } from './routes/api/public/hooks/dispatch-campaigns'
 
 const TestimonialsRoute = TestimonialsRouteImport.update({
   id: '/testimonials',
@@ -470,6 +472,11 @@ const DashboardFeePlansRoute = DashboardFeePlansRouteImport.update({
   path: '/fee-plans',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardCommunicationsRoute = DashboardCommunicationsRouteImport.update({
+  id: '/communications',
+  path: '/communications',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardBrandingRoute = DashboardBrandingRouteImport.update({
   id: '/branding',
   path: '/branding',
@@ -583,6 +590,12 @@ const ApiPublicHooksFeeRemindersRoute =
     path: '/api/public/hooks/fee-reminders',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksDispatchCampaignsRoute =
+  ApiPublicHooksDispatchCampaignsRouteImport.update({
+    id: '/api/public/hooks/dispatch-campaigns',
+    path: '/api/public/hooks/dispatch-campaigns',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -618,6 +631,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
+  '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
@@ -677,6 +691,7 @@ export interface FileRoutesByFullPath {
   '/match-center/players/': typeof MatchCenterPlayersIndexRoute
   '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
+  '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
 }
@@ -709,6 +724,7 @@ export interface FileRoutesByTo {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
+  '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
@@ -768,6 +784,7 @@ export interface FileRoutesByTo {
   '/match-center/players': typeof MatchCenterPlayersIndexRoute
   '/match-center/teams': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants': typeof PlatformAdminTenantsIndexRoute
+  '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
 }
@@ -806,6 +823,7 @@ export interface FileRoutesById {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
+  '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
@@ -865,6 +883,7 @@ export interface FileRoutesById {
   '/match-center/players/': typeof MatchCenterPlayersIndexRoute
   '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
+  '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
 }
@@ -904,6 +923,7 @@ export interface FileRouteTypes {
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
+    | '/dashboard/communications'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/insights'
@@ -963,6 +983,7 @@ export interface FileRouteTypes {
     | '/match-center/players/'
     | '/match-center/teams/'
     | '/platform-admin/tenants/'
+    | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
   fileRoutesByTo: FileRoutesByTo
@@ -995,6 +1016,7 @@ export interface FileRouteTypes {
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
+    | '/dashboard/communications'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/insights'
@@ -1054,6 +1076,7 @@ export interface FileRouteTypes {
     | '/match-center/players'
     | '/match-center/teams'
     | '/platform-admin/tenants'
+    | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
   id:
@@ -1091,6 +1114,7 @@ export interface FileRouteTypes {
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
+    | '/dashboard/communications'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/insights'
@@ -1150,6 +1174,7 @@ export interface FileRouteTypes {
     | '/match-center/players/'
     | '/match-center/teams/'
     | '/platform-admin/tenants/'
+    | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
   fileRoutesById: FileRoutesById
@@ -1186,6 +1211,7 @@ export interface RootRouteChildren {
   MatchSlugRoute: typeof MatchSlugRoute
   PoliciesKindRoute: typeof PoliciesKindRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
+  ApiPublicHooksDispatchCampaignsRoute: typeof ApiPublicHooksDispatchCampaignsRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
 }
@@ -1703,6 +1729,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFeePlansRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/communications': {
+      id: '/dashboard/communications'
+      path: '/communications'
+      fullPath: '/dashboard/communications'
+      preLoaderRoute: typeof DashboardCommunicationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/branding': {
       id: '/dashboard/branding'
       path: '/branding'
@@ -1850,6 +1883,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksFeeRemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/dispatch-campaigns': {
+      id: '/api/public/hooks/dispatch-campaigns'
+      path: '/api/public/hooks/dispatch-campaigns'
+      fullPath: '/api/public/hooks/dispatch-campaigns'
+      preLoaderRoute: typeof ApiPublicHooksDispatchCampaignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1871,6 +1911,7 @@ interface DashboardRouteChildren {
   DashboardBatchesRoute: typeof DashboardBatchesRoute
   DashboardBillingRoute: typeof DashboardBillingRoute
   DashboardBrandingRoute: typeof DashboardBrandingRoute
+  DashboardCommunicationsRoute: typeof DashboardCommunicationsRoute
   DashboardFeePlansRoute: typeof DashboardFeePlansRoute
   DashboardFeesRoute: typeof DashboardFeesRoute
   DashboardInsightsRoute: typeof DashboardInsightsRoute
@@ -1894,6 +1935,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBatchesRoute: DashboardBatchesRoute,
   DashboardBillingRoute: DashboardBillingRoute,
   DashboardBrandingRoute: DashboardBrandingRoute,
+  DashboardCommunicationsRoute: DashboardCommunicationsRoute,
   DashboardFeePlansRoute: DashboardFeePlansRoute,
   DashboardFeesRoute: DashboardFeesRoute,
   DashboardInsightsRoute: DashboardInsightsRoute,
@@ -2089,6 +2131,7 @@ const rootRouteChildren: RootRouteChildren = {
   MatchSlugRoute: MatchSlugRoute,
   PoliciesKindRoute: PoliciesKindRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
+  ApiPublicHooksDispatchCampaignsRoute: ApiPublicHooksDispatchCampaignsRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
 }

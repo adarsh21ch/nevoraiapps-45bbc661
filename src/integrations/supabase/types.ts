@@ -1060,6 +1060,201 @@ export type Database = {
           },
         ]
       }
+      comm_campaign_recipients: {
+        Row: {
+          campaign_id: string
+          id: string
+          notification_id: string | null
+          recipient_user_id: string
+          resolved_at: string
+          tenant_id: string
+        }
+        Insert: {
+          campaign_id: string
+          id?: string
+          notification_id?: string | null
+          recipient_user_id: string
+          resolved_at?: string
+          tenant_id: string
+        }
+        Update: {
+          campaign_id?: string
+          id?: string
+          notification_id?: string | null
+          recipient_user_id?: string
+          resolved_at?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comm_campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "comm_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comm_campaigns: {
+        Row: {
+          audience: Json
+          body: string | null
+          category: Database["public"]["Enums"]["notification_category"]
+          channels: Database["public"]["Enums"]["notification_channel"][]
+          created_at: string
+          created_by: string | null
+          deep_link: string | null
+          delivered_count: number
+          failed_count: number
+          id: string
+          is_recurring: boolean
+          last_error: string | null
+          message_type: string
+          name: string
+          priority: Database["public"]["Enums"]["notification_priority"]
+          recipient_count: number
+          recurrence_rule: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: string
+          template_id: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: Json
+          body?: string | null
+          category?: Database["public"]["Enums"]["notification_category"]
+          channels?: Database["public"]["Enums"]["notification_channel"][]
+          created_at?: string
+          created_by?: string | null
+          deep_link?: string | null
+          delivered_count?: number
+          failed_count?: number
+          id?: string
+          is_recurring?: boolean
+          last_error?: string | null
+          message_type?: string
+          name: string
+          priority?: Database["public"]["Enums"]["notification_priority"]
+          recipient_count?: number
+          recurrence_rule?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          template_id?: string | null
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: Json
+          body?: string | null
+          category?: Database["public"]["Enums"]["notification_category"]
+          channels?: Database["public"]["Enums"]["notification_channel"][]
+          created_at?: string
+          created_by?: string | null
+          deep_link?: string | null
+          delivered_count?: number
+          failed_count?: number
+          id?: string
+          is_recurring?: boolean
+          last_error?: string | null
+          message_type?: string
+          name?: string
+          priority?: Database["public"]["Enums"]["notification_priority"]
+          recipient_count?: number
+          recurrence_rule?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: string
+          template_id?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comm_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "comm_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comm_campaigns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comm_campaigns_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comm_templates: {
+        Row: {
+          body_template: string | null
+          category: Database["public"]["Enums"]["notification_category"]
+          created_at: string
+          created_by: string | null
+          default_channels: Database["public"]["Enums"]["notification_channel"][]
+          id: string
+          name: string
+          tenant_id: string
+          title_template: string
+          updated_at: string
+          variables_used: Json
+        }
+        Insert: {
+          body_template?: string | null
+          category?: Database["public"]["Enums"]["notification_category"]
+          created_at?: string
+          created_by?: string | null
+          default_channels?: Database["public"]["Enums"]["notification_channel"][]
+          id?: string
+          name: string
+          tenant_id: string
+          title_template: string
+          updated_at?: string
+          variables_used?: Json
+        }
+        Update: {
+          body_template?: string | null
+          category?: Database["public"]["Enums"]["notification_category"]
+          created_at?: string
+          created_by?: string | null
+          default_channels?: Database["public"]["Enums"]["notification_channel"][]
+          id?: string
+          name?: string
+          tenant_id?: string
+          title_template?: string
+          updated_at?: string
+          variables_used?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comm_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comm_templates_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fee_plans: {
         Row: {
           active: boolean
@@ -3709,6 +3904,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           body: string | null
+          campaign_id: string | null
           category: Database["public"]["Enums"]["notification_category"]
           created_at: string
           created_by: string | null
@@ -3728,6 +3924,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           body?: string | null
+          campaign_id?: string | null
           category: Database["public"]["Enums"]["notification_category"]
           created_at?: string
           created_by?: string | null
@@ -3747,6 +3944,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           body?: string | null
+          campaign_id?: string | null
           category?: Database["public"]["Enums"]["notification_category"]
           created_at?: string
           created_by?: string | null
@@ -4765,6 +4963,7 @@ export type Database = {
         Args: { _payment_ref: string; _registration_id: string }
         Returns: undefined
       }
+      cancel_campaign: { Args: { _campaign_id: string }; Returns: undefined }
       claim_registration_payment: {
         Args: { p_payment_ref: string; p_registration_id: string }
         Returns: boolean
@@ -4855,23 +5054,42 @@ export type Database = {
       }
       mark_all_notifications_read: { Args: never; Returns: number }
       mark_notification_read: { Args: { _id: string }; Returns: undefined }
-      publish_notification: {
-        Args: {
-          _body?: string
-          _category: Database["public"]["Enums"]["notification_category"]
-          _channels?: Database["public"]["Enums"]["notification_channel"][]
-          _dedupe_key?: string
-          _deep_link?: string
-          _expires_at?: string
-          _payload?: Json
-          _priority?: Database["public"]["Enums"]["notification_priority"]
-          _recipient_user_id: string
-          _tenant_id?: string
-          _title: string
-          _type: string
-        }
-        Returns: string
-      }
+      publish_notification:
+        | {
+            Args: {
+              _body?: string
+              _category: Database["public"]["Enums"]["notification_category"]
+              _channels?: Database["public"]["Enums"]["notification_channel"][]
+              _dedupe_key?: string
+              _deep_link?: string
+              _expires_at?: string
+              _payload?: Json
+              _priority?: Database["public"]["Enums"]["notification_priority"]
+              _recipient_user_id: string
+              _tenant_id?: string
+              _title: string
+              _type: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _body?: string
+              _campaign_id?: string
+              _category: Database["public"]["Enums"]["notification_category"]
+              _channels?: Database["public"]["Enums"]["notification_channel"][]
+              _dedupe_key?: string
+              _deep_link?: string
+              _expires_at?: string
+              _payload?: Json
+              _priority?: Database["public"]["Enums"]["notification_priority"]
+              _recipient_user_id: string
+              _tenant_id?: string
+              _title: string
+              _type: string
+            }
+            Returns: string
+          }
       record_billing_payment: {
         Args: {
           _allocations: Json
@@ -4889,6 +5107,15 @@ export type Database = {
         }
         Returns: string
       }
+      render_template_preview: {
+        Args: { _body: string; _title: string; _vars: Json }
+        Returns: Json
+      }
+      schedule_campaign: {
+        Args: { _campaign_id: string; _when: string }
+        Returns: undefined
+      }
+      send_campaign: { Args: { _campaign_id: string }; Returns: Json }
       slugify: { Args: { _input: string }; Returns: string }
       submit_lead: {
         Args: {
