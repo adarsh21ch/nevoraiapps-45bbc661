@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { formatLiveOver, formatOversCompact } from "./mc-statistics-engine";
+import type { MCBallEvent } from "./mc-ball-events";
+import {
+  completedLegalBallsFromEvents,
+  formatLiveOver,
+  formatOversCompact,
+} from "./mc-statistics-engine";
 
 /* ================================================================
  * formatLiveOver — the SINGLE source of truth for the "current over"
@@ -107,5 +112,38 @@ describe("formatOversCompact — stat-table figures", () => {
     expect(formatOversCompact(5)).toBe("0.5");
     expect(formatOversCompact(25)).toBe("4.1");
     expect(formatOversCompact(91)).toBe("15.1");
+  });
+});
+
+describe("completedLegalBallsFromEvents — live label input", () => {
+  const event = (
+    overNumber: number,
+    ballNumber: number,
+    extraType: MCBallEvent["extra_type"] = null,
+  ) =>
+    ({
+      id: `${overNumber}.${ballNumber}.${extraType ?? "legal"}`,
+      sequence_number: overNumber * 10 + ballNumber,
+      over_number: overNumber,
+      ball_number: ballNumber,
+      extra_type: extraType,
+    }) as MCBallEvent;
+
+  it("uses the last recorded legal ball position, not the next ball", () => {
+    expect(formatLiveOver(completedLegalBallsFromEvents([event(16, 6)]))).toBe("17.6");
+    expect(formatLiveOver(completedLegalBallsFromEvents([event(17, 1)]))).toBe("18.1");
+    expect(formatLiveOver(completedLegalBallsFromEvents([event(17, 2)]))).toBe("18.2");
+  });
+
+  it("does not advance the display for wides or no-balls", () => {
+    const events = [event(16, 6), event(17, 1, "wide"), event(17, 1, "no_ball")];
+    expect(completedLegalBallsFromEvents(events)).toBe(102);
+    expect(formatLiveOver(completedLegalBallsFromEvents(events))).toBe("17.6");
+  });
+
+  it("moves to the first ball of the next over only after that legal event exists", () => {
+    const events = [event(16, 6), event(17, 1, "wide"), event(17, 1)];
+    expect(completedLegalBallsFromEvents(events)).toBe(103);
+    expect(formatLiveOver(completedLegalBallsFromEvents(events))).toBe("18.1");
   });
 });
