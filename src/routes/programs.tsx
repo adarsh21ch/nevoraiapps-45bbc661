@@ -67,10 +67,10 @@ function ProgramsPage() {
                     <Users className="size-3.5" /> Batch
                   </div>
                   <h3 className="mt-1 text-lg font-semibold">{b.name}</h3>
-                  {b.schedule && (
+                  {b.timing && (
                     <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
                       <Clock className="mt-0.5 size-4 flex-shrink-0" />
-                      <span>{b.schedule}</span>
+                      <span>{b.timing}</span>
                     </div>
                   )}
                 </div>
