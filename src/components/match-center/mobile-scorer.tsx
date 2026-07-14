@@ -327,6 +327,8 @@ export function MobileScorer(props: MobileScorerProps) {
             onPickNonStriker={() => openPicker("nonStriker")}
           />
 
+          <ThisOverStrip balls={props.overBalls} />
+
           <BowlerLine bowler={props.bowler} onClick={() => openPicker("bowler")} />
 
           {effectiveAwaitingNewBatter && (
@@ -342,7 +344,6 @@ export function MobileScorer(props: MobileScorerProps) {
             </button>
           )}
 
-          <ThisOverStrip balls={props.overBalls} />
 
           <LiveInsights
             className="min-h-[112px]"
