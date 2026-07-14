@@ -66,6 +66,45 @@ export const attendanceStateTone: Record<AttendanceState, AttendanceTone> = {
 };
 
 // ---------------------------------------------------------------------------
+// Visit type — OPTIONAL classification of a single visit. Stored as free-form
+// text in `attendance_marks.visit_type` so new types can be added without a
+// schema change. This list is the UI default palette; any string is valid.
+// ---------------------------------------------------------------------------
+export const ATTENDANCE_VISIT_TYPES = [
+  "practice",
+  "match",
+  "fitness",
+  "trial",
+  "personal_coaching",
+  "camp",
+  "tournament",
+  "other",
+] as const;
+export type AttendanceVisitType = (typeof ATTENDANCE_VISIT_TYPES)[number];
+
+export const attendanceVisitTypeLabels: Record<AttendanceVisitType, string> = {
+  practice: "Practice",
+  match: "Match",
+  fitness: "Fitness",
+  trial: "Trial",
+  personal_coaching: "Personal Coaching",
+  camp: "Camp",
+  tournament: "Tournament",
+  other: "Other",
+};
+
+export const attendanceVisitTypeIcons: Record<AttendanceVisitType, string> = {
+  practice: "🏏",
+  match: "🏆",
+  fitness: "💪",
+  trial: "🎯",
+  personal_coaching: "👤",
+  camp: "🏕️",
+  tournament: "🏅",
+  other: "•",
+};
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
