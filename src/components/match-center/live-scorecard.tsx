@@ -9,6 +9,7 @@ import {
   type FallOfWicket,
 } from "@/lib/mc-statistics-engine";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Props {
   events: MCBallEvent[];
@@ -38,13 +39,12 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero }: Props) {
   const [tab, setTab] = useState<TabKey>("summary");
-  const [viewMode, setViewMode] = useState<"compact" | "rich">("compact");
+  const [openBatter, setOpenBatter] = useState<BattingStat | null>(null);
+  const [openBowler, setOpenBowler] = useState<BowlingStat | null>(null);
   const stats = calculateInningsStatistics(events, {
     totalOvers: totalOvers ?? null,
     target: innings?.target ?? null,
   });
-
-  const showViewToggle = tab === "batting" || tab === "bowling";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -108,41 +108,41 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
             </button>
           ))}
         </div>
-        {showViewToggle && (
-          <div className="flex items-center justify-end">
-            <div className="inline-flex rounded-full border border-border/60 bg-card p-0.5 text-[10px] font-bold uppercase tracking-widest">
-              {(["compact", "rich"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setViewMode(m)}
-                  className={cn(
-                    "rounded-full px-2.5 py-1 transition-colors",
-                    viewMode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Scroll content */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 pt-3 pb-4 animate-fade-in">
         {tab === "summary" && <SummaryPane stats={stats} matchInfo={matchInfo} />}
-        {tab === "batting" && (viewMode === "compact" ? <BattingTable batters={stats.batting.ordered} /> : <BattingPane batters={stats.batting.ordered} />)}
-        {tab === "bowling" && (viewMode === "compact" ? <BowlingTable bowlers={stats.bowling.ordered} /> : <BowlingPane bowlers={stats.bowling.ordered} />)}
+        {tab === "batting" && <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />}
+        {tab === "bowling" && <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />}
         {tab === "overs" && <OversPane overs={stats.team.overs_summary} />}
         {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} />}
       </div>
+
+      <Dialog open={!!openBatter} onOpenChange={(o) => !o && setOpenBatter(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="truncate">{openBatter?.player.name ?? "Batter"}</DialogTitle>
+          </DialogHeader>
+          {openBatter && <BatterCard b={openBatter} />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!openBowler} onOpenChange={(o) => !o && setOpenBowler(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="truncate">{openBowler?.player.name ?? "Bowler"}</DialogTitle>
+          </DialogHeader>
+          {openBowler && <BowlerCard b={openBowler} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
 /* ----------------------------- Compact tables ---------------------------- */
 
-function BattingTable({ batters }: { batters: BattingStat[] }) {
+function BattingTable({ batters, onSelect }: { batters: BattingStat[]; onSelect?: (b: BattingStat) => void }) {
   if (batters.length === 0) return <EmptyState text="No balls yet." />;
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
@@ -163,7 +163,11 @@ function BattingTable({ batters }: { batters: BattingStat[] }) {
               ? "not out"
               : `${b.dismissalType ?? "out"}${b.dismissedBy?.name ? ` b ${b.dismissedBy.name}` : ""}`;
             return (
-              <tr key={b.player.key} className="align-top">
+              <tr
+                key={b.player.key}
+                onClick={() => onSelect?.(b)}
+                className={cn("align-top", onSelect && "cursor-pointer transition-colors hover:bg-muted/40 active:bg-muted/60")}
+              >
                 <td className="min-w-0 px-2.5 py-2 text-left">
                   <div className="flex min-w-0 items-center gap-1.5">
                     <span className="truncate font-semibold">{b.player.name ?? "—"}</span>
@@ -189,7 +193,7 @@ function BattingTable({ batters }: { batters: BattingStat[] }) {
   );
 }
 
-function BowlingTable({ bowlers }: { bowlers: BowlingStat[] }) {
+function BowlingTable({ bowlers, onSelect }: { bowlers: BowlingStat[]; onSelect?: (b: BowlingStat) => void }) {
   if (bowlers.length === 0) return <EmptyState text="No balls yet." />;
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
@@ -206,7 +210,11 @@ function BowlingTable({ bowlers }: { bowlers: BowlingStat[] }) {
         </thead>
         <tbody className="divide-y divide-border/60">
           {bowlers.map((b) => (
-            <tr key={b.player.key}>
+            <tr
+              key={b.player.key}
+              onClick={() => onSelect?.(b)}
+              className={cn(onSelect && "cursor-pointer transition-colors hover:bg-muted/40 active:bg-muted/60")}
+            >
               <td className="min-w-0 px-2.5 py-2 text-left">
                 <div className="truncate font-semibold">{b.player.name ?? "—"}</div>
                 <div className="truncate text-[10px] text-muted-foreground">
