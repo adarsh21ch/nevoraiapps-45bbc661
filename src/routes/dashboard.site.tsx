@@ -14,6 +14,7 @@ import { Upload, ExternalLink } from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { tenantSiteUrl } from "@/lib/tenant";
 import { SiteContentTabs } from "@/components/dashboard/SiteContentTabs";
+import { PoliciesEditor } from "@/components/dashboard/PoliciesEditor";
 
 
 export const Route = createFileRoute("/dashboard/site")({
@@ -43,10 +44,14 @@ function SiteEditor() {
       <Tabs defaultValue="site">
         <TabsList className="w-full flex-wrap h-auto">
           <TabsTrigger value="site">Site content</TabsTrigger>
+          <TabsTrigger value="policies">Policies</TabsTrigger>
           <TabsTrigger value="contact">Contact & UPI</TabsTrigger>
         </TabsList>
         <TabsContent value="site" className="pt-4">
           <SiteContentTabs tenantId={tenant.id} />
+        </TabsContent>
+        <TabsContent value="policies" className="pt-4">
+          <PoliciesEditor tenantId={tenant.id} />
         </TabsContent>
         <TabsContent value="contact" className="pt-4">
           <ContactEditor />

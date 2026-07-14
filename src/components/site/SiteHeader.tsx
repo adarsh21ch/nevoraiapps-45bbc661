@@ -8,8 +8,13 @@ import { StoragedImage } from "./StoragedImage";
 const nav = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
-  { to: "/star-players", label: "Star Players" },
+  { to: "/programs", label: "Programs" },
+  { to: "/coaches", label: "Coaches" },
+  { to: "/achievements", label: "Achievements" },
+  { to: "/matches", label: "Matches" },
+  { to: "/gallery", label: "Gallery" },
   { to: "/fees", label: "Fees" },
+  { to: "/admissions", label: "Admissions" },
   { to: "/contact", label: "Contact" },
 ] as const;
 

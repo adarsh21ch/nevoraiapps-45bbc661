@@ -3739,6 +3739,63 @@ export type Database = {
         }
         Relationships: []
       }
+      policy_documents: {
+        Row: {
+          body_md: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean
+          kind: Database["public"]["Enums"]["policy_kind"]
+          published_at: string | null
+          tenant_id: string
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          body_md?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          kind: Database["public"]["Enums"]["policy_kind"]
+          published_at?: string | null
+          tenant_id: string
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          body_md?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          kind?: Database["public"]["Enums"]["policy_kind"]
+          published_at?: string | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "policy_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "policy_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -3794,6 +3851,7 @@ export type Database = {
           payment_status: string
           phone: string
           photo_url: string | null
+          policy_acceptances: Json
           status: string
           tenant_id: string
           whatsapp: string | null
@@ -3813,6 +3871,7 @@ export type Database = {
           payment_status?: string
           phone: string
           photo_url?: string | null
+          policy_acceptances?: Json
           status?: string
           tenant_id: string
           whatsapp?: string | null
@@ -3832,6 +3891,7 @@ export type Database = {
           payment_status?: string
           phone?: string
           photo_url?: string | null
+          policy_acceptances?: Json
           status?: string
           tenant_id?: string
           whatsapp?: string | null
@@ -4759,6 +4819,14 @@ export type Database = {
         | "failed"
         | "skipped"
       notification_priority: "low" | "normal" | "high" | "urgent"
+      policy_kind:
+        | "terms"
+        | "privacy"
+        | "refund"
+        | "fee"
+        | "conduct"
+        | "leave"
+        | "medical"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4915,6 +4983,15 @@ export const Constants = {
         "skipped",
       ],
       notification_priority: ["low", "normal", "high", "urgent"],
+      policy_kind: [
+        "terms",
+        "privacy",
+        "refund",
+        "fee",
+        "conduct",
+        "leave",
+        "medical",
+      ],
     },
   },
 } as const
