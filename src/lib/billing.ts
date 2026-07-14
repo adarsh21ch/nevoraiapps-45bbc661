@@ -396,12 +396,12 @@ export async function recordPayment(input: {
     _amount: input.amount,
     _method: input.method,
     _allocations: input.allocations,
-    _reference_number: input.reference_number ?? null,
-    _gateway: input.gateway ?? null,
-    _gateway_reference: input.gateway_reference ?? null,
-    _idempotency_key: input.idempotency_key ?? null,
+    _reference_number: input.reference_number ?? undefined,
+    _gateway: input.gateway ?? undefined,
+    _gateway_reference: input.gateway_reference ?? undefined,
+    _idempotency_key: input.idempotency_key ?? undefined,
     _collected_at: input.collected_at ?? new Date().toISOString(),
-    _remarks: input.remarks ?? null,
+    _remarks: input.remarks ?? undefined,
     _status: "succeeded",
   });
   if (error) throw error;
