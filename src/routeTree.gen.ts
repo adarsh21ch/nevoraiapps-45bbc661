@@ -46,6 +46,7 @@ import { Route as MatchCenterCreateRouteImport } from './routes/match-center.cre
 import { Route as MatchCenterAwardsRouteImport } from './routes/match-center.awards'
 import { Route as MatchCenterAiInsightsRouteImport } from './routes/match-center.ai-insights'
 import { Route as MSlugRouteImport } from './routes/m.$slug'
+import { Route as DashboardSubscriptionRouteImport } from './routes/dashboard.subscription'
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
 import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
@@ -53,12 +54,15 @@ import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports
 import { Route as DashboardRemindersRouteImport } from './routes/dashboard.reminders'
 import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
+import { Route as DashboardNotificationsRouteImport } from './routes/dashboard.notifications'
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
 import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
 import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
+import { Route as DashboardBrandingRouteImport } from './routes/dashboard.branding'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
+import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
 import { Route as DashboardAcademyRouteImport } from './routes/dashboard.academy'
 import { Route as AcademySlugRouteImport } from './routes/academy.$slug'
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
@@ -262,6 +266,11 @@ const MSlugRoute = MSlugRouteImport.update({
   path: '/m/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardSubscriptionRoute = DashboardSubscriptionRouteImport.update({
+  id: '/subscription',
+  path: '/subscription',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
   id: '/students',
   path: '/students',
@@ -297,6 +306,11 @@ const DashboardProfileRoute = DashboardProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardNotificationsRoute = DashboardNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardLeadsRoute = DashboardLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -317,6 +331,11 @@ const DashboardFeePlansRoute = DashboardFeePlansRouteImport.update({
   path: '/fee-plans',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardBrandingRoute = DashboardBrandingRouteImport.update({
+  id: '/branding',
+  path: '/branding',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardBatchesRoute = DashboardBatchesRouteImport.update({
   id: '/batches',
   path: '/batches',
@@ -325,6 +344,11 @@ const DashboardBatchesRoute = DashboardBatchesRouteImport.update({
 const DashboardAttendanceRoute = DashboardAttendanceRouteImport.update({
   id: '/attendance',
   path: '/attendance',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAdminsRoute = DashboardAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAcademyRoute = DashboardAcademyRouteImport.update({
@@ -431,12 +455,15 @@ export interface FileRoutesByFullPath {
   '/star-players': typeof StarPlayersRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
+  '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
+  '/dashboard/branding': typeof DashboardBrandingRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
@@ -444,6 +471,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/dashboard/subscription': typeof DashboardSubscriptionRoute
   '/m/$slug': typeof MSlugRoute
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
@@ -496,12 +524,15 @@ export interface FileRoutesByTo {
   '/star-players': typeof StarPlayersRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
+  '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
+  '/dashboard/branding': typeof DashboardBrandingRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
@@ -509,6 +540,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/dashboard/subscription': typeof DashboardSubscriptionRoute
   '/m/$slug': typeof MSlugRoute
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
@@ -565,12 +597,15 @@ export interface FileRoutesById {
   '/star-players': typeof StarPlayersRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
+  '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
+  '/dashboard/branding': typeof DashboardBrandingRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
@@ -578,6 +613,7 @@ export interface FileRoutesById {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
+  '/dashboard/subscription': typeof DashboardSubscriptionRoute
   '/m/$slug': typeof MSlugRoute
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
@@ -635,12 +671,15 @@ export interface FileRouteTypes {
     | '/star-players'
     | '/academy/$slug'
     | '/dashboard/academy'
+    | '/dashboard/admins'
     | '/dashboard/attendance'
     | '/dashboard/batches'
+    | '/dashboard/branding'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/insights'
     | '/dashboard/leads'
+    | '/dashboard/notifications'
     | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
@@ -648,6 +687,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/dashboard/subscription'
     | '/m/$slug'
     | '/match-center/ai-insights'
     | '/match-center/awards'
@@ -700,12 +740,15 @@ export interface FileRouteTypes {
     | '/star-players'
     | '/academy/$slug'
     | '/dashboard/academy'
+    | '/dashboard/admins'
     | '/dashboard/attendance'
     | '/dashboard/batches'
+    | '/dashboard/branding'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/insights'
     | '/dashboard/leads'
+    | '/dashboard/notifications'
     | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
@@ -713,6 +756,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/dashboard/subscription'
     | '/m/$slug'
     | '/match-center/ai-insights'
     | '/match-center/awards'
@@ -768,12 +812,15 @@ export interface FileRouteTypes {
     | '/star-players'
     | '/academy/$slug'
     | '/dashboard/academy'
+    | '/dashboard/admins'
     | '/dashboard/attendance'
     | '/dashboard/batches'
+    | '/dashboard/branding'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
     | '/dashboard/insights'
     | '/dashboard/leads'
+    | '/dashboard/notifications'
     | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
@@ -781,6 +828,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/site'
     | '/dashboard/students'
+    | '/dashboard/subscription'
     | '/m/$slug'
     | '/match-center/ai-insights'
     | '/match-center/awards'
@@ -1104,6 +1152,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/subscription': {
+      id: '/dashboard/subscription'
+      path: '/subscription'
+      fullPath: '/dashboard/subscription'
+      preLoaderRoute: typeof DashboardSubscriptionRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/students': {
       id: '/dashboard/students'
       path: '/students'
@@ -1153,6 +1208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardProfileRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/notifications': {
+      id: '/dashboard/notifications'
+      path: '/notifications'
+      fullPath: '/dashboard/notifications'
+      preLoaderRoute: typeof DashboardNotificationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/leads': {
       id: '/dashboard/leads'
       path: '/leads'
@@ -1181,6 +1243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFeePlansRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/branding': {
+      id: '/dashboard/branding'
+      path: '/branding'
+      fullPath: '/dashboard/branding'
+      preLoaderRoute: typeof DashboardBrandingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/batches': {
       id: '/dashboard/batches'
       path: '/batches'
@@ -1193,6 +1262,13 @@ declare module '@tanstack/react-router' {
       path: '/attendance'
       fullPath: '/dashboard/attendance'
       preLoaderRoute: typeof DashboardAttendanceRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/admins': {
+      id: '/dashboard/admins'
+      path: '/admins'
+      fullPath: '/dashboard/admins'
+      preLoaderRoute: typeof DashboardAdminsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/academy': {
@@ -1323,12 +1399,15 @@ const DashboardStudentsRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardAcademyRoute: typeof DashboardAcademyRoute
+  DashboardAdminsRoute: typeof DashboardAdminsRoute
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardBatchesRoute: typeof DashboardBatchesRoute
+  DashboardBrandingRoute: typeof DashboardBrandingRoute
   DashboardFeePlansRoute: typeof DashboardFeePlansRoute
   DashboardFeesRoute: typeof DashboardFeesRoute
   DashboardInsightsRoute: typeof DashboardInsightsRoute
   DashboardLeadsRoute: typeof DashboardLeadsRoute
+  DashboardNotificationsRoute: typeof DashboardNotificationsRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardRegistrationsRoute: typeof DashboardRegistrationsRoute
   DashboardRemindersRoute: typeof DashboardRemindersRoute
@@ -1336,17 +1415,21 @@ interface DashboardRouteChildren {
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSiteRoute: typeof DashboardSiteRoute
   DashboardStudentsRoute: typeof DashboardStudentsRouteWithChildren
+  DashboardSubscriptionRoute: typeof DashboardSubscriptionRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAcademyRoute: DashboardAcademyRoute,
+  DashboardAdminsRoute: DashboardAdminsRoute,
   DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardBatchesRoute: DashboardBatchesRoute,
+  DashboardBrandingRoute: DashboardBrandingRoute,
   DashboardFeePlansRoute: DashboardFeePlansRoute,
   DashboardFeesRoute: DashboardFeesRoute,
   DashboardInsightsRoute: DashboardInsightsRoute,
   DashboardLeadsRoute: DashboardLeadsRoute,
+  DashboardNotificationsRoute: DashboardNotificationsRoute,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardRegistrationsRoute: DashboardRegistrationsRoute,
   DashboardRemindersRoute: DashboardRemindersRoute,
@@ -1354,6 +1437,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSiteRoute: DashboardSiteRoute,
   DashboardStudentsRoute: DashboardStudentsRouteWithChildren,
+  DashboardSubscriptionRoute: DashboardSubscriptionRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
