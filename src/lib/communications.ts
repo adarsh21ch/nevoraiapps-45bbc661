@@ -112,7 +112,8 @@ const rpc = supabase.rpc as unknown as (
   args?: Record<string, unknown>,
 ) => Promise<{ data: unknown; error: unknown }>;
 
-const from = supabase.from as unknown as (table: string) => ReturnType<typeof supabase.from>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const from = (t: string) => (supabase.from as any)(t);
 
 export const commKeys = {
   campaigns: (tenantId: string) => ["comm", "campaigns", tenantId] as const,
