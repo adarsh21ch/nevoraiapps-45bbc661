@@ -172,13 +172,15 @@ function AttendancePage() {
             </Section>
           ) : null}
 
-          {/* KPI strip — live sports-academy counts. Absent is derived at EOD. */}
+          {/* KPI strip — supports multiple visits/day. All values derived. */}
           <Section>
             <div className="grid grid-cols-2 gap-2">
               <StatCard label="In Academy Now" value={kpis.inAcademy} tone="success" />
-              <StatCard label="Checked Out" value={kpis.checkedOut} tone="default" />
-              <StatCard label="Not Marked" value={kpis.notMarked} tone="default" />
-              <StatCard label="Total" value={kpis.total} tone="default" />
+              <StatCard label="Present Today" value={kpis.present} tone="default" />
+              <StatCard label="Checked Out" value={kpis.checkedOutToday} tone="default" />
+              <StatCard label="Not Yet Arrived" value={kpis.notArrived} tone="default" />
+              <StatCard label="Check-ins" value={kpis.visitsCheckIn} tone="default" />
+              <StatCard label="Check-outs" value={kpis.visitsCheckOut} tone="default" />
             </div>
           </Section>
 
