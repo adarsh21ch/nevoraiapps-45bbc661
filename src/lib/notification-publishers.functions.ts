@@ -39,7 +39,7 @@ export async function publishNotificationForCaller(
   supabase: import("@supabase/supabase-js").SupabaseClient,
   input: PublishInput,
 ): Promise<string | null> {
-  const { data, error } = await supabase.rpc("publish_notification" as never, {
+  const { data, error } = await (supabase.rpc as unknown as (...a: unknown[])=>Promise<{data:unknown;error:unknown}>)("publish_notification", {
     _recipient_user_id: input.recipient_user_id,
     _category: input.category,
     _type: input.type,
