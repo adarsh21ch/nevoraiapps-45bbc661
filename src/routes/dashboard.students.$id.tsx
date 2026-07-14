@@ -581,6 +581,25 @@ function Skel() {
   return <div className="h-10 rounded-md bg-muted/60 animate-pulse" />;
 }
 
+function ChipPill({
+  children,
+  tone = "brand",
+}: {
+  children: React.ReactNode;
+  tone?: "brand" | "gold" | "muted";
+}) {
+  const cls: Record<string, string> = {
+    brand: "bg-[color:color-mix(in_oklab,var(--brand)_12%,transparent)] text-[color:var(--brand)]",
+    gold: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+    muted: "bg-muted text-muted-foreground",
+  };
+  return (
+    <span className={cn("inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium", cls[tone])}>
+      {children}
+    </span>
+  );
+}
+
 function FormStrip({ athleteId }: { athleteId: string | null }) {
   const q = useQuery({
     enabled: !!athleteId,
@@ -589,25 +608,40 @@ function FormStrip({ athleteId }: { athleteId: string | null }) {
   });
   if (!athleteId) return <EmptyLine text="Not linked to Match Center yet." />;
   if (q.isLoading) return <Skel />;
-  const rows = (q.data ?? []) as Array<{
-    batting_runs: number | null;
-    wickets_taken: number | null;
-    is_player_of_match: boolean | null;
-  }>;
+  const rows = q.data ?? [];
   if (rows.length === 0) return <EmptyLine text="No recent matches." />;
   return (
-    <div className="flex gap-1.5">
-      {rows.map((r, i) => {
-        const runs = r.batting_runs ?? 0;
-        const tone = runs >= 50 ? "bg-emerald-500 text-white" : runs >= 20 ? "bg-emerald-500/25 text-emerald-600" : "bg-muted";
+    <div className="flex gap-1.5 flex-wrap">
+      {rows.map((r) => {
+        const tone = r.is_player_of_match
+          ? "bg-amber-500 text-white"
+          : r.is_captain
+            ? "bg-emerald-500/25 text-emerald-700 dark:text-emerald-300"
+            : "bg-muted text-muted-foreground";
+        const label = r.is_player_of_match
+          ? "MoM"
+          : r.is_captain
+            ? "C"
+            : r.is_keeper
+              ? "K"
+              : "•";
         return (
-          <div key={i} className={cn("h-8 min-w-[28px] px-1.5 grid place-items-center rounded-md text-[10.5px] font-semibold", tone)}>
-            {runs}
+          <div
+            key={r.id}
+            className={cn(
+              "h-8 min-w-[28px] px-1.5 grid place-items-center rounded-md text-[10.5px] font-semibold",
+              tone,
+            )}
+            title={r.match?.scheduled_date ?? ""}
+          >
+            {label}
           </div>
         );
       })}
     </div>
   );
+}
+
 }
 
 /* ------------------------ Coach Notes ------------------------ */
