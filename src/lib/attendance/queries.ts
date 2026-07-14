@@ -243,6 +243,10 @@ export interface CheckInInput {
   source?: AttendanceSource;
   meta?: import("@/integrations/supabase/types").Json;
   markedBy?: string | null;
+  /** Optional visit classification (practice/match/fitness/...). Free-form. */
+  visitType?: string | null;
+  /** Optional visit note (late arrival, injured, batting session, ...). */
+  note?: string | null;
 }
 
 export async function checkInStudent(input: CheckInInput): Promise<void> {
@@ -261,6 +265,8 @@ export async function checkInStudent(input: CheckInInput): Promise<void> {
     source: input.source ?? "manual",
     marked_by: input.markedBy ?? null,
     check_in_meta: input.meta ?? {},
+    visit_type: input.visitType ?? null,
+    note: input.note ?? null,
   });
   if (error) throw error;
 }
