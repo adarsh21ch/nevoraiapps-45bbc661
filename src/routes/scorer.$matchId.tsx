@@ -219,6 +219,42 @@ function ScorerPage() {
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
   const [pendingBallIntent, setPendingBallIntent] = useState<Parameters<typeof session.submitBall>[0] | null>(null);
 
+  /* ---------- hydrate current players from event log on resume ---------- */
+  useEffect(() => {
+    if (session.loading) return;
+    const rs = session.matchState.innings.striker;
+    const rn = session.matchState.innings.nonStriker;
+    const rb = session.matchState.innings.bowler;
+    const strikerEmpty = !session.striker.athleteId && !session.striker.name;
+    const nonStrikerEmpty = !session.nonStriker.athleteId && !session.nonStriker.name;
+    const bowlerEmpty = !session.bowler.athleteId && !session.bowler.name;
+    if (strikerEmpty && (rs.athleteId || rs.name)) {
+      const dismissed =
+        (rs.athleteId && session.matchState.innings.dismissedIds.has(rs.athleteId)) ||
+        (rs.name && session.matchState.innings.dismissedNames.has(rs.name));
+      if (!dismissed) session.setStriker({ athleteId: rs.athleteId, name: rs.name, onStrike: true });
+    }
+    if (nonStrikerEmpty && (rn.athleteId || rn.name)) {
+      const dismissed =
+        (rn.athleteId && session.matchState.innings.dismissedIds.has(rn.athleteId)) ||
+        (rn.name && session.matchState.innings.dismissedNames.has(rn.name));
+      if (!dismissed) session.setNonStriker({ athleteId: rn.athleteId, name: rn.name, onStrike: false });
+    }
+    if (bowlerEmpty && (rb.athleteId || rb.name) && !session.matchState.innings.awaitingNewBowler) {
+      session.setBowler({ athleteId: rb.athleteId, name: rb.name });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    session.loading,
+    session.matchState.innings.striker.athleteId,
+    session.matchState.innings.striker.name,
+    session.matchState.innings.nonStriker.athleteId,
+    session.matchState.innings.nonStriker.name,
+    session.matchState.innings.bowler.athleteId,
+    session.matchState.innings.bowler.name,
+    session.matchState.innings.awaitingNewBowler,
+  ]);
+
   /* ---------- innings/match completion detection ---------- */
   useEffect(() => {
     if (session.matchState.inningsShouldEnd && !inningsCompleteOpen) {
