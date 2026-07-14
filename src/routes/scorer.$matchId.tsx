@@ -757,7 +757,7 @@ function ScorerPage() {
                 }
               : null
           }
-          overBalls={session.currentOver.events.map(ballChipLabel)}
+          overBalls={session.matchState.innings.awaitingNewBowler ? [] : session.currentOver.events.map(ballChipLabel)}
           currentOverLabel={currentOverLabel}
           insights={{
             partnership: stats.team.currentPartnership
@@ -1607,7 +1607,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
                 }
               : null
           }
-          overBalls={session.currentOver.events.map(ballChipLabel)}
+          overBalls={session.matchState.innings.awaitingNewBowler ? [] : session.currentOver.events.map(ballChipLabel)}
           currentOverLabel={currentOverLabel}
           insights={{
             partnership: stats.team.currentPartnership
