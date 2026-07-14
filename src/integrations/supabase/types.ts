@@ -16,36 +16,77 @@ export type Database = {
     Tables: {
       attendance_marks: {
         Row: {
+          check_in_at: string | null
+          check_in_meta: Json
+          check_out_at: string | null
+          check_out_meta: Json
+          corrects_id: string | null
           created_at: string
+          duration_minutes: number | null
           id: string
+          marked_by: string | null
           note: string | null
           session_id: string
+          source: Database["public"]["Enums"]["attendance_source"]
           status: Database["public"]["Enums"]["attendance_status"]
           student_id: string
+          superseded_by: string | null
           tenant_id: string
           updated_at: string
         }
         Insert: {
+          check_in_at?: string | null
+          check_in_meta?: Json
+          check_out_at?: string | null
+          check_out_meta?: Json
+          corrects_id?: string | null
           created_at?: string
+          duration_minutes?: number | null
           id?: string
+          marked_by?: string | null
           note?: string | null
           session_id: string
+          source?: Database["public"]["Enums"]["attendance_source"]
           status?: Database["public"]["Enums"]["attendance_status"]
           student_id: string
+          superseded_by?: string | null
           tenant_id: string
           updated_at?: string
         }
         Update: {
+          check_in_at?: string | null
+          check_in_meta?: Json
+          check_out_at?: string | null
+          check_out_meta?: Json
+          corrects_id?: string | null
           created_at?: string
+          duration_minutes?: number | null
           id?: string
+          marked_by?: string | null
           note?: string | null
           session_id?: string
+          source?: Database["public"]["Enums"]["attendance_source"]
           status?: Database["public"]["Enums"]["attendance_status"]
           student_id?: string
+          superseded_by?: string | null
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "attendance_marks_corrects_id_fkey"
+            columns: ["corrects_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_marks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_corrects_id_fkey"
+            columns: ["corrects_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_today"
+            referencedColumns: ["mark_id"]
+          },
           {
             foreignKeyName: "attendance_marks_session_id_fkey"
             columns: ["session_id"]
@@ -66,6 +107,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "students_scorer_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "attendance_marks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "attendance_today"
+            referencedColumns: ["mark_id"]
           },
           {
             foreignKeyName: "attendance_marks_tenant_id_fkey"
@@ -2967,6 +3022,60 @@ export type Database = {
       }
     }
     Views: {
+      attendance_today: {
+        Row: {
+          batch_id: string | null
+          check_in_at: string | null
+          check_out_at: string | null
+          current_state: string | null
+          duration_minutes: number | null
+          mark_id: string | null
+          marked_by: string | null
+          session_date: string | null
+          session_id: string | null
+          source: Database["public"]["Enums"]["attendance_source"] | null
+          status: Database["public"]["Enums"]["attendance_status"] | null
+          student_id: string | null
+          tenant_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_marks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "attendance_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_sessions_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students_scorer_view: {
         Row: {
           id: string | null
@@ -3014,6 +3123,18 @@ export type Database = {
         Returns: boolean
       }
       compute_player_prefix: { Args: { _tenant_id: string }; Returns: string }
+      correct_attendance: {
+        Args: {
+          _check_in_at: string
+          _check_in_meta?: Json
+          _check_out_at: string
+          _check_out_meta?: Json
+          _note?: string
+          _original_id: string
+          _status: Database["public"]["Enums"]["attendance_status"]
+        }
+        Returns: string
+      }
       get_parent_child_summary: { Args: { _student_id: string }; Returns: Json }
       get_public_academy_bundle: { Args: { _slug: string }; Returns: Json }
       get_public_match_bundle: { Args: { _slug: string }; Returns: Json }
@@ -3079,6 +3200,14 @@ export type Database = {
       }
     }
     Enums: {
+      attendance_source:
+        | "manual"
+        | "qr"
+        | "face"
+        | "gps"
+        | "nfc"
+        | "correction"
+        | "auto"
       attendance_status: "present" | "absent" | "late"
       lead_status: "new" | "contacted" | "won" | "lost"
     }
@@ -3208,6 +3337,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      attendance_source: [
+        "manual",
+        "qr",
+        "face",
+        "gps",
+        "nfc",
+        "correction",
+        "auto",
+      ],
       attendance_status: ["present", "absent", "late"],
       lead_status: ["new", "contacted", "won", "lost"],
     },
