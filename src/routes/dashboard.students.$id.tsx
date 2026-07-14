@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { admissionTimelineQuery } from "@/lib/admissions";
+import { AdmissionTimelineList } from "@/components/dashboard/AdmissionChecklist";
 import {
   ArrowLeft,
   Phone,
