@@ -33,6 +33,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
 import {
+  completedLegalBallsFromEvents,
   calculateInningsStatistics,
   formatLiveOver,
   formatOversCompact,
@@ -356,7 +357,7 @@ function ScorerPage() {
   // Formatter receives completed legal deliveries only — never nextBallIndex
   // or completedLegalBalls + 1. The preOver flag only changes the idle label
   // between completed overs from "N.6" to "Over N+1".
-  const completedLegalBalls = stats.team.legalBalls;
+  const completedLegalBalls = completedLegalBallsFromEvents(session.events);
   const currentOverLabel = formatLiveOver(completedLegalBalls, {
     preOver: session.matchState.innings.awaitingNewBowler,
   });
@@ -1303,7 +1304,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   // Formatter receives completed legal deliveries only — never nextBallIndex
   // or completedLegalBalls + 1. The preOver flag only changes the idle label
   // between completed overs from "N.6" to "Over N+1".
-  const completedLegalBalls = stats.team.legalBalls;
+  const completedLegalBalls = completedLegalBallsFromEvents(session.events);
   const currentOverLabel = formatLiveOver(completedLegalBalls, {
     preOver: session.matchState.innings.awaitingNewBowler,
   });

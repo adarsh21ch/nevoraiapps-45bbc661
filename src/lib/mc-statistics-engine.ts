@@ -936,6 +936,30 @@ export function formatLiveOver(
 }
 
 /**
+ * Derive the live-over formatter input from the immutable ball-event positions.
+ * This is deliberately NOT a next-ball helper: it reads the last completed
+ * LEGAL delivery's stored over_number / ball_number and converts that recorded
+ * position into completed legal deliveries.
+ *
+ * Why this exists: aggregate counters can be stale or accidentally fed a
+ * next-ball value. The scorer's live label must instead follow the last legal
+ * event that actually exists in the log:
+ *   over_number 16, ball_number 6 → completedLegalBalls 102 → "17.6"
+ *   over_number 17, ball_number 1 → completedLegalBalls 103 → "18.1"
+ * Illegal deliveries (wide/no-ball) do not advance this value.
+ */
+export function completedLegalBallsFromEvents(events: MCBallEvent[]): number {
+  for (let i = events.length - 1; i >= 0; i -= 1) {
+    const event = events[i];
+    if (!isLegalDelivery(event.extra_type as ExtraType | null)) continue;
+    const overNumber = Math.max(0, Math.trunc(event.over_number ?? 0));
+    const ballNumber = Math.min(6, Math.max(1, Math.trunc(event.ball_number ?? 1)));
+    return overNumber * 6 + ballNumber;
+  }
+  return 0;
+}
+
+/**
  * Compact numeric variant for stat tables (bowler figures, final totals).
  *
  * Uses the standard cricket "completed_overs.balls_into_next" convention
