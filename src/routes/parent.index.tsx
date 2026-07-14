@@ -1,4 +1,4 @@
-import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import {
@@ -18,23 +18,17 @@ import {
   type ChildContext,
   type ParentChildRow,
 } from "@/lib/parent-app";
+import { useParentChild } from "./parent";
 
 export const Route = createFileRoute("/parent/")({
-  component: ParentHome,
+  component: ParentHomePage,
 });
 
-const parentRoute = getRouteApi("/parent");
-
-function ParentHome() {
-  const { child, childRow } = parentRoute.useRouteContext() as unknown as {
-    child: ChildContext | null | undefined;
-    childRow: ParentChildRow;
-  };
-  // useRouteContext isn't the actual channel — we're using outlet context.
+function ParentHomePage() {
+  const { child, childRow } = useParentChild();
   return <ParentHomeInner child={child} childRow={childRow} />;
 }
 
-// Fallback: read via Outlet context prop
 function ParentHomeInner({
   child,
   childRow,
