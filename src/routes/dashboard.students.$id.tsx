@@ -840,21 +840,19 @@ function TimelineTab({
         tone: "brand",
       });
     }
-    for (const m of (matchesQ.data ?? []) as Array<{
-      id: string;
-      batting_runs: number | null;
-      wickets_taken: number | null;
-      is_player_of_match: boolean | null;
-      mc_matches?: { name?: string; match_date?: string } | null;
-    }>) {
-      if (!m.mc_matches?.match_date) continue;
-      const runs = m.batting_runs ?? 0;
+    for (const m of matchesQ.data ?? []) {
+      if (!m.match?.scheduled_date) continue;
+      const bits: string[] = [];
+      if (m.is_captain) bits.push("Captain");
+      if (m.is_keeper) bits.push("Keeper");
+      if (m.role) bits.push(m.role);
+      if (m.is_player_of_match) bits.push("Player of Match");
       out.push({
         id: `match-${m.id}`,
         kind: "match",
-        at: m.mc_matches.match_date,
-        title: m.mc_matches.name ?? "Match",
-        meta: `${runs} runs · ${m.wickets_taken ?? 0} wkts${m.is_player_of_match ? " · MoM" : ""}`,
+        at: m.match.scheduled_date,
+        title: m.match.ground_name ?? "Match",
+        meta: bits.length ? bits.join(" · ") : (m.match.result ?? undefined),
         icon: m.is_player_of_match ? Trophy : Swords,
         tone: m.is_player_of_match ? "brand" : "muted",
       });
@@ -863,16 +861,16 @@ function TimelineTab({
       id: string;
       amount: number;
       period: string;
-      paid_on: string | null;
       created_at: string;
     }>) {
       out.push({
         id: `pay-${p.id}`,
         kind: "payment",
-        at: p.paid_on ?? p.created_at,
+        at: p.created_at,
         title: `Fee paid · ${p.period}`,
         meta: `₹${p.amount}`,
         icon: FileText,
+
         tone: "muted",
       });
     }
