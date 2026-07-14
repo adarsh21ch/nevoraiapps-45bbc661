@@ -142,7 +142,7 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
 
 /* ----------------------------- Compact tables ---------------------------- */
 
-function BattingTable({ batters }: { batters: BattingStat[] }) {
+function BattingTable({ batters, onSelect }: { batters: BattingStat[]; onSelect?: (b: BattingStat) => void }) {
   if (batters.length === 0) return <EmptyState text="No balls yet." />;
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
@@ -163,7 +163,11 @@ function BattingTable({ batters }: { batters: BattingStat[] }) {
               ? "not out"
               : `${b.dismissalType ?? "out"}${b.dismissedBy?.name ? ` b ${b.dismissedBy.name}` : ""}`;
             return (
-              <tr key={b.player.key} className="align-top">
+              <tr
+                key={b.player.key}
+                onClick={() => onSelect?.(b)}
+                className={cn("align-top", onSelect && "cursor-pointer transition-colors hover:bg-muted/40 active:bg-muted/60")}
+              >
                 <td className="min-w-0 px-2.5 py-2 text-left">
                   <div className="flex min-w-0 items-center gap-1.5">
                     <span className="truncate font-semibold">{b.player.name ?? "—"}</span>
