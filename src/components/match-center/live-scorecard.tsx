@@ -193,7 +193,7 @@ function BattingTable({ batters, onSelect }: { batters: BattingStat[]; onSelect?
   );
 }
 
-function BowlingTable({ bowlers }: { bowlers: BowlingStat[] }) {
+function BowlingTable({ bowlers, onSelect }: { bowlers: BowlingStat[]; onSelect?: (b: BowlingStat) => void }) {
   if (bowlers.length === 0) return <EmptyState text="No balls yet." />;
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
