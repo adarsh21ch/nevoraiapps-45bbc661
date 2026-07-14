@@ -57,7 +57,7 @@ const COLUMNS =
 
 async function fetchNotifications(filter: "all" | "unread" | "archived") {
   let q = supabase
-    .from("notifications")
+    .from("notifications" as never)
     .select(COLUMNS)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -102,7 +102,7 @@ export function useUnreadCount(userId: string | null) {
     enabled: !!userId,
     staleTime: 10_000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("unread_notification_count");
+      const { data, error } = await supabase.rpc("unread_notification_count" as never);
       if (error) throw error;
       return (data as number) ?? 0;
     },
@@ -113,7 +113,7 @@ export function useMarkRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc("mark_notification_read", { _id: id });
+      const { error } = await supabase.rpc("mark_notification_read" as never, { _id: id });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -126,7 +126,7 @@ export function useMarkAllRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.rpc("mark_all_notifications_read");
+      const { error } = await supabase.rpc("mark_all_notifications_read" as never);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -139,7 +139,7 @@ export function useArchiveNotification() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.rpc("archive_notification", { _id: id });
+      const { error } = await supabase.rpc("archive_notification" as never, { _id: id });
       if (error) throw error;
     },
     onSuccess: () => {
