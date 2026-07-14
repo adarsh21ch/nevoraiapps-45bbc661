@@ -26,7 +26,6 @@ import {
   FileText,
   Flag,
   Redo2,
-  Search,
   StopCircle,
   Undo2,
   UserPlus,
@@ -75,6 +74,7 @@ export interface MobileScorerProps {
   battingOptions?: PlayerOption[];
   bowlingOptions?: PlayerOption[];
   onPickPlayer?: (role: PickerKind, p: PlayerOption) => void;
+  requiredPicker?: PickerKind | null;
   awaitingNewBatter?: boolean;
   awaitingNewBatterRole?: "striker" | "nonStriker";
   awaitingNewBowler?: boolean;
@@ -107,7 +107,6 @@ type PickerKind = "striker" | "nonStriker" | "bowler";
 
 export function MobileScorer(props: MobileScorerProps) {
   const [pickerOpen, setPickerOpen] = useState<PickerKind | null>(null);
-  const [pickerQuery, setPickerQuery] = useState("");
   const [scorecardExpanded, setScorecardExpanded] = useState(false);
   const [confirm, setConfirm] = useState<
     null | { kind: "end-match" | "finish-innings" | "delete-ball" }
@@ -133,6 +132,11 @@ export function MobileScorer(props: MobileScorerProps) {
     setPickerOpen("bowler");
   }, [sheetPickerEnabled, props.awaitingNewBowler]);
 
+  useEffect(() => {
+    if (!sheetPickerEnabled || !props.requiredPicker) return;
+    setPickerOpen(props.requiredPicker);
+  }, [sheetPickerEnabled, props.requiredPicker]);
+
   // Auto-open the batter picker when a wicket falls and a slot is empty.
   useEffect(() => {
     if (!sheetPickerEnabled) return;
@@ -140,11 +144,6 @@ export function MobileScorer(props: MobileScorerProps) {
     if (!missingBatterRole) return;
     setPickerOpen(missingBatterRole);
   }, [sheetPickerEnabled, props.awaitingNewBatter, missingBatterRole]);
-
-
-  useEffect(() => {
-    setPickerQuery("");
-  }, [pickerOpen]);
 
   const waitingBatterRole = missingBatterRole ?? props.awaitingNewBatterRole ?? "striker";
 
@@ -189,13 +188,6 @@ export function MobileScorer(props: MobileScorerProps) {
     props.dismissedBatterIds,
     props.dismissedBatterNames,
   ]);
-
-
-  const filteredCandidates = useMemo(() => {
-    const q = pickerQuery.trim().toLowerCase();
-    if (!q) return pickerCandidates;
-    return pickerCandidates.filter((p) => p.name.toLowerCase().includes(q));
-  }, [pickerCandidates, pickerQuery]);
 
   const isIllegalBowler = (p: PlayerOption) => {
     if (pickerOpen !== "bowler") return false;
@@ -254,11 +246,11 @@ export function MobileScorer(props: MobileScorerProps) {
           aria-hidden
           className="absolute inset-0 bg-[radial-gradient(120%_60%_at_0%_0%,color-mix(in_oklab,var(--primary)_28%,transparent)_0%,transparent_60%)]"
         />
-        <div className="relative grid h-14 grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-2 px-2">
+        <div className="relative grid h-12 grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-2 px-2">
           <button
             type="button"
             onClick={props.onExit}
-            className="grid size-11 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
+            className="grid size-10 place-items-center rounded-full text-foreground/80 transition duration-100 active:scale-95 active:bg-muted"
             aria-label="Back"
           >
             <ArrowLeft className="size-5" />
@@ -297,7 +289,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
 
-      <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-2 backdrop-blur-xl">
+      <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-1.5 backdrop-blur-xl">
         <ThisOverStrip balls={props.overBalls} overs={props.overs} />
       </div>
 
@@ -436,9 +428,7 @@ export function MobileScorer(props: MobileScorerProps) {
       <PlayerPickerSheet
         open={!!pickerOpen}
         kind={pickerOpen}
-        query={pickerQuery}
-        onQuery={setPickerQuery}
-        players={filteredCandidates}
+        players={pickerCandidates}
         isDisabled={isIllegalBowler}
         onOpenChange={(v) => !v && setPickerOpen(null)}
         lockedMessage={pickerOpen === "bowler" ? "Cannot bowl consecutive overs" : undefined}
@@ -501,43 +491,38 @@ function ScoreHeroCard({
           <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
             Score
           </div>
-          <div className="flex min-w-0 items-baseline">
+          <div className="flex min-w-0 items-center">
             <h1 className="text-[46px] font-black leading-[0.9] tracking-tight tabular-nums sm:text-[52px]">
-              <NumberRoll value={runsPart ?? score} />
-              <span>/</span>
-              <NumberRoll value={wickets} />
+              <NumberRoll value={`${runsPart ?? score}/${wickets}`} />
             </h1>
           </div>
           <div className="mt-1 flex items-baseline gap-2 text-[11.5px] tabular-nums">
             <span className="rounded bg-muted/60 px-1.5 py-0.5 text-[11px] font-bold text-muted-foreground">
               {overs} ov
             </span>
-            <span className="text-muted-foreground">
-              CRR <span className="font-black text-foreground">{crr ?? "–"}</span>
-            </span>
-            {rrr && (
-              <span className="text-muted-foreground">
-                RRR <span className="font-black text-primary">{rrr}</span>
-              </span>
-            )}
           </div>
         </div>
-        <div className="flex flex-col items-end gap-1 text-right">
+        <div className="flex flex-col items-end gap-1 text-right text-[11px] font-bold tabular-nums">
+          <ScoreSideStat label="CRR" value={crr ?? "–"} />
+          {rrr && <ScoreSideStat label="RRR" value={rrr} />}
+          {target && <ScoreSideStat label="TGT" value={target} accent />}
           {chase && (
-            <div className="text-[11.5px] font-semibold text-[var(--score-success-fg)] tabular-nums">
+            <div className="mt-0.5 whitespace-nowrap text-[11px] font-black text-[var(--score-success-fg)]">
               Need {chase.runsNeeded} from {chase.ballsLeft}
-            </div>
-          )}
-          {target && (
-            <div className="inline-flex items-baseline gap-1 rounded-md border border-[color-mix(in_oklab,var(--score-success-fg)_35%,transparent)] bg-[color-mix(in_oklab,var(--score-success-fg)_12%,transparent)] px-2 py-0.5 tabular-nums">
-              <span className="text-[9px] font-black uppercase tracking-widest text-[var(--score-success-fg)]/80">
-                TGT
-              </span>
-              <span className="text-[13px] font-black text-[var(--score-success-fg)]">{target}</span>
             </div>
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ScoreSideStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="grid grid-cols-[auto_auto_auto] items-baseline gap-1 whitespace-nowrap leading-tight">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-muted-foreground">-</span>
+      <span className={cn("font-black text-foreground", accent && "text-[var(--score-success-fg)]")}>{value}</span>
     </div>
   );
 }
@@ -629,7 +614,6 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
       <div className="text-right text-[11.5px] font-semibold text-muted-foreground tabular-nums">
         <span className="text-foreground">{bowler?.wickets ?? 0}/{bowler?.runs ?? 0}</span>
         <span> · {bowler?.overs ?? "0.0"} ov</span>
-        <span> · Econ {bowler?.economy ?? "–"}</span>
       </div>
 
     </button>
@@ -827,8 +811,6 @@ function PlayerPickerSheet({
   open,
   kind,
   players,
-  query,
-  onQuery,
   onOpenChange,
   onSelect,
   isDisabled,
@@ -838,8 +820,6 @@ function PlayerPickerSheet({
   open: boolean;
   kind: PickerKind | null;
   players: PlayerOption[];
-  query: string;
-  onQuery: (v: string) => void;
   onOpenChange: (v: boolean) => void;
   onSelect: (p: PlayerOption) => void;
   isDisabled: (p: PlayerOption) => boolean;
@@ -870,21 +850,9 @@ function PlayerPickerSheet({
         <DialogHeader className="border-b border-border/70 px-4 pb-3 pt-4 text-left">
           <DialogTitle className="text-base font-black">{title}</DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Scroll to browse. Tap a player to continue.
+            Tap a player to continue.
           </DialogDescription>
         </DialogHeader>
-        <div className="border-b border-border/70 px-3 py-2">
-          <label className="flex h-10 items-center gap-2 rounded-xl bg-muted px-3">
-            <Search className="size-4 shrink-0 text-muted-foreground" />
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => onQuery(event.target.value)}
-              placeholder="Search player (optional)"
-              className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground"
-            />
-          </label>
-        </div>
         <div className="max-h-[60dvh] overflow-y-auto">
           {players.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">No players found.</div>
