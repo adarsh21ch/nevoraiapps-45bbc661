@@ -45,8 +45,8 @@ function CoachesPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {coaches.map((c, i) => (
               <div key={i} className="rounded-2xl border border-border/60 bg-card p-6 text-center">
-                <div className="mx-auto">
-                  <PersonAvatar path={c.photo_url ?? null} name={c.name ?? "Coach"} size={112} />
+                <div className="mx-auto w-28">
+                  <PersonAvatar src={c.photo_url ?? null} name={c.name ?? "Coach"} className="h-28 w-28" />
                 </div>
                 <div className="mt-4 text-lg font-semibold">{c.name}</div>
                 {c.role && <div className="text-sm" style={{ color: "var(--brand)" }}>{c.role}</div>}
