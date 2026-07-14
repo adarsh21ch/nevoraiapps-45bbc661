@@ -491,6 +491,13 @@ export function MobileScorer(props: MobileScorerProps) {
           )}
         </AlertDialogContent>
       </AlertDialog>
+
+      <OverHistorySheet
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        rows={props.overHistory ?? []}
+        inningsLabel={props.inningsLabel}
+      />
     </div>
   );
 }
