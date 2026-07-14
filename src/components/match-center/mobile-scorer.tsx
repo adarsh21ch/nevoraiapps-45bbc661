@@ -373,50 +373,48 @@ export function MobileScorer(props: MobileScorerProps) {
             onOut={props.onOut}
           />
         </div>
-        <div className="grid grid-cols-4 gap-1 px-2 pb-1 pt-1">
-          <FooterAction icon={<Undo2 className="size-[18px]" />} label="Undo" onClick={props.onUndo} />
-          <FooterAction icon={<Redo2 className="size-[18px]" />} label="Redo" onClick={() => {}} disabled title="Redo coming soon" />
-          <FooterAction icon={<FileText className="size-[18px]" />} label="Scorecard" onClick={props.onOpenScorecard} />
-          <FooterAction icon={<MoreHorizontal className="size-[18px]" />} label="More" onClick={() => setMoreOpen(true)} />
+        <div
+          className={cn(
+            "grid gap-1 px-2 pb-1 pt-1",
+            props.showFinishInnings && props.onFinishInnings ? "grid-cols-6" : "grid-cols-5",
+          )}
+        >
+          <FooterAction
+            icon={<Undo2 className="size-[18px]" />}
+            label="Undo"
+            onClick={props.onUndo}
+          />
+          <FooterAction
+            icon={<FileText className="size-[18px]" />}
+            label="Scorecard"
+            onClick={props.onOpenScorecard}
+          />
+          <FooterAction
+            icon={<UserPlus className="size-[18px]" />}
+            label="Bowler"
+            onClick={() => openPicker("bowler")}
+          />
+          <FooterAction
+            icon={<HeartPulse className="size-[18px]" />}
+            label="Retired"
+            onClick={props.onRetiredHurt}
+          />
+          <FooterAction
+            icon={<Share2 className="size-[18px]" />}
+            label="Share"
+            onClick={props.onShareMatch ?? (() => {})}
+            disabled={!props.onShareMatch}
+          />
+          {props.showFinishInnings && props.onFinishInnings && (
+            <FooterAction
+              icon={<Flag className="size-[18px]" />}
+              label="Finish"
+              onClick={() => setConfirm({ kind: "finish-innings" })}
+              tone="danger"
+            />
+          )}
         </div>
       </div>
-
-
-      <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
-        <DialogContent className="max-h-[85dvh] gap-3 overflow-y-auto rounded-2xl bg-card/95 p-0 backdrop-blur-xl sm:max-w-md">
-          <DialogHeader className="px-4 pb-1 pt-4 text-left">
-            <DialogTitle className="text-base">More actions</DialogTitle>
-            <DialogDescription className="sr-only">Secondary scoring controls</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 px-3 pb-4">
-            <Section title="Batting">
-              <SheetRow icon={<UserCog className="size-4" />} label="Change striker" onClick={() => { setMoreOpen(false); openPicker("striker"); }} />
-              <SheetRow icon={<UserCog className="size-4" />} label="Change non-striker" onClick={() => { setMoreOpen(false); openPicker("nonStriker"); }} />
-              <SheetRow icon={<RefreshCw className="size-4" />} label="Swap strike" onClick={() => { setMoreOpen(false); props.onSwapStrike(); }} />
-              <SheetRow icon={<HeartPulse className="size-4" />} label="Retired hurt" onClick={() => { setMoreOpen(false); props.onRetiredHurt(); }} />
-            </Section>
-            <Section title="Bowling">
-              <SheetRow icon={<UserPlus className="size-4" />} label="Change bowler" onClick={() => { setMoreOpen(false); openPicker("bowler"); }} />
-            </Section>
-            <Section title="Corrections">
-              <SheetRow icon={<Undo2 className="size-4" />} label="Undo last ball" onClick={() => { setMoreOpen(false); props.onUndo(); }} />
-              <SheetRow icon={<Trash2 className="size-4" />} label="Delete last ball" onClick={() => setConfirm({ kind: "delete-ball" })} />
-            </Section>
-            {props.onShareMatch && (
-              <Section title="Share">
-                <SheetRow icon={<Share2 className="size-4" />} label="Share live match" onClick={() => { setMoreOpen(false); props.onShareMatch?.(); }} />
-              </Section>
-            )}
-            {props.showFinishInnings && props.onFinishInnings && (
-              <Section title="Match" danger>
-                <SheetRow icon={<Flag className="size-4" />} label="Finish innings" tone="danger" onClick={() => setConfirm({ kind: "finish-innings" })} />
-              </Section>
-            )}
-
-
-          </div>
-        </DialogContent>
-      </Dialog>
 
 
       <PlayerPickerSheet
