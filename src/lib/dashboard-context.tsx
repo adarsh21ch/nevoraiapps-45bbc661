@@ -63,7 +63,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const tenantId = profileQ.data?.tenant_id;
+  // If a platform admin has an active impersonation session, override tenantId
+  // so the whole dashboard shows the impersonated academy. All writes remain
+  // gated by RLS (is_platform_admin or tenant-member policies).
+  const impersonation = getImpersonation();
+  const effectiveTenantId = impersonation?.tenant_id ?? profileQ.data?.tenant_id;
+  const tenantId = effectiveTenantId;
   const tenantQ = useQuery({
     enabled: !!tenantId,
     queryKey: ["dashboard-tenant", tenantId],
