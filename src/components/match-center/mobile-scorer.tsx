@@ -623,12 +623,18 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
   );
 }
 
-function ThisOverStrip({ balls }: { balls: string[] }) {
+function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
   return (
     <section className="flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10">
-      <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-        This over
-      </span>
+      <div className="flex shrink-0 flex-col leading-none">
+        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+          Over
+        </span>
+        {overs && (
+          <span className="mt-0.5 text-[13px] font-black tabular-nums text-foreground">{overs}</span>
+        )}
+      </div>
+      <div className="h-6 w-px shrink-0 bg-border/70" />
       <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto ds-scroll">
         {balls.length === 0 ? (
           <span className="text-[12px] text-muted-foreground">Ready</span>
