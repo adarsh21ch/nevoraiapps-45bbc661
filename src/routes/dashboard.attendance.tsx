@@ -323,10 +323,12 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
     );
   }
   if (state === "checked_out" && row?.check_in_at && row?.check_out_at) {
+    const visits = row.visit_count ?? 1;
     return (
       <span className={cn("inline-flex items-center gap-1", toneClass)}>
         <Clock className="size-3" />
         {format(new Date(row.check_in_at), "h:mm a")} – {format(new Date(row.check_out_at), "h:mm a")} · {formatDuration(row.duration_minutes)}
+        {visits > 1 ? ` · ${visits} visits` : ""}
       </span>
     );
   }
