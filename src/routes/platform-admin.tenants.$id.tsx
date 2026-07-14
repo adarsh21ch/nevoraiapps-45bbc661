@@ -14,9 +14,13 @@ import { fetchPriceLog, fetchTenantById, pqk } from "@/lib/platform-queries";
 import { StatusChip, SubChip } from "./platform-admin.index";
 import { niche, nicheOptions, type NicheKey } from "@/lib/niche";
 import { getFeatures, tenantSiteUrl, type Tenant, type TenantFeatures } from "@/lib/tenant";
-import { ArrowLeft, ExternalLink, Globe, Info, Pause, Play, ShieldAlert } from "lucide-react";
+import { ArrowLeft, ExternalLink, Globe, Info, Pause, Play, ShieldAlert, UserCog } from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { SiteContentTabs } from "@/components/dashboard/SiteContentTabs";
+import { AuditFeed } from "@/components/platform/AuditFeed";
+import { startImpersonation } from "@/lib/platform-impersonation";
+import { setTenantStatus } from "@/lib/platform-support";
+import { usePlatform } from "@/lib/platform-context";
 
 export const Route = createFileRoute("/platform-admin/tenants/$id")({
   component: TenantDetail,
