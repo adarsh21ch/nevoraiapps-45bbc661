@@ -87,6 +87,8 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
           )}
         </div>
       </div>
+      )}
+
 
       {/* Segment control */}
       <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 pb-2 backdrop-blur">
