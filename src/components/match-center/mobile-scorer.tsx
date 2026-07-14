@@ -95,9 +95,10 @@ export interface MobileScorerProps {
   showFinishInnings?: boolean;
   hideEndMatch?: boolean;
 
-  onOpenScorecard: () => void;
+  onOpenScorecard?: () => void;
   onOpenScorebook?: () => void;
   onShareMatch?: () => void;
+  scorecardContent?: ReactNode;
 
 }
 
