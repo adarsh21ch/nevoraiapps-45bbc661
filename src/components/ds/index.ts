@@ -21,3 +21,5 @@ export * from "./States";
 export * from "./BottomSheet";
 export * from "./SegmentedControl";
 export * from "./SearchBar";
+export * from "./LiveBadge";
+export * from "./Tabs";
