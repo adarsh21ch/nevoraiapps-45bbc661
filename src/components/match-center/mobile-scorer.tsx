@@ -199,7 +199,6 @@ export function MobileScorer(props: MobileScorerProps) {
   };
 
   const closeAll = () => {
-    setMoreOpen(false);
     setConfirm(null);
   };
 
