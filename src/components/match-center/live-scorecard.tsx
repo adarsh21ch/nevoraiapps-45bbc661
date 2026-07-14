@@ -210,7 +210,11 @@ function BowlingTable({ bowlers, onSelect }: { bowlers: BowlingStat[]; onSelect?
         </thead>
         <tbody className="divide-y divide-border/60">
           {bowlers.map((b) => (
-            <tr key={b.player.key}>
+            <tr
+              key={b.player.key}
+              onClick={() => onSelect?.(b)}
+              className={cn(onSelect && "cursor-pointer transition-colors hover:bg-muted/40 active:bg-muted/60")}
+            >
               <td className="min-w-0 px-2.5 py-2 text-left">
                 <div className="truncate font-semibold">{b.player.name ?? "—"}</div>
                 <div className="truncate text-[10px] text-muted-foreground">
