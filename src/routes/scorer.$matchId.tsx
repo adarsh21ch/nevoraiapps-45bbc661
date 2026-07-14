@@ -435,12 +435,19 @@ function ScorerPage() {
     }
   };
   const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
-    if (requiredPicker) {
+    const needsBatter =
+      Boolean(incomingBatterRole) ||
+      !strikerSelected ||
+      !nonStrikerSelected ||
+      strikerDismissed ||
+      nonStrikerDismissed;
+    if (needsBatter || bowlerPickerNeededForBall) {
       setPendingBallIntent(partial);
       return;
     }
     void submit(partial);
   };
+
 
   useEffect(() => {
     if (!pendingBallIntent || requiredPicker) return;
