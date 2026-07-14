@@ -344,7 +344,7 @@ function ScorerPage() {
         const b = stats.bowling.byKey.get(bowlerKey);
         return {
           name: bowlerRef.name ?? undefined,
-          overs: b?.oversDisplay ?? "0.0",
+          overs: b ? formatOversCompact(b.legalBalls) : "0",
           runs: b?.runsConceded ?? 0,
           wickets: b?.wickets ?? 0,
           economy: b ? String(b.economy) : "–",
@@ -353,12 +353,11 @@ function ScorerPage() {
       })()
     : undefined;
 
-  const currentOverLabel = (() => {
-    if (!session.currentOver.events.length || session.currentOver.ballsBowled >= 6) {
-      return stats.team.oversDisplay;
-    }
-    return `${session.currentOver.overNumber}.${session.currentOver.ballsBowled}`;
-  })();
+  // Single formatter for all live over labels — header, over strip, viewers.
+  // After the 6th legal ball of over N, we enter a PRE-OVER state and render
+  // "Over N+1"; never "N.0". First legal ball of that over rolls to "N+1.1".
+  const currentOverLabel = formatLiveOver(stats.team.legalBalls);
+
 
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
