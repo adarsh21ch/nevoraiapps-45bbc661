@@ -9,19 +9,29 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TestimonialsRouteImport } from './routes/testimonials'
 import { Route as StudentRouteImport } from './routes/student'
 import { Route as StarPlayersRouteImport } from './routes/star-players'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
 import { Route as ParentPortalRouteImport } from './routes/parent-portal'
 import { Route as ParentRouteImport } from './routes/parent'
 import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as MatchCenterRouteImport } from './routes/match-center'
+import { Route as LocationRouteImport } from './routes/location'
+import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as FeesRouteImport } from './routes/fees'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as FacilitiesRouteImport } from './routes/facilities'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CoachesRouteImport } from './routes/coaches'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppLaunchRouteImport } from './routes/app-launch'
+import { Route as AdmissionsRouteImport } from './routes/admissions'
+import { Route as AchievementsRouteImport } from './routes/achievements'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudentIndexRouteImport } from './routes/student.index'
@@ -33,6 +43,7 @@ import { Route as StudentProgressRouteImport } from './routes/student.progress'
 import { Route as StudentProfileRouteImport } from './routes/student.profile'
 import { Route as StudentMatchesRouteImport } from './routes/student.matches'
 import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
+import { Route as PoliciesKindRouteImport } from './routes/policies.$kind'
 import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
@@ -92,6 +103,11 @@ import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.stud
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 
+const TestimonialsRoute = TestimonialsRouteImport.update({
+  id: '/testimonials',
+  path: '/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudentRoute = StudentRouteImport.update({
   id: '/student',
   path: '/student',
@@ -105,6 +121,11 @@ const StarPlayersRoute = StarPlayersRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgramsRoute = ProgramsRouteImport.update({
+  id: '/programs',
+  path: '/programs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlatformAdminRoute = PlatformAdminRouteImport.update({
@@ -127,14 +148,39 @@ const NotificationsRoute = NotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MatchesRoute = MatchesRouteImport.update({
+  id: '/matches',
+  path: '/matches',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MatchCenterRoute = MatchCenterRouteImport.update({
   id: '/match-center',
   path: '/match-center',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocationRoute = LocationRouteImport.update({
+  id: '/location',
+  path: '/location',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GalleryRoute = GalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeesRoute = FeesRouteImport.update({
   id: '/fees',
   path: '/fees',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FacilitiesRoute = FacilitiesRouteImport.update({
+  id: '/facilities',
+  path: '/facilities',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -147,6 +193,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoachesRoute = CoachesRouteImport.update({
+  id: '/coaches',
+  path: '/coaches',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -155,6 +206,16 @@ const AuthRoute = AuthRouteImport.update({
 const AppLaunchRoute = AppLaunchRouteImport.update({
   id: '/app-launch',
   path: '/app-launch',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdmissionsRoute = AdmissionsRouteImport.update({
+  id: '/admissions',
+  path: '/admissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AchievementsRoute = AchievementsRouteImport.update({
+  id: '/achievements',
+  path: '/achievements',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -210,6 +271,11 @@ const StudentMatchesRoute = StudentMatchesRouteImport.update({
 const ScorerMatchIdRoute = ScorerMatchIdRouteImport.update({
   id: '/scorer/$matchId',
   path: '/scorer/$matchId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliciesKindRoute = PoliciesKindRouteImport.update({
+  id: '/policies/$kind',
+  path: '/policies/$kind',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlatformAdminSubscriptionsRoute =
@@ -515,19 +581,29 @@ const ApiPublicHooksFeeRemindersRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/achievements': typeof AchievementsRoute
+  '/admissions': typeof AdmissionsRoute
   '/app-launch': typeof AppLaunchRoute
   '/auth': typeof AuthRoute
+  '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/facilities': typeof FacilitiesRoute
+  '/faq': typeof FaqRoute
   '/fees': typeof FeesRoute
+  '/gallery': typeof GalleryRoute
+  '/location': typeof LocationRoute
   '/match-center': typeof MatchCenterRouteWithChildren
+  '/matches': typeof MatchesRoute
   '/notifications': typeof NotificationsRoute
   '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
+  '/programs': typeof ProgramsRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/student': typeof StudentRouteWithChildren
+  '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -572,6 +648,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
+  '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/student/matches': typeof StudentMatchesRoute
   '/student/profile': typeof StudentProfileRoute
@@ -599,14 +676,24 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/achievements': typeof AchievementsRoute
+  '/admissions': typeof AdmissionsRoute
   '/app-launch': typeof AppLaunchRoute
   '/auth': typeof AuthRoute
+  '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
+  '/facilities': typeof FacilitiesRoute
+  '/faq': typeof FaqRoute
   '/fees': typeof FeesRoute
+  '/gallery': typeof GalleryRoute
+  '/location': typeof LocationRoute
+  '/matches': typeof MatchesRoute
   '/notifications': typeof NotificationsRoute
   '/parent-portal': typeof ParentPortalRoute
+  '/programs': typeof ProgramsRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -651,6 +738,7 @@ export interface FileRoutesByTo {
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
+  '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/student/matches': typeof StudentMatchesRoute
   '/student/profile': typeof StudentProfileRoute
@@ -679,19 +767,29 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/achievements': typeof AchievementsRoute
+  '/admissions': typeof AdmissionsRoute
   '/app-launch': typeof AppLaunchRoute
   '/auth': typeof AuthRoute
+  '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/facilities': typeof FacilitiesRoute
+  '/faq': typeof FaqRoute
   '/fees': typeof FeesRoute
+  '/gallery': typeof GalleryRoute
+  '/location': typeof LocationRoute
   '/match-center': typeof MatchCenterRouteWithChildren
+  '/matches': typeof MatchesRoute
   '/notifications': typeof NotificationsRoute
   '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
+  '/programs': typeof ProgramsRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
   '/student': typeof StudentRouteWithChildren
+  '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -736,6 +834,7 @@ export interface FileRoutesById {
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
+  '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/student/matches': typeof StudentMatchesRoute
   '/student/profile': typeof StudentProfileRoute
@@ -765,19 +864,29 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/achievements'
+    | '/admissions'
     | '/app-launch'
     | '/auth'
+    | '/coaches'
     | '/contact'
     | '/dashboard'
+    | '/facilities'
+    | '/faq'
     | '/fees'
+    | '/gallery'
+    | '/location'
     | '/match-center'
+    | '/matches'
     | '/notifications'
     | '/parent'
     | '/parent-portal'
     | '/platform-admin'
+    | '/programs'
     | '/register'
     | '/star-players'
     | '/student'
+    | '/testimonials'
     | '/academy/$slug'
     | '/dashboard/academy'
     | '/dashboard/admins'
@@ -822,6 +931,7 @@ export interface FileRouteTypes {
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
+    | '/policies/$kind'
     | '/scorer/$matchId'
     | '/student/matches'
     | '/student/profile'
@@ -849,14 +959,24 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/achievements'
+    | '/admissions'
     | '/app-launch'
     | '/auth'
+    | '/coaches'
     | '/contact'
+    | '/facilities'
+    | '/faq'
     | '/fees'
+    | '/gallery'
+    | '/location'
+    | '/matches'
     | '/notifications'
     | '/parent-portal'
+    | '/programs'
     | '/register'
     | '/star-players'
+    | '/testimonials'
     | '/academy/$slug'
     | '/dashboard/academy'
     | '/dashboard/admins'
@@ -901,6 +1021,7 @@ export interface FileRouteTypes {
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
+    | '/policies/$kind'
     | '/scorer/$matchId'
     | '/student/matches'
     | '/student/profile'
@@ -928,19 +1049,29 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/achievements'
+    | '/admissions'
     | '/app-launch'
     | '/auth'
+    | '/coaches'
     | '/contact'
     | '/dashboard'
+    | '/facilities'
+    | '/faq'
     | '/fees'
+    | '/gallery'
+    | '/location'
     | '/match-center'
+    | '/matches'
     | '/notifications'
     | '/parent'
     | '/parent-portal'
     | '/platform-admin'
+    | '/programs'
     | '/register'
     | '/star-players'
     | '/student'
+    | '/testimonials'
     | '/academy/$slug'
     | '/dashboard/academy'
     | '/dashboard/admins'
@@ -985,6 +1116,7 @@ export interface FileRouteTypes {
     | '/platform-admin/new'
     | '/platform-admin/settings'
     | '/platform-admin/subscriptions'
+    | '/policies/$kind'
     | '/scorer/$matchId'
     | '/student/matches'
     | '/student/profile'
@@ -1013,22 +1145,33 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AchievementsRoute: typeof AchievementsRoute
+  AdmissionsRoute: typeof AdmissionsRoute
   AppLaunchRoute: typeof AppLaunchRoute
   AuthRoute: typeof AuthRoute
+  CoachesRoute: typeof CoachesRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  FacilitiesRoute: typeof FacilitiesRoute
+  FaqRoute: typeof FaqRoute
   FeesRoute: typeof FeesRoute
+  GalleryRoute: typeof GalleryRoute
+  LocationRoute: typeof LocationRoute
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
+  MatchesRoute: typeof MatchesRoute
   NotificationsRoute: typeof NotificationsRoute
   ParentRoute: typeof ParentRouteWithChildren
   ParentPortalRoute: typeof ParentPortalRoute
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
+  ProgramsRoute: typeof ProgramsRoute
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
   StudentRoute: typeof StudentRouteWithChildren
+  TestimonialsRoute: typeof TestimonialsRoute
   AcademySlugRoute: typeof AcademySlugRoute
   MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
+  PoliciesKindRoute: typeof PoliciesKindRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
@@ -1036,6 +1179,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/testimonials': {
+      id: '/testimonials'
+      path: '/testimonials'
+      fullPath: '/testimonials'
+      preLoaderRoute: typeof TestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/student': {
       id: '/student'
       path: '/student'
@@ -1055,6 +1205,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/programs': {
+      id: '/programs'
+      path: '/programs'
+      fullPath: '/programs'
+      preLoaderRoute: typeof ProgramsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/platform-admin': {
@@ -1085,6 +1242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/matches': {
+      id: '/matches'
+      path: '/matches'
+      fullPath: '/matches'
+      preLoaderRoute: typeof MatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/match-center': {
       id: '/match-center'
       path: '/match-center'
@@ -1092,11 +1256,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchCenterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/location': {
+      id: '/location'
+      path: '/location'
+      fullPath: '/location'
+      preLoaderRoute: typeof LocationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gallery': {
+      id: '/gallery'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof GalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/fees': {
       id: '/fees'
       path: '/fees'
       fullPath: '/fees'
       preLoaderRoute: typeof FeesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/facilities': {
+      id: '/facilities'
+      path: '/facilities'
+      fullPath: '/facilities'
+      preLoaderRoute: typeof FacilitiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -1113,6 +1305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/coaches': {
+      id: '/coaches'
+      path: '/coaches'
+      fullPath: '/coaches'
+      preLoaderRoute: typeof CoachesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -1125,6 +1324,20 @@ declare module '@tanstack/react-router' {
       path: '/app-launch'
       fullPath: '/app-launch'
       preLoaderRoute: typeof AppLaunchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admissions': {
+      id: '/admissions'
+      path: '/admissions'
+      fullPath: '/admissions'
+      preLoaderRoute: typeof AdmissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/achievements': {
+      id: '/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AchievementsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -1202,6 +1415,13 @@ declare module '@tanstack/react-router' {
       path: '/scorer/$matchId'
       fullPath: '/scorer/$matchId'
       preLoaderRoute: typeof ScorerMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/policies/$kind': {
+      id: '/policies/$kind'
+      path: '/policies/$kind'
+      fullPath: '/policies/$kind'
+      preLoaderRoute: typeof PoliciesKindRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/platform-admin/subscriptions': {
@@ -1820,22 +2040,33 @@ const StudentRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AchievementsRoute: AchievementsRoute,
+  AdmissionsRoute: AdmissionsRoute,
   AppLaunchRoute: AppLaunchRoute,
   AuthRoute: AuthRoute,
+  CoachesRoute: CoachesRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  FacilitiesRoute: FacilitiesRoute,
+  FaqRoute: FaqRoute,
   FeesRoute: FeesRoute,
+  GalleryRoute: GalleryRoute,
+  LocationRoute: LocationRoute,
   MatchCenterRoute: MatchCenterRouteWithChildren,
+  MatchesRoute: MatchesRoute,
   NotificationsRoute: NotificationsRoute,
   ParentRoute: ParentRouteWithChildren,
   ParentPortalRoute: ParentPortalRoute,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
+  ProgramsRoute: ProgramsRoute,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
   StudentRoute: StudentRouteWithChildren,
+  TestimonialsRoute: TestimonialsRoute,
   AcademySlugRoute: AcademySlugRoute,
   MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,
+  PoliciesKindRoute: PoliciesKindRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
