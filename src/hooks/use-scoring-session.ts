@@ -12,6 +12,7 @@ import {
   undoLastBallEvent,
   type AppendBallInput,
   type CreateInningsInput,
+  type ExtraType,
   type MCBallEvent,
   type MCInnings,
 } from "@/lib/mc-ball-events";
