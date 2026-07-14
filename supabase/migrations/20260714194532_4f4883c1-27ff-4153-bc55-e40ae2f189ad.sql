@@ -1,0 +1,11 @@
+-- Drop the broad authenticated SELECT policy on public.tenants. Combined with
+-- table-level SELECT restored during the earlier regression fix, it exposed
+-- every column (phone, email, address, upi_id, upi_qr_url, platform_notes,
+-- subscription fields) of every active tenant to any signed-in user.
+--
+-- The remaining "member reads tenant" policy still lets tenant members and
+-- platform admins read their own tenant. Cross-tenant marketing reads by
+-- authenticated users flow through the security-definer function
+-- public.get_public_academy_bundle() and the public-directory view, both of
+-- which expose only marketing-safe columns.
+DROP POLICY IF EXISTS "auth read active tenant marketing cols" ON public.tenants;

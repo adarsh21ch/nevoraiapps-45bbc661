@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useCallback } from "react";
 import { Radio, Trophy, Users, User, Clock } from "lucide-react";
 import { getPublicMatchBundle } from "@/lib/mc-parent-portal";
-import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +15,7 @@ import {
   computePartnerships,
   computeOverSummaries,
 } from "@/lib/mc-statistics-engine";
+import { useMatchRealtime } from "@/lib/mc-realtime";
 import type { MCBallEvent } from "@/lib/mc-ball-events";
 
 export const Route = createFileRoute("/match/$slug")({
@@ -38,22 +38,13 @@ function PublicMatchPage() {
     refetchInterval: 5_000, // fallback polling
   });
 
-  // Realtime top-up: refresh on any ball event insert
-  useEffect(() => {
-    if (!q.data?.match?.id) return;
-    const matchId = q.data.match.id;
-    const channel = supabase
-      .channel(`public-match-${matchId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "mc_ball_events", filter: `match_id=eq.${matchId}` },
-        () => q.refetch(),
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [q.data?.match?.id, q]);
+  // Realtime top-up — shared channel, ref-counted so multiple viewers of the
+  // same match share one Supabase subscription.
+  const refetch = useCallback(() => {
+    q.refetch();
+  }, [q]);
+  useMatchRealtime(q.data?.match?.id ?? null, refetch);
+
 
   if (q.isLoading) {
     return (

@@ -49,6 +49,7 @@ import { getFeatures } from "@/lib/tenant";
 import { LiveBadge } from "@/components/ds";
 import { Skeleton } from "@/components/ds/States";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
+import { CricketToday } from "@/components/match-center/widgets/CricketToday";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/")({
@@ -259,6 +260,9 @@ function DashboardHome() {
           canViewFees={canViewFees}
         />
       </section>
+
+      {/* ─── Section 3b · Cricket today (Match Center integration) ────── */}
+      {canScoreMatch && <CricketToday tenantId={tenant.id} />}
 
       {/* ─── Section 4 · Today's insights ────────────────────────────── */}
       <section aria-label="Today's insights">
