@@ -1804,7 +1804,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setScorecardOpen(true)}>View scorecard</Button>
+            <Button variant="outline" onClick={() => { setMatchCompleteOpen(false); setScorecardOpen(true); }}>View scorecard</Button>
             <Button onClick={finalizeMatch}>Finalize</Button>
           </DialogFooter>
         </DialogContent>
