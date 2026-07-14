@@ -152,7 +152,7 @@ function DashboardHome() {
         </Link>
       ) : null}
 
-
+      <InAcademyLiveStrip tenantId={tenant.id} />
 
       {/* Compact KPI hero — 2×2 on mobile, 4-across on desktop, all in one card */}
       <Card className="p-0 overflow-hidden">
