@@ -534,18 +534,19 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
     >
       <div className="min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="grid size-5 shrink-0 place-items-center rounded-full bg-[var(--score-bowler-bg)] text-[var(--score-bowler-fg)]">
-            <Shield className="size-3" />
+          <span className="grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-bowler-bg)] text-[var(--score-bowler-fg)]">
+            <CircleDot className="size-3" strokeWidth={2.25} />
           </span>
-          <span className="truncate text-[13px] font-bold">{bowler?.name ?? "Select bowler"}</span>
+          <span className="truncate text-[14px] font-bold">{bowler?.name ?? "Select bowler"}</span>
           <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Bowling</span>
         </div>
       </div>
-      <div className="text-right text-[11px] font-semibold text-muted-foreground tabular-nums">
+      <div className="text-right text-[11.5px] font-semibold text-muted-foreground tabular-nums">
         <span className="text-foreground">{bowler?.wickets ?? 0}/{bowler?.runs ?? 0}</span>
         <span> · {bowler?.overs ?? "0.0"} ov</span>
         <span> · Econ {bowler?.economy ?? "–"}</span>
       </div>
+
     </button>
   );
 }
