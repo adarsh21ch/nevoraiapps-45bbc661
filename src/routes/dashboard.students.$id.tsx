@@ -575,6 +575,19 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ComponentType<{ clas
   );
 }
 
+function AdmissionTimelineCard({ tenantId, studentId }: { tenantId: string; studentId: string }) {
+  const { data = [] } = useQuery(admissionTimelineQuery({ tenantId, studentId }));
+  if (!data.length) return null;
+  return (
+    <Card className="p-4 sm:col-span-2">
+      <SectionHeader icon={ClipboardCheck} title="Admission Timeline" />
+      <div className="mt-2">
+        <AdmissionTimelineList events={data} />
+      </div>
+    </Card>
+  );
+}
+
 function EmptyLine({ text }: { text: string }) {
   return <div className="text-xs text-muted-foreground">{text}</div>;
 }
