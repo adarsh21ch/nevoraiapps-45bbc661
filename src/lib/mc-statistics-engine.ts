@@ -648,6 +648,8 @@ export function computeOverHistory(
     out.push(r);
   }
   return out.sort((a, b) => a.overNumber - b.overNumber);
+}
+
 
 export function computeFallOfWickets(events: MCBallEvent[]): FallOfWicket[] {
   const out: FallOfWicket[] = [];
