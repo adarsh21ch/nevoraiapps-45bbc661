@@ -116,34 +116,57 @@ describe("formatOversCompact — stat-table figures", () => {
 });
 
 describe("completedLegalBallsFromEvents — live label input", () => {
-  const event = (
-    overNumber: number,
-    ballNumber: number,
-    extraType: MCBallEvent["extra_type"] = null,
-  ) =>
+  const legal = (seq: number): MCBallEvent =>
     ({
-      id: `${overNumber}.${ballNumber}.${extraType ?? "legal"}`,
-      sequence_number: overNumber * 10 + ballNumber,
-      over_number: overNumber,
-      ball_number: ballNumber,
-      extra_type: extraType,
+      id: `legal-${seq}`,
+      sequence_number: seq,
+      over_number: Math.floor((seq - 1) / 6),
+      ball_number: ((seq - 1) % 6) + 1,
+      extra_type: null,
     }) as MCBallEvent;
 
-  it("uses the last recorded legal ball position, not the next ball", () => {
-    expect(formatLiveOver(completedLegalBallsFromEvents([event(16, 6)]))).toBe("17.6");
-    expect(formatLiveOver(completedLegalBallsFromEvents([event(17, 1)]))).toBe("18.1");
-    expect(formatLiveOver(completedLegalBallsFromEvents([event(17, 2)]))).toBe("18.2");
+  const illegal = (seq: number, kind: "wide" | "no_ball"): MCBallEvent =>
+    ({
+      id: `${kind}-${seq}`,
+      sequence_number: seq,
+      over_number: 0,
+      ball_number: 1,
+      extra_type: kind,
+    }) as MCBallEvent;
+
+  it("counts legal deliveries directly — one ball per legal event", () => {
+    const events: MCBallEvent[] = [];
+    for (let i = 1; i <= 102; i += 1) events.push(legal(i));
+    expect(completedLegalBallsFromEvents(events)).toBe(102);
+    expect(formatLiveOver(completedLegalBallsFromEvents(events))).toBe("17.6");
+
+    events.push(legal(103));
+    expect(formatLiveOver(completedLegalBallsFromEvents(events))).toBe("18.1");
+
+    events.push(legal(104));
+    expect(formatLiveOver(completedLegalBallsFromEvents(events))).toBe("18.2");
+
+    events.push(legal(105));
+    expect(formatLiveOver(completedLegalBallsFromEvents(events))).toBe("18.3");
   });
 
   it("does not advance the display for wides or no-balls", () => {
-    const events = [event(16, 6), event(17, 1, "wide"), event(17, 1, "no_ball")];
+    const events: MCBallEvent[] = [];
+    for (let i = 1; i <= 102; i += 1) events.push(legal(i));
+    events.push(illegal(103, "wide"));
+    events.push(illegal(104, "no_ball"));
     expect(completedLegalBallsFromEvents(events)).toBe(102);
     expect(formatLiveOver(completedLegalBallsFromEvents(events))).toBe("17.6");
   });
 
-  it("moves to the first ball of the next over only after that legal event exists", () => {
-    const events = [event(16, 6), event(17, 1, "wide"), event(17, 1)];
-    expect(completedLegalBallsFromEvents(events)).toBe(103);
-    expect(formatLiveOver(completedLegalBallsFromEvents(events))).toBe("18.1");
+  it("is independent of stored over_number indexing (0- vs 1-based)", () => {
+    // Even if legacy demo data stored over_number 1-indexed and live data
+    // stored 0-indexed, the count of legal events is the same.
+    const events: MCBallEvent[] = [
+      { id: "a", sequence_number: 1, over_number: 999, ball_number: 999, extra_type: null } as MCBallEvent,
+      { id: "b", sequence_number: 2, over_number: 0, ball_number: 1, extra_type: null } as MCBallEvent,
+    ];
+    expect(completedLegalBallsFromEvents(events)).toBe(2);
+    expect(formatLiveOver(completedLegalBallsFromEvents(events))).toBe("1.2");
   });
 });
