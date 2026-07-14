@@ -22,6 +22,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppLaunchRouteImport } from './routes/app-launch'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StudentIndexRouteImport } from './routes/student.index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
 import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
@@ -146,6 +147,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const StudentIndexRoute = StudentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StudentRoute,
 } as any)
 const PlatformAdminIndexRoute = PlatformAdminIndexRouteImport.update({
   id: '/',
@@ -465,7 +471,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
-  '/student': typeof StudentRoute
+  '/student': typeof StudentRouteWithChildren
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -511,6 +517,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
+  '/student/': typeof StudentIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
   '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
@@ -536,7 +543,6 @@ export interface FileRoutesByTo {
   '/parent-portal': typeof ParentPortalRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
-  '/student': typeof StudentRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -582,6 +588,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/match-center': typeof MatchCenterIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
+  '/student': typeof StudentIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
   '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
@@ -611,7 +618,7 @@ export interface FileRoutesById {
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
-  '/student': typeof StudentRoute
+  '/student': typeof StudentRouteWithChildren
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -657,6 +664,7 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
+  '/student/': typeof StudentIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
   '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
@@ -733,6 +741,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/match-center/'
     | '/platform-admin/'
+    | '/student/'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
     | '/match-center/performance/compare'
@@ -758,7 +767,6 @@ export interface FileRouteTypes {
     | '/parent-portal'
     | '/register'
     | '/star-players'
-    | '/student'
     | '/academy/$slug'
     | '/dashboard/academy'
     | '/dashboard/admins'
@@ -804,6 +812,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/match-center'
     | '/platform-admin'
+    | '/student'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
     | '/match-center/performance/compare'
@@ -878,6 +887,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/match-center/'
     | '/platform-admin/'
+    | '/student/'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
     | '/match-center/performance/compare'
@@ -907,7 +917,7 @@ export interface RootRouteChildren {
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
-  StudentRoute: typeof StudentRoute
+  StudentRoute: typeof StudentRouteWithChildren
   AcademySlugRoute: typeof AcademySlugRoute
   MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
@@ -1008,6 +1018,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/student/': {
+      id: '/student/'
+      path: '/'
+      fullPath: '/student/'
+      preLoaderRoute: typeof StudentIndexRouteImport
+      parentRoute: typeof StudentRoute
     }
     '/platform-admin/': {
       id: '/platform-admin/'
@@ -1595,6 +1612,17 @@ const PlatformAdminRouteWithChildren = PlatformAdminRoute._addFileChildren(
   PlatformAdminRouteChildren,
 )
 
+interface StudentRouteChildren {
+  StudentIndexRoute: typeof StudentIndexRoute
+}
+
+const StudentRouteChildren: StudentRouteChildren = {
+  StudentIndexRoute: StudentIndexRoute,
+}
+
+const StudentRouteWithChildren =
+  StudentRoute._addFileChildren(StudentRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -1608,7 +1636,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
-  StudentRoute: StudentRoute,
+  StudentRoute: StudentRouteWithChildren,
   AcademySlugRoute: AcademySlugRoute,
   MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,
