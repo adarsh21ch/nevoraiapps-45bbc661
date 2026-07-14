@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -411,12 +411,17 @@ function ScorerPage() {
   const [redoStack, setRedoStack] = useState<
     Awaited<ReturnType<typeof session.undo>>[]
   >([]);
+  const submittingBallRef = useRef(false);
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
+    if (submittingBallRef.current) return;
+    submittingBallRef.current = true;
     try {
       await session.submitBall(partial);
       setRedoStack([]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
+    } finally {
+      submittingBallRef.current = false;
     }
   };
   const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
@@ -1336,12 +1341,17 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   const [redoStack, setRedoStack] = useState<
     Awaited<ReturnType<typeof session.undo>>[]
   >([]);
+  const submittingBallRef = useRef(false);
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
+    if (submittingBallRef.current) return;
+    submittingBallRef.current = true;
     try {
       await session.submitBall(partial);
       setRedoStack([]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
+    } finally {
+      submittingBallRef.current = false;
     }
   };
   const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
