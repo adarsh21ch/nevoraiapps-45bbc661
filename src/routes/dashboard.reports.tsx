@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/reports")({
-  component: Reports,
+  component: () => (<OwnerOnly><Reports /></OwnerOnly>),
 });
 
 const MONTHS_BACK = 6;
