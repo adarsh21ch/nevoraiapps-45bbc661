@@ -108,6 +108,7 @@ type PickerKind = "striker" | "nonStriker" | "bowler";
 export function MobileScorer(props: MobileScorerProps) {
   const [pickerOpen, setPickerOpen] = useState<PickerKind | null>(null);
   const [pickerQuery, setPickerQuery] = useState("");
+  const [scorecardExpanded, setScorecardExpanded] = useState(false);
   const [confirm, setConfirm] = useState<
     null | { kind: "end-match" | "finish-innings" | "delete-ball" }
   >(null);
