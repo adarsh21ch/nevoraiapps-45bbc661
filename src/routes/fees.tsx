@@ -1,14 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, MessageCircle, CalendarClock } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { PageHero } from "@/components/site/PageHero";
 import { useTenant } from "@/lib/tenant-context";
-import { feePlansQuery } from "@/lib/site-queries";
+import { feePlansQuery, siteContentQuery, sectionOne } from "@/lib/site-queries";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/fees")({
-  head: () => ({ meta: [{ title: "Fees" }, { name: "description", content: "Fee plans" }] }),
+  head: () => ({
+    meta: [
+      { title: "Fees & plans" },
+      { name: "description", content: "Transparent monthly plans and one-time fees paid directly to the academy." },
+      { property: "og:title", content: "Fees & plans" },
+      { property: "og:description", content: "Transparent monthly plans and one-time fees paid directly to the academy." },
+    ],
+  }),
   component: () => (
     <TenantGate>
       <FeesContent />
@@ -16,12 +23,20 @@ export const Route = createFileRoute("/fees")({
   ),
 });
 
+type FeesMode = "show" | "hide" | "contact" | "demo";
+
 function FeesContent() {
   const tenant = useTenant();
   const { data: fees = [], isLoading } = useQuery(feePlansQuery(tenant.id));
+  const { data: sections = [] } = useQuery(siteContentQuery(tenant.id));
+  const pricing = sectionOne<{ mode?: FeesMode; visible?: string }>(sections, "pricing");
+  const mode: FeesMode =
+    pricing?.mode ?? (pricing?.visible === "false" ? "hide" : "show");
+
+  if (mode !== "show") return <FeesCtaOnly tenant={tenant} mode={mode} />;
+
   const registration = fees.filter((f) => f.type === "registration");
   const monthly = fees.filter((f) => f.type === "monthly");
-
   const sortedMonthly = [...monthly].sort((a, b) => a.amount - b.amount);
   const popularId =
     sortedMonthly.length >= 2
@@ -95,6 +110,76 @@ function FeesContent() {
     </>
   );
 }
+
+function FeesCtaOnly({ tenant, mode }: { tenant: ReturnType<typeof useTenant>; mode: FeesMode }) {
+  if (mode === "hide") {
+    return (
+      <>
+        <PageHero eyebrow="Fees" title="Fees & plans" subtitle="Please register or contact us to know more about our plans." />
+        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 text-center">
+          <Link
+            to="/register"
+            className="inline-flex rounded-full px-6 py-3 text-sm font-semibold text-white shadow-sm"
+            style={{ backgroundColor: "var(--brand)" }}
+          >
+            Register Now
+          </Link>
+        </div>
+      </>
+    );
+  }
+  const wa = (tenant.whatsapp ?? tenant.phone ?? "").replace(/[^\d]/g, "");
+  const waMsg = encodeURIComponent(`Hi ${tenant.name}, I'd like to know more about your ${mode === "demo" ? "trial / demo session" : "fees & plans"}.`);
+  const waHref = wa ? `https://wa.me/${wa}?text=${waMsg}` : null;
+  const isDemo = mode === "demo";
+  return (
+    <>
+      <PageHero
+        eyebrow={isDemo ? "Try before you join" : "Get in touch"}
+        title={isDemo ? "Book a free demo" : "Chat with us about fees"}
+        subtitle={
+          isDemo
+            ? `Come try a session at ${tenant.name}. We'll walk you through plans in person.`
+            : `Reach out to ${tenant.name} — we'll share plans that suit your child.`
+        }
+      />
+      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+        <div className="rounded-3xl border border-border/60 bg-card p-8 text-center shadow-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: "var(--brand)" }}>
+            {isDemo ? <CalendarClock className="h-7 w-7 text-white" /> : <MessageCircle className="h-7 w-7 text-white" />}
+          </div>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {waHref ? (
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-semibold text-white shadow-sm"
+              >
+                <MessageCircle className="h-4 w-4" fill="currentColor" />
+                {isDemo ? "Book on WhatsApp" : "Message us on WhatsApp"}
+              </a>
+            ) : null}
+            <Link
+              to="/contact"
+              className="inline-flex items-center rounded-full border border-border bg-background px-5 py-3 text-sm font-semibold text-foreground"
+            >
+              Contact us
+            </Link>
+            <Link
+              to="/register"
+              className="inline-flex items-center rounded-full px-5 py-3 text-sm font-semibold text-white"
+              style={{ backgroundColor: "var(--brand)" }}
+            >
+              {isDemo ? "Register for a trial" : "Register Now"}
+            </Link>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 
 
 function PlanCard({

@@ -52,7 +52,39 @@ export function TenantGate({ children }: { children: ReactNode }) {
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <FloatingWhatsApp />
-
+      <TenantJsonLd tenant={state.tenant} />
     </div>
+  );
+}
+
+function TenantJsonLd({ tenant }: { tenant: { id: string; name: string; slug: string; tagline: string | null; phone: string | null; email: string | null; address: string | null; logo_url: string | null; custom_domain: string | null } }) {
+  if (typeof window === "undefined") return null;
+  const url =
+    tenant.custom_domain ? `https://${tenant.custom_domain}` : window.location.origin;
+  const logoAbs = tenant.logo_url && tenant.logo_url.startsWith("http") ? tenant.logo_url : undefined;
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "SportsClub",
+    name: tenant.name,
+    description: tenant.tagline ?? undefined,
+    url,
+    telephone: tenant.phone ?? undefined,
+    email: tenant.email ?? undefined,
+    address: tenant.address ? { "@type": "PostalAddress", streetAddress: tenant.address } : undefined,
+    logo: logoAbs,
+    sameAs: undefined,
+  };
+  const org = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: tenant.name,
+    url,
+    logo: logoAbs,
+  };
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(org) }} />
+    </>
   );
 }

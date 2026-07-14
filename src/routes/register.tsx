@@ -1,16 +1,35 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CheckCircle2, Download, Loader2, MessageCircle } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
-import { batchesQuery, feePlansQuery } from "@/lib/site-queries";
+import {
+  batchesQuery,
+  feePlansQuery,
+  publishedPoliciesQuery,
+  POLICY_LABELS,
+  type PolicyDocument,
+  type PolicyKind,
+} from "@/lib/site-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { generateBlankRegistrationPdf } from "@/lib/registration-pdf";
 
+// Policies that must be accepted before registration submits (if the academy
+// has published them). Missing policies are silently skipped — never block
+// registration on paperwork the academy hasn't uploaded yet.
+const REQUIRED_POLICIES: PolicyKind[] = ["terms", "privacy", "fee", "medical"];
+
 export const Route = createFileRoute("/register")({
-  head: () => ({ meta: [{ title: "Register" }, { name: "description", content: "Register online" }] }),
+  head: () => ({
+    meta: [
+      { title: "Register" },
+      { name: "description", content: "Register online with your academy — no payment needed here." },
+      { property: "og:title", content: "Register" },
+      { property: "og:description", content: "Register online with your academy — no payment needed here." },
+    ],
+  }),
   component: () => (
     <TenantGate>
       <RegisterContent />
@@ -22,9 +41,15 @@ function RegisterContent() {
   const tenant = useTenant();
   const { data: batches = [] } = useQuery(batchesQuery(tenant.id));
   const { data: fees = [] } = useQuery(feePlansQuery(tenant.id));
+  const { data: policies = [] } = useQuery(publishedPoliciesQuery(tenant.id));
+
+  const requiredPolicies = REQUIRED_POLICIES
+    .map((kind) => policies.find((p) => p.kind === kind))
+    .filter((p): p is PolicyDocument => Boolean(p));
 
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [accepted, setAccepted] = useState<Record<string, boolean>>({});
 
   const [form, setForm] = useState({
     name: "",
@@ -36,20 +61,32 @@ function RegisterContent() {
     gender: "",
   });
 
+  const allRequiredAccepted = requiredPolicies.every((p) => accepted[p.id]);
+
   async function submitForm(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim() || !form.phone.trim()) {
       toast.error("Please fill name and phone.");
       return;
     }
-    // Auto-pick a default fee plan so the DB constraint is satisfied without
-    // showing money to the parent. Prefer a monthly plan, else the first plan.
+    if (requiredPolicies.length > 0 && !allRequiredAccepted) {
+      toast.error("Please accept the academy policies to continue.");
+      return;
+    }
     const defaultPlan =
       fees.find((f) => f.type === "monthly") ?? fees.find((f) => f.type !== "registration") ?? fees[0];
     if (!defaultPlan) {
       toast.error("Registrations aren't set up yet. Please contact the academy directly.");
       return;
     }
+
+    const now = new Date().toISOString();
+    const acceptances = requiredPolicies.map((p) => ({
+      policy_id: p.id,
+      kind: p.kind,
+      version: p.version,
+      accepted_at: now,
+    }));
 
     setSaving(true);
     const { data, error } = await supabase.rpc("submit_registration" as never, {
@@ -62,6 +99,7 @@ function RegisterContent() {
       _guardian_name: form.guardian_name.trim() || null,
       _guardian_phone: null,
       _whatsapp: null,
+      _policy_acceptances: acceptances as unknown as never,
     } as never);
     const extras: Record<string, string> = {};
     if (form.address.trim()) extras.address = form.address.trim();
@@ -84,6 +122,7 @@ function RegisterContent() {
   function downloadPdf() {
     generateBlankRegistrationPdf(tenant, fees, batches);
   }
+
 
   const wa = (tenant.whatsapp ?? tenant.phone ?? "").replace(/[^\d]/g, "");
   const waMsg = encodeURIComponent(
@@ -145,9 +184,46 @@ function RegisterContent() {
           />
           <TextArea label="Address" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
 
+          {requiredPolicies.length > 0 ? (
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Academy policies
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Please read and accept the following before submitting.
+              </p>
+              <ul className="mt-3 space-y-2">
+                {requiredPolicies.map((p) => (
+                  <li key={p.id} className="flex items-start gap-2">
+                    <input
+                      id={`acc-${p.id}`}
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 rounded border-border"
+                      checked={!!accepted[p.id]}
+                      onChange={(e) => setAccepted((prev) => ({ ...prev, [p.id]: e.target.checked }))}
+                    />
+                    <label htmlFor={`acc-${p.id}`} className="text-sm text-foreground">
+                      I accept the{" "}
+                      <Link
+                        to="/policies/$kind"
+                        params={{ kind: p.kind }}
+                        target="_blank"
+                        className="font-medium underline"
+                        style={{ color: "var(--brand)" }}
+                      >
+                        {p.title || POLICY_LABELS[p.kind]}
+                      </Link>{" "}
+                      <span className="text-xs text-muted-foreground">(v{p.version})</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || (requiredPolicies.length > 0 && !allRequiredAccepted)}
             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-lg disabled:opacity-60"
             style={{ backgroundColor: "var(--brand)" }}
           >

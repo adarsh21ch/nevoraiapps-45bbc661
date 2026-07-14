@@ -4772,6 +4772,7 @@ export type Database = {
           _guardian_phone?: string
           _name: string
           _phone: string
+          _policy_acceptances?: Json
           _tenant_id: string
           _whatsapp?: string
         }

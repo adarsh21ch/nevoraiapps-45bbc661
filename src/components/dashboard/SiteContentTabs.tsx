@@ -142,44 +142,66 @@ export function SiteContentTabs({ tenantId }: { tenantId: string }) {
   );
 }
 
+type FeesMode = "show" | "hide" | "contact" | "demo";
+
 function PricingVisibilityEditor({ tenantId, rows }: { tenantId: string; rows: any[] }) {
   const qc = useQueryClient();
   const existing = rows.find((r) => r.section === "pricing");
-  const initial = (existing?.content as any)?.visible === "true";
-  const [visible, setVisible] = useState<boolean>(initial);
-  useEffect(() => { setVisible((existing?.content as any)?.visible === "true"); }, [existing?.id]);
+  const content = (existing?.content as any) ?? {};
+  const initialMode: FeesMode =
+    (content.mode as FeesMode) ?? (content.visible === "true" ? "show" : "hide");
+  const [mode, setMode] = useState<FeesMode>(initialMode);
+  useEffect(() => {
+    const c = (existing?.content as any) ?? {};
+    setMode((c.mode as FeesMode) ?? (c.visible === "true" ? "show" : "hide"));
+  }, [existing?.id]);
   const save = useMutation({
     mutationFn: async () =>
-      persistSectionContent(tenantId, "pricing", existing?.id ?? null, { visible: visible ? "true" : "false" }),
+      persistSectionContent(tenantId, "pricing", existing?.id ?? null, {
+        mode,
+        visible: mode === "show" ? "true" : "false",
+      }),
     onSuccess: () => {
-      toast.success(visible ? "Pricing section is now visible" : "Pricing section hidden");
+      toast.success("Fees display updated");
       qc.invalidateQueries({ queryKey: qk.site(tenantId) });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const OPTIONS: { value: FeesMode; label: string; hint: string }[] = [
+    { value: "show", label: "Show fees", hint: "Display monthly pricing publicly." },
+    { value: "hide", label: "Hide fees", hint: "Remove pricing from the public site." },
+    { value: "contact", label: "Contact us", hint: "Hide prices and prompt visitors to WhatsApp / call." },
+    { value: "demo", label: "Book a demo", hint: "Hide prices and route visitors to a demo enquiry." },
+  ];
   return (
     <Card className="p-5 space-y-4">
       <div>
-        <div className="font-semibold">Show monthly pricing on the landing page</div>
+        <div className="font-semibold">Fees display mode</div>
         <p className="text-sm text-muted-foreground mt-1">
-          When off, the "Simple pricing" section is completely hidden from the public site. Fee plans still work inside the dashboard and on the private fees page.
+          Controls what visitors see on the public /fees page. Billing inside the dashboard is unaffected.
         </p>
       </div>
-      <label className="flex items-center gap-3 cursor-pointer select-none">
-        <span className="relative inline-block h-6 w-11">
-          <input
-            type="checkbox"
-            className="sr-only peer"
-            checked={visible}
-            onChange={(e) => setVisible(e.target.checked)}
-          />
-          <span className="absolute inset-0 rounded-full bg-muted peer-checked:bg-emerald-500 transition-colors" />
-          <span className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5" />
-        </span>
-        <span className="text-sm font-medium">
-          {visible ? "Visible on landing page" : "Hidden from landing page"}
-        </span>
-      </label>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {OPTIONS.map((opt) => (
+          <label
+            key={opt.value}
+            className={`cursor-pointer rounded-lg border p-3 transition-colors ${
+              mode === opt.value ? "border-transparent" : "border-border hover:bg-muted/40"
+            }`}
+            style={mode === opt.value ? { boxShadow: "inset 0 0 0 2px var(--brand)" } : undefined}
+          >
+            <input
+              type="radio"
+              name="fees-mode"
+              className="sr-only"
+              checked={mode === opt.value}
+              onChange={() => setMode(opt.value)}
+            />
+            <div className="text-sm font-semibold">{opt.label}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">{opt.hint}</div>
+          </label>
+        ))}
+      </div>
       <div>
         <Button onClick={() => save.mutate()} disabled={save.isPending} style={{ backgroundColor: "var(--brand)", color: "white" }}>
           Save

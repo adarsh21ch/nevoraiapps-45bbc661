@@ -24,7 +24,8 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { CheckCheck, Trash2, Phone, Share2, Copy } from "lucide-react";
+import { CheckCheck, Trash2, Phone, Share2, Copy, FileDown } from "lucide-react";
+import { generateFilledRegistrationPdf } from "@/lib/registration-pdf";
 
 export const Route = createFileRoute("/dashboard/registrations")({
   component: RegistrationsInbox,
@@ -545,6 +546,7 @@ function RegistrationDetails({
   onAccept: () => void;
   onRequestDelete: () => void;
 }) {
+  const { tenant } = useDashboard();
   const plan = reg.fee_plans as { name?: string; amount?: number } | null;
   const batch = reg.batches as { name?: string } | null;
   const paid = reg.payment_status === "verified" || reg.payment_status === "claimed_paid";
@@ -632,6 +634,30 @@ function RegistrationDetails({
           ✓ Already accepted as a student
         </div>
       )}
+
+      <button
+        type="button"
+        onClick={() =>
+          generateFilledRegistrationPdf(tenant, {
+            name: reg.name,
+            phone: reg.phone,
+            dob: reg.dob,
+            gender: reg.gender,
+            guardian_name: reg.guardian_name,
+            guardian_phone: reg.guardian_phone,
+            whatsapp: reg.whatsapp,
+            address: reg.address,
+            batch_name: batch?.name ?? null,
+            fee_plan_name: plan?.name ?? null,
+            fee_amount: plan?.amount ?? null,
+            policy_acceptances: reg.policy_acceptances ?? null,
+            created_at: reg.created_at,
+          })
+        }
+        className="w-full text-center text-xs text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1 py-1"
+      >
+        <FileDown className="size-3.5" /> Download filled PDF
+      </button>
 
       <button
         type="button"
