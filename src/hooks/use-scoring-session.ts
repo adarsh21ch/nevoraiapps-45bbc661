@@ -12,6 +12,7 @@ import {
   undoLastBallEvent,
   type AppendBallInput,
   type CreateInningsInput,
+  type ExtraType,
   type MCBallEvent,
   type MCInnings,
 } from "@/lib/mc-ball-events";
@@ -112,7 +113,11 @@ function buildCurrentOver(events: MCBallEvent[]): CurrentOverState {
   }
   const lastOver = events[events.length - 1].over_number;
   const overEvents = events.filter((e) => e.over_number === lastOver);
-  const legal = overEvents.filter((e) => e.is_legal_delivery).length;
+  // Derive legality from extra_type — the single source of truth. Never
+  // rely on the stored flag (may be stale on optimistic / legacy rows).
+  const legal = overEvents.filter((e) =>
+    isLegalDelivery(e.extra_type as ExtraType | null),
+  ).length;
   return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
 }
 
