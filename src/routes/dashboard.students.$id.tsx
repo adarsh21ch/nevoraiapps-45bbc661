@@ -363,7 +363,9 @@ function QuickAction({
         disabled && "opacity-40",
       )}
     >
-      <Icon className="size-4" style={{ color: disabled ? undefined : "var(--brand)" }} />
+      <span style={{ color: disabled ? undefined : "var(--brand)" }}>
+        <Icon className="size-4" />
+      </span>
       <span className="text-[10.5px] font-medium">{label}</span>
     </div>
   );
