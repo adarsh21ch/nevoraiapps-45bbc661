@@ -1,16 +1,35 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CheckCircle2, Download, Loader2, MessageCircle } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
-import { batchesQuery, feePlansQuery } from "@/lib/site-queries";
+import {
+  batchesQuery,
+  feePlansQuery,
+  publishedPoliciesQuery,
+  POLICY_LABELS,
+  type PolicyDocument,
+  type PolicyKind,
+} from "@/lib/site-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { generateBlankRegistrationPdf } from "@/lib/registration-pdf";
 
+// Policies that must be accepted before registration submits (if the academy
+// has published them). Missing policies are silently skipped — never block
+// registration on paperwork the academy hasn't uploaded yet.
+const REQUIRED_POLICIES: PolicyKind[] = ["terms", "privacy", "fee", "medical"];
+
 export const Route = createFileRoute("/register")({
-  head: () => ({ meta: [{ title: "Register" }, { name: "description", content: "Register online" }] }),
+  head: () => ({
+    meta: [
+      { title: "Register" },
+      { name: "description", content: "Register online with your academy — no payment needed here." },
+      { property: "og:title", content: "Register" },
+      { property: "og:description", content: "Register online with your academy — no payment needed here." },
+    ],
+  }),
   component: () => (
     <TenantGate>
       <RegisterContent />
@@ -22,9 +41,15 @@ function RegisterContent() {
   const tenant = useTenant();
   const { data: batches = [] } = useQuery(batchesQuery(tenant.id));
   const { data: fees = [] } = useQuery(feePlansQuery(tenant.id));
+  const { data: policies = [] } = useQuery(publishedPoliciesQuery(tenant.id));
+
+  const requiredPolicies = REQUIRED_POLICIES
+    .map((kind) => policies.find((p) => p.kind === kind))
+    .filter((p): p is PolicyDocument => Boolean(p));
 
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [accepted, setAccepted] = useState<Record<string, boolean>>({});
 
   const [form, setForm] = useState({
     name: "",
@@ -36,20 +61,32 @@ function RegisterContent() {
     gender: "",
   });
 
+  const allRequiredAccepted = requiredPolicies.every((p) => accepted[p.id]);
+
   async function submitForm(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim() || !form.phone.trim()) {
       toast.error("Please fill name and phone.");
       return;
     }
-    // Auto-pick a default fee plan so the DB constraint is satisfied without
-    // showing money to the parent. Prefer a monthly plan, else the first plan.
+    if (requiredPolicies.length > 0 && !allRequiredAccepted) {
+      toast.error("Please accept the academy policies to continue.");
+      return;
+    }
     const defaultPlan =
       fees.find((f) => f.type === "monthly") ?? fees.find((f) => f.type !== "registration") ?? fees[0];
     if (!defaultPlan) {
       toast.error("Registrations aren't set up yet. Please contact the academy directly.");
       return;
     }
+
+    const now = new Date().toISOString();
+    const acceptances = requiredPolicies.map((p) => ({
+      policy_id: p.id,
+      kind: p.kind,
+      version: p.version,
+      accepted_at: now,
+    }));
 
     setSaving(true);
     const { data, error } = await supabase.rpc("submit_registration" as never, {
@@ -62,6 +99,7 @@ function RegisterContent() {
       _guardian_name: form.guardian_name.trim() || null,
       _guardian_phone: null,
       _whatsapp: null,
+      _policy_acceptances: acceptances as unknown as never,
     } as never);
     const extras: Record<string, string> = {};
     if (form.address.trim()) extras.address = form.address.trim();
@@ -84,6 +122,7 @@ function RegisterContent() {
   function downloadPdf() {
     generateBlankRegistrationPdf(tenant, fees, batches);
   }
+
 
   const wa = (tenant.whatsapp ?? tenant.phone ?? "").replace(/[^\d]/g, "");
   const waMsg = encodeURIComponent(
