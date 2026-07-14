@@ -61,6 +61,7 @@ export interface MobileScorerProps {
   bowler?: BowlerStats;
   partnership?: { runs: number; balls: number } | null;
   overBalls: string[];
+  currentOver?: { number: number; ballsBowled: number };
   insights?: MobileScorerInsight;
 
   disabled?: boolean;
@@ -296,7 +297,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
       <div className="shrink-0 border-b border-border/40 bg-background/80 px-3 py-1.5 backdrop-blur-xl">
-        <ThisOverStrip balls={props.overBalls} overs={props.overs} />
+        <ThisOverStrip balls={props.overBalls} currentOver={props.currentOver} />
       </div>
 
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
@@ -629,16 +630,19 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
   );
 }
 
-function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
+function ThisOverStrip({ balls, currentOver }: { balls: string[]; currentOver?: { number: number; ballsBowled: number } }) {
+  const overNum = currentOver ? currentOver.number : 1;
+  const bowled = currentOver ? currentOver.ballsBowled : 0;
   return (
     <section className="flex h-11 shrink-0 items-center gap-3 px-1">
       <div className="flex shrink-0 items-baseline gap-1.5 leading-none">
         <span className="text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
           Over
         </span>
-        {overs && (
-          <span className="text-[15px] font-black tabular-nums text-foreground">{overs}</span>
-        )}
+        <span className="text-[15px] font-black tabular-nums text-foreground">{overNum}</span>
+        <span className="text-[10.5px] font-bold tabular-nums text-muted-foreground">
+          {bowled}/6
+        </span>
       </div>
       <div className="h-4 w-px shrink-0 bg-border/60" />
       <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto ds-scroll">
