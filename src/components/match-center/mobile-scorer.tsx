@@ -500,19 +500,20 @@ function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; strike
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-1.5">
-          {striker && (
-            <span className="grid size-5 shrink-0 place-items-center rounded-full bg-[var(--score-striker-dot)] text-[var(--score-action-foreground)] text-[11px] font-black">
-              *
+          {striker ? (
+            <span className="grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-striker-dot)] text-[var(--score-action-foreground)] text-[11px] font-black leading-none">
+              ★
             </span>
+          ) : (
+            <span className="size-[18px] shrink-0" aria-hidden />
           )}
-          <span className="truncate text-[13px] font-bold leading-tight">{name}</span>
+          <span className="truncate text-[14px] font-bold leading-tight">{name}</span>
         </div>
-        <div className="mt-0.5 flex min-w-0 items-center gap-2 overflow-hidden text-[10.5px] leading-tight text-muted-foreground tabular-nums">
-          <span>4s {batter?.fours ?? 0}</span>
-          <span>6s {batter?.sixes ?? 0}</span>
-          <span>SR {sr}</span>
+        <div className="mt-1 pl-[26px] truncate text-[11px] leading-tight text-muted-foreground tabular-nums">
+          {(batter?.fours ?? 0)}×4 • {(batter?.sixes ?? 0)}×6 • SR {sr}
         </div>
       </div>
+
       <div className="text-right tabular-nums">
         <div className="text-[17px] font-black leading-none">
           {batter?.runs ?? 0}
