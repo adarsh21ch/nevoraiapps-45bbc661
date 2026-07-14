@@ -24,6 +24,7 @@ import {
   FileText,
   Flag,
   HeartPulse,
+  Redo2,
   Search,
   Shield,
   StopCircle,
