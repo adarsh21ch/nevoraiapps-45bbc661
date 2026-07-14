@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 type Tab = {
   to: string;
-  match: string[]; // pathname prefixes considered active for this tab
+  match: string[];
   label: string;
   icon: React.ComponentType<{ className?: string }>;
 };
@@ -73,11 +73,11 @@ export function MatchCenterBottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/85 backdrop-blur-xl"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/85 backdrop-blur-xl"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Match Center navigation"
     >
-      <div className="mx-auto grid max-w-2xl grid-cols-5">
+      <div className="mx-auto grid w-full max-w-2xl grid-cols-5">
         {TABS.map((tab) => {
           const active = tab.match.some(
             (p) => location.pathname === p || location.pathname.startsWith(p + "/"),
@@ -89,7 +89,7 @@ export function MatchCenterBottomNav() {
               key={tab.to}
               to={tab.to}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-1 py-2 pb-2.5 no-tap-highlight transition-colors",
+                "relative flex min-w-0 flex-col items-center justify-center gap-[3px] py-1.5 no-tap-highlight transition-transform active:scale-[0.94]",
                 active ? "text-foreground" : "text-muted-foreground/70",
               )}
               style={
@@ -100,19 +100,19 @@ export function MatchCenterBottomNav() {
               aria-label={tab.label}
               aria-current={active ? "page" : undefined}
             >
-              <div className="relative grid h-7 w-12 place-items-center">
+              <div className="relative grid h-6 w-10 place-items-center">
                 <Icon className={cn("size-[22px]", active && "stroke-[2.25]")} />
                 {showLiveDot && (
-                  <span className="absolute right-2 top-0.5 flex size-2">
+                  <span className="absolute right-1 top-0 flex size-[7px]">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-                    <span className="relative inline-flex size-2 rounded-full bg-red-500" />
+                    <span className="relative inline-flex size-[7px] rounded-full bg-red-500" />
                   </span>
                 )}
               </div>
               <span
                 className={cn(
-                  "text-[10.5px] font-medium tracking-tight leading-none",
-                  active ? "font-semibold" : "",
+                  "truncate text-[11px] leading-none tracking-tight",
+                  active ? "font-semibold" : "font-medium",
                 )}
               >
                 {tab.label}
