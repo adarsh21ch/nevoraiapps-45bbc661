@@ -4063,6 +4063,7 @@ export type Database = {
           secondary_color: string
           setup_fee: number
           short_name: string | null
+          show_billing_to_parents: boolean
           slug: string
           status: string
           subscription_status: string
@@ -4092,6 +4093,7 @@ export type Database = {
           secondary_color?: string
           setup_fee?: number
           short_name?: string | null
+          show_billing_to_parents?: boolean
           slug: string
           status?: string
           subscription_status?: string
@@ -4121,6 +4123,7 @@ export type Database = {
           secondary_color?: string
           setup_fee?: number
           short_name?: string | null
+          show_billing_to_parents?: boolean
           slug?: string
           status?: string
           subscription_status?: string
@@ -4440,6 +4443,7 @@ export type Database = {
         Args: { _tenant: string; _uid: string }
         Returns: boolean
       }
+      is_my_child: { Args: { _student_id: string }; Returns: boolean }
       is_my_student: { Args: { _student_id: string }; Returns: boolean }
       is_platform_admin: { Args: { _uid: string }; Returns: boolean }
       is_tenant_member: {
