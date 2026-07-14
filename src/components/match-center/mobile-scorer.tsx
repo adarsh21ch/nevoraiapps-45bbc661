@@ -493,11 +493,8 @@ function ScoreHeroCard({
   const [runsPart, wicketsPart] = score.split("/");
   const wickets = wicketsPart ?? "0";
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/12 via-card to-card p-3 shadow-[0_10px_30px_-16px_color-mix(in_oklab,var(--primary)_35%,transparent),inset_0_1px_0_0_color-mix(in_oklab,white_20%,transparent)]">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
-      />
+    <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-card p-3 shadow-sm">
+
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <div className="min-w-0">
           <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
