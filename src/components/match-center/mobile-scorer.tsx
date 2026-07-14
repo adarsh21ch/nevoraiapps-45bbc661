@@ -629,9 +629,10 @@ function LiveInsights({
 
 function InfoTile({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="min-w-0 rounded-lg bg-card/70 px-2 py-1.5 text-center tabular-nums">
+    <div className="min-w-0 rounded-lg bg-card/70 px-2 py-1 text-center tabular-nums">
       <div className="truncate text-[9px] font-black uppercase tracking-widest text-muted-foreground">{label}</div>
-      <div className={cn("truncate text-[12px] font-black", accent && "text-[var(--score-success-fg)]")}>{value}</div>
+      <div className={cn("truncate text-[12.5px] font-black leading-tight", accent && "text-[var(--score-success-fg)]")}>{value}</div>
+
     </div>
   );
 }
