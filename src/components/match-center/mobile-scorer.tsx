@@ -501,16 +501,12 @@ function ScoreHeroCard({
           <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
             Score
           </div>
-          <div className="flex min-w-0 items-baseline gap-1">
+          <div className="flex min-w-0 items-baseline">
             <h1 className="text-[46px] font-black leading-[0.9] tracking-tight tabular-nums sm:text-[52px]">
               <NumberRoll value={runsPart ?? score} />
-            </h1>
-            <span className="text-[26px] font-black leading-[0.9] tabular-nums text-muted-foreground/70">
-              /
-            </span>
-            <span className="text-[30px] font-black leading-[0.9] tabular-nums text-destructive/85">
+              <span>/</span>
               <NumberRoll value={wickets} />
-            </span>
+            </h1>
           </div>
           <div className="mt-1 flex items-baseline gap-2 text-[11.5px] tabular-nums">
             <span className="rounded bg-muted/60 px-1.5 py-0.5 text-[11px] font-bold text-muted-foreground">
