@@ -761,7 +761,7 @@ function ScorerPage() {
           overBalls={session.matchState.innings.awaitingNewBowler ? [] : session.currentOver.events.map(ballChipLabel)}
           currentOverLabel={currentOverLabel}
           overHistory={computeOverHistory(session.events, ballChipLabel)}
-          inningsLabel={session.matchState.innings.battingTeamName ?? undefined}
+          inningsLabel={undefined}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
