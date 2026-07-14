@@ -22,6 +22,7 @@ import {
   validateBallDraft,
   type MatchState,
 } from "@/lib/mc-rules-engine";
+import { formatLiveOver } from "@/lib/mc-statistics-engine";
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
@@ -119,6 +120,20 @@ function buildCurrentOver(events: MCBallEvent[]): CurrentOverState {
     isLegalDelivery(e.extra_type as ExtraType | null),
   ).length;
   return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
+}
+
+function countCompletedLegalDeliveries(events: MCBallEvent[]) {
+  return events.filter((e) => isLegalDelivery(e.extra_type as ExtraType | null)).length;
+}
+
+function logScoringOverCheckpoint(
+  phase: "before recording" | "after recording",
+  completedLegalBalls: number,
+) {
+  console.info(`[scoring-event] ${phase}`, {
+    completedLegalBalls,
+    formattedOver: formatLiveOver(completedLegalBalls),
+  });
 }
 
 function samePlayerRef(
@@ -406,6 +421,8 @@ export function useScoringSession(
         throw new BallEventError("NO_BOWLER", "Select the bowler.");
 
       const priorEvents = eventsRef.current;
+      const completedLegalBallsBefore = countCompletedLegalDeliveries(priorEvents);
+      logScoringOverCheckpoint("before recording", completedLegalBallsBefore);
       const latestMatchState = replayInnings(priorEvents, {
         totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
         maxWickets: 10,
@@ -462,6 +479,10 @@ export function useScoringSession(
 
       eventsRef.current = [...priorEvents, optimistic];
       setEvents(eventsRef.current);
+      logScoringOverCheckpoint(
+        "after recording",
+        completedLegalBallsBefore + (optimistic.is_legal_delivery ? 1 : 0),
+      );
 
       // Auto strike rotation for the UI pointer (state is still derived from
       // events — this only updates the *selected* striker/non-striker).
