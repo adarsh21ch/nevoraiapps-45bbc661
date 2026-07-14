@@ -1582,7 +1582,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           tournamentLabel={tournamentLabel || undefined}
           isLive={isLive}
           score={`${stats.team.runs}/${stats.team.wickets}`}
-          overs={stats.team.oversDisplay}
+          overs={currentOverLabel}
           crr={String(stats.team.runRate)}
           rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={activeInnings?.target != null ? String(activeInnings.target) : undefined}
