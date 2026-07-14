@@ -690,7 +690,15 @@ function BowlerLine({
 }
 
 
-function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
+function ThisOverStrip({
+  balls,
+  overs,
+  onOpenHistory,
+}: {
+  balls: string[];
+  overs?: string;
+  onOpenHistory?: () => void;
+}) {
   // The parent may pass either "N.M" (in-progress) or "Over N+1" (pre-over
   // state after a completed over). We strip the redundant "Over " prefix so
   // the fixed label above the number never doubles up.
@@ -716,9 +724,20 @@ function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
           balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
         )}
       </div>
+      {onOpenHistory && (
+        <button
+          type="button"
+          onClick={onOpenHistory}
+          aria-label="Open over history"
+          className="ml-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background/70 text-muted-foreground transition duration-100 active:scale-95 hover:text-foreground"
+        >
+          <Clock className="size-4" />
+        </button>
+      )}
     </section>
   );
 }
+
 
 
 
