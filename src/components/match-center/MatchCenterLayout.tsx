@@ -1,9 +1,10 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   LayoutDashboard,
   Radio,
@@ -21,13 +22,17 @@ import {
   ArrowLeft,
   Swords,
   ChevronRight,
+  ChevronDown,
   Sparkles,
   Globe,
   HeartHandshake,
   LineChart,
   ShieldCheck,
+  X,
+  BadgeCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 
 import { DemoBadge } from "@/components/match-center/demo-badge";
 import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
