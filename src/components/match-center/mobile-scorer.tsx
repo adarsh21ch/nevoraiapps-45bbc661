@@ -84,6 +84,8 @@ export interface MobileScorerProps {
 
 
   onUndo: () => void;
+  onRedo?: () => void;
+  canRedo?: boolean;
   onSwapStrike: () => void;
   onRetiredHurt: () => void;
   onFinishInnings?: () => void;
