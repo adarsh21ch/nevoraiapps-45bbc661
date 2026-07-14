@@ -23,6 +23,7 @@ import {
   ArrowLeft,
   ChevronDown,
   CircleDot,
+  Clock,
   FileText,
   Flag,
   Redo2,
@@ -31,6 +32,8 @@ import {
   UserPlus,
   Share2,
 } from "lucide-react";
+import { OverHistorySheet } from "./over-history-sheet";
+import type { OverHistoryRow } from "@/lib/mc-statistics-engine";
 
 
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
