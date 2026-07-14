@@ -585,7 +585,7 @@ function LiveInsights({
 }) {
   const recentOvers = insights?.recentOvers ?? [];
   return (
-    <section className={cn("flex flex-col gap-2 overflow-hidden rounded-xl border bg-muted/25 p-2", className)}>
+    <section className={cn("flex flex-col gap-1.5 overflow-hidden rounded-xl border bg-muted/25 p-1.5", className)}>
       <div className="grid shrink-0 grid-cols-4 gap-1.5">
         <InfoTile label="P'ship" value={insights?.partnership ?? (partnership ? `${partnership.runs}(${partnership.balls})` : "0(0)")} />
         <InfoTile label={chase ? "Need" : "Proj"} value={chase ? `${chase.runsNeeded}` : insights?.projected ?? "–"} accent={Boolean(chase)} />
@@ -593,32 +593,35 @@ function LiveInsights({
         <InfoTile label="FOW" value={insights?.lastWicket ?? "–"} />
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-2 overflow-hidden">
-        <div className="min-w-0 rounded-lg bg-card/55 p-2">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-1.5 overflow-hidden">
+        <div className="min-w-0 rounded-lg bg-card/55 px-2 py-1.5">
           <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recent overs</div>
           {recentOvers.length === 0 ? (
-            <div className="text-[12px] text-muted-foreground">Ball-by-ball data appears here.</div>
+            <div className="text-[11.5px] text-muted-foreground">Ball-by-ball data appears here.</div>
           ) : (
-            <div className="space-y-1">
-              {recentOvers.slice(-3).map((over) => (
-                <div key={over.label} className="grid grid-cols-[44px_1fr_auto] items-center gap-2 text-[12px] tabular-nums">
-                  <span className="font-bold text-muted-foreground">{over.label}</span>
-                  <span className="h-1.5 rounded-full bg-[var(--score-over-track)]">
-                    <span className="block h-full rounded-full bg-[var(--score-over-fill)]" style={{ width: `${Math.min(100, Math.max(8, over.runs * 7))}%` }} />
+            <div className="flex flex-wrap items-center gap-1">
+              {recentOvers.slice(-4).map((over) => (
+                <span
+                  key={over.label}
+                  className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background/70 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums"
+                >
+                  <span className="text-muted-foreground">{over.label}</span>
+                  <span className="font-black text-foreground">
+                    {over.runs}{over.wickets ? `/${over.wickets}` : ""}
                   </span>
-                  <span className="font-black">{over.runs}{over.wickets ? `/${over.wickets}` : ""}</span>
-                </div>
+                </span>
               ))}
             </div>
           )}
         </div>
-        <div className="grid min-w-[76px] content-center gap-1 rounded-lg bg-card/55 p-2 text-right text-[11px] tabular-nums">
+        <div className="grid min-w-[76px] content-center gap-0.5 rounded-lg bg-card/55 px-2 py-1.5 text-right text-[11px] tabular-nums">
           <MetricInline label="CRR" value={crr ?? "–"} />
           {rrr && <MetricInline label="RRR" value={rrr} accent />}
           {target && <MetricInline label="T" value={target} />}
         </div>
       </div>
     </section>
+
   );
 }
 
