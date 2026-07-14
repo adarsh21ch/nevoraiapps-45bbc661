@@ -26,6 +26,8 @@ import { candidatePeriods, periodKey, studentDue, tenantFeeCycle } from "@/lib/f
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { useT } from "@/lib/i18n";
 import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
+import { useInAcademyCount } from "@/lib/attendance/queries";
+import { LiveBadge } from "@/components/ds";
 import { format } from "date-fns";
 
 
@@ -152,7 +154,7 @@ function DashboardHome() {
         </Link>
       ) : null}
 
-
+      <InAcademyLiveStrip tenantId={tenant.id} />
 
       {/* Compact KPI hero — 2×2 on mobile, 4-across on desktop, all in one card */}
       <Card className="p-0 overflow-hidden">
@@ -595,4 +597,34 @@ function BirthdaysCard({
     </Card>
   );
 }
+
+/**
+ * Live "In Academy Now" strip.
+ * Subscribes to the shared attendance realtime channel via useInAcademyCount.
+ * One tap → Attendance module.
+ */
+function InAcademyLiveStrip({ tenantId }: { tenantId: string }) {
+  const { count, isLoading } = useInAcademyCount(tenantId);
+  return (
+    <Link
+      to="/dashboard/attendance"
+      className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 hover:bg-accent/40 active:bg-accent/60 transition-colors"
+    >
+      <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+        <ClipboardCheck className="size-5" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">In Academy Now</span>
+          <LiveBadge state="live" />
+        </div>
+        <div className="text-2xl font-bold leading-tight tabular-nums">
+          {isLoading ? "—" : count}
+        </div>
+      </div>
+      <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+    </Link>
+  );
+}
+
 
