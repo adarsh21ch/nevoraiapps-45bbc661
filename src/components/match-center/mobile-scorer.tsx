@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NumberRoll } from "@/components/ui/number-roll";
 import { useSwipe } from "@/hooks/use-swipe";
 import { cn } from "@/lib/utils";
@@ -64,7 +64,7 @@ export interface MobileScorerProps {
   insights?: MobileScorerInsight;
 
   disabled?: boolean;
-  onRun: (r: 0 | 1 | 2 | 3 | 4 | 6) => void;
+  onRun: (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => void;
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   onOut: () => void;
 
@@ -107,6 +107,7 @@ type PickerKind = "striker" | "nonStriker" | "bowler";
 
 export function MobileScorer(props: MobileScorerProps) {
   const [pickerOpen, setPickerOpen] = useState<PickerKind | null>(null);
+  const autoPickerRef = useRef<PickerKind | null>(null);
   const [scorecardExpanded, setScorecardExpanded] = useState(false);
   const [confirm, setConfirm] = useState<
     null | { kind: "end-match" | "finish-innings" | "delete-ball" }
@@ -128,20 +129,24 @@ export function MobileScorer(props: MobileScorerProps) {
   );
 
   useEffect(() => {
-    if (!sheetPickerEnabled || !props.awaitingNewBowler) return;
-    setPickerOpen("bowler");
-  }, [sheetPickerEnabled, props.awaitingNewBowler]);
-
-  useEffect(() => {
     if (!sheetPickerEnabled || !props.requiredPicker) return;
+    autoPickerRef.current = props.requiredPicker;
     setPickerOpen(props.requiredPicker);
   }, [sheetPickerEnabled, props.requiredPicker]);
+
+  useEffect(() => {
+    if (props.requiredPicker || !pickerOpen) return;
+    if (autoPickerRef.current !== pickerOpen) return;
+    autoPickerRef.current = null;
+    setPickerOpen(null);
+  }, [pickerOpen, props.requiredPicker]);
 
   // Auto-open the batter picker when a wicket falls and a slot is empty.
   useEffect(() => {
     if (!sheetPickerEnabled) return;
     if (!props.awaitingNewBatter) return;
     if (!missingBatterRole) return;
+    autoPickerRef.current = missingBatterRole;
     setPickerOpen(missingBatterRole);
   }, [sheetPickerEnabled, props.awaitingNewBatter, missingBatterRole]);
 
@@ -157,6 +162,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
   const openPicker = (kind: PickerKind) => {
     if (sheetPickerEnabled) {
+      autoPickerRef.current = null;
       setPickerOpen(kind);
       return;
     }
@@ -290,7 +296,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
       <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-1.5 backdrop-blur-xl">
-        <ThisOverStrip balls={props.overBalls} overs={props.overs} />
+        <ThisOverStrip balls={props.overBalls} />
       </div>
 
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
@@ -433,6 +439,7 @@ export function MobileScorer(props: MobileScorerProps) {
         onOpenChange={(v) => {
           if (v) return;
           if (pickerOpen && pickerOpen === props.requiredPicker) return;
+          autoPickerRef.current = null;
           setPickerOpen(null);
         }}
         lockedMessage={pickerOpen === "bowler" ? "Cannot bowl consecutive overs" : undefined}
@@ -440,6 +447,7 @@ export function MobileScorer(props: MobileScorerProps) {
         onSelect={(p) => {
           if (!pickerOpen || isIllegalBowler(p)) return;
           props.onPickPlayer?.(pickerOpen, p);
+          autoPickerRef.current = null;
           setPickerOpen(null);
         }}
       />
@@ -495,12 +503,12 @@ function ScoreHeroCard({
           <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
             Score
           </div>
-          <div className="flex min-w-0 items-end justify-between gap-2">
+          <div className="flex min-w-0 items-end gap-2">
             <h1 className="text-[46px] font-black leading-[0.9] tracking-tight tabular-nums sm:text-[52px]">
               <NumberRoll value={`${runsPart ?? score}/${wickets}`} />
             </h1>
-            <span className="shrink-0 rounded-md bg-muted/70 px-1.5 py-0.5 text-[11px] font-black tabular-nums text-muted-foreground">
-              {overs} ov
+            <span className="mb-1 shrink-0 rounded-md bg-muted/70 px-1.5 py-0.5 text-[11px] font-black tabular-nums text-muted-foreground">
+              {overs} overs
             </span>
           </div>
           {chase && (
@@ -615,14 +623,9 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
   );
 }
 
-function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
+function ThisOverStrip({ balls }: { balls: string[] }) {
   return (
     <section className="flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10">
-      {overs && (
-        <span className="shrink-0 rounded-md bg-primary/15 px-1.5 py-0.5 text-[11px] font-black tabular-nums text-primary">
-          {overs}
-        </span>
-      )}
       <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
         This over
       </span>
@@ -739,14 +742,14 @@ function ScoringDock({
   onOut,
 }: {
   disabled?: boolean;
-  onRun: (r: 0 | 1 | 2 | 3 | 4 | 6) => void;
+  onRun: (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => void;
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   onOut: () => void;
 }) {
   return (
     <div className="rounded-2xl border bg-card/95 p-2 shadow-[0_4px_20px_-12px_oklch(0_0_0/45%)] backdrop-blur-xl">
-      <div className="grid grid-cols-6 gap-2">
-        {([0, 1, 2, 3, 4, 6] as const).map((run) => (
+      <div className="grid grid-cols-7 gap-1.5">
+        {([0, 1, 2, 3, 4, 5, 6] as const).map((run) => (
           <RunKey key={run} value={run} disabled={disabled} onClick={() => onRun(run)} />
         ))}
       </div>
@@ -762,7 +765,7 @@ function ScoringDock({
 }
 
 
-function RunKey({ value, disabled, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 6; disabled?: boolean; onClick: () => void }) {
+function RunKey({ value, disabled, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 5 | 6; disabled?: boolean; onClick: () => void }) {
   const tone = value === 4 ? "four" : value === 6 ? "six" : "neutral";
   return (
     <button
