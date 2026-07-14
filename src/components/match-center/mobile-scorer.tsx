@@ -282,12 +282,13 @@ export function MobileScorer(props: MobileScorerProps) {
             <button
               type="button"
               onClick={() => setConfirm({ kind: "end-match" })}
-              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-destructive/40 bg-destructive/10 px-3.5 text-[11px] font-black uppercase tracking-wider text-destructive transition duration-100 active:scale-95"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-destructive/25 bg-destructive/[0.06] px-3 text-[10.5px] font-black uppercase tracking-wider text-destructive/90 transition duration-100 active:scale-95"
             >
-              <StopCircle className="size-4" />
+              <StopCircle className="size-3.5" />
               End
             </button>
           )}
+
         </div>
       </header>
 
