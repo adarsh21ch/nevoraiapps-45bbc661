@@ -22,6 +22,11 @@ export function useDashboard() {
   return v;
 }
 
+/** Non-throwing variant — returns null when used outside a DashboardProvider (e.g. public pages). */
+export function useDashboardOptional() {
+  return useContext(Ctx);
+}
+
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [session, setSession] = useState<Session | null | undefined>(undefined);
