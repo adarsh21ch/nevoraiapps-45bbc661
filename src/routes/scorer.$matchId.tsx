@@ -1612,6 +1612,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           }
           overBalls={session.matchState.innings.awaitingNewBowler ? [] : session.currentOver.events.map(ballChipLabel)}
           currentOverLabel={currentOverLabel}
+          overHistory={computeOverHistory(session.events, ballChipLabel)}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
