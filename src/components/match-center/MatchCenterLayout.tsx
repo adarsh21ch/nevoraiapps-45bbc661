@@ -1,9 +1,10 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   LayoutDashboard,
   Radio,
@@ -21,13 +22,17 @@ import {
   ArrowLeft,
   Swords,
   ChevronRight,
+  ChevronDown,
   Sparkles,
   Globe,
   HeartHandshake,
   LineChart,
   ShieldCheck,
+  X,
+  BadgeCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 
 import { DemoBadge } from "@/components/match-center/demo-badge";
 import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
@@ -180,7 +185,7 @@ export function SearchBar({
 }
 
 export function MatchCenterLayout({ children }: { children?: ReactNode }) {
-  const { tenant, signOut } = useDashboard();
+  const { tenant, profile, signOut } = useDashboard();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -269,20 +274,17 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
         </div>
       </header>
 
-      {/* Mobile navigation sheet (top-right menu) */}
-      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetContent
-          side="right"
-          className="w-[86vw] max-w-sm p-0 pt-[calc(env(safe-area-inset-top)+3.5rem)] pb-[calc(env(safe-area-inset-bottom)+0.5rem)] md:hidden flex flex-col"
-        >
-          <SheetHeader className="border-b border-border px-4 py-3">
-            <SheetTitle className="text-left text-sm font-semibold">Match Center</SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto">
-            <SidebarInner onNavigate={() => setMenuOpen(false)} />
-          </div>
-        </SheetContent>
-      </Sheet>
+      {/* Mobile navigation drawer — native iOS-style */}
+      <NativeMobileDrawer
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+        tenantName={tenant.name}
+        role={profile.role ?? "Administrator"}
+        onSignOut={signOut}
+        onNavigate={() => setMenuOpen(false)}
+      />
+
+
 
 
       <div className="flex">
@@ -356,3 +358,250 @@ function SidebarInner({ onNavigate }: { onNavigate: () => void }) {
     </nav>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/* Native iOS-style Mobile Drawer                                     */
+/* ------------------------------------------------------------------ */
+
+type DrawerProps = {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  tenantName: string;
+  role: string;
+  onSignOut: () => void | Promise<void>;
+  onNavigate: () => void;
+};
+
+const DEFAULT_OPEN_GROUPS = new Set(["Home", "Live"]);
+
+function NativeMobileDrawer({
+  open,
+  onOpenChange,
+  tenantName,
+  role,
+  onSignOut,
+  onNavigate,
+}: DrawerProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Auto-expand the group that contains the current route
+  const activeGroup = useMemo(() => {
+    for (const g of NAV_GROUPS) {
+      if (g.items.some((i) => location.pathname === i.to || location.pathname.startsWith(i.to + "/"))) {
+        return g.label;
+      }
+    }
+    return null;
+  }, [location.pathname]);
+
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => {
+    const s = new Set(DEFAULT_OPEN_GROUPS);
+    if (activeGroup) s.add(activeGroup);
+    return s;
+  });
+
+  useEffect(() => {
+    if (activeGroup) {
+      setOpenGroups((prev) => {
+        if (prev.has(activeGroup)) return prev;
+        const next = new Set(prev);
+        next.add(activeGroup);
+        return next;
+      });
+    }
+  }, [activeGroup]);
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  };
+
+  const initials = tenantName
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="left"
+        overlayClassName="bg-black/50 backdrop-blur-[2px] md:hidden"
+        className={cn(
+          "md:hidden flex flex-col p-0 gap-0",
+          "w-[82vw] max-w-[340px] border-r-0",
+          "rounded-r-[28px] overflow-hidden",
+          "bg-background/95 backdrop-blur-xl",
+          "pt-[env(safe-area-inset-top)] pb-0",
+          // Hide default sheet close button
+          "[&>button.absolute]:hidden",
+        )}
+      >
+        <VisuallyHidden>
+          <SheetTitle>Match Center navigation</SheetTitle>
+          <SheetDescription>Primary navigation drawer</SheetDescription>
+        </VisuallyHidden>
+
+        {/* Compact header */}
+        <div className="flex items-center justify-between px-4 pt-3 pb-2">
+          <div className="flex items-center gap-2">
+            <Menu className="size-4 text-muted-foreground" />
+            <span className="text-[13px] font-semibold tracking-tight">Match Center</span>
+          </div>
+          <button
+            onClick={() => onOpenChange(false)}
+            aria-label="Close menu"
+            className="grid size-10 place-items-center rounded-full bg-muted/60 text-foreground/80 no-tap-highlight active:scale-95 transition"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {/* User / Academy card */}
+        <div className="mx-4 mt-1 mb-3 rounded-2xl border border-border/60 bg-card/70 px-3 py-2.5 flex items-center gap-3">
+          <div
+            className="grid size-11 shrink-0 place-items-center rounded-xl text-white text-[15px] font-bold"
+            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
+          >
+            {initials || "🏏"}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[15px] font-semibold leading-tight">{tenantName}</div>
+            <div className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted-foreground">
+              <span className="truncate capitalize">{role}</span>
+              <span className="text-muted-foreground/50">·</span>
+              <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-foreground/70">
+                <BadgeCheck className="size-3" /> Pro
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick actions */}
+        <div className="px-4 pb-3 grid grid-cols-2 gap-2">
+          <button
+            onClick={() => {
+              onOpenChange(false);
+              navigate({ to: "/match-center/create" });
+            }}
+            className="flex items-center justify-center gap-1.5 h-11 rounded-xl text-white text-[13px] font-semibold no-tap-highlight active:scale-[0.98] transition"
+            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
+          >
+            <PlusCircle className="size-4" /> Create
+          </button>
+          <button
+            onClick={() => {
+              onOpenChange(false);
+              navigate({ to: "/match-center/live" });
+            }}
+            className="flex items-center justify-center gap-1.5 h-11 rounded-xl bg-muted/70 text-foreground text-[13px] font-semibold no-tap-highlight active:scale-[0.98] transition"
+          >
+            <Radio className="size-4" /> Live
+          </button>
+        </div>
+
+        {/* Menu — scrollable middle */}
+        <nav className="flex-1 overflow-y-auto px-2 pb-2 ds-scroll">
+          {NAV_GROUPS.map((group) => {
+            const isOpen = openGroups.has(group.label);
+            const groupHasActive = group.items.some(
+              (i) => location.pathname === i.to || location.pathname.startsWith(i.to + "/"),
+            );
+            return (
+              <div key={group.label} className="px-2 pt-2">
+                <button
+                  onClick={() => toggleGroup(group.label)}
+                  className="w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70 no-tap-highlight"
+                >
+                  <span>{group.label}</span>
+                  <ChevronDown
+                    className={cn(
+                      "size-3.5 transition-transform duration-200",
+                      isOpen ? "rotate-0" : "-rotate-90",
+                    )}
+                  />
+                </button>
+                <div
+                  className={cn(
+                    "grid transition-[grid-template-rows] duration-200 ease-out",
+                    isOpen || groupHasActive ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+                  )}
+                >
+                  <div className="overflow-hidden">
+                    <div className="pt-0.5 space-y-0.5">
+                      {group.items.map((n) => {
+                        const active =
+                          location.pathname === n.to || location.pathname.startsWith(n.to + "/");
+                        const Icon = n.icon;
+                        return (
+                          <Link
+                            key={n.to}
+                            to={n.to}
+                            onClick={onNavigate}
+                            className={cn(
+                              "relative flex items-center gap-3 h-11 px-3 rounded-[14px] text-[15px] font-medium transition-colors no-tap-highlight",
+                              active
+                                ? "text-foreground"
+                                : "text-foreground/75 active:bg-accent/40",
+                            )}
+                            style={
+                              active
+                                ? {
+                                    backgroundColor:
+                                      "color-mix(in oklch, var(--tenant-brand, var(--brand, #E8873C)) 12%, transparent)",
+                                  }
+                                : undefined
+                            }
+                          >
+                            {active && (
+                              <span
+                                className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full"
+                                style={{
+                                  backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))",
+                                }}
+                              />
+                            )}
+                            <Icon className={cn("size-5 shrink-0", active && "stroke-[2.25]")} />
+                            <span className="truncate">{n.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </nav>
+
+        {/* Sticky footer */}
+        <div
+          className="border-t border-border/60 bg-background/80 backdrop-blur px-4 py-3"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
+        >
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-2">
+            <span>Storage · 1.2 GB</span>
+            <span>v1.0.3</span>
+          </div>
+          <button
+            onClick={() => {
+              onOpenChange(false);
+              void onSignOut();
+            }}
+            className="w-full flex items-center justify-center gap-2 h-11 rounded-xl bg-destructive/10 text-destructive text-[14px] font-semibold no-tap-highlight active:scale-[0.98] transition"
+          >
+            <LogOut className="size-4" /> Log out
+          </button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
