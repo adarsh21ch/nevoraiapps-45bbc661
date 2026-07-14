@@ -514,8 +514,9 @@ function ScoreHeroCard({
               <NumberRoll value={`${runsPart ?? score}/${wickets}`} />
             </h1>
             <span className="mb-1 shrink-0 rounded-md bg-muted/70 px-1.5 py-0.5 text-[11px] font-black tabular-nums text-muted-foreground">
-              {overs} overs
+              {overs.startsWith("Over ") ? overs : `${overs} overs`}
             </span>
+
           </div>
           {chase && (
             <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[var(--score-success-bg,color-mix(in_oklab,var(--primary)_16%,transparent))] px-2 py-1 text-[11.5px] font-black text-[var(--score-success-fg)] tabular-nums">
