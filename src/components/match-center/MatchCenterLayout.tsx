@@ -568,7 +568,7 @@ function NativeMobileDrawer({
                                 }}
                               />
                             )}
-                            <Icon className="size-5 shrink-0" strokeWidth={active ? 2.25 : 1.75} />
+                            <Icon className={cn("size-5 shrink-0", active && "stroke-[2.25]")} />
                             <span className="truncate">{n.label}</span>
                           </Link>
                         );
