@@ -297,7 +297,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
       <div className="shrink-0 border-b border-border/40 bg-background/80 px-3 py-1.5 backdrop-blur-xl">
-        <ThisOverStrip balls={props.overBalls} overs={props.overs} />
+        <ThisOverStrip balls={props.overBalls} currentOver={props.currentOver} />
       </div>
 
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
