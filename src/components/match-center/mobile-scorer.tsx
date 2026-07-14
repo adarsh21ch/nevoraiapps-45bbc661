@@ -297,6 +297,10 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
 
+      <div className="shrink-0 border-b border-border/60 bg-background/95 px-3 py-1.5 backdrop-blur-xl">
+        <ThisOverStrip balls={props.overBalls} overs={props.overs} />
+      </div>
+
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
         <div className="flex min-h-full flex-col gap-2 px-3 py-2">
           <section className="shrink-0 pt-1 pb-1.5">
@@ -323,9 +327,6 @@ export function MobileScorer(props: MobileScorerProps) {
               </div>
             </div>
           </section>
-
-
-          <ThisOverStrip balls={props.overBalls} overs={props.overs} />
 
           <ScorebookBatters
             striker={props.striker}
@@ -360,6 +361,36 @@ export function MobileScorer(props: MobileScorerProps) {
             insights={props.insights}
           />
 
+          {props.scorecardContent && (
+            <section className="overflow-hidden rounded-xl border bg-card/70">
+              <button
+                type="button"
+                onClick={() => setScorecardExpanded((v) => !v)}
+                className="flex h-11 w-full items-center justify-between px-3 text-left transition duration-100 active:scale-[0.995] active:bg-muted/70"
+                aria-expanded={scorecardExpanded}
+              >
+                <span className="flex items-center gap-2">
+                  <FileText className="size-4 text-muted-foreground" />
+                  <span className="text-[13px] font-black tracking-tight">Scorecard</span>
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    Batting · Bowling
+                  </span>
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "size-4 text-muted-foreground transition-transform duration-200",
+                    scorecardExpanded && "rotate-180",
+                  )}
+                />
+              </button>
+              {scorecardExpanded && (
+                <div className="border-t bg-background/40 p-2">
+                  {props.scorecardContent}
+                </div>
+              )}
+            </section>
+          )}
+
         </div>
       </main>
 
@@ -378,7 +409,7 @@ export function MobileScorer(props: MobileScorerProps) {
         <div
           className={cn(
             "grid gap-1 px-2 pb-1 pt-1",
-            props.showFinishInnings && props.onFinishInnings ? "grid-cols-6" : "grid-cols-5",
+            props.showFinishInnings && props.onFinishInnings ? "grid-cols-5" : "grid-cols-4",
           )}
         >
           <FooterAction
@@ -391,11 +422,6 @@ export function MobileScorer(props: MobileScorerProps) {
             label="Redo"
             onClick={props.onRedo ?? (() => {})}
             disabled={!props.onRedo || !props.canRedo}
-          />
-          <FooterAction
-            icon={<FileText className="size-[18px]" />}
-            label="Scorecard"
-            onClick={props.onOpenScorecard}
           />
           <FooterAction
             icon={<UserPlus className="size-[18px]" />}
