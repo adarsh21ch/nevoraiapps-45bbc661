@@ -388,6 +388,12 @@ function ScorerPage() {
   const newBowlerStillNeeded = Boolean(
     session.matchState.innings.awaitingNewBowler && (!bowlerSelected || sameAsPreviousBowler),
   );
+  const bowlerPickerNeededForBall = newBowlerStillNeeded || !bowlerSelected;
+  // Auto-open picker rules:
+  //   - Batter picker opens only when a wicket falls / a slot is empty.
+  //   - Bowler picker DOES NOT force open at end-of-over. It only auto-opens
+  //     when the scorer taps a scoring button and there's no bowler yet
+  //     (i.e. a pendingBallIntent is queued).
   const requiredPicker = session.matchState.inningsShouldEnd
     ? null
     : incomingBatterRole
@@ -396,9 +402,10 @@ function ScorerPage() {
         ? "striker"
         : !nonStrikerSelected
           ? "nonStriker"
-          : newBowlerStillNeeded || !bowlerSelected
+          : bowlerPickerNeededForBall && pendingBallIntent
             ? "bowler"
             : null;
+
 
   /* ---------- header text ---------- */
   const teamMap = new Map((teamsQ.data ?? []).map((t) => [t.id, t]));
