@@ -430,7 +430,11 @@ export function MobileScorer(props: MobileScorerProps) {
         kind={pickerOpen}
         players={pickerCandidates}
         isDisabled={isIllegalBowler}
-        onOpenChange={(v) => !v && setPickerOpen(null)}
+        onOpenChange={(v) => {
+          if (v) return;
+          if (pickerOpen && pickerOpen === props.requiredPicker) return;
+          setPickerOpen(null);
+        }}
         lockedMessage={pickerOpen === "bowler" ? "Cannot bowl consecutive overs" : undefined}
         bowledIds={pickerOpen === "bowler" ? props.bowledBowlerIds ?? [] : []}
         onSelect={(p) => {
