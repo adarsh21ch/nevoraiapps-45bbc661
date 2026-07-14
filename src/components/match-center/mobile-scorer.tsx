@@ -854,14 +854,17 @@ function SheetRow({ icon, label, onClick, tone }: { icon: ReactNode; label: stri
   );
 }
 
-function FooterAction({ icon, label, onClick, disabled, title }: { icon: ReactNode; label: string; onClick: () => void; disabled?: boolean; title?: string }) {
+function FooterAction({ icon, label, onClick, disabled, title, tone }: { icon: ReactNode; label: string; onClick: () => void; disabled?: boolean; title?: string; tone?: "danger" }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="grid h-12 w-full grid-rows-[auto_auto] place-items-center gap-0.5 rounded-xl text-foreground/85 transition duration-100 active:scale-[0.97] active:bg-muted disabled:opacity-40"
+      className={cn(
+        "grid h-12 w-full grid-rows-[auto_auto] place-items-center gap-0.5 rounded-xl transition duration-100 active:scale-[0.97] active:bg-muted disabled:opacity-40",
+        tone === "danger" ? "text-destructive" : "text-foreground/85",
+      )}
     >
       <span aria-hidden>{icon}</span>
       <span className="text-[10px] font-bold uppercase tracking-wider leading-none">{label}</span>
