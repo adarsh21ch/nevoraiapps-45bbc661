@@ -61,6 +61,7 @@ export interface AttendanceTodayRow {
   source: AttendanceSource | null;
   marked_by: string | null;
   current_state: AttendanceState;
+  last_visit_type: string | null;
 }
 
 export async function fetchAttendanceToday(tenantId: string): Promise<AttendanceTodayRow[]> {
@@ -89,6 +90,7 @@ export interface AttendanceVisit {
   duration_minutes: number | null;
   source: AttendanceSource;
   marked_by: string | null;
+  visit_type: string | null;
   note: string | null;
   created_at: string;
 }
@@ -241,6 +243,10 @@ export interface CheckInInput {
   source?: AttendanceSource;
   meta?: import("@/integrations/supabase/types").Json;
   markedBy?: string | null;
+  /** Optional visit classification (practice/match/fitness/...). Free-form. */
+  visitType?: string | null;
+  /** Optional visit note (late arrival, injured, batting session, ...). */
+  note?: string | null;
 }
 
 export async function checkInStudent(input: CheckInInput): Promise<void> {
@@ -259,6 +265,8 @@ export async function checkInStudent(input: CheckInInput): Promise<void> {
     source: input.source ?? "manual",
     marked_by: input.markedBy ?? null,
     check_in_meta: input.meta ?? {},
+    visit_type: input.visitType ?? null,
+    note: input.note ?? null,
   });
   if (error) throw error;
 }
