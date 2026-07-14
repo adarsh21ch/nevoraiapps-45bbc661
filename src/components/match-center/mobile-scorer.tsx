@@ -23,6 +23,7 @@ import {
   ArrowLeft,
   ChevronDown,
   CircleDot,
+  Clock,
   FileText,
   Flag,
   Redo2,
@@ -31,6 +32,8 @@ import {
   UserPlus,
   Share2,
 } from "lucide-react";
+import { OverHistorySheet } from "./over-history-sheet";
+import type { OverHistoryRow } from "@/lib/mc-statistics-engine";
 
 
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
@@ -62,6 +65,8 @@ export interface MobileScorerProps {
   partnership?: { runs: number; balls: number } | null;
   overBalls: string[];
   currentOverLabel?: string;
+  overHistory?: OverHistoryRow[];
+  inningsLabel?: string;
   insights?: MobileScorerInsight;
 
   disabled?: boolean;
@@ -113,6 +118,7 @@ export function MobileScorer(props: MobileScorerProps) {
   const [confirm, setConfirm] = useState<
     null | { kind: "end-match" | "finish-innings" | "delete-ball" }
   >(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const sheetPickerEnabled = Boolean(
     props.battingOptions && props.bowlingOptions && props.onPickPlayer,
@@ -297,7 +303,15 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
       <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-1.5 backdrop-blur-xl">
-        <ThisOverStrip balls={props.overBalls} overs={props.currentOverLabel ?? props.overs} />
+        <ThisOverStrip
+          balls={props.overBalls}
+          overs={props.currentOverLabel ?? props.overs}
+          onOpenHistory={
+            props.overHistory && props.overHistory.length > 0
+              ? () => setHistoryOpen(true)
+              : undefined
+          }
+        />
       </div>
 
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
@@ -477,6 +491,13 @@ export function MobileScorer(props: MobileScorerProps) {
           )}
         </AlertDialogContent>
       </AlertDialog>
+
+      <OverHistorySheet
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        rows={props.overHistory ?? []}
+        inningsLabel={props.inningsLabel}
+      />
     </div>
   );
 }
@@ -676,7 +697,15 @@ function BowlerLine({
 }
 
 
-function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
+function ThisOverStrip({
+  balls,
+  overs,
+  onOpenHistory,
+}: {
+  balls: string[];
+  overs?: string;
+  onOpenHistory?: () => void;
+}) {
   // The parent may pass either "N.M" (in-progress) or "Over N+1" (pre-over
   // state after a completed over). We strip the redundant "Over " prefix so
   // the fixed label above the number never doubles up.
@@ -702,9 +731,20 @@ function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
           balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
         )}
       </div>
+      {onOpenHistory && (
+        <button
+          type="button"
+          onClick={onOpenHistory}
+          aria-label="Open over history"
+          className="ml-1 inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-border/60 bg-background/70 text-muted-foreground transition duration-100 active:scale-95 hover:text-foreground"
+        >
+          <Clock className="size-4" />
+        </button>
+      )}
     </section>
   );
 }
+
 
 
 

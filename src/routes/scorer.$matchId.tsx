@@ -35,6 +35,7 @@ import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
 import {
   completedLegalBallsFromEvents,
   calculateInningsStatistics,
+  computeOverHistory,
   formatLiveOver,
   formatOversCompact,
 } from "@/lib/mc-statistics-engine";
@@ -759,6 +760,8 @@ function ScorerPage() {
           }
           overBalls={session.matchState.innings.awaitingNewBowler ? [] : session.currentOver.events.map(ballChipLabel)}
           currentOverLabel={currentOverLabel}
+          overHistory={computeOverHistory(session.events, ballChipLabel)}
+          inningsLabel={undefined}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
@@ -1609,6 +1612,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           }
           overBalls={session.matchState.innings.awaitingNewBowler ? [] : session.currentOver.events.map(ballChipLabel)}
           currentOverLabel={currentOverLabel}
+          overHistory={computeOverHistory(session.events, ballChipLabel)}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
