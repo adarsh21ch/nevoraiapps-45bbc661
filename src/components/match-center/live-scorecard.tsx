@@ -39,13 +39,12 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero }: Props) {
   const [tab, setTab] = useState<TabKey>("summary");
-  const [viewMode, setViewMode] = useState<"compact" | "rich">("compact");
+  const [openBatter, setOpenBatter] = useState<BattingStat | null>(null);
+  const [openBowler, setOpenBowler] = useState<BowlingStat | null>(null);
   const stats = calculateInningsStatistics(events, {
     totalOvers: totalOvers ?? null,
     target: innings?.target ?? null,
   });
-
-  const showViewToggle = tab === "batting" || tab === "bowling";
 
   return (
     <div className="flex h-full min-h-0 flex-col">
