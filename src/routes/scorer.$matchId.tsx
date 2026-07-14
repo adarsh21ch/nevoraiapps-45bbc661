@@ -980,7 +980,7 @@ function ScorerPage() {
             <div className="text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
+            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>
@@ -1013,7 +1013,7 @@ function ScorerPage() {
             <div className="mt-1 text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
+            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>
@@ -1800,7 +1800,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             <div className="text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
+            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>Review</Button>
@@ -1827,7 +1827,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             <div className="mt-1 text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
+            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>View scorecard</Button>
