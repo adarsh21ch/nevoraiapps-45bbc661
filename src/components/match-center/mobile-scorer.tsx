@@ -296,7 +296,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
       <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-1.5 backdrop-blur-xl">
-        <ThisOverStrip balls={props.overBalls} />
+        <ThisOverStrip balls={props.overBalls} overs={props.overs} />
       </div>
 
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
@@ -562,6 +562,7 @@ function ScorebookBatters({
 function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; striker?: boolean; onClick: () => void }) {
   const name = batter?.name ?? (striker ? "Select striker" : "Select non-striker");
   const sr = batter?.strikeRate ?? "0.0";
+  const order = batter?.order;
   return (
     <button
       type="button"
@@ -573,14 +574,22 @@ function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; strike
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-1.5">
-          {striker ? (
-            <span className="grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-striker-dot)] text-[var(--score-action-foreground)] text-[11px] font-black leading-none">
-              ★
+          {order ? (
+            <span className="grid size-[18px] shrink-0 place-items-center rounded-full border border-border/70 bg-muted/60 text-[10px] font-black leading-none text-muted-foreground tabular-nums">
+              {order}
             </span>
           ) : (
             <span className="size-[18px] shrink-0" aria-hidden />
           )}
           <span className="truncate text-[14px] font-bold leading-tight">{name}</span>
+          {striker && batter?.name && (
+            <span
+              aria-label="on strike"
+              className="ml-0.5 shrink-0 text-[13px] leading-none text-[var(--score-striker-dot)]"
+            >
+              ★
+            </span>
+          )}
         </div>
         <div className="mt-1 pl-[26px] truncate text-[11px] leading-tight text-muted-foreground tabular-nums">
           4s {batter?.fours ?? 0} · 6s {batter?.sixes ?? 0} · SR {sr}
@@ -623,12 +632,18 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
   );
 }
 
-function ThisOverStrip({ balls }: { balls: string[] }) {
+function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
   return (
     <section className="flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10">
-      <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-        This over
-      </span>
+      <div className="flex shrink-0 flex-col leading-none">
+        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+          Over
+        </span>
+        {overs && (
+          <span className="mt-0.5 text-[13px] font-black tabular-nums text-foreground">{overs}</span>
+        )}
+      </div>
+      <div className="h-6 w-px shrink-0 bg-border/70" />
       <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto ds-scroll">
         {balls.length === 0 ? (
           <span className="text-[12px] text-muted-foreground">Ready</span>

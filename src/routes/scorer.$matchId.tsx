@@ -310,6 +310,7 @@ function ScorerPage() {
           fours: s?.fours ?? 0,
           sixes: s?.sixes ?? 0,
           strikeRate: s ? String(s.strikeRate) : "0.0",
+          order: s?.battingPosition,
           last5: session.events
             .filter((e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name)
             .slice(-5)
@@ -326,7 +327,10 @@ function ScorerPage() {
           name: nonStriker.name ?? undefined,
           runs: s?.runs ?? 0,
           balls: s?.balls ?? 0,
+          fours: s?.fours ?? 0,
+          sixes: s?.sixes ?? 0,
           strikeRate: s ? String(s.strikeRate) : "0.0",
+          order: s?.battingPosition,
         };
       })()
     : undefined;
@@ -1224,6 +1228,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           fours: s?.fours ?? 0,
           sixes: s?.sixes ?? 0,
           strikeRate: s ? String(s.strikeRate) : "0.0",
+          order: s?.battingPosition,
           last5: session.events
             .filter((e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name)
             .slice(-5)
@@ -1240,7 +1245,10 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           name: nonStriker.name ?? undefined,
           runs: s?.runs ?? 0,
           balls: s?.balls ?? 0,
+          fours: s?.fours ?? 0,
+          sixes: s?.sixes ?? 0,
           strikeRate: s ? String(s.strikeRate) : "0.0",
+          order: s?.battingPosition,
         };
       })()
     : undefined;
