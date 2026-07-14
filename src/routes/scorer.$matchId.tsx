@@ -345,6 +345,7 @@ function ScorerPage() {
       })()
     : undefined;
 
+  const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
   const nonStrikerSelected = Boolean(nonStriker.athleteId || nonStriker.name);
   const bowlerSelected = Boolean(bowlerRef.athleteId || bowlerRef.name);
@@ -361,6 +362,18 @@ function ScorerPage() {
     : !nonStrikerSelected || nonStrikerDismissed
       ? "nonStriker"
       : null;
+  const sameAsPreviousBowler = Boolean(
+    previousOverBowler &&
+      ((bowlerRef.athleteId &&
+        previousOverBowler.bowlerAthleteId &&
+        bowlerRef.athleteId === previousOverBowler.bowlerAthleteId) ||
+        (bowlerRef.name &&
+          previousOverBowler.bowlerName &&
+          bowlerRef.name === previousOverBowler.bowlerName)),
+  );
+  const newBowlerStillNeeded = Boolean(
+    session.matchState.innings.awaitingNewBowler && (!bowlerSelected || sameAsPreviousBowler),
+  );
   const requiredPicker = session.matchState.inningsShouldEnd
     ? null
     : incomingBatterRole
@@ -369,7 +382,7 @@ function ScorerPage() {
         ? "striker"
         : !nonStrikerSelected
           ? "nonStriker"
-          : session.matchState.innings.awaitingNewBowler || !bowlerSelected
+          : newBowlerStillNeeded || !bowlerSelected
             ? "bowler"
             : null;
 
@@ -440,7 +453,7 @@ function ScorerPage() {
     }
   };
 
-  const onRun = (r: 0 | 1 | 2 | 3 | 4 | 6) => requestSubmit(ballHelpers.run(r));
+  const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
 
   const onExtraRuns = (runs: number) => {
     if (!extraKind) return;
@@ -585,8 +598,8 @@ function ScorerPage() {
     const onKey = (ev: KeyboardEvent) => {
       if (ev.target instanceof HTMLElement && ["INPUT", "TEXTAREA"].includes(ev.target.tagName))
         return;
-      if (ev.key >= "0" && ev.key <= "6" && ev.key !== "5") {
-        onRun(Number(ev.key) as 0 | 1 | 2 | 3 | 4 | 6);
+      if (ev.key >= "0" && ev.key <= "6") {
+        onRun(Number(ev.key) as 0 | 1 | 2 | 3 | 4 | 5 | 6);
       } else if (ev.key.toLowerCase() === "w") setDismissOpen(true);
       else if (ev.key.toLowerCase() === "u") void session.undo();
       else if (ev.key.toLowerCase() === "d") setExtraKind("Wide");
@@ -595,7 +608,7 @@ function ScorerPage() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.submitBall, session.undo]);
+  }, [onRun, session.undo]);
 
   /* ---------- render ---------- */
   const navigate = useNavigate();
@@ -623,7 +636,6 @@ function ScorerPage() {
           ballsLeft: stats.team.ballsRemaining ?? 0,
         }
       : null;
-  const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const bowledBowlerIds: string[] = Array.from(stats.bowling.byKey.values())
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
@@ -1247,6 +1259,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
       })()
     : undefined;
 
+  const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
   const nonStrikerSelected = Boolean(nonStriker.athleteId || nonStriker.name);
   const bowlerSelected = Boolean(bowlerRef.athleteId || bowlerRef.name);
@@ -1263,6 +1276,18 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     : !nonStrikerSelected || nonStrikerDismissed
       ? "nonStriker"
       : null;
+  const sameAsPreviousBowler = Boolean(
+    previousOverBowler &&
+      ((bowlerRef.athleteId &&
+        previousOverBowler.bowlerAthleteId &&
+        bowlerRef.athleteId === previousOverBowler.bowlerAthleteId) ||
+        (bowlerRef.name &&
+          previousOverBowler.bowlerName &&
+          bowlerRef.name === previousOverBowler.bowlerName)),
+  );
+  const newBowlerStillNeeded = Boolean(
+    session.matchState.innings.awaitingNewBowler && (!bowlerSelected || sameAsPreviousBowler),
+  );
   const requiredPicker = session.matchState.inningsShouldEnd
     ? null
     : incomingBatterRole
@@ -1271,7 +1296,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         ? "striker"
         : !nonStrikerSelected
           ? "nonStriker"
-          : session.matchState.innings.awaitingNewBowler || !bowlerSelected
+          : newBowlerStillNeeded || !bowlerSelected
             ? "bowler"
             : null;
 
@@ -1340,7 +1365,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
       setRedoStack((s) => [...s, next]);
     }
   };
-  const onRun = (r: 0 | 1 | 2 | 3 | 4 | 6) => requestSubmit(ballHelpers.run(r));
+  const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
   const onExtraRuns = (runs: number) => {
     if (!extraKind) return;
     const kind = extraKind;
@@ -1438,8 +1463,8 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     const onKey = (ev: KeyboardEvent) => {
       if (ev.target instanceof HTMLElement && ["INPUT", "TEXTAREA"].includes(ev.target.tagName))
         return;
-      if (ev.key >= "0" && ev.key <= "6" && ev.key !== "5") {
-        onRun(Number(ev.key) as 0 | 1 | 2 | 3 | 4 | 6);
+      if (ev.key >= "0" && ev.key <= "6") {
+        onRun(Number(ev.key) as 0 | 1 | 2 | 3 | 4 | 5 | 6);
       } else if (ev.key.toLowerCase() === "w") setDismissOpen(true);
       else if (ev.key.toLowerCase() === "u") void session.undo();
       else if (ev.key.toLowerCase() === "d") setExtraKind("Wide");
@@ -1448,7 +1473,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session.submitBall, session.undo]);
+  }, [onRun, session.undo]);
 
   const isLive = !match.match_locked && (activeInnings?.status as string) === "in_progress";
 
@@ -1467,7 +1492,6 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     activeInnings?.target != null && stats.team.requiredRuns != null
       ? { runsNeeded: stats.team.requiredRuns, ballsLeft: stats.team.ballsRemaining ?? 0 }
       : null;
-  const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const bowledBowlerIds: string[] = Array.from(stats.bowling.byKey.values())
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
