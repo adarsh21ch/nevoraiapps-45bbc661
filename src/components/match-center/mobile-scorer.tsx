@@ -61,6 +61,7 @@ export interface MobileScorerProps {
   bowler?: BowlerStats;
   partnership?: { runs: number; balls: number } | null;
   overBalls: string[];
+  currentOver?: { number: number; ballsBowled: number };
   insights?: MobileScorerInsight;
 
   disabled?: boolean;
