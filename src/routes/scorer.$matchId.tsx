@@ -34,7 +34,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
 import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
 import { ballChipLabel } from "@/lib/mc-commentary";
-import type { DismissalType } from "@/lib/mc-ball-events";
+import type { DismissalType, ExtraType } from "@/lib/mc-ball-events";
 
 import { LiveScorecard } from "@/components/match-center/live-scorecard";
 import { ShareMatchDialog } from "@/components/match-center/share-match-dialog";
@@ -319,11 +319,44 @@ function ScorerPage() {
 
 
   /* ---------- ball submission ---------- */
+  const [redoStack, setRedoStack] = useState<
+    Awaited<ReturnType<typeof session.undo>>[]
+  >([]);
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
     try {
       await session.submitBall(partial);
+      setRedoStack([]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
+    }
+  };
+  const handleUndo = async () => {
+    try {
+      const removed = await session.undo();
+      if (removed) setRedoStack((s) => [...s, removed]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to undo");
+    }
+  };
+  const handleRedo = async () => {
+    const next = redoStack[redoStack.length - 1];
+    if (!next) return;
+    setRedoStack((s) => s.slice(0, -1));
+    try {
+      await session.submitBall({
+        runsOffBat: next.runs_off_bat ?? 0,
+        extraType: (next.extra_type ?? null) as ExtraType | null,
+        extraRuns: next.extra_runs ?? 0,
+        dismissalType: (next.dismissal_type ?? null) as DismissalType | null,
+        dismissedAthleteId: next.dismissed_athlete_id ?? null,
+        dismissedName: next.dismissed_name ?? null,
+        fielderAthleteId: next.fielder_athlete_id ?? null,
+        fielderName: next.fielder_name ?? null,
+        comment: next.comment ?? null,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to redo");
+      setRedoStack((s) => [...s, next]);
     }
   };
 
@@ -628,7 +661,9 @@ function ScorerPage() {
           onOpenStrikerPicker={() => setPickStrikerOpen(true)}
           onOpenNonStrikerPicker={() => setPickNonStrikerOpen(true)}
           onOpenBowlerPicker={() => setPickBowlerOpen(true)}
-          onUndo={() => void session.undo()}
+          onUndo={() => void handleUndo()}
+          onRedo={() => void handleRedo()}
+          canRedo={redoStack.length > 0}
           onSwapStrike={() => {
             const s = { ...session.striker };
             session.setStriker({ ...session.nonStriker, onStrike: true });
@@ -1131,11 +1166,44 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   // commentary intentionally omitted from compact mobile UI — available via scorecard.
 
   /* ---------- ball submission ---------- */
+  const [redoStack, setRedoStack] = useState<
+    Awaited<ReturnType<typeof session.undo>>[]
+  >([]);
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
     try {
       await session.submitBall(partial);
+      setRedoStack([]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
+    }
+  };
+  const handleUndo = async () => {
+    try {
+      const removed = await session.undo();
+      if (removed) setRedoStack((s) => [...s, removed]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to undo");
+    }
+  };
+  const handleRedo = async () => {
+    const next = redoStack[redoStack.length - 1];
+    if (!next) return;
+    setRedoStack((s) => s.slice(0, -1));
+    try {
+      await session.submitBall({
+        runsOffBat: next.runs_off_bat ?? 0,
+        extraType: (next.extra_type ?? null) as ExtraType | null,
+        extraRuns: next.extra_runs ?? 0,
+        dismissalType: (next.dismissal_type ?? null) as DismissalType | null,
+        dismissedAthleteId: next.dismissed_athlete_id ?? null,
+        dismissedName: next.dismissed_name ?? null,
+        fielderAthleteId: next.fielder_athlete_id ?? null,
+        fielderName: next.fielder_name ?? null,
+        comment: next.comment ?? null,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to redo");
+      setRedoStack((s) => [...s, next]);
     }
   };
   const onRun = (r: 0 | 1 | 2 | 3 | 4 | 6) => submit(ballHelpers.run(r));
@@ -1348,7 +1416,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           onOpenStrikerPicker={() => setPickStrikerOpen(true)}
           onOpenNonStrikerPicker={() => setPickNonStrikerOpen(true)}
           onOpenBowlerPicker={() => setPickBowlerOpen(true)}
-          onUndo={() => void session.undo()}
+          onUndo={() => void handleUndo()}
+          onRedo={() => void handleRedo()}
+          canRedo={redoStack.length > 0}
           onSwapStrike={() => {
             const s = { ...session.striker };
             session.setStriker({ ...session.nonStriker, onStrike: true });
