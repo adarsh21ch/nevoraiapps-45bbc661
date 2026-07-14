@@ -345,9 +345,9 @@ function ScorerPage() {
     try {
       await session.submitBall({
         runsOffBat: next.runs_off_bat ?? 0,
-        extraType: next.extra_type ?? null,
+        extraType: (next.extra_type ?? null) as ExtraType | null,
         extraRuns: next.extra_runs ?? 0,
-        dismissalType: next.dismissal_type ?? null,
+        dismissalType: (next.dismissal_type ?? null) as DismissalType | null,
         dismissedAthleteId: next.dismissed_athlete_id ?? null,
         dismissedName: next.dismissed_name ?? null,
         fielderAthleteId: next.fielder_athlete_id ?? null,
