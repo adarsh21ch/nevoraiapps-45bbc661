@@ -36,7 +36,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "more", label: "More" },
 ];
 
-export function LiveScorecard({ events, innings, totalOvers, matchInfo }: Props) {
+export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero }: Props) {
   const [tab, setTab] = useState<TabKey>("summary");
   const [viewMode, setViewMode] = useState<"compact" | "rich">("compact");
   const stats = calculateInningsStatistics(events, {
@@ -48,7 +48,7 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo }: Props)
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {/* Score hero */}
+      {!hideHero && (
       <div className="px-1 pb-3">
         <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card p-4 shadow-sm">
           <div className="flex items-baseline justify-between gap-3">
