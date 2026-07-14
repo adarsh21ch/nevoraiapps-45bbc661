@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useEffect } from "react";
 import { CreditCard, ArrowLeft, Lock } from "lucide-react";
 import { Card } from "@/components/ds/Card";
