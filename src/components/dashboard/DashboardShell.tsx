@@ -143,6 +143,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               ) : null}
             </Link>
 
+            <NotificationBell />
+
+
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>
