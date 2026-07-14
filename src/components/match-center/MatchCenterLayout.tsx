@@ -185,7 +185,7 @@ export function SearchBar({
 }
 
 export function MatchCenterLayout({ children }: { children?: ReactNode }) {
-  const { tenant, signOut } = useDashboard();
+  const { tenant, profile, signOut } = useDashboard();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
