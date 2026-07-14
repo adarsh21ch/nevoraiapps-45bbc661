@@ -637,6 +637,30 @@ function RegistrationDetails({
 
       <button
         type="button"
+        onClick={() =>
+          generateFilledRegistrationPdf(tenant, {
+            name: reg.name,
+            phone: reg.phone,
+            dob: reg.dob,
+            gender: reg.gender,
+            guardian_name: reg.guardian_name,
+            guardian_phone: reg.guardian_phone,
+            whatsapp: reg.whatsapp,
+            address: reg.address,
+            batch_name: batch?.name ?? null,
+            fee_plan_name: plan?.name ?? null,
+            fee_amount: plan?.amount ?? null,
+            policy_acceptances: reg.policy_acceptances ?? null,
+            created_at: reg.created_at,
+          })
+        }
+        className="w-full text-center text-xs text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1 py-1"
+      >
+        <FileDown className="size-3.5" /> Download filled PDF
+      </button>
+
+      <button
+        type="button"
         onClick={onRequestDelete}
         disabled={deleting}
         className="w-full text-center text-xs text-muted-foreground hover:text-rose-600 inline-flex items-center justify-center gap-1 py-1"
