@@ -613,30 +613,67 @@ function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; strike
   );
 }
 
-function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => void }) {
+function BowlerLine({
+  bowler,
+  onClick,
+  awaiting,
+}: {
+  bowler?: BowlerStats;
+  onClick: () => void;
+  awaiting?: boolean;
+}) {
+  const hasBowler = Boolean(bowler?.name);
+  const showAwaiting = Boolean(awaiting) && !hasBowler;
   return (
     <button
       type="button"
       onClick={onClick}
-      className="grid h-12 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border bg-card/70 px-3 text-left transition duration-100 active:scale-[0.995] active:bg-muted/70"
+      aria-live="polite"
+      className={cn(
+        "grid h-12 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border bg-card/70 px-3 text-left transition duration-100 active:scale-[0.995] active:bg-muted/70",
+        showAwaiting &&
+          "border-sky-400/60 bg-sky-500/10 ring-1 ring-sky-400/40 shadow-[0_0_0_1px_color-mix(in_oklab,rgb(56_189_248)_35%,transparent)]",
+      )}
     >
       <div className="min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-bowler-bg)] text-[var(--score-bowler-fg)]">
+          <span
+            className={cn(
+              "grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-bowler-bg)] text-[var(--score-bowler-fg)]",
+              showAwaiting && "bg-sky-500/25 text-sky-600 dark:text-sky-300",
+            )}
+          >
             <CircleDot className="size-3" strokeWidth={2.25} />
           </span>
-          <span className="truncate text-[14px] font-bold">{bowler?.name ?? "Select bowler"}</span>
-          <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Bowling</span>
+          <span className="truncate text-[14px] font-bold">
+            {showAwaiting ? "Next Bowler Required" : bowler?.name ?? "Select bowler"}
+          </span>
+          <span
+            className={cn(
+              "shrink-0 text-[9px] font-bold uppercase tracking-widest",
+              showAwaiting ? "text-sky-600 dark:text-sky-300" : "text-muted-foreground",
+            )}
+          >
+            {showAwaiting ? "Tap to select" : "Current Bowler"}
+          </span>
         </div>
       </div>
       <div className="text-right text-[11.5px] font-semibold text-muted-foreground tabular-nums">
-        <span className="text-foreground">{bowler?.wickets ?? 0}/{bowler?.runs ?? 0}</span>
-        <span> · {bowler?.overs ?? "0.0"} ov</span>
+        {showAwaiting ? (
+          <span className="text-sky-600 dark:text-sky-300">—</span>
+        ) : (
+          <>
+            <span className="text-foreground">
+              {bowler?.wickets ?? 0}/{bowler?.runs ?? 0}
+            </span>
+            <span> · {bowler?.overs ?? "0"} ov</span>
+          </>
+        )}
       </div>
-
     </button>
   );
 }
+
 
 function ThisOverStrip({ balls, overs }: { balls: string[]; overs?: string }) {
   return (
