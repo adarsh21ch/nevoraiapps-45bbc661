@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { admissionTimelineQuery } from "@/lib/admissions";
+import { AdmissionTimelineList } from "@/components/dashboard/AdmissionChecklist";
 import {
   ArrowLeft,
   Phone,
@@ -542,6 +544,8 @@ function OverviewTab({
         <CoachNotes tenantId={tenantId} studentId={studentId} authorName={student.name} />
       </Card>
 
+      <AdmissionTimelineCard tenantId={tenantId} studentId={studentId} />
+
       <Card className="p-4">
         <SectionHeader icon={Activity} title="Current Form" />
         <FormStrip athleteId={athleteId} />
@@ -570,6 +574,19 @@ function SectionHeader({ icon: Icon, title }: { icon: React.ComponentType<{ clas
       <Icon className="size-3.5" />
       {title}
     </div>
+  );
+}
+
+function AdmissionTimelineCard({ tenantId, studentId }: { tenantId: string; studentId: string }) {
+  const { data = [] } = useQuery(admissionTimelineQuery({ tenantId, studentId }));
+  if (!data.length) return null;
+  return (
+    <Card className="p-4 sm:col-span-2">
+      <SectionHeader icon={ClipboardCheck} title="Admission Timeline" />
+      <div className="mt-2">
+        <AdmissionTimelineList events={data} />
+      </div>
+    </Card>
   );
 }
 

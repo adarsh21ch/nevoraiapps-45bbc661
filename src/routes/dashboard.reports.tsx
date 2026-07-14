@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, subMonths } from "date-fns";
@@ -10,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/reports")({
-  component: Reports,
+  component: () => (<OwnerOnly><Reports /></OwnerOnly>),
 });
 
 const MONTHS_BACK = 6;

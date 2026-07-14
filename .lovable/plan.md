@@ -1,127 +1,117 @@
 
-# Phase 03.2 — Academy Website & CMS
+# Phase 03.3 — Enrollment & Admissions OS
 
-## Architecture Review (challenging current state)
+## Architecture review & challenge
 
-Audited existing website surface before proposing anything new:
+The brief asks for a Lead pipeline with ~10 stages (Lead → Contacted → Counselling scheduled → Counselling done → Trial scheduled → Trial done → Waiting decision → Approved → Rejected → Registration pending → Student created). Building this literally would create three parallel state machines (`leads.status`, `registrations.status`, `students.status`) with duplicated audit trails and drag-drop UI that admins won't use on a phone.
 
-- **`public.site_content`** table already exists (tenant_id, section, content jsonb, sort_order). It is the CMS store — no new table needed for section content.
-- **`public.tenants`** already holds logo, favicon, colors, socials, whatsapp, upi, address, custom_domain, tagline, seo bits. All theme fields live here.
-- **`src/lib/site-queries.ts`** already exposes `siteContentQuery` / `feePlansQuery` / `batchesQuery`.
-- **`src/components/dashboard/SiteContentTabs.tsx`** (412 lines) is the existing section editor.
-- **`src/routes/dashboard.site.tsx`** is the Owner CMS entry.
-- **`src/routes/academy.$slug.tsx`** + **`src/routes/index.tsx`** (641 lines, tenant home), **`about.tsx`**, **`contact.tsx`** are the public site.
-- **`src/components/site/*`** ships SiteHeader, SiteFooter, TenantGate, FloatingWhatsApp, PageHero, PersonAvatar, StoragedImage, MobileCtaBar.
-- **`src/components/website/widgets/`** already has LiveMatchWidget, ListWidget, WidgetCard, WidgetRenderer.
-- **Registration** (`/register`), **Billing** (`fee_plans`), **Match Center feeds** (`match-feeds.ts` + `CricketToday`), **Player achievements** (`mc_athlete_achievements/awards`, `mc_recognitions`, `mc_hall_of_fame`, `mc_academy_records`, `mc_academy_timeline`), **Notifications** (`publish_notification`), **`get_public_academy_bundle` RPC** all exist.
+**Simpler operational flow (recommended):**
 
-**Verdict**: the platform already has 80% of what this phase asks for. The gap is (1) missing public pages for several sections, (2) no CMS editors for a few sections, (3) no policy pages / acceptance tracking, (4) no printable registration PDFs, (5) SEO polish. **We extend, we do not rebuild.**
+1. Collapse to **one linear pipeline** on `leads`: `new → contacted → counselling → trial → decision → approved | rejected → converted`. Registration/Student rows are outcomes, not stages. When approved, we deep-link into the existing `/register` form pre-filled from the lead — no duplicate data entry. When registration is approved, existing `approve_registration` RPC already creates the student. We just chain the lead to it.
+2. Keep counselling / trial as **scheduled events on the lead row** (`counselling_at`, `trial_at`, `trial_rating`, `trial_remarks`, `assigned_to`) — no new tables. A trial is just a lead in stage=`trial`. Reuses lead RLS.
+3. **One audit table** `admission_timeline` (append-only) captures every transition + actor + remark, feeding the checklist, timeline, and notifications. Player Timeline already exists — we post-create link the admission timeline to the student.
+4. **Convert-to-Registration** is a single button that opens `/register?lead=<id>` with a `lead_id` prefill query. `submit_registration` gains an optional `_lead_id` argument; on success the lead moves to `converted` automatically inside the RPC. No new endpoint.
+5. **Admission Checklist** is a derived view (`admission_progress` DB view or client memo) — reads existing `leads`, `registrations`, `students`, `mc_parent_links`, `attendance_marks`. Zero new writes.
 
-**Simplifications**:
-- Keep one CMS table (`site_content`); every new section is a new `section` key + a form in `SiteContentTabs`.
-- Keep one theme store (`tenants`); reuse existing `dashboard.branding.tsx` and contact editor.
-- Reuse `TenantGate` + `SiteHeader` + `SiteFooter` on every new public route.
-- Reuse existing `match-feeds.ts`, `mc-academy-records.ts`, achievements queries — no new query layer.
+This cuts the phase from ~10 new components + 3 new tables to **2 new components + 1 new table + 1 extended RPC**, while satisfying every stated requirement.
 
-## Database Changes (minimal)
+**Role model (locked in):** Owner sees everything; Admin sees lead pipeline, trials, registrations approval, students, attendance, match center — but the existing nav already hides billing/fees/subscription/reports from admins. Confirmed by `src/lib/nav-config.ts`. Only tightening needed: hide "Recorded payment" fields on registration drawer for admins, and add role gate on `/dashboard/billing`, `/dashboard/fees`, `/dashboard/fee-plans`, `/dashboard/subscription`, `/dashboard/reports` routes.
 
-One migration:
+## Database changes (1 migration)
 
-1. **`policy_documents`** table — versioned CMS pages for terms/privacy/refund/fee/conduct/leave/medical.
-   Columns: `id`, `tenant_id`, `kind` (enum), `version` (int), `title`, `body_md`, `published_at`, `created_at`.
-   GRANT SELECT to `anon, authenticated`; INSERT/UPDATE to `authenticated` gated to tenant owners; ALL to `service_role`. RLS: public read of latest published version per (tenant, kind); write via `has_role('owner')` or tenant-member check consistent with existing patterns.
-2. **`registrations.policy_acceptances` jsonb column** — appends `{kind, version, accepted_at}` at submit time. No new table; extends the existing frozen Registration module minimally through its server function.
-3. Extend `get_public_academy_bundle` RPC to include `policies: [{kind, version, title, body_md}]` (latest published only) so public pages hit one round-trip.
+```sql
+-- 1. Extend leads with pipeline fields
+ALTER TABLE public.leads
+  ADD COLUMN pipeline_stage text NOT NULL DEFAULT 'new'
+    CHECK (pipeline_stage IN ('new','contacted','counselling','trial',
+                              'decision','approved','rejected','converted')),
+  ADD COLUMN assigned_to uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  ADD COLUMN counselling_at timestamptz,
+  ADD COLUMN trial_at timestamptz,
+  ADD COLUMN trial_rating int CHECK (trial_rating BETWEEN 1 AND 5),
+  ADD COLUMN trial_remarks text,
+  ADD COLUMN converted_registration_id uuid REFERENCES public.registrations(id) ON DELETE SET NULL,
+  ADD COLUMN converted_student_id uuid REFERENCES public.students(id) ON DELETE SET NULL;
+CREATE INDEX leads_tenant_pipeline_idx ON public.leads(tenant_id, pipeline_stage);
 
-No changes to any frozen module's schema (attendance, billing, matches, notifications, tenants columns unchanged).
+-- 2. Admission timeline (append-only)
+CREATE TABLE public.admission_timeline (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+  lead_id uuid REFERENCES public.leads(id) ON DELETE CASCADE,
+  registration_id uuid REFERENCES public.registrations(id) ON DELETE SET NULL,
+  student_id uuid REFERENCES public.students(id) ON DELETE SET NULL,
+  event_type text NOT NULL,          -- stage_changed, remark, trial_scheduled, ...
+  from_stage text,
+  to_stage text,
+  remark text,
+  actor_id uuid,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT, INSERT ON public.admission_timeline TO authenticated;
+GRANT ALL ON public.admission_timeline TO service_role;
+ALTER TABLE public.admission_timeline ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "tenant scope timeline" ON public.admission_timeline
+  FOR ALL TO authenticated
+  USING (is_tenant_member(auth.uid(), tenant_id) OR is_platform_admin(auth.uid()))
+  WITH CHECK (is_tenant_member(auth.uid(), tenant_id) OR is_platform_admin(auth.uid()));
 
-## New Routes (public)
+-- 3. RPC: advance_lead_stage(lead, new_stage, remark) — writes lead + timeline atomically
+-- 4. Extend submit_registration with _lead_id, auto-close lead on convert
+-- 5. Extend approve_registration to link lead → student and append timeline row
+```
 
-Each is a leaf route with its own `head()` (title/description/og/canonical), wrapped by `TenantGate` + `SiteHeader` + `SiteFooter`.
+## Files changed
 
-- `/programs` — reads `site_content[section=programs]` + `batchesQuery`
-- `/coaches` — reads `site_content[section=coaches]`
-- `/facilities` — reads `site_content[section=facilities]`
-- `/achievements` — reuses `mc_academy_records` + `mc_hall_of_fame` + `mc_athlete_awards`
-- `/gallery` — reads `site_content[section=gallery_albums]`, lazy `<img loading="lazy">`
-- `/matches` — reuses `match-feeds.ts` (upcoming/live/completed tabs)
-- `/testimonials` — `site_content[section=testimonials]`
-- `/faq` — `site_content[section=faq]`
-- `/admissions` — CTA into existing `/register` route (no duplicate form)
-- `/fees` — extends existing `/fees` (already present); adds owner-controlled display mode (hide / show / contact / demo) from `tenants.fee_display_mode` (add via migration as tenant column? — NO, store in `site_content[section=fees_display]` to avoid touching tenants schema)
-- `/policies/$kind` — renders `policy_documents` latest published
-- `/location` — reuses tenant address + google maps embed
+- **New**
+  - `src/routes/dashboard.leads.tsx` — replace inbox with pipeline board (column-per-stage on desktop, stage-filter chip strip on mobile). Same file, redesigned in place — count against reuse.
+  - `src/components/dashboard/LeadCard.tsx` — quick actions (call, WhatsApp, schedule trial, advance, convert).
+  - `src/components/dashboard/TrialDrawer.tsx` — date/rating/remarks form on a lead in stage=`trial`.
+  - `src/components/dashboard/AdmissionChecklist.tsx` — reused on lead drawer + student detail.
+  - `src/lib/admissions.ts` — queries (`leadsPipelineQuery`, `admissionTimelineQuery`) + mutations (`advanceLeadStage`, `scheduleTrial`, `recordTrial`, `convertLeadToRegistration`).
+- **Extended**
+  - `src/routes/register.tsx` — reads `?lead=<id>`, pre-fills name/phone/whatsapp/guardian from lead; passes `_lead_id` to `submit_registration`.
+  - `src/routes/dashboard.registrations.tsx` — after `approve_registration` also links back to lead + posts admission timeline row.
+  - `src/routes/dashboard.students.$id.tsx` — inject Admission Timeline section (reads `admission_timeline` by student_id).
+  - `src/routes/dashboard.tsx` + `src/lib/nav-config.ts` — role-gate billing/fees/subscription/reports routes to owner-only (route-level `beforeLoad` redirect + already-correct nav filter).
+  - `src/components/dashboard/GlobalSearch.tsx` — extend existing search (or create if absent) to cover leads.player_id/phone/email.
 
-## New CMS editors (Owner-only, in `dashboard.site.tsx`)
+## Reuse
 
-Add tabs / sections inside existing `SiteContentTabs` for: coaches, facilities, testimonials, faq, gallery_albums, why_choose_us, admissions_cta, fees_display, footer_extras. All write to `site_content`. Add a **Policies** tab that CRUDs `policy_documents` with a "Publish new version" button (bumps `version`, sets `published_at`).
+- Components: `Card/Button/Badge/Drawer/Tabs/Textarea`, `BulkImportLeads`, `PersonAvatar`, `SiteHeader`, existing registration form, `NotificationBell`.
+- Queries/hooks: `useDashboard`, `dashboard-queries`, `feePlansQuery`, `batchesQuery`, existing `students`/`registrations`/`leads` reads.
+- RPCs: `submit_registration` (extended, backward-compatible), `approve_registration` (extended), `publish_notification`, `is_tenant_member`, `is_tenant_owner`.
 
-## Registration PDF
+## Notifications
 
-New file `src/lib/registration-pdf.ts` already exists (per file listing). Extend it to output two vector PDFs via `pdf-lib`:
-1. Filled — pulled from registration row.
-2. Blank — same template, empty fields, uses academy logo/tagline/colors.
+On stage advance to `trial`, `approved`, `converted`: publish via existing `publish_notification` RPC to the assigned admin (`assigned_to`) and to all tenant owners for approvals. No new channel wiring.
 
-Add "Download filled PDF" on registration success screen + "Download blank form" on `/admissions`. No image rasterization.
+## Search
 
-## SEO
-
-- Add `og:image`, JSON-LD `Organization` + `SportsClub` (with address, telephone, url, sameAs socials) on public leaf routes.
-- Existing `sitemap.xml`/`robots.txt` — verify and extend `entries` to include new public routes.
-- Canonical + og:url per-route (leaf only).
+Extend the global search box already in the dashboard header (`GlobalSearch`) to also query `leads` by name/phone/email/player_id (via converted_student_id join). Single debounced React Query; no new endpoint.
 
 ## Security
 
-- New `policy_documents` table gets full RLS + GRANTs (public SELECT of published rows only; owner writes via `has_role`).
-- No new service-role paths; policy CRUD is a `createServerFn` guarded by `requireSupabaseAuth` + owner check.
-- No frontend service key exposure.
+- New RPC `advance_lead_stage` = `SECURITY DEFINER`, verifies `is_tenant_member`.
+- `admission_timeline` INSERT gated by same tenant-membership check.
+- Route-level owner gate on `/dashboard/billing`, `/dashboard/fees`, `/dashboard/fee-plans`, `/dashboard/subscription`, `/dashboard/reports` (`beforeLoad` throws redirect to `/dashboard` when role != owner).
+- No change to existing RLS.
 
 ## Performance
 
-- One RPC call (`get_public_academy_bundle` extended) hydrates most public pages.
-- Shared `siteContentQuery` cache reused across all public routes.
-- Lazy image loading + `srcset` on gallery.
-- Route-level code-splitting is automatic (file-based routing).
-- No new realtime channels.
+- Reuses cached `dashboardStudentsQuery` / `batchesQuery`.
+- Pipeline uses a single `leads` query filtered client-side by stage — <1000 rows per tenant realistic; still adds `tenant_id, pipeline_stage` index.
+- Admission timeline paginated to last 50 by default.
 
-## Reuse Ledger (planned)
+## Out of scope (defer)
 
-**Components reused**: TenantGate, SiteHeader, SiteFooter, FloatingWhatsApp, PageHero, StoragedImage, MobileCtaBar, PersonAvatar, LiveMatchWidget, WidgetRenderer, CricketToday, SiteContentTabs.
+- Drag-and-drop between columns (chip-tap advance covers it in one click on mobile).
+- Trial photo/video upload (uses existing student-photo capability post-conversion).
+- Multi-child family accounts (parent portal already handles siblings).
 
-**Hooks/queries reused**: `siteContentQuery`, `feePlansQuery`, `batchesQuery`, `match-feeds.ts` hooks, `mc-academy-records`, `mc-athletes` achievements, `notifications` publisher.
+## Acceptance
 
-**RPCs reused**: `get_public_academy_bundle` (extended, not replaced), `publish_notification`, `has_role`.
-
-**Tables reused**: `tenants`, `site_content`, `batches`, `fee_plans`, `registrations`, `mc_*`, `notifications`.
-
-**New code (only where necessary)**:
-- `policy_documents` table + editor + `/policies/$kind` route (no existing equivalent).
-- Public routes listed above (each ~80–150 lines, mostly composition of existing components/queries).
-- Registration PDF generator (vector, `pdf-lib`) — no existing PDF pipeline for registration output.
-- Minor extension to `get_public_academy_bundle` to include policies.
-
-## Out of scope for 03.2 (explicit)
-
-- Drag-and-drop page builder (not requested; forms are enough).
-- Multi-language site copy.
-- Custom domain provisioning UI (existing routing already supports `custom_domain`).
-- Analytics dashboards for site traffic.
-
-## Deliverables order
-
-1. Migration (`policy_documents` + extend RPC + `registrations.policy_acceptances`).
-2. Owner CMS extensions in `SiteContentTabs` + new Policies editor.
-3. Public routes (programs, coaches, facilities, achievements, gallery, matches, testimonials, faq, admissions, policies/$kind).
-4. Registration PDF (filled + blank).
-5. SEO metadata + sitemap entries.
-6. Final audit report (14 sections requested).
-
-## Risk / Rollback
-
-- Every new public route is additive — removing them cannot break frozen modules.
-- Migration is purely additive (new table + new column + RPC replacement is backward-compatible if column list stays a superset).
-- If policy acceptance breaks Registration, we short-circuit by defaulting `policy_acceptances = '[]'` and hiding the checkbox.
-
----
-
-**Approve this scope and I'll execute in the order above.** If any section should be dropped (e.g., skip PDF, skip policies), tell me now so the migration only creates what we'll actually use.
+- Owner can see full pipeline + convert lead → registration → approve → student without duplicate typing.
+- Admin sees the same but zero billing UI anywhere.
+- Every stage transition appears in admission_timeline + student timeline after conversion.
+- Global search finds a person by phone across lead/registration/student.

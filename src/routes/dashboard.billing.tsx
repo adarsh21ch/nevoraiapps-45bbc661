@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,7 +58,7 @@ export const Route = createFileRoute("/dashboard/billing")({
       { name: "description", content: "Owner-only billing operations: subscriptions, invoices, and payments." },
     ],
   }),
-  component: BillingPage,
+  component: () => (<OwnerOnly><BillingPage /></OwnerOnly>),
 });
 
 function BillingPage() {

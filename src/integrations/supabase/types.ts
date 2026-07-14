@@ -14,6 +14,94 @@ export type Database = {
   }
   public: {
     Tables: {
+      admission_timeline: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          from_stage: string | null
+          id: string
+          lead_id: string | null
+          metadata: Json
+          registration_id: string | null
+          remark: string | null
+          student_id: string | null
+          tenant_id: string
+          to_stage: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          from_stage?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          registration_id?: string | null
+          remark?: string | null
+          student_id?: string | null
+          tenant_id: string
+          to_stage?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          from_stage?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          registration_id?: string | null
+          remark?: string | null
+          student_id?: string | null
+          tenant_id?: string
+          to_stage?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admission_timeline_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_timeline_registration_id_fkey"
+            columns: ["registration_id"]
+            isOneToOne: false
+            referencedRelation: "registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_timeline_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_timeline_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_timeline_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_timeline_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_marks: {
         Row: {
           check_in_at: string | null
@@ -1031,42 +1119,87 @@ export type Database = {
       }
       leads: {
         Row: {
+          assigned_to: string | null
+          converted_registration_id: string | null
+          converted_student_id: string | null
+          counselling_at: string | null
           created_at: string
           id: string
           message: string | null
           name: string
           notes: string | null
           phone: string
+          pipeline_stage: string
           source: string
           status: Database["public"]["Enums"]["lead_status"]
           tenant_id: string
+          trial_at: string | null
+          trial_rating: number | null
+          trial_remarks: string | null
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
+          converted_registration_id?: string | null
+          converted_student_id?: string | null
+          counselling_at?: string | null
           created_at?: string
           id?: string
           message?: string | null
           name: string
           notes?: string | null
           phone: string
+          pipeline_stage?: string
           source?: string
           status?: Database["public"]["Enums"]["lead_status"]
           tenant_id: string
+          trial_at?: string | null
+          trial_rating?: number | null
+          trial_remarks?: string | null
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
+          converted_registration_id?: string | null
+          converted_student_id?: string | null
+          counselling_at?: string | null
           created_at?: string
           id?: string
           message?: string | null
           name?: string
           notes?: string | null
           phone?: string
+          pipeline_stage?: string
           source?: string
           status?: Database["public"]["Enums"]["lead_status"]
           tenant_id?: string
+          trial_at?: string | null
+          trial_rating?: number | null
+          trial_remarks?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "leads_converted_registration_id_fkey"
+            columns: ["converted_registration_id"]
+            isOneToOne: false
+            referencedRelation: "registrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_converted_student_id_fkey"
+            columns: ["converted_student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_converted_student_id_fkey"
+            columns: ["converted_student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -4619,6 +4752,10 @@ export type Database = {
       }
     }
     Functions: {
+      advance_lead_stage: {
+        Args: { _lead_id: string; _new_stage: string; _remark?: string }
+        Returns: string
+      }
       approve_registration: {
         Args: { _registration_id: string }
         Returns: string
@@ -4770,6 +4907,7 @@ export type Database = {
           _fee_plan_id: string
           _guardian_name?: string
           _guardian_phone?: string
+          _lead_id?: string
           _name: string
           _phone: string
           _policy_acceptances?: Json

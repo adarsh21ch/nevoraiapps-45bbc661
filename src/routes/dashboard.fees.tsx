@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -42,7 +43,7 @@ export const Route = createFileRoute("/dashboard/fees")({
     const f = search.filter;
     return f === "pending" || f === "paid" || f === "all" ? { filter: f } : {};
   },
-  component: FeeRegister,
+  component: () => (<OwnerOnly><FeeRegister /></OwnerOnly>),
 });
 
 
