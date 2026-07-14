@@ -52,21 +52,21 @@ export function MatchStatusBadge({ status }: { status: string | null | undefined
   );
 }
 
-/* -------- Team side inside a match card (stacked layout) -------- */
+/* -------- Team side inside a match card (compact) -------- */
 function TeamSide({ team, align }: { team: TeamLite | null; align: "left" | "right" }) {
   return (
-    <div className={cn("flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center", align)}>
+    <div className={cn("flex min-w-0 flex-1 items-center gap-2", align === "right" && "flex-row-reverse text-right")}>
       <Avatar
         src={team?.logo_url ?? null}
         name={team?.name ?? "?"}
-        size={44}
-        className="rounded-xl"
+        size={32}
+        className="shrink-0 rounded-lg"
       />
-      <div className="min-w-0 w-full">
-        <div className="truncate text-[13px] font-semibold tracking-tight leading-tight">
+      <div className="min-w-0">
+        <div className="truncate text-[14px] font-semibold tracking-tight leading-tight">
           {team?.name ?? "TBD"}
         </div>
-        <div className="truncate text-[10.5px] text-muted-foreground">
+        <div className="truncate text-[10.5px] text-muted-foreground leading-tight">
           {team?.is_external ? "External" : team?.age_group ?? "Academy"}
         </div>
       </div>
@@ -92,103 +92,92 @@ export function MatchCard({
 }) {
   const typeLabel = MATCH_TYPES.find((t) => t.value === match.match_type)?.label ?? match.match_type;
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 transition-all hover:border-foreground/20 hover:shadow-sm">
+    <div className="rounded-2xl border border-border/70 bg-card px-3.5 py-3 transition-colors active:bg-accent/30">
       {/* Top row: status + format + menu */}
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          <MatchStatusBadge status={match.status} />
-          <span className="inline-flex items-center rounded-md bg-accent/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
-            {match.match_format} · {match.overs} ov
-          </span>
-          <span className="inline-flex items-center rounded-md bg-accent/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
-            {typeLabel}
-          </span>
+      <div className="mb-2 flex items-center gap-1.5">
+        <MatchStatusBadge status={match.status} />
+        <span className="inline-flex items-center rounded-md bg-accent/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+          {match.match_format}
+        </span>
+        <span className="truncate text-[10.5px] text-muted-foreground">
+          {match.overs} ov · {typeLabel}
+        </span>
+        <div className="ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="ghost" aria-label="More" className="-mr-1.5 size-8 shrink-0">
+                <MoreVertical className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {onStart && (
+                <DropdownMenuItem onClick={() => onStart(match)}>
+                  <Play className="size-4 mr-2" /> Start
+                </DropdownMenuItem>
+              )}
+              {onEdit && (
+                <DropdownMenuItem onClick={() => onEdit(match)}>
+                  <Pencil className="size-4 mr-2" /> Edit
+                </DropdownMenuItem>
+              )}
+              {onDuplicate && (
+                <DropdownMenuItem onClick={() => onDuplicate(match)}>
+                  <Copy className="size-4 mr-2" /> Duplicate
+                </DropdownMenuItem>
+              )}
+              {onArchive && (
+                <DropdownMenuItem onClick={() => onArchive(match)}>
+                  <Archive className="size-4 mr-2" /> Archive
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              {onDelete && (
+                <DropdownMenuItem onClick={() => onDelete(match)} className="text-destructive focus:text-destructive">
+                  <Trash2 className="size-4 mr-2" /> Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="icon" variant="ghost" aria-label="More" className="shrink-0 -mr-1">
-              <MoreVertical className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {onStart && (
-              <DropdownMenuItem onClick={() => onStart(match)}>
-                <Play className="size-4 mr-2" /> Start
-              </DropdownMenuItem>
-            )}
-            {onEdit && (
-              <DropdownMenuItem onClick={() => onEdit(match)}>
-                <Pencil className="size-4 mr-2" /> Edit
-              </DropdownMenuItem>
-            )}
-            {onDuplicate && (
-              <DropdownMenuItem onClick={() => onDuplicate(match)}>
-                <Copy className="size-4 mr-2" /> Duplicate
-              </DropdownMenuItem>
-            )}
-            {onArchive && (
-              <DropdownMenuItem onClick={() => onArchive(match)}>
-                <Archive className="size-4 mr-2" /> Archive
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            {onDelete && (
-              <DropdownMenuItem onClick={() => onDelete(match)} className="text-destructive focus:text-destructive">
-                <Trash2 className="size-4 mr-2" /> Delete
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
-      {/* Middle: Team A · VS · Team B — always fits, never clips */}
-      <div className="flex items-start gap-2">
+      {/* Teams — horizontal, compact */}
+      <div className="flex items-center gap-2">
         <TeamSide team={match.team_a} align="left" />
-        <div className="mt-3 grid size-8 shrink-0 place-items-center rounded-full border border-border bg-background text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="shrink-0 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
           vs
         </div>
         <TeamSide team={match.team_b} align="right" />
       </div>
 
-      {/* Meta row: date · time · venue · result */}
-      <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-        {match.scheduled_date && (
-          <span className="inline-flex items-center gap-1">
-            <Calendar className="size-3" /> {match.scheduled_date}
-          </span>
-        )}
-        {match.scheduled_time && (
-          <span className="inline-flex items-center gap-1">
-            <Clock className="size-3" /> {match.scheduled_time}
-          </span>
-        )}
-        {match.ground_name && (
-          <span className="inline-flex min-w-0 items-center gap-1">
-            <MapPin className="size-3 shrink-0" />
-            <span className="truncate">{match.ground_name}</span>
-          </span>
-        )}
-        {match.result && (
-          <span className="inline-flex min-w-0 items-center gap-1 text-foreground/80">
-            <Trophy className="size-3 shrink-0" />
-            <span className="truncate font-semibold">{match.result}</span>
-          </span>
-        )}
-      </div>
-
-      {/* Actions — full-width primary on mobile */}
-      <div className="mt-3.5 flex items-center gap-2">
-        <Button asChild size="sm" variant="outline" className="flex-1 sm:flex-initial">
-          <Link to="/match-center/scorebook/$matchId" params={{ matchId: match.id }}>
-            <BookOpen className="size-4 mr-1.5" /> Scorebook
-          </Link>
-        </Button>
-        {onStart && match.status === "scheduled" && (
-          <Button size="sm" onClick={() => onStart(match)} className="flex-1 sm:flex-initial">
-            <Play className="size-4 mr-1.5" /> Start
-          </Button>
-        )}
+      {/* Meta + action row */}
+      <div className="mt-2.5 flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2 text-[11.5px] text-muted-foreground">
+          {match.scheduled_date && (
+            <span className="inline-flex shrink-0 items-center gap-1">
+              <Calendar className="size-3" /> {match.scheduled_date}
+            </span>
+          )}
+          {match.ground_name && (
+            <span className="inline-flex min-w-0 items-center gap-1">
+              <MapPin className="size-3 shrink-0" />
+              <span className="truncate">{match.ground_name}</span>
+            </span>
+          )}
+          {match.result && (
+            <span className="inline-flex min-w-0 items-center gap-1 text-foreground/80">
+              <Trophy className="size-3 shrink-0" />
+              <span className="truncate font-semibold">{match.result}</span>
+            </span>
+          )}
+        </div>
+        <Link
+          to="/match-center/scorebook/$matchId"
+          params={{ matchId: match.id }}
+          className="shrink-0 inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-[12.5px] font-semibold text-foreground/90 active:bg-accent/40 no-tap-highlight"
+        >
+          Scorebook <BookOpen className="size-3.5" />
+        </Link>
       </div>
     </div>
   );
