@@ -42,17 +42,22 @@ export const attendanceKeys = {
 // Reads
 // ---------------------------------------------------------------------------
 
+/**
+ * One row per (session, student) — aggregated across ALL visits today.
+ * Backed by the `attendance_today` view. See migration for derivation rules.
+ */
 export interface AttendanceTodayRow {
-  mark_id: string;
+  mark_id: string;                  // latest visit's mark id (for Check Out)
   tenant_id: string;
   student_id: string;
   session_id: string;
   batch_id: string | null;
   session_date: string;
   status: AttendanceStatus;
-  check_in_at: string | null;
-  check_out_at: string | null;
-  duration_minutes: number | null;
+  check_in_at: string | null;       // FIRST check-in of the day
+  check_out_at: string | null;      // LAST check-out of the day
+  duration_minutes: number | null;  // SUM of all completed visits
+  visit_count: number;              // number of check-ins today
   source: AttendanceSource | null;
   marked_by: string | null;
   current_state: AttendanceState;
@@ -64,7 +69,84 @@ export async function fetchAttendanceToday(tenantId: string): Promise<Attendance
     .select("*")
     .eq("tenant_id", tenantId);
   if (error) throw error;
-  return (data ?? []) as AttendanceTodayRow[];
+  return (data ?? []) as unknown as AttendanceTodayRow[];
+}
+
+// ---------------------------------------------------------------------------
+// Per-student visit timeline (chronological). Used by player profile timeline
+// and daily-summary reports. Absent rows are excluded — timeline shows visits.
+// ---------------------------------------------------------------------------
+export interface AttendanceVisit {
+  mark_id: string;
+  tenant_id: string;
+  student_id: string;
+  session_id: string;
+  session_date: string;
+  batch_id: string | null;
+  status: AttendanceStatus;
+  check_in_at: string | null;
+  check_out_at: string | null;
+  duration_minutes: number | null;
+  source: AttendanceSource;
+  marked_by: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+export async function fetchStudentVisits(
+  tenantId: string,
+  studentId: string,
+  opts: { since?: string; limit?: number } = {},
+): Promise<AttendanceVisit[]> {
+  let q = supabase
+    .from("attendance_visits")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .eq("student_id", studentId)
+    .order("session_date", { ascending: false })
+    .order("check_in_at", { ascending: true, nullsFirst: false });
+  if (opts.since) q = q.gte("session_date", opts.since);
+  if (opts.limit) q = q.limit(opts.limit);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as unknown as AttendanceVisit[];
+}
+
+export interface DailyVisitSummary {
+  session_date: string;
+  first_check_in_at: string | null;
+  last_check_out_at: string | null;
+  total_minutes: number;
+  visit_count: number;
+  visits: AttendanceVisit[];
+}
+
+/** Group a flat visit list into per-day summaries (client-side derivation). */
+export function groupVisitsByDay(visits: AttendanceVisit[]): DailyVisitSummary[] {
+  const byDay = new Map<string, AttendanceVisit[]>();
+  for (const v of visits) {
+    if (v.status !== "present" || !v.check_in_at) continue;
+    const arr = byDay.get(v.session_date) ?? [];
+    arr.push(v);
+    byDay.set(v.session_date, arr);
+  }
+  const out: DailyVisitSummary[] = [];
+  for (const [date, arr] of byDay) {
+    arr.sort((a, b) => (a.check_in_at ?? "").localeCompare(b.check_in_at ?? ""));
+    const first = arr[0]?.check_in_at ?? null;
+    const completed = arr.filter((v) => v.check_out_at);
+    const last = completed.length ? completed[completed.length - 1].check_out_at : null;
+    const total = arr.reduce((s, v) => s + (v.duration_minutes ?? 0), 0);
+    out.push({
+      session_date: date,
+      first_check_in_at: first,
+      last_check_out_at: last,
+      total_minutes: total,
+      visit_count: arr.length,
+      visits: arr,
+    });
+  }
+  return out.sort((a, b) => b.session_date.localeCompare(a.session_date));
 }
 
 /** Live count of players currently in the academy (across all batches). */
