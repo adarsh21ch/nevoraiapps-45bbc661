@@ -769,44 +769,40 @@ function PlayerPickerSheet({
   }, [players, bowledSet, kind]);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="max-h-[74dvh] overflow-hidden rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
-        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
-        <SheetHeader className="px-4 pb-2 pt-3 text-left">
-          <div className="grid grid-cols-1 items-center gap-2 pr-10">
-            <div className="min-w-0">
-              <SheetTitle className="truncate text-base">{title}</SheetTitle>
-              <SheetDescription className="text-xs">Tap once to continue scoring</SheetDescription>
-            </div>
-          </div>
-        </SheetHeader>
-        <div className="border-y px-3 py-2">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-md gap-0 overflow-hidden rounded-2xl bg-card p-0 sm:max-w-md">
+        <DialogHeader className="border-b border-border/70 px-4 pb-3 pt-4 text-left">
+          <DialogTitle className="text-base font-black">{title}</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Scroll to browse. Tap a player to continue.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="border-b border-border/70 px-3 py-2">
           <label className="flex h-10 items-center gap-2 rounded-xl bg-muted px-3">
             <Search className="size-4 shrink-0 text-muted-foreground" />
             <input
-              autoFocus
               type="search"
               value={query}
               onChange={(event) => onQuery(event.target.value)}
-              placeholder="Search player"
+              placeholder="Search player (optional)"
               className="min-w-0 flex-1 bg-transparent text-[14px] outline-none placeholder:text-muted-foreground"
             />
           </label>
         </div>
-        <div className="max-h-[52dvh] overflow-y-auto pb-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}>
+        <div className="max-h-[60dvh] overflow-y-auto">
           {players.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">No players found.</div>
           ) : (
             groups.map((group, gi) =>
               group.items.length === 0 ? null : (
-                <div key={group.label || `g-${gi}`}>
+                <div key={group.label || `g-${gi}`} className="border-b border-border/70 last:border-b-0">
                   {group.label && (
-                    <div className="sticky top-0 z-10 border-b bg-card/95 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground backdrop-blur">
+                    <div className="sticky top-0 z-10 border-b border-border/70 bg-card px-4 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       {group.label}
                       <span className="ml-1 text-muted-foreground/60">({group.items.length})</span>
                     </div>
                   )}
-                  <ul className="divide-y divide-border/70">
+                  <ul className="divide-y divide-border/60">
                     {group.items.map((player) => {
                       const locked = isDisabled(player);
                       const bowled = bowledSet.has(player.id);
@@ -820,7 +816,7 @@ function PlayerPickerSheet({
                           >
                             <span className="grid size-9 place-items-center rounded-full bg-muted text-[12px] font-black text-foreground/80">{initials(player.name)}</span>
                             <span className="min-w-0">
-                              <span className="block truncate text-[14px] font-bold leading-tight">{player.name}</span>
+                              <span className={cn("block truncate text-[14px] leading-tight", bowled ? "font-semibold text-muted-foreground" : "font-bold")}>{player.name}</span>
                               <span className="block truncate text-[11px] text-muted-foreground">
                                 {locked ? lockedMessage : bowled ? "Bowled earlier · Tap to continue" : player.role || "Player"}
                               </span>
@@ -836,8 +832,8 @@ function PlayerPickerSheet({
             )
           )}
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
 
