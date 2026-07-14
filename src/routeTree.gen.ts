@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StudentRouteImport } from './routes/student'
 import { Route as StarPlayersRouteImport } from './routes/star-players'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
@@ -81,6 +82,11 @@ import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.stud
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 
+const StudentRoute = StudentRouteImport.update({
+  id: '/student',
+  path: '/student',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StarPlayersRoute = StarPlayersRouteImport.update({
   id: '/star-players',
   path: '/star-players',
@@ -459,6 +465,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/student': typeof StudentRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -529,6 +536,7 @@ export interface FileRoutesByTo {
   '/parent-portal': typeof ParentPortalRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/student': typeof StudentRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -603,6 +611,7 @@ export interface FileRoutesById {
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
+  '/student': typeof StudentRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
@@ -678,6 +687,7 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/register'
     | '/star-players'
+    | '/student'
     | '/academy/$slug'
     | '/dashboard/academy'
     | '/dashboard/admins'
@@ -748,6 +758,7 @@ export interface FileRouteTypes {
     | '/parent-portal'
     | '/register'
     | '/star-players'
+    | '/student'
     | '/academy/$slug'
     | '/dashboard/academy'
     | '/dashboard/admins'
@@ -821,6 +832,7 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/register'
     | '/star-players'
+    | '/student'
     | '/academy/$slug'
     | '/dashboard/academy'
     | '/dashboard/admins'
@@ -895,6 +907,7 @@ export interface RootRouteChildren {
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   StarPlayersRoute: typeof StarPlayersRoute
+  StudentRoute: typeof StudentRoute
   AcademySlugRoute: typeof AcademySlugRoute
   MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
@@ -905,6 +918,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/student': {
+      id: '/student'
+      path: '/student'
+      fullPath: '/student'
+      preLoaderRoute: typeof StudentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/star-players': {
       id: '/star-players'
       path: '/star-players'
@@ -1588,6 +1608,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   RegisterRoute: RegisterRoute,
   StarPlayersRoute: StarPlayersRoute,
+  StudentRoute: StudentRoute,
   AcademySlugRoute: AcademySlugRoute,
   MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,
