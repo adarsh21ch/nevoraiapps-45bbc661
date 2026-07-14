@@ -1,117 +1,78 @@
+# Phase 03.4 — Communication & Broadcast OS
 
-# Phase 03.3 — Enrollment & Admissions OS
+## Architecture (reuse-first)
 
-## Architecture review & challenge
+The notification platform already handles per-user delivery, channel fan-out, dedupe, prefs, and realtime. This phase adds a **campaign layer** on top — it does NOT re-implement delivery.
 
-The brief asks for a Lead pipeline with ~10 stages (Lead → Contacted → Counselling scheduled → Counselling done → Trial scheduled → Trial done → Waiting decision → Approved → Rejected → Registration pending → Student created). Building this literally would create three parallel state machines (`leads.status`, `registrations.status`, `students.status`) with duplicated audit trails and drag-drop UI that admins won't use on a phone.
-
-**Simpler operational flow (recommended):**
-
-1. Collapse to **one linear pipeline** on `leads`: `new → contacted → counselling → trial → decision → approved | rejected → converted`. Registration/Student rows are outcomes, not stages. When approved, we deep-link into the existing `/register` form pre-filled from the lead — no duplicate data entry. When registration is approved, existing `approve_registration` RPC already creates the student. We just chain the lead to it.
-2. Keep counselling / trial as **scheduled events on the lead row** (`counselling_at`, `trial_at`, `trial_rating`, `trial_remarks`, `assigned_to`) — no new tables. A trial is just a lead in stage=`trial`. Reuses lead RLS.
-3. **One audit table** `admission_timeline` (append-only) captures every transition + actor + remark, feeding the checklist, timeline, and notifications. Player Timeline already exists — we post-create link the admission timeline to the student.
-4. **Convert-to-Registration** is a single button that opens `/register?lead=<id>` with a `lead_id` prefill query. `submit_registration` gains an optional `_lead_id` argument; on success the lead moves to `converted` automatically inside the RPC. No new endpoint.
-5. **Admission Checklist** is a derived view (`admission_progress` DB view or client memo) — reads existing `leads`, `registrations`, `students`, `mc_parent_links`, `attendance_marks`. Zero new writes.
-
-This cuts the phase from ~10 new components + 3 new tables to **2 new components + 1 new table + 1 extended RPC**, while satisfying every stated requirement.
-
-**Role model (locked in):** Owner sees everything; Admin sees lead pipeline, trials, registrations approval, students, attendance, match center — but the existing nav already hides billing/fees/subscription/reports from admins. Confirmed by `src/lib/nav-config.ts`. Only tightening needed: hide "Recorded payment" fields on registration drawer for admins, and add role gate on `/dashboard/billing`, `/dashboard/fees`, `/dashboard/fee-plans`, `/dashboard/subscription`, `/dashboard/reports` routes.
-
-## Database changes (1 migration)
-
-```sql
--- 1. Extend leads with pipeline fields
-ALTER TABLE public.leads
-  ADD COLUMN pipeline_stage text NOT NULL DEFAULT 'new'
-    CHECK (pipeline_stage IN ('new','contacted','counselling','trial',
-                              'decision','approved','rejected','converted')),
-  ADD COLUMN assigned_to uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-  ADD COLUMN counselling_at timestamptz,
-  ADD COLUMN trial_at timestamptz,
-  ADD COLUMN trial_rating int CHECK (trial_rating BETWEEN 1 AND 5),
-  ADD COLUMN trial_remarks text,
-  ADD COLUMN converted_registration_id uuid REFERENCES public.registrations(id) ON DELETE SET NULL,
-  ADD COLUMN converted_student_id uuid REFERENCES public.students(id) ON DELETE SET NULL;
-CREATE INDEX leads_tenant_pipeline_idx ON public.leads(tenant_id, pipeline_stage);
-
--- 2. Admission timeline (append-only)
-CREATE TABLE public.admission_timeline (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id uuid NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
-  lead_id uuid REFERENCES public.leads(id) ON DELETE CASCADE,
-  registration_id uuid REFERENCES public.registrations(id) ON DELETE SET NULL,
-  student_id uuid REFERENCES public.students(id) ON DELETE SET NULL,
-  event_type text NOT NULL,          -- stage_changed, remark, trial_scheduled, ...
-  from_stage text,
-  to_stage text,
-  remark text,
-  actor_id uuid,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-GRANT SELECT, INSERT ON public.admission_timeline TO authenticated;
-GRANT ALL ON public.admission_timeline TO service_role;
-ALTER TABLE public.admission_timeline ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "tenant scope timeline" ON public.admission_timeline
-  FOR ALL TO authenticated
-  USING (is_tenant_member(auth.uid(), tenant_id) OR is_platform_admin(auth.uid()))
-  WITH CHECK (is_tenant_member(auth.uid(), tenant_id) OR is_platform_admin(auth.uid()));
-
--- 3. RPC: advance_lead_stage(lead, new_stage, remark) — writes lead + timeline atomically
--- 4. Extend submit_registration with _lead_id, auto-close lead on convert
--- 5. Extend approve_registration to link lead → student and append timeline row
+```
+Campaign  ──►  audience resolver  ──►  publish_notification (per recipient, per channel)
+   │                                            │
+   │                                            ▼
+   └─ template + variables            notifications + notification_outbox + notification_deliveries
 ```
 
-## Files changed
+Campaigns are the "source" record. Deliveries are the existing tables. Every campaign row links to N notifications via a new `campaign_id` column on `notifications` — one join, full delivery analytics for free.
 
-- **New**
-  - `src/routes/dashboard.leads.tsx` — replace inbox with pipeline board (column-per-stage on desktop, stage-filter chip strip on mobile). Same file, redesigned in place — count against reuse.
-  - `src/components/dashboard/LeadCard.tsx` — quick actions (call, WhatsApp, schedule trial, advance, convert).
-  - `src/components/dashboard/TrialDrawer.tsx` — date/rating/remarks form on a lead in stage=`trial`.
-  - `src/components/dashboard/AdmissionChecklist.tsx` — reused on lead drawer + student detail.
-  - `src/lib/admissions.ts` — queries (`leadsPipelineQuery`, `admissionTimelineQuery`) + mutations (`advanceLeadStage`, `scheduleTrial`, `recordTrial`, `convertLeadToRegistration`).
-- **Extended**
-  - `src/routes/register.tsx` — reads `?lead=<id>`, pre-fills name/phone/whatsapp/guardian from lead; passes `_lead_id` to `submit_registration`.
-  - `src/routes/dashboard.registrations.tsx` — after `approve_registration` also links back to lead + posts admission timeline row.
-  - `src/routes/dashboard.students.$id.tsx` — inject Admission Timeline section (reads `admission_timeline` by student_id).
-  - `src/routes/dashboard.tsx` + `src/lib/nav-config.ts` — role-gate billing/fees/subscription/reports routes to owner-only (route-level `beforeLoad` redirect + already-correct nav filter).
-  - `src/components/dashboard/GlobalSearch.tsx` — extend existing search (or create if absent) to cover leads.player_id/phone/email.
+## Database Changes (1 migration)
 
-## Reuse
+New tables (all tenant-scoped, RLS on):
 
-- Components: `Card/Button/Badge/Drawer/Tabs/Textarea`, `BulkImportLeads`, `PersonAvatar`, `SiteHeader`, existing registration form, `NotificationBell`.
-- Queries/hooks: `useDashboard`, `dashboard-queries`, `feePlansQuery`, `batchesQuery`, existing `students`/`registrations`/`leads` reads.
-- RPCs: `submit_registration` (extended, backward-compatible), `approve_registration` (extended), `publish_notification`, `is_tenant_member`, `is_tenant_owner`.
+- `comm_templates` — `id, tenant_id, name, category (notification_category), title_template, body_template, default_channels, variables_used jsonb, created_by, created_at, updated_at`
+- `comm_campaigns` — `id, tenant_id, name, template_id (null=ad-hoc), category, title, body, deep_link, priority, channels[], audience jsonb ({kind, batch_ids, student_ids, parent_ids, admin_ids, lead_stages}), status (draft|scheduled|sending|sent|failed|cancelled), scheduled_for, sent_at, recipient_count, delivered_count, failed_count, is_recurring, recurrence_rule text, created_by, created_at, updated_at`
+- `comm_campaign_recipients` — audit rows: `campaign_id, recipient_user_id, notification_id, resolved_at` (append-only)
 
-## Notifications
+Column add:
+- `notifications.campaign_id uuid null` + index. Backfill NULL. Existing publishers unaffected.
 
-On stage advance to `trial`, `approved`, `converted`: publish via existing `publish_notification` RPC to the assigned admin (`assigned_to`) and to all tenant owners for approvals. No new channel wiring.
+RPCs (SECURITY DEFINER, tenant-member gated):
+- `send_campaign(_campaign_id)` — resolves audience via SQL joins over `profiles`, `mc_parent_links`, `students`, `batches`, `leads`; renders `{{vars}}` per recipient; loops `publish_notification` with `_channels`, tags with `campaign_id`; updates counts + status. Owner-only if `category='billing'`.
+- `schedule_campaign(_campaign_id, _when)` — status→scheduled, scheduled_for=_when. Cron picks up.
+- `cancel_campaign(_campaign_id)` — draft/scheduled only.
+- `render_template(_template_id, _vars jsonb)` — preview.
 
-## Search
+Scheduler: extend existing cron (or add `/api/public/hooks/dispatch-campaigns`) that selects `scheduled` campaigns where `scheduled_for<=now()` and calls `send_campaign`.
 
-Extend the global search box already in the dashboard header (`GlobalSearch`) to also query `leads` by name/phone/email/player_id (via converted_student_id join). Single debounced React Query; no new endpoint.
+Grants + RLS: tenant_id-scoped SELECT/INSERT/UPDATE for `authenticated`; billing campaigns gated by `is_tenant_owner` in RPC.
 
-## Security
+## Files Changed
 
-- New RPC `advance_lead_stage` = `SECURITY DEFINER`, verifies `is_tenant_member`.
-- `admission_timeline` INSERT gated by same tenant-membership check.
-- Route-level owner gate on `/dashboard/billing`, `/dashboard/fees`, `/dashboard/fee-plans`, `/dashboard/subscription`, `/dashboard/reports` (`beforeLoad` throws redirect to `/dashboard` when role != owner).
-- No change to existing RLS.
+**New:**
+- `src/lib/communications.ts` — types, queries, mutations (React Query), audience helpers, variable list
+- `src/routes/dashboard.communications.tsx` — hub with tabs: Announcements / Broadcasts / Scheduled / Templates / History
+- `src/components/dashboard/comms/CampaignComposer.tsx` — one modal: audience picker + channel toggles + template select + variable preview + schedule/send
+- `src/components/dashboard/comms/TemplateEditor.tsx`
+- `src/components/dashboard/comms/CampaignCard.tsx` — timeline card w/ delivery bars
+- `src/components/dashboard/comms/AudiencePicker.tsx` — batch/student/parent/admin/lead-stage selects (reuses existing queries)
+- `src/components/dashboard/comms/DeliveryStats.tsx` — reads `notification_deliveries` grouped by campaign
+- `src/routes/api/public/hooks/dispatch-campaigns.ts` — cron target
+- Migration file
 
-## Performance
+**Extended:**
+- `src/lib/nav-config.ts` — add "Communications" for owner+admin
+- `src/routes/dashboard.tsx` — global search: templates + campaigns
+- `src/lib/notification-publishers.functions.ts` — accept optional `campaign_id`
 
-- Reuses cached `dashboardStudentsQuery` / `batchesQuery`.
-- Pipeline uses a single `leads` query filtered client-side by stage — <1000 rows per tenant realistic; still adds `tenant_id, pipeline_stage` index.
-- Admission timeline paginated to last 50 by default.
+**Reused as-is:** `publish_notification` RPC, `notifications`/`outbox`/`deliveries`/`preferences` tables, `NotificationBell`, `useNotifications*`, dashboard-context, `<OwnerOnly>`, `PersonAvatar`, DS Card/Button/Badge/Drawer/Tabs, `use-toast`, admissions timeline pattern.
+
+## Permissions
+
+- Admin: all categories except `billing`. RPC rejects; UI hides Fee Reminder type.
+- Owner: everything.
+- Enforced in RPC + client-side `<OwnerOnly>` on billing-category composer.
+
+## Automation
+
+No new triggers. Existing publishers (attendance, billing, registration, match finalization, admissions timeline) keep calling `publish_notification` directly. Communication Hub is for **human-initiated** campaigns; automations remain module-owned.
 
 ## Out of scope (defer)
 
-- Drag-and-drop between columns (chip-tap advance covers it in one click on mobile).
-- Trial photo/video upload (uses existing student-photo capability post-conversion).
-- Multi-child family accounts (parent portal already handles siblings).
+- Real WhatsApp/SMS/Email dispatch workers (outbox rows already queue; a worker plugs in later without schema change)
+- Open/click tracking
+- Recurring cron beyond simple daily/weekly (store `recurrence_rule`, but generator runs a v0 daily/weekly parser only)
+- Rich text editor (plain text + variable chips in v1)
 
-## Acceptance
+## Deliverables after build
 
-- Owner can see full pipeline + convert lead → registration → approve → student without duplicate typing.
-- Admin sees the same but zero billing UI anywhere.
-- Every stage transition appears in admission_timeline + student timeline after conversion.
-- Global search finds a person by phone across lead/registration/student.
+Architecture / DB / Files / Components created + reused / Security / Performance / UX / Readiness score / Top 10 recs / Updated completion % / Remaining phases.
+
+**Ready to implement — reply with any adjustment or leave empty to proceed.**
