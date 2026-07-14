@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -256,29 +256,17 @@ function ScorerPage() {
   ]);
 
   /* ---------- innings/match completion detection ---------- */
-  const inningsAutoOpenedRef = useRef(false);
-  const matchAutoOpenedRef = useRef(false);
   useEffect(() => {
-    if (!session.matchState.inningsShouldEnd) {
-      inningsAutoOpenedRef.current = false;
-      return;
-    }
-    if (!inningsAutoOpenedRef.current) {
-      inningsAutoOpenedRef.current = true;
+    if (session.matchState.inningsShouldEnd && !inningsCompleteOpen) {
       setInningsCompleteOpen(true);
     }
-  }, [session.matchState.inningsShouldEnd]);
+  }, [session.matchState.inningsShouldEnd, inningsCompleteOpen]);
 
   useEffect(() => {
-    if (!session.matchState.matchShouldEnd) {
-      matchAutoOpenedRef.current = false;
-      return;
-    }
-    if (!matchAutoOpenedRef.current) {
-      matchAutoOpenedRef.current = true;
+    if (session.matchState.matchShouldEnd && !matchCompleteOpen) {
       setMatchCompleteOpen(true);
     }
-  }, [session.matchState.matchShouldEnd]);
+  }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
 
   /* Batter/bowler setup is handled from the mobile scorer rows and bottom sheets. */
 
@@ -322,7 +310,6 @@ function ScorerPage() {
           fours: s?.fours ?? 0,
           sixes: s?.sixes ?? 0,
           strikeRate: s ? String(s.strikeRate) : "0.0",
-          order: s?.battingPosition,
           last5: session.events
             .filter((e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name)
             .slice(-5)
@@ -339,10 +326,7 @@ function ScorerPage() {
           name: nonStriker.name ?? undefined,
           runs: s?.runs ?? 0,
           balls: s?.balls ?? 0,
-          fours: s?.fours ?? 0,
-          sixes: s?.sixes ?? 0,
           strikeRate: s ? String(s.strikeRate) : "0.0",
-          order: s?.battingPosition,
         };
       })()
     : undefined;
@@ -737,7 +721,6 @@ function ScorerPage() {
               : null
           }
           overBalls={session.currentOver.events.map(ballChipLabel)}
-          currentOver={{ number: session.currentOver.overNumber + 1, ballsBowled: session.currentOver.ballsBowled }}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
@@ -999,10 +982,10 @@ function ScorerPage() {
             <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setMatchCompleteOpen(false); setScorecardOpen(true); }}>
+            <Button variant="outline" onClick={() => setScorecardOpen(true)}>
               View scorecard
             </Button>
-            <Button onClick={() => { setMatchCompleteOpen(false); finalizeMatch(); }}>Finalize</Button>
+            <Button onClick={finalizeMatch}>Finalize</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1144,29 +1127,17 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
   const [pendingBallIntent, setPendingBallIntent] = useState<Parameters<typeof session.submitBall>[0] | null>(null);
 
-  const inningsAutoOpenedRef = useRef(false);
-  const matchAutoOpenedRef = useRef(false);
   useEffect(() => {
-    if (!session.matchState.inningsShouldEnd) {
-      inningsAutoOpenedRef.current = false;
-      return;
-    }
-    if (!inningsAutoOpenedRef.current) {
-      inningsAutoOpenedRef.current = true;
+    if (session.matchState.inningsShouldEnd && !inningsCompleteOpen) {
       setInningsCompleteOpen(true);
     }
-  }, [session.matchState.inningsShouldEnd]);
+  }, [session.matchState.inningsShouldEnd, inningsCompleteOpen]);
 
   useEffect(() => {
-    if (!session.matchState.matchShouldEnd) {
-      matchAutoOpenedRef.current = false;
-      return;
-    }
-    if (!matchAutoOpenedRef.current) {
-      matchAutoOpenedRef.current = true;
+    if (session.matchState.matchShouldEnd && !matchCompleteOpen) {
       setMatchCompleteOpen(true);
     }
-  }, [session.matchState.matchShouldEnd]);
+  }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
 
   /* Batter/bowler setup is handled from the mobile scorer rows and bottom sheets. */
 
@@ -1253,7 +1224,6 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           fours: s?.fours ?? 0,
           sixes: s?.sixes ?? 0,
           strikeRate: s ? String(s.strikeRate) : "0.0",
-          order: s?.battingPosition,
           last5: session.events
             .filter((e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name)
             .slice(-5)
@@ -1270,10 +1240,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           name: nonStriker.name ?? undefined,
           runs: s?.runs ?? 0,
           balls: s?.balls ?? 0,
-          fours: s?.fours ?? 0,
-          sixes: s?.sixes ?? 0,
           strikeRate: s ? String(s.strikeRate) : "0.0",
-          order: s?.battingPosition,
         };
       })()
     : undefined;
@@ -1575,7 +1542,6 @@ function DemoScorerView({ matchId }: { matchId: string }) {
               : null
           }
           overBalls={session.currentOver.events.map(ballChipLabel)}
-          currentOver={{ number: session.currentOver.overNumber + 1, ballsBowled: session.currentOver.ballsBowled }}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
@@ -1806,7 +1772,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             <div className="text-xs text-muted-foreground">{stats.team.oversDisplay} overs</div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setMatchCompleteOpen(false); setScorecardOpen(true); }}>View scorecard</Button>
+            <Button variant="outline" onClick={() => setScorecardOpen(true)}>View scorecard</Button>
             <Button onClick={finalizeMatch}>Finalize</Button>
           </DialogFooter>
         </DialogContent>

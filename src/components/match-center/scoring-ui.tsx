@@ -275,7 +275,6 @@ export interface BatterStats {
   strikeRate?: string;
   last5?: string[];
   onStrike?: boolean;
-  order?: number;
 }
 
 export function PlayerPanel({

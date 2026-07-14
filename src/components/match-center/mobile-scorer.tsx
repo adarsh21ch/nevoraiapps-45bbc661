@@ -61,7 +61,6 @@ export interface MobileScorerProps {
   bowler?: BowlerStats;
   partnership?: { runs: number; balls: number } | null;
   overBalls: string[];
-  currentOver?: { number: number; ballsBowled: number };
   insights?: MobileScorerInsight;
 
   disabled?: boolean;
@@ -296,8 +295,8 @@ export function MobileScorer(props: MobileScorerProps) {
 
 
 
-      <div className="shrink-0 border-b border-border/40 bg-background/80 px-3 py-1.5 backdrop-blur-xl">
-        <ThisOverStrip balls={props.overBalls} currentOver={props.currentOver} />
+      <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-1.5 backdrop-blur-xl">
+        <ThisOverStrip balls={props.overBalls} />
       </div>
 
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
@@ -494,8 +493,11 @@ function ScoreHeroCard({
   const [runsPart, wicketsPart] = score.split("/");
   const wickets = wicketsPart ?? "0";
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-card p-3 shadow-sm">
-
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/12 via-card to-card p-3 shadow-[0_10px_30px_-16px_color-mix(in_oklab,var(--primary)_35%,transparent),inset_0_1px_0_0_color-mix(in_oklab,white_20%,transparent)]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+      />
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <div className="min-w-0">
           <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
@@ -560,7 +562,6 @@ function ScorebookBatters({
 function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; striker?: boolean; onClick: () => void }) {
   const name = batter?.name ?? (striker ? "Select striker" : "Select non-striker");
   const sr = batter?.strikeRate ?? "0.0";
-  const order = batter?.order;
   return (
     <button
       type="button"
@@ -572,22 +573,14 @@ function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; strike
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-1.5">
-          {order ? (
-            <span className="grid size-[18px] shrink-0 place-items-center rounded-full border border-border/70 bg-muted/60 text-[10px] font-black leading-none text-muted-foreground tabular-nums">
-              {order}
+          {striker ? (
+            <span className="grid size-[18px] shrink-0 place-items-center rounded-full bg-[var(--score-striker-dot)] text-[var(--score-action-foreground)] text-[11px] font-black leading-none">
+              ★
             </span>
           ) : (
             <span className="size-[18px] shrink-0" aria-hidden />
           )}
           <span className="truncate text-[14px] font-bold leading-tight">{name}</span>
-          {striker && batter?.name && (
-            <span
-              aria-label="on strike"
-              className="ml-0.5 shrink-0 text-[13px] leading-none text-[var(--score-striker-dot)]"
-            >
-              ★
-            </span>
-          )}
         </div>
         <div className="mt-1 pl-[26px] truncate text-[11px] leading-tight text-muted-foreground tabular-nums">
           4s {batter?.fours ?? 0} · 6s {batter?.sixes ?? 0} · SR {sr}
@@ -630,24 +623,15 @@ function BowlerLine({ bowler, onClick }: { bowler?: BowlerStats; onClick: () => 
   );
 }
 
-function ThisOverStrip({ balls, currentOver }: { balls: string[]; currentOver?: { number: number; ballsBowled: number } }) {
-  const overNum = currentOver ? currentOver.number : 1;
-  const bowled = currentOver ? currentOver.ballsBowled : 0;
+function ThisOverStrip({ balls }: { balls: string[] }) {
   return (
-    <section className="flex h-11 shrink-0 items-center gap-3 px-1">
-      <div className="flex shrink-0 items-baseline gap-1.5 leading-none">
-        <span className="text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
-          Over
-        </span>
-        <span className="text-[15px] font-black tabular-nums text-foreground">{overNum}</span>
-        <span className="text-[10.5px] font-bold tabular-nums text-muted-foreground">
-          {bowled}/6
-        </span>
-      </div>
-      <div className="h-4 w-px shrink-0 bg-border/60" />
-      <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto ds-scroll">
+    <section className="flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10">
+      <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        This over
+      </span>
+      <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto ds-scroll">
         {balls.length === 0 ? (
-          <span className="text-[11.5px] text-muted-foreground">Ready</span>
+          <span className="text-[12px] text-muted-foreground">Ready</span>
         ) : (
           balls.map((ball, i) => <BallBubble key={`${ball}-${i}`} label={ball} />)
         )}
