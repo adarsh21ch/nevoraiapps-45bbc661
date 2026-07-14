@@ -495,24 +495,33 @@ function ScoreHeroCard({
           <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
             Score
           </div>
-          <div className="flex min-w-0 items-center">
+          <div className="flex min-w-0 items-end justify-between gap-2">
             <h1 className="text-[46px] font-black leading-[0.9] tracking-tight tabular-nums sm:text-[52px]">
               <NumberRoll value={`${runsPart ?? score}/${wickets}`} />
             </h1>
-          </div>
-          <div className="mt-1 flex items-baseline gap-2 text-[11.5px] tabular-nums">
-            <span className="rounded bg-muted/60 px-1.5 py-0.5 text-[11px] font-bold text-muted-foreground">
+            <span className="shrink-0 rounded-md bg-muted/70 px-1.5 py-0.5 text-[11px] font-black tabular-nums text-muted-foreground">
               {overs} ov
             </span>
           </div>
-        </div>
-        <div className="flex flex-col items-end gap-1 text-right text-[11px] font-bold tabular-nums">
-          <ScoreSideStat label="CRR" value={crr ?? "–"} />
-          {rrr && <ScoreSideStat label="RRR" value={rrr} />}
-          {target && <ScoreSideStat label="TGT" value={target} accent />}
           {chase && (
-            <div className="mt-0.5 whitespace-nowrap text-[11px] font-black text-[var(--score-success-fg)]">
+            <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[var(--score-success-bg,color-mix(in_oklab,var(--primary)_16%,transparent))] px-2 py-1 text-[11.5px] font-black text-[var(--score-success-fg)] tabular-nums">
               Need {chase.runsNeeded} from {chase.ballsLeft}
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col items-end gap-1 text-right tabular-nums">
+          {target && (
+            <div className="rounded-lg border border-[var(--score-success-fg)]/40 bg-[var(--score-success-fg)]/10 px-2.5 py-1 leading-tight">
+              <div className="text-[9px] font-black uppercase tracking-[0.14em] text-[var(--score-success-fg)]/80">Target</div>
+              <div className="text-[20px] font-black text-[var(--score-success-fg)]">{target}</div>
+            </div>
+          )}
+          <div className="text-[11px] font-bold text-muted-foreground">
+            CRR <span className="font-black text-foreground">{crr ?? "–"}</span>
+          </div>
+          {rrr && (
+            <div className="text-[11px] font-bold text-muted-foreground">
+              RRR <span className="font-black text-foreground">{rrr}</span>
             </div>
           )}
         </div>
@@ -521,15 +530,6 @@ function ScoreHeroCard({
   );
 }
 
-function ScoreSideStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div className="grid grid-cols-[auto_auto_auto] items-baseline gap-1 whitespace-nowrap leading-tight">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="text-muted-foreground">-</span>
-      <span className={cn("font-black text-foreground", accent && "text-[var(--score-success-fg)]")}>{value}</span>
-    </div>
-  );
-}
 
 function ScorebookBatters({
   striker,
