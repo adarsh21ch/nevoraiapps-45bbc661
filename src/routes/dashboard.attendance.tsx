@@ -1,298 +1,351 @@
+/**
+ * AcademyOS V2 — Attendance module (Phase 02.2)
+ *
+ * Full check-in / check-out lifecycle. Append-only history.
+ * Realtime updates across all devices via the shared channel registry.
+ */
+
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { LogIn, LogOut, UserX, Clock } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
-import { supabase } from "@/integrations/supabase/client";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
-import { Card } from "@/components/ui/card";
+import { usePermissions } from "@/hooks/use-permissions";
+import {
+  AppShell,
+  TopBar,
+  Section,
+  Card,
+  StatCard,
+  ListItem,
+  EmptyState,
+  LoadingState,
+  ErrorState,
+  Skeleton,
+  SegmentedControl,
+  LiveBadge,
+} from "@/components/ds";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PersonAvatar } from "@/components/site/PersonAvatar";
+import {
+  attendanceKeys,
+  fetchAttendanceToday,
+  useAttendanceRealtime,
+  useCheckIn,
+  useCheckOut,
+  useMarkAbsent,
+} from "@/lib/attendance/queries";
+import {
+  attendanceStateLabels,
+  attendanceStateTone,
+  formatDuration,
+  type AttendanceState,
+} from "@/lib/attendance/constants";
 import { cn } from "@/lib/utils";
 
-type Status = "present" | "absent" | "late";
-type Mark = { id: string; student_id: string; status: Status; note: string | null };
-
 export const Route = createFileRoute("/dashboard/attendance")({
-  head: () => ({ meta: [{ title: "Attendance · Academy dashboard" }] }),
+  head: () => ({
+    meta: [
+      { title: "Attendance · AcademyOS" },
+      { name: "description", content: "Check students in and out. Live academy roster and append-only attendance history." },
+    ],
+  }),
   component: AttendancePage,
 });
-
-function todayISO() {
-  return format(new Date(), "yyyy-MM-dd");
-}
 
 function AttendancePage() {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
+  const { can } = usePermissions();
+  const canMark = can("canMarkAttendance");
+
   const [batchId, setBatchId] = useState<string>("");
-  const [date, setDate] = useState<string>(todayISO());
 
   const batchesQ = useQuery({ queryKey: qk.batches(tenant.id), queryFn: () => fetchBatches(tenant.id) });
   const studentsQ = useQuery({ queryKey: qk.students(tenant.id), queryFn: () => fetchStudents(tenant.id) });
+  const todayQ = useQuery({
+    queryKey: attendanceKeys.today(tenant.id),
+    queryFn: () => fetchAttendanceToday(tenant.id),
+    staleTime: 15_000,
+  });
+
+  // Single realtime subscription — updates every card + list on this page.
+  useAttendanceRealtime(tenant.id, qc);
 
   const activeBatches = useMemo(
-    () => (batchesQ.data ?? []).filter((b) => b.active),
+    () => (batchesQ.data ?? []).filter((b: { active: boolean }) => b.active),
     [batchesQ.data],
   );
-  // default to first batch once loaded
-  if (!batchId && activeBatches.length && activeBatches[0]) {
-    queueMicrotask(() => setBatchId(activeBatches[0]!.id));
-  }
+
+  // Default to first batch once loaded
+  const effectiveBatchId = batchId || activeBatches[0]?.id || "";
 
   const batchStudents = useMemo(
     () =>
       (studentsQ.data ?? []).filter(
-        (s) => s.batch_id === batchId && s.status === "active",
+        (s: { batch_id: string | null; status: string }) =>
+          s.batch_id === effectiveBatchId && s.status === "active",
       ),
-    [studentsQ.data, batchId],
+    [studentsQ.data, effectiveBatchId],
   );
 
-  const sessionQ = useQuery({
-    queryKey: ["d", "att-session", tenant.id, batchId, date],
-    enabled: !!batchId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("attendance_sessions" as never)
-        .select("*, attendance_marks(*)")
-        .eq("tenant_id", tenant.id)
-        .eq("batch_id", batchId)
-        .eq("session_date", date)
-        .maybeSingle();
-      if (error) throw error;
-      return data as unknown as { id: string; attendance_marks: Mark[] } | null;
-    },
-  });
+  // Map: student_id → current state row
+  const stateByStudent = useMemo(() => {
+    const m = new Map<string, ReturnType<typeof fetchAttendanceToday> extends Promise<infer T> ? T extends Array<infer R> ? R : never : never>();
+    for (const row of todayQ.data ?? []) {
+      if (row.batch_id === effectiveBatchId) m.set(row.student_id, row);
+    }
+    return m;
+  }, [todayQ.data, effectiveBatchId]);
 
-  const marks = new Map<string, Mark>();
-  (sessionQ.data?.attendance_marks ?? []).forEach((m) => marks.set(m.student_id, m));
+  // KPIs across this batch
+  const kpis = useMemo(() => {
+    let inAcademy = 0;
+    let checkedIn = 0;
+    let checkedOut = 0;
+    let absent = 0;
+    for (const s of batchStudents) {
+      const row = stateByStudent.get(s.id);
+      const state: AttendanceState = row?.current_state ?? "not_marked";
+      if (state === "in_academy") { inAcademy++; checkedIn++; }
+      else if (state === "checked_out") { checkedIn++; checkedOut++; }
+      else if (state === "absent") absent++;
+    }
+    return { inAcademy, checkedIn, checkedOut, absent, notMarked: batchStudents.length - checkedIn - absent };
+  }, [batchStudents, stateByStudent]);
 
-  const ensureSession = async (): Promise<string> => {
-    if (sessionQ.data?.id) return sessionQ.data.id;
-    const { data, error } = await supabase
-      .from("attendance_sessions" as never)
-      .insert({ tenant_id: tenant.id, batch_id: batchId, session_date: date } as never)
-      .select("id")
-      .single();
-    if (error) throw error;
-    return (data as unknown as { id: string }).id;
-  };
-
-  const mark = useMutation({
-    mutationFn: async ({ studentId, status }: { studentId: string; status: Status }) => {
-      const sessionId = await ensureSession();
-      const { error } = await supabase
-        .from("attendance_marks" as never)
-        .upsert(
-          {
-            session_id: sessionId,
-            tenant_id: tenant.id,
-            student_id: studentId,
-            status,
-          } as never,
-          { onConflict: "session_id,student_id" },
-        );
-      if (error) throw error;
-    },
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["d", "att-session", tenant.id, batchId, date] }),
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const shiftDate = (delta: number) => {
-    const d = new Date(date + "T00:00:00");
-    d.setDate(d.getDate() + delta);
-    setDate(format(d, "yyyy-MM-dd"));
-  };
-
-  const counts = { present: 0, absent: 0, late: 0, unmarked: 0 };
-  batchStudents.forEach((s) => {
-    const m = marks.get(s.id);
-    if (!m) counts.unmarked++;
-    else counts[m.status]++;
-  });
+  const isLoading = batchesQ.isLoading || studentsQ.isLoading || todayQ.isLoading;
+  const isError = batchesQ.isError || studentsQ.isError || todayQ.isError;
 
   return (
-    <div className="space-y-5">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Attendance</h1>
-        <p className="text-sm text-muted-foreground">
-          Slide right for present, left for absent. Nudge absentees on WhatsApp.
-        </p>
-      </header>
+    <AppShell>
+      <TopBar
+        title="Attendance"
+        subtitle={format(new Date(), "EEE, d MMM · h:mm a")}
+        rightSlot={<LiveBadge state="live" />}
+      />
 
-      <Card className="p-3 flex flex-wrap items-center gap-2">
-        <div className="min-w-[180px]">
-          <Select value={batchId} onValueChange={setBatchId}>
-            <SelectTrigger><SelectValue placeholder="Choose batch" /></SelectTrigger>
-            <SelectContent>
-              {activeBatches.map((b) => (
-                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="icon" onClick={() => shiftDate(-1)}>
-            <ChevronLeft className="size-4" />
-          </Button>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-          />
-          <Button variant="outline" size="icon" onClick={() => shiftDate(1)}>
-            <ChevronRight className="size-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => setDate(todayISO())}>Today</Button>
-        </div>
-        <div className="ml-auto flex gap-2 text-xs">
-          <Badge tone="emerald">{counts.present} present</Badge>
-          <Badge tone="rose">{counts.absent} absent</Badge>
-          {counts.late > 0 && <Badge tone="amber">{counts.late} late</Badge>}
-          {counts.unmarked > 0 && <Badge tone="slate">{counts.unmarked} unmarked</Badge>}
-        </div>
-      </Card>
+      {isError ? (
+        <ErrorState
+          title="Couldn't load attendance"
+          description="Please try again."
+          onRetry={() => {
+            batchesQ.refetch();
+            studentsQ.refetch();
+            todayQ.refetch();
+          }}
+        />
+      ) : null}
 
-      {!batchId && <p className="text-sm text-muted-foreground">Pick a batch to start.</p>}
+      {isLoading ? (
+        <Section>
+          <div className="grid grid-cols-2 gap-2">
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
+          </div>
+          <div className="mt-4 space-y-2">
+            <Skeleton className="h-14" />
+            <Skeleton className="h-14" />
+            <Skeleton className="h-14" />
+          </div>
+        </Section>
+      ) : activeBatches.length === 0 ? (
+        <EmptyState
+          title="No active batches"
+          description="Create a batch to start taking attendance."
+        />
+      ) : (
+        <>
+          {/* Batch selector — only if more than one */}
+          {activeBatches.length > 1 ? (
+            <Section>
+              <SegmentedControl
+                value={effectiveBatchId}
+                onChange={setBatchId}
+                options={activeBatches.map((b: { id: string; name: string }) => ({ value: b.id, label: b.name }))}
+              />
+            </Section>
+          ) : null}
 
-      <div className="space-y-2">
-        {batchStudents.map((s) => {
-          const m = marks.get(s.id);
-          return (
-            <StudentRow
-              key={s.id}
-              name={s.name}
-              phone={s.guardian_phone || s.phone}
-              tenantName={tenant.name}
-              date={date}
-              status={m?.status}
-              onSet={(status) => mark.mutate({ studentId: s.id, status })}
-            />
-          );
-        })}
-        {batchId && batchStudents.length === 0 && (
-          <Card className="p-8 text-center text-sm text-muted-foreground">
-            No active students in this batch.
-          </Card>
-        )}
-      </div>
-    </div>
+          {/* KPI strip — 2 up on mobile */}
+          <Section>
+            <div className="grid grid-cols-2 gap-2">
+              <StatCard label="In Academy Now" value={kpis.inAcademy} tone="success" />
+              <StatCard label="Checked Out" value={kpis.checkedOut} tone="info" />
+              <StatCard label="Absent" value={kpis.absent} tone="danger" />
+              <StatCard label="Not Marked" value={kpis.notMarked} tone="neutral" />
+            </div>
+          </Section>
+
+          {/* Roster */}
+          <Section title="Roster">
+            {batchStudents.length === 0 ? (
+              <EmptyState title="No students" description="Add students to this batch." />
+            ) : (
+              <Card className="p-1 divide-y divide-border/60">
+                {batchStudents.map((s) => (
+                  <StudentRow
+                    key={s.id}
+                    student={s}
+                    row={stateByStudent.get(s.id)}
+                    canMark={canMark}
+                    tenantId={tenant.id}
+                    batchId={effectiveBatchId}
+                  />
+                ))}
+              </Card>
+            )}
+          </Section>
+        </>
+      )}
+    </AppShell>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Row
+// ---------------------------------------------------------------------------
+
+interface StudentLite {
+  id: string;
+  name: string;
+  photo_url: string | null;
+  player_id: string | null;
+}
+
+interface TodayRow {
+  mark_id: string;
+  current_state: AttendanceState;
+  check_in_at: string | null;
+  check_out_at: string | null;
+  duration_minutes: number | null;
 }
 
 function StudentRow({
-  name, phone, tenantName, date, status, onSet,
+  student,
+  row,
+  canMark,
+  tenantId,
+  batchId,
 }: {
-  name: string;
-  phone: string | null;
-  tenantName: string;
-  date: string;
-  status?: Status;
-  onSet: (s: Status) => void;
+  student: StudentLite;
+  row: TodayRow | undefined;
+  canMark: boolean;
+  tenantId: string;
+  batchId: string;
 }) {
-  const waDigits = (phone ?? "").replace(/\D/g, "");
-  const waNumber = waDigits.length === 10 ? `91${waDigits}` : waDigits;
-  const waText = `Namaste ji, ${name} aaj (${date}) ${tenantName} me nahi aaye. Sab theek hai? Kripya inform karein. Dhanyavaad 🙏`;
-  const waUrl = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waText)}` : null;
+  const state: AttendanceState = row?.current_state ?? "not_marked";
+  const checkIn = useCheckIn();
+  const checkOut = useCheckOut(tenantId);
+  const markAbsent = useMarkAbsent();
+  const busy = checkIn.isPending || checkOut.isPending || markAbsent.isPending;
 
-  return (
-    <Card
-      className={cn(
-        "flex items-center gap-3 p-3 transition select-none border-l-4",
-        status === "present" && "border-l-emerald-500 bg-emerald-50/40",
-        status === "absent" && "border-l-rose-500 bg-rose-50/40",
-        status === "late" && "border-l-amber-500 bg-amber-50/40",
-        !status && "border-l-transparent",
-      )}
-    >
-      <div className="flex-1 min-w-0">
-        <div className="font-medium truncate">{name}</div>
-        <div className="text-xs text-muted-foreground">{phone || "No phone"}</div>
-      </div>
-      <div className="flex items-center gap-2">
-        <AttendanceToggle status={status} onSet={onSet} />
-        {status === "absent" && waUrl && (
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-full bg-[#25D366] px-2.5 py-1 text-[11px] font-semibold text-white"
-          >
-            <MessageCircle className="size-3" fill="currentColor" /> Notify
-          </a>
-        )}
-      </div>
-    </Card>
-  );
-}
-
-function AttendanceToggle({
-  status,
-  onSet,
-}: {
-  status?: Status;
-  onSet: (s: Status) => void;
-}) {
-  // Two-state slide switch: left = absent (red), right = present (green).
-  // Default (unmarked) sits centered in muted grey. Tap either half to set.
-  const isPresent = status === "present";
-  const isAbsent = status === "absent";
-  const bg = isPresent
-    ? "bg-emerald-500"
-    : isAbsent
-    ? "bg-rose-500"
-    : "bg-muted";
-  const knobPos = isPresent
-    ? "translate-x-9"
-    : isAbsent
-    ? "translate-x-0"
-    : "translate-x-[18px]";
-  return (
-    <div className="relative inline-flex items-center">
-      <button
-        type="button"
-        aria-label="Toggle attendance"
-        onClick={() => onSet(isPresent ? "absent" : "present")}
-        className={cn(
-          "relative h-8 w-[74px] rounded-full transition-colors duration-200 shadow-inner",
-          bg,
-        )}
-      >
-        <span
-          className={cn(
-            "absolute top-0.5 left-0.5 h-7 w-7 rounded-full bg-white shadow-md transition-transform duration-200 grid place-items-center text-[10px] font-bold",
-            knobPos,
-            isPresent
-              ? "text-emerald-600"
-              : isAbsent
-              ? "text-rose-600"
-              : "text-muted-foreground",
-          )}
-        >
-          {isPresent ? "P" : isAbsent ? "A" : "—"}
-        </span>
-        <span className="absolute inset-y-0 left-2 flex items-center text-[10px] font-bold text-white/90 select-none pointer-events-none">
-          {isAbsent ? "" : "A"}
-        </span>
-        <span className="absolute inset-y-0 right-2 flex items-center text-[10px] font-bold text-white/90 select-none pointer-events-none">
-          {isPresent ? "" : "P"}
-        </span>
-      </button>
-    </div>
-  );
-}
-
-
-function Badge({ tone, children }: { tone: "emerald" | "rose" | "amber" | "slate"; children: React.ReactNode }) {
-  const styles: Record<string, string> = {
-    emerald: "bg-emerald-100 text-emerald-800",
-    rose: "bg-rose-100 text-rose-800",
-    amber: "bg-amber-100 text-amber-800",
-    slate: "bg-slate-100 text-slate-700",
+  const onCheckIn = () => {
+    checkIn.mutate(
+      { tenantId, batchId, studentId: student.id },
+      {
+        onSuccess: () => toast.success(`${student.name} checked in`),
+        onError: (e: Error) => toast.error(e.message || "Check-in failed"),
+      },
+    );
   };
-  return <span className={cn("rounded-full px-2 py-0.5 font-medium", styles[tone])}>{children}</span>;
+  const onCheckOut = () => {
+    if (!row) return;
+    checkOut.mutate(
+      { markId: row.mark_id },
+      {
+        onSuccess: () => toast.success(`${student.name} checked out`),
+        onError: (e: Error) => toast.error(e.message || "Check-out failed"),
+      },
+    );
+  };
+  const onAbsent = () => {
+    markAbsent.mutate(
+      { tenantId, batchId, studentId: student.id },
+      {
+        onSuccess: () => toast(`${student.name} marked absent`),
+        onError: (e: Error) => toast.error(e.message || "Failed to mark absent"),
+      },
+    );
+  };
+
+  return (
+    <ListItem
+      leading={<PersonAvatar name={student.name} photoUrl={student.photo_url} className="size-10" />}
+      title={student.name}
+      subtitle={
+        <StateSummary state={state} row={row} />
+      }
+      trailing={
+        canMark ? (
+          <div className="flex items-center gap-1.5">
+            {state === "not_marked" ? (
+              <>
+                <Button
+                  size="sm"
+                  onClick={onCheckIn}
+                  disabled={busy}
+                  className="min-h-9"
+                  aria-label={`Check in ${student.name}`}
+                >
+                  <LogIn className="size-4" /> In
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={onAbsent}
+                  disabled={busy}
+                  className="min-h-9 min-w-9 px-2"
+                  aria-label={`Mark ${student.name} absent`}
+                >
+                  <UserX className="size-4" />
+                </Button>
+              </>
+            ) : state === "in_academy" ? (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={onCheckOut}
+                disabled={busy}
+                className="min-h-9"
+                aria-label={`Check out ${student.name}`}
+              >
+                <LogOut className="size-4" /> Out
+              </Button>
+            ) : null}
+          </div>
+        ) : null
+      }
+    />
+  );
+}
+
+function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | undefined }) {
+  const tone = attendanceStateTone[state];
+  const toneClass =
+    tone === "success" ? "text-emerald-600 dark:text-emerald-400"
+    : tone === "info" ? "text-sky-600 dark:text-sky-400"
+    : tone === "danger" ? "text-destructive"
+    : "text-muted-foreground";
+
+  if (state === "in_academy" && row?.check_in_at) {
+    return (
+      <span className={cn("inline-flex items-center gap-1", toneClass)}>
+        <span className="size-1.5 rounded-full bg-current animate-pulse" aria-hidden />
+        In since {format(new Date(row.check_in_at), "h:mm a")}
+      </span>
+    );
+  }
+  if (state === "checked_out" && row?.check_in_at && row?.check_out_at) {
+    return (
+      <span className={cn("inline-flex items-center gap-1", toneClass)}>
+        <Clock className="size-3" />
+        {format(new Date(row.check_in_at), "h:mm a")} – {format(new Date(row.check_out_at), "h:mm a")} · {formatDuration(row.duration_minutes)}
+      </span>
+    );
+  }
+  return <span className={toneClass}>{attendanceStateLabels[state]}</span>;
 }
