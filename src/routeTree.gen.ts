@@ -15,6 +15,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
 import { Route as ParentPortalRouteImport } from './routes/parent-portal'
 import { Route as ParentRouteImport } from './routes/parent'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MatchCenterRouteImport } from './routes/match-center'
 import { Route as FeesRouteImport } from './routes/fees'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -119,6 +120,11 @@ const ParentPortalRoute = ParentPortalRouteImport.update({
 const ParentRoute = ParentRouteImport.update({
   id: '/parent',
   path: '/parent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MatchCenterRoute = MatchCenterRouteImport.update({
@@ -515,6 +521,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
   '/match-center': typeof MatchCenterRouteWithChildren
+  '/notifications': typeof NotificationsRoute
   '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
@@ -596,6 +603,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/fees': typeof FeesRoute
+  '/notifications': typeof NotificationsRoute
   '/parent-portal': typeof ParentPortalRoute
   '/register': typeof RegisterRoute
   '/star-players': typeof StarPlayersRoute
@@ -677,6 +685,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
   '/match-center': typeof MatchCenterRouteWithChildren
+  '/notifications': typeof NotificationsRoute
   '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
@@ -762,6 +771,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fees'
     | '/match-center'
+    | '/notifications'
     | '/parent'
     | '/parent-portal'
     | '/platform-admin'
@@ -843,6 +853,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/fees'
+    | '/notifications'
     | '/parent-portal'
     | '/register'
     | '/star-players'
@@ -923,6 +934,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fees'
     | '/match-center'
+    | '/notifications'
     | '/parent'
     | '/parent-portal'
     | '/platform-admin'
@@ -1007,6 +1019,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   FeesRoute: typeof FeesRoute
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
+  NotificationsRoute: typeof NotificationsRoute
   ParentRoute: typeof ParentRouteWithChildren
   ParentPortalRoute: typeof ParentPortalRoute
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
@@ -1063,6 +1076,13 @@ declare module '@tanstack/react-router' {
       path: '/parent'
       fullPath: '/parent'
       preLoaderRoute: typeof ParentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/match-center': {
@@ -1806,6 +1826,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   FeesRoute: FeesRoute,
   MatchCenterRoute: MatchCenterRouteWithChildren,
+  NotificationsRoute: NotificationsRoute,
   ParentRoute: ParentRouteWithChildren,
   ParentPortalRoute: ParentPortalRoute,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
