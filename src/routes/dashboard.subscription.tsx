@@ -8,7 +8,7 @@ import { isOwner } from "@/lib/roles";
 
 export const Route = createFileRoute("/dashboard/subscription")({
   head: () => ({ meta: [{ title: "Subscription · Academy" }, { name: "robots", content: "noindex" }] }),
-  component: SubscriptionEntry,
+  component: () => (<OwnerOnly><SubscriptionEntry /></OwnerOnly>),
 });
 
 function SubscriptionEntry() {
