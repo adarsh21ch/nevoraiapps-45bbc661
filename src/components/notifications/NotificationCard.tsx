@@ -111,7 +111,7 @@ export function NotificationCard({
   if (row.deep_link) {
     return (
       <Link
-        to={row.deep_link}
+        to={row.deep_link as unknown as never}
         onClick={() => {
           if (unread) onMarkRead(row.id);
           onNavigate?.();
