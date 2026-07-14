@@ -61,6 +61,7 @@ export interface AttendanceTodayRow {
   source: AttendanceSource | null;
   marked_by: string | null;
   current_state: AttendanceState;
+  last_visit_type: string | null;
 }
 
 export async function fetchAttendanceToday(tenantId: string): Promise<AttendanceTodayRow[]> {
