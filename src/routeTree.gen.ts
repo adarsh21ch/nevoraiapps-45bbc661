@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestimonialsRouteImport } from './routes/testimonials'
 import { Route as StudentRouteImport } from './routes/student'
 import { Route as StarPlayersRouteImport } from './routes/star-players'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
@@ -116,6 +117,11 @@ const StudentRoute = StudentRouteImport.update({
 const StarPlayersRoute = StarPlayersRouteImport.update({
   id: '/star-players',
   path: '/star-players',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -601,6 +607,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/programs': typeof ProgramsRoute
   '/register': typeof RegisterRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/star-players': typeof StarPlayersRoute
   '/student': typeof StudentRouteWithChildren
   '/testimonials': typeof TestimonialsRoute
@@ -692,6 +699,7 @@ export interface FileRoutesByTo {
   '/parent-portal': typeof ParentPortalRoute
   '/programs': typeof ProgramsRoute
   '/register': typeof RegisterRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/star-players': typeof StarPlayersRoute
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
@@ -787,6 +795,7 @@ export interface FileRoutesById {
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/programs': typeof ProgramsRoute
   '/register': typeof RegisterRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/star-players': typeof StarPlayersRoute
   '/student': typeof StudentRouteWithChildren
   '/testimonials': typeof TestimonialsRoute
@@ -884,6 +893,7 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/programs'
     | '/register'
+    | '/sitemap.xml'
     | '/star-players'
     | '/student'
     | '/testimonials'
@@ -975,6 +985,7 @@ export interface FileRouteTypes {
     | '/parent-portal'
     | '/programs'
     | '/register'
+    | '/sitemap.xml'
     | '/star-players'
     | '/testimonials'
     | '/academy/$slug'
@@ -1069,6 +1080,7 @@ export interface FileRouteTypes {
     | '/platform-admin'
     | '/programs'
     | '/register'
+    | '/sitemap.xml'
     | '/star-players'
     | '/student'
     | '/testimonials'
@@ -1165,6 +1177,7 @@ export interface RootRouteChildren {
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   ProgramsRoute: typeof ProgramsRoute
   RegisterRoute: typeof RegisterRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StarPlayersRoute: typeof StarPlayersRoute
   StudentRoute: typeof StudentRouteWithChildren
   TestimonialsRoute: typeof TestimonialsRoute
@@ -1198,6 +1211,13 @@ declare module '@tanstack/react-router' {
       path: '/star-players'
       fullPath: '/star-players'
       preLoaderRoute: typeof StarPlayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -2060,6 +2080,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   ProgramsRoute: ProgramsRoute,
   RegisterRoute: RegisterRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   StarPlayersRoute: StarPlayersRoute,
   StudentRoute: StudentRouteWithChildren,
   TestimonialsRoute: TestimonialsRoute,
