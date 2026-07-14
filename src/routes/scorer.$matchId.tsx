@@ -349,6 +349,13 @@ function ScorerPage() {
       })()
     : undefined;
 
+  const currentOverLabel = (() => {
+    if (!session.currentOver.events.length || session.currentOver.ballsBowled >= 6) {
+      return stats.team.oversDisplay;
+    }
+    return `${session.currentOver.overNumber}.${session.currentOver.ballsBowled}`;
+  })();
+
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
   const nonStrikerSelected = Boolean(nonStriker.athleteId || nonStriker.name);
@@ -725,6 +732,7 @@ function ScorerPage() {
               : null
           }
           overBalls={session.currentOver.events.map(ballChipLabel)}
+          currentOverLabel={currentOverLabel}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
@@ -1267,6 +1275,13 @@ function DemoScorerView({ matchId }: { matchId: string }) {
       })()
     : undefined;
 
+  const currentOverLabel = (() => {
+    if (!session.currentOver.events.length || session.currentOver.ballsBowled >= 6) {
+      return stats.team.oversDisplay;
+    }
+    return `${session.currentOver.overNumber}.${session.currentOver.ballsBowled}`;
+  })();
+
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
   const nonStrikerSelected = Boolean(nonStriker.athleteId || nonStriker.name);
@@ -1550,6 +1565,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
               : null
           }
           overBalls={session.currentOver.events.map(ballChipLabel)}
+          currentOverLabel={currentOverLabel}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`

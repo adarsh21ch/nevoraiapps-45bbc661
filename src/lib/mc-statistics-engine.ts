@@ -569,11 +569,12 @@ export function computeOverSummaries(events: MCBallEvent[]): OverSummaryStat[] {
     const total = totalRunsForBall(e);
     row.runs += total;
     row.extras += e.extra_runs ?? 0;
-    if (e.is_legal_delivery) row.legalBalls += 1;
+    const legal = isLegalDelivery(e.extra_type as ExtraType | null);
+    if (legal) row.legalBalls += 1;
     else row.illegalBalls += 1;
     if ((e.runs_off_bat ?? 0) === 4 || (e.runs_off_bat ?? 0) === 6)
       row.boundaries += 1;
-    if (e.is_legal_delivery && total === 0) row.dotBalls += 1;
+    if (legal && total === 0) row.dotBalls += 1;
     if (isWicketDismissal(e.dismissal_type as DismissalType | null))
       row.wickets += 1;
   }
@@ -591,7 +592,7 @@ export function computeFallOfWickets(events: MCBallEvent[]): FallOfWicket[] {
   let wicketNumber = 0;
   for (const e of events) {
     score += totalRunsForBall(e);
-    if (e.is_legal_delivery) legalBalls += 1;
+    if (isLegalDelivery(e.extra_type as ExtraType | null)) legalBalls += 1;
     const dt = e.dismissal_type as DismissalType | null;
     if (isWicketDismissal(dt)) {
       wicketNumber += 1;
@@ -650,7 +651,7 @@ export function computePartnerships(events: MCBallEvent[]): {
     }
 
     active.runs += totalRunsForBall(e);
-    if (e.extra_type !== "wide") active.balls += 1;
+    if (isLegalDelivery(e.extra_type as ExtraType | null)) active.balls += 1;
 
     const dt = e.dismissal_type as DismissalType | null;
     if (isWicketDismissal(dt)) {
