@@ -5,7 +5,7 @@ import { DomainNotConfigured } from "./DomainNotConfigured";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
 import { FloatingWhatsApp } from "./FloatingWhatsApp";
-import { MobileCtaBar } from "./MobileCtaBar";
+
 import { isReservedPlatformHost } from "@/lib/tenant";
 
 /**
@@ -49,10 +49,10 @@ export function TenantGate({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
-      <main className="flex-1 pb-20 sm:pb-0">{children}</main>
+      <main className="flex-1">{children}</main>
       <SiteFooter />
       <FloatingWhatsApp />
-      <MobileCtaBar />
+
     </div>
   );
 }
