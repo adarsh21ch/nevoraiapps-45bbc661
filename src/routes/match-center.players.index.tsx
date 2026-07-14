@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { User, PlusCircle, UserPlus, Loader2 } from "lucide-react";
-import { PageHeader, SearchBar } from "@/components/match-center/MatchCenterLayout";
+import { SearchBar } from "@/components/match-center/MatchCenterLayout";
 import { EmptyState, LoadingSkeleton } from "@/components/match-center/ui";
 import { AthleteCard } from "@/components/match-center/athlete-ui";
 import { Button } from "@/components/ui/button";
@@ -63,48 +63,39 @@ function PlayersPage() {
   }, [overlaid, q]);
 
   return (
-    <div>
-      <PageHeader
-        title="Athletes"
-        description="Central profiles for every player across every sport."
-        breadcrumbs={[
-          { label: "Match Center", to: "/match-center/dashboard" },
-          { label: "Athletes" },
-        ]}
-        actions={
-          <Button onClick={() => setOpen(true)}>
-            <UserPlus className="size-4 mr-1.5" /> Create athlete profile
-          </Button>
-        }
-      />
-      <div className="mb-6 max-w-xl">
-        <SearchBar
-          placeholder="Search by name, player ID, sport or role…"
-          onQuery={setQ}
-        />
+    <div className="min-w-0">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h1 className="truncate text-[22px] font-bold tracking-tight leading-tight">Players</h1>
+        <Button size="sm" onClick={() => setOpen(true)} className="h-9 rounded-full px-3">
+          <UserPlus className="size-4 mr-1" /> Add
+        </Button>
       </div>
 
-      {athletesQ.isLoading ? (
-        <LoadingSkeleton rows={4} />
-      ) : filtered.length === 0 ? (
-        <EmptyState
-          icon={User}
-          title={q ? "No matching athletes" : "No athlete profiles yet"}
-          description={
-            q
-              ? "Try a different name, player ID, sport or role."
-              : "Every academy student can have an athlete profile. Create one to start tracking sport-specific data."
-          }
-          actionLabel={q ? undefined : "Create athlete profile"}
-          onAction={q ? undefined : () => setOpen(true)}
-        />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((a) => (
-            <AthleteCard key={a.id} athlete={a} to={`/match-center/players/${a.id}`} />
-          ))}
-        </div>
-      )}
+      <SearchBar placeholder="Search players" onQuery={setQ} />
+
+      <div className="mt-4">
+        {athletesQ.isLoading ? (
+          <LoadingSkeleton rows={4} />
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={User}
+            title={q ? "No matching players" : "No player profiles yet"}
+            description={
+              q
+                ? "Try a different name, player ID, sport or role."
+                : "Create a profile to start tracking match, batting and bowling stats."
+            }
+            actionLabel={q ? undefined : "Create player"}
+            onAction={q ? undefined : () => setOpen(true)}
+          />
+        ) : (
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {filtered.map((a) => (
+              <AthleteCard key={a.id} athlete={a} to={`/match-center/players/${a.id}`} />
+            ))}
+          </div>
+        )}
+      </div>
 
       <CreateAthleteDialog open={open} onOpenChange={setOpen} />
     </div>
