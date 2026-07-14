@@ -676,6 +676,22 @@ function ScorerPage() {
           showFinishInnings={session.activeInnings?.innings_number === 1}
           onEndMatch={finalizeMatch}
           onOpenScorecard={() => setScorecardOpen(true)}
+          scorecardContent={
+            <LiveScorecard
+              events={session.events}
+              innings={session.activeInnings}
+              totalOvers={session.match?.overs ?? null}
+              matchInfo={{
+                homeTeam: homeName,
+                awayTeam: awayName,
+                format: session.match?.match_format ?? null,
+                ground: session.match?.ground_name ?? null,
+                tournament: session.match?.match_type ?? null,
+                date: session.match?.scheduled_date ?? null,
+                result: resultLine,
+              }}
+            />
+          }
           onShareMatch={!isDemo ? () => setShareOpen(true) : undefined}
           onOpenScorebook={
             !isDemo
@@ -1431,6 +1447,22 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           showFinishInnings={activeInnings?.innings_number === 1}
           onEndMatch={finalizeMatch}
           onOpenScorecard={() => setScorecardOpen(true)}
+          scorecardContent={
+            <LiveScorecard
+              events={session.events}
+              innings={activeInnings}
+              totalOvers={match.overs ?? null}
+              matchInfo={{
+                ground: match.ground_name,
+                tournament: match.match_type,
+                date: match.scheduled_date,
+                format: match.match_format,
+                homeTeam: homeName,
+                awayTeam: awayName,
+                result: match.result,
+              }}
+            />
+          }
           onShareMatch={() => setShareOpen(true)}
           battingOptions={battingOptions}
           bowlingOptions={bowlingOptions}
