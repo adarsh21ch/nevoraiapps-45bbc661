@@ -32,7 +32,11 @@ import {
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
-import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
+import {
+  calculateInningsStatistics,
+  formatLiveOver,
+  formatOversCompact,
+} from "@/lib/mc-statistics-engine";
 import { ballChipLabel } from "@/lib/mc-commentary";
 import type { DismissalType, ExtraType } from "@/lib/mc-ball-events";
 
