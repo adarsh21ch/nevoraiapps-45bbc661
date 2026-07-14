@@ -25,6 +25,7 @@ import { useT } from "@/lib/i18n";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
 import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 
 type NavItem = {
@@ -141,6 +142,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
                 </span>
               ) : null}
             </Link>
+
+            <NotificationBell />
+
 
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}

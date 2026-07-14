@@ -3445,6 +3445,193 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          attempted_at: string | null
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at: string
+          delivered_at: string | null
+          error: string | null
+          id: string
+          notification_id: string
+          status: Database["public"]["Enums"]["notification_delivery_status"]
+          updated_at: string
+        }
+        Insert: {
+          attempted_at?: string | null
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          delivered_at?: string | null
+          error?: string | null
+          id?: string
+          notification_id: string
+          status?: Database["public"]["Enums"]["notification_delivery_status"]
+          updated_at?: string
+        }
+        Update: {
+          attempted_at?: string | null
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          delivered_at?: string | null
+          error?: string | null
+          id?: string
+          notification_id?: string
+          status?: Database["public"]["Enums"]["notification_delivery_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_outbox: {
+        Row: {
+          attempts: number
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at: string
+          id: string
+          last_error: string | null
+          locked_at: string | null
+          locked_by: string | null
+          notification_id: string
+          payload: Json
+          scheduled_for: string
+          status: Database["public"]["Enums"]["notification_delivery_status"]
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          notification_id: string
+          payload?: Json
+          scheduled_for?: string
+          status?: Database["public"]["Enums"]["notification_delivery_status"]
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          locked_at?: string | null
+          locked_by?: string | null
+          notification_id?: string
+          payload?: Json
+          scheduled_for?: string
+          status?: Database["public"]["Enums"]["notification_delivery_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_outbox_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          category: Database["public"]["Enums"]["notification_category"]
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at: string
+          enabled: boolean
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["notification_category"]
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["notification_category"]
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          archived_at: string | null
+          body: string | null
+          category: Database["public"]["Enums"]["notification_category"]
+          created_at: string
+          created_by: string | null
+          dedupe_key: string | null
+          deep_link: string | null
+          expires_at: string | null
+          id: string
+          payload: Json
+          priority: Database["public"]["Enums"]["notification_priority"]
+          read_at: string | null
+          recipient_user_id: string
+          tenant_id: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          body?: string | null
+          category: Database["public"]["Enums"]["notification_category"]
+          created_at?: string
+          created_by?: string | null
+          dedupe_key?: string | null
+          deep_link?: string | null
+          expires_at?: string | null
+          id?: string
+          payload?: Json
+          priority?: Database["public"]["Enums"]["notification_priority"]
+          read_at?: string | null
+          recipient_user_id: string
+          tenant_id?: string | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          body?: string | null
+          category?: Database["public"]["Enums"]["notification_category"]
+          created_at?: string
+          created_by?: string | null
+          dedupe_key?: string | null
+          deep_link?: string | null
+          expires_at?: string | null
+          id?: string
+          payload?: Json
+          priority?: Database["public"]["Enums"]["notification_priority"]
+          read_at?: string | null
+          recipient_user_id?: string
+          tenant_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -4376,6 +4563,7 @@ export type Database = {
         Args: { _registration_id: string }
         Returns: string
       }
+      archive_notification: { Args: { _id: string }; Returns: undefined }
       attach_payment_ref: {
         Args: { _payment_ref: string; _registration_id: string }
         Returns: undefined
@@ -4468,6 +4656,25 @@ export type Database = {
           student_name: string
         }[]
       }
+      mark_all_notifications_read: { Args: never; Returns: number }
+      mark_notification_read: { Args: { _id: string }; Returns: undefined }
+      publish_notification: {
+        Args: {
+          _body?: string
+          _category: Database["public"]["Enums"]["notification_category"]
+          _channels?: Database["public"]["Enums"]["notification_channel"][]
+          _dedupe_key?: string
+          _deep_link?: string
+          _expires_at?: string
+          _payload?: Json
+          _priority?: Database["public"]["Enums"]["notification_priority"]
+          _recipient_user_id: string
+          _tenant_id?: string
+          _title: string
+          _type: string
+        }
+        Returns: string
+      }
       record_billing_payment: {
         Args: {
           _allocations: Json
@@ -4519,6 +4726,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      unread_notification_count: { Args: never; Returns: number }
       void_billing_invoice: {
         Args: { _invoice_id: string; _reason: string }
         Returns: string
@@ -4535,6 +4743,22 @@ export type Database = {
         | "auto"
       attendance_status: "present" | "absent" | "late"
       lead_status: "new" | "contacted" | "won" | "lost"
+      notification_category:
+        | "attendance"
+        | "billing"
+        | "registration"
+        | "match"
+        | "coach"
+        | "achievement"
+        | "system"
+      notification_channel: "in_app" | "push" | "email" | "whatsapp"
+      notification_delivery_status:
+        | "queued"
+        | "sent"
+        | "delivered"
+        | "failed"
+        | "skipped"
+      notification_priority: "low" | "normal" | "high" | "urgent"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4673,6 +4897,24 @@ export const Constants = {
       ],
       attendance_status: ["present", "absent", "late"],
       lead_status: ["new", "contacted", "won", "lost"],
+      notification_category: [
+        "attendance",
+        "billing",
+        "registration",
+        "match",
+        "coach",
+        "achievement",
+        "system",
+      ],
+      notification_channel: ["in_app", "push", "email", "whatsapp"],
+      notification_delivery_status: [
+        "queued",
+        "sent",
+        "delivered",
+        "failed",
+        "skipped",
+      ],
+      notification_priority: ["low", "normal", "high", "urgent"],
     },
   },
 } as const
