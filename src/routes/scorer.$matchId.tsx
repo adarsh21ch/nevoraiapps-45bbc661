@@ -410,10 +410,10 @@ function ScorerPage() {
     if (!extraKind) return;
     const kind = extraKind;
     setExtraKind(null);
-    if (kind === "Wide") submit(ballHelpers.wide(runs));
-    else if (kind === "No Ball") submit(ballHelpers.noBall(Math.max(0, runs - 1)));
-    else if (kind === "Bye") submit(ballHelpers.bye(runs));
-    else if (kind === "Leg Bye") submit(ballHelpers.legBye(runs));
+    if (kind === "Wide") requestSubmit(ballHelpers.wide(runs));
+    else if (kind === "No Ball") requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
+    else if (kind === "Bye") requestSubmit(ballHelpers.bye(runs));
+    else if (kind === "Leg Bye") requestSubmit(ballHelpers.legBye(runs));
   };
 
   const finalizeWicket = async (
@@ -1309,10 +1309,10 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     if (!extraKind) return;
     const kind = extraKind;
     setExtraKind(null);
-    if (kind === "Wide") submit(ballHelpers.wide(runs));
-    else if (kind === "No Ball") submit(ballHelpers.noBall(Math.max(0, runs - 1)));
-    else if (kind === "Bye") submit(ballHelpers.bye(runs));
-    else if (kind === "Leg Bye") submit(ballHelpers.legBye(runs));
+    if (kind === "Wide") requestSubmit(ballHelpers.wide(runs));
+    else if (kind === "No Ball") requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
+    else if (kind === "Bye") requestSubmit(ballHelpers.bye(runs));
+    else if (kind === "Leg Bye") requestSubmit(ballHelpers.legBye(runs));
   };
   const finalizeWicket = async (
     kind: DismissalType,
