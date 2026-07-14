@@ -26,6 +26,16 @@ function SiteEditor() {
 
 
 
+  const siteBase = tenantSiteUrl(tenant).replace(/\/$/, "");
+  const previewLinks: { to: string; label: string }[] = [
+    { to: "/", label: "Home" },
+    { to: "/programs", label: "Programs" },
+    { to: "/gallery", label: "Gallery" },
+    { to: "/admissions", label: "Admissions" },
+    { to: "/policies/terms", label: "Policies" },
+    { to: "/fees", label: "Fees" },
+  ];
+
   return (
     <div className="space-y-4">
       <header className="flex items-center justify-between gap-3">
@@ -34,12 +44,31 @@ function SiteEditor() {
           <p className="text-sm text-muted-foreground">Update what visitors see on your public website.</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <a href={tenantSiteUrl(tenant)} target="_blank" rel="noreferrer">
+          <a href={siteBase || "/"} target="_blank" rel="noreferrer">
             View site <ExternalLink className="size-3 ml-1" />
           </a>
-
         </Button>
       </header>
+
+      <Card className="p-4">
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Preview website
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {previewLinks.map((l) => (
+            <a
+              key={l.to}
+              href={`${siteBase}${l.to}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
+            >
+              {l.label}
+              <ExternalLink className="size-3" />
+            </a>
+          ))}
+        </div>
+      </Card>
 
       <Tabs defaultValue="site">
         <TabsList className="w-full flex-wrap h-auto">
