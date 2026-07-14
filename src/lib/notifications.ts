@@ -57,7 +57,7 @@ const COLUMNS =
 
 async function fetchNotifications(filter: "all" | "unread" | "archived") {
   let q = supabase
-    .from("notifications")
+    .from("notifications" as never)
     .select(COLUMNS)
     .order("created_at", { ascending: false })
     .limit(100);
