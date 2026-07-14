@@ -157,7 +157,7 @@ export interface CheckInInput {
   batchId: string;
   studentId: string;
   source?: AttendanceSource;
-  meta?: Record<string, unknown>;
+  meta?: import("@/integrations/supabase/types").Json;
   markedBy?: string | null;
 }
 
@@ -183,7 +183,7 @@ export async function checkInStudent(input: CheckInInput): Promise<void> {
 
 export interface CheckOutInput {
   markId: string;
-  meta?: Record<string, unknown>;
+  meta?: import("@/integrations/supabase/types").Json;
 }
 
 export async function checkOutStudent(input: CheckOutInput): Promise<void> {
