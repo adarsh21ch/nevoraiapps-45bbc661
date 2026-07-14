@@ -184,9 +184,46 @@ function RegisterContent() {
           />
           <TextArea label="Address" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
 
+          {requiredPolicies.length > 0 ? (
+            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Academy policies
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Please read and accept the following before submitting.
+              </p>
+              <ul className="mt-3 space-y-2">
+                {requiredPolicies.map((p) => (
+                  <li key={p.id} className="flex items-start gap-2">
+                    <input
+                      id={`acc-${p.id}`}
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 rounded border-border"
+                      checked={!!accepted[p.id]}
+                      onChange={(e) => setAccepted((prev) => ({ ...prev, [p.id]: e.target.checked }))}
+                    />
+                    <label htmlFor={`acc-${p.id}`} className="text-sm text-foreground">
+                      I accept the{" "}
+                      <Link
+                        to="/policies/$kind"
+                        params={{ kind: p.kind }}
+                        target="_blank"
+                        className="font-medium underline"
+                        style={{ color: "var(--brand)" }}
+                      >
+                        {p.title || POLICY_LABELS[p.kind]}
+                      </Link>{" "}
+                      <span className="text-xs text-muted-foreground">(v{p.version})</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || (requiredPolicies.length > 0 && !allRequiredAccepted)}
             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-lg disabled:opacity-60"
             style={{ backgroundColor: "var(--brand)" }}
           >
