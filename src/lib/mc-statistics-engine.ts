@@ -585,6 +585,70 @@ export function computeOverSummaries(events: MCBallEvent[]): OverSummaryStat[] {
   return Array.from(map.values()).sort((a, b) => a.overNumber - b.overNumber);
 }
 
+/* ================================================================
+ * Over-by-over history for the scorer's "clock" history sheet.
+ * Returns one row per over that has any ball recorded, in chronological
+ * order. Each row exposes bowler, ball-by-ball chip labels, runs +
+ * wickets in the over, and the team's running score at the end of the
+ * over (last event in the over).
+ * ================================================================ */
+
+export interface OverHistoryRow {
+  overNumber: number;           // 0-indexed as stored
+  overLabel: string;            // "1", "2", ...
+  bowler: string;               // display name, "" if unknown
+  chips: string[];              // ball-by-ball chip labels (legal + illegal)
+  runs: number;                 // total runs in the over (bat + extras)
+  wickets: number;              // wickets in the over
+  runningScore: string;         // e.g. "87/2" at end of the over
+  legalBalls: number;
+  completed: boolean;           // 6 legal deliveries reached
+}
+
+export function computeOverHistory(
+  events: MCBallEvent[],
+  chipLabel: (e: MCBallEvent) => string,
+): OverHistoryRow[] {
+  const rows = new Map<number, OverHistoryRow & { _score: number; _wkts: number }>();
+  let score = 0;
+  let totalWickets = 0;
+  for (const e of events) {
+    score += totalRunsForBall(e);
+    const isWicket = isWicketDismissal(e.dismissal_type as DismissalType | null);
+    if (isWicket) totalWickets += 1;
+
+    let row = rows.get(e.over_number);
+    if (!row) {
+      row = {
+        overNumber: e.over_number,
+        overLabel: String(e.over_number + 1),
+        bowler: e.bowler_name ?? "",
+        chips: [],
+        runs: 0,
+        wickets: 0,
+        runningScore: "",
+        legalBalls: 0,
+        completed: false,
+        _score: 0,
+        _wkts: 0,
+      };
+      rows.set(e.over_number, row);
+    }
+    row.chips.push(chipLabel(e));
+    row.runs += totalRunsForBall(e);
+    if (isWicket) row.wickets += 1;
+    if (isLegalDelivery(e.extra_type as ExtraType | null)) row.legalBalls += 1;
+    row._score = score;
+    row._wkts = totalWickets;
+    row.runningScore = `${score}/${totalWickets}`;
+  }
+  const out: OverHistoryRow[] = [];
+  for (const r of rows.values()) {
+    r.completed = r.legalBalls >= 6;
+    out.push(r);
+  }
+  return out.sort((a, b) => a.overNumber - b.overNumber);
+
 export function computeFallOfWickets(events: MCBallEvent[]): FallOfWicket[] {
   const out: FallOfWicket[] = [];
   let score = 0;
