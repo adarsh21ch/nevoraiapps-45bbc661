@@ -14,6 +14,7 @@ import { Route as StarPlayersRouteImport } from './routes/star-players'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
 import { Route as ParentPortalRouteImport } from './routes/parent-portal'
+import { Route as ParentRouteImport } from './routes/parent'
 import { Route as MatchCenterRouteImport } from './routes/match-center'
 import { Route as FeesRouteImport } from './routes/fees'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -24,6 +25,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudentIndexRouteImport } from './routes/student.index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
+import { Route as ParentIndexRouteImport } from './routes/parent.index'
 import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as StudentProgressRouteImport } from './routes/student.progress'
@@ -111,6 +113,11 @@ const ParentPortalRoute = ParentPortalRouteImport.update({
   path: '/parent-portal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParentRoute = ParentRouteImport.update({
+  id: '/parent',
+  path: '/parent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MatchCenterRoute = MatchCenterRouteImport.update({
   id: '/match-center',
   path: '/match-center',
@@ -160,6 +167,11 @@ const PlatformAdminIndexRoute = PlatformAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PlatformAdminRoute,
+} as any)
+const ParentIndexRoute = ParentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ParentRoute,
 } as any)
 const MatchCenterIndexRoute = MatchCenterIndexRouteImport.update({
   id: '/',
@@ -485,6 +497,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
   '/match-center': typeof MatchCenterRouteWithChildren
+  '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
@@ -537,6 +550,7 @@ export interface FileRoutesByFullPath {
   '/student/progress': typeof StudentProgressRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
+  '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
@@ -611,6 +625,7 @@ export interface FileRoutesByTo {
   '/student/progress': typeof StudentProgressRoute
   '/dashboard': typeof DashboardIndexRoute
   '/match-center': typeof MatchCenterIndexRoute
+  '/parent': typeof ParentIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/student': typeof StudentIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
@@ -638,6 +653,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/fees': typeof FeesRoute
   '/match-center': typeof MatchCenterRouteWithChildren
+  '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/register': typeof RegisterRoute
@@ -690,6 +706,7 @@ export interface FileRoutesById {
   '/student/progress': typeof StudentProgressRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
+  '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
@@ -718,6 +735,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fees'
     | '/match-center'
+    | '/parent'
     | '/parent-portal'
     | '/platform-admin'
     | '/register'
@@ -770,6 +788,7 @@ export interface FileRouteTypes {
     | '/student/progress'
     | '/dashboard/'
     | '/match-center/'
+    | '/parent/'
     | '/platform-admin/'
     | '/student/'
     | '/dashboard/students/$id'
@@ -844,6 +863,7 @@ export interface FileRouteTypes {
     | '/student/progress'
     | '/dashboard'
     | '/match-center'
+    | '/parent'
     | '/platform-admin'
     | '/student'
     | '/dashboard/students/$id'
@@ -870,6 +890,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fees'
     | '/match-center'
+    | '/parent'
     | '/parent-portal'
     | '/platform-admin'
     | '/register'
@@ -922,6 +943,7 @@ export interface FileRouteTypes {
     | '/student/progress'
     | '/dashboard/'
     | '/match-center/'
+    | '/parent/'
     | '/platform-admin/'
     | '/student/'
     | '/dashboard/students/$id'
@@ -949,6 +971,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   FeesRoute: typeof FeesRoute
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
+  ParentRoute: typeof ParentRouteWithChildren
   ParentPortalRoute: typeof ParentPortalRoute
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   RegisterRoute: typeof RegisterRoute
@@ -997,6 +1020,13 @@ declare module '@tanstack/react-router' {
       path: '/parent-portal'
       fullPath: '/parent-portal'
       preLoaderRoute: typeof ParentPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parent': {
+      id: '/parent'
+      path: '/parent'
+      fullPath: '/parent'
+      preLoaderRoute: typeof ParentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/match-center': {
@@ -1068,6 +1098,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/platform-admin/'
       preLoaderRoute: typeof PlatformAdminIndexRouteImport
       parentRoute: typeof PlatformAdminRoute
+    }
+    '/parent/': {
+      id: '/parent/'
+      path: '/'
+      fullPath: '/parent/'
+      preLoaderRoute: typeof ParentIndexRouteImport
+      parentRoute: typeof ParentRoute
     }
     '/match-center/': {
       id: '/match-center/'
@@ -1647,6 +1684,17 @@ const MatchCenterRouteWithChildren = MatchCenterRoute._addFileChildren(
   MatchCenterRouteChildren,
 )
 
+interface ParentRouteChildren {
+  ParentIndexRoute: typeof ParentIndexRoute
+}
+
+const ParentRouteChildren: ParentRouteChildren = {
+  ParentIndexRoute: ParentIndexRoute,
+}
+
+const ParentRouteWithChildren =
+  ParentRoute._addFileChildren(ParentRouteChildren)
+
 interface PlatformAdminRouteChildren {
   PlatformAdminNewRoute: typeof PlatformAdminNewRoute
   PlatformAdminSettingsRoute: typeof PlatformAdminSettingsRoute
@@ -1695,6 +1743,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   FeesRoute: FeesRoute,
   MatchCenterRoute: MatchCenterRouteWithChildren,
+  ParentRoute: ParentRouteWithChildren,
   ParentPortalRoute: ParentPortalRoute,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   RegisterRoute: RegisterRoute,

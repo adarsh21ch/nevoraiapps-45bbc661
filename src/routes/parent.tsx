@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Home, TrendingUp, CalendarDays, UserCircle, LogOut, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,9 +22,22 @@ import {
   getLastSelectedChildId,
   setLastSelectedChildId,
   parentKeys,
+  type ChildContext,
   type ParentChildRow,
 } from "@/lib/parent-app";
 import { fetchStudentProgress, studentKeys } from "@/lib/student-app";
+
+type ParentCtxValue = {
+  child: ChildContext | null | undefined;
+  childRow: ParentChildRow;
+};
+const ParentCtx = createContext<ParentCtxValue | null>(null);
+
+export function useParentChild(): ParentCtxValue {
+  const v = useContext(ParentCtx);
+  if (!v) throw new Error("useParentChild must be used within /parent");
+  return v;
+}
 
 export const Route = createFileRoute("/parent")({
   head: () => ({
@@ -36,6 +49,7 @@ export const Route = createFileRoute("/parent")({
   }),
   component: ParentLayout,
 });
+
 
 const TABS = [
   { to: "/parent", label: "Home", icon: Home, exact: true },
