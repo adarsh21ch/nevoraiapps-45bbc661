@@ -496,6 +496,22 @@ export function MobileScorer(props: MobileScorerProps) {
   );
 }
 
+function MetricPill({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div
+      className={cn(
+        "flex min-w-[52px] flex-col items-center rounded-lg border border-border/60 bg-background/70 px-2 py-1 shadow-[inset_0_1px_0_0_color-mix(in_oklab,white_10%,transparent)]",
+        accent && "border-[color-mix(in_oklab,var(--primary)_40%,transparent)] bg-primary/10",
+      )}
+    >
+      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className={cn("text-[13px] font-black leading-none tabular-nums", accent && "text-primary")}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
 function MetricInline({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="flex items-baseline justify-end gap-1.5 whitespace-nowrap">
