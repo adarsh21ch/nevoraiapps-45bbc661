@@ -380,6 +380,12 @@ export function MobileScorer(props: MobileScorerProps) {
             onClick={props.onUndo}
           />
           <FooterAction
+            icon={<Redo2 className="size-[18px]" />}
+            label="Redo"
+            onClick={props.onRedo ?? (() => {})}
+            disabled={!props.onRedo || !props.canRedo}
+          />
+          <FooterAction
             icon={<FileText className="size-[18px]" />}
             label="Scorecard"
             onClick={props.onOpenScorecard}
@@ -388,11 +394,6 @@ export function MobileScorer(props: MobileScorerProps) {
             icon={<UserPlus className="size-[18px]" />}
             label="Bowler"
             onClick={() => openPicker("bowler")}
-          />
-          <FooterAction
-            icon={<HeartPulse className="size-[18px]" />}
-            label="Retired"
-            onClick={props.onRetiredHurt}
           />
           <FooterAction
             icon={<Share2 className="size-[18px]" />}
