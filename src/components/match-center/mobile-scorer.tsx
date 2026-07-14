@@ -304,37 +304,14 @@ export function MobileScorer(props: MobileScorerProps) {
       <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
         <div className="flex min-h-full flex-col gap-2 px-3 py-2">
           <section className="shrink-0">
-            <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/12 via-card to-card p-3 shadow-[0_10px_30px_-16px_color-mix(in_oklab,var(--primary)_35%,transparent),inset_0_1px_0_0_color-mix(in_oklab,white_20%,transparent)]">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
-              />
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                <div className="min-w-0">
-                  <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
-                    Score
-                  </div>
-                  <div className="flex min-w-0 items-baseline gap-2">
-                    <h1 className="truncate text-[46px] font-black leading-[0.9] tracking-tight tabular-nums sm:text-[52px]">
-                      <NumberRoll value={props.score} />
-                    </h1>
-                    <span className="shrink-0 rounded-md bg-muted/60 px-1.5 py-0.5 text-[12px] font-bold tabular-nums text-muted-foreground">
-                      <NumberRoll value={props.overs} /> ov
-                    </span>
-                  </div>
-                  {props.chase && (
-                    <div className="mt-1.5 text-[12px] font-semibold text-[var(--score-success-fg)] tabular-nums">
-                      Need {props.chase.runsNeeded} from {props.chase.ballsLeft} balls
-                    </div>
-                  )}
-                </div>
-                <div className="grid grid-flow-col gap-1.5 text-center tabular-nums">
-                  <MetricPill label="CRR" value={props.crr ?? "–"} />
-                  {props.rrr && <MetricPill label="RRR" value={props.rrr} accent />}
-                  {props.target && <MetricPill label="TGT" value={props.target} />}
-                </div>
-              </div>
-            </div>
+            <ScoreHeroCard
+              score={props.score}
+              overs={props.overs}
+              crr={props.crr}
+              rrr={props.rrr}
+              target={props.target}
+              chase={props.chase}
+            />
           </section>
 
 
@@ -496,18 +473,75 @@ export function MobileScorer(props: MobileScorerProps) {
   );
 }
 
-function MetricPill({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function ScoreHeroCard({
+  score,
+  overs,
+  crr,
+  rrr,
+  target,
+  chase,
+}: {
+  score: string;
+  overs: string;
+  crr?: string;
+  rrr?: string;
+  target?: string;
+  chase?: { runsNeeded: number; ballsLeft: number } | null;
+}) {
+  const [runsPart, wicketsPart] = score.split("/");
+  const wickets = wicketsPart ?? "0";
   return (
-    <div
-      className={cn(
-        "flex min-w-[52px] flex-col items-center rounded-lg border border-border/60 bg-background/70 px-2 py-1 shadow-[inset_0_1px_0_0_color-mix(in_oklab,white_10%,transparent)]",
-        accent && "border-[color-mix(in_oklab,var(--primary)_40%,transparent)] bg-primary/10",
-      )}
-    >
-      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{label}</span>
-      <span className={cn("text-[13px] font-black leading-none tabular-nums", accent && "text-primary")}>
-        {value}
-      </span>
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/12 via-card to-card p-3 shadow-[0_10px_30px_-16px_color-mix(in_oklab,var(--primary)_35%,transparent),inset_0_1px_0_0_color-mix(in_oklab,white_20%,transparent)]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+      />
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+        <div className="min-w-0">
+          <div className="mb-0.5 text-[9.5px] font-black uppercase tracking-[0.16em] text-muted-foreground">
+            Score
+          </div>
+          <div className="flex min-w-0 items-baseline gap-1">
+            <h1 className="text-[46px] font-black leading-[0.9] tracking-tight tabular-nums sm:text-[52px]">
+              <NumberRoll value={runsPart ?? score} />
+            </h1>
+            <span className="text-[26px] font-black leading-[0.9] tabular-nums text-muted-foreground/70">
+              /
+            </span>
+            <span className="text-[30px] font-black leading-[0.9] tabular-nums text-destructive/85">
+              <NumberRoll value={wickets} />
+            </span>
+          </div>
+          <div className="mt-1 flex items-baseline gap-2 text-[11.5px] tabular-nums">
+            <span className="rounded bg-muted/60 px-1.5 py-0.5 text-[11px] font-bold text-muted-foreground">
+              {overs} ov
+            </span>
+            <span className="text-muted-foreground">
+              CRR <span className="font-black text-foreground">{crr ?? "–"}</span>
+            </span>
+            {rrr && (
+              <span className="text-muted-foreground">
+                RRR <span className="font-black text-primary">{rrr}</span>
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 text-right">
+          {chase && (
+            <div className="text-[11.5px] font-semibold text-[var(--score-success-fg)] tabular-nums">
+              Need {chase.runsNeeded} from {chase.ballsLeft}
+            </div>
+          )}
+          {target && (
+            <div className="inline-flex items-baseline gap-1 rounded-md border border-[color-mix(in_oklab,var(--score-success-fg)_35%,transparent)] bg-[color-mix(in_oklab,var(--score-success-fg)_12%,transparent)] px-2 py-0.5 tabular-nums">
+              <span className="text-[9px] font-black uppercase tracking-widest text-[var(--score-success-fg)]/80">
+                TGT
+              </span>
+              <span className="text-[13px] font-black text-[var(--score-success-fg)]">{target}</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -656,32 +690,34 @@ function LiveInsights({
         <InfoTile label="FOW" value={insights?.lastWicket ?? "–"} />
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-1.5 overflow-hidden">
-        <div className="min-w-0 rounded-lg bg-card/55 px-2 py-1.5">
-          <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recent overs</div>
-          {recentOvers.length === 0 ? (
-            <div className="text-[11.5px] text-muted-foreground">Ball-by-ball data appears here.</div>
-          ) : (
-            <div className="flex flex-wrap items-center gap-1">
-              {recentOvers.slice(-4).map((over) => (
-                <span
-                  key={over.label}
-                  className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-background/70 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums"
-                >
-                  <span className="text-muted-foreground">{over.label}</span>
-                  <span className="font-black text-foreground">
+      <div className="min-h-0 flex-1 rounded-lg bg-card/55 px-2 py-1.5">
+        <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recent overs</div>
+        {recentOvers.length === 0 ? (
+          <div className="text-[11.5px] text-muted-foreground">Ball-by-ball data appears here.</div>
+        ) : (
+          <div className="flex flex-col gap-1">
+            {recentOvers.slice(-3).map((over) => {
+              const pct = Math.min(100, Math.round((over.runs / 36) * 100));
+              return (
+                <div key={over.label} className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-2">
+                  <span className="text-[10.5px] font-black tabular-nums text-muted-foreground">{over.label}</span>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted/70">
+                    <div
+                      className={cn(
+                        "h-full rounded-full",
+                        over.wickets > 0 ? "bg-destructive/70" : "bg-primary/70",
+                      )}
+                      style={{ width: `${Math.max(6, pct)}%` }}
+                    />
+                  </div>
+                  <span className="text-[11px] font-black tabular-nums text-foreground">
                     {over.runs}{over.wickets ? `/${over.wickets}` : ""}
                   </span>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="grid min-w-[76px] content-center gap-0.5 rounded-lg bg-card/55 px-2 py-1.5 text-right text-[11px] tabular-nums">
-          <MetricInline label="CRR" value={crr ?? "–"} />
-          {rrr && <MetricInline label="RRR" value={rrr} accent />}
-          {target && <MetricInline label="T" value={target} />}
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
 
