@@ -1288,7 +1288,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         const b = stats.bowling.byKey.get(bowlerKey);
         return {
           name: bowlerRef.name ?? undefined,
-          overs: b?.oversDisplay ?? "0.0",
+          overs: b ? formatOversCompact(b.legalBalls) : "0",
           runs: b?.runsConceded ?? 0,
           wickets: b?.wickets ?? 0,
           economy: b ? String(b.economy) : "–",
@@ -1297,12 +1297,8 @@ function DemoScorerView({ matchId }: { matchId: string }) {
       })()
     : undefined;
 
-  const currentOverLabel = (() => {
-    if (!session.currentOver.events.length || session.currentOver.ballsBowled >= 6) {
-      return stats.team.oversDisplay;
-    }
-    return `${session.currentOver.overNumber}.${session.currentOver.ballsBowled}`;
-  })();
+  // Single formatter — never expose "N.0" to the scorer (see mc-statistics-engine).
+  const currentOverLabel = formatLiveOver(stats.team.legalBalls);
 
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
@@ -1333,6 +1329,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   const newBowlerStillNeeded = Boolean(
     session.matchState.innings.awaitingNewBowler && (!bowlerSelected || sameAsPreviousBowler),
   );
+  const bowlerPickerNeededForBall = newBowlerStillNeeded || !bowlerSelected;
+  // Auto-open picker: never forces bowler at end-of-over — only when a
+  // scoring intent is queued and no bowler is set.
   const requiredPicker = session.matchState.inningsShouldEnd
     ? null
     : incomingBatterRole
@@ -1341,9 +1340,10 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         ? "striker"
         : !nonStrikerSelected
           ? "nonStriker"
-          : newBowlerStillNeeded || !bowlerSelected
+          : bowlerPickerNeededForBall && pendingBallIntent
             ? "bowler"
             : null;
+
 
   const matchWithTeams = (demo.matches.find((m) => m.id === matchId) ?? match) as MatchWithTeams;
   const teamA = matchWithTeams.team_a;
