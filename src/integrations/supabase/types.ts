@@ -33,6 +33,7 @@ export type Database = {
           superseded_by: string | null
           tenant_id: string
           updated_at: string
+          visit_type: string | null
         }
         Insert: {
           check_in_at?: string | null
@@ -52,6 +53,7 @@ export type Database = {
           superseded_by?: string | null
           tenant_id: string
           updated_at?: string
+          visit_type?: string | null
         }
         Update: {
           check_in_at?: string | null
@@ -71,6 +73,7 @@ export type Database = {
           superseded_by?: string | null
           tenant_id?: string
           updated_at?: string
+          visit_type?: string | null
         }
         Relationships: [
           {
@@ -3029,6 +3032,7 @@ export type Database = {
           check_out_at: string | null
           current_state: string | null
           duration_minutes: number | null
+          last_visit_type: string | null
           mark_id: string | null
           marked_by: string | null
           session_date: string | null
@@ -3093,6 +3097,7 @@ export type Database = {
           status: Database["public"]["Enums"]["attendance_status"] | null
           student_id: string | null
           tenant_id: string | null
+          visit_type: string | null
         }
         Relationships: [
           {
@@ -3179,18 +3184,32 @@ export type Database = {
         Returns: boolean
       }
       compute_player_prefix: { Args: { _tenant_id: string }; Returns: string }
-      correct_attendance: {
-        Args: {
-          _check_in_at: string
-          _check_in_meta?: Json
-          _check_out_at: string
-          _check_out_meta?: Json
-          _note?: string
-          _original_id: string
-          _status: Database["public"]["Enums"]["attendance_status"]
-        }
-        Returns: string
-      }
+      correct_attendance:
+        | {
+            Args: {
+              _check_in_at: string
+              _check_in_meta?: Json
+              _check_out_at: string
+              _check_out_meta?: Json
+              _note?: string
+              _original_id: string
+              _status: Database["public"]["Enums"]["attendance_status"]
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _check_in_at: string
+              _check_in_meta?: Json
+              _check_out_at: string
+              _check_out_meta?: Json
+              _note?: string
+              _original_id: string
+              _status: Database["public"]["Enums"]["attendance_status"]
+              _visit_type?: string
+            }
+            Returns: string
+          }
       get_parent_child_summary: { Args: { _student_id: string }; Returns: Json }
       get_public_academy_bundle: { Args: { _slug: string }; Returns: Json }
       get_public_match_bundle: { Args: { _slug: string }; Returns: Json }
