@@ -531,15 +531,6 @@ function ScoreSideStat({ label, value, accent }: { label: string; value: string;
   );
 }
 
-function MetricInline({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div className="flex items-baseline justify-end gap-1.5 whitespace-nowrap">
-      <span className="text-muted-foreground">{label}</span>
-      <span className={cn("font-black", accent && "text-[var(--score-success-fg)]")}>{value}</span>
-    </div>
-  );
-}
-
 function ScorebookBatters({
   striker,
   nonStriker,
