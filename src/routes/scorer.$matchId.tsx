@@ -1143,17 +1143,29 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
   const [pendingBallIntent, setPendingBallIntent] = useState<Parameters<typeof session.submitBall>[0] | null>(null);
 
+  const inningsAutoOpenedRef = useRef(false);
+  const matchAutoOpenedRef = useRef(false);
   useEffect(() => {
-    if (session.matchState.inningsShouldEnd && !inningsCompleteOpen) {
+    if (!session.matchState.inningsShouldEnd) {
+      inningsAutoOpenedRef.current = false;
+      return;
+    }
+    if (!inningsAutoOpenedRef.current) {
+      inningsAutoOpenedRef.current = true;
       setInningsCompleteOpen(true);
     }
-  }, [session.matchState.inningsShouldEnd, inningsCompleteOpen]);
+  }, [session.matchState.inningsShouldEnd]);
 
   useEffect(() => {
-    if (session.matchState.matchShouldEnd && !matchCompleteOpen) {
+    if (!session.matchState.matchShouldEnd) {
+      matchAutoOpenedRef.current = false;
+      return;
+    }
+    if (!matchAutoOpenedRef.current) {
+      matchAutoOpenedRef.current = true;
       setMatchCompleteOpen(true);
     }
-  }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
+  }, [session.matchState.matchShouldEnd]);
 
   /* Batter/bowler setup is handled from the mobile scorer rows and bottom sheets. */
 
