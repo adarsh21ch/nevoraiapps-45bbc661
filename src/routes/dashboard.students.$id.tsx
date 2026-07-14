@@ -482,9 +482,7 @@ function OverviewTab({
   }, [student.dob]);
 
   const lastVisit = summaryQ.data?.lastVisit;
-  const lastMatch = matchesQ.data?.[0] as
-    | { mc_matches?: { name?: string; match_date?: string } | null; batting_runs?: number; wickets_taken?: number }
-    | undefined;
+  const lastMatch = matchesQ.data?.[0];
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -512,21 +510,29 @@ function OverviewTab({
         <SectionHeader icon={Swords} title="Latest Match" />
         {matchesQ.isLoading ? (
           <Skel />
-        ) : lastMatch ? (
+        ) : lastMatch?.match ? (
           <div className="text-sm">
-            <div className="font-medium truncate">{lastMatch.mc_matches?.name ?? "Match"}</div>
-            <div className="text-[11px] text-muted-foreground">
-              {lastMatch.mc_matches?.match_date ? format(new Date(lastMatch.mc_matches.match_date), "MMM d, yyyy") : ""}
+            <div className="font-medium truncate">
+              {lastMatch.match.ground_name ?? "Match"}
             </div>
-            <div className="mt-1.5 text-xs">
-              <span className="font-semibold">{lastMatch.batting_runs ?? 0}</span> runs ·{" "}
-              <span className="font-semibold">{lastMatch.wickets_taken ?? 0}</span> wkts
+            <div className="text-[11px] text-muted-foreground">
+              {lastMatch.match.scheduled_date
+                ? format(new Date(lastMatch.match.scheduled_date), "MMM d, yyyy")
+                : ""}
+              {lastMatch.match.match_format ? ` · ${lastMatch.match.match_format}` : ""}
+            </div>
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {lastMatch.is_captain ? <ChipPill>Captain</ChipPill> : null}
+              {lastMatch.is_keeper ? <ChipPill>Keeper</ChipPill> : null}
+              {lastMatch.is_player_of_match ? <ChipPill tone="gold">Player of Match</ChipPill> : null}
+              {lastMatch.match.result ? <ChipPill tone="muted">{lastMatch.match.result}</ChipPill> : null}
             </div>
           </div>
         ) : (
           <EmptyLine text="No matches yet." />
         )}
       </Card>
+
 
       <Card className="p-4 sm:col-span-2">
         <div className="flex items-center justify-between">
