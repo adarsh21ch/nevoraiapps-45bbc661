@@ -6279,6 +6279,16 @@ export type Database = {
     }
     Functions: {
       _agg_assert_tenant: { Args: { _tenant_id: string }; Returns: undefined }
+      _emit_automation_event: {
+        Args: {
+          _event_type: string
+          _payload: Json
+          _source_id: string
+          _source_module: string
+          _tenant_id: string
+        }
+        Returns: undefined
+      }
       acquire_match_scoring_lock: {
         Args: { _match_id: string }
         Returns: boolean
