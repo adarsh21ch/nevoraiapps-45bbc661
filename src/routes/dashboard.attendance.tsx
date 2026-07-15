@@ -771,7 +771,7 @@ function AttendancePage() {
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground leading-none">
-                  Today
+                  {isTodayView ? "Today" : format(selectedDate, "d MMM yyyy")}
                 </p>
                 <p className="mt-0.5 text-sm font-semibold tabular-nums leading-tight">
                   {kpis.present} / {kpis.total}{" "}
