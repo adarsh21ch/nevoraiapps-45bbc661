@@ -2526,34 +2526,49 @@ export type Database = {
       }
       mc_coach_remarks: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           author_name: string | null
           author_user_id: string | null
           created_at: string
           id: string
+          rejection_reason: string | null
           remark: string
           student_id: string
+          submitted_by_role: string | null
           tenant_id: string
           updated_at: string
           visible_to_parents: boolean
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           author_name?: string | null
           author_user_id?: string | null
           created_at?: string
           id?: string
+          rejection_reason?: string | null
           remark: string
           student_id: string
+          submitted_by_role?: string | null
           tenant_id: string
           updated_at?: string
           visible_to_parents?: boolean
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           author_name?: string | null
           author_user_id?: string | null
           created_at?: string
           id?: string
+          rejection_reason?: string | null
           remark?: string
           student_id?: string
+          submitted_by_role?: string | null
           tenant_id?: string
           updated_at?: string
           visible_to_parents?: boolean
@@ -5227,6 +5242,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          coach_onboarded_at: string | null
           created_at: string
           id: string
           role: string
@@ -5234,6 +5250,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          coach_onboarded_at?: string | null
           created_at?: string
           id?: string
           role?: string
@@ -5241,6 +5258,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          coach_onboarded_at?: string | null
           created_at?: string
           id?: string
           role?: string
