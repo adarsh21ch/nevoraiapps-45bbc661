@@ -169,13 +169,13 @@ function BillingWorkspace() {
       <Tabs defaultValue="invoices">
         <TabsList>
           <TabsTrigger value="invoices">
-            <FileText className="w-4 h-4 mr-1.5" /> Invoices
+            <FileText className="w-4 h-4 mr-1.5" /> Bills
           </TabsTrigger>
           <TabsTrigger value="payments">
-            <Banknote className="w-4 h-4 mr-1.5" /> Payments
+            <Banknote className="w-4 h-4 mr-1.5" /> Collections
           </TabsTrigger>
           <TabsTrigger value="subs">
-            <Users className="w-4 h-4 mr-1.5" /> Subscriptions
+            <Users className="w-4 h-4 mr-1.5" /> Fee plans
           </TabsTrigger>
         </TabsList>
 
