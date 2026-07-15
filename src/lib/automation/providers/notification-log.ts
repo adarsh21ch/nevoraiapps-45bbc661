@@ -35,7 +35,7 @@ export const notificationLogProvider: ActionProvider = {
         },
       };
       if (recipient) row.user_id = recipient;
-      const { error } = await supabaseAdmin.from("notifications").insert(row);
+      const { error } = await supabaseAdmin.from("notifications").insert(row as never);
       if (error) {
         return {
           ok: false,
