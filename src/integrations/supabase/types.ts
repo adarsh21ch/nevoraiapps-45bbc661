@@ -5199,6 +5199,30 @@ export type Database = {
         Args: { _from?: string; _tenant_id: string; _to?: string }
         Returns: Json
       }
+      get_report_admissions: {
+        Args: { _from: string; _tenant_id: string; _to: string }
+        Returns: Json
+      }
+      get_report_attendance: {
+        Args: { _from: string; _tenant_id: string; _to: string }
+        Returns: Json
+      }
+      get_report_billing: {
+        Args: { _from: string; _tenant_id: string; _to: string }
+        Returns: Json
+      }
+      get_report_matches: {
+        Args: { _from: string; _tenant_id: string; _to: string }
+        Returns: Json
+      }
+      get_report_players: {
+        Args: { _from: string; _tenant_id: string; _to: string }
+        Returns: Json
+      }
+      get_report_website: {
+        Args: { _from: string; _tenant_id: string; _to: string }
+        Returns: Json
+      }
       get_students_summary: { Args: { _tenant_id: string }; Returns: Json }
       get_top_performers: {
         Args: {
