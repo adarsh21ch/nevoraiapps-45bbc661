@@ -329,70 +329,76 @@ function RegistrationsTable({
         </table>
       </div>
 
-      {/* Mobile — stacked rows, still numbered */}
-      <div className="md:hidden space-y-2">
-        {rows.map((r, idx) => {
-          const status = statusMeta(r);
-          const actionable = r.status !== "approved" && r.status !== "rejected";
-          const batch = r.batches as { name?: string } | null;
-          return (
-            <div
-              key={r.id}
-              className="rounded-xl border border-border bg-card p-3 flex items-center gap-3"
-            >
-              <span className="text-xs text-muted-foreground tabular-nums w-5 shrink-0">
-                {idx + 1}
-              </span>
-              <button
-                type="button"
-                onClick={() => onOpen(r.id)}
-                className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
-              >
-                <PersonAvatar name={r.name} src={r.photo_url} className="h-9 w-9 text-xs shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-semibold truncate text-sm">{r.name}</span>
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider",
-                        status.className,
-                      )}
-                    >
-                      {status.label}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-muted-foreground truncate">
-                    {r.phone} · {batch?.name ?? "No batch"}
-                  </div>
-                </div>
-              </button>
-              {actionable ? (
-                <div className="flex gap-1 shrink-0">
+      <div className="md:hidden">
+        <VirtualList
+          items={rows}
+          estimateSize={72}
+          overscan={8}
+          className="max-h-[calc(100vh-240px)]"
+          getKey={(r) => r.id}
+          renderItem={(r, idx) => {
+            const status = statusMeta(r);
+            const actionable = r.status !== "approved" && r.status !== "rejected";
+            const batch = r.batches as { name?: string } | null;
+            return (
+              <div className="pb-2">
+                <div className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
+                  <span className="text-xs text-muted-foreground tabular-nums w-5 shrink-0">
+                    {idx + 1}
+                  </span>
                   <button
                     type="button"
-                    onClick={() => setConfirmAcceptId(r.id)}
-                    disabled={accepting}
-                    aria-label="Accept"
-                    className="inline-grid place-items-center size-9 rounded-full text-white"
-                    style={{ backgroundColor: "var(--brand)" }}
+                    onClick={() => onOpen(r.id)}
+                    className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
                   >
-                    <CheckCheck className="size-4" />
+                    <PersonAvatar name={r.name} src={r.photo_url} className="h-9 w-9 text-xs shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold truncate text-sm">{r.name}</span>
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider",
+                            status.className,
+                          )}
+                        >
+                          {status.label}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground truncate">
+                        {r.phone} · {batch?.name ?? "No batch"}
+                      </div>
+                    </div>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmRejectId(r.id)}
-                    disabled={rejecting}
-                    aria-label="Reject"
-                    className="inline-grid place-items-center size-9 rounded-full border border-rose-500/40 text-rose-500 hover:bg-rose-500/10"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
+                  {actionable ? (
+                    <div className="flex gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setConfirmAcceptId(r.id)}
+                        disabled={accepting}
+                        aria-label="Accept"
+                        className="inline-grid place-items-center size-9 rounded-full text-white"
+                        style={{ backgroundColor: "var(--brand)" }}
+                      >
+                        <CheckCheck className="size-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmRejectId(r.id)}
+                        disabled={rejecting}
+                        aria-label="Reject"
+                        className="inline-grid place-items-center size-9 rounded-full border border-rose-500/40 text-rose-500 hover:bg-rose-500/10"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
-            </div>
-          );
-        })}
+              </div>
+            );
+          }}
+        />
       </div>
+
 
       <AlertDialog open={!!confirmAcceptId} onOpenChange={(o) => !o && setConfirmAcceptId(null)}>
         <AlertDialogContent className="rounded-2xl">
