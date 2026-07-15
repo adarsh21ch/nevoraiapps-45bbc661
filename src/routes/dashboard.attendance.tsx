@@ -35,10 +35,10 @@ import {
   EmptyState,
   ErrorState,
   Skeleton,
-  SegmentedControl,
   SearchBar,
   LiveBadge,
 } from "@/components/ds";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -715,15 +715,16 @@ function AttendancePage() {
 
       {/* Sticky filter + search — always accessible while scrolling. */}
       <div className="sticky top-14 z-20 -mx-4 md:-mx-8 mb-2 border-b border-border/60 bg-background/90 px-4 md:px-8 py-2 backdrop-blur">
-        <SegmentedControl
+        <FilterTabs
           value={session}
-          onChange={(v) => setSession(v as SessionFilter)}
-          options={[
-            { value: "all", label: "All" },
-            { value: "morning", label: "Morning" },
-            { value: "evening", label: "Evening" },
-            { value: "night", label: "Night" },
+          onChange={(v: string) => setSession(v as SessionFilter)}
+          items={[
+            { key: "all", label: "All" },
+            { key: "morning", label: "Morning" },
+            { key: "evening", label: "Evening" },
+            { key: "night", label: "Night" },
           ]}
+          ariaLabel="Session"
         />
         <SearchBar
           value={query}
@@ -811,34 +812,17 @@ function AttendancePage() {
           </div>
 
           {/* Roster tab selector — Waiting / Present / Checked Out. */}
-          <div
-            role="tablist"
-            aria-label="Attendance groups"
-            className="sticky top-[8.5rem] z-10 mt-2 -mx-4 md:-mx-8 border-b border-border/60 bg-background/95 px-4 md:px-8 py-1.5 backdrop-blur"
-          >
-            <div className="grid grid-cols-3 gap-1 rounded-lg bg-muted/60 p-0.5">
-              <RosterTabButton
-                active={rosterTab === "waiting"}
-                onClick={() => changeRosterTab("waiting")}
-                label="Waiting"
-                count={groups.waiting.length}
-                dot="bg-muted-foreground/60"
-              />
-              <RosterTabButton
-                active={rosterTab === "present"}
-                onClick={() => changeRosterTab("present")}
-                label="Present"
-                count={groups.present.length}
-                dot="bg-emerald-500"
-              />
-              <RosterTabButton
-                active={rosterTab === "done"}
-                onClick={() => changeRosterTab("done")}
-                label="Checked Out"
-                count={groups.done.length}
-                dot="bg-sky-500"
-              />
-            </div>
+          <div className="sticky top-[8.5rem] z-10 mt-2 -mx-4 md:-mx-8 border-b border-border/60 bg-background/95 px-4 md:px-8 py-1.5 backdrop-blur">
+            <FilterTabs
+              value={rosterTab}
+              onChange={(k: string) => changeRosterTab(k as RosterTab)}
+              items={[
+                { key: "waiting", label: "Waiting", count: groups.waiting.length },
+                { key: "present", label: "Present", count: groups.present.length },
+                { key: "done", label: "Checked Out", count: groups.done.length },
+              ]}
+              ariaLabel="Attendance groups"
+            />
           </div>
 
           {/* Bulk action bar — writes disabled in History mode. */}

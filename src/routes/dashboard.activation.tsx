@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { useDashboard } from "@/lib/dashboard-context";
 import { supabase } from "@/integrations/supabase/client";
 import { importedStudentsQuery, importBatchesQuery } from "@/lib/admissions/queries";
@@ -24,11 +23,7 @@ import { LIFECYCLE_LABEL, LIFECYCLE_TONE, type LifecycleStatus } from "@/lib/adm
 
 export const Route = createFileRoute("/dashboard/activation")({
   head: () => ({ meta: [{ title: "Activation Center" }] }),
-  component: () => (
-    <DashboardShell>
-      <ActivationCenter />
-    </DashboardShell>
-  ),
+  component: ActivationCenter,
 });
 
 function ActivationCenter() {

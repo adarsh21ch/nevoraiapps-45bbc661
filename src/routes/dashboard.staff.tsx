@@ -51,6 +51,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -163,23 +164,14 @@ function StaffPage() {
         </div>
       </Card>
 
-      <Tabs defaultValue="directory">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="directory" className="flex-1 sm:flex-none">
-            Directory
-            <Badge variant="secondary" className="ml-2">
-              {membersQ.data?.length ?? 0}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex-1 sm:flex-none">
-            Invitations
-            <Badge variant="secondary" className="ml-2">
-              {(invitesQ.data ?? []).filter((i) => invitationStatus(i) === "pending").length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="flex-1 sm:flex-none">
-            Activity
-          </TabsTrigger>
+      <StaffTabs
+        membersCount={membersQ.data?.length ?? 0}
+        pendingInvites={(invitesQ.data ?? []).filter((i) => invitationStatus(i) === "pending").length}
+      >
+        <TabsList className="hidden">
+          <TabsTrigger value="directory" />
+          <TabsTrigger value="invitations" />
+          <TabsTrigger value="activity" />
         </TabsList>
 
         <TabsContent value="directory" className="mt-4">
@@ -203,8 +195,35 @@ function StaffPage() {
         <TabsContent value="activity" className="mt-4">
           <ActivityFeed tenantId={tenant.id} />
         </TabsContent>
-      </Tabs>
+      </StaffTabs>
     </div>
+  );
+}
+
+function StaffTabs({
+  membersCount,
+  pendingInvites,
+  children,
+}: {
+  membersCount: number;
+  pendingInvites: number;
+  children: React.ReactNode;
+}) {
+  const [value, setValue] = useState<string>("directory");
+  return (
+    <Tabs value={value} onValueChange={setValue}>
+      <FilterTabs
+        value={value}
+        onChange={setValue}
+        items={[
+          { key: "directory", label: "Directory", count: membersCount },
+          { key: "invitations", label: "Invitations", count: pendingInvites },
+          { key: "activity", label: "Activity" },
+        ]}
+        ariaLabel="Staff sections"
+      />
+      {children}
+    </Tabs>
   );
 }
 

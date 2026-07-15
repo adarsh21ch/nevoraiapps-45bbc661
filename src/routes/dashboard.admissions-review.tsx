@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { AdmissionActionDialog } from "@/components/dashboard/AdmissionActionDialog";
 import { useDashboard } from "@/lib/dashboard-context";
 import { admissionsRegistrationsQuery } from "@/lib/admissions/queries";
@@ -14,15 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/admissions-review")({
   head: () => ({ meta: [{ title: "Admissions Review" }] }),
-  component: () => (
-    <DashboardShell>
-      <AdmissionsReviewPage />
-    </DashboardShell>
-  ),
+  component: AdmissionsReviewPage,
 });
 
 const FILTERS = [
@@ -87,17 +83,18 @@ function AdmissionsReviewPage() {
         </Link>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {FILTERS.map((f) => (
-          <Button key={f.key} size="sm" variant={filter === f.key ? "default" : "outline"} onClick={() => setFilter(f.key)}>
-            {f.label}
-          </Button>
-        ))}
+      <div className="flex flex-wrap items-center gap-3">
+        <FilterTabs
+          value={filter}
+          onChange={setFilter}
+          items={FILTERS.map((f) => ({ key: f.key, label: f.label }))}
+          ariaLabel="Application status"
+        />
         <Input
           placeholder="Search name, phone, email…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="ml-auto max-w-xs"
+          className="ml-auto max-w-xs h-11 rounded-full bg-card border-border shadow-sm"
         />
       </div>
 

@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import { ModuleHeader } from "@/components/shared/ModuleHeader";
 
 import {
@@ -111,30 +112,25 @@ function CommunicationsHub() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <div className="-mx-4 md:mx-0 overflow-x-auto scrollbar-none">
-          <TabsList className="inline-flex md:grid md:grid-cols-5 md:w-full w-max min-w-full px-4 md:px-0 gap-1">
-            <TabsTrigger value="broadcasts" className="whitespace-nowrap shrink-0">
-              <Send className="size-3.5 mr-1.5" />
-              All
-            </TabsTrigger>
-            <TabsTrigger value="announcements" className="whitespace-nowrap shrink-0">
-              <Megaphone className="size-3.5 mr-1.5" />
-              Announcements
-            </TabsTrigger>
-            <TabsTrigger value="scheduled" className="whitespace-nowrap shrink-0">
-              <Clock className="size-3.5 mr-1.5" />
-              Scheduled
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="whitespace-nowrap shrink-0">
-              <FileText className="size-3.5 mr-1.5" />
-              Templates
-            </TabsTrigger>
-            <TabsTrigger value="history" className="whitespace-nowrap shrink-0">
-              <History className="size-3.5 mr-1.5" />
-              History
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        <TabsList className="hidden">
+          <TabsTrigger value="broadcasts" />
+          <TabsTrigger value="announcements" />
+          <TabsTrigger value="scheduled" />
+          <TabsTrigger value="templates" />
+          <TabsTrigger value="history" />
+        </TabsList>
+        <FilterTabs
+          value={tab}
+          onChange={setTab}
+          items={[
+            { key: "broadcasts", label: "All" },
+            { key: "announcements", label: "Announcements" },
+            { key: "scheduled", label: "Scheduled" },
+            { key: "templates", label: "Templates" },
+            { key: "history", label: "History" },
+          ]}
+          ariaLabel="Communications"
+        />
 
         <TabsContent value="broadcasts" className="mt-4">
           <CampaignList items={filtered} loading={campaigns.isLoading} />
