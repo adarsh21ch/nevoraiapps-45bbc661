@@ -54,6 +54,12 @@ import {
 import { listTeams } from "@/lib/mc-teams";
 import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
 import { DemoTournamentDetail } from "@/components/match-center/demo-tournament-detail";
+import {
+  SetupProgress,
+  GroupsTab,
+  VenuesTab,
+  OfficialsTab,
+} from "@/components/match-center/tournament-setup";
 
 
 export const Route = createFileRoute("/match-center/tournaments/$tournamentId")({
@@ -68,13 +74,16 @@ export const Route = createFileRoute("/match-center/tournaments/$tournamentId")(
 
 const TABS = [
   { id: "overview", label: "Overview", icon: ClipboardList },
+  { id: "teams", label: "Teams", icon: Users },
+  { id: "groups", label: "Groups", icon: Users },
+  { id: "venues", label: "Venues", icon: MapPin },
+  { id: "officials", label: "Officials", icon: UserCog },
   { id: "fixtures", label: "Fixtures", icon: Calendar },
   { id: "standings", label: "Points Table", icon: BarChart3 },
   { id: "results", label: "Results", icon: Trophy },
   { id: "stats", label: "Statistics", icon: BarChart3 },
   { id: "orange", label: "Orange Cap", icon: Award },
   { id: "purple", label: "Purple Cap", icon: Medal },
-  { id: "teams", label: "Teams", icon: Users },
   { id: "settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
