@@ -27,11 +27,27 @@ function MatchesPage() {
   const bundle = useQuery({
     queryKey: ["public_academy_bundle", tenant.slug],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_public_academy_bundle", { _slug: tenant.slug });
+      const { data, error } = await supabase.rpc("get_public_academy_bundle", {
+        _slug: tenant.slug,
+      });
       if (error) throw error;
       return data as {
-        upcoming_matches: Array<{ id: string; scheduled_date: string | null; venue: string | null; format: string | null; team_a_id: string; team_b_id: string }>;
-        recent_results: Array<{ id: string; scheduled_date: string | null; result: string | null; winner_team: string | null; team_a_id: string; team_b_id: string }>;
+        upcoming_matches: Array<{
+          id: string;
+          scheduled_date: string | null;
+          venue: string | null;
+          format: string | null;
+          team_a_id: string;
+          team_b_id: string;
+        }>;
+        recent_results: Array<{
+          id: string;
+          scheduled_date: string | null;
+          result: string | null;
+          winner_team: string | null;
+          team_a_id: string;
+          team_b_id: string;
+        }>;
       } | null;
     },
     staleTime: 60_000,
@@ -58,7 +74,13 @@ function MatchesPage() {
                 <div key={m.id} className="rounded-2xl border border-border/60 bg-card p-6">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     <Calendar className="size-3.5" />
-                    {m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "TBA"}
+                    {m.scheduled_date
+                      ? new Date(m.scheduled_date).toLocaleDateString(undefined, {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "TBA"}
                     {m.format && <span>· {m.format}</span>}
                   </div>
                   <div className="mt-2 font-semibold">Match</div>
@@ -81,7 +103,11 @@ function MatchesPage() {
                     {m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString() : ""}
                   </div>
                   <div className="mt-1 font-semibold">{m.result ?? "Match completed"}</div>
-                  {m.winner_team && <div className="mt-1 text-sm" style={{ color: "var(--brand)" }}>Winner: {m.winner_team}</div>}
+                  {m.winner_team && (
+                    <div className="mt-1 text-sm" style={{ color: "var(--brand)" }}>
+                      Winner: {m.winner_team}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

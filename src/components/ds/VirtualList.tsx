@@ -51,11 +51,7 @@ export function VirtualList<T>({
   const virtualItems = virtualizer.getVirtualItems();
 
   return (
-    <div
-      ref={parentRef}
-      className={cn("overflow-auto", className)}
-      style={{ contain: "strict" }}
-    >
+    <div ref={parentRef} className={cn("overflow-auto", className)} style={{ contain: "strict" }}>
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,

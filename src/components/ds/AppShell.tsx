@@ -33,15 +33,16 @@ export function AppShell({
 
       <main
         className="flex-1 w-full mx-auto max-w-3xl px-4 pb-24 md:pb-8"
-        style={{ paddingLeft: `max(1rem, ${safeArea.left})`, paddingRight: `max(1rem, ${safeArea.right})` }}
+        style={{
+          paddingLeft: `max(1rem, ${safeArea.left})`,
+          paddingRight: `max(1rem, ${safeArea.right})`,
+        }}
       >
         {children}
       </main>
 
       {bottomNav ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 md:hidden">
-          {bottomNav}
-        </div>
+        <div className="fixed inset-x-0 bottom-0 z-40 md:hidden">{bottomNav}</div>
       ) : null}
     </div>
   );

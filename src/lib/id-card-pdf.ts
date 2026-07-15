@@ -103,11 +103,19 @@ export async function generateIdCardPdf(tenant: Tenant, r: IdCardData) {
     } catch {}
   }
   if (!drewPhoto) {
-    const initials = r.name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+    const initials = r.name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((p) => p[0])
+      .join("")
+      .toUpperCase();
     doc.setTextColor(160);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
-    doc.text(initials || "?", photoX + photoSize / 2, photoY + photoSize / 2 + 5, { align: "center" });
+    doc.text(initials || "?", photoX + photoSize / 2, photoY + photoSize / 2 + 5, {
+      align: "center",
+    });
   }
 
   // Details right of photo
@@ -182,7 +190,9 @@ export async function generateIdCardPdf(tenant: Tenant, r: IdCardData) {
     doc.setTextColor(120);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(5.5);
-    doc.text("Scan to verify", backX + 4 + qrSize / 2, backY + 10 + qrSize + 3, { align: "center" });
+    doc.text("Scan to verify", backX + 4 + qrSize / 2, backY + 10 + qrSize + 3, {
+      align: "center",
+    });
   } catch {}
 
   // Details right of QR
@@ -224,11 +234,7 @@ export async function generateIdCardPdf(tenant: Tenant, r: IdCardData) {
   doc.setTextColor(130);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.5);
-  doc.text(
-    "If found, please return to the academy.",
-    backX + 4,
-    backY + CH - 2.5,
-  );
+  doc.text("If found, please return to the academy.", backX + 4, backY + CH - 2.5);
 
   // Cut guide labels
   doc.setTextColor(180);

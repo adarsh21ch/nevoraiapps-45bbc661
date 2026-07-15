@@ -24,12 +24,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EmptyState, LoadingSkeleton } from "@/components/match-center/ui";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -52,19 +47,13 @@ import {
  * Root
  * ================================================================ */
 
-export function TournamentStatistics({
-  tournamentId,
-}: {
-  tournamentId: string;
-}) {
+export function TournamentStatistics({ tournamentId }: { tournamentId: string }) {
   const qc = useQueryClient();
   const [tab, setTab] = useState<
     "overview" | "batting" | "bowling" | "fielding" | "team" | "match"
   >("overview");
   const [filters, setFilters] = useState<TournamentStatsFilters>({});
-  const [selectedPlayer, setSelectedPlayer] = useState<PlayerBattingRow | null>(
-    null,
-  );
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerBattingRow | null>(null);
 
   const dataQ = useQuery({
     queryKey: ["mc-tournament-analytics", tournamentId],
@@ -112,11 +101,7 @@ export function TournamentStatistics({
 
   return (
     <div className="space-y-4">
-      <FiltersBar
-        filters={filters}
-        onChange={setFilters}
-        teams={analytics.teams}
-      />
+      <FiltersBar filters={filters} onChange={setFilters} teams={analytics.teams} />
 
       <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-muted/40 p-1 text-xs">
         {(
@@ -134,9 +119,7 @@ export function TournamentStatistics({
             onClick={() => setTab(k)}
             className={cn(
               "rounded-md px-3 py-1.5 font-medium transition-colors",
-              tab === k
-                ? "bg-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+              tab === k ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground",
             )}
           >
             {label}
@@ -146,10 +129,7 @@ export function TournamentStatistics({
 
       {tab === "overview" && <OverviewTab a={analytics} />}
       {tab === "batting" && (
-        <BattingTab
-          rows={analytics.batting}
-          onSelectPlayer={setSelectedPlayer}
-        />
+        <BattingTab rows={analytics.batting} onSelectPlayer={setSelectedPlayer} />
       )}
       {tab === "bowling" && <BowlingTab rows={analytics.bowling} />}
       {tab === "fielding" && <FieldingTab rows={analytics.fielding} />}
@@ -160,12 +140,12 @@ export function TournamentStatistics({
         player={selectedPlayer}
         bowlingRow={
           selectedPlayer
-            ? analytics.bowling.find((b) => b.key === selectedPlayer.key) ?? null
+            ? (analytics.bowling.find((b) => b.key === selectedPlayer.key) ?? null)
             : null
         }
         fieldingRow={
           selectedPlayer
-            ? analytics.fielding.find((f) => f.key === selectedPlayer.key) ?? null
+            ? (analytics.fielding.find((f) => f.key === selectedPlayer.key) ?? null)
             : null
         }
         onClose={() => setSelectedPlayer(null)}
@@ -195,9 +175,7 @@ function FiltersBar({
       <select
         className="rounded-md border border-input bg-background px-2 py-1 text-xs"
         value={filters.teamId ?? ""}
-        onChange={(e) =>
-          onChange({ ...filters, teamId: e.target.value || null })
-        }
+        onChange={(e) => onChange({ ...filters, teamId: e.target.value || null })}
       >
         <option value="">All teams</option>
         {teams.map((t) => (
@@ -231,15 +209,7 @@ function FiltersBar({
  * Overview
  * ================================================================ */
 
-function KPI({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string | number;
-  hint?: string;
-}) {
+function KPI({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
     <div className="rounded-xl border border-border bg-card p-3">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -251,11 +221,7 @@ function KPI({
   );
 }
 
-function OverviewTab({
-  a,
-}: {
-  a: ReturnType<typeof buildTournamentAnalytics>;
-}) {
+function OverviewTab({ a }: { a: ReturnType<typeof buildTournamentAnalytics> }) {
   const d = a.dashboard;
   return (
     <div className="space-y-4">
@@ -271,18 +237,10 @@ function OverviewTab({
         <KPI label="Avg score" value={d.averageScore} />
         <KPI
           label="Highest"
-          value={
-            d.highestScore ? `${d.highestScore.runs}/${d.highestScore.wickets}` : "—"
-          }
+          value={d.highestScore ? `${d.highestScore.runs}/${d.highestScore.wickets}` : "—"}
         />
-        <KPI
-          label="Lowest defended"
-          value={d.lowestDefended ? d.lowestDefended.runs : "—"}
-        />
-        <KPI
-          label="Highest chase"
-          value={d.highestChase ? d.highestChase.runs : "—"}
-        />
+        <KPI label="Lowest defended" value={d.lowestDefended ? d.lowestDefended.runs : "—"} />
+        <KPI label="Highest chase" value={d.highestChase ? d.highestChase.runs : "—"} />
       </div>
     </div>
   );
@@ -553,10 +511,7 @@ function BowlingTab({ rows }: { rows: PlayerBowlingRow[] }) {
 
 function FieldingTab({ rows }: { rows: PlayerFieldingRow[] }) {
   const [sortKey, setSortKey] = useState<keyof typeof fieldingSorts>("catches");
-  const filtered = useMemo(
-    () => rows.slice().sort(fieldingSorts[sortKey]),
-    [rows, sortKey],
-  );
+  const filtered = useMemo(() => rows.slice().sort(fieldingSorts[sortKey]), [rows, sortKey]);
 
   return (
     <div className="space-y-3">
@@ -606,9 +561,7 @@ function FieldingTab({ rows }: { rows: PlayerFieldingRow[] }) {
                 <td className="px-3 py-2 text-right">{r.runOuts}</td>
                 <td className="px-3 py-2 text-right">{r.stumpings}</td>
                 <td className="px-3 py-2 text-right">{r.directHits}</td>
-                <td className="px-3 py-2 text-right font-semibold">
-                  {r.fieldingPoints}
-                </td>
+                <td className="px-3 py-2 text-right font-semibold">{r.fieldingPoints}</td>
               </tr>
             ))}
           </tbody>
@@ -666,15 +619,14 @@ function TeamTab({ rows }: { rows: TeamAnalyticsRow[] }) {
  * ================================================================ */
 
 function MatchTab({ rows }: { rows: MatchAnalyticsRow[] }) {
-  const [mode, setMode] = useState<
-    "highestScoring" | "lowestScoring" | "closestWins" | "exciting"
-  >("highestScoring");
+  const [mode, setMode] = useState<"highestScoring" | "lowestScoring" | "closestWins" | "exciting">(
+    "highestScoring",
+  );
   const sorted = useMemo(() => {
     const list = rows.slice();
     if (mode === "highestScoring") list.sort((a, b) => b.totalRuns - a.totalRuns);
     else if (mode === "lowestScoring") list.sort((a, b) => a.totalRuns - b.totalRuns);
-    else if (mode === "closestWins")
-      list.sort((a, b) => a.excitementScore - b.excitementScore);
+    else if (mode === "closestWins") list.sort((a, b) => a.excitementScore - b.excitementScore);
     else list.sort((a, b) => b.excitementScore - a.excitementScore);
     return list.slice(0, 20);
   }, [rows, mode]);
@@ -711,7 +663,9 @@ function MatchTab({ rows }: { rows: MatchAnalyticsRow[] }) {
             className="flex items-center justify-between rounded-xl border border-border bg-card p-3"
           >
             <div>
-              <div className="text-xs text-muted-foreground">#{i + 1} · {m.scheduledDate ?? ""}</div>
+              <div className="text-xs text-muted-foreground">
+                #{i + 1} · {m.scheduledDate ?? ""}
+              </div>
               <div className="text-sm font-medium">
                 {m.teamA} vs {m.teamB}
               </div>
@@ -782,7 +736,7 @@ function PlayerProfileDialog({
               )}
 
               {fieldingRow &&
-                (fieldingRow.catches + fieldingRow.runOuts + fieldingRow.stumpings) > 0 && (
+                fieldingRow.catches + fieldingRow.runOuts + fieldingRow.stumpings > 0 && (
                   <section>
                     <div className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       <Shield className="size-3.5" /> Fielding

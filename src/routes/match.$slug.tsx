@@ -45,7 +45,6 @@ function PublicMatchPage() {
   }, [q]);
   useMatchRealtime(q.data?.match?.id ?? null, refetch);
 
-
   if (q.isLoading) {
     return (
       <div className="flex min-h-dvh flex-col bg-background">
@@ -62,7 +61,9 @@ function PublicMatchPage() {
         <div className="mx-auto flex w-full max-w-3xl flex-1 items-center justify-center p-10 text-center">
           <div>
             <h1 className="text-2xl font-semibold">Match not found</h1>
-            <p className="text-muted-foreground mt-2">This public link is invalid or was disabled.</p>
+            <p className="text-muted-foreground mt-2">
+              This public link is invalid or was disabled.
+            </p>
           </div>
         </div>
       </div>
@@ -81,11 +82,13 @@ function PublicMatchPage() {
           <div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Radio className="size-3.5" />
-              {b.match.match_locked ? "Final" : "Live"} · {b.match.match_format ?? b.match.match_type ?? "Match"}
+              {b.match.match_locked ? "Final" : "Live"} ·{" "}
+              {b.match.match_format ?? b.match.match_type ?? "Match"}
               {b.match.overs ? ` · ${b.match.overs} overs` : ""}
             </div>
             <h1 className="text-2xl font-bold mt-1">
-              {teamA?.name ?? "Team A"} <span className="text-muted-foreground">vs</span> {teamB?.name ?? "Team B"}
+              {teamA?.name ?? "Team A"} <span className="text-muted-foreground">vs</span>{" "}
+              {teamB?.name ?? "Team B"}
             </h1>
             {b.match.ground_name && (
               <p className="text-sm text-muted-foreground">{b.match.ground_name}</p>
@@ -101,7 +104,8 @@ function PublicMatchPage() {
             {b.match.result && <p className="text-sm font-medium">{b.match.result}</p>}
             {b.pom_name && (
               <p className="text-xs text-muted-foreground">
-                Player of the Match: <span className="font-medium text-foreground">{b.pom_name}</span>
+                Player of the Match:{" "}
+                <span className="font-medium text-foreground">{b.pom_name}</span>
               </p>
             )}
           </div>
@@ -113,16 +117,27 @@ function PublicMatchPage() {
 
         <Tabs defaultValue="scorecard" className="mt-6">
           <TabsList>
-            <TabsTrigger value="scorecard"><Users className="size-4 mr-1" />Scorecard</TabsTrigger>
-            <TabsTrigger value="commentary"><Clock className="size-4 mr-1" />Commentary</TabsTrigger>
-            <TabsTrigger value="summary"><User className="size-4 mr-1" />Summary</TabsTrigger>
+            <TabsTrigger value="scorecard">
+              <Users className="size-4 mr-1" />
+              Scorecard
+            </TabsTrigger>
+            <TabsTrigger value="commentary">
+              <Clock className="size-4 mr-1" />
+              Commentary
+            </TabsTrigger>
+            <TabsTrigger value="summary">
+              <User className="size-4 mr-1" />
+              Summary
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="scorecard" className="pt-4 space-y-4">
             {b.public.allow_scorecard ? (
               <Scorecard events={events} bundle={b} />
             ) : (
-              <Card className="p-6 text-sm text-muted-foreground">Scorecard is disabled for this match.</Card>
+              <Card className="p-6 text-sm text-muted-foreground">
+                Scorecard is disabled for this match.
+              </Card>
             )}
           </TabsContent>
 
@@ -130,7 +145,9 @@ function PublicMatchPage() {
             {b.public.allow_live_score ? (
               <Commentary events={events} />
             ) : (
-              <Card className="p-6 text-sm text-muted-foreground">Live commentary is disabled.</Card>
+              <Card className="p-6 text-sm text-muted-foreground">
+                Live commentary is disabled.
+              </Card>
             )}
           </TabsContent>
 
@@ -154,7 +171,11 @@ function PublicMatchPage() {
   );
 }
 
-function InningsCards({ bundle }: { bundle: NonNullable<Awaited<ReturnType<typeof getPublicMatchBundle>>> }) {
+function InningsCards({
+  bundle,
+}: {
+  bundle: NonNullable<Awaited<ReturnType<typeof getPublicMatchBundle>>>;
+}) {
   const innings = bundle.innings as Array<{
     id: string;
     innings_number: number;
@@ -173,7 +194,9 @@ function InningsCards({ bundle }: { bundle: NonNullable<Awaited<ReturnType<typeo
         return (
           <Card key={i.id} className="p-4">
             <div className="flex items-center justify-between">
-              <div className="text-xs uppercase tracking-wide text-muted-foreground">Innings {i.innings_number}</div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                Innings {i.innings_number}
+              </div>
               {i.target != null && <Badge variant="outline">Target {i.target}</Badge>}
             </div>
             <div className="mt-1 text-lg font-semibold">{bat?.name ?? "Team"}</div>
@@ -190,7 +213,13 @@ function InningsCards({ bundle }: { bundle: NonNullable<Awaited<ReturnType<typeo
   );
 }
 
-function Scorecard({ events, bundle }: { events: MCBallEvent[]; bundle: NonNullable<Awaited<ReturnType<typeof getPublicMatchBundle>>> }) {
+function Scorecard({
+  events,
+  bundle,
+}: {
+  events: MCBallEvent[];
+  bundle: NonNullable<Awaited<ReturnType<typeof getPublicMatchBundle>>>;
+}) {
   const byInnings = new Map<string, MCBallEvent[]>();
   for (const e of events) {
     if (!e.innings_id) continue;
@@ -198,7 +227,11 @@ function Scorecard({ events, bundle }: { events: MCBallEvent[]; bundle: NonNulla
     arr.push(e);
     byInnings.set(e.innings_id, arr);
   }
-  const innings = bundle.innings as Array<{ id: string; innings_number: number; batting_team_id: string }>;
+  const innings = bundle.innings as Array<{
+    id: string;
+    innings_number: number;
+    batting_team_id: string;
+  }>;
 
   return (
     <div className="space-y-6">
@@ -213,7 +246,9 @@ function Scorecard({ events, bundle }: { events: MCBallEvent[]; bundle: NonNulla
         return (
           <Card key={inn.id} className="p-4">
             <div className="mb-3 flex items-center gap-2">
-              <h3 className="font-semibold">{bat?.name ?? "Team"} — Innings {inn.innings_number}</h3>
+              <h3 className="font-semibold">
+                {bat?.name ?? "Team"} — Innings {inn.innings_number}
+              </h3>
             </div>
 
             <div className="overflow-x-auto">
@@ -231,12 +266,17 @@ function Scorecard({ events, bundle }: { events: MCBallEvent[]; bundle: NonNulla
                 <tbody>
                   {[...batting.byKey.values()].map((b) => (
                     <tr key={`${inn.id}-${b.player.key}`} className="border-t">
-                      <td className="py-1">{b.player.name}{b.notOut ? " *" : ""}</td>
+                      <td className="py-1">
+                        {b.player.name}
+                        {b.notOut ? " *" : ""}
+                      </td>
                       <td className="text-right tabular-nums">{b.runs}</td>
                       <td className="text-right tabular-nums">{b.balls}</td>
                       <td className="text-right tabular-nums">{b.fours}</td>
                       <td className="text-right tabular-nums">{b.sixes}</td>
-                      <td className="text-right tabular-nums">{b.balls ? ((b.runs / b.balls) * 100).toFixed(1) : "—"}</td>
+                      <td className="text-right tabular-nums">
+                        {b.balls ? ((b.runs / b.balls) * 100).toFixed(1) : "—"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -320,7 +360,9 @@ function Commentary({ events }: { events: MCBallEvent[] }) {
   return (
     <Card className="p-4">
       <div className="space-y-2 max-h-[70vh] overflow-y-auto">
-        {reversed.length === 0 && <p className="text-sm text-muted-foreground">No balls bowled yet.</p>}
+        {reversed.length === 0 && (
+          <p className="text-sm text-muted-foreground">No balls bowled yet.</p>
+        )}
         {reversed.map((ev) => (
           <div key={ev.id} className="text-sm border-l-2 pl-3 py-1">
             <span className="text-xs text-muted-foreground mr-2 tabular-nums">
@@ -360,14 +402,17 @@ function Summary({
       {topBat && (
         <div>
           <div className="text-xs uppercase text-muted-foreground">Top batter</div>
-          <div>{topBat.player.name} — {topBat.runs}({topBat.balls}), {topBat.fours}×4, {topBat.sixes}×6</div>
+          <div>
+            {topBat.player.name} — {topBat.runs}({topBat.balls}), {topBat.fours}×4, {topBat.sixes}×6
+          </div>
         </div>
       )}
       {topBowl && (
         <div>
           <div className="text-xs uppercase text-muted-foreground">Top bowler</div>
           <div>
-            {topBowl.player.name} — {topBowl.wickets}/{topBowl.runsConceded} in {topBowl.overs} overs
+            {topBowl.player.name} — {topBowl.wickets}/{topBowl.runsConceded} in {topBowl.overs}{" "}
+            overs
           </div>
         </div>
       )}

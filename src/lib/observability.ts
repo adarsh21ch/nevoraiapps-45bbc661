@@ -39,7 +39,7 @@ export interface OpsContext {
 export function reportError(error: unknown, ctx: OpsContext) {
   const message = error instanceof Error ? error.message : String(error);
   // Console output makes issues visible in dev + captured by Lovable log tail.
-  // eslint-disable-next-line no-console
+
   console.error(`[ops:${ctx.domain}] ${ctx.operation}: ${message}`, {
     ...ctx.extra,
     tenantId: ctx.tenantId,
@@ -62,10 +62,7 @@ export function reportError(error: unknown, ctx: OpsContext) {
  * Wrap an async operation. Rethrows after reporting so callers can still
  * surface UI errors.
  */
-export async function withOps<T>(
-  ctx: OpsContext,
-  fn: () => Promise<T>,
-): Promise<T> {
+export async function withOps<T>(ctx: OpsContext, fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (err) {
@@ -76,7 +73,6 @@ export async function withOps<T>(
 
 /** Lightweight breadcrumb (non-error) for structured logging. */
 export function logEvent(ctx: OpsContext, message: string) {
-  // eslint-disable-next-line no-console
   console.info(`[ops:${ctx.domain}] ${ctx.operation}: ${message}`, {
     ...ctx.extra,
     tenantId: ctx.tenantId,

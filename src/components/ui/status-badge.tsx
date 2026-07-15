@@ -7,38 +7,39 @@ import { cn } from "@/lib/utils";
  */
 export type MatchStatusTone = "live" | "upcoming" | "finalized" | "paused" | "scheduled";
 
-const TONES: Record<MatchStatusTone, { wrap: string; dot: string; pulse: boolean; label: string }> = {
-  live: {
-    wrap: "border-destructive/40 bg-destructive/10 text-destructive",
-    dot: "bg-destructive",
-    pulse: true,
-    label: "Live",
-  },
-  upcoming: {
-    wrap: "border-primary/35 bg-primary/10 text-primary",
-    dot: "bg-primary",
-    pulse: false,
-    label: "Upcoming",
-  },
-  scheduled: {
-    wrap: "border-muted-foreground/25 bg-muted/40 text-muted-foreground",
-    dot: "bg-muted-foreground",
-    pulse: false,
-    label: "Scheduled",
-  },
-  finalized: {
-    wrap: "border-foreground/15 bg-foreground/5 text-foreground/70",
-    dot: "bg-foreground/60",
-    pulse: false,
-    label: "Result",
-  },
-  paused: {
-    wrap: "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    dot: "bg-amber-500",
-    pulse: true,
-    label: "Paused",
-  },
-};
+const TONES: Record<MatchStatusTone, { wrap: string; dot: string; pulse: boolean; label: string }> =
+  {
+    live: {
+      wrap: "border-destructive/40 bg-destructive/10 text-destructive",
+      dot: "bg-destructive",
+      pulse: true,
+      label: "Live",
+    },
+    upcoming: {
+      wrap: "border-primary/35 bg-primary/10 text-primary",
+      dot: "bg-primary",
+      pulse: false,
+      label: "Upcoming",
+    },
+    scheduled: {
+      wrap: "border-muted-foreground/25 bg-muted/40 text-muted-foreground",
+      dot: "bg-muted-foreground",
+      pulse: false,
+      label: "Scheduled",
+    },
+    finalized: {
+      wrap: "border-foreground/15 bg-foreground/5 text-foreground/70",
+      dot: "bg-foreground/60",
+      pulse: false,
+      label: "Result",
+    },
+    paused: {
+      wrap: "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+      dot: "bg-amber-500",
+      pulse: true,
+      label: "Paused",
+    },
+  };
 
 export function StatusBadge({
   tone,
@@ -61,7 +62,14 @@ export function StatusBadge({
         className,
       )}
     >
-      <span className={cn("rounded-full", compact ? "size-1.5" : "size-2", t.dot, t.pulse && "animate-pulse")} />
+      <span
+        className={cn(
+          "rounded-full",
+          compact ? "size-1.5" : "size-2",
+          t.dot,
+          t.pulse && "animate-pulse",
+        )}
+      />
       {label ?? t.label}
     </span>
   );

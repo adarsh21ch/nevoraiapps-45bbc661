@@ -29,12 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   Select,
@@ -71,7 +66,6 @@ import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { VirtualList } from "@/components/ds/VirtualList";
-
 
 export const Route = createFileRoute("/dashboard/students")({
   validateSearch: (search: Record<string, unknown>): { status?: string } => {
@@ -312,7 +306,12 @@ function StudentsPage() {
       {/* Status tabs — all 7 statuses */}
       <div className="flex items-center gap-2 overflow-x-auto -mx-1 px-1">
         <div className="inline-flex items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1">
-          <TabBtn active={status === "all"} onClick={() => setStatus("all")} label="All" count={counts.all} />
+          <TabBtn
+            active={status === "all"}
+            onClick={() => setStatus("all")}
+            label="All"
+            count={counts.all}
+          />
           {STATUS_TAB_ORDER.map((key) => {
             const meta = PLAYER_STATUSES.find((s) => s.value === key)!;
             return (
@@ -441,8 +440,7 @@ function StudentsPage() {
           </ul>
         ) : filtered.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">
-            No players match.{" "}
-            {status === "active" ? "Add your first player to get started." : ""}
+            No players match. {status === "active" ? "Add your first player to get started." : ""}
           </div>
         ) : (
           <VirtualList
@@ -470,7 +468,6 @@ function StudentsPage() {
           />
         )}
       </section>
-
 
       <AddStudentSheet open={addOpen} onOpenChange={setAddOpen} />
       <ProfileSheet id={profileId} onOpenChange={(open) => !open && setProfileId(null)} />
@@ -655,10 +652,7 @@ function StatusPill({ paid }: { paid: boolean }) {
       )}
     >
       <span
-        className={cn(
-          "w-1.5 h-1.5 rounded-full mr-1.5",
-          paid ? "bg-emerald-500" : "bg-rose-500",
-        )}
+        className={cn("w-1.5 h-1.5 rounded-full mr-1.5", paid ? "bg-emerald-500" : "bg-rose-500")}
       />
       {paid ? "Paid" : "Due"}
     </span>
@@ -899,13 +893,33 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
 
       {section === "basic" && (
         <>
-          <FormField label="Full name" required value={f.name} onChange={(v) => setF({ ...f, name: v })} />
+          <FormField
+            label="Full name"
+            required
+            value={f.name}
+            onChange={(v) => setF({ ...f, name: v })}
+          />
           <div className="grid grid-cols-2 gap-2">
-            <FormField label="Mobile" required value={f.phone} onChange={(v) => setF({ ...f, phone: v })} />
-            <FormField label="Email" type="email" value={f.email} onChange={(v) => setF({ ...f, email: v })} />
+            <FormField
+              label="Mobile"
+              required
+              value={f.phone}
+              onChange={(v) => setF({ ...f, phone: v })}
+            />
+            <FormField
+              label="Email"
+              type="email"
+              value={f.email}
+              onChange={(v) => setF({ ...f, email: v })}
+            />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <FormField label="Date of birth" type="date" value={f.dob} onChange={(v) => setF({ ...f, dob: v })} />
+            <FormField
+              label="Date of birth"
+              type="date"
+              value={f.dob}
+              onChange={(v) => setF({ ...f, dob: v })}
+            />
             <SelectField
               label="Gender"
               value={f.gender}
@@ -921,10 +935,14 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
             <div className="space-y-1.5">
               <Label>Batch</Label>
               <Select value={f.batch_id} onValueChange={(v) => setF({ ...f, batch_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
                 <SelectContent>
                   {(batches.data ?? []).map((b: any) => (
-                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -932,18 +950,31 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
             <div className="space-y-1.5">
               <Label>Fee plan</Label>
               <Select value={f.fee_plan_id} onValueChange={(v) => setF({ ...f, fee_plan_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
                 <SelectContent>
                   {(feePlans.data ?? []).map((p: any) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name} · ₹{p.amount}</SelectItem>
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} · ₹{p.amount}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <FormField label="Joining date" type="date" value={f.joined_at} onChange={(v) => setF({ ...f, joined_at: v })} />
-            <FormField label="Coach" value={f.coach_name} onChange={(v) => setF({ ...f, coach_name: v })} />
+            <FormField
+              label="Joining date"
+              type="date"
+              value={f.joined_at}
+              onChange={(v) => setF({ ...f, joined_at: v })}
+            />
+            <FormField
+              label="Coach"
+              value={f.coach_name}
+              onChange={(v) => setF({ ...f, coach_name: v })}
+            />
           </div>
         </>
       )}
@@ -985,8 +1016,16 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
       {section === "contact" && (
         <>
           <div className="grid grid-cols-2 gap-2">
-            <FormField label="Parent name" value={f.guardian_name} onChange={(v) => setF({ ...f, guardian_name: v })} />
-            <FormField label="Parent mobile" value={f.guardian_phone} onChange={(v) => setF({ ...f, guardian_phone: v })} />
+            <FormField
+              label="Parent name"
+              value={f.guardian_name}
+              onChange={(v) => setF({ ...f, guardian_name: v })}
+            />
+            <FormField
+              label="Parent mobile"
+              value={f.guardian_phone}
+              onChange={(v) => setF({ ...f, guardian_phone: v })}
+            />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <FormField
@@ -1002,12 +1041,20 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
           </div>
           <div className="space-y-1.5">
             <Label>Address</Label>
-            <Textarea rows={2} value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} />
+            <Textarea
+              rows={2}
+              value={f.address}
+              onChange={(e) => setF({ ...f, address: e.target.value })}
+            />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <FormField label="City" value={f.city} onChange={(v) => setF({ ...f, city: v })} />
             <FormField label="State" value={f.state} onChange={(v) => setF({ ...f, state: v })} />
-            <FormField label="Pincode" value={f.pincode} onChange={(v) => setF({ ...f, pincode: v })} />
+            <FormField
+              label="Pincode"
+              value={f.pincode}
+              onChange={(v) => setF({ ...f, pincode: v })}
+            />
           </div>
           <FormField
             label="School / College"
@@ -1046,8 +1093,11 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
         {save.isPending ? "Saving…" : "Add player"}
       </Button>
       <p className="text-xs text-center text-muted-foreground">
-        A Player ID like <span className="font-mono">{tenant.player_prefix ?? "SSA"}-
-        {new Date().getFullYear()}-0001</span> will be assigned automatically.
+        A Player ID like{" "}
+        <span className="font-mono">
+          {tenant.player_prefix ?? "SSA"}-{new Date().getFullYear()}-0001
+        </span>{" "}
+        will be assigned automatically.
       </p>
     </form>
   );
@@ -1097,10 +1147,14 @@ function SelectField({
     <div className="space-y-1.5">
       <Label>{label}</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+        <SelectTrigger>
+          <SelectValue placeholder="Select" />
+        </SelectTrigger>
         <SelectContent>
           {options.map((o) => (
-            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>

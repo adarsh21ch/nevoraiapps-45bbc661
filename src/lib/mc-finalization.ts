@@ -28,13 +28,7 @@ import {
  * Types
  * ============================================================ */
 
-export type VictoryType =
-  | "won"
-  | "tie"
-  | "draw"
-  | "no_result"
-  | "abandoned"
-  | "cancelled";
+export type VictoryType = "won" | "tie" | "draw" | "no_result" | "abandoned" | "cancelled";
 
 export type WinningMarginType = "runs" | "wickets" | "tie" | "na";
 
@@ -204,9 +198,7 @@ function bowlingScore(b: BowlingStat): number {
  * Suggest up to 3 Player Of The Match candidates: highest scorer,
  * best bowler, best all-rounder.
  */
-export function suggestPlayerOfMatch(
-  ballEvents: MCBallEvent[],
-): POMSuggestion[] {
+export function suggestPlayerOfMatch(ballEvents: MCBallEvent[]): POMSuggestion[] {
   if (ballEvents.length === 0) return [];
 
   const stats = computeInningsStatistics(ballEvents);
@@ -217,7 +209,10 @@ export function suggestPlayerOfMatch(
   const topBowler = [...bowlers].sort((a, b) => bowlingScore(b) - bowlingScore(a))[0];
 
   // All-rounder: highest combined score
-  const combined = new Map<string, { batting?: BattingStat; bowling?: BowlingStat; score: number }>();
+  const combined = new Map<
+    string,
+    { batting?: BattingStat; bowling?: BowlingStat; score: number }
+  >();
   batters.forEach((b) => {
     const key = b.player.athleteId ?? `name:${b.player.name}`;
     combined.set(key, {
@@ -261,8 +256,7 @@ export function suggestPlayerOfMatch(
   }
   if (allRounder && allRounder.batting && allRounder.bowling) {
     suggestions.push({
-      athleteId:
-        allRounder.batting.player.athleteId ?? allRounder.bowling.player.athleteId,
+      athleteId: allRounder.batting.player.athleteId ?? allRounder.bowling.player.athleteId,
       name: allRounder.batting.player.name ?? allRounder.bowling.player.name ?? "Unknown",
       reason: `All-rounder — ${allRounder.batting.runs} & ${allRounder.bowling.wickets} wkts`,
       category: "allrounder",
@@ -378,8 +372,7 @@ export function validateFinalization(input: {
   if (input.innings.length === 0) errors.push("No innings has been played");
 
   const secondIncomplete =
-    input.innings.length > 0 &&
-    input.innings.some((i) => i.status !== "completed");
+    input.innings.length > 0 && input.innings.some((i) => i.status !== "completed");
   if (
     secondIncomplete &&
     input.result.victoryType !== "abandoned" &&
@@ -389,10 +382,7 @@ export function validateFinalization(input: {
     warnings.push("An innings is still marked in progress");
   }
 
-  if (
-    input.result.victoryType === "won" &&
-    !input.result.winnerTeamId
-  ) {
+  if (input.result.victoryType === "won" && !input.result.winnerTeamId) {
     errors.push("Winner is required for a decided result");
   }
 
@@ -419,8 +409,7 @@ export async function finalizeMatch(input: FinalizeMatchInput) {
     input.overrides?.winningMargin !== undefined
       ? input.overrides.winningMargin
       : input.result.winningMargin;
-  const winningMarginType =
-    input.overrides?.winningMarginType ?? input.result.winningMarginType;
+  const winningMarginType = input.overrides?.winningMarginType ?? input.result.winningMarginType;
 
   const { error } = await supabase
     .from("mc_matches")
@@ -568,19 +557,16 @@ export async function copyPublicMatchLink(matchId: string): Promise<string> {
 export function notifyMatchCompleted(summary: string) {
   // Local placeholder — replace with real notification bus later.
   if (typeof window !== "undefined") {
-    // eslint-disable-next-line no-console
     console.info("[MC] Match completed:", summary);
   }
 }
 export function notifyPlayerOfMatch(name: string) {
   if (typeof window !== "undefined") {
-    // eslint-disable-next-line no-console
     console.info("[MC] Player of the Match:", name);
   }
 }
 export function notifyFinalResult(summary: string) {
   if (typeof window !== "undefined") {
-    // eslint-disable-next-line no-console
     console.info("[MC] Final result:", summary);
   }
 }

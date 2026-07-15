@@ -133,8 +133,7 @@ function finalizeBucket(b: SplitBucket, dismissals: number, runsConcededTotal: n
 function stdDev(values: number[]): number {
   if (values.length < 2) return 0;
   const mean = values.reduce((s, v) => s + v, 0) / values.length;
-  const variance =
-    values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
+  const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / values.length;
   return Math.sqrt(variance);
 }
 
@@ -157,17 +156,12 @@ function bandFor(score: number): PlayerPerformance["consistency"]["band"] {
 
 /* ---------------- Data loading ---------------- */
 
-async function listPlayerMatches(
-  athleteId: string,
-  tenantId: string,
-): Promise<MatchLite[]> {
+async function listPlayerMatches(athleteId: string, tenantId: string): Promise<MatchLite[]> {
   const { data: sq } = await supabase
     .from("mc_match_squads")
     .select("match_id")
     .eq("athlete_profile_id", athleteId);
-  const ids = Array.from(
-    new Set((sq ?? []).map((s) => s.match_id).filter(Boolean) as string[]),
-  );
+  const ids = Array.from(new Set((sq ?? []).map((s) => s.match_id).filter(Boolean) as string[]));
   if (ids.length === 0) return [];
   const { data: matches } = await supabase
     .from("mc_matches")
@@ -246,10 +240,7 @@ export async function buildPlayerPerformance(
       if (first) inningsOrder = first.innings_number;
     }
 
-    const wasWon =
-      m.winner_team && primaryTeamId
-        ? m.winner_team === primaryTeamId
-        : null;
+    const wasWon = m.winner_team && primaryTeamId ? m.winner_team === primaryTeamId : null;
 
     // Venue heuristic: home if athlete's team is team_a (host), away if team_b, else neutral
     const venue: "home" | "away" | "neutral" =
@@ -359,13 +350,9 @@ export async function buildPlayerPerformance(
 
   const runsConsistency = consistencyFromValues(runsSeries);
   const wktConsistency = consistencyFromValues(wktSeries);
-  const primaryScore =
-    runsSeries.length >= wktSeries.length ? runsConsistency : wktConsistency;
-  const secondaryScore =
-    runsSeries.length >= wktSeries.length ? wktConsistency : runsConsistency;
-  const consistencyScore = Math.round(
-    primaryScore * 0.75 + secondaryScore * 0.25,
-  );
+  const primaryScore = runsSeries.length >= wktSeries.length ? runsConsistency : wktConsistency;
+  const secondaryScore = runsSeries.length >= wktSeries.length ? wktConsistency : runsConsistency;
+  const consistencyScore = Math.round(primaryScore * 0.75 + secondaryScore * 0.25);
 
   // Form (last N)
   function buildLastN(n: number): SplitBucket {
@@ -389,12 +376,9 @@ export async function buildPlayerPerformance(
   const recentAvg = last5.average;
   const priorRuns = runsSeries.slice(0, Math.max(0, runsSeries.length - 5));
   const priorAvg =
-    priorRuns.length > 0
-      ? priorRuns.reduce((s, v) => s + v, 0) / priorRuns.length
-      : recentAvg;
+    priorRuns.length > 0 ? priorRuns.reduce((s, v) => s + v, 0) / priorRuns.length : recentAvg;
   const trendDelta = +(recentAvg - priorAvg).toFixed(2);
-  const trend: "up" | "down" | "flat" =
-    trendDelta > 1 ? "up" : trendDelta < -1 ? "down" : "flat";
+  const trend: "up" | "down" | "flat" = trendDelta > 1 ? "up" : trendDelta < -1 ? "down" : "flat";
 
   return {
     athleteId,

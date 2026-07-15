@@ -59,9 +59,7 @@ function StudentProgressPage() {
               {p.attendancePct}
               <span className="text-lg text-muted-foreground">%</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              across all recorded sessions
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">across all recorded sessions</p>
           </div>
         </div>
       </Card>
@@ -81,9 +79,7 @@ function StudentProgressPage() {
 
       {/* Career stats */}
       <section aria-label="Career">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-          Career
-        </p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">Career</p>
         <div className="grid grid-cols-3 gap-3">
           <MiniStat label="Runs" value={c?.runs ?? 0} />
           <MiniStat label="Wickets" value={c?.wickets ?? 0} />
@@ -145,9 +141,7 @@ function StudentProgressPage() {
           Recent Form
         </p>
         {p.recentForm.length === 0 ? (
-          <Card className="p-4 text-sm text-muted-foreground">
-            No match appearances yet.
-          </Card>
+          <Card className="p-4 text-sm text-muted-foreground">No match appearances yet.</Card>
         ) : (
           <div className="space-y-2">
             {p.recentForm.slice(0, 5).map((m) => (
@@ -161,8 +155,7 @@ function StudentProgressPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {m.match?.match_format ?? "Match"} ·{" "}
-                    {m.match?.ground_name ?? "—"}
+                    {m.match?.match_format ?? "Match"} · {m.match?.ground_name ?? "—"}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {m.match?.scheduled_date
@@ -204,15 +197,7 @@ function AttendanceRing({ pct }: { pct: number }) {
   );
 }
 
-function Metric({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <Card className="p-3">
       <div className="flex items-center gap-2 text-muted-foreground">
@@ -228,9 +213,7 @@ function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
     <Card className="p-2.5 text-center">
       <p className="text-lg font-semibold leading-tight">{value}</p>
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
-        {label}
-      </p>
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">{label}</p>
     </Card>
   );
 }

@@ -13,7 +13,9 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-campaigns")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const auth = request.headers.get("apikey") || request.headers.get("authorization")?.replace("Bearer ", "");
+        const auth =
+          request.headers.get("apikey") ||
+          request.headers.get("authorization")?.replace("Bearer ", "");
         if (!auth || auth !== process.env.SUPABASE_PUBLISHABLE_KEY) {
           return new Response("Unauthorized", { status: 401 });
         }
@@ -36,10 +38,9 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-campaigns")({
           const { error: rpcErr } = await supabase.rpc("send_campaign", { _campaign_id: c.id });
           results.push({ id: c.id, ok: !rpcErr, err: rpcErr?.message });
         }
-        return new Response(
-          JSON.stringify({ processed: results.length, results }),
-          { headers: { "Content-Type": "application/json" } },
-        );
+        return new Response(JSON.stringify({ processed: results.length, results }), {
+          headers: { "Content-Type": "application/json" },
+        });
       },
     },
   },

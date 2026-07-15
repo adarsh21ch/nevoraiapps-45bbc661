@@ -21,10 +21,7 @@ export type FilledRegistrationInput = {
   created_at?: string | null;
 };
 
-export async function generateFilledRegistrationPdf(
-  tenant: Tenant,
-  reg: FilledRegistrationInput,
-) {
+export async function generateFilledRegistrationPdf(tenant: Tenant, reg: FilledRegistrationInput) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const w = doc.internal.pageSize.getWidth();
   const h = doc.internal.pageSize.getHeight();
@@ -106,10 +103,12 @@ export async function generateFilledRegistrationPdf(
   row("WhatsApp", reg.whatsapp);
   if (reg.address) row("Address", reg.address);
   row("Batch", reg.batch_name ?? null);
-  row("Fee plan",
+  row(
+    "Fee plan",
     reg.fee_plan_name
       ? `${reg.fee_plan_name}${reg.fee_amount != null ? "  —  Rs. " + reg.fee_amount.toLocaleString("en-IN") : ""}`
-      : null);
+      : null,
+  );
   if (reg.created_at) row("Registered on", new Date(reg.created_at).toLocaleString("en-IN"));
 
   // Policy acceptances
@@ -173,13 +172,7 @@ export async function generateFilledRegistrationPdf(
   doc.save(filename);
 }
 
-
-
-export function generateBlankRegistrationPdf(
-  tenant: Tenant,
-  fees: FeePlan[],
-  batches: Batch[],
-) {
+export function generateBlankRegistrationPdf(tenant: Tenant, fees: FeePlan[], batches: Batch[]) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const w = doc.internal.pageSize.getWidth();
   const margin = 48;
@@ -260,7 +253,11 @@ export function generateBlankRegistrationPdf(
   doc.setTextColor(60);
   fees.forEach((f) => {
     doc.rect(margin, y - 8, 10, 10);
-    doc.text(`${f.name}  —  Rs. ${f.amount.toLocaleString("en-IN")}${f.type === "monthly" ? " / month" : ""}`, margin + 18, y);
+    doc.text(
+      `${f.name}  —  Rs. ${f.amount.toLocaleString("en-IN")}${f.type === "monthly" ? " / month" : ""}`,
+      margin + 18,
+      y,
+    );
     y += 18;
   });
 

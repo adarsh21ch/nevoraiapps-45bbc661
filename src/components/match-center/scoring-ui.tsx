@@ -11,16 +11,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import {
-  Wifi,
-  WifiOff,
-  RefreshCw,
-  Search,
-  User2,
-  Undo2,
-  X,
-  Circle,
-} from "lucide-react";
+import { Wifi, WifiOff, RefreshCw, Search, User2, Undo2, X, Circle } from "lucide-react";
 
 /* ---------------- Status indicator ---------------- */
 
@@ -52,9 +43,7 @@ export function StatusIndicator({ status }: { status: ConnectionStatus }) {
         cls,
       )}
     >
-      <Icon
-        className={cn("size-3.5", status === "syncing" && "animate-spin")}
-      />
+      <Icon className={cn("size-3.5", status === "syncing" && "animate-spin")} />
       {label}
     </span>
   );
@@ -130,8 +119,14 @@ function TeamCrest({ name, logoUrl }: { name: string; logoUrl?: string | null })
 }
 
 export function MatchHeader(props: MatchHeaderProps) {
-  const hasSecondaryMeta =
-    !!(props.tossLine || props.date || props.time || props.currentBatter || props.currentBowler || props.playerOfMatch);
+  const hasSecondaryMeta = !!(
+    props.tossLine ||
+    props.date ||
+    props.time ||
+    props.currentBatter ||
+    props.currentBowler ||
+    props.playerOfMatch
+  );
 
   return (
     <header className="border-b bg-card">
@@ -163,9 +158,7 @@ export function MatchHeader(props: MatchHeaderProps) {
               )}
             </div>
             <div className="truncate text-[11px] sm:text-xs text-muted-foreground">
-              {[props.format, props.tournament, props.ground]
-                .filter(Boolean)
-                .join(" · ")}
+              {[props.format, props.tournament, props.ground].filter(Boolean).join(" · ")}
             </div>
           </div>
         </div>
@@ -193,11 +186,15 @@ export function MatchHeader(props: MatchHeaderProps) {
           )}
           {props.target && (
             <div className="hidden text-right lg:block">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Target</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Target
+              </div>
               <div className="text-sm font-bold tabular-nums">{props.target}</div>
             </div>
           )}
-          <Badge variant="secondary" className="hidden sm:inline-flex">{props.status}</Badge>
+          <Badge variant="secondary" className="hidden sm:inline-flex">
+            {props.status}
+          </Badge>
           {props.timer && (
             <span className="hidden font-mono text-xs tabular-nums text-muted-foreground lg:inline">
               {props.timer}
@@ -212,13 +209,17 @@ export function MatchHeader(props: MatchHeaderProps) {
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
             {props.tossLine && (
               <span>
-                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">Toss</span>
+                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">
+                  Toss
+                </span>
                 <span className="text-foreground">{props.tossLine}</span>
               </span>
             )}
             {(props.date || props.time) && (
               <span>
-                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">When</span>
+                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">
+                  When
+                </span>
                 <span className="text-foreground">
                   {[props.date, props.time].filter(Boolean).join(" · ")}
                 </span>
@@ -226,13 +227,17 @@ export function MatchHeader(props: MatchHeaderProps) {
             )}
             {props.currentBatter && (
               <span>
-                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">Batter</span>
+                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">
+                  Batter
+                </span>
                 <span className="text-foreground">{props.currentBatter}</span>
               </span>
             )}
             {props.currentBowler && (
               <span>
-                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">Bowler</span>
+                <span className="font-semibold uppercase tracking-widest text-[9px] mr-1">
+                  Bowler
+                </span>
                 <span className="text-foreground">{props.currentBowler}</span>
               </span>
             )}
@@ -297,13 +302,7 @@ export function PlayerPanel({
   );
 }
 
-function BatterRow({
-  batter,
-  primary,
-}: {
-  batter?: BatterStats;
-  primary?: boolean;
-}) {
+function BatterRow({ batter, primary }: { batter?: BatterStats; primary?: boolean }) {
   if (!batter?.name) {
     return (
       <div className="flex items-center gap-3 rounded-lg bg-muted/40 p-2 text-xs text-muted-foreground">
@@ -316,9 +315,7 @@ function BatterRow({
   }
   const sr =
     batter.strikeRate ??
-    (batter.balls > 0
-      ? ((batter.runs / batter.balls) * 100).toFixed(1)
-      : "0.0");
+    (batter.balls > 0 ? ((batter.runs / batter.balls) * 100).toFixed(1) : "0.0");
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
@@ -349,9 +346,7 @@ function BatterRow({
       </div>
       {primary && (
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Last 5
-          </span>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Last 5</span>
           <div className="flex gap-1">
             {(batter.last5 ?? []).slice(-5).map((b, i) => (
               <BallChip key={i} value={b} />
@@ -393,9 +388,7 @@ export function BowlerPanel({ bowler }: { bowler?: BowlerStats }) {
           <div className="flex items-center gap-3">
             <Avatar name={bowler.name} />
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold">
-                {bowler.name}
-              </div>
+              <div className="truncate text-sm font-semibold">{bowler.name}</div>
               <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground tabular-nums">
                 <span className="font-bold text-foreground">
                   {bowler.wickets ?? 0}/{bowler.runs ?? 0}
@@ -460,9 +453,7 @@ export function OverTimeline({ balls }: { balls: string[] }) {
       </span>
       <div className="flex gap-1.5">
         {balls.length === 0 ? (
-          <span className="text-xs text-muted-foreground">
-            Waiting for first ball…
-          </span>
+          <span className="text-xs text-muted-foreground">Waiting for first ball…</span>
         ) : (
           balls.map((b, i) => <BallChip key={i} value={b} />)
         )}
@@ -473,14 +464,7 @@ export function OverTimeline({ balls }: { balls: string[] }) {
 
 /* ---------------- Scoring buttons ---------------- */
 
-type Tone =
-  | "run"
-  | "boundary"
-  | "six"
-  | "extra"
-  | "wicket"
-  | "neutral"
-  | "danger";
+type Tone = "run" | "boundary" | "six" | "extra" | "wicket" | "neutral" | "danger";
 
 const toneCls: Record<Tone, string> = {
   run: "bg-card hover:bg-muted text-foreground border-border",
@@ -535,34 +519,16 @@ export function ScoreButton({
   );
 }
 
-export function RunsButton(props: {
-  value: 0 | 1 | 2 | 3 | 4 | 6;
-  onClick?: () => void;
-}) {
-  const tone: Tone =
-    props.value === 4 ? "boundary" : props.value === 6 ? "six" : "run";
-  const sublabel =
-    props.value === 4 ? "Four" : props.value === 6 ? "Six" : undefined;
+export function RunsButton(props: { value: 0 | 1 | 2 | 3 | 4 | 6; onClick?: () => void }) {
+  const tone: Tone = props.value === 4 ? "boundary" : props.value === 6 ? "six" : "run";
+  const sublabel = props.value === 4 ? "Four" : props.value === 6 ? "Six" : undefined;
   return (
-    <ScoreButton
-      label={props.value}
-      tone={tone}
-      sublabel={sublabel}
-      onClick={props.onClick}
-    />
+    <ScoreButton label={props.value} tone={tone} sublabel={sublabel} onClick={props.onClick} />
   );
 }
 
-export function ExtraButton({
-  label,
-  onClick,
-}: {
-  label: string;
-  onClick?: () => void;
-}) {
-  return (
-    <ScoreButton label={label} tone="extra" size="lg" onClick={onClick} />
-  );
+export function ExtraButton({ label, onClick }: { label: string; onClick?: () => void }) {
+  return <ScoreButton label={label} tone="extra" size="lg" onClick={onClick} />;
 }
 
 export function UndoButton({ onClick }: { onClick?: () => void }) {
@@ -604,7 +570,11 @@ export function DismissalModal({
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+      <SheetContent
+        side="bottom"
+        overlayClassName="bg-background/35 backdrop-blur-[1px]"
+        className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl"
+      >
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
         <SheetHeader className="px-4 pb-2 pt-3 text-left">
           <SheetTitle className="text-base">How is the batter out?</SheetTitle>
@@ -612,7 +582,10 @@ export function DismissalModal({
             Select the mode of dismissal. Further details next.
           </SheetDescription>
         </SheetHeader>
-        <div className="grid grid-cols-3 gap-2 px-3 pb-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}>
+        <div
+          className="grid grid-cols-3 gap-2 px-3 pb-3"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}
+        >
           {DISMISSALS.map((d) => (
             <Button
               key={d}
@@ -654,15 +627,16 @@ export function PlayerPickerModal({
 }) {
   const [q, setQ] = useState("");
   const filtered = useMemo(
-    () =>
-      players.filter((p) =>
-        p.name.toLowerCase().includes(q.trim().toLowerCase()),
-      ),
+    () => players.filter((p) => p.name.toLowerCase().includes(q.trim().toLowerCase())),
     [q, players],
   );
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="max-h-[76dvh] overflow-hidden rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+      <SheetContent
+        side="bottom"
+        overlayClassName="bg-background/35 backdrop-blur-[1px]"
+        className="max-h-[76dvh] overflow-hidden rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl"
+      >
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
         <SheetHeader className="px-4 pb-2 pt-3 text-left">
           <SheetTitle className="truncate text-base">{title}</SheetTitle>
@@ -686,12 +660,7 @@ export function PlayerPickerModal({
             </div>
             <div className="flex flex-wrap gap-1.5">
               {recent.map((p) => (
-                <Button
-                  key={p.id}
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => onSelect(p)}
-                >
+                <Button key={p.id} size="sm" variant="secondary" onClick={() => onSelect(p)}>
                   {p.name}
                 </Button>
               ))}
@@ -702,34 +671,37 @@ export function PlayerPickerModal({
           <div className="mb-1.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Team
           </div>
-          <div className="max-h-[48dvh] overflow-y-auto pb-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}>
+          <div
+            className="max-h-[48dvh] overflow-y-auto pb-3"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}
+          >
             <ul className="divide-y divide-border/70">
-            {filtered.map((p) => (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  onClick={() => onSelect(p)}
-                  className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted"
-                >
-                  <Avatar name={p.name} />
-                  <span className="min-w-0">
-                    <span className="block truncate text-[14px] font-semibold leading-tight">
-                      {p.name}
-                    </span>
-                    {p.role && (
-                      <span className="block truncate text-[11px] text-muted-foreground">
-                        {p.role}
+              {filtered.map((p) => (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    onClick={() => onSelect(p)}
+                    className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted"
+                  >
+                    <Avatar name={p.name} />
+                    <span className="min-w-0">
+                      <span className="block truncate text-[14px] font-semibold leading-tight">
+                        {p.name}
                       </span>
-                    )}
-                  </span>
-                </button>
-              </li>
-            ))}
-            {filtered.length === 0 && (
-              <li className="py-6 text-center text-sm text-muted-foreground">
-                No players found.
-              </li>
-            )}
+                      {p.role && (
+                        <span className="block truncate text-[11px] text-muted-foreground">
+                          {p.role}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              ))}
+              {filtered.length === 0 && (
+                <li className="py-6 text-center text-sm text-muted-foreground">
+                  No players found.
+                </li>
+              )}
             </ul>
           </div>
         </div>
@@ -749,7 +721,11 @@ export function RunOutModal({
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+      <SheetContent
+        side="bottom"
+        overlayClassName="bg-background/35 backdrop-blur-[1px]"
+        className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl"
+      >
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
         <SheetHeader className="px-4 pb-2 pt-3 text-left">
           <SheetTitle className="text-base">Who is out?</SheetTitle>
@@ -757,7 +733,10 @@ export function RunOutModal({
             Tap the batter dismissed on this run out.
           </SheetDescription>
         </SheetHeader>
-        <div className="grid grid-cols-2 gap-2 px-3 pb-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}>
+        <div
+          className="grid grid-cols-2 gap-2 px-3 pb-3"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}
+        >
           <Button
             variant="outline"
             className="h-12 text-sm font-semibold"
@@ -791,7 +770,11 @@ export function ExtraRunsModal({
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" overlayClassName="bg-background/35 backdrop-blur-[1px]" className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl">
+      <SheetContent
+        side="bottom"
+        overlayClassName="bg-background/35 backdrop-blur-[1px]"
+        className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl"
+      >
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
         <SheetHeader className="px-4 pb-2 pt-3 text-left">
           <SheetTitle className="text-base">{kind} — how many runs?</SheetTitle>
@@ -811,7 +794,10 @@ export function ExtraRunsModal({
             </Button>
           ))}
         </div>
-        <SheetFooter className="px-3 pb-3 pt-2" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}>
+        <SheetFooter
+          className="px-3 pb-3 pt-2"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}
+        >
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
@@ -871,9 +857,7 @@ export function CommentaryPanel({
           <Circle className="size-3 fill-primary text-primary" />
           Commentary
         </span>
-        <span className="text-xs text-muted-foreground">
-          {collapsed ? "Show" : "Hide"}
-        </span>
+        <span className="text-xs text-muted-foreground">{collapsed ? "Show" : "Hide"}</span>
       </button>
       {!collapsed && (
         <div className="max-h-40 space-y-1.5 overflow-y-auto border-t px-3 py-2 text-sm">
@@ -899,13 +883,7 @@ export function CommentaryPanel({
 
 export function IconCloseButton({ onClick }: { onClick: () => void }) {
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={onClick}
-      aria-label="Close"
-      className="size-9"
-    >
+    <Button variant="ghost" size="icon" onClick={onClick} aria-label="Close" className="size-9">
       <X className="size-4" />
     </Button>
   );

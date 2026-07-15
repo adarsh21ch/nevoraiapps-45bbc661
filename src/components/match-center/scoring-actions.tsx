@@ -56,10 +56,9 @@ export interface ScoringActionsProps {
 
 export function ScoringActions(props: ScoringActionsProps) {
   const [moreOpen, setMoreOpen] = useState(false);
-  const [confirm, setConfirm] = useState<
-    | null
-    | { kind: "end-match" | "finish-innings" | "delete-ball"; }
-  >(null);
+  const [confirm, setConfirm] = useState<null | {
+    kind: "end-match" | "finish-innings" | "delete-ball";
+  }>(null);
 
   const closeAll = () => {
     setMoreOpen(false);
@@ -117,9 +116,15 @@ export function ScoringActions(props: ScoringActionsProps) {
         {/* Extras row */}
         <div className="grid grid-cols-4 gap-2">
           <ExtraButton label="Wide" onClick={() => !props.disabled && props.onExtra("Wide")} />
-          <ExtraButton label="No Ball" onClick={() => !props.disabled && props.onExtra("No Ball")} />
+          <ExtraButton
+            label="No Ball"
+            onClick={() => !props.disabled && props.onExtra("No Ball")}
+          />
           <ExtraButton label="Bye" onClick={() => !props.disabled && props.onExtra("Bye")} />
-          <ExtraButton label="Leg Bye" onClick={() => !props.disabled && props.onExtra("Leg Bye")} />
+          <ExtraButton
+            label="Leg Bye"
+            onClick={() => !props.disabled && props.onExtra("Leg Bye")}
+          />
         </div>
 
         {/* OUT — full width, prominent */}

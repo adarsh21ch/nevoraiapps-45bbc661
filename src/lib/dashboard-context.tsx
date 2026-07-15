@@ -130,15 +130,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         session,
         profile: viewerProfile,
         tenant: tenantQ.data,
-        signOut: async () => { await supabase.auth.signOut(); },
+        signOut: async () => {
+          await supabase.auth.signOut();
+        },
       };
       return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
     }
     // Platform admins won't have a tenant profile — send them to their control room.
     if (typeof window !== "undefined") {
-      supabase.from("platform_admins").select("user_id").eq("user_id", session.user.id).maybeSingle().then(({ data }) => {
-        if (data) window.location.href = "/platform-admin";
-      });
+      supabase
+        .from("platform_admins")
+        .select("user_id")
+        .eq("user_id", session.user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) window.location.href = "/platform-admin";
+        });
     }
     return (
       <FullPage>
@@ -147,10 +154,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           <p className="text-sm text-muted-foreground">
             Ask your platform admin to link {session.user.email} to a tenant.
           </p>
-          <button
-            className="text-sm underline"
-            onClick={() => supabase.auth.signOut()}
-          >
+          <button className="text-sm underline" onClick={() => supabase.auth.signOut()}>
             Sign out
           </button>
         </div>

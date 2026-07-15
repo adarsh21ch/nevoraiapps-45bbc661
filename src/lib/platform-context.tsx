@@ -63,7 +63,12 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  const value: Ctx = { session, signOut: async () => { await supabase.auth.signOut(); } };
+  const value: Ctx = {
+    session,
+    signOut: async () => {
+      await supabase.auth.signOut();
+    },
+  };
   return <PlatformCtx.Provider value={value}>{children}</PlatformCtx.Provider>;
 }
 

@@ -76,7 +76,10 @@ interface Bundle {
 
 /* ---------------- Loader (server-safe / anon-safe) ---------------- */
 
-async function loadPublicTournament(academySlug: string, tournamentSlug: string): Promise<Bundle | null> {
+async function loadPublicTournament(
+  academySlug: string,
+  tournamentSlug: string,
+): Promise<Bundle | null> {
   const { data: acad } = await supabase
     .from("tenants_public_directory")
     .select("id,name,slug,logo_url,primary_color,tagline")
@@ -114,10 +117,7 @@ export const Route = createFileRoute("/academy/$academySlug/tournaments/$tournam
   head: ({ loaderData, params }) => {
     if (!loaderData) {
       return {
-        meta: [
-          { title: "Tournament not found" },
-          { name: "robots", content: "noindex" },
-        ],
+        meta: [{ title: "Tournament not found" }, { name: "robots", content: "noindex" }],
       };
     }
     const t = loaderData.tournament;
@@ -216,10 +216,7 @@ function PublicTournamentPage() {
       </div>
 
       {/* Hero */}
-      <section
-        className="border-b border-border"
-        style={brandStyle}
-      >
+      <section className="border-b border-border" style={brandStyle}>
         <div className="mx-auto max-w-6xl px-4 py-8 sm:py-10">
           <div className="flex items-start gap-4">
             {tournament.logo_url ? (
@@ -247,9 +244,7 @@ function PublicTournamentPage() {
                 {tournament.age_group ? <span>· {tournament.age_group}</span> : null}
                 {tournament.ground_name ? <span>· {tournament.ground_name}</span> : null}
                 {tournament.city || tournament.country ? (
-                  <span>
-                    · {[tournament.city, tournament.country].filter(Boolean).join(", ")}
-                  </span>
+                  <span>· {[tournament.city, tournament.country].filter(Boolean).join(", ")}</span>
                 ) : null}
               </div>
               {tournament.description ? (
@@ -300,7 +295,11 @@ function PublicTournamentPage() {
         {section === "bracket" && <TournamentBracket tournamentId={tournament.id} />}
         {section === "stats" && <TournamentStatistics tournamentId={tournament.id} />}
         {section === "awards" && (
-          <TournamentAwardsPanel tournamentId={tournament.id} tournamentName={tournament.name} publicMode />
+          <TournamentAwardsPanel
+            tournamentId={tournament.id}
+            tournamentName={tournament.name}
+            publicMode
+          />
         )}
         {section === "teams" && <TeamsSection tournamentId={tournament.id} />}
         {section === "sponsors" && <SponsorsSection />}
@@ -331,7 +330,9 @@ function OverviewSection({ tournamentId }: { tournamentId: string }) {
   const fixtures = fxQ.data ?? [];
   const live = fixtures.filter((m) => m.status === "in_progress");
   const finalized = fixtures.filter((m) => m.match_locked);
-  const upcoming = fixtures.filter((m) => !m.match_locked && m.status !== "in_progress").slice(0, 3);
+  const upcoming = fixtures
+    .filter((m) => !m.match_locked && m.status !== "in_progress")
+    .slice(0, 3);
 
   const stats = useMemo(
     () => ({
@@ -350,7 +351,11 @@ function OverviewSection({ tournamentId }: { tournamentId: string }) {
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <StatTile label="Matches" value={stats.total} />
         <StatTile label="Completed" value={stats.done} />
-        <StatTile label="Live" value={stats.live} accent={stats.live > 0 ? "text-red-600" : undefined} />
+        <StatTile
+          label="Live"
+          value={stats.live}
+          accent={stats.live > 0 ? "text-red-600" : undefined}
+        />
         <StatTile label="Upcoming" value={stats.upcoming} />
       </div>
 
@@ -394,7 +399,11 @@ function OverviewSection({ tournamentId }: { tournamentId: string }) {
       )}
 
       {fixtures.length === 0 && (
-        <EmptyState icon={Calendar} title="No fixtures yet" description="Fixtures will appear here once generated." />
+        <EmptyState
+          icon={Calendar}
+          title="No fixtures yet"
+          description="Fixtures will appear here once generated."
+        />
       )}
     </div>
   );
@@ -424,7 +433,13 @@ function FixturesSection({
     return (
       <EmptyState
         icon={filter === "live" ? Radio : Calendar}
-        title={filter === "live" ? "No live matches" : filter === "results" ? "No results yet" : "No fixtures"}
+        title={
+          filter === "live"
+            ? "No live matches"
+            : filter === "results"
+              ? "No results yet"
+              : "No fixtures"
+        }
         description="Check back later."
       />
     );
@@ -487,13 +502,23 @@ function TeamsSection({ tournamentId }: { tournamentId: string }) {
   if (q.isLoading) return <LoadingSkeleton />;
   const teams = q.data ?? [];
   if (teams.length === 0)
-    return <EmptyState icon={Users} title="No teams" description="Teams will appear once registered." />;
+    return (
+      <EmptyState icon={Users} title="No teams" description="Teams will appear once registered." />
+    );
   return (
     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {teams.map((t) => {
-        const team = t.team as { id: string; name: string; short_name: string | null; logo_url: string | null } | null;
+        const team = t.team as {
+          id: string;
+          name: string;
+          short_name: string | null;
+          logo_url: string | null;
+        } | null;
         return (
-          <div key={t.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+          <div
+            key={t.id}
+            className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+          >
             {team?.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={team.logo_url} alt="" className="size-10 rounded-lg object-cover" />
@@ -525,15 +550,7 @@ function SponsorsSection() {
   );
 }
 
-function StatTile({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: number;
-  accent?: string;
-}) {
+function StatTile({ label, value, accent }: { label: string; value: number; accent?: string }) {
   return (
     <div className="rounded-xl border border-border bg-card p-3">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">

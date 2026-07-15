@@ -99,9 +99,7 @@ export interface AnalyticsData {
   teamNames: Map<string, string>;
 }
 
-export async function loadTournamentAnalyticsData(
-  tournamentId: string,
-): Promise<AnalyticsData> {
+export async function loadTournamentAnalyticsData(tournamentId: string): Promise<AnalyticsData> {
   const { data: mRows } = await supabase
     .from("mc_matches")
     .select(
@@ -276,7 +274,7 @@ export interface TeamAnalyticsRow {
   highestChase: number;
   lowestDefended: number | null;
   powerplayAvg: number; // runs per innings in first 6 overs
-  deathAvg: number;    // runs per innings in last 4 overs
+  deathAvg: number; // runs per innings in last 4 overs
   runRate: number;
   boundaryPct: number;
   dotBallPct: number;
@@ -310,8 +308,7 @@ export interface TournamentAnalytics {
  * ================================================================ */
 
 function matchPassesFilters(m: AnalyticsMatch, f: TournamentStatsFilters): boolean {
-  if (f.teamId && m.meta.team_a_id !== f.teamId && m.meta.team_b_id !== f.teamId)
-    return false;
+  if (f.teamId && m.meta.team_a_id !== f.teamId && m.meta.team_b_id !== f.teamId) return false;
   if (f.groupId && m.meta.group_id !== f.groupId) return false;
   if (f.matchId && m.meta.id !== f.matchId) return false;
   const d = m.meta.scheduled_date;
@@ -332,7 +329,15 @@ function detectHatTricks(events: MCBallEvent[]): Map<string, number> {
       streakKey = null;
       continue;
     }
-    if (e.dismissal_type && (e.dismissal_type === "bowled" || e.dismissal_type === "caught" || e.dismissal_type === "lbw" || e.dismissal_type === "stumped" || e.dismissal_type === "hit_wicket" || e.dismissal_type === "caught_and_bowled")) {
+    if (
+      e.dismissal_type &&
+      (e.dismissal_type === "bowled" ||
+        e.dismissal_type === "caught" ||
+        e.dismissal_type === "lbw" ||
+        e.dismissal_type === "stumped" ||
+        e.dismissal_type === "hit_wicket" ||
+        e.dismissal_type === "caught_and_bowled")
+    ) {
       if (bkey === streakKey) streak += 1;
       else {
         streakKey = bkey;
@@ -358,7 +363,10 @@ function powerplayDeathFromEvents(
 ): { pp: number; death: number; ppInnings: number; deathInnings: number } {
   // Group by innings (over_number is per-innings). We treat innings switch as
   // when over_number decreases.
-  let pp = 0, death = 0, ppInnings = 0, deathInnings = 0;
+  let pp = 0,
+    death = 0,
+    ppInnings = 0,
+    deathInnings = 0;
   let prevOver = -1;
   let inningsSeenPP = false;
   let inningsSeenDeath = false;
@@ -423,8 +431,10 @@ export function buildTournamentAnalytics(
     losses: number;
     scoresBatted: number[];
     ballsFaced: number;
-    ppRuns: number; ppInnings: number;
-    deathRuns: number; deathInnings: number;
+    ppRuns: number;
+    ppInnings: number;
+    deathRuns: number;
+    deathInnings: number;
     boundaries: number;
     dotBalls: number;
     legalBallsFaced: number;
@@ -443,8 +453,10 @@ export function buildTournamentAnalytics(
         losses: 0,
         scoresBatted: [],
         ballsFaced: 0,
-        ppRuns: 0, ppInnings: 0,
-        deathRuns: 0, deathInnings: 0,
+        ppRuns: 0,
+        ppInnings: 0,
+        deathRuns: 0,
+        deathInnings: 0,
         boundaries: 0,
         dotBalls: 0,
         legalBallsFaced: 0,
@@ -567,11 +579,7 @@ export function buildTournamentAnalytics(
       const bt = ensureTeam(tm.batting);
       if (e.extra_type !== "wide") bt.legalBallsFaced += 1;
       if (runsOff === 4 || runsOff === 6) bt.boundaries += 1;
-      if (
-        e.extra_type == null &&
-        runsOff === 0 &&
-        !e.dismissal_type
-      ) bt.dotBalls += 1;
+      if (e.extra_type == null && runsOff === 0 && !e.dismissal_type) bt.dotBalls += 1;
     }
 
     // Batting stats aggregation
@@ -625,9 +633,14 @@ export function buildTournamentAnalytics(
       });
       row.recentScores.push(bstat.runs);
       // Match-winning innings: batter's team won
-      const batterTeamWon = (meta.winner_team === meta.team_a_id || meta.winner_team === meta.team_b_id) &&
+      const batterTeamWon =
+        (meta.winner_team === meta.team_a_id || meta.winner_team === meta.team_b_id) &&
         eventsPlayerTeam(events, bstat, teamByInningsId) === meta.winner_team;
-      if (batterTeamWon && (bstat.runs >= 50 || (battingTbl.highestScore && battingTbl.highestScore.player.key === key))) {
+      if (
+        batterTeamWon &&
+        (bstat.runs >= 50 ||
+          (battingTbl.highestScore && battingTbl.highestScore.player.key === key))
+      ) {
         row.matchWinning += 1;
       }
     }
@@ -690,7 +703,8 @@ export function buildTournamentAnalytics(
         balls: bwstat.legalBalls,
       });
       // Match-winning spell: >=3 wickets in a match his team won.
-      const bowlerTeamWon = (meta.winner_team === meta.team_a_id || meta.winner_team === meta.team_b_id) &&
+      const bowlerTeamWon =
+        (meta.winner_team === meta.team_a_id || meta.winner_team === meta.team_b_id) &&
         eventsBowlerTeam(events, bwstat, teamByInningsId) === meta.winner_team;
       if (bowlerTeamWon && bwstat.wickets >= 3) row.matchWinning += 1;
       const h = hatTricks.get(key);
@@ -729,11 +743,11 @@ export function buildTournamentAnalytics(
     }
 
     // Match row
-    const marginText = meta.winning_margin != null && meta.winning_margin_type
-      ? `${meta.winning_margin} ${meta.winning_margin_type}`
-      : meta.result ?? "";
-    const excitement =
-      matchRuns / Math.max(1, meta.winning_margin ?? 999);
+    const marginText =
+      meta.winning_margin != null && meta.winning_margin_type
+        ? `${meta.winning_margin} ${meta.winning_margin_type}`
+        : (meta.result ?? "");
+    const excitement = matchRuns / Math.max(1, meta.winning_margin ?? 999);
     matchRows.push({
       matchId: meta.id,
       teamA: meta.team_a_name ?? "—",
@@ -807,13 +821,8 @@ export function buildTournamentAnalytics(
       deathAvg: t.deathInnings > 0 ? +(t.deathRuns / t.deathInnings).toFixed(1) : 0,
       runRate,
       boundaryPct:
-        t.legalBallsFaced > 0
-          ? +((t.boundaries / t.legalBallsFaced) * 100).toFixed(1)
-          : 0,
-      dotBallPct:
-        t.legalBallsFaced > 0
-          ? +((t.dotBalls / t.legalBallsFaced) * 100).toFixed(1)
-          : 0,
+        t.legalBallsFaced > 0 ? +((t.boundaries / t.legalBallsFaced) * 100).toFixed(1) : 0,
+      dotBallPct: t.legalBallsFaced > 0 ? +((t.dotBalls / t.legalBallsFaced) * 100).toFixed(1) : 0,
     };
   });
 
@@ -870,7 +879,8 @@ function eventsBowlerTeam(
  * ================================================================ */
 
 export const battingSorts = {
-  runs: (a: PlayerBattingRow, b: PlayerBattingRow) => b.runs - a.runs || b.strikeRate - a.strikeRate,
+  runs: (a: PlayerBattingRow, b: PlayerBattingRow) =>
+    b.runs - a.runs || b.strikeRate - a.strikeRate,
   highest: (a: PlayerBattingRow, b: PlayerBattingRow) => b.highest - a.highest,
   average: (a: PlayerBattingRow, b: PlayerBattingRow) => b.average - a.average,
   strikeRate: (a: PlayerBattingRow, b: PlayerBattingRow) => b.strikeRate - a.strikeRate,
@@ -885,14 +895,16 @@ export const battingSorts = {
 } as const;
 
 export const bowlingSorts = {
-  wickets: (a: PlayerBowlingRow, b: PlayerBowlingRow) => b.wickets - a.wickets || a.economy - b.economy,
+  wickets: (a: PlayerBowlingRow, b: PlayerBowlingRow) =>
+    b.wickets - a.wickets || a.economy - b.economy,
   best: (a: PlayerBowlingRow, b: PlayerBowlingRow) =>
     b.bestWickets - a.bestWickets || a.bestRuns - b.bestRuns,
   economy: (a: PlayerBowlingRow, b: PlayerBowlingRow) => a.economy - b.economy,
   strikeRate: (a: PlayerBowlingRow, b: PlayerBowlingRow) => a.strikeRate - b.strikeRate,
   maidens: (a: PlayerBowlingRow, b: PlayerBowlingRow) => b.maidens - a.maidens,
   dots: (a: PlayerBowlingRow, b: PlayerBowlingRow) => b.dots - a.dots,
-  fiveWicketHauls: (a: PlayerBowlingRow, b: PlayerBowlingRow) => b.fiveWicketHauls - a.fiveWicketHauls,
+  fiveWicketHauls: (a: PlayerBowlingRow, b: PlayerBowlingRow) =>
+    b.fiveWicketHauls - a.fiveWicketHauls,
   hatTricks: (a: PlayerBowlingRow, b: PlayerBowlingRow) => b.hatTricks - a.hatTricks,
   matchWinning: (a: PlayerBowlingRow, b: PlayerBowlingRow) => b.matchWinning - a.matchWinning,
 } as const;

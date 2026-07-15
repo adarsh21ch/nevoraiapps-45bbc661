@@ -161,10 +161,7 @@ function circleRoundRobin(
   return out;
 }
 
-export function planRoundRobin(
-  teamIds: string[],
-  opts: GenerationOptions = {},
-): FixturePlan[] {
+export function planRoundRobin(teamIds: string[], opts: GenerationOptions = {}): FixturePlan[] {
   if (teamIds.length < 2) return [];
   const single = circleRoundRobin(teamIds).filter((m) => m.a && m.b);
   const legs = opts.doubleLeg ? [single, single.map((m) => ({ ...m, a: m.b, b: m.a }))] : [single];
@@ -277,9 +274,10 @@ export function planKnockout(
   const padded: (string | null)[] = [...seededTeamIds];
   while (padded.length < size) padded.push(null);
 
-  const order = opts.seedingStrategy === "sequential"
-    ? Array.from({ length: size }, (_, i) => i + 1)
-    : standardSeedOrder(size);
+  const order =
+    opts.seedingStrategy === "sequential"
+      ? Array.from({ length: size }, (_, i) => i + 1)
+      : standardSeedOrder(size);
 
   // Round 1 fixtures according to seeding order
   const roundSizes: number[] = [];
@@ -340,9 +338,7 @@ export function planKnockout(
 
   // Optional third-place playoff — feeders are the two semifinal losers
   if (opts.thirdPlaceMatch && size >= 4) {
-    const semiKeys = plans
-      .filter((p) => p.bracket_stage === "semifinal")
-      .map((p) => p.slot_key);
+    const semiKeys = plans.filter((p) => p.bracket_stage === "semifinal").map((p) => p.slot_key);
     if (semiKeys.length === 2) {
       plans.push({
         slot_key: "K-third_place-0",
@@ -410,10 +406,7 @@ export function planGroupPlusKnockout(
  * SCHEDULER — assigns dates/times/venues while respecting constraints
  * ================================================================ */
 
-export function scheduleFixtures(
-  fixtures: FixturePlan[],
-  opts: ScheduleOptions,
-): FixturePlan[] {
+export function scheduleFixtures(fixtures: FixturePlan[], opts: ScheduleOptions): FixturePlan[] {
   if (fixtures.length === 0) return fixtures;
   const slotsPerDay = Math.max(1, opts.slotsPerDay ?? 2);
   const duration = opts.matchDurationMinutes ?? 210;
@@ -433,7 +426,7 @@ export function scheduleFixtures(
   });
 
   const lastPlayedByTeam = new Map<string, string>(); // team_id → date
-  let cursor = new Date(opts.startDate + "T00:00:00Z");
+  const cursor = new Date(opts.startDate + "T00:00:00Z");
   let dailyCount = 0;
   let venueRoundRobin = 0;
 

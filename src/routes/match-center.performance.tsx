@@ -1,7 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { LineChart, Search, TrendingUp, TrendingDown, Trophy, Users2, Activity, ArrowRight, GitCompare } from "lucide-react";
+import {
+  LineChart,
+  Search,
+  TrendingUp,
+  TrendingDown,
+  Trophy,
+  Users2,
+  Activity,
+  ArrowRight,
+  GitCompare,
+} from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { LoadingSkeleton, EmptyState } from "@/components/match-center/ui";
 import { useDashboard } from "@/lib/dashboard-context";
@@ -52,19 +62,21 @@ function PerformancePage() {
     return athletes.map((a) => {
       const real = byId.get(a.id);
       const d = demoById.get(a.id);
-      const row = real ?? (d
-        ? {
-            athleteId: a.id,
-            matches: d.matches,
-            runs: d.runs,
-            wickets: d.wickets,
-            average: d.average,
-            economy: d.economy,
-            consistency: 0,
-            trend: "flat" as const,
-            formAvg: 0,
-          }
-        : undefined);
+      const row =
+        real ??
+        (d
+          ? {
+              athleteId: a.id,
+              matches: d.matches,
+              runs: d.runs,
+              wickets: d.wickets,
+              average: d.average,
+              economy: d.economy,
+              consistency: 0,
+              trend: "flat" as const,
+              formAvg: 0,
+            }
+          : undefined);
       return { athlete: a, row };
     });
   }, [athletes, overviewQ.data, demo]);
@@ -72,9 +84,7 @@ function PerformancePage() {
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     if (!needle) return rows;
-    return rows.filter((r) =>
-      (r.athlete.student?.name ?? "").toLowerCase().includes(needle),
-    );
+    return rows.filter((r) => (r.athlete.student?.name ?? "").toLowerCase().includes(needle));
   }, [rows, q]);
 
   const summary = useMemo(() => {
@@ -117,8 +127,16 @@ function PerformancePage() {
           value={summary.activeCount}
           hint={`${rows.length} total registered`}
         />
-        <StatPill label="Runs Scored" value={summary.totalRuns} hint="Across all finalized matches" />
-        <StatPill label="Wickets Taken" value={summary.totalWkts} hint="Across all finalized matches" />
+        <StatPill
+          label="Runs Scored"
+          value={summary.totalRuns}
+          hint="Across all finalized matches"
+        />
+        <StatPill
+          label="Wickets Taken"
+          value={summary.totalWkts}
+          hint="Across all finalized matches"
+        />
         <StatPill
           label="Top Scorer"
           value={summary.topBat?.row?.runs ?? 0}
@@ -162,9 +180,7 @@ function PerformancePage() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-bold">
-                    {athlete.student?.name ?? "Unnamed"}
-                  </div>
+                  <div className="text-sm font-bold">{athlete.student?.name ?? "Unnamed"}</div>
                   <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
                     {athlete.cricket?.playing_role ?? "Player"}
                   </div>

@@ -16,12 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import {
   createTournament,
@@ -159,9 +154,7 @@ export function TournamentWizard({
   const create = useMutation({
     mutationFn: async () => {
       if (!state.name.trim()) throw new Error("Tournament name is required");
-      const baseSlug = state.slugTouched
-        ? slugify(state.slug)
-        : slugify(state.name);
+      const baseSlug = state.slugTouched ? slugify(state.slug) : slugify(state.name);
       const slug = await generateUniqueSlug(tenantId, baseSlug);
       const hasGroups = derivedType?.hasGroups ?? state.hasGroups;
       const hasKnockout = derivedType?.hasKnockout ?? state.hasKnockout;
@@ -202,8 +195,7 @@ export function TournamentWizard({
       onOpenChange(false);
       reset();
     },
-    onError: (e) =>
-      toast.error(e instanceof Error ? e.message : "Failed to create tournament"),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to create tournament"),
   });
 
   const canAdvance = (): boolean => {
@@ -230,19 +222,13 @@ export function TournamentWizard({
         <Stepper current={idx} />
 
         <div className="mt-2 min-h-[280px]">
-          {step === "basics" && (
-            <StepBasics state={state} setField={setField} />
-          )}
+          {step === "basics" && <StepBasics state={state} setField={setField} />}
           {step === "structure" && (
             <StepStructure state={state} setField={setField} derived={derivedType} />
           )}
-          {step === "schedule" && (
-            <StepSchedule state={state} setField={setField} />
-          )}
+          {step === "schedule" && <StepSchedule state={state} setField={setField} />}
           {step === "rules" && <StepRules state={state} setField={setField} />}
-          {step === "branding" && (
-            <StepBranding state={state} setField={setField} />
-          )}
+          {step === "branding" && <StepBranding state={state} setField={setField} />}
           {step === "review" && <StepReview state={state} derived={derivedType} />}
         </div>
 
@@ -262,10 +248,7 @@ export function TournamentWizard({
             {isFirst ? "Cancel" : "Back"}
           </Button>
           {!isLast ? (
-            <Button
-              onClick={() => setStep(STEPS[idx + 1].id)}
-              disabled={!canAdvance()}
-            >
+            <Button onClick={() => setStep(STEPS[idx + 1].id)} disabled={!canAdvance()}>
               Next
               <ChevronRight className="size-4 ml-1" />
             </Button>
@@ -274,9 +257,7 @@ export function TournamentWizard({
               onClick={() => create.mutate()}
               disabled={create.isPending || !state.name.trim()}
             >
-              {create.isPending ? (
-                <Loader2 className="mr-2 size-4 animate-spin" />
-              ) : null}
+              {create.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
               Create tournament
             </Button>
           )}
@@ -313,16 +294,12 @@ function Stepper({ current }: { current: number }) {
             <span
               className={
                 "whitespace-nowrap " +
-                (active
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground")
+                (active ? "font-medium text-foreground" : "text-muted-foreground")
               }
             >
               {s.label}
             </span>
-            {i < STEPS.length - 1 && (
-              <span className="mx-1 h-px w-4 bg-border" aria-hidden />
-            )}
+            {i < STEPS.length - 1 && <span className="mx-1 h-px w-4 bg-border" aria-hidden />}
           </li>
         );
       })}
@@ -380,8 +357,8 @@ function StepBasics({ state, setField }: StepProps) {
           placeholder="summer-cup-2026"
         />
         <p className="mt-1 text-[11px] text-muted-foreground">
-          Used only for the public tournament URL. Uniqueness is checked when
-          you create the tournament.
+          Used only for the public tournament URL. Uniqueness is checked when you create the
+          tournament.
         </p>
       </Field>
       <Field label="Description" className="md:col-span-2">
@@ -508,16 +485,10 @@ function StepSchedule({ state, setField }: StepProps) {
         />
       </Field>
       <Field label="City">
-        <Input
-          value={state.city}
-          onChange={(e) => setField("city", e.target.value)}
-        />
+        <Input value={state.city} onChange={(e) => setField("city", e.target.value)} />
       </Field>
       <Field label="Country">
-        <Input
-          value={state.country}
-          onChange={(e) => setField("country", e.target.value)}
-        />
+        <Input value={state.country} onChange={(e) => setField("country", e.target.value)} />
       </Field>
     </div>
   );
@@ -528,9 +499,7 @@ function StepRules({ state, setField }: StepProps) {
     const has = state.tiebreakRules.includes(id);
     setField(
       "tiebreakRules",
-      has
-        ? state.tiebreakRules.filter((r) => r !== id)
-        : [...state.tiebreakRules, id],
+      has ? state.tiebreakRules.filter((r) => r !== id) : [...state.tiebreakRules, id],
     );
   };
   return (
@@ -580,9 +549,7 @@ function StepRules({ state, setField }: StepProps) {
                     : "border-border text-muted-foreground hover:border-foreground/40")
                 }
               >
-                {active
-                  ? `${state.tiebreakRules.indexOf(t.id) + 1}. ${t.label}`
-                  : t.label}
+                {active ? `${state.tiebreakRules.indexOf(t.id) + 1}. ${t.label}` : t.label}
               </button>
             );
           })}
@@ -667,11 +634,7 @@ function StepReview({
         ? `${state.startDate || "TBD"} → ${state.endDate || "TBD"}`
         : "TBD",
     ],
-    [
-      "Venue",
-      [state.ground, state.city, state.country].filter(Boolean).join(", ") ||
-        "—",
-    ],
+    ["Venue", [state.ground, state.city, state.country].filter(Boolean).join(", ") || "—"],
     [
       "Points (W/T/L/NR)",
       `${state.pointsWin} / ${state.pointsTie} / ${state.pointsLoss} / ${state.pointsNR}`,
@@ -679,10 +642,7 @@ function StepReview({
     [
       "Tiebreakers",
       state.tiebreakRules
-        .map(
-          (id, i) =>
-            `${i + 1}. ${TIEBREAKS.find((t) => t.id === id)?.label ?? id}`,
-        )
+        .map((id, i) => `${i + 1}. ${TIEBREAKS.find((t) => t.id === id)?.label ?? id}`)
         .join(", ") || "—",
     ],
     ["Visibility", state.visibility],
@@ -693,16 +653,13 @@ function StepReview({
       <dl className="grid gap-2 text-sm md:grid-cols-2">
         {rows.map(([k, v]) => (
           <div key={k} className="flex flex-col">
-            <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">
-              {k}
-            </dt>
+            <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">{k}</dt>
             <dd className="font-medium">{v}</dd>
           </div>
         ))}
       </dl>
       <p className="mt-4 text-[11px] text-muted-foreground">
-        Teams, groups, venues and officials are added after creation in the
-        Tournament Workspace.
+        Teams, groups, venues and officials are added after creation in the Tournament Workspace.
       </p>
     </div>
   );

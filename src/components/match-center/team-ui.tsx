@@ -57,7 +57,13 @@ export function StatusBadge({ status }: { status: TeamStatus | string | null | u
 
 /* -------- Age group badge -------- */
 
-export function AgeGroupBadge({ ageGroup, custom }: { ageGroup?: string | null; custom?: string | null }) {
+export function AgeGroupBadge({
+  ageGroup,
+  custom,
+}: {
+  ageGroup?: string | null;
+  custom?: string | null;
+}) {
   if (!ageGroup) return null;
   const label = ageGroup === "Custom" && custom ? custom : ageGroup;
   return (
@@ -200,8 +206,7 @@ export function TeamCard({
         <div
           className="size-12 shrink-0 rounded-xl grid place-items-center text-white text-base font-bold overflow-hidden"
           style={{
-            backgroundColor:
-              team.team_color || "var(--tenant-brand, var(--brand, #E8873C))",
+            backgroundColor: team.team_color || "var(--tenant-brand, var(--brand, #E8873C))",
           }}
         >
           {team.logo_url ? (
@@ -209,7 +214,9 @@ export function TeamCard({
               path={team.logo_url}
               alt={team.name}
               className="w-full h-full object-cover"
-              fallback={<span>{team.short_name?.slice(0, 3) ?? team.name.slice(0, 2).toUpperCase()}</span>}
+              fallback={
+                <span>{team.short_name?.slice(0, 3) ?? team.name.slice(0, 2).toUpperCase()}</span>
+              }
             />
           ) : (
             <span>{team.short_name?.slice(0, 3) ?? team.name.slice(0, 2).toUpperCase()}</span>
@@ -261,7 +268,10 @@ export function TeamCard({
             )}
             <DropdownMenuSeparator />
             {onDelete && (
-              <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem
+                onClick={onDelete}
+                className="text-destructive focus:text-destructive"
+              >
                 <Trash2 className="size-3.5 mr-2" /> Delete
               </DropdownMenuItem>
             )}
@@ -318,8 +328,7 @@ export function TeamHeader({
         <div
           className="size-16 shrink-0 rounded-2xl grid place-items-center text-white text-xl font-bold overflow-hidden"
           style={{
-            backgroundColor:
-              anyTeam.team_color || "var(--tenant-brand, var(--brand, #E8873C))",
+            backgroundColor: anyTeam.team_color || "var(--tenant-brand, var(--brand, #E8873C))",
           }}
         >
           {anyTeam.logo_url ? (
@@ -328,7 +337,9 @@ export function TeamHeader({
               alt={anyTeam.name}
               className="w-full h-full object-cover"
               fallback={
-                <span>{anyTeam.short_name?.slice(0, 3) ?? anyTeam.name.slice(0, 2).toUpperCase()}</span>
+                <span>
+                  {anyTeam.short_name?.slice(0, 3) ?? anyTeam.name.slice(0, 2).toUpperCase()}
+                </span>
               }
             />
           ) : (
@@ -420,7 +431,12 @@ export function PlayerGrid({
             {onAction && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="-mr-1 -mt-1" aria-label="Player actions">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="-mr-1 -mt-1"
+                    aria-label="Player actions"
+                  >
                     <MoreVertical className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -460,12 +476,14 @@ function Chip({ children }: { children: React.ReactNode }) {
 }
 
 function formatRole(r: string) {
-  return {
-    batter: "Batter",
-    bowler: "Bowler",
-    all_rounder: "All-rounder",
-    wicket_keeper: "Wicket keeper",
-  }[r] ?? r;
+  return (
+    {
+      batter: "Batter",
+      bowler: "Bowler",
+      all_rounder: "All-rounder",
+      wicket_keeper: "Wicket keeper",
+    }[r] ?? r
+  );
 }
 
 function formatStyle(s: string) {

@@ -9,7 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { allPoliciesQuery, POLICY_LABELS, type PolicyDocument, type PolicyKind } from "@/lib/site-queries";
+import {
+  allPoliciesQuery,
+  POLICY_LABELS,
+  type PolicyDocument,
+  type PolicyKind,
+} from "@/lib/site-queries";
 import { CheckCircle2, FileText } from "lucide-react";
 
 const KINDS: PolicyKind[] = ["terms", "privacy", "refund", "fee", "conduct", "leave", "medical"];
@@ -22,7 +27,9 @@ export function PoliciesEditor({ tenantId }: { tenantId: string }) {
     <Tabs defaultValue={KINDS[0]}>
       <TabsList className="w-full flex-wrap h-auto">
         {KINDS.map((k) => (
-          <TabsTrigger key={k} value={k}>{POLICY_LABELS[k]}</TabsTrigger>
+          <TabsTrigger key={k} value={k}>
+            {POLICY_LABELS[k]}
+          </TabsTrigger>
         ))}
       </TabsList>
       {KINDS.map((k) => (
@@ -34,7 +41,15 @@ export function PoliciesEditor({ tenantId }: { tenantId: string }) {
   );
 }
 
-function PolicyKindEditor({ tenantId, kind, rows }: { tenantId: string; kind: PolicyKind; rows: PolicyDocument[] }) {
+function PolicyKindEditor({
+  tenantId,
+  kind,
+  rows,
+}: {
+  tenantId: string;
+  kind: PolicyKind;
+  rows: PolicyDocument[];
+}) {
   const qc = useQueryClient();
   const latest = rows[0]; // rows sorted DESC by version
   const [title, setTitle] = useState(latest?.title ?? POLICY_LABELS[kind]);
@@ -49,22 +64,34 @@ function PolicyKindEditor({ tenantId, kind, rows }: { tenantId: string; kind: Po
     mutationFn: async () => {
       const nextVersion = (rows[0]?.version ?? 0) + 1;
       const { error } = await (supabase as any).from("policy_documents").insert({
-        tenant_id: tenantId, kind, version: nextVersion, title, body_md: body, is_published: false,
+        tenant_id: tenantId,
+        kind,
+        version: nextVersion,
+        title,
+        body_md: body,
+        is_published: false,
       });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Draft saved"); invalidate(); },
+    onSuccess: () => {
+      toast.success("Draft saved");
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const publish = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any).from("policy_documents")
+      const { error } = await (supabase as any)
+        .from("policy_documents")
         .update({ is_published: true, published_at: new Date().toISOString() })
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Published"); invalidate(); },
+    onSuccess: () => {
+      toast.success("Published");
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -72,12 +99,20 @@ function PolicyKindEditor({ tenantId, kind, rows }: { tenantId: string; kind: Po
     mutationFn: async () => {
       const nextVersion = (rows[0]?.version ?? 0) + 1;
       const { error } = await (supabase as any).from("policy_documents").insert({
-        tenant_id: tenantId, kind, version: nextVersion, title, body_md: body,
-        is_published: true, published_at: new Date().toISOString(),
+        tenant_id: tenantId,
+        kind,
+        version: nextVersion,
+        title,
+        body_md: body,
+        is_published: true,
+        published_at: new Date().toISOString(),
       });
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("New version published"); invalidate(); },
+    onSuccess: () => {
+      toast.success("New version published");
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -97,7 +132,11 @@ function PolicyKindEditor({ tenantId, kind, rows }: { tenantId: string; kind: Po
           <Textarea rows={14} value={body} onChange={(e) => setBody(e.target.value)} />
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => saveDraft.mutate()} disabled={saveDraft.isPending || !title.trim()}>
+          <Button
+            variant="outline"
+            onClick={() => saveDraft.mutate()}
+            disabled={saveDraft.isPending || !title.trim()}
+          >
             Save as draft
           </Button>
           <Button
@@ -117,18 +156,31 @@ function PolicyKindEditor({ tenantId, kind, rows }: { tenantId: string; kind: Po
             {rows.map((r) => (
               <li key={r.id} className="flex items-center justify-between gap-3 py-3 text-sm">
                 <div>
-                  <div className="font-medium">v{r.version} — {r.title}</div>
+                  <div className="font-medium">
+                    v{r.version} — {r.title}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    {r.is_published
-                      ? <>Published {r.published_at ? new Date(r.published_at).toLocaleString() : ""}</>
-                      : "Draft"}
+                    {r.is_published ? (
+                      <>
+                        Published {r.published_at ? new Date(r.published_at).toLocaleString() : ""}
+                      </>
+                    ) : (
+                      "Draft"
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {r.is_published ? (
-                    <Badge variant="secondary"><CheckCircle2 className="mr-1 size-3" /> Live</Badge>
+                    <Badge variant="secondary">
+                      <CheckCircle2 className="mr-1 size-3" /> Live
+                    </Badge>
                   ) : (
-                    <Button size="sm" variant="outline" onClick={() => publish.mutate(r.id)} disabled={publish.isPending}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => publish.mutate(r.id)}
+                      disabled={publish.isPending}
+                    >
                       Publish
                     </Button>
                   )}

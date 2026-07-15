@@ -29,7 +29,9 @@ export function AuditFeed({ tenantId, limit = 50 }: { tenantId?: string; limit?:
             <div key={row.id} className="p-3 text-xs">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-neutral-200">{row.action}</span>
-                <span className="text-neutral-500">{new Date(row.created_at).toLocaleString()}</span>
+                <span className="text-neutral-500">
+                  {new Date(row.created_at).toLocaleString()}
+                </span>
               </div>
               <div className="mt-1 text-neutral-400 truncate">
                 {row.target_type}

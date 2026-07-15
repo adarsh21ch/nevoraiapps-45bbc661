@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,7 +47,8 @@ export function ConfirmDeleteDialog({
     }
   }, [open]);
 
-  const canConfirm = !busy && (!confirmText || typed.trim().toLowerCase() === confirmText.trim().toLowerCase());
+  const canConfirm =
+    !busy && (!confirmText || typed.trim().toLowerCase() === confirmText.trim().toLowerCase());
 
   async function handleConfirm() {
     if (!canConfirm) return;
@@ -83,11 +91,7 @@ export function ConfirmDeleteDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
             Cancel
           </Button>
-          <Button
-            variant="destructive"
-            onClick={handleConfirm}
-            disabled={!canConfirm}
-          >
+          <Button variant="destructive" onClick={handleConfirm} disabled={!canConfirm}>
             {busy ? <Loader2 className="size-4 mr-1 animate-spin" /> : null}
             {confirmLabel}
           </Button>

@@ -19,7 +19,6 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DemoBadge } from "@/components/match-center/demo-badge";
 import { ModuleHeader } from "@/components/shared/ModuleHeader";
 
-
 /* -------------------------------------------------------------------------- */
 /* Shared page bits — kept exported for existing pages that import them.      */
 /* -------------------------------------------------------------------------- */
@@ -114,13 +113,24 @@ type SubTab = {
 const SUB_TABS: SubTab[] = [
   {
     to: "/match-center/live",
-    match: ["/match-center/live", "/match-center/create", "/match-center", "/match-center/dashboard", "/scorer"],
+    match: [
+      "/match-center/live",
+      "/match-center/create",
+      "/match-center",
+      "/match-center/dashboard",
+      "/scorer",
+    ],
     label: "Live",
     icon: Radio,
   },
   {
     to: "/match-center/matches",
-    match: ["/match-center/matches", "/match-center/scorebook", "/match-center/teams", "/match-center/tournaments"],
+    match: [
+      "/match-center/matches",
+      "/match-center/scorebook",
+      "/match-center/teams",
+      "/match-center/tournaments",
+    ],
     label: "Matches",
     icon: Swords,
   },
@@ -146,7 +156,12 @@ const SUB_TABS: SubTab[] = [
   },
   {
     to: "/match-center/profile",
-    match: ["/match-center/profile", "/match-center/settings", "/match-center/scorers", "/match-center/website"],
+    match: [
+      "/match-center/profile",
+      "/match-center/settings",
+      "/match-center/scorers",
+      "/match-center/website",
+    ],
     label: "More",
     icon: UserCircle,
   },
@@ -219,8 +234,6 @@ function ModuleSubTabs() {
 /* Match Center module header (Back · Title · Actions)                        */
 /* -------------------------------------------------------------------------- */
 
-
-
 function MatchCenterModuleHeader() {
   const navigate = useNavigate();
   return (
@@ -260,4 +273,3 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
     </DashboardShell>
   );
 }
-

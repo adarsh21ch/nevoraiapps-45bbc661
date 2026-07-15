@@ -19,7 +19,9 @@ import { toast } from "sonner";
 import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/teams/")({
-  head: () => ({ meta: [{ title: "Teams · Match Center" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Teams · Match Center" }, { name: "robots", content: "noindex" }],
+  }),
   component: TeamsListPage,
 });
 
@@ -52,7 +54,11 @@ function TeamsListPage() {
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     return teams.filter((t) => {
-      if (query && !t.name.toLowerCase().includes(query) && !(t.short_name ?? "").toLowerCase().includes(query))
+      if (
+        query &&
+        !t.name.toLowerCase().includes(query) &&
+        !(t.short_name ?? "").toLowerCase().includes(query)
+      )
         return false;
       if (ageGroup !== "all" && t.age_group !== ageGroup) return false;
       if (status !== "all" && t.status !== status) return false;
@@ -94,10 +100,7 @@ function TeamsListPage() {
       <PageHeader
         title="Teams"
         description="Reusable squads for your academy. Playing XI is picked from a squad at match time."
-        breadcrumbs={[
-          { label: "Match Center", to: "/match-center/dashboard" },
-          { label: "Teams" },
-        ]}
+        breadcrumbs={[{ label: "Match Center", to: "/match-center/dashboard" }, { label: "Teams" }]}
         actions={
           <Button asChild>
             <Link to="/match-center/teams/new">
@@ -120,7 +123,10 @@ function TeamsListPage() {
             label="Status"
             value={status}
             onChange={setStatus}
-            options={[{ v: "all", l: "All statuses" }, ...TEAM_STATUSES.map((s) => ({ v: s, l: cap(s) }))]}
+            options={[
+              { v: "all", l: "All statuses" },
+              ...TEAM_STATUSES.map((s) => ({ v: s, l: cap(s) })),
+            ]}
           />
           <FilterSelect
             label="Coach"
@@ -165,7 +171,13 @@ function TeamsListPage() {
             <TeamCard
               key={t.id}
               team={t}
-              onEdit={() => navigate({ to: "/match-center/teams/$teamId", params: { teamId: t.id }, search: { tab: "settings" } as never })}
+              onEdit={() =>
+                navigate({
+                  to: "/match-center/teams/$teamId",
+                  params: { teamId: t.id },
+                  search: { tab: "settings" } as never,
+                })
+              }
               onDuplicate={() => dup.mutate(t.id)}
               onArchive={() =>
                 archive.mutate({ id: t.id, next: t.status === "archived" ? "active" : "archived" })

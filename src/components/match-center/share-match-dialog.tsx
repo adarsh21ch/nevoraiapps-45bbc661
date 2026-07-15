@@ -64,10 +64,7 @@ export function ShareMatchDialog({ open, onOpenChange, matchId, academyId }: Pro
   const updateM = useMutation({
     mutationFn: async (patch: Partial<PublicRow>) => {
       if (!local) return;
-      const { error } = await supabase
-        .from("mc_public_matches")
-        .update(patch)
-        .eq("id", local.id);
+      const { error } = await supabase.from("mc_public_matches").update(patch).eq("id", local.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -96,7 +93,6 @@ export function ShareMatchDialog({ open, onOpenChange, matchId, academyId }: Pro
     onError: (e: Error) => toast.error(e.message),
   });
 
-
   const url = local
     ? `${typeof window !== "undefined" ? window.location.origin : ""}/m/${local.public_slug}`
     : "";
@@ -109,7 +105,8 @@ export function ShareMatchDialog({ open, onOpenChange, matchId, academyId }: Pro
             <Globe className="size-4" /> Share live match
           </DialogTitle>
           <DialogDescription>
-            Public viewers see live score and scorecard only. Fees, contact info and personal data are never exposed.
+            Public viewers see live score and scorecard only. Fees, contact info and personal data
+            are never exposed.
           </DialogDescription>
         </DialogHeader>
 

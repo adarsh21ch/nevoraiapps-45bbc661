@@ -27,12 +27,30 @@ function AchievementsPage() {
   const bundle = useQuery({
     queryKey: ["public_academy_bundle", tenant.slug],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_public_academy_bundle", { _slug: tenant.slug });
+      const { data, error } = await supabase.rpc("get_public_academy_bundle", {
+        _slug: tenant.slug,
+      });
       if (error) throw error;
       return data as {
-        academy_records: Array<{ id: string; record_type: string; title: string; description: string | null; value: string | null }>;
-        hall_of_fame: Array<{ id: string; title: string; description: string | null; image_url: string | null }>;
-        recognitions: Array<{ id: string; title: string; recognition_type: string; description: string | null }>;
+        academy_records: Array<{
+          id: string;
+          record_type: string;
+          title: string;
+          description: string | null;
+          value: string | null;
+        }>;
+        hall_of_fame: Array<{
+          id: string;
+          title: string;
+          description: string | null;
+          image_url: string | null;
+        }>;
+        recognitions: Array<{
+          id: string;
+          title: string;
+          recognition_type: string;
+          description: string | null;
+        }>;
       } | null;
     },
     staleTime: 60_000,
@@ -64,10 +82,18 @@ function AchievementsPage() {
               {records.map((r) => (
                 <div key={r.id} className="rounded-2xl border border-border/60 bg-card p-6">
                   <Trophy className="size-5" style={{ color: "var(--brand)" }} />
-                  <div className="mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">{r.record_type}</div>
+                  <div className="mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                    {r.record_type}
+                  </div>
                   <h3 className="mt-1 font-semibold">{r.title}</h3>
-                  {r.value && <div className="mt-2 text-2xl font-bold" style={{ color: "var(--brand)" }}>{r.value}</div>}
-                  {r.description && <p className="mt-2 text-sm text-muted-foreground">{r.description}</p>}
+                  {r.value && (
+                    <div className="mt-2 text-2xl font-bold" style={{ color: "var(--brand)" }}>
+                      {r.value}
+                    </div>
+                  )}
+                  {r.description && (
+                    <p className="mt-2 text-sm text-muted-foreground">{r.description}</p>
+                  )}
                 </div>
               ))}
             </div>
@@ -82,7 +108,9 @@ function AchievementsPage() {
                 <div key={h.id} className="rounded-2xl border border-border/60 bg-card p-6">
                   <Star className="size-5" style={{ color: "var(--brand)" }} />
                   <h3 className="mt-2 font-semibold">{h.title}</h3>
-                  {h.description && <p className="mt-2 text-sm text-muted-foreground">{h.description}</p>}
+                  {h.description && (
+                    <p className="mt-2 text-sm text-muted-foreground">{h.description}</p>
+                  )}
                 </div>
               ))}
             </div>
@@ -95,9 +123,13 @@ function AchievementsPage() {
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {recognitions.map((r) => (
                 <div key={r.id} className="rounded-2xl border border-border/60 bg-card p-6">
-                  <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{r.recognition_type}</div>
+                  <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                    {r.recognition_type}
+                  </div>
                   <h3 className="mt-1 font-semibold">{r.title}</h3>
-                  {r.description && <p className="mt-2 text-sm text-muted-foreground">{r.description}</p>}
+                  {r.description && (
+                    <p className="mt-2 text-sm text-muted-foreground">{r.description}</p>
+                  )}
                 </div>
               ))}
             </div>

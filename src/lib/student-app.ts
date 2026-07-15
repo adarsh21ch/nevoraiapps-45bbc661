@@ -11,7 +11,11 @@
  * additionally guarded by "student self read" RLS policies.
  */
 import { supabase } from "@/integrations/supabase/client";
-import { fetchStudentVisits, groupVisitsByDay, type AttendanceVisit } from "@/lib/attendance/queries";
+import {
+  fetchStudentVisits,
+  groupVisitsByDay,
+  type AttendanceVisit,
+} from "@/lib/attendance/queries";
 import {
   fetchAthleteByStudent,
   fetchPlayerCareer,
@@ -61,9 +65,7 @@ export type StudentHome = {
 };
 
 function computeStreak(visits: AttendanceVisit[]): number {
-  const days = new Set(
-    visits.filter((v) => v.status === "present").map((v) => v.session_date),
-  );
+  const days = new Set(visits.filter((v) => v.status === "present").map((v) => v.session_date));
   if (days.size === 0) return 0;
   let streak = 0;
   const d = new Date();
@@ -91,8 +93,7 @@ export async function fetchStudentHome(ctx: StudentContext): Promise<StudentHome
 
   const visits = await fetchStudentVisits(ctx.tenant_id, ctx.student_id, { limit: 200 });
   const monthVisits = visits.filter((v) => v.session_date >= sinceIso);
-  const hoursThisMonth =
-    monthVisits.reduce((s, v) => s + (v.duration_minutes ?? 0), 0) / 60;
+  const hoursThisMonth = monthVisits.reduce((s, v) => s + (v.duration_minutes ?? 0), 0) / 60;
   const today = new Date().toISOString().slice(0, 10);
   const todayVisit = visits.find((v) => v.session_date === today) ?? null;
   const streakDays = computeStreak(visits);
@@ -241,11 +242,11 @@ export async function fetchStudentMatches(ctx: StudentContext): Promise<{
     .eq("athlete_profile_id", ctx.athlete_profile_id)
     .order("event_date", { ascending: false, nullsFirst: false })
     .limit(20);
-  const awards = ((awardRows ?? []) as {
+  const awards = (awardRows ?? []) as {
     id: string;
     title: string;
     event_date: string | null;
-  }[]);
+  }[];
 
   return { upcoming, recent, career, awards };
 }

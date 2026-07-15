@@ -116,9 +116,7 @@ function buildCurrentOver(events: MCBallEvent[]): CurrentOverState {
   const overEvents = events.filter((e) => e.over_number === lastOver);
   // Derive legality from extra_type — the single source of truth. Never
   // rely on the stored flag (may be stale on optimistic / legacy rows).
-  const legal = overEvents.filter((e) =>
-    isLegalDelivery(e.extra_type as ExtraType | null),
-  ).length;
+  const legal = overEvents.filter((e) => isLegalDelivery(e.extra_type as ExtraType | null)).length;
   return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
 }
 
@@ -140,8 +138,10 @@ function samePlayerRef(
   a: { athleteId?: string | null; name?: string | null },
   b: { athleteId?: string | null; name?: string | null },
 ) {
-  return Boolean(a.athleteId && b.athleteId && a.athleteId === b.athleteId) ||
-    Boolean(!a.athleteId && !b.athleteId && a.name && b.name && a.name === b.name);
+  return (
+    Boolean(a.athleteId && b.athleteId && a.athleteId === b.athleteId) ||
+    Boolean(!a.athleteId && !b.athleteId && a.name && b.name && a.name === b.name)
+  );
 }
 
 function clearDismissedBatter(
@@ -172,10 +172,12 @@ function matchStateForSelectedBatters(
   nonStriker: CurrentBatterState,
 ): MatchState {
   if (!state.innings.awaitingNewBatter) return state;
-  const strikerReady = Boolean(striker.athleteId || striker.name) &&
+  const strikerReady =
+    Boolean(striker.athleteId || striker.name) &&
     !(striker.athleteId && state.innings.dismissedIds.has(striker.athleteId)) &&
     !(striker.name && state.innings.dismissedNames.has(striker.name));
-  const nonStrikerReady = Boolean(nonStriker.athleteId || nonStriker.name) &&
+  const nonStrikerReady =
+    Boolean(nonStriker.athleteId || nonStriker.name) &&
     !(nonStriker.athleteId && state.innings.dismissedIds.has(nonStriker.athleteId)) &&
     !(nonStriker.name && state.innings.dismissedNames.has(nonStriker.name));
   if (!strikerReady || !nonStrikerReady || samePlayerRef(striker, nonStriker)) return state;
@@ -193,10 +195,7 @@ function makeClientEventId() {
     return crypto.randomUUID();
   }
   return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
-    (
-      Number(c) ^
-      (Math.random() * 16) >> (Number(c) / 4)
-    ).toString(16),
+    (Number(c) ^ ((Math.random() * 16) >> (Number(c) / 4))).toString(16),
   );
 }
 
@@ -259,12 +258,13 @@ export function useScoringSession(
     setLoading(true);
     setError(null);
     try {
-      const [{ data: matchRow, error: matchErr }, inningsList, { data: squad }] =
-        await Promise.all([
+      const [{ data: matchRow, error: matchErr }, inningsList, { data: squad }] = await Promise.all(
+        [
           supabase.from("mc_matches").select("*").eq("id", matchId).maybeSingle(),
           listInningsForMatch(matchId),
           supabase.from("mc_match_squads").select("*").eq("match_id", matchId),
-        ]);
+        ],
+      );
       if (matchErr) throw matchErr;
       setMatch(matchRow ?? null);
       setInnings(inningsList);
@@ -309,9 +309,7 @@ export function useScoringSession(
             if (payload.eventType === "INSERT") {
               const row = payload.new as MCBallEvent;
               if (prev.some((e) => e.id === row.id)) return prev;
-              return [...prev, row].sort(
-                (a, b) => a.sequence_number - b.sequence_number,
-              );
+              return [...prev, row].sort((a, b) => a.sequence_number - b.sequence_number);
             }
             if (payload.eventType === "DELETE") {
               const row = payload.old as MCBallEvent;
@@ -335,16 +333,12 @@ export function useScoringSession(
 
   const battingSquad = useMemo(
     () =>
-      activeInnings
-        ? playingXI.filter((p) => p.team_id === activeInnings.batting_team_id)
-        : [],
+      activeInnings ? playingXI.filter((p) => p.team_id === activeInnings.batting_team_id) : [],
     [playingXI, activeInnings],
   );
   const bowlingSquad = useMemo(
     () =>
-      activeInnings
-        ? playingXI.filter((p) => p.team_id === activeInnings.bowling_team_id)
-        : [],
+      activeInnings ? playingXI.filter((p) => p.team_id === activeInnings.bowling_team_id) : [],
     [playingXI, activeInnings],
   );
 
@@ -369,13 +363,9 @@ export function useScoringSession(
   const startInnings = useCallback(
     async (input: Omit<CreateInningsInput, "tenantId" | "matchId">) => {
       if (!matchId) throw new BallEventError("INVALID_MATCH", "Missing match.");
-      if (!opts.tenantId)
-        throw new BallEventError("INVALID_TENANT", "Missing tenant.");
+      if (!opts.tenantId) throw new BallEventError("INVALID_TENANT", "Missing tenant.");
       if (match?.status === "completed" || match?.status === "archived") {
-        throw new BallEventError(
-          "MATCH_COMPLETED",
-          "Match is no longer active.",
-        );
+        throw new BallEventError("MATCH_COMPLETED", "Match is no longer active.");
       }
       const created = await createInnings({
         ...input,
@@ -392,25 +382,14 @@ export function useScoringSession(
 
   const submitBall = useCallback<ScoringSession["submitBall"]>(
     async (partial) => {
-      if (!matchId)
-        throw new BallEventError("INVALID_MATCH", "Missing match.");
-      if (!opts.tenantId)
-        throw new BallEventError("INVALID_TENANT", "Missing tenant.");
+      if (!matchId) throw new BallEventError("INVALID_MATCH", "Missing match.");
+      if (!opts.tenantId) throw new BallEventError("INVALID_TENANT", "Missing tenant.");
       if (!activeInnings)
-        throw new BallEventError(
-          "INVALID_INNINGS",
-          "Start an innings before scoring.",
-        );
+        throw new BallEventError("INVALID_INNINGS", "Start an innings before scoring.");
       if (activeInnings.status !== "in_progress")
-        throw new BallEventError(
-          "INNINGS_CLOSED",
-          "Innings is not in progress.",
-        );
+        throw new BallEventError("INNINGS_CLOSED", "Innings is not in progress.");
       if (match?.status === "completed" || match?.status === "archived")
-        throw new BallEventError(
-          "MATCH_COMPLETED",
-          "Match is no longer active.",
-        );
+        throw new BallEventError("MATCH_COMPLETED", "Match is no longer active.");
       const currentStriker = strikerRef.current;
       const currentNonStriker = nonStrikerRef.current;
       const currentBowler = bowlerRef.current;
@@ -491,8 +470,7 @@ export function useScoringSession(
           e.over_number === optimistic.over_number &&
           isLegalDelivery(e.extra_type as ExtraType | null),
       ).length;
-      const overCompleted =
-        optimistic.is_legal_delivery && legalBefore + 1 >= 6;
+      const overCompleted = optimistic.is_legal_delivery && legalBefore + 1 >= 6;
       const rotated = applyStrikeAfterBall(
         { striker: currentStriker, nonStriker: currentNonStriker },
         optimistic,
@@ -564,8 +542,7 @@ export function useScoringSession(
   );
 
   const undo = useCallback(async () => {
-    if (!activeInnings)
-      throw new BallEventError("INVALID_INNINGS", "No active innings.");
+    if (!activeInnings) throw new BallEventError("INVALID_INNINGS", "No active innings.");
     const removed = await undoLastBallEvent(activeInnings.id);
     if (removed) {
       setEvents((prev) => prev.filter((e) => e.id !== removed.id));
@@ -635,12 +612,15 @@ export const ballHelpers = {
     extraType: "leg_bye" as const,
     extraRuns: runs,
   }),
-  wicket: (kind: AppendBallInput["dismissalType"], extras?: {
-    fielderAthleteId?: string | null;
-    fielderName?: string | null;
-    dismissedAthleteId?: string | null;
-    dismissedName?: string | null;
-  }) => ({
+  wicket: (
+    kind: AppendBallInput["dismissalType"],
+    extras?: {
+      fielderAthleteId?: string | null;
+      fielderName?: string | null;
+      dismissedAthleteId?: string | null;
+      dismissedName?: string | null;
+    },
+  ) => ({
     runsOffBat: 0,
     extraType: null,
     extraRuns: 0,

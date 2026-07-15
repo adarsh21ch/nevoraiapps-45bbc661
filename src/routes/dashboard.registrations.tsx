@@ -31,7 +31,6 @@ import { generateFilledRegistrationPdf } from "@/lib/registration-pdf";
 import { ModuleHeader } from "@/components/shared/ModuleHeader";
 import { VirtualList } from "@/components/ds/VirtualList";
 
-
 export const Route = createFileRoute("/dashboard/registrations")({
   component: RegistrationsInbox,
 });
@@ -74,12 +73,14 @@ function RegistrationsInbox() {
     qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
   };
 
-
   const approve = useMutation({
     mutationFn: async (id: string) => {
-      const { data: newId, error } = await supabase.rpc("approve_registration" as never, {
-        _registration_id: id,
-      } as never);
+      const { data: newId, error } = await supabase.rpc(
+        "approve_registration" as never,
+        {
+          _registration_id: id,
+        } as never,
+      );
       if (error) throw error;
       return newId;
     },
@@ -119,16 +120,13 @@ function RegistrationsInbox() {
   const sorted = useMemo(
     () =>
       [...data].sort(
-        (a: any, b: any) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       ),
     [data],
   );
 
   const openReg = sorted.find((r: any) => r.id === openId) ?? null;
-  const newCount = sorted.filter(
-    (r: any) => r.status === "new" || r.status === "reviewed",
-  ).length;
+  const newCount = sorted.filter((r: any) => r.status === "new" || r.status === "reviewed").length;
 
   return (
     <div className="space-y-4">
@@ -140,9 +138,7 @@ function RegistrationsInbox() {
       />
       {newCount > 0 ? (
         <div className="-mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground">
-            {newCount} unactioned · newest first
-          </p>
+          <p className="text-xs text-muted-foreground">{newCount} unactioned · newest first</p>
           <Button
             size="sm"
             variant="outline"
@@ -161,7 +157,6 @@ function RegistrationsInbox() {
           </Button>
         </div>
       ) : null}
-
 
       {isLoading ? (
         <div className="space-y-2">
@@ -216,12 +211,11 @@ function ShareLinkButton({
     phone?: string | null;
   };
 }) {
-  const link =
-    tenant.custom_domain
-      ? `https://${tenant.custom_domain}/register`
-      : typeof window !== "undefined"
-        ? `${window.location.origin}/register?tenant=${tenant.slug}`
-        : `/register?tenant=${tenant.slug}`;
+  const link = tenant.custom_domain
+    ? `https://${tenant.custom_domain}/register`
+    : typeof window !== "undefined"
+      ? `${window.location.origin}/register?tenant=${tenant.slug}`
+      : `/register?tenant=${tenant.slug}`;
   const contact = (tenant.whatsapp ?? tenant.phone ?? "").toString();
   const message = `Sign up for ${tenant.name} training — ${link}${
     contact ? ` · Coach: ${contact}` : ""
@@ -383,7 +377,11 @@ function RegistrationsTable({
                     onClick={() => onOpen(r.id)}
                     className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
                   >
-                    <PersonAvatar name={r.name} src={r.photo_url} className="h-9 w-9 text-xs shrink-0" />
+                    <PersonAvatar
+                      name={r.name}
+                      src={r.photo_url}
+                      className="h-9 w-9 text-xs shrink-0"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-semibold truncate text-sm">{r.name}</span>
@@ -430,7 +428,6 @@ function RegistrationsTable({
           }}
         />
       </div>
-
 
       <AlertDialog open={!!confirmAcceptId} onOpenChange={(o) => !o && setConfirmAcceptId(null)}>
         <AlertDialogContent className="rounded-2xl">
@@ -637,9 +634,7 @@ function RegistrationDetails({
         <DRow
           label="Payment"
           value={
-            paid
-              ? `Paid${reg.payment_ref ? ` · ref ${reg.payment_ref}` : ""}`
-              : "Not marked paid"
+            paid ? `Paid${reg.payment_ref ? ` · ref ${reg.payment_ref}` : ""}` : "Not marked paid"
           }
         />
       </dl>
@@ -714,15 +709,7 @@ function RegistrationDetails({
   );
 }
 
-function DRow({
-  label,
-  value,
-  multiline,
-}: {
-  label: string;
-  value: string;
-  multiline?: boolean;
-}) {
+function DRow({ label, value, multiline }: { label: string; value: string; multiline?: boolean }) {
   return (
     <div className="px-4 py-3 grid grid-cols-[100px_minmax(0,1fr)] gap-3">
       <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">

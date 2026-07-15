@@ -43,12 +43,7 @@ export type AIReportType =
   | "academy_season"
   | "custom";
 
-export type AIReferenceType =
-  | "match"
-  | "athlete"
-  | "team"
-  | "tournament"
-  | "academy";
+export type AIReferenceType = "match" | "athlete" | "team" | "tournament" | "academy";
 
 export interface AIFinding {
   label: string;
@@ -108,10 +103,7 @@ export async function updateAISettings(
  * Persistence
  * ================================================================ */
 
-async function persistReport(
-  tenantId: string,
-  payload: AIReportPayload,
-): Promise<MCAIReport> {
+async function persistReport(tenantId: string, payload: AIReportPayload): Promise<MCAIReport> {
   const row = {
     academy_id: tenantId,
     report_type: payload.reportType,
@@ -119,19 +111,20 @@ async function persistReport(
     reference_id: payload.referenceId,
     title: payload.title,
     summary: payload.summary,
-    key_findings: payload.keyFindings as unknown as Database["public"]["Tables"]["mc_ai_reports"]["Insert"]["key_findings"],
-    strengths: payload.strengths as unknown as Database["public"]["Tables"]["mc_ai_reports"]["Insert"]["strengths"],
-    weaknesses: payload.weaknesses as unknown as Database["public"]["Tables"]["mc_ai_reports"]["Insert"]["weaknesses"],
-    recommendations: payload.recommendations as unknown as Database["public"]["Tables"]["mc_ai_reports"]["Insert"]["recommendations"],
-    metadata: payload.metadata as unknown as Database["public"]["Tables"]["mc_ai_reports"]["Insert"]["metadata"],
+    key_findings:
+      payload.keyFindings as unknown as Database["public"]["Tables"]["mc_ai_reports"]["Insert"]["key_findings"],
+    strengths:
+      payload.strengths as unknown as Database["public"]["Tables"]["mc_ai_reports"]["Insert"]["strengths"],
+    weaknesses:
+      payload.weaknesses as unknown as Database["public"]["Tables"]["mc_ai_reports"]["Insert"]["weaknesses"],
+    recommendations:
+      payload.recommendations as unknown as Database["public"]["Tables"]["mc_ai_reports"]["Insert"]["recommendations"],
+    metadata:
+      payload.metadata as unknown as Database["public"]["Tables"]["mc_ai_reports"]["Insert"]["metadata"],
     generated_by: "system",
     generated_at: new Date().toISOString(),
   };
-  const { data, error } = await supabase
-    .from("mc_ai_reports")
-    .insert(row)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.from("mc_ai_reports").insert(row).select("*").single();
   if (error) throw error;
   return data;
 }
@@ -168,10 +161,7 @@ export async function deleteReport(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function searchReports(
-  tenantId: string,
-  term: string,
-): Promise<MCAIReport[]> {
+export async function searchReports(tenantId: string, term: string): Promise<MCAIReport[]> {
   const t = term.trim();
   if (!t) return listReports(tenantId, { limit: 30 });
   const { data, error } = await supabase
@@ -243,7 +233,7 @@ export async function generateMatchReport(matchId: string): Promise<AIReportPayl
         ? teamBName
         : null;
   const pomName =
-    ((pomProfile?.data as { students?: { name?: string } | null } | null)?.students?.name) ?? null;
+    (pomProfile?.data as { students?: { name?: string } | null } | null)?.students?.name ?? null;
 
   const resultLine = winnerName
     ? `${winnerName} won${match.winning_margin ? ` by ${match.winning_margin} ${match.winning_margin_type ?? ""}`.trim() : ""}`
@@ -284,13 +274,25 @@ export async function generateMatchReport(matchId: string): Promise<AIReportPayl
   const strengths: AIFinding[] = [];
   const weaknesses: AIFinding[] = [];
   if (insights.highestIndividualScore && insights.highestIndividualScore.runs >= 50)
-    strengths.push({ label: "Match-winning batting", detail: `${insights.highestIndividualScore.name} anchored the innings.` });
+    strengths.push({
+      label: "Match-winning batting",
+      detail: `${insights.highestIndividualScore.name} anchored the innings.`,
+    });
   if (insights.bestBowling && insights.bestBowling.wickets >= 3)
-    strengths.push({ label: "Match-winning bowling", detail: `${insights.bestBowling.name} broke the opposition open.` });
+    strengths.push({
+      label: "Match-winning bowling",
+      detail: `${insights.bestBowling.name} broke the opposition open.`,
+    });
   if (insights.highestPartnership && insights.highestPartnership.runs >= 50)
-    strengths.push({ label: "Strong partnership", detail: `${insights.highestPartnership.runs}-run stand shaped the innings.` });
+    strengths.push({
+      label: "Strong partnership",
+      detail: `${insights.highestPartnership.runs}-run stand shaped the innings.`,
+    });
   if (!insights.highestIndividualScore || insights.highestIndividualScore.runs < 25)
-    weaknesses.push({ label: "No batter went deep", detail: "Batting group could not build partnerships." });
+    weaknesses.push({
+      label: "No batter went deep",
+      detail: "Batting group could not build partnerships.",
+    });
   if (!insights.bestBowling || insights.bestBowling.wickets < 2)
     weaknesses.push({ label: "Bowling lacked breakthroughs", detail: "Wickets were spread thin." });
 
@@ -307,8 +309,12 @@ export async function generateMatchReport(matchId: string): Promise<AIReportPayl
 
   const summary = [
     resultLine,
-    insights.highestIndividualScore ? `Top scorer ${insights.highestIndividualScore.name} (${insights.highestIndividualScore.runs}).` : null,
-    insights.bestBowling ? `Pick of the bowlers ${insights.bestBowling.name} (${insights.bestBowling.wickets}/${insights.bestBowling.runsConceded}).` : null,
+    insights.highestIndividualScore
+      ? `Top scorer ${insights.highestIndividualScore.name} (${insights.highestIndividualScore.runs}).`
+      : null,
+    insights.bestBowling
+      ? `Pick of the bowlers ${insights.bestBowling.name} (${insights.bestBowling.wickets}/${insights.bestBowling.runsConceded}).`
+      : null,
     pomName ? `Player of the Match: ${pomName}.` : null,
   ]
     .filter(Boolean)
@@ -350,7 +356,8 @@ export async function generatePlayerReport(
     .select("id, students(name)")
     .eq("id", athleteProfileId)
     .maybeSingle();
-  const name = ((profile as { students?: { name?: string } | null } | null)?.students?.name) ?? "Player";
+  const name =
+    (profile as { students?: { name?: string } | null } | null)?.students?.name ?? "Player";
 
   if (!career) {
     return {
@@ -369,11 +376,20 @@ export async function generatePlayerReport(
 
   const keyFindings: AIFinding[] = [
     { label: "Matches", detail: String(career.matches) },
-    { label: "Runs", detail: `${career.runs} (avg ${Number(career.average).toFixed(2)}, SR ${Number(career.strike_rate).toFixed(2)})` },
-    { label: "Highest score", detail: `${career.highest_score}${career.highest_score_not_out ? "*" : ""}` },
+    {
+      label: "Runs",
+      detail: `${career.runs} (avg ${Number(career.average).toFixed(2)}, SR ${Number(career.strike_rate).toFixed(2)})`,
+    },
+    {
+      label: "Highest score",
+      detail: `${career.highest_score}${career.highest_score_not_out ? "*" : ""}`,
+    },
     { label: "Wickets", detail: `${career.wickets} (best ${career.best_bowling})` },
     { label: "Boundaries", detail: `${career.fours}×4, ${career.sixes}×6` },
-    { label: "Milestones", detail: `${career.fifties} fifties, ${career.hundreds} hundreds, ${career.five_wicket_hauls} five-fers` },
+    {
+      label: "Milestones",
+      detail: `${career.fifties} fifties, ${career.hundreds} hundreds, ${career.five_wicket_hauls} five-fers`,
+    },
   ];
 
   const strengths: AIFinding[] = [];
@@ -384,30 +400,56 @@ export async function generatePlayerReport(
   const econ = Number(career.economy);
   const bAvg = Number(career.bowling_average);
 
-  if (avg >= 30) strengths.push({ label: "Consistent batting", detail: `Career average ${avg.toFixed(2)}.` });
+  if (avg >= 30)
+    strengths.push({ label: "Consistent batting", detail: `Career average ${avg.toFixed(2)}.` });
   if (sr >= 130) strengths.push({ label: "Strong strike rate", detail: `SR ${sr.toFixed(1)}.` });
-  if (career.hundreds > 0) strengths.push({ label: "Century maker", detail: `${career.hundreds} hundred(s).` });
-  if (career.wickets >= 10 && econ > 0 && econ <= 6) strengths.push({ label: "Economical bowler", detail: `Economy ${econ.toFixed(2)}.` });
-  if (career.five_wicket_hauls > 0) strengths.push({ label: "Match-winning spells", detail: `${career.five_wicket_hauls} five-wicket haul(s).` });
+  if (career.hundreds > 0)
+    strengths.push({ label: "Century maker", detail: `${career.hundreds} hundred(s).` });
+  if (career.wickets >= 10 && econ > 0 && econ <= 6)
+    strengths.push({ label: "Economical bowler", detail: `Economy ${econ.toFixed(2)}.` });
+  if (career.five_wicket_hauls > 0)
+    strengths.push({
+      label: "Match-winning spells",
+      detail: `${career.five_wicket_hauls} five-wicket haul(s).`,
+    });
   if (career.captain_matches >= 3) {
-    const winRate = career.captain_matches ? (career.captain_wins / career.captain_matches) * 100 : 0;
-    if (winRate >= 60) strengths.push({ label: "Excellent captaincy record", detail: `${winRate.toFixed(0)}% wins as captain.` });
-    else if (winRate < 40) weaknesses.push({ label: "Captaincy win-rate low", detail: `${winRate.toFixed(0)}% wins.` });
+    const winRate = career.captain_matches
+      ? (career.captain_wins / career.captain_matches) * 100
+      : 0;
+    if (winRate >= 60)
+      strengths.push({
+        label: "Excellent captaincy record",
+        detail: `${winRate.toFixed(0)}% wins as captain.`,
+      });
+    else if (winRate < 40)
+      weaknesses.push({ label: "Captaincy win-rate low", detail: `${winRate.toFixed(0)}% wins.` });
   }
-  if (career.player_of_match >= 2) strengths.push({ label: "Match-winner", detail: `${career.player_of_match} POM awards.` });
+  if (career.player_of_match >= 2)
+    strengths.push({ label: "Match-winner", detail: `${career.player_of_match} POM awards.` });
 
-  if (career.innings >= 5 && avg > 0 && avg < 15) weaknesses.push({ label: "Batting average low", detail: `Avg ${avg.toFixed(2)}.` });
-  if (career.balls_bowled > 30 && econ >= 9) weaknesses.push({ label: "High economy", detail: `Economy ${econ.toFixed(2)}.` });
-  if (career.balls_bowled > 30 && bAvg > 0 && bAvg > 40) weaknesses.push({ label: "Bowling average high", detail: `Bowling avg ${bAvg.toFixed(2)}.` });
-  if (career.ducks >= 3) weaknesses.push({ label: "Duck count elevated", detail: `${career.ducks} ducks — early dismissals.` });
+  if (career.innings >= 5 && avg > 0 && avg < 15)
+    weaknesses.push({ label: "Batting average low", detail: `Avg ${avg.toFixed(2)}.` });
+  if (career.balls_bowled > 30 && econ >= 9)
+    weaknesses.push({ label: "High economy", detail: `Economy ${econ.toFixed(2)}.` });
+  if (career.balls_bowled > 30 && bAvg > 0 && bAvg > 40)
+    weaknesses.push({ label: "Bowling average high", detail: `Bowling avg ${bAvg.toFixed(2)}.` });
+  if (career.ducks >= 3)
+    weaknesses.push({
+      label: "Duck count elevated",
+      detail: `${career.ducks} ducks — early dismissals.`,
+    });
   const dropRate = career.matches ? career.catches / career.matches : 0;
-  if (career.matches >= 5 && dropRate < 0.2) weaknesses.push({ label: "Fielding output low", detail: "Few catches per match." });
+  if (career.matches >= 5 && dropRate < 0.2)
+    weaknesses.push({ label: "Fielding output low", detail: "Few catches per match." });
 
   const recommendations: AIFinding[] = [];
-  if (weaknesses.some((w) => w.label.includes("economy"))) recommendations.push(RECS.deathBowling, RECS.practiceYorkers);
-  if (weaknesses.some((w) => w.label.includes("Batting average"))) recommendations.push(RECS.rotateStrike, RECS.consistency);
+  if (weaknesses.some((w) => w.label.includes("economy")))
+    recommendations.push(RECS.deathBowling, RECS.practiceYorkers);
+  if (weaknesses.some((w) => w.label.includes("Batting average")))
+    recommendations.push(RECS.rotateStrike, RECS.consistency);
   if (weaknesses.some((w) => w.label.includes("Duck"))) recommendations.push(RECS.spin);
-  if (weaknesses.some((w) => w.label.includes("Fielding"))) recommendations.push(RECS.slipCatching, RECS.fielding);
+  if (weaknesses.some((w) => w.label.includes("Fielding")))
+    recommendations.push(RECS.slipCatching, RECS.fielding);
   if (recommendations.length === 0) recommendations.push(RECS.fitness, RECS.consistency);
 
   const summary = `${name}: ${career.matches} matches, ${career.runs} runs @ ${avg.toFixed(2)}, ${career.wickets} wickets. ${strengths[0]?.label ?? "Building profile."}${weaknesses[0] ? ` Area to work on: ${weaknesses[0].label.toLowerCase()}.` : ""}`;
@@ -491,15 +533,24 @@ export async function generateTeamReport(
   const strengths: AIFinding[] = [];
   const weaknesses: AIFinding[] = [];
   if (played > 0) {
-    if (winPct >= 60) strengths.push({ label: "Strong win-rate", detail: `${winPct.toFixed(0)}% wins.` });
-    if (highestScore >= 150) strengths.push({ label: "Batting depth", detail: `High score ${highestScore}.` });
-    if (winPct < 40 && played >= 3) weaknesses.push({ label: "Win-rate below par", detail: `${winPct.toFixed(0)}%.` });
-    if (played >= 3 && highestScore < 100) weaknesses.push({ label: "Batting totals low", detail: "Struggle to post competitive totals." });
+    if (winPct >= 60)
+      strengths.push({ label: "Strong win-rate", detail: `${winPct.toFixed(0)}% wins.` });
+    if (highestScore >= 150)
+      strengths.push({ label: "Batting depth", detail: `High score ${highestScore}.` });
+    if (winPct < 40 && played >= 3)
+      weaknesses.push({ label: "Win-rate below par", detail: `${winPct.toFixed(0)}%.` });
+    if (played >= 3 && highestScore < 100)
+      weaknesses.push({
+        label: "Batting totals low",
+        detail: "Struggle to post competitive totals.",
+      });
   }
 
   const recommendations: AIFinding[] = [];
-  if (weaknesses.some((w) => w.label.includes("Batting"))) recommendations.push(RECS.rotateStrike, RECS.consistency);
-  if (weaknesses.some((w) => w.label.includes("Win-rate"))) recommendations.push(RECS.captaincy, RECS.deathBowling);
+  if (weaknesses.some((w) => w.label.includes("Batting")))
+    recommendations.push(RECS.rotateStrike, RECS.consistency);
+  if (weaknesses.some((w) => w.label.includes("Win-rate")))
+    recommendations.push(RECS.captaincy, RECS.deathBowling);
   if (recommendations.length === 0) recommendations.push(RECS.fitness, RECS.fielding);
 
   const summary = played
@@ -540,7 +591,9 @@ export async function generateCaptainReport(
     .from("mc_player_careers")
     .select("*")
     .eq("tenant_id", tenantId);
-  const capRows = computeCaptainRecords((careers ?? []) as unknown as Array<Record<string, unknown>>);
+  const capRows = computeCaptainRecords(
+    (careers ?? []) as unknown as Array<Record<string, unknown>>,
+  );
   const row = capRows.find((r) => r.athleteProfileId === athleteProfileId);
   const name = row?.name ?? "Captain";
 
@@ -556,8 +609,10 @@ export async function generateCaptainReport(
   const strengths: AIFinding[] = [];
   const weaknesses: AIFinding[] = [];
   if (row) {
-    if (row.winPct >= 60) strengths.push({ label: "Excellent leadership", detail: `${row.winPct.toFixed(0)}% wins.` });
-    if (row.wins >= 5) strengths.push({ label: "Proven match-winner", detail: `${row.wins} wins as captain.` });
+    if (row.winPct >= 60)
+      strengths.push({ label: "Excellent leadership", detail: `${row.winPct.toFixed(0)}% wins.` });
+    if (row.wins >= 5)
+      strengths.push({ label: "Proven match-winner", detail: `${row.wins} wins as captain.` });
     if (row.winPct < 40 && row.matches >= 3) weaknesses.push({ label: "Win-rate below par" });
   }
 
@@ -621,11 +676,31 @@ export async function generateTournamentReport(
   }));
 
   const keyFindings: AIFinding[] = [];
-  if (standings[0]) keyFindings.push({ label: "Leader", detail: `${standings[0].teamName} — ${standings[0].points} pts` });
-  if (orange[0]) keyFindings.push({ label: "Orange Cap", detail: `${orange[0].name ?? "—"} — ${orange[0].runs} runs` });
-  if (purple[0]) keyFindings.push({ label: "Purple Cap", detail: `${purple[0].name ?? "—"} — ${purple[0].wickets} wickets` });
-  if (records.highestTeamScore) keyFindings.push({ label: "Highest team score", detail: `${records.highestTeamScore.runs}/${records.highestTeamScore.wickets}` });
-  if (records.bestBowling) keyFindings.push({ label: "Best bowling", detail: `${records.bestBowling.name ?? "—"} ${records.bestBowling.wickets}/${records.bestBowling.runs}` });
+  if (standings[0])
+    keyFindings.push({
+      label: "Leader",
+      detail: `${standings[0].teamName} — ${standings[0].points} pts`,
+    });
+  if (orange[0])
+    keyFindings.push({
+      label: "Orange Cap",
+      detail: `${orange[0].name ?? "—"} — ${orange[0].runs} runs`,
+    });
+  if (purple[0])
+    keyFindings.push({
+      label: "Purple Cap",
+      detail: `${purple[0].name ?? "—"} — ${purple[0].wickets} wickets`,
+    });
+  if (records.highestTeamScore)
+    keyFindings.push({
+      label: "Highest team score",
+      detail: `${records.highestTeamScore.runs}/${records.highestTeamScore.wickets}`,
+    });
+  if (records.bestBowling)
+    keyFindings.push({
+      label: "Best bowling",
+      detail: `${records.bestBowling.name ?? "—"} ${records.bestBowling.wickets}/${records.bestBowling.runs}`,
+    });
 
   const strengths: AIFinding[] = standings.slice(0, 3).map((s) => ({
     label: `${s.teamName} — top form`,
@@ -669,7 +744,8 @@ export async function generateAcademyMonthlyReport(
   periodLabel?: string,
 ): Promise<AIReportPayload> {
   const now = new Date();
-  const label = periodLabel ?? `${now.toLocaleString("en", { month: "long" })} ${now.getFullYear()}`;
+  const label =
+    periodLabel ?? `${now.toLocaleString("en", { month: "long" })} ${now.getFullYear()}`;
 
   const { data: careers } = await supabase
     .from("mc_player_careers")
@@ -692,8 +768,16 @@ export async function generateAcademyMonthlyReport(
     { label: "Wickets taken", detail: String(overview.totalWickets) },
     { label: "Boundaries", detail: `${overview.totalFours}×4, ${overview.totalSixes}×6` },
   ];
-  if (topRuns[0]) keyFindings.push({ label: "Top run scorer", detail: `${topRuns[0].athleteName} — ${topRuns[0].value} runs` });
-  if (topWickets[0]) keyFindings.push({ label: "Top wicket taker", detail: `${topWickets[0].athleteName} — ${topWickets[0].value} wickets` });
+  if (topRuns[0])
+    keyFindings.push({
+      label: "Top run scorer",
+      detail: `${topRuns[0].athleteName} — ${topRuns[0].value} runs`,
+    });
+  if (topWickets[0])
+    keyFindings.push({
+      label: "Top wicket taker",
+      detail: `${topWickets[0].athleteName} — ${topWickets[0].value} wickets`,
+    });
 
   const strengths: AIFinding[] = topCareer.slice(0, 3).map((r) => ({
     label: `${r.athleteName} — all-round contributor`,

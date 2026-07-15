@@ -80,7 +80,9 @@ export function DemoTeamProfile({ demo, team }: Props) {
                   Top Batter
                 </div>
                 <div className="mt-1 truncate text-base font-semibold">{p.topBatter.name}</div>
-                <div className="mt-0.5 text-2xl font-bold tabular-nums">{p.topBatter.runs} runs</div>
+                <div className="mt-0.5 text-2xl font-bold tabular-nums">
+                  {p.topBatter.runs} runs
+                </div>
               </div>
             )}
             {p.topBowler && (
@@ -89,7 +91,9 @@ export function DemoTeamProfile({ demo, team }: Props) {
                   Top Bowler
                 </div>
                 <div className="mt-1 truncate text-base font-semibold">{p.topBowler.name}</div>
-                <div className="mt-0.5 text-2xl font-bold tabular-nums">{p.topBowler.wickets} wkts</div>
+                <div className="mt-0.5 text-2xl font-bold tabular-nums">
+                  {p.topBowler.wickets} wkts
+                </div>
               </div>
             )}
           </div>

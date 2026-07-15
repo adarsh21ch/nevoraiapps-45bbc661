@@ -1,6 +1,15 @@
 import {
-  Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
-  Line, LineChart, Area, AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  Line,
+  LineChart,
+  Area,
+  AreaChart,
 } from "recharts";
 import { Card } from "@/components/ui/card";
 
@@ -20,11 +29,7 @@ export type ChartsData = {
   byMethod?: LabelAmount[];
 };
 
-export type ChartsView =
-  | "overview"
-  | "attendance"
-  | "finance"
-  | "admissions";
+export type ChartsView = "overview" | "attendance" | "finance" | "admissions";
 
 const BRAND = "var(--brand, #1d4ed8)";
 
@@ -58,16 +63,30 @@ export function Charts({ view, data }: { view: ChartsView; data: ChartsData }) {
               <XAxis dataKey="date" fontSize={11} tickLine={false} axisLine={false} />
               <YAxis fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} unit="%" />
               <Tooltip />
-              <Area type="monotone" dataKey="percent" stroke={BRAND} strokeWidth={2} fill="url(#attG)" />
+              <Area
+                type="monotone"
+                dataKey="percent"
+                stroke={BRAND}
+                strokeWidth={2}
+                fill="url(#attG)"
+              />
             </AreaChart>
           </ResponsiveContainer>
         </ChartCard>
         <ChartCard title="Revenue trend">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.revenueByMonth ?? []} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>
+            <BarChart
+              data={data.revenueByMonth ?? []}
+              margin={{ top: 4, right: 4, bottom: 0, left: -16 }}
+            >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="label" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
+              <YAxis
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))}
+              />
               <Tooltip formatter={(v: number) => [inr(Number(v)), "Revenue"]} />
               <Bar dataKey="amount" fill={BRAND} radius={[6, 6, 0, 0]} />
             </BarChart>
@@ -75,10 +94,21 @@ export function Charts({ view, data }: { view: ChartsView; data: ChartsData }) {
         </ChartCard>
         <ChartCard title="Admissions funnel">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.admissionsByStage ?? []} layout="vertical" margin={{ top: 4, right: 4, bottom: 0, left: 30 }}>
+            <BarChart
+              data={data.admissionsByStage ?? []}
+              layout="vertical"
+              margin={{ top: 4, right: 4, bottom: 0, left: 30 }}
+            >
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis type="category" dataKey="stage" fontSize={11} tickLine={false} axisLine={false} width={90} />
+              <YAxis
+                type="category"
+                dataKey="stage"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                width={90}
+              />
               <Tooltip />
               <Bar dataKey="count" fill={BRAND} radius={[0, 6, 6, 0]} />
             </BarChart>
@@ -86,7 +116,10 @@ export function Charts({ view, data }: { view: ChartsView; data: ChartsData }) {
         </ChartCard>
         <ChartCard title="Attendance by batch">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.attendanceByBatch ?? []} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>
+            <BarChart
+              data={data.attendanceByBatch ?? []}
+              margin={{ top: 4, right: 4, bottom: 0, left: -16 }}
+            >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="batch" fontSize={11} tickLine={false} axisLine={false} />
               <YAxis fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} unit="%" />
@@ -115,7 +148,10 @@ export function Charts({ view, data }: { view: ChartsView; data: ChartsData }) {
         </ChartCard>
         <ChartCard title="By batch">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.attendanceByBatch ?? []} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>
+            <BarChart
+              data={data.attendanceByBatch ?? []}
+              margin={{ top: 4, right: 4, bottom: 0, left: -16 }}
+            >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="batch" fontSize={11} tickLine={false} axisLine={false} />
               <YAxis fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} unit="%" />
@@ -133,10 +169,18 @@ export function Charts({ view, data }: { view: ChartsView; data: ChartsData }) {
       <div className="grid gap-3 md:grid-cols-2">
         <ChartCard title="Revenue by month">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.revenueByMonth ?? []} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>
+            <BarChart
+              data={data.revenueByMonth ?? []}
+              margin={{ top: 4, right: 4, bottom: 0, left: -16 }}
+            >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="label" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
+              <YAxis
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))}
+              />
               <Tooltip formatter={(v: number) => [inr(Number(v)), "Amount"]} />
               <Bar dataKey="amount" fill={BRAND} radius={[6, 6, 0, 0]} />
             </BarChart>
@@ -144,10 +188,27 @@ export function Charts({ view, data }: { view: ChartsView; data: ChartsData }) {
         </ChartCard>
         <ChartCard title="By payment method">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.byMethod ?? []} layout="vertical" margin={{ top: 4, right: 4, bottom: 0, left: 30 }}>
+            <BarChart
+              data={data.byMethod ?? []}
+              layout="vertical"
+              margin={{ top: 4, right: 4, bottom: 0, left: 30 }}
+            >
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-              <XAxis type="number" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
-              <YAxis type="category" dataKey="label" fontSize={11} tickLine={false} axisLine={false} width={80} />
+              <XAxis
+                type="number"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))}
+              />
+              <YAxis
+                type="category"
+                dataKey="label"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                width={80}
+              />
               <Tooltip formatter={(v: number) => [inr(Number(v)), "Amount"]} />
               <Bar dataKey="amount" fill={BRAND} radius={[0, 6, 6, 0]} />
             </BarChart>
@@ -162,10 +223,21 @@ export function Charts({ view, data }: { view: ChartsView; data: ChartsData }) {
       <div className="grid gap-3 md:grid-cols-2">
         <ChartCard title="Pipeline funnel">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.admissionsByStage ?? []} layout="vertical" margin={{ top: 4, right: 4, bottom: 0, left: 30 }}>
+            <BarChart
+              data={data.admissionsByStage ?? []}
+              layout="vertical"
+              margin={{ top: 4, right: 4, bottom: 0, left: 30 }}
+            >
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis type="category" dataKey="stage" fontSize={11} tickLine={false} axisLine={false} width={90} />
+              <YAxis
+                type="category"
+                dataKey="stage"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                width={90}
+              />
               <Tooltip />
               <Bar dataKey="count" fill={BRAND} radius={[0, 6, 6, 0]} />
             </BarChart>
@@ -173,10 +245,21 @@ export function Charts({ view, data }: { view: ChartsView; data: ChartsData }) {
         </ChartCard>
         <ChartCard title="By source">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.bySource ?? []} layout="vertical" margin={{ top: 4, right: 4, bottom: 0, left: 30 }}>
+            <BarChart
+              data={data.bySource ?? []}
+              layout="vertical"
+              margin={{ top: 4, right: 4, bottom: 0, left: 30 }}
+            >
               <CartesianGrid strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" fontSize={11} tickLine={false} axisLine={false} />
-              <YAxis type="category" dataKey="label" fontSize={11} tickLine={false} axisLine={false} width={90} />
+              <YAxis
+                type="category"
+                dataKey="label"
+                fontSize={11}
+                tickLine={false}
+                axisLine={false}
+                width={90}
+              />
               <Tooltip />
               <Bar dataKey="count" fill={BRAND} radius={[0, 6, 6, 0]} />
             </BarChart>

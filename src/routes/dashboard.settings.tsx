@@ -4,10 +4,7 @@ import { PreferencesCard } from "@/components/settings/PreferencesCard";
 
 export const Route = createFileRoute("/dashboard/settings")({
   head: () => ({
-    meta: [
-      { title: "Settings · Academy OS" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Settings · Academy OS" }, { name: "robots", content: "noindex" }],
   }),
   component: SettingsPage,
 });

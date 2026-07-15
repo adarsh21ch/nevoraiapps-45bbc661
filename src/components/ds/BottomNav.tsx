@@ -42,7 +42,10 @@ export function BottomNav({
       )}
       style={{ paddingBottom: safeArea.bottom }}
     >
-      <ul className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+      <ul
+        className="grid"
+        style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+      >
         {items.map((item) => {
           const active =
             item.to === "/dashboard"

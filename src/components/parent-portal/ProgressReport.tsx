@@ -52,13 +52,7 @@ type Kid = {
   academy_id: string | null;
 };
 
-export function ProgressReport({
-  kid,
-  summary,
-}: {
-  kid: Kid;
-  summary: ChildSummary;
-}) {
+export function ProgressReport({ kid, summary }: { kid: Kid; summary: ChildSummary }) {
   const studentId = kid.student_id;
   const tenantId = (summary.student?.tenant_id as string | undefined) ?? kid.academy_id ?? "";
   const athleteProfileId = summary.athlete_profile_id;
@@ -208,13 +202,17 @@ export function ProgressReport({
           <div className="min-w-0 flex-1">
             <h3 className="text-lg font-semibold truncate">{kid.student_name}</h3>
             <p className="text-xs text-muted-foreground">
-              {kid.player_id ?? "—"}{age != null ? ` · ${age} yrs` : ""}
+              {kid.player_id ?? "—"}
+              {age != null ? ` · ${age} yrs` : ""}
             </p>
             <dl className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-sm">
               <InfoField label="Role" value={String(cp.playing_role ?? "—")} />
               <InfoField label="Batting" value={String(cp.batting_style ?? "—")} />
               <InfoField label="Bowling" value={String(cp.bowling_style ?? "—")} />
-              <InfoField label="Joined" value={student.created_at ? new Date(student.created_at).toLocaleDateString() : "—"} />
+              <InfoField
+                label="Joined"
+                value={student.created_at ? new Date(student.created_at).toLocaleDateString() : "—"}
+              />
             </dl>
           </div>
         </div>
@@ -225,7 +223,10 @@ export function ProgressReport({
         <div className="flex items-start gap-3">
           <div
             className="size-9 shrink-0 rounded-full grid place-items-center"
-            style={{ backgroundColor: "color-mix(in oklch, var(--tenant-brand, var(--brand)) 14%, transparent)" }}
+            style={{
+              backgroundColor:
+                "color-mix(in oklch, var(--tenant-brand, var(--brand)) 14%, transparent)",
+            }}
             aria-hidden
           >
             <Sparkles className="size-4" />
@@ -252,7 +253,10 @@ export function ProgressReport({
         ) : attendanceQ.data ? (
           <div className="grid gap-4 sm:grid-cols-[auto_1fr]">
             <div className="flex items-center gap-4">
-              <div role="img" aria-label={`Current month attendance ${attendanceQ.data.current.percent}%`}>
+              <div
+                role="img"
+                aria-label={`Current month attendance ${attendanceQ.data.current.percent}%`}
+              >
                 <ProgressRing
                   value={attendanceQ.data.current.percent}
                   max={100}
@@ -263,10 +267,7 @@ export function ProgressReport({
                 <MonthStat label="Present" value={attendanceQ.data.current.present} tone="pos" />
                 <MonthStat label="Late" value={attendanceQ.data.current.late} tone="warn" />
                 <MonthStat label="Absent" value={attendanceQ.data.current.absent} tone="neg" />
-                <MonthStat
-                  label="Prev month"
-                  value={`${attendanceQ.data.previous.percent}%`}
-                />
+                <MonthStat label="Prev month" value={`${attendanceQ.data.previous.percent}%`} />
               </dl>
             </div>
             <div>
@@ -446,13 +447,23 @@ function AchievementsList({
   recognitions: Array<Record<string, unknown>>;
   achievements: Array<Record<string, unknown>>;
   awards: Array<{ id: string; title: string; kind: string; event_date: string | null }>;
-  hof: Array<{ id: string; achievement_title: string; category: string; awarded_at: string | null }>;
+  hof: Array<{
+    id: string;
+    achievement_title: string;
+    category: string;
+    awarded_at: string | null;
+  }>;
   pomCount: number;
 }) {
   const items: { key: string; title: string; kind: string; date?: string | null }[] = [];
   for (const r of recognitions) {
     const rr = r as { id: string; title: string; recognition_type: string; awarded_at?: string };
-    items.push({ key: `r-${rr.id}`, title: rr.title, kind: rr.recognition_type, date: rr.awarded_at });
+    items.push({
+      key: `r-${rr.id}`,
+      title: rr.title,
+      kind: rr.recognition_type,
+      date: rr.awarded_at,
+    });
   }
   for (const a of awards) {
     items.push({ key: `w-${a.id}`, title: a.title, kind: a.kind || "Award", date: a.event_date });
@@ -467,7 +478,12 @@ function AchievementsList({
   }
   for (const a of achievements) {
     const aa = a as { id: string; title: string; kind?: string; event_date?: string };
-    items.push({ key: `a-${aa.id}`, title: aa.title, kind: aa.kind ?? "Achievement", date: aa.event_date });
+    items.push({
+      key: `a-${aa.id}`,
+      title: aa.title,
+      kind: aa.kind ?? "Achievement",
+      date: aa.event_date,
+    });
   }
 
   if (pomCount > 0) {
@@ -490,7 +506,10 @@ function AchievementsList({
   return (
     <ul className="grid gap-2 sm:grid-cols-2">
       {items.slice(0, 12).map((i) => (
-        <li key={i.key} className="flex items-start gap-2 rounded-lg border border-border/60 p-2.5 bg-card">
+        <li
+          key={i.key}
+          className="flex items-start gap-2 rounded-lg border border-border/60 p-2.5 bg-card"
+        >
           <Award className="size-4 mt-0.5 shrink-0 text-amber-500" aria-hidden />
           <div className="min-w-0 flex-1">
             <div className="text-sm font-medium truncate">{i.title}</div>
@@ -529,8 +548,7 @@ function buildMatchTrend(
   const values: number[] = [];
   for (const m of matches.slice(0, 10).reverse()) {
     const r = m.result ?? "";
-    const re =
-      key === "runs" ? /(\d+)\s*runs/i.exec(r) : /(\d+)\s*wicket/i.exec(r);
+    const re = key === "runs" ? /(\d+)\s*runs/i.exec(r) : /(\d+)\s*wicket/i.exec(r);
     if (re) values.push(Number(re[1]));
   }
   return values;

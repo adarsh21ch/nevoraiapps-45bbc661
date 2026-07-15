@@ -25,9 +25,15 @@ export const Route = createFileRoute("/coaches")({
 function CoachesPage() {
   const tenant = useTenant();
   const { data: sections = [] } = useQuery(siteContentQuery(tenant.id));
-  const coaches = sectionsBy(sections, "coaches").map((s) => s.content as {
-    name?: string; role?: string; bio?: string; photo_url?: string;
-  });
+  const coaches = sectionsBy(sections, "coaches").map(
+    (s) =>
+      s.content as {
+        name?: string;
+        role?: string;
+        bio?: string;
+        photo_url?: string;
+      },
+  );
 
   return (
     <>
@@ -46,10 +52,18 @@ function CoachesPage() {
             {coaches.map((c, i) => (
               <div key={i} className="rounded-2xl border border-border/60 bg-card p-6 text-center">
                 <div className="mx-auto w-28">
-                  <PersonAvatar src={c.photo_url ?? null} name={c.name ?? "Coach"} className="h-28 w-28" />
+                  <PersonAvatar
+                    src={c.photo_url ?? null}
+                    name={c.name ?? "Coach"}
+                    className="h-28 w-28"
+                  />
                 </div>
                 <div className="mt-4 text-lg font-semibold">{c.name}</div>
-                {c.role && <div className="text-sm" style={{ color: "var(--brand)" }}>{c.role}</div>}
+                {c.role && (
+                  <div className="text-sm" style={{ color: "var(--brand)" }}>
+                    {c.role}
+                  </div>
+                )}
                 {c.bio && <p className="mt-3 text-sm text-muted-foreground">{c.bio}</p>}
               </div>
             ))}

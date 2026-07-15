@@ -13,10 +13,7 @@ import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/tournaments")({
   head: () => ({
-    meta: [
-      { title: "Tournaments · Match Center" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Tournaments · Match Center" }, { name: "robots", content: "noindex" }],
   }),
   component: TournamentsPage,
 });
@@ -132,4 +129,3 @@ function TournamentCard({ t }: { t: MCTournament }) {
     </Link>
   );
 }
-

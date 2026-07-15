@@ -10,21 +10,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/fee-plans")({
-  component: () => (<OwnerOnly><FeePlansPage /></OwnerOnly>),
+  component: () => (
+    <OwnerOnly>
+      <FeePlansPage />
+    </OwnerOnly>
+  ),
 });
 
-type PlanForm = { id?: string; name: string; description: string; amount: string; type: string; active: boolean };
+type PlanForm = {
+  id?: string;
+  name: string;
+  description: string;
+  amount: string;
+  type: string;
+  active: boolean;
+};
 
 function FeePlansPage() {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
-  const plans = useQuery({ queryKey: qk.feePlans(tenant.id), queryFn: () => fetchFeePlans(tenant.id) });
+  const plans = useQuery({
+    queryKey: qk.feePlans(tenant.id),
+    queryFn: () => fetchFeePlans(tenant.id),
+  });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PlanForm | null>(null);
 
@@ -47,13 +74,32 @@ function FeePlansPage() {
           <h1 className="text-2xl font-bold tracking-tight">Fee plans</h1>
           <p className="text-sm text-muted-foreground">These show on your public /fees page.</p>
         </div>
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditing(null); }}>
+        <Dialog
+          open={open}
+          onOpenChange={(v) => {
+            setOpen(v);
+            if (!v) setEditing(null);
+          }}
+        >
           <DialogTrigger asChild>
-            <Button style={{ backgroundColor: "var(--brand)", color: "white" }} onClick={() => setEditing({ name: "", description: "", amount: "", type: "monthly", active: true })}>
+            <Button
+              style={{ backgroundColor: "var(--brand)", color: "white" }}
+              onClick={() =>
+                setEditing({ name: "", description: "", amount: "", type: "monthly", active: true })
+              }
+            >
               <Plus className="size-4 mr-1" /> New plan
             </Button>
           </DialogTrigger>
-          {editing && <PlanDialog initial={editing} onClose={() => { setOpen(false); setEditing(null); }} />}
+          {editing && (
+            <PlanDialog
+              initial={editing}
+              onClose={() => {
+                setOpen(false);
+                setEditing(null);
+              }}
+            />
+          )}
         </Dialog>
       </header>
 
@@ -62,23 +108,52 @@ function FeePlansPage() {
           <Card key={p.id} className="p-4 flex items-start justify-between">
             <div>
               <div className="font-semibold">{p.name}</div>
-              <div className="text-xs text-muted-foreground capitalize">{p.type.replace("_", " ")}</div>
+              <div className="text-xs text-muted-foreground capitalize">
+                {p.type.replace("_", " ")}
+              </div>
               {p.description && <div className="text-xs mt-1">{p.description}</div>}
-              <div className="mt-2 text-lg font-bold">₹{Number(p.amount).toLocaleString("en-IN")}</div>
-              {!p.active && <div className="text-xs mt-1 text-amber-600">Inactive (hidden from public site)</div>}
+              <div className="mt-2 text-lg font-bold">
+                ₹{Number(p.amount).toLocaleString("en-IN")}
+              </div>
+              {!p.active && (
+                <div className="text-xs mt-1 text-amber-600">
+                  Inactive (hidden from public site)
+                </div>
+              )}
             </div>
             <div className="flex gap-1">
-              <Button size="icon" variant="ghost" onClick={() => { setEditing({ id: p.id, name: p.name, description: p.description ?? "", amount: String(p.amount), type: p.type, active: p.active }); setOpen(true); }}>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  setEditing({
+                    id: p.id,
+                    name: p.name,
+                    description: p.description ?? "",
+                    amount: String(p.amount),
+                    type: p.type,
+                    active: p.active,
+                  });
+                  setOpen(true);
+                }}
+              >
                 <Edit className="size-4" />
               </Button>
-              <Button size="icon" variant="ghost" className="text-rose-600" onClick={() => confirm(`Delete "${p.name}"?`) && del.mutate(p.id)}>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-rose-600"
+                onClick={() => confirm(`Delete "${p.name}"?`) && del.mutate(p.id)}
+              >
                 <Trash2 className="size-4" />
               </Button>
             </div>
           </Card>
         ))}
         {plans.data?.length === 0 && (
-          <Card className="p-8 text-center text-sm text-muted-foreground col-span-full">No fee plans yet.</Card>
+          <Card className="p-8 text-center text-sm text-muted-foreground col-span-full">
+            No fee plans yet.
+          </Card>
         )}
       </div>
     </div>
@@ -117,16 +192,47 @@ function PlanDialog({ initial, onClose }: { initial: PlanForm; onClose: () => vo
 
   return (
     <DialogContent className="max-w-sm">
-      <DialogHeader><DialogTitle>{form.id ? "Edit fee plan" : "New fee plan"}</DialogTitle></DialogHeader>
-      <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
-        <div className="space-y-1.5"><Label>Name</Label><Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-        <div className="space-y-1.5"><Label>Description</Label><Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+      <DialogHeader>
+        <DialogTitle>{form.id ? "Edit fee plan" : "New fee plan"}</DialogTitle>
+      </DialogHeader>
+      <form
+        className="space-y-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save.mutate();
+        }}
+      >
+        <div className="space-y-1.5">
+          <Label>Name</Label>
+          <Input
+            required
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Description</Label>
+          <Input
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
+        </div>
         <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1.5"><Label>Amount ₹</Label><Input required type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
+          <div className="space-y-1.5">
+            <Label>Amount ₹</Label>
+            <Input
+              required
+              type="number"
+              value={form.amount}
+              onChange={(e) => setForm({ ...form, amount: e.target.value })}
+            />
+          </div>
           <div className="space-y-1.5">
             <Label>Type</Label>
             <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="monthly">Monthly</SelectItem>
                 <SelectItem value="registration">Registration</SelectItem>
@@ -135,10 +241,17 @@ function PlanDialog({ initial, onClose }: { initial: PlanForm; onClose: () => vo
             </Select>
           </div>
         </div>
-        <div className="flex items-center gap-2"><Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} /> <Label>Active</Label></div>
+        <div className="flex items-center gap-2">
+          <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />{" "}
+          <Label>Active</Label>
+        </div>
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={save.isPending}>Save</Button>
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={save.isPending}>
+            Save
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>

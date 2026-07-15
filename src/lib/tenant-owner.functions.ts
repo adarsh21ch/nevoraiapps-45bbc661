@@ -56,10 +56,7 @@ export const createTenantOwner = createServerFn({ method: "POST" })
     if (!userId) throw new Error("Failed to resolve user id");
 
     // Link profile — replace any prior tenant assignment for this user.
-    const { error: delErr } = await supabaseAdmin
-      .from("profiles")
-      .delete()
-      .eq("user_id", userId);
+    const { error: delErr } = await supabaseAdmin.from("profiles").delete().eq("user_id", userId);
     if (delErr) throw new Error(delErr.message);
 
     const { error: insErr } = await supabaseAdmin.from("profiles").insert({

@@ -88,7 +88,6 @@ export function SiteFooter() {
               </div>
             ) : null}
           </div>
-
         </div>
       </div>
     </footer>

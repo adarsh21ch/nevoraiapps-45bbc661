@@ -54,9 +54,7 @@ function AwardsPage() {
                     <div className="font-semibold">{a.title}</div>
                     <div className="text-xs text-muted-foreground truncate">{a.holderName}</div>
                     <div className="text-sm font-bold tabular-nums mt-1">{a.value}</div>
-                    {a.detail && (
-                      <p className="text-xs text-muted-foreground mt-1">{a.detail}</p>
-                    )}
+                    {a.detail && <p className="text-xs text-muted-foreground mt-1">{a.detail}</p>}
                   </div>
                   <Trophy className="size-5 text-primary shrink-0" />
                 </div>

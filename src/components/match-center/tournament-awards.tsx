@@ -67,10 +67,7 @@ export function TournamentAwardsPanel({ tournamentId, tournamentName, publicMode
     staleTime: 30_000,
   });
 
-  const awards = useMemo(
-    () => (q.data ? computeTournamentAwards(q.data) : null),
-    [q.data],
-  );
+  const awards = useMemo(() => (q.data ? computeTournamentAwards(q.data) : null), [q.data]);
 
   if (q.isLoading) return <LoadingSkeleton />;
   if (!awards || q.data?.matches.length === 0)
@@ -131,13 +128,55 @@ export function TournamentAwardsPanel({ tournamentId, tournamentName, publicMode
         <MarqueeAward winner={awards.playerOfTournament} />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <AwardCard icon={Crown} accent="text-amber-500" label="Orange Cap" description="Most runs" winner={awards.orangeCap} />
-          <AwardCard icon={Zap} accent="text-purple-500" label="Purple Cap" description="Most wickets" winner={awards.purpleCap} />
-          <AwardCard icon={Trophy} accent="text-emerald-500" label="Best Batter" description="Runs · Avg · SR" winner={awards.bestBatter} />
-          <AwardCard icon={Trophy} accent="text-sky-500" label="Best Bowler" description="Wickets · Econ" winner={awards.bestBowler} />
-          <AwardCard icon={Award} accent="text-rose-500" label="Best All-Rounder" description="Bat + Ball impact" winner={awards.bestAllRounder} />
-          <AwardCard icon={Shield} accent="text-indigo-500" label="Best Fielder" description="Catches · Stumpings · RO" winner={awards.bestFielder} />
-          <AwardCard icon={Sparkles} accent="text-fuchsia-500" label="Emerging Player" description="Top output in ≤ 3 matches" winner={awards.emergingPlayer} />
+          <AwardCard
+            icon={Crown}
+            accent="text-amber-500"
+            label="Orange Cap"
+            description="Most runs"
+            winner={awards.orangeCap}
+          />
+          <AwardCard
+            icon={Zap}
+            accent="text-purple-500"
+            label="Purple Cap"
+            description="Most wickets"
+            winner={awards.purpleCap}
+          />
+          <AwardCard
+            icon={Trophy}
+            accent="text-emerald-500"
+            label="Best Batter"
+            description="Runs · Avg · SR"
+            winner={awards.bestBatter}
+          />
+          <AwardCard
+            icon={Trophy}
+            accent="text-sky-500"
+            label="Best Bowler"
+            description="Wickets · Econ"
+            winner={awards.bestBowler}
+          />
+          <AwardCard
+            icon={Award}
+            accent="text-rose-500"
+            label="Best All-Rounder"
+            description="Bat + Ball impact"
+            winner={awards.bestAllRounder}
+          />
+          <AwardCard
+            icon={Shield}
+            accent="text-indigo-500"
+            label="Best Fielder"
+            description="Catches · Stumpings · RO"
+            winner={awards.bestFielder}
+          />
+          <AwardCard
+            icon={Sparkles}
+            accent="text-fuchsia-500"
+            label="Emerging Player"
+            description="Top output in ≤ 3 matches"
+            winner={awards.emergingPlayer}
+          />
           <TeamAwardCard label="Fair Play Team" winner={awards.fairPlayTeam} />
         </div>
 
@@ -194,9 +233,13 @@ function AwardCard({
         <Icon className="size-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </div>
         <div className="truncate text-sm font-bold">{winner?.name ?? "—"}</div>
-        <div className="truncate text-xs text-muted-foreground">{winner?.headline ?? description}</div>
+        <div className="truncate text-xs text-muted-foreground">
+          {winner?.headline ?? description}
+        </div>
       </div>
     </div>
   );
@@ -209,9 +252,13 @@ function TeamAwardCard({ label, winner }: { label: string; winner: TeamAwardWinn
         <Users className="size-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </div>
         <div className="truncate text-sm font-bold">{winner?.name ?? "—"}</div>
-        <div className="truncate text-xs text-muted-foreground">{winner?.headline ?? "Awaiting more matches"}</div>
+        <div className="truncate text-xs text-muted-foreground">
+          {winner?.headline ?? "Awaiting more matches"}
+        </div>
       </div>
     </div>
   );
@@ -223,15 +270,22 @@ function TeamOfTournament({ picks }: { picks: TeamOfTournamentPick[] }) {
     <div className="rounded-2xl border border-border bg-card">
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Team of the Tournament</div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Team of the Tournament
+          </div>
           <div className="text-sm font-bold">Best XI · Auto-selected</div>
         </div>
         <Trophy className="size-5 text-amber-500" />
       </div>
       <ul className="grid gap-0 sm:grid-cols-2 lg:grid-cols-3">
         {picks.map((p, i) => (
-          <li key={`${p.athleteId ?? p.name}-${i}`} className="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 sm:last:border-b sm:[&:nth-last-child(-n+2)]:border-b-0 lg:[&:nth-last-child(-n+3)]:border-b-0">
-            <span className="grid size-6 shrink-0 place-items-center rounded-full bg-muted text-[10px] font-bold">{i + 1}</span>
+          <li
+            key={`${p.athleteId ?? p.name}-${i}`}
+            className="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 sm:last:border-b sm:[&:nth-last-child(-n+2)]:border-b-0 lg:[&:nth-last-child(-n+3)]:border-b-0"
+          >
+            <span className="grid size-6 shrink-0 place-items-center rounded-full bg-muted text-[10px] font-bold">
+              {i + 1}
+            </span>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium">{p.name}</div>
               <div className="truncate text-xs text-muted-foreground">{p.headline}</div>

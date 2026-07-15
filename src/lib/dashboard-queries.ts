@@ -257,7 +257,20 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
     const key = monthKeyOf(new Date(p.created_at));
     if (buckets.has(key)) buckets.set(key, buckets.get(key)! + Number(p.amount || 0));
   }
-  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const monthLabels = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   const revenue: RevenuePoint[] = Array.from(buckets.entries()).map(([key, amount]) => {
     const [, m] = key.split("-");
     return { month: key, label: monthLabels[Number(m) - 1] ?? key, amount };
@@ -370,7 +383,9 @@ export async function fetchDashboardActivity(
 
   for (const m of att.data ?? []) {
     const name = (m as any).students?.name ?? "Player";
-    const studentHref = m.student_id ? `/dashboard/students/${m.student_id}` : "/dashboard/attendance";
+    const studentHref = m.student_id
+      ? `/dashboard/students/${m.student_id}`
+      : "/dashboard/attendance";
     if (m.check_out_at) {
       events.push({
         id: `${m.id}-out`,

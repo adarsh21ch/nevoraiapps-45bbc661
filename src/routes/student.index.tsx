@@ -74,9 +74,7 @@ function StudentHomePage() {
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            {greeting()}
-          </p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">{greeting()}</p>
           <h1 className="text-2xl font-semibold leading-tight truncate">{firstName}</h1>
           {ctx.player_id && (
             <p className="text-xs text-muted-foreground mt-0.5">ID · {ctx.player_id}</p>
@@ -127,10 +125,7 @@ function StudentHomePage() {
 
       {/* Upcoming match */}
       {home.upcomingMatch?.match && (
-        <Link
-          to="/student/matches"
-          className="block"
-        >
+        <Link to="/student/matches" className="block">
           <Card className="p-4 flex items-center gap-3 hover:bg-muted/40 transition-colors">
             <div className="size-10 rounded-full bg-primary/10 grid place-items-center text-primary">
               <Swords className="size-5" />
@@ -185,9 +180,7 @@ function StudentHomePage() {
               <p className="text-xs uppercase tracking-wide text-muted-foreground">
                 Recent Achievement
               </p>
-              <p className="text-sm font-medium truncate">
-                {home.recentAchievement.title}
-              </p>
+              <p className="text-sm font-medium truncate">{home.recentAchievement.title}</p>
               {home.recentAchievement.event_date && (
                 <p className="text-xs text-muted-foreground">
                   {new Date(home.recentAchievement.event_date).toLocaleDateString()}
@@ -204,14 +197,46 @@ function StudentHomePage() {
           Quick Actions
         </p>
         <div className="grid grid-cols-4 grid-rows-2 gap-2">
-          <PlayerQuickAction to="/student/progress" icon={<CalendarCheck2 className="size-5" />} label="My Schedule" />
-          <PlayerQuickAction to="/student/progress" icon={<QrCode className="size-5" />} label="QR Check-In" />
-          <PlayerQuickAction to="/student/matches" icon={<Swords className="size-5" />} label="My Matches" />
-          <PlayerQuickAction to="/student/progress" icon={<TrendingUp className="size-5" />} label="Performance" />
-          <PlayerQuickAction to="/student/progress" icon={<MessageSquareQuote className="size-5" />} label="Coach Feedback" />
-          <PlayerQuickAction to="/student/manage" icon={<Megaphone className="size-5" />} label="Announcements" />
-          <PlayerQuickAction to="/student/manage" icon={<Mail className="size-5" />} label="Contact Academy" />
-          <PlayerQuickAction to="/student/profile" icon={<FileText className="size-5" />} label="My Documents" />
+          <PlayerQuickAction
+            to="/student/progress"
+            icon={<CalendarCheck2 className="size-5" />}
+            label="My Schedule"
+          />
+          <PlayerQuickAction
+            to="/student/progress"
+            icon={<QrCode className="size-5" />}
+            label="QR Check-In"
+          />
+          <PlayerQuickAction
+            to="/student/matches"
+            icon={<Swords className="size-5" />}
+            label="My Matches"
+          />
+          <PlayerQuickAction
+            to="/student/progress"
+            icon={<TrendingUp className="size-5" />}
+            label="Performance"
+          />
+          <PlayerQuickAction
+            to="/student/progress"
+            icon={<MessageSquareQuote className="size-5" />}
+            label="Coach Feedback"
+          />
+          <PlayerQuickAction
+            to="/student/manage"
+            icon={<Megaphone className="size-5" />}
+            label="Announcements"
+          />
+          <PlayerQuickAction
+            to="/student/manage"
+            icon={<Mail className="size-5" />}
+            label="Contact Academy"
+          />
+          <PlayerQuickAction
+            to="/student/profile"
+            icon={<FileText className="size-5" />}
+            label="My Documents"
+          />
         </div>
       </section>
     </div>
@@ -223,7 +248,12 @@ function PlayerQuickAction({
   icon,
   label,
 }: {
-  to: "/student" | "/student/progress" | "/student/matches" | "/student/profile" | "/student/manage";
+  to:
+    | "/student"
+    | "/student/progress"
+    | "/student/matches"
+    | "/student/profile"
+    | "/student/manage";
   icon: React.ReactNode;
   label: string;
 }) {
@@ -256,9 +286,7 @@ function StatCard({
       : "from-blue-500/15 to-transparent border-blue-500/20 text-blue-600 dark:text-blue-400";
   return (
     <Card className={`p-4 bg-gradient-to-br ${bg}`}>
-      <div className="flex items-center justify-between">
-        {icon}
-      </div>
+      <div className="flex items-center justify-between">{icon}</div>
       <p className="mt-2 text-2xl font-semibold text-foreground">
         {value}
         {suffix && <span className="text-sm font-normal text-muted-foreground ml-1">{suffix}</span>}

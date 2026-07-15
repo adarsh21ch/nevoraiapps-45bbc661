@@ -11,14 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { createMatch } from "@/lib/mc-matches";
 
-export type MCTournament =
-  Database["public"]["Tables"]["mc_tournaments"]["Row"];
-export type MCTournamentInsert =
-  Database["public"]["Tables"]["mc_tournaments"]["Insert"];
-export type MCTournamentUpdate =
-  Database["public"]["Tables"]["mc_tournaments"]["Update"];
-export type MCTournamentTeam =
-  Database["public"]["Tables"]["mc_tournament_teams"]["Row"];
+export type MCTournament = Database["public"]["Tables"]["mc_tournaments"]["Row"];
+export type MCTournamentInsert = Database["public"]["Tables"]["mc_tournaments"]["Insert"];
+export type MCTournamentUpdate = Database["public"]["Tables"]["mc_tournaments"]["Update"];
+export type MCTournamentTeam = Database["public"]["Tables"]["mc_tournament_teams"]["Row"];
 
 export const TOURNAMENT_TYPES = [
   { value: "league", label: "League" },
@@ -30,12 +26,7 @@ export const TOURNAMENT_TYPES = [
 ] as const;
 
 export const TOURNAMENT_FORMATS = ["T10", "T20", "ODI", "Test", "Custom"] as const;
-export const TOURNAMENT_STATUSES = [
-  "upcoming",
-  "ongoing",
-  "completed",
-  "cancelled",
-] as const;
+export const TOURNAMENT_STATUSES = ["upcoming", "ongoing", "completed", "cancelled"] as const;
 export const TOURNAMENT_VISIBILITIES = ["internal", "academy", "public"] as const;
 
 /* ================================================================
@@ -44,20 +35,19 @@ export const TOURNAMENT_VISIBILITIES = ["internal", "academy", "public"] as cons
  * ================================================================ */
 
 export function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80) || "tournament";
+  return (
+    input
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80) || "tournament"
+  );
 }
 
 /** Ensure the slug is unique within a tenant, suffixing -2, -3, … as needed. */
-export async function generateUniqueSlug(
-  tenantId: string,
-  base: string,
-): Promise<string> {
+export async function generateUniqueSlug(tenantId: string, base: string): Promise<string> {
   const root = slugify(base);
   const { data, error } = await supabase
     .from("mc_tournaments")
@@ -97,14 +87,8 @@ export async function getTournament(id: string): Promise<MCTournament | null> {
   return data;
 }
 
-export async function createTournament(
-  input: MCTournamentInsert,
-): Promise<MCTournament> {
-  const { data, error } = await supabase
-    .from("mc_tournaments")
-    .insert(input)
-    .select("*")
-    .single();
+export async function createTournament(input: MCTournamentInsert): Promise<MCTournament> {
+  const { data, error } = await supabase.from("mc_tournaments").insert(input).select("*").single();
   if (error) throw error;
   return data;
 }
@@ -143,14 +127,10 @@ export interface TournamentTeamWithTeam extends MCTournamentTeam {
   } | null;
 }
 
-export async function listTournamentTeams(
-  tournamentId: string,
-): Promise<TournamentTeamWithTeam[]> {
+export async function listTournamentTeams(tournamentId: string): Promise<TournamentTeamWithTeam[]> {
   const { data, error } = await supabase
     .from("mc_tournament_teams")
-    .select(
-      `*, team:mc_teams(id, name, short_name, logo_url, is_external, team_color)`,
-    )
+    .select(`*, team:mc_teams(id, name, short_name, logo_url, is_external, team_color)`)
     .eq("tournament_id", tournamentId)
     .order("position", { ascending: true })
     .order("points", { ascending: false });
@@ -175,10 +155,7 @@ export async function registerTeams(
   if (error) throw error;
 }
 
-export async function removeTeam(
-  tournamentId: string,
-  teamId: string,
-): Promise<void> {
+export async function removeTeam(tournamentId: string, teamId: string): Promise<void> {
   const { error } = await supabase
     .from("mc_tournament_teams")
     .delete()

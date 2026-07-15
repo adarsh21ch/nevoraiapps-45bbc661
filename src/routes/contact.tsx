@@ -1,6 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Phone, MessageCircle, Mail, MapPin, ExternalLink, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  Phone,
+  MessageCircle,
+  Mail,
+  MapPin,
+  ExternalLink,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { TenantGate } from "@/components/site/TenantGate";
 import { PageHero } from "@/components/site/PageHero";
@@ -34,35 +42,71 @@ function ContactContent() {
       <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
         <div className="grid gap-4 sm:grid-cols-2">
           {tenant.phone ? (
-            <a href={`tel:${tenant.phone}`} className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md">
-              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30" style={{ backgroundColor: "var(--brand)" }} />
+            <a
+              href={`tel:${tenant.phone}`}
+              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md"
+            >
+              <div
+                className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30"
+                style={{ backgroundColor: "var(--brand)" }}
+              />
               <Phone className="h-6 w-6" style={{ color: "var(--brand)" }} />
-              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Call</div>
+              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Call
+              </div>
               <div className="mt-1 text-lg font-semibold text-foreground">{tenant.phone}</div>
             </a>
           ) : null}
 
           {wa ? (
-            <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer" className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md">
-              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30" style={{ backgroundColor: "var(--brand)" }} />
+            <a
+              href={`https://wa.me/${wa}`}
+              target="_blank"
+              rel="noreferrer"
+              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md"
+            >
+              <div
+                className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30"
+                style={{ backgroundColor: "var(--brand)" }}
+              />
               <MessageCircle className="h-6 w-6" style={{ color: "var(--brand)" }} />
-              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">WhatsApp</div>
+              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                WhatsApp
+              </div>
               <div className="mt-1 text-lg font-semibold text-foreground">Chat with us</div>
             </a>
           ) : null}
 
           {tenant.email ? (
-            <a href={`mailto:${tenant.email}`} className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md">
-              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30" style={{ backgroundColor: "var(--brand)" }} />
+            <a
+              href={`mailto:${tenant.email}`}
+              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md"
+            >
+              <div
+                className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30"
+                style={{ backgroundColor: "var(--brand)" }}
+              />
               <Mail className="h-6 w-6" style={{ color: "var(--brand)" }} />
-              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Email</div>
-              <div className="mt-1 break-all text-lg font-semibold text-foreground">{tenant.email}</div>
+              <div className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Email
+              </div>
+              <div className="mt-1 break-all text-lg font-semibold text-foreground">
+                {tenant.email}
+              </div>
             </a>
           ) : null}
 
           {mapUrl ? (
-            <a href={mapUrl} target="_blank" rel="noreferrer" className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md">
-              <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30" style={{ backgroundColor: "var(--brand)" }} />
+            <a
+              href={mapUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 transition-shadow hover:shadow-md"
+            >
+              <div
+                className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10 blur-2xl transition-opacity group-hover:opacity-30"
+                style={{ backgroundColor: "var(--brand)" }}
+              />
               <MapPin className="h-6 w-6" style={{ color: "var(--brand)" }} />
               <div className="mt-4 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Visit <ExternalLink className="h-3 w-3" />
@@ -77,7 +121,6 @@ function ContactContent() {
     </>
   );
 }
-
 
 function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: string }) {
   const [name, setName] = useState("");
@@ -102,13 +145,16 @@ function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: s
       toast.error("Too many attempts. Please try again in a few minutes.");
       return;
     }
-    const { error } = await supabase.rpc("submit_lead" as never, {
-      _tenant_id: tenantId,
-      _name: name.trim(),
-      _phone: phone.trim(),
-      _message: message.trim() || null,
-      _source: "site-contact",
-    } as never);
+    const { error } = await supabase.rpc(
+      "submit_lead" as never,
+      {
+        _tenant_id: tenantId,
+        _name: name.trim(),
+        _phone: phone.trim(),
+        _message: message.trim() || null,
+        _source: "site-contact",
+      } as never,
+    );
     setSaving(false);
     if (error) {
       toast.error(error.message ?? "Could not send. Please try again.");
@@ -120,7 +166,10 @@ function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: s
   if (done) {
     return (
       <div className="mt-12 rounded-2xl border border-border/60 bg-card p-8 text-center">
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-full" style={{ backgroundColor: "var(--brand)" }}>
+        <div
+          className="mx-auto grid h-14 w-14 place-items-center rounded-full"
+          style={{ backgroundColor: "var(--brand)" }}
+        >
           <CheckCircle2 className="h-7 w-7 text-white" />
         </div>
         <h2 className="mt-5 text-xl font-bold text-foreground">Thanks — message received</h2>
@@ -132,16 +181,26 @@ function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: s
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-12 space-y-4 rounded-2xl border border-border/60 bg-card p-6 sm:p-8">
+    <form
+      onSubmit={onSubmit}
+      className="mt-12 space-y-4 rounded-2xl border border-border/60 bg-card p-6 sm:p-8"
+    >
       <div>
-        <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
+        <div
+          className="text-xs font-semibold uppercase tracking-widest"
+          style={{ color: "var(--brand)" }}
+        >
           Send a message
         </div>
-        <h2 className="mt-1 text-2xl font-bold text-foreground">Or leave your number — we'll reach out</h2>
+        <h2 className="mt-1 text-2xl font-bold text-foreground">
+          Or leave your number — we'll reach out
+        </h2>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Your name *</span>
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Your name *
+          </span>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -152,7 +211,9 @@ function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: s
           />
         </label>
         <label className="block">
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Phone *</span>
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Phone *
+          </span>
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
@@ -165,7 +226,9 @@ function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: s
         </label>
       </div>
       <label className="block">
-        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">What can we help with?</span>
+        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          What can we help with?
+        </span>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}

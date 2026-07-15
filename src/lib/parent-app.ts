@@ -107,8 +107,7 @@ export async function fetchChildBillingSummary(
     .select("show_billing_to_parents")
     .eq("id", tenantId)
     .maybeSingle();
-  const enabled = !!(t as { show_billing_to_parents?: boolean } | null)
-    ?.show_billing_to_parents;
+  const enabled = !!(t as { show_billing_to_parents?: boolean } | null)?.show_billing_to_parents;
   if (!enabled) return { enabled: false, outstanding: 0, currency: "INR", invoices: [] };
 
   const { data, error } = await supabase
@@ -134,14 +133,7 @@ export async function fetchChildBillingSummary(
 
 export type TimelineEvent = {
   id: string;
-  kind:
-    | "attendance"
-    | "match"
-    | "achievement"
-    | "award"
-    | "coach_note"
-    | "billing"
-    | "timeline";
+  kind: "attendance" | "match" | "achievement" | "award" | "coach_note" | "billing" | "timeline";
   at: string; // ISO date
   title: string;
   subtitle?: string | null;
@@ -256,9 +248,7 @@ export async function fetchChildTimeline(
     // Matches (via squads → matches; RLS shows only those the child played)
     const { data: sq } = await supabase
       .from("mc_match_squads")
-      .select(
-        "id, match:mc_matches!inner(id, scheduled_date, match_format, result, ground_name)",
-      )
+      .select("id, match:mc_matches!inner(id, scheduled_date, match_format, result, ground_name)")
       .eq("athlete_profile_id", ctx.athlete_profile_id)
       .order("created_at", { ascending: false })
       .limit(40);
@@ -287,9 +277,7 @@ export async function fetchChildTimeline(
         id: `match-${row.id}`,
         kind: "match",
         at: m.scheduled_date,
-        title: `${m.match_format ?? "Match"}${
-          m.ground_name ? ` · ${m.ground_name}` : ""
-        }`,
+        title: `${m.match_format ?? "Match"}${m.ground_name ? ` · ${m.ground_name}` : ""}`,
         subtitle: m.result,
         icon_key: "sword",
       });

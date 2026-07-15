@@ -12,7 +12,13 @@ export type PlatformStats = {
   notifications_30d: number;
   mrr: number;
   mrr_collected: number;
-  latest_signups: Array<{ id: string; name: string; slug: string; created_at: string; status: string }>;
+  latest_signups: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    created_at: string;
+    status: string;
+  }>;
 };
 
 export const analyticsKeys = {
@@ -36,11 +42,28 @@ export type TenantUsage = {
 
 export async function fetchTenantUsage(tenantId: string): Promise<TenantUsage> {
   const [students, admins, parents, notifs, camps] = await Promise.all([
-    supabase.from("students").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).is("archived_at", null),
-    supabase.from("profiles").select("user_id", { count: "exact", head: true }).eq("tenant_id", tenantId),
-    supabase.from("mc_parent_links").select("id", { count: "exact", head: true }).eq("academy_id", tenantId),
-    supabase.from("notifications").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", new Date(Date.now() - 30 * 86400_000).toISOString()),
-    supabase.from("comm_campaigns").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId),
+    supabase
+      .from("students")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
+      .is("archived_at", null),
+    supabase
+      .from("profiles")
+      .select("user_id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId),
+    supabase
+      .from("mc_parent_links")
+      .select("id", { count: "exact", head: true })
+      .eq("academy_id", tenantId),
+    supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId)
+      .gte("created_at", new Date(Date.now() - 30 * 86400_000).toISOString()),
+    supabase
+      .from("comm_campaigns")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenantId),
   ]);
   return {
     students: students.count ?? 0,

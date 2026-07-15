@@ -47,7 +47,11 @@ export function TenantPlaceholder() {
         className="pointer-events-none fixed inset-x-0 top-0 z-30 bg-[#0a0a0a]"
         style={{ height: "env(safe-area-inset-top)" }}
       />
-      <div aria-hidden="true" className="bg-[#0a0a0a]" style={{ height: "env(safe-area-inset-top)" }} />
+      <div
+        aria-hidden="true"
+        className="bg-[#0a0a0a]"
+        style={{ height: "env(safe-area-inset-top)" }}
+      />
       <Nav whatsappUrl={whatsappUrl} />
       <Hero whatsappUrl={whatsappUrl} emailUrl={emailUrl} />
       <Marquee />
@@ -353,11 +357,7 @@ function Bento() {
           </div>
           <BentoTitle>Every enquiry lands on WhatsApp.</BentoTitle>
           <div className="mt-6 space-y-3">
-            <Bubble
-              side="in"
-              text="Hi, want to join morning cricket batch. — Aarav"
-              delay={0.1}
-            />
+            <Bubble side="in" text="Hi, want to join morning cricket batch. — Aarav" delay={0.1} />
             <Bubble side="out" text="Welcome! Trial slot booked for Sat 7 AM." delay={0.4} />
             <TypingBubble delay={0.8} />
           </div>
@@ -405,8 +405,8 @@ function Bento() {
                 state === "present"
                   ? "bg-lime-400"
                   : state === "late"
-                  ? "bg-yellow-400"
-                  : "bg-red-500/70";
+                    ? "bg-yellow-400"
+                    : "bg-red-500/70";
               return (
                 <motion.div
                   key={i}
@@ -450,8 +450,8 @@ function BentoCard({
     accent === "lime"
       ? "hover:border-lime-500/60"
       : accent === "blue"
-      ? "hover:border-blue-500/60"
-      : "hover:border-white/40";
+        ? "hover:border-blue-500/60"
+        : "hover:border-white/40";
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -467,7 +467,9 @@ function BentoCard({
 
 function BentoKicker({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-500">{children}</div>
+    <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-500">
+      {children}
+    </div>
   );
 }
 function BentoTitle({ children }: { children: React.ReactNode }) {
@@ -493,9 +495,7 @@ function Bubble({ side, text, delay }: { side: "in" | "out"; text: string; delay
     >
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
-          isOut
-            ? "rounded-br-sm bg-lime-400 text-black"
-            : "rounded-bl-sm bg-zinc-800 text-white"
+          isOut ? "rounded-br-sm bg-lime-400 text-black" : "rounded-bl-sm bg-zinc-800 text-white"
         }`}
       >
         {text}
@@ -581,16 +581,10 @@ function ClosingCTA({ whatsappUrl, emailUrl }: { whatsappUrl: string; emailUrl: 
         className="text-6xl leading-[0.9] tracking-tighter sm:text-[8rem]"
         // eslint-disable-next-line react/forbid-dom-props
       >
-        <span
-          className="block text-white"
-          style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-        >
+        <span className="block text-white" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
           RUN A TIGHTER
         </span>
-        <span
-          className="block text-lime-400"
-          style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-        >
+        <span className="block text-lime-400" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>
           ACADEMY.
         </span>
       </motion.h2>

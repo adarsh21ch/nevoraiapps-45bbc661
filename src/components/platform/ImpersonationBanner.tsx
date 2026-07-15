@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { getImpersonation, stopImpersonation, subscribeImpersonation, type ImpersonationState } from "@/lib/platform-impersonation";
+import {
+  getImpersonation,
+  stopImpersonation,
+  subscribeImpersonation,
+  type ImpersonationState,
+} from "@/lib/platform-impersonation";
 import { AlertTriangle } from "lucide-react";
 
 export function ImpersonationBanner() {
@@ -17,7 +22,8 @@ export function ImpersonationBanner() {
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2 text-sm">
         <AlertTriangle className="size-4 shrink-0 text-rose-300" />
         <div className="flex-1 min-w-0 truncate">
-          <span className="font-semibold">Impersonating</span> · viewing <span className="font-mono">{state.tenant_name}</span>
+          <span className="font-semibold">Impersonating</span> · viewing{" "}
+          <span className="font-mono">{state.tenant_name}</span>
           <span className="text-rose-300"> · every action is audited</span>
         </div>
         <button

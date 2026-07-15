@@ -33,7 +33,11 @@ export async function fetchTenants(): Promise<TenantRow[]> {
 }
 
 export async function fetchTenantById(id: string): Promise<Tenant | null> {
-  const { data, error } = await supabase.from("tenants").select(TENANT_COLS).eq("id", id).maybeSingle();
+  const { data, error } = await supabase
+    .from("tenants")
+    .select(TENANT_COLS)
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw error;
   return data as Tenant | null;
 }

@@ -40,10 +40,9 @@ export function DemoSettingsCard() {
             <h3 className="text-sm font-semibold">Demo Academy</h3>
           </div>
           <p className="mt-1.5 text-xs text-muted-foreground max-w-lg">
-            Populate every Match Center screen with realistic sample players, teams,
-            tournaments, matches and records — including a live match you can score
-            ball-by-ball. Ball events persist locally on this device. Real academy
-            data is never modified.
+            Populate every Match Center screen with realistic sample players, teams, tournaments,
+            matches and records — including a live match you can score ball-by-ball. Ball events
+            persist locally on this device. Real academy data is never modified.
           </p>
         </div>
         <Switch checked={on} onCheckedChange={toggle} aria-label="Toggle Demo Academy" />

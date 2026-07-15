@@ -99,10 +99,7 @@ export function resetDemoData(tenantId: string) {
  * Mutate the demo dataset for a tenant. Produces a shallow-cloned snapshot,
  * runs the mutator, persists and emits so every subscriber re-renders.
  */
-export function updateDemoData(
-  tenantId: string,
-  mutator: (draft: DemoData) => void,
-) {
+export function updateDemoData(tenantId: string, mutator: (draft: DemoData) => void) {
   const cur = ensureData(tenantId);
   const next: DemoData = {
     ...cur,
@@ -169,7 +166,8 @@ export function findDemoDatasetByMatchId(
   if (typeof window === "undefined") return null;
   // Try cache first
   for (const [tenantId, data] of dataCache) {
-    if (data.matches?.some((m) => m.id === matchId) || data.liveMatch?.id === matchId) return { tenantId, data };
+    if (data.matches?.some((m) => m.id === matchId) || data.liveMatch?.id === matchId)
+      return { tenantId, data };
   }
   try {
     for (let i = 0; i < window.localStorage.length; i++) {
@@ -229,10 +227,7 @@ export type DemoEntity =
   | { kind: "tournament"; tournament: DemoData["tournaments"][number] }
   | { kind: "match"; match: DemoData["matches"][number] };
 
-export function useDemoEntity(
-  tenantId: string,
-  id: string | undefined | null,
-): DemoEntity | null {
+export function useDemoEntity(tenantId: string, id: string | undefined | null): DemoEntity | null {
   const demo = useDemoData(tenantId);
   if (!demo || !id || !isDemoId(id)) return null;
   const match = demo.matches.find((m) => m.id === id);

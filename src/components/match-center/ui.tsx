@@ -79,10 +79,7 @@ export function StatusChip({
       }}
     >
       {pulse && (
-        <span
-          className="relative flex size-1.5"
-          aria-hidden
-        >
+        <span className="relative flex size-1.5" aria-hidden>
           <span
             className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
             style={{ backgroundColor: toneVar[tone] }}
@@ -251,8 +248,7 @@ export function EmptyState({
   nextSteps?: string[];
 }) {
   const isTrophy = illustration === "trophy";
-  const accent =
-    tone === "neutral" ? "var(--tenant-brand, var(--brand, #E8873C))" : toneVar[tone];
+  const accent = tone === "neutral" ? "var(--tenant-brand, var(--brand, #E8873C))" : toneVar[tone];
   return (
     <div
       className={cn(
@@ -364,10 +360,7 @@ export function EmptyState({
                 {i + 1}
               </span>
               <span className="min-w-0 flex-1 leading-snug">{step}</span>
-              <Check
-                className="mt-0.5 size-4 shrink-0 text-muted-foreground/40"
-                aria-hidden
-              />
+              <Check className="mt-0.5 size-4 shrink-0 text-muted-foreground/40" aria-hidden />
             </li>
           ))}
         </ol>
@@ -376,20 +369,11 @@ export function EmptyState({
   );
 }
 
-export function LoadingSkeleton({
-  rows = 3,
-  className,
-}: {
-  rows?: number;
-  className?: string;
-}) {
+export function LoadingSkeleton({ rows = 3, className }: { rows?: number; className?: string }) {
   return (
     <div className={cn("space-y-3", className)} role="status" aria-label="Loading">
       {Array.from({ length: rows }).map((_, i) => (
-        <div
-          key={i}
-          className="h-16 w-full rounded-xl ds-shimmer border border-border/40"
-        />
+        <div key={i} className="h-16 w-full rounded-xl ds-shimmer border border-border/40" />
       ))}
       <span className="sr-only">Loading…</span>
     </div>
@@ -575,7 +559,12 @@ export function MobileListItem({
       {right && <div className="shrink-0 tabular-nums">{right}</div>}
     </div>
   );
-  if (to) return <Link to={to} className="block">{inner}</Link>;
+  if (to)
+    return (
+      <Link to={to} className="block">
+        {inner}
+      </Link>
+    );
   return (
     <button onClick={onClick} className="block w-full text-left" type="button">
       {inner}

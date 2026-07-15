@@ -8,7 +8,12 @@ export const Route = createFileRoute("/platform-admin/health")({
   component: HealthPage,
 });
 
-type Probe = { label: string; status: "ok" | "warn" | "error" | "checking"; detail: string; icon: React.ReactNode };
+type Probe = {
+  label: string;
+  status: "ok" | "warn" | "error" | "checking";
+  detail: string;
+  icon: React.ReactNode;
+};
 
 function HealthPage() {
   const [probes, setProbes] = useState<Probe[]>([

@@ -14,7 +14,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/match-center/profile")({
-  head: () => ({ meta: [{ title: "Profile · Match Center" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Profile · Match Center" }, { name: "robots", content: "noindex" }],
+  }),
   component: ProfilePage,
 });
 

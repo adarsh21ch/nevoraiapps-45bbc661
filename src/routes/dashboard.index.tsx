@@ -110,8 +110,14 @@ function DashboardHome() {
     queryFn: () => fetchAttendanceToday(tenant.id),
     staleTime: 15_000,
   });
-  const batchesQ = useQuery({ queryKey: qk.batches(tenant.id), queryFn: () => fetchBatches(tenant.id) });
-  const studentsQ = useQuery({ queryKey: qk.students(tenant.id), queryFn: () => fetchStudents(tenant.id) });
+  const batchesQ = useQuery({
+    queryKey: qk.batches(tenant.id),
+    queryFn: () => fetchBatches(tenant.id),
+  });
+  const studentsQ = useQuery({
+    queryKey: qk.students(tenant.id),
+    queryFn: () => fetchStudents(tenant.id),
+  });
   const activityQ = useQuery({
     queryKey: qk.activity(tenant.id),
     queryFn: () => fetchDashboardActivity(tenant.id, { includeFees: canViewFees }),
@@ -170,9 +176,7 @@ function DashboardHome() {
   const collectedMonth = kpis?.collectionThisMonth ?? 0;
   const attendanceLoading = attendanceQ.isLoading || batchesQ.isLoading || studentsQ.isLoading;
 
-
-  const displayName =
-    (profile as { display_name?: string })?.display_name ?? tenant.name;
+  const displayName = (profile as { display_name?: string })?.display_name ?? tenant.name;
   const greeting = greetingFor(now);
 
   // Pending actions for admins = new regs + not-yet-arrived count.
@@ -272,10 +276,7 @@ function DashboardHome() {
         <SectionLabel action={<HeaderLink to="/dashboard/attendance">Open</HeaderLink>}>
           Today's activity
         </SectionLabel>
-        <ActivityFeed
-          query={activityQ}
-          canViewFees={canViewFees}
-        />
+        <ActivityFeed query={activityQ} canViewFees={canViewFees} />
       </section>
 
       {/* ─── Section 3b · Cricket today (Match Center integration) ────── */}
@@ -288,12 +289,8 @@ function DashboardHome() {
           notArrived={notArrived}
           pendingFees={canViewFees && feeEnabled ? pendingFees : 0}
           newRegs={newRegs}
-          birthdaysToday={
-            (insights?.birthdays ?? []).filter((b) => b.daysAway === 0).length
-          }
-          isLoading={
-            attendanceLoading || insightsQ.isLoading || kpisQ.isLoading
-          }
+          birthdaysToday={(insights?.birthdays ?? []).filter((b) => b.daysAway === 0).length}
+          isLoading={attendanceLoading || insightsQ.isLoading || kpisQ.isLoading}
         />
       </section>
     </div>
@@ -413,9 +410,7 @@ function KpiTile({
           {value === null ? <Skeleton className="h-6 w-14" /> : value}
         </div>
         <div className="mt-1 flex items-baseline justify-between gap-1.5">
-          <div className="text-[11px] font-semibold text-muted-foreground truncate">
-            {label}
-          </div>
+          <div className="text-[11px] font-semibold text-muted-foreground truncate">{label}</div>
           {hint ? (
             <div className="text-[10px] text-muted-foreground/80 truncate">{hint}</div>
           ) : null}
@@ -425,15 +420,7 @@ function KpiTile({
   );
 }
 
-function QuickAction({
-  to,
-  label,
-  icon,
-}: {
-  to: string;
-  label: string;
-  icon: React.ReactNode;
-}) {
+function QuickAction({ to, label, icon }: { to: string; label: string; icon: React.ReactNode }) {
   return (
     <Link
       to={to}
@@ -452,9 +439,7 @@ function QuickAction({
       >
         {icon}
       </span>
-      <span className="text-[11px] font-semibold leading-none text-center">
-        {label}
-      </span>
+      <span className="text-[11px] font-semibold leading-none text-center">{label}</span>
     </Link>
   );
 }
@@ -476,27 +461,59 @@ function QuickActionsGrid({
 }) {
   const ownerActions: QAItem[] = [
     { to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
-    { to: "/dashboard/registrations", label: "New Registration", icon: <Inbox className="size-5" /> },
+    {
+      to: "/dashboard/registrations",
+      label: "New Registration",
+      icon: <Inbox className="size-5" />,
+    },
     { to: "/dashboard/batches", label: "Create Batch", icon: <CalendarDays className="size-5" /> },
     ...(canScoreMatch
-      ? [{ to: "/match-center", label: "Start Match", icon: <Swords className="size-5" /> } as QAItem]
+      ? [
+          {
+            to: "/match-center",
+            label: "Start Match",
+            icon: <Swords className="size-5" />,
+          } as QAItem,
+        ]
       : []),
-    { to: "/dashboard/communications", label: "Send Announcement", icon: <Megaphone className="size-5" /> },
+    {
+      to: "/dashboard/communications",
+      label: "Send Announcement",
+      icon: <Megaphone className="size-5" />,
+    },
     { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> },
     { to: "/dashboard/site", label: "Share Website", icon: <Share2 className="size-5" /> },
   ];
 
   const adminActions: QAItem[] = [
-    { to: "/dashboard/attendance", label: "Check Attendance", icon: <ClipboardCheck className="size-5" /> },
+    {
+      to: "/dashboard/attendance",
+      label: "Check Attendance",
+      icon: <ClipboardCheck className="size-5" />,
+    },
     { to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
-    { to: "/dashboard/registrations", label: "New Registration", icon: <Inbox className="size-5" /> },
+    {
+      to: "/dashboard/registrations",
+      label: "New Registration",
+      icon: <Inbox className="size-5" />,
+    },
     ...(canScoreMatch
-      ? [{ to: "/match-center", label: "Start Match", icon: <Swords className="size-5" /> } as QAItem]
+      ? [
+          {
+            to: "/match-center",
+            label: "Start Match",
+            icon: <Swords className="size-5" />,
+          } as QAItem,
+        ]
       : []),
     { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> },
     { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
-    { to: "/dashboard/communications", label: "Send Announcement", icon: <Megaphone className="size-5" /> },
+    {
+      to: "/dashboard/communications",
+      label: "Send Announcement",
+      icon: <Megaphone className="size-5" />,
+    },
     { to: "/dashboard/students", label: "Player List", icon: <Users className="size-5" /> },
   ];
 
@@ -551,9 +568,7 @@ function ActivityFeed({
       </div>
     );
   }
-  const events = (query.data ?? []).filter((e) =>
-    canViewFees ? true : e.kind !== "payment",
-  );
+  const events = (query.data ?? []).filter((e) => (canViewFees ? true : e.kind !== "payment"));
   if (events.length === 0) {
     return (
       <Link
@@ -598,9 +613,7 @@ function ActivityRow({ event }: { event: ActivityEvent }) {
         {meta.icon}
       </span>
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-semibold truncate">
-          {event.actorName}
-        </div>
+        <div className="text-[13px] font-semibold truncate">{event.actorName}</div>
         <div className="text-[11px] text-muted-foreground truncate">
           {event.detail}
           {event.amount != null ? ` · ${money(event.amount)}` : ""}
@@ -624,9 +637,7 @@ function ActivityRow({ event }: { event: ActivityEvent }) {
       </li>
     );
   }
-  return (
-    <li className="flex items-center gap-3 px-3 py-2.5">{body}</li>
-  );
+  return <li className="flex items-center gap-3 px-3 py-2.5">{body}</li>;
 }
 
 function activityMeta(kind: ActivityEvent["kind"]): {
@@ -777,4 +788,3 @@ function NextActions({
     </div>
   );
 }
-

@@ -19,10 +19,7 @@ import { RadarChartSVG, StatPill } from "@/components/match-center/perf-charts";
 
 export const Route = createFileRoute("/match-center/performance/compare")({
   head: () => ({
-    meta: [
-      { title: "Compare Players · Match Center" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Compare Players · Match Center" }, { name: "robots", content: "noindex" }],
   }),
   component: ComparePage,
 });
@@ -66,9 +63,7 @@ function ComparePage() {
         Math.min(100, (aQ.data.totals.average / 40) * 100),
         Math.min(100, (aQ.data.totals.strikeRate / 150) * 100),
         Math.min(100, (aQ.data.totals.wickets / 25) * 100),
-        aQ.data.totals.ballsBowled > 0
-          ? Math.max(0, 100 - (aQ.data.totals.economy / 10) * 100)
-          : 0,
+        aQ.data.totals.ballsBowled > 0 ? Math.max(0, 100 - (aQ.data.totals.economy / 10) * 100) : 0,
         aQ.data.consistency.score,
       ]
     : [0, 0, 0, 0, 0, 0];
@@ -79,9 +74,7 @@ function ComparePage() {
         Math.min(100, (bQ.data.totals.average / 40) * 100),
         Math.min(100, (bQ.data.totals.strikeRate / 150) * 100),
         Math.min(100, (bQ.data.totals.wickets / 25) * 100),
-        bQ.data.totals.ballsBowled > 0
-          ? Math.max(0, 100 - (bQ.data.totals.economy / 10) * 100)
-          : 0,
+        bQ.data.totals.ballsBowled > 0 ? Math.max(0, 100 - (bQ.data.totals.economy / 10) * 100) : 0,
         bQ.data.consistency.score,
       ]
     : [0, 0, 0, 0, 0, 0];
@@ -110,7 +103,7 @@ function ComparePage() {
         <PlayerPicker label="Player B" value={b} onChange={setB} options={options} />
       </div>
 
-      {(!a || !b) ? (
+      {!a || !b ? (
         <EmptyState
           icon={GitCompare}
           title="Select two players"
@@ -121,14 +114,67 @@ function ComparePage() {
       ) : !aQ.data || !bQ.data ? null : (
         <div className="space-y-6">
           <section className="grid gap-3 grid-cols-2 md:grid-cols-4">
-            <CompareStat label="Matches" a={aQ.data.totals.matches} b={bQ.data.totals.matches} nameA={nameA} nameB={nameB} />
-            <CompareStat label="Runs" a={aQ.data.totals.runs} b={bQ.data.totals.runs} nameA={nameA} nameB={nameB} />
-            <CompareStat label="Average" a={aQ.data.totals.average} b={bQ.data.totals.average} nameA={nameA} nameB={nameB} precision={1} />
-            <CompareStat label="Strike Rate" a={aQ.data.totals.strikeRate} b={bQ.data.totals.strikeRate} nameA={nameA} nameB={nameB} precision={1} />
-            <CompareStat label="Wickets" a={aQ.data.totals.wickets} b={bQ.data.totals.wickets} nameA={nameA} nameB={nameB} />
-            <CompareStat label="Economy" a={aQ.data.totals.economy} b={bQ.data.totals.economy} nameA={nameA} nameB={nameB} precision={2} lowerBetter />
-            <CompareStat label="Consistency" a={aQ.data.consistency.score} b={bQ.data.consistency.score} nameA={nameA} nameB={nameB} />
-            <CompareStat label="Last-5 Avg" a={aQ.data.form.last5.average} b={bQ.data.form.last5.average} nameA={nameA} nameB={nameB} precision={1} />
+            <CompareStat
+              label="Matches"
+              a={aQ.data.totals.matches}
+              b={bQ.data.totals.matches}
+              nameA={nameA}
+              nameB={nameB}
+            />
+            <CompareStat
+              label="Runs"
+              a={aQ.data.totals.runs}
+              b={bQ.data.totals.runs}
+              nameA={nameA}
+              nameB={nameB}
+            />
+            <CompareStat
+              label="Average"
+              a={aQ.data.totals.average}
+              b={bQ.data.totals.average}
+              nameA={nameA}
+              nameB={nameB}
+              precision={1}
+            />
+            <CompareStat
+              label="Strike Rate"
+              a={aQ.data.totals.strikeRate}
+              b={bQ.data.totals.strikeRate}
+              nameA={nameA}
+              nameB={nameB}
+              precision={1}
+            />
+            <CompareStat
+              label="Wickets"
+              a={aQ.data.totals.wickets}
+              b={bQ.data.totals.wickets}
+              nameA={nameA}
+              nameB={nameB}
+            />
+            <CompareStat
+              label="Economy"
+              a={aQ.data.totals.economy}
+              b={bQ.data.totals.economy}
+              nameA={nameA}
+              nameB={nameB}
+              precision={2}
+              lowerBetter
+            />
+            <CompareStat
+              label="Consistency"
+              a={aQ.data.consistency.score}
+              b={bQ.data.consistency.score}
+              nameA={nameA}
+              nameB={nameB}
+            />
+            <CompareStat
+              label="Last-5 Avg"
+              a={aQ.data.form.last5.average}
+              b={bQ.data.form.last5.average}
+              nameA={nameA}
+              nameB={nameB}
+              precision={1}
+            />
           </section>
 
           <section className="rounded-2xl border bg-card p-4 sm:p-5">
@@ -204,8 +250,7 @@ function CompareStat({
   precision?: number;
   lowerBetter?: boolean;
 }) {
-  const winner =
-    a === b ? null : lowerBetter ? (a < b ? "a" : "b") : a > b ? "a" : "b";
+  const winner = a === b ? null : lowerBetter ? (a < b ? "a" : "b") : a > b ? "a" : "b";
   return (
     <div className="rounded-xl border bg-card p-3">
       <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -213,11 +258,15 @@ function CompareStat({
       </div>
       <div className="mt-1 grid grid-cols-2 gap-1 text-[13px] font-black tabular-nums">
         <div className={winner === "a" ? "text-primary" : ""}>
-          <span className="block text-[9px] font-semibold text-muted-foreground truncate">{nameA}</span>
+          <span className="block text-[9px] font-semibold text-muted-foreground truncate">
+            {nameA}
+          </span>
           {a.toFixed(precision)}
         </div>
         <div className={`text-right ${winner === "b" ? "text-primary" : ""}`}>
-          <span className="block text-[9px] font-semibold text-muted-foreground truncate">{nameB}</span>
+          <span className="block text-[9px] font-semibold text-muted-foreground truncate">
+            {nameB}
+          </span>
           {b.toFixed(precision)}
         </div>
       </div>

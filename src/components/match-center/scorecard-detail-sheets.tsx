@@ -1,10 +1,6 @@
 import type { MCBallEvent, DismissalType, ExtraType } from "@/lib/mc-ball-events";
 import { isLegalDelivery } from "@/lib/mc-ball-events-core";
-import {
-  isBowlerCredited,
-  isWicketDismissal,
-  totalRunsForBall,
-} from "@/lib/mc-rules-engine";
+import { isBowlerCredited, isWicketDismissal, totalRunsForBall } from "@/lib/mc-rules-engine";
 import {
   playerKey,
   type BattingStat,
@@ -14,12 +10,7 @@ import {
   type PlayerKey,
 } from "@/lib/mc-statistics-engine";
 import { ballChipLabel } from "@/lib/mc-commentary";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 
@@ -36,7 +27,8 @@ function chipTone(label: string): string {
   if (t === "4") return "bg-primary/12 text-primary border-primary/30";
   if (t === "6") return "bg-primary/20 text-primary border-primary/40";
   if (t === "•" || t === "0") return "bg-muted text-muted-foreground border-border/50";
-  if (/^(WD|NB|B|LB)/.test(t)) return "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400";
+  if (/^(WD|NB|B|LB)/.test(t))
+    return "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400";
   return "bg-card text-foreground border-border/60";
 }
 
@@ -137,13 +129,8 @@ function buildBatterSequence(
   return { chips, balls };
 }
 
-function findBatterPartnerships(
-  partnerships: Partnership[],
-  batterKey: PlayerKey,
-): Partnership[] {
-  return partnerships.filter(
-    (p) => p.batterA?.key === batterKey || p.batterB?.key === batterKey,
-  );
+function findBatterPartnerships(partnerships: Partnership[], batterKey: PlayerKey): Partnership[] {
+  return partnerships.filter((p) => p.batterA?.key === batterKey || p.batterB?.key === batterKey);
 }
 
 export function BatterDetailSheet({
@@ -245,8 +232,7 @@ export function BatterDetailSheet({
       ) : (
         <ul className="flex flex-col gap-1.5">
           {batterPartnerships.map((p, i) => {
-            const partner =
-              p.batterA?.key === batter.player.key ? p.batterB : p.batterA;
+            const partner = p.batterA?.key === batter.player.key ? p.batterB : p.batterA;
             return (
               <li
                 key={i}
@@ -278,10 +264,7 @@ export function BatterDetailSheet({
 
 /* ---------------------------- BOWLER SHEET ---------------------------- */
 
-function bowlerOvers(
-  overs: OverSummaryStat[],
-  bowlerKey: PlayerKey,
-): OverSummaryStat[] {
+function bowlerOvers(overs: OverSummaryStat[], bowlerKey: PlayerKey): OverSummaryStat[] {
   return overs.filter((o) => o.bowler?.key === bowlerKey);
 }
 
@@ -348,9 +331,7 @@ export function BowlerDetailSheet({
           <div className="text-[9.5px] font-black uppercase tracking-widest text-muted-foreground">
             Economy
           </div>
-          <div className="text-[19px] font-black tabular-nums leading-none">
-            {bowler.economy}
-          </div>
+          <div className="text-[19px] font-black tabular-nums leading-none">{bowler.economy}</div>
         </span>
       </div>
 
@@ -381,9 +362,7 @@ export function BowlerDetailSheet({
                 <span className="text-[9.5px] font-black uppercase tracking-widest text-muted-foreground">
                   Over
                 </span>
-                <span className="text-[14px] font-black tabular-nums">
-                  {o.overNumber + 1}
-                </span>
+                <span className="text-[14px] font-black tabular-nums">{o.overNumber + 1}</span>
                 {o.isMaiden && (
                   <span className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
                     M

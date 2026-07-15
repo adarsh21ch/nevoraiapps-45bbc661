@@ -14,14 +14,7 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Upload,
-  FileSpreadsheet,
-  Check,
-  AlertTriangle,
-  Download,
-  X,
-} from "lucide-react";
+import { Upload, FileSpreadsheet, Check, AlertTriangle, Download, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -117,8 +110,14 @@ export function BulkImportStudents() {
   const [fileName, setFileName] = useState("");
   const [skipDupes, setSkipDupes] = useState(true);
 
-  const batches = useQuery({ queryKey: qk.batches(tenant.id), queryFn: () => fetchBatches(tenant.id) });
-  const plans = useQuery({ queryKey: qk.feePlans(tenant.id), queryFn: () => fetchFeePlans(tenant.id) });
+  const batches = useQuery({
+    queryKey: qk.batches(tenant.id),
+    queryFn: () => fetchBatches(tenant.id),
+  });
+  const plans = useQuery({
+    queryKey: qk.feePlans(tenant.id),
+    queryFn: () => fetchFeePlans(tenant.id),
+  });
   const existing = useQuery({
     queryKey: qk.students(tenant.id),
     queryFn: () => fetchStudents(tenant.id),
@@ -168,12 +167,8 @@ export function BulkImportStudents() {
 
   const importer = useMutation({
     mutationFn: async () => {
-      const batchByName = new Map(
-        (batches.data ?? []).map((b) => [b.name.toLowerCase(), b.id]),
-      );
-      const planByName = new Map(
-        (plans.data ?? []).map((p) => [p.name.toLowerCase(), p.id]),
-      );
+      const batchByName = new Map((batches.data ?? []).map((b) => [b.name.toLowerCase(), b.id]));
+      const planByName = new Map((plans.data ?? []).map((p) => [p.name.toLowerCase(), p.id]));
       const eligible = parsed.filter((p) => {
         if (p.issues.some((i) => i.startsWith("Missing"))) return false;
         if (skipDupes && p.dupe) return false;
@@ -198,8 +193,8 @@ export function BulkImportStudents() {
         school_college: r.school_college || null,
         blood_group: r.blood_group || null,
         coach_name: r.coach_name || null,
-        batch_id: r.batch ? batchByName.get(r.batch.toLowerCase()) ?? null : null,
-        fee_plan_id: r.fee_plan ? planByName.get(r.fee_plan.toLowerCase()) ?? null : null,
+        batch_id: r.batch ? (batchByName.get(r.batch.toLowerCase()) ?? null) : null,
+        fee_plan_id: r.fee_plan ? (planByName.get(r.fee_plan.toLowerCase()) ?? null) : null,
         status: (r.status || "active").toLowerCase(),
       }));
       if (payload.length === 0) throw new Error("Nothing to import after filtering");
@@ -270,10 +265,15 @@ export function BulkImportStudents() {
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm text-muted-foreground">
               Upload an <span className="font-medium">.xlsx</span> or{" "}
-              <span className="font-medium">.csv</span>. Column headers are
-              matched loosely — see the template for supported fields.
+              <span className="font-medium">.csv</span>. Column headers are matched loosely — see
+              the template for supported fields.
             </p>
-            <Button variant="ghost" size="sm" onClick={downloadTemplate} className="text-xs shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={downloadTemplate}
+              className="text-xs shrink-0"
+            >
               <Download className="size-3.5 mr-1" /> Template
             </Button>
           </div>
@@ -349,8 +349,12 @@ export function BulkImportStudents() {
                             !bad && p.dupe && "bg-amber-50/60",
                           )}
                         >
-                          <td className="px-3 py-1.5">{p.row.name || <em className="text-rose-600">missing</em>}</td>
-                          <td className="px-3 py-1.5 tabular-nums">{p.row.phone || <em className="text-rose-600">missing</em>}</td>
+                          <td className="px-3 py-1.5">
+                            {p.row.name || <em className="text-rose-600">missing</em>}
+                          </td>
+                          <td className="px-3 py-1.5 tabular-nums">
+                            {p.row.phone || <em className="text-rose-600">missing</em>}
+                          </td>
                           <td className="px-3 py-1.5 text-muted-foreground">{p.row.batch ?? ""}</td>
                           <td className="px-3 py-1.5 text-[11px]">
                             {p.issues.length === 0 ? (

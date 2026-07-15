@@ -38,7 +38,9 @@ export async function logPlatformAction(input: {
 export async function fetchAuditLog(tenantId?: string | null, limit = 200): Promise<AuditRow[]> {
   let q = supabase
     .from("platform_audit_log" as any)
-    .select("id, actor_id, tenant_id, target_type, target_id, action, before_state, after_state, created_at")
+    .select(
+      "id, actor_id, tenant_id, target_type, target_id, action, before_state, after_state, created_at",
+    )
     .order("created_at", { ascending: false })
     .limit(limit);
   if (tenantId) q = q.eq("tenant_id", tenantId);

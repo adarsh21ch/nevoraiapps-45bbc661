@@ -35,9 +35,7 @@ async function fetchTenant(): Promise<Tenant | null> {
   const query =
     hint.mode === "domain"
       ? (from.select(PUBLIC_COLS) as any).eq("custom_domain", hint.value)
-      : (from.select(PUBLIC_COLS) as any).or(
-          `slug.eq.${hint.value},custom_domain.eq.${hostname}`,
-        );
+      : (from.select(PUBLIC_COLS) as any).or(`slug.eq.${hint.value},custom_domain.eq.${hostname}`);
   const { data, error } = await query.limit(1).maybeSingle();
   if (error) {
     console.error("[tenant] fetch failed", error);
@@ -92,7 +90,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
       // Meta description + og
       const setMeta = (attr: "name" | "property", key: string, value: string) => {
-        let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"][data-tenant="1"]`);
+        let el = document.head.querySelector<HTMLMetaElement>(
+          `meta[${attr}="${key}"][data-tenant="1"]`,
+        );
         if (!el) {
           el = document.createElement("meta");
           el.setAttribute(attr, key);
@@ -111,7 +111,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       // PWA / Add-to-Home-Screen — per-tenant manifest so each academy installs
       // with its own name, icon and colors on the phone home screen.
       const setLink = (rel: string, href: string, extra?: Record<string, string>) => {
-        let el = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"][data-tenant="1"]`);
+        let el = document.head.querySelector<HTMLLinkElement>(
+          `link[rel="${rel}"][data-tenant="1"]`,
+        );
         if (!el) {
           el = document.createElement("link");
           el.rel = rel;

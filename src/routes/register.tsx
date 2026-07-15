@@ -31,9 +31,15 @@ export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
       { title: "Register" },
-      { name: "description", content: "Register online with your academy — no payment needed here." },
+      {
+        name: "description",
+        content: "Register online with your academy — no payment needed here.",
+      },
       { property: "og:title", content: "Register" },
-      { property: "og:description", content: "Register online with your academy — no payment needed here." },
+      {
+        property: "og:description",
+        content: "Register online with your academy — no payment needed here.",
+      },
     ],
   }),
   component: () => (
@@ -50,9 +56,9 @@ function RegisterContent() {
   const { data: fees = [] } = useQuery(feePlansQuery(tenant.id));
   const { data: policies = [] } = useQuery(publishedPoliciesQuery(tenant.id));
 
-  const requiredPolicies = REQUIRED_POLICIES
-    .map((kind) => policies.find((p) => p.kind === kind))
-    .filter((p): p is PolicyDocument => Boolean(p));
+  const requiredPolicies = REQUIRED_POLICIES.map((kind) =>
+    policies.find((p) => p.kind === kind),
+  ).filter((p): p is PolicyDocument => Boolean(p));
 
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -85,7 +91,9 @@ function RegisterContent() {
           phone: f.phone || data.phone || "",
         }));
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [leadId, tenant.id]);
 
   const allRequiredAccepted = requiredPolicies.every((p) => accepted[p.id]);
@@ -101,7 +109,9 @@ function RegisterContent() {
       return;
     }
     const defaultPlan =
-      fees.find((f) => f.type === "monthly") ?? fees.find((f) => f.type !== "registration") ?? fees[0];
+      fees.find((f) => f.type === "monthly") ??
+      fees.find((f) => f.type !== "registration") ??
+      fees[0];
     if (!defaultPlan) {
       toast.error("Registrations aren't set up yet. Please contact the academy directly.");
       return;
@@ -124,19 +134,22 @@ function RegisterContent() {
       toast.error("Too many submissions. Please try again in a few minutes.");
       return;
     }
-    const { data, error } = await supabase.rpc("submit_registration" as never, {
-      _tenant_id: tenant.id,
-      _name: form.name.trim(),
-      _phone: form.phone.trim(),
-      _fee_plan_id: defaultPlan.id,
-      _batch_id: form.batch_id || null,
-      _dob: form.dob || null,
-      _guardian_name: form.guardian_name.trim() || null,
-      _guardian_phone: null,
-      _whatsapp: null,
-      _policy_acceptances: acceptances as unknown as never,
-      _lead_id: leadId ?? null,
-    } as never);
+    const { data, error } = await supabase.rpc(
+      "submit_registration" as never,
+      {
+        _tenant_id: tenant.id,
+        _name: form.name.trim(),
+        _phone: form.phone.trim(),
+        _fee_plan_id: defaultPlan.id,
+        _batch_id: form.batch_id || null,
+        _dob: form.dob || null,
+        _guardian_name: form.guardian_name.trim() || null,
+        _guardian_phone: null,
+        _whatsapp: null,
+        _policy_acceptances: acceptances as unknown as never,
+        _lead_id: leadId ?? null,
+      } as never,
+    );
     const extras: Record<string, string> = {};
     if (form.address.trim()) extras.address = form.address.trim();
     if (form.gender) extras.gender = form.gender;
@@ -159,7 +172,6 @@ function RegisterContent() {
     generateBlankRegistrationPdf(tenant, fees, batches);
   }
 
-
   const wa = (tenant.whatsapp ?? tenant.phone ?? "").replace(/[^\d]/g, "");
   const waMsg = encodeURIComponent(
     `Hi ${tenant.name}, I just registered ${form.name} for training. Please share the next steps.`,
@@ -168,7 +180,10 @@ function RegisterContent() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-20">
-      <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
+      <div
+        className="text-xs font-semibold uppercase tracking-widest"
+        style={{ color: "var(--brand)" }}
+      >
         Join {tenant.name}
       </div>
       <div className="mt-3 flex items-start justify-between gap-4">
@@ -184,14 +199,28 @@ function RegisterContent() {
         </button>
       </div>
       <p className="mt-3 text-sm text-muted-foreground">
-        Fill in a few details — no payment needed here. The coach will confirm your spot on WhatsApp.
+        Fill in a few details — no payment needed here. The coach will confirm your spot on
+        WhatsApp.
       </p>
 
       {!done ? (
         <form onSubmit={submitForm} className="mt-8 space-y-5">
-          <Field label="Student name *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
-          <Field label="Parent / guardian name" value={form.guardian_name} onChange={(v) => setForm({ ...form, guardian_name: v })} />
-          <Field label="Contact phone *" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="10-digit mobile" />
+          <Field
+            label="Student name *"
+            value={form.name}
+            onChange={(v) => setForm({ ...form, name: v })}
+          />
+          <Field
+            label="Parent / guardian name"
+            value={form.guardian_name}
+            onChange={(v) => setForm({ ...form, guardian_name: v })}
+          />
+          <Field
+            label="Contact phone *"
+            value={form.phone}
+            onChange={(v) => setForm({ ...form, phone: v })}
+            placeholder="10-digit mobile"
+          />
           {batches.length > 0 ? (
             <SelectField
               label="Preferred batch"
@@ -206,7 +235,12 @@ function RegisterContent() {
               ]}
             />
           ) : null}
-          <Field label="Date of birth" type="date" value={form.dob} onChange={(v) => setForm({ ...form, dob: v })} />
+          <Field
+            label="Date of birth"
+            type="date"
+            value={form.dob}
+            onChange={(v) => setForm({ ...form, dob: v })}
+          />
           <SelectField
             label="Gender"
             value={form.gender}
@@ -218,7 +252,11 @@ function RegisterContent() {
               { value: "other", label: "Other" },
             ]}
           />
-          <TextArea label="Address" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
+          <TextArea
+            label="Address"
+            value={form.address}
+            onChange={(v) => setForm({ ...form, address: v })}
+          />
 
           {requiredPolicies.length > 0 ? (
             <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
@@ -236,7 +274,9 @@ function RegisterContent() {
                       type="checkbox"
                       className="mt-1 h-4 w-4 rounded border-border"
                       checked={!!accepted[p.id]}
-                      onChange={(e) => setAccepted((prev) => ({ ...prev, [p.id]: e.target.checked }))}
+                      onChange={(e) =>
+                        setAccepted((prev) => ({ ...prev, [p.id]: e.target.checked }))
+                      }
                     />
                     <label htmlFor={`acc-${p.id}`} className="text-sm text-foreground">
                       I accept the{" "}
@@ -297,13 +337,23 @@ function RegisterContent() {
 }
 
 function Field({
-  label, value, onChange, type = "text", placeholder,
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
 }: {
-  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+  placeholder?: string;
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
       <input
         type={type}
         value={value}
@@ -319,13 +369,19 @@ function Field({
 }
 
 function TextArea({
-  label, value, onChange,
+  label,
+  value,
+  onChange,
 }: {
-  label: string; value: string; onChange: (v: string) => void;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -337,20 +393,30 @@ function TextArea({
 }
 
 function SelectField({
-  label, value, onChange, options,
+  label,
+  value,
+  onChange,
+  options,
 }: {
-  label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none"
       >
         {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
         ))}
       </select>
     </label>

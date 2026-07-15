@@ -34,10 +34,42 @@ function AdmissionsPage() {
         <div className="rounded-2xl border border-border/60 bg-card p-8">
           <h2 className="text-2xl font-bold tracking-tight">How it works</h2>
           <ol className="mt-4 space-y-3 text-sm">
-            <li className="flex gap-3"><span className="grid size-6 place-items-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: "var(--brand)" }}>1</span><span>Fill out the online registration form.</span></li>
-            <li className="flex gap-3"><span className="grid size-6 place-items-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: "var(--brand)" }}>2</span><span>Choose a batch and fee plan.</span></li>
-            <li className="flex gap-3"><span className="grid size-6 place-items-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: "var(--brand)" }}>3</span><span>Accept the academy policies and submit.</span></li>
-            <li className="flex gap-3"><span className="grid size-6 place-items-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: "var(--brand)" }}>4</span><span>Our team will confirm your admission.</span></li>
+            <li className="flex gap-3">
+              <span
+                className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
+                style={{ backgroundColor: "var(--brand)" }}
+              >
+                1
+              </span>
+              <span>Fill out the online registration form.</span>
+            </li>
+            <li className="flex gap-3">
+              <span
+                className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
+                style={{ backgroundColor: "var(--brand)" }}
+              >
+                2
+              </span>
+              <span>Choose a batch and fee plan.</span>
+            </li>
+            <li className="flex gap-3">
+              <span
+                className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
+                style={{ backgroundColor: "var(--brand)" }}
+              >
+                3
+              </span>
+              <span>Accept the academy policies and submit.</span>
+            </li>
+            <li className="flex gap-3">
+              <span
+                className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
+                style={{ backgroundColor: "var(--brand)" }}
+              >
+                4
+              </span>
+              <span>Our team will confirm your admission.</span>
+            </li>
           </ol>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -58,14 +90,21 @@ function AdmissionsPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Link to="/policies/$kind" params={{ kind: "terms" }} className="group flex items-start gap-3 rounded-xl border border-border/60 bg-card p-5 hover:shadow-md">
+          <Link
+            to="/policies/$kind"
+            params={{ kind: "terms" }}
+            className="group flex items-start gap-3 rounded-xl border border-border/60 bg-card p-5 hover:shadow-md"
+          >
             <FileText className="mt-0.5 size-5" style={{ color: "var(--brand)" }} />
             <div>
               <div className="font-semibold">Read our policies</div>
               <div className="text-sm text-muted-foreground">Terms, privacy, refunds and more.</div>
             </div>
           </Link>
-          <Link to="/programs" className="group flex items-start gap-3 rounded-xl border border-border/60 bg-card p-5 hover:shadow-md">
+          <Link
+            to="/programs"
+            className="group flex items-start gap-3 rounded-xl border border-border/60 bg-card p-5 hover:shadow-md"
+          >
             <ArrowRight className="mt-0.5 size-5" style={{ color: "var(--brand)" }} />
             <div>
               <div className="font-semibold">Explore programs</div>

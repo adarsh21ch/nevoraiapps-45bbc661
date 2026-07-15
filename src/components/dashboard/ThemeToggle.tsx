@@ -31,11 +31,17 @@ export function readStoredThemeMode(): ThemeMode {
   try {
     const s = localStorage.getItem(THEME_KEY);
     if (s === "light" || s === "dark" || s === "system") return s;
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return "system";
 }
 
 export function setStoredThemeMode(mode: ThemeMode) {
-  try { localStorage.setItem(THEME_KEY, mode); } catch { /* ignore */ }
+  try {
+    localStorage.setItem(THEME_KEY, mode);
+  } catch {
+    /* ignore */
+  }
   applyTheme(mode);
 }

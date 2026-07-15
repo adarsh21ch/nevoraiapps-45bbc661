@@ -21,7 +21,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { listParentChildren, getChildSummary, type ParentChild, type ChildSummary } from "@/lib/mc-parent-portal";
+import {
+  listParentChildren,
+  getChildSummary,
+  type ParentChild,
+  type ChildSummary,
+} from "@/lib/mc-parent-portal";
 import { ProgressReport } from "@/components/parent-portal/ProgressReport";
 import { findAnyDemoTenant, useDemoData } from "@/lib/mc-demo/store";
 import { useMCChildSummary } from "@/lib/mc-data";
@@ -30,7 +35,11 @@ export const Route = createFileRoute("/parent-portal")({
   head: () => ({
     meta: [
       { title: "Parent Portal · Academy OS" },
-      { name: "description", content: "Follow your child's cricket development — matches, achievements and recognitions." },
+      {
+        name: "description",
+        content:
+          "Follow your child's cricket development — matches, achievements and recognitions.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -59,8 +68,6 @@ function ParentPortal() {
     return <DemoParentPortal tenantId={demoTenantId} />;
   }
 
-
-
   const kidsQ = useQuery({
     queryKey: ["parent-children"],
     queryFn: () => listParentChildren(),
@@ -78,7 +85,9 @@ function ParentPortal() {
       <div className="min-h-screen grid place-items-center p-6">
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">Sign in required</h1>
-          <p className="text-sm text-muted-foreground">Please sign in with the account linked to your child.</p>
+          <p className="text-sm text-muted-foreground">
+            Please sign in with the account linked to your child.
+          </p>
           <Button onClick={() => navigate({ to: "/auth" })}>Go to sign in</Button>
         </Card>
       </div>
@@ -91,8 +100,16 @@ function ParentPortal() {
       <div className="min-h-screen grid place-items-center p-6">
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">No linked children</h1>
-          <p className="text-sm text-muted-foreground">Ask your academy admin to link your account to your child's profile.</p>
-          <Button variant="outline" onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/auth" }); }}>
+          <p className="text-sm text-muted-foreground">
+            Ask your academy admin to link your account to your child's profile.
+          </p>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate({ to: "/auth" });
+            }}
+          >
             <LogOut className="size-4 mr-1" /> Sign out
           </Button>
         </Card>
@@ -107,17 +124,28 @@ function ParentPortal() {
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-xs text-muted-foreground uppercase tracking-wide">Parent Portal</div>
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">
+              Parent Portal
+            </div>
             <h1 className="text-2xl font-bold truncate">{active.student_name}</h1>
             <p className="text-xs text-muted-foreground">
-              {active.relationship}{active.is_primary ? " · primary" : ""}{active.player_id ? ` · ${active.player_id}` : ""}
+              {active.relationship}
+              {active.is_primary ? " · primary" : ""}
+              {active.player_id ? ` · ${active.player_id}` : ""}
             </p>
           </div>
           <div className="flex items-center gap-2">
             {kids.length > 1 && (
               <ChildSwitcher kids={kids} selected={active.student_id} onChange={setSelected} />
             )}
-            <Button variant="outline" size="sm" onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/auth" }); }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate({ to: "/auth" });
+              }}
+            >
               <LogOut className="size-4" />
             </Button>
           </div>
@@ -139,7 +167,15 @@ function PageSkeleton() {
   );
 }
 
-function ChildSwitcher({ kids, selected, onChange }: { kids: ParentChild[]; selected: string; onChange: (id: string) => void }) {
+function ChildSwitcher({
+  kids,
+  selected,
+  onChange,
+}: {
+  kids: ParentChild[];
+  selected: string;
+  onChange: (id: string) => void;
+}) {
   return (
     <div className="flex gap-1 flex-wrap">
       {kids.map((k) => (
@@ -168,7 +204,9 @@ function ChildTabs({ studentId, kid }: { studentId: string; kid: ParentChild }) 
     // silently refetch. Broad channel scoped to their tenant.
     const channel = supabase
       .channel(`parent-portal-${studentId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "mc_ball_events" }, () => q.refetch())
+      .on("postgres_changes", { event: "*", schema: "public", table: "mc_ball_events" }, () =>
+        q.refetch(),
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -181,22 +219,57 @@ function ChildTabs({ studentId, kid }: { studentId: string; kid: ParentChild }) 
   return (
     <Tabs defaultValue="progress">
       <TabsList className="flex-wrap">
-        <TabsTrigger value="progress"><FileText className="size-4 mr-1" aria-hidden />Progress</TabsTrigger>
-        <TabsTrigger value="dashboard"><User className="size-4 mr-1" aria-hidden />Dashboard</TabsTrigger>
-        <TabsTrigger value="matches"><Trophy className="size-4 mr-1" aria-hidden />Matches</TabsTrigger>
-        <TabsTrigger value="performance"><BarChart3 className="size-4 mr-1" aria-hidden />Performance</TabsTrigger>
-        <TabsTrigger value="recognitions"><Award className="size-4 mr-1" aria-hidden />Recognitions</TabsTrigger>
-        <TabsTrigger value="achievements"><Medal className="size-4 mr-1" aria-hidden />Achievements</TabsTrigger>
-        <TabsTrigger value="timeline"><Clock className="size-4 mr-1" aria-hidden />Timeline</TabsTrigger>
+        <TabsTrigger value="progress">
+          <FileText className="size-4 mr-1" aria-hidden />
+          Progress
+        </TabsTrigger>
+        <TabsTrigger value="dashboard">
+          <User className="size-4 mr-1" aria-hidden />
+          Dashboard
+        </TabsTrigger>
+        <TabsTrigger value="matches">
+          <Trophy className="size-4 mr-1" aria-hidden />
+          Matches
+        </TabsTrigger>
+        <TabsTrigger value="performance">
+          <BarChart3 className="size-4 mr-1" aria-hidden />
+          Performance
+        </TabsTrigger>
+        <TabsTrigger value="recognitions">
+          <Award className="size-4 mr-1" aria-hidden />
+          Recognitions
+        </TabsTrigger>
+        <TabsTrigger value="achievements">
+          <Medal className="size-4 mr-1" aria-hidden />
+          Achievements
+        </TabsTrigger>
+        <TabsTrigger value="timeline">
+          <Clock className="size-4 mr-1" aria-hidden />
+          Timeline
+        </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="progress" className="pt-4"><ProgressReport summary={s} kid={kid} /></TabsContent>
-      <TabsContent value="dashboard" className="pt-4"><DashboardTab summary={s} kid={kid} /></TabsContent>
-      <TabsContent value="matches" className="pt-4"><MatchesTab summary={s} /></TabsContent>
-      <TabsContent value="performance" className="pt-4"><PerformanceTab summary={s} /></TabsContent>
-      <TabsContent value="recognitions" className="pt-4"><RecognitionsTab summary={s} /></TabsContent>
-      <TabsContent value="achievements" className="pt-4"><AchievementsTab summary={s} /></TabsContent>
-      <TabsContent value="timeline" className="pt-4"><TimelineTab summary={s} /></TabsContent>
+      <TabsContent value="progress" className="pt-4">
+        <ProgressReport summary={s} kid={kid} />
+      </TabsContent>
+      <TabsContent value="dashboard" className="pt-4">
+        <DashboardTab summary={s} kid={kid} />
+      </TabsContent>
+      <TabsContent value="matches" className="pt-4">
+        <MatchesTab summary={s} />
+      </TabsContent>
+      <TabsContent value="performance" className="pt-4">
+        <PerformanceTab summary={s} />
+      </TabsContent>
+      <TabsContent value="recognitions" className="pt-4">
+        <RecognitionsTab summary={s} />
+      </TabsContent>
+      <TabsContent value="achievements" className="pt-4">
+        <AchievementsTab summary={s} />
+      </TabsContent>
+      <TabsContent value="timeline" className="pt-4">
+        <TimelineTab summary={s} />
+      </TabsContent>
     </Tabs>
   );
 }
@@ -212,7 +285,9 @@ function DashboardTab({ summary, kid }: { summary: ChildSummary; kid: ParentChil
           {kid.photo_url ? (
             <img src={kid.photo_url} alt="" className="size-16 rounded-full object-cover" />
           ) : (
-            <div className="size-16 rounded-full bg-muted grid place-items-center"><User className="size-6 text-muted-foreground" /></div>
+            <div className="size-16 rounded-full bg-muted grid place-items-center">
+              <User className="size-6 text-muted-foreground" />
+            </div>
           )}
           <div>
             <div className="font-semibold">{kid.student_name}</div>
@@ -220,10 +295,20 @@ function DashboardTab({ summary, kid }: { summary: ChildSummary; kid: ParentChil
           </div>
         </div>
         <div className="mt-4 text-sm space-y-1">
-          <div><span className="text-muted-foreground">Role:</span> {String(cp.playing_role ?? "—")}</div>
-          <div><span className="text-muted-foreground">Batting:</span> {String(cp.batting_style ?? "—")}</div>
-          <div><span className="text-muted-foreground">Bowling:</span> {String(cp.bowling_style ?? "—")}</div>
-          <div><span className="text-muted-foreground">DOB:</span> {String(student.dob ?? "—")}</div>
+          <div>
+            <span className="text-muted-foreground">Role:</span> {String(cp.playing_role ?? "—")}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Batting:</span>{" "}
+            {String(cp.batting_style ?? "—")}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Bowling:</span>{" "}
+            {String(cp.bowling_style ?? "—")}
+          </div>
+          <div>
+            <span className="text-muted-foreground">DOB:</span> {String(student.dob ?? "—")}
+          </div>
         </div>
       </Card>
 
@@ -235,7 +320,10 @@ function DashboardTab({ summary, kid }: { summary: ChildSummary; kid: ParentChil
           <Stat label="Wickets" value={c.wickets ?? 0} />
           <Stat label="Avg" value={c.average != null ? Number(c.average).toFixed(2) : "—"} />
           <Stat label="SR" value={c.strike_rate != null ? Number(c.strike_rate).toFixed(1) : "—"} />
-          <Stat label="Highest" value={`${c.highest_score ?? 0}${c.highest_score_not_out ? "*" : ""}`} />
+          <Stat
+            label="Highest"
+            value={`${c.highest_score ?? 0}${c.highest_score_not_out ? "*" : ""}`}
+          />
           <Stat label="Best bowl" value={String(c.best_bowling ?? "—")} />
           <Stat label="POM" value={c.player_of_match ?? 0} />
         </div>
@@ -267,16 +355,32 @@ function MatchesTab({ summary }: { summary: ChildSummary }) {
     <div className="space-y-3">
       <div className="relative">
         <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search matches…" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9" />
+        <Input
+          placeholder="Search matches…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          className="pl-9"
+        />
       </div>
-      {filtered.length === 0 && <Card className="p-6 text-sm text-muted-foreground">No matches yet.</Card>}
+      {filtered.length === 0 && (
+        <Card className="p-6 text-sm text-muted-foreground">No matches yet.</Card>
+      )}
       {filtered.map((m) => (
         <Card key={m.match_id} className="p-4 flex items-center justify-between">
           <div>
             <div className="text-xs text-muted-foreground">{m.scheduled_date ?? ""}</div>
-            <div className="font-medium">{m.result ?? (m.match_locked ? "Finalized" : "In progress")}</div>
+            <div className="font-medium">
+              {m.result ?? (m.match_locked ? "Finalized" : "In progress")}
+            </div>
           </div>
-          {m.match_locked ? <Badge>Finalized</Badge> : <Badge variant="outline"><Radio className="size-3 mr-1" />Live</Badge>}
+          {m.match_locked ? (
+            <Badge>Finalized</Badge>
+          ) : (
+            <Badge variant="outline">
+              <Radio className="size-3 mr-1" />
+              Live
+            </Badge>
+          )}
         </Card>
       ))}
     </div>
@@ -285,7 +389,8 @@ function MatchesTab({ summary }: { summary: ChildSummary }) {
 
 function PerformanceTab({ summary }: { summary: ChildSummary }) {
   const c = (summary.career ?? {}) as Record<string, number>;
-  if (!summary.career) return <Card className="p-6 text-sm text-muted-foreground">No performance data yet.</Card>;
+  if (!summary.career)
+    return <Card className="p-6 text-sm text-muted-foreground">No performance data yet.</Card>;
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card className="p-4">
@@ -307,7 +412,10 @@ function PerformanceTab({ summary }: { summary: ChildSummary }) {
           <Stat label="Wickets" value={c.wickets ?? 0} />
           <Stat label="Overs" value={c.overs ?? 0} />
           <Stat label="Econ" value={c.economy ? Number(c.economy).toFixed(2) : "—"} />
-          <Stat label="Best" value={String((c as unknown as { best_bowling?: string }).best_bowling ?? "—")} />
+          <Stat
+            label="Best"
+            value={String((c as unknown as { best_bowling?: string }).best_bowling ?? "—")}
+          />
           <Stat label="5-fer" value={c.five_wicket_hauls ?? 0} />
           <Stat label="Maidens" value={c.maidens ?? 0} />
         </div>
@@ -334,20 +442,41 @@ function PerformanceTab({ summary }: { summary: ChildSummary }) {
 
 function RecognitionsTab({ summary }: { summary: ChildSummary }) {
   const items = summary.recognitions ?? [];
-  if (items.length === 0) return <Card className="p-6 text-sm text-muted-foreground">No published recognitions yet.</Card>;
+  if (items.length === 0)
+    return (
+      <Card className="p-6 text-sm text-muted-foreground">No published recognitions yet.</Card>
+    );
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {items.map((r) => {
-        const rr = r as { id: string; title: string; description?: string; awarded_at?: string; recognition_type: string; badge?: string; image_url?: string };
+        const rr = r as {
+          id: string;
+          title: string;
+          description?: string;
+          awarded_at?: string;
+          recognition_type: string;
+          badge?: string;
+          image_url?: string;
+        };
         return (
           <Card key={rr.id} className="p-4">
             <div className="flex items-start gap-3">
-              {rr.image_url && <img src={rr.image_url} alt="" className="size-14 rounded object-cover" />}
+              {rr.image_url && (
+                <img src={rr.image_url} alt="" className="size-14 rounded object-cover" />
+              )}
               <div className="min-w-0">
-                <Badge variant="outline" className="mb-1 capitalize">{rr.recognition_type.replace(/_/g, " ")}</Badge>
+                <Badge variant="outline" className="mb-1 capitalize">
+                  {rr.recognition_type.replace(/_/g, " ")}
+                </Badge>
                 <div className="font-semibold">{rr.title}</div>
-                {rr.description && <p className="text-sm text-muted-foreground">{rr.description}</p>}
-                {rr.awarded_at && <div className="text-xs text-muted-foreground mt-1">{new Date(rr.awarded_at).toLocaleDateString()}</div>}
+                {rr.description && (
+                  <p className="text-sm text-muted-foreground">{rr.description}</p>
+                )}
+                {rr.awarded_at && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {new Date(rr.awarded_at).toLocaleDateString()}
+                  </div>
+                )}
               </div>
             </div>
           </Card>
@@ -359,21 +488,34 @@ function RecognitionsTab({ summary }: { summary: ChildSummary }) {
 
 function AchievementsTab({ summary }: { summary: ChildSummary }) {
   const items = summary.achievements ?? [];
-  if (items.length === 0) return <Card className="p-6 text-sm text-muted-foreground">No achievements yet.</Card>;
+  if (items.length === 0)
+    return <Card className="p-6 text-sm text-muted-foreground">No achievements yet.</Card>;
   return (
     <div className="space-y-2">
       {items.map((a) => {
-        const aa = a as { id: string; title: string; description?: string; event_date?: string; kind?: string };
+        const aa = a as {
+          id: string;
+          title: string;
+          description?: string;
+          event_date?: string;
+          kind?: string;
+        };
         return (
           <Card key={aa.id} className="p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="font-medium">{aa.title}</div>
-                {aa.description && <p className="text-sm text-muted-foreground">{aa.description}</p>}
+                {aa.description && (
+                  <p className="text-sm text-muted-foreground">{aa.description}</p>
+                )}
               </div>
               <Badge variant="outline">{aa.kind ?? ""}</Badge>
             </div>
-            {aa.event_date && <div className="text-xs text-muted-foreground mt-1">{new Date(aa.event_date).toLocaleDateString()}</div>}
+            {aa.event_date && (
+              <div className="text-xs text-muted-foreground mt-1">
+                {new Date(aa.event_date).toLocaleDateString()}
+              </div>
+            )}
           </Card>
         );
       })}
@@ -383,18 +525,31 @@ function AchievementsTab({ summary }: { summary: ChildSummary }) {
 
 function TimelineTab({ summary }: { summary: ChildSummary }) {
   const items = summary.timeline ?? [];
-  if (items.length === 0) return <Card className="p-6 text-sm text-muted-foreground">Timeline is empty.</Card>;
+  if (items.length === 0)
+    return <Card className="p-6 text-sm text-muted-foreground">Timeline is empty.</Card>;
   return (
     <div className="space-y-3">
       {items.map((t) => {
-        const tt = t as { id: string; title: string; description?: string; event_date?: string; image_url?: string };
+        const tt = t as {
+          id: string;
+          title: string;
+          description?: string;
+          event_date?: string;
+          image_url?: string;
+        };
         return (
           <Card key={tt.id} className="p-4 flex gap-3">
-            {tt.image_url && <img src={tt.image_url} alt="" className="size-14 rounded object-cover" />}
+            {tt.image_url && (
+              <img src={tt.image_url} alt="" className="size-14 rounded object-cover" />
+            )}
             <div className="min-w-0 flex-1">
               <div className="font-medium">{tt.title}</div>
               {tt.description && <p className="text-sm text-muted-foreground">{tt.description}</p>}
-              {tt.event_date && <div className="text-xs text-muted-foreground mt-1">{new Date(tt.event_date).toLocaleDateString()}</div>}
+              {tt.event_date && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  {new Date(tt.event_date).toLocaleDateString()}
+                </div>
+              )}
             </div>
           </Card>
         );

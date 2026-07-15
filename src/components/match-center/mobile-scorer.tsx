@@ -34,7 +34,6 @@ import {
 import { OverHistorySheet } from "./over-history-sheet";
 import type { OverHistoryRow } from "@/lib/mc-statistics-engine";
 
-
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
 
 export interface MobileScorerInsight {
@@ -89,7 +88,6 @@ export interface MobileScorerProps {
   dismissedBatterIds?: string[];
   dismissedBatterNames?: string[];
 
-
   onUndo: () => void;
   onRedo?: () => void;
   canRedo?: boolean;
@@ -104,9 +102,7 @@ export interface MobileScorerProps {
   onOpenScorebook?: () => void;
   onShareMatch?: () => void;
   scorecardContent?: ReactNode;
-
 }
-
 
 type PickerKind = "striker" | "nonStriker" | "bowler";
 
@@ -114,9 +110,9 @@ export function MobileScorer(props: MobileScorerProps) {
   const [pickerOpen, setPickerOpen] = useState<PickerKind | null>(null);
   const autoPickerRef = useRef<PickerKind | null>(null);
   const [scorecardExpanded, setScorecardExpanded] = useState(false);
-  const [confirm, setConfirm] = useState<
-    null | { kind: "end-match" | "finish-innings" | "delete-ball" }
-  >(null);
+  const [confirm, setConfirm] = useState<null | {
+    kind: "end-match" | "finish-innings" | "delete-ball";
+  }>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const sheetPickerEnabled = Boolean(
@@ -130,9 +126,7 @@ export function MobileScorer(props: MobileScorerProps) {
     : !hasActiveNonStriker
       ? "nonStriker"
       : null;
-  const effectiveAwaitingNewBatter = Boolean(
-    props.awaitingNewBatter && missingBatterRole,
-  );
+  const effectiveAwaitingNewBatter = Boolean(props.awaitingNewBatter && missingBatterRole);
 
   useEffect(() => {
     if (!sheetPickerEnabled || !props.requiredPicker) return;
@@ -165,7 +159,6 @@ export function MobileScorer(props: MobileScorerProps) {
     threshold: 72,
   });
 
-
   const openPicker = (kind: PickerKind) => {
     if (sheetPickerEnabled) {
       autoPickerRef.current = null;
@@ -179,12 +172,14 @@ export function MobileScorer(props: MobileScorerProps) {
 
   const pickerCandidates = useMemo(() => {
     if (!pickerOpen || !sheetPickerEnabled) return [];
-    const base = pickerOpen === "bowler" ? props.bowlingOptions ?? [] : props.battingOptions ?? [];
+    const base =
+      pickerOpen === "bowler" ? (props.bowlingOptions ?? []) : (props.battingOptions ?? []);
     if (pickerOpen === "bowler") return base;
 
     const excluded = new Set<string>();
     const excludedNames = new Set<string>();
-    if (pickerOpen === "striker" && props.nonStriker?.name) excludedNames.add(props.nonStriker.name);
+    if (pickerOpen === "striker" && props.nonStriker?.name)
+      excludedNames.add(props.nonStriker.name);
     if (pickerOpen === "nonStriker" && props.striker?.name) excludedNames.add(props.striker.name);
     // Exclude anyone already dismissed in this innings.
     for (const id of props.dismissedBatterIds ?? []) excluded.add(id);
@@ -217,7 +212,8 @@ export function MobileScorer(props: MobileScorerProps) {
     if (confirm.kind === "end-match") {
       return {
         title: "End match?",
-        description: "This finalises the match. This action cannot be undone once the match is locked.",
+        description:
+          "This finalises the match. This action cannot be undone once the match is locked.",
         action: "End match",
         run: () => {
           closeAll();
@@ -228,7 +224,8 @@ export function MobileScorer(props: MobileScorerProps) {
     if (confirm.kind === "finish-innings") {
       return {
         title: "Finish innings?",
-        description: "The current innings will be marked complete. You can start the next innings after confirming.",
+        description:
+          "The current innings will be marked complete. You can start the next innings after confirming.",
         action: "Finish innings",
         run: () => {
           closeAll();
@@ -238,7 +235,8 @@ export function MobileScorer(props: MobileScorerProps) {
     }
     return {
       title: "Delete last ball?",
-      description: "The most recent delivery will be removed and the score will be recomputed from the event log.",
+      description:
+        "The most recent delivery will be removed and the score will be recomputed from the event log.",
       action: "Delete ball",
       run: () => {
         closeAll();
@@ -295,11 +293,8 @@ export function MobileScorer(props: MobileScorerProps) {
               End
             </button>
           )}
-
         </div>
       </header>
-
-
 
       <div className="shrink-0 border-b border-border/60 bg-gradient-to-b from-primary/10 to-background/95 px-3 py-1.5 backdrop-blur-xl">
         <ThisOverStrip
@@ -313,7 +308,10 @@ export function MobileScorer(props: MobileScorerProps) {
         />
       </div>
 
-      <main className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll" {...swipeHandlers}>
+      <main
+        className="scorer-match-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain ds-scroll"
+        {...swipeHandlers}
+      >
         <div className="flex min-h-full flex-col gap-2 px-3 py-2">
           <section className="shrink-0">
             <ScoreHeroCard
@@ -325,7 +323,6 @@ export function MobileScorer(props: MobileScorerProps) {
               chase={props.chase}
             />
           </section>
-
 
           <ScorebookBatters
             striker={props.striker}
@@ -340,7 +337,6 @@ export function MobileScorer(props: MobileScorerProps) {
             awaiting={Boolean(props.awaitingNewBowler) || !props.bowler?.name}
           />
 
-
           {effectiveAwaitingNewBatter && (
             <button
               type="button"
@@ -353,7 +349,6 @@ export function MobileScorer(props: MobileScorerProps) {
               <span className="text-[11px] opacity-75">Tap to select</span>
             </button>
           )}
-
 
           <LiveInsights
             className="min-h-[112px]"
@@ -388,13 +383,10 @@ export function MobileScorer(props: MobileScorerProps) {
                 />
               </button>
               {scorecardExpanded && (
-                <div className="border-t bg-background/40 p-2">
-                  {props.scorecardContent}
-                </div>
+                <div className="border-t bg-background/40 p-2">{props.scorecardContent}</div>
               )}
             </section>
           )}
-
         </div>
       </main>
 
@@ -449,7 +441,6 @@ export function MobileScorer(props: MobileScorerProps) {
         </div>
       </div>
 
-
       <PlayerPickerSheet
         open={!!pickerOpen}
         kind={pickerOpen}
@@ -462,7 +453,7 @@ export function MobileScorer(props: MobileScorerProps) {
           setPickerOpen(null);
         }}
         lockedMessage={pickerOpen === "bowler" ? "Cannot bowl consecutive overs" : undefined}
-        bowledIds={pickerOpen === "bowler" ? props.bowledBowlerIds ?? [] : []}
+        bowledIds={pickerOpen === "bowler" ? (props.bowledBowlerIds ?? []) : []}
         onSelect={(p) => {
           if (!pickerOpen || isIllegalBowler(p)) return;
           props.onPickPlayer?.(pickerOpen, p);
@@ -470,7 +461,6 @@ export function MobileScorer(props: MobileScorerProps) {
           setPickerOpen(null);
         }}
       />
-
 
       <AlertDialog open={!!confirm} onOpenChange={(v) => !v && setConfirm(null)}>
         <AlertDialogContent>
@@ -482,7 +472,10 @@ export function MobileScorer(props: MobileScorerProps) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={confirmMeta.run}>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={confirmMeta.run}
+                >
                   {confirmMeta.action}
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -536,7 +529,6 @@ function ScoreHeroCard({
             <span className="mb-1 shrink-0 rounded-md bg-muted/70 px-1.5 py-0.5 text-[11px] font-black tabular-nums text-muted-foreground">
               {overs.startsWith("Over ") ? overs : `${overs} overs`}
             </span>
-
           </div>
           {chase && (
             <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[var(--score-success-bg,color-mix(in_oklab,var(--primary)_16%,transparent))] px-2 py-1 text-[11.5px] font-black text-[var(--score-success-fg)] tabular-nums">
@@ -547,7 +539,9 @@ function ScoreHeroCard({
         <div className="flex flex-col items-end gap-1 text-right tabular-nums">
           {target && (
             <div className="rounded-lg border border-[var(--score-success-fg)]/40 bg-[var(--score-success-fg)]/10 px-2.5 py-1 leading-tight">
-              <div className="text-[9px] font-black uppercase tracking-[0.14em] text-[var(--score-success-fg)]/80">Target</div>
+              <div className="text-[9px] font-black uppercase tracking-[0.14em] text-[var(--score-success-fg)]/80">
+                Target
+              </div>
               <div className="text-[20px] font-black text-[var(--score-success-fg)]">{target}</div>
             </div>
           )}
@@ -564,7 +558,6 @@ function ScoreHeroCard({
     </div>
   );
 }
-
 
 function ScorebookBatters({
   striker,
@@ -586,7 +579,15 @@ function ScorebookBatters({
   );
 }
 
-function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; striker?: boolean; onClick: () => void }) {
+function BatterLine({
+  batter,
+  striker,
+  onClick,
+}: {
+  batter?: BatterStats;
+  striker?: boolean;
+  onClick: () => void;
+}) {
   const name = batter?.name ?? (striker ? "Select striker" : "Select non-striker");
   const sr = batter?.strikeRate ?? "0.0";
   const order = batter?.order;
@@ -626,10 +627,11 @@ function BatterLine({ batter, striker, onClick }: { batter?: BatterStats; strike
       <div className="text-right tabular-nums">
         <div className="text-[20px] font-black leading-none">
           {batter?.runs ?? 0}
-          <span className="ml-1 text-[12px] font-bold text-muted-foreground">({batter?.balls ?? 0})</span>
+          <span className="ml-1 text-[12px] font-bold text-muted-foreground">
+            ({batter?.balls ?? 0})
+          </span>
         </div>
       </div>
-
     </button>
   );
 }
@@ -667,7 +669,7 @@ function BowlerLine({
             <CircleDot className="size-3" strokeWidth={2.25} />
           </span>
           <span className="truncate text-[14px] font-bold">
-            {showAwaiting ? "Next Bowler Required" : bowler?.name ?? "Select bowler"}
+            {showAwaiting ? "Next Bowler Required" : (bowler?.name ?? "Select bowler")}
           </span>
           <span
             className={cn(
@@ -694,7 +696,6 @@ function BowlerLine({
     </button>
   );
 }
-
 
 function ThisOverStrip({
   balls,
@@ -729,7 +730,8 @@ function ThisOverStrip({
       }
       className={cn(
         "flex h-12 shrink-0 items-center gap-2 rounded-xl border border-primary/25 bg-card/80 px-3 shadow-sm ring-1 ring-primary/10",
-        clickable && "cursor-pointer transition duration-100 active:scale-[0.99] hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+        clickable &&
+          "cursor-pointer transition duration-100 active:scale-[0.99] hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
       )}
     >
       <div className="flex shrink-0 flex-col leading-none">
@@ -737,7 +739,9 @@ function ThisOverStrip({
           Over
         </span>
         {value && (
-          <span className="mt-0.5 text-[13px] font-black tabular-nums text-foreground">{value}</span>
+          <span className="mt-0.5 text-[13px] font-black tabular-nums text-foreground">
+            {value}
+          </span>
         )}
       </div>
       <div className="h-6 w-px shrink-0 bg-border/70" />
@@ -753,10 +757,6 @@ function ThisOverStrip({
     </section>
   );
 }
-
-
-
-
 
 function LiveInsights({
   partnership,
@@ -777,16 +777,36 @@ function LiveInsights({
 }) {
   const recentOvers = insights?.recentOvers ?? [];
   return (
-    <section className={cn("flex flex-col gap-1.5 overflow-hidden rounded-xl border bg-muted/25 p-1.5", className)}>
+    <section
+      className={cn(
+        "flex flex-col gap-1.5 overflow-hidden rounded-xl border bg-muted/25 p-1.5",
+        className,
+      )}
+    >
       <div className="grid shrink-0 grid-cols-4 gap-1.5">
-        <InfoTile label="P'ship" value={insights?.partnership ?? (partnership ? `${partnership.runs}(${partnership.balls})` : "0(0)")} />
-        <InfoTile label={chase ? "Need" : "Proj"} value={chase ? `${chase.runsNeeded}` : insights?.projected ?? "–"} accent={Boolean(chase)} />
-        <InfoTile label={chase ? "Balls" : "Extras"} value={chase ? `${chase.ballsLeft}` : insights?.extras ?? "0"} />
+        <InfoTile
+          label="P'ship"
+          value={
+            insights?.partnership ??
+            (partnership ? `${partnership.runs}(${partnership.balls})` : "0(0)")
+          }
+        />
+        <InfoTile
+          label={chase ? "Need" : "Proj"}
+          value={chase ? `${chase.runsNeeded}` : (insights?.projected ?? "–")}
+          accent={Boolean(chase)}
+        />
+        <InfoTile
+          label={chase ? "Balls" : "Extras"}
+          value={chase ? `${chase.ballsLeft}` : (insights?.extras ?? "0")}
+        />
         <InfoTile label="FOW" value={insights?.lastWicket ?? "–"} />
       </div>
 
       <div className="min-h-0 flex-1 rounded-lg bg-card/55 px-2 py-1.5">
-        <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">Recent overs</div>
+        <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          Recent overs
+        </div>
         {recentOvers.length === 0 ? (
           <div className="text-[11.5px] text-muted-foreground">Ball-by-ball data appears here.</div>
         ) : (
@@ -794,8 +814,13 @@ function LiveInsights({
             {recentOvers.slice(-3).map((over) => {
               const pct = Math.min(100, Math.round((over.runs / 36) * 100));
               return (
-                <div key={over.label} className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-2">
-                  <span className="text-[10.5px] font-black tabular-nums text-muted-foreground">{over.label}</span>
+                <div
+                  key={over.label}
+                  className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-2"
+                >
+                  <span className="text-[10.5px] font-black tabular-nums text-muted-foreground">
+                    {over.label}
+                  </span>
                   <div className="h-1.5 overflow-hidden rounded-full bg-muted/70">
                     <div
                       className={cn(
@@ -806,7 +831,8 @@ function LiveInsights({
                     />
                   </div>
                   <span className="text-[11px] font-black tabular-nums text-foreground">
-                    {over.runs}{over.wickets ? `/${over.wickets}` : ""}
+                    {over.runs}
+                    {over.wickets ? `/${over.wickets}` : ""}
                   </span>
                 </div>
               );
@@ -815,17 +841,23 @@ function LiveInsights({
         )}
       </div>
     </section>
-
   );
 }
-
 
 function InfoTile({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="min-w-0 rounded-lg bg-card/70 px-2 py-1 text-center tabular-nums">
-      <div className="truncate text-[9px] font-black uppercase tracking-widest text-muted-foreground">{label}</div>
-      <div className={cn("truncate text-[12.5px] font-black leading-tight", accent && "text-[var(--score-success-fg)]")}>{value}</div>
-
+      <div className="truncate text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+        {label}
+      </div>
+      <div
+        className={cn(
+          "truncate text-[12.5px] font-black leading-tight",
+          accent && "text-[var(--score-success-fg)]",
+        )}
+      >
+        {value}
+      </div>
     </div>
   );
 }
@@ -872,17 +904,34 @@ function ScoringDock({
       </div>
       <div className="mt-2 grid grid-cols-5 gap-2">
         <ExtraKey label="Wide" tone="wide" disabled={disabled} onClick={() => onExtra("Wide")} />
-        <ExtraKey label="No Ball" tone="nb" disabled={disabled} onClick={() => onExtra("No Ball")} />
+        <ExtraKey
+          label="No Ball"
+          tone="nb"
+          disabled={disabled}
+          onClick={() => onExtra("No Ball")}
+        />
         <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
-        <ExtraKey label="Leg Bye" tone="lb" disabled={disabled} onClick={() => onExtra("Leg Bye")} />
+        <ExtraKey
+          label="Leg Bye"
+          tone="lb"
+          disabled={disabled}
+          onClick={() => onExtra("Leg Bye")}
+        />
         <ExtraKey label="OUT" tone="out" disabled={disabled} onClick={onOut} />
       </div>
     </div>
   );
 }
 
-
-function RunKey({ value, disabled, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 5 | 6; disabled?: boolean; onClick: () => void }) {
+function RunKey({
+  value,
+  disabled,
+  onClick,
+}: {
+  value: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
   const tone = value === 4 ? "four" : value === 6 ? "six" : "neutral";
   return (
     <button
@@ -891,8 +940,10 @@ function RunKey({ value, disabled, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 5 | 6
       onClick={onClick}
       className={cn(
         "grid h-11 w-full place-items-center rounded-xl border text-[20px] font-black tabular-nums transition duration-100 active:scale-[0.95] disabled:opacity-40",
-        tone === "four" && "border-transparent bg-[var(--score-four)] text-[var(--score-action-foreground)]",
-        tone === "six" && "border-transparent bg-[var(--score-six)] text-[var(--score-action-foreground)]",
+        tone === "four" &&
+          "border-transparent bg-[var(--score-four)] text-[var(--score-action-foreground)]",
+        tone === "six" &&
+          "border-transparent bg-[var(--score-six)] text-[var(--score-action-foreground)]",
         tone === "neutral" && "border-border/80 bg-background text-foreground active:bg-muted",
       )}
     >
@@ -901,7 +952,17 @@ function RunKey({ value, disabled, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 5 | 6
   );
 }
 
-function ExtraKey({ label, tone, disabled, onClick }: { label: string; tone: "wide" | "nb" | "bye" | "lb" | "out"; disabled?: boolean; onClick: () => void }) {
+function ExtraKey({
+  label,
+  tone,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  tone: "wide" | "nb" | "bye" | "lb" | "out";
+  disabled?: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
@@ -909,10 +970,14 @@ function ExtraKey({ label, tone, disabled, onClick }: { label: string; tone: "wi
       onClick={onClick}
       className={cn(
         "grid h-11 w-full place-items-center rounded-xl border px-1 text-[10px] font-black uppercase leading-none tracking-wide transition duration-100 active:scale-[0.95] disabled:opacity-40",
-        tone === "wide" && "border-[var(--score-wide-border)] bg-[var(--score-wide-bg)] text-[var(--score-wide-fg)]",
-        tone === "nb" && "border-[var(--score-nb-border)] bg-[var(--score-nb-bg)] text-[var(--score-nb-fg)]",
-        tone === "bye" && "border-[var(--score-bye-border)] bg-[var(--score-bye-bg)] text-[var(--score-bye-fg)]",
-        tone === "lb" && "border-[var(--score-lb-border)] bg-[var(--score-lb-bg)] text-[var(--score-lb-fg)]",
+        tone === "wide" &&
+          "border-[var(--score-wide-border)] bg-[var(--score-wide-bg)] text-[var(--score-wide-fg)]",
+        tone === "nb" &&
+          "border-[var(--score-nb-border)] bg-[var(--score-nb-bg)] text-[var(--score-nb-fg)]",
+        tone === "bye" &&
+          "border-[var(--score-bye-border)] bg-[var(--score-bye-bg)] text-[var(--score-bye-fg)]",
+        tone === "lb" &&
+          "border-[var(--score-lb-border)] bg-[var(--score-lb-bg)] text-[var(--score-lb-fg)]",
         tone === "out" && "border-transparent bg-destructive text-destructive-foreground",
       )}
     >
@@ -920,7 +985,6 @@ function ExtraKey({ label, tone, disabled, onClick }: { label: string; tone: "wi
     </button>
   );
 }
-
 
 function PlayerPickerSheet({
   open,
@@ -941,7 +1005,12 @@ function PlayerPickerSheet({
   lockedMessage?: string;
   bowledIds?: string[];
 }) {
-  const title = kind === "bowler" ? "Select bowler" : kind === "nonStriker" ? "Select non-striker" : "Select striker";
+  const title =
+    kind === "bowler"
+      ? "Select bowler"
+      : kind === "nonStriker"
+        ? "Select non-striker"
+        : "Select striker";
   const bowledSet = useMemo(() => new Set(bowledIds ?? []), [bowledIds]);
   const groups = useMemo(() => {
     if (kind !== "bowler" || bowledSet.size === 0) {
@@ -970,11 +1039,16 @@ function PlayerPickerSheet({
         </DialogHeader>
         <div className="max-h-[60dvh] overflow-y-auto">
           {players.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-muted-foreground">No players found.</div>
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+              No players found.
+            </div>
           ) : (
             groups.map((group, gi) =>
               group.items.length === 0 ? null : (
-                <div key={group.label || `g-${gi}`} className="border-b border-border/70 last:border-b-0">
+                <div
+                  key={group.label || `g-${gi}`}
+                  className="border-b border-border/70 last:border-b-0"
+                >
                   {group.label && (
                     <div className="sticky top-0 z-10 border-b border-border/70 bg-card px-4 py-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                       {group.label}
@@ -993,14 +1067,31 @@ function PlayerPickerSheet({
                             onClick={() => onSelect(player)}
                             className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted disabled:opacity-45"
                           >
-                            <span className="grid size-9 place-items-center rounded-full bg-muted text-[12px] font-black text-foreground/80">{initials(player.name)}</span>
+                            <span className="grid size-9 place-items-center rounded-full bg-muted text-[12px] font-black text-foreground/80">
+                              {initials(player.name)}
+                            </span>
                             <span className="min-w-0">
-                              <span className={cn("block truncate text-[14px] leading-tight", bowled ? "font-semibold text-muted-foreground" : "font-bold")}>{player.name}</span>
+                              <span
+                                className={cn(
+                                  "block truncate text-[14px] leading-tight",
+                                  bowled ? "font-semibold text-muted-foreground" : "font-bold",
+                                )}
+                              >
+                                {player.name}
+                              </span>
                               <span className="block truncate text-[11px] text-muted-foreground">
-                                {locked ? lockedMessage : bowled ? "Bowled earlier · Tap to continue" : player.role || "Player"}
+                                {locked
+                                  ? lockedMessage
+                                  : bowled
+                                    ? "Bowled earlier · Tap to continue"
+                                    : player.role || "Player"}
                               </span>
                             </span>
-                            {locked && <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Locked</span>}
+                            {locked && (
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                Locked
+                              </span>
+                            )}
                           </button>
                         </li>
                       );
@@ -1016,8 +1107,21 @@ function PlayerPickerSheet({
   );
 }
 
-
-function FooterAction({ icon, label, onClick, disabled, title, tone }: { icon: ReactNode; label: string; onClick: () => void; disabled?: boolean; title?: string; tone?: "danger" }) {
+function FooterAction({
+  icon,
+  label,
+  onClick,
+  disabled,
+  title,
+  tone,
+}: {
+  icon: ReactNode;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  title?: string;
+  tone?: "danger";
+}) {
   return (
     <button
       type="button"

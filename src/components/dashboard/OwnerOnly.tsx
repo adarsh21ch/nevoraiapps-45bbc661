@@ -11,7 +11,13 @@ import { Lock } from "lucide-react";
  * Data access is still enforced by RLS + `is_tenant_owner`; this is purely
  * a UX gate so admins don't see billing/fees/subscription/reports UI.
  */
-export function OwnerOnly({ children, redirectTo = "/dashboard" }: { children: ReactNode; redirectTo?: string }) {
+export function OwnerOnly({
+  children,
+  redirectTo = "/dashboard",
+}: {
+  children: ReactNode;
+  redirectTo?: string;
+}) {
   const role = useCurrentRole();
   const navigate = useNavigate();
   useEffect(() => {

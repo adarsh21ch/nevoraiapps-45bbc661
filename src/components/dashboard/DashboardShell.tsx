@@ -33,7 +33,6 @@ import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
 
-
 type NavItem = {
   to: string;
   label: string;
@@ -49,7 +48,13 @@ type NavItem = {
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-  { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking", ownerOnly: true },
+  {
+    to: "/dashboard/fees",
+    label: "Fees",
+    icon: IndianRupee,
+    requiresFeature: "fee_tracking",
+    ownerOnly: true,
+  },
   { to: "/dashboard/insights", label: "Performance", icon: TrendingUp, adminOnly: true },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
@@ -107,12 +112,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         return { ...n, label, badge, live };
       });
 
-
   const primary = withBadges(primaryNav);
   const operations = withBadges(operationsNav);
-
-
-
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -122,7 +123,11 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-background"
         style={{ height: "env(safe-area-inset-top)" }}
       />
-      <div aria-hidden="true" className="bg-background" style={{ height: "env(safe-area-inset-top)" }} />
+      <div
+        aria-hidden="true"
+        className="bg-background"
+        style={{ height: "env(safe-area-inset-top)" }}
+      />
       <header
         className="sticky z-40 border-b border-border bg-background/95 backdrop-blur"
         style={{ top: "env(safe-area-inset-top)" }}
@@ -140,11 +145,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </a>
             <Link
               to="/dashboard/registrations"
-              aria-label={
-                newRegCount > 0
-                  ? `Registrations, ${newRegCount} new`
-                  : "Registrations"
-              }
+              aria-label={newRegCount > 0 ? `Registrations, ${newRegCount} new` : "Registrations"}
               className="relative inline-grid place-items-center size-9 rounded-full hover:bg-accent transition-colors"
             >
               <Inbox className="size-4" />
@@ -159,7 +160,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
             </Link>
 
             <NotificationBell />
-
 
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
@@ -180,9 +180,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           />
         </aside>
 
-
         <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-32 md:pb-8">
-          <div className="mb-4"><TrialBanner /></div>
+          <div className="mb-4">
+            <TrialBanner />
+          </div>
           {children ?? <Outlet />}
         </main>
       </div>
@@ -192,7 +193,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
 
 function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | null } }) {
   const { t } = useT();
@@ -215,7 +215,9 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
       </div>
       <div className="min-w-0">
         <div className="text-sm font-semibold truncate">{tenant.name}</div>
-        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{t("Dashboard")}</div>
+        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+          {t("Dashboard")}
+        </div>
       </div>
     </div>
   );
@@ -243,10 +245,7 @@ function SidebarInner({
       : location.pathname === to || location.pathname.startsWith(to + "/");
 
   // Operations aggregate badge count (e.g. new registrations while collapsed).
-  const opsBadge = useMemo(
-    () => operations.reduce((s, n) => s + (n.badge ?? 0), 0),
-    [operations],
-  );
+  const opsBadge = useMemo(() => operations.reduce((s, n) => s + (n.badge ?? 0), 0), [operations]);
   const opsLive = operations.some((n) => n.live);
   const opsActive = operations.some((n) => isItemActive(n.to));
   const [opsOpen, setOpsOpen] = useState(opsActive);
@@ -339,14 +338,10 @@ function SidebarInner({
               {opsBadge}
             </span>
           ) : null}
-          <ChevronDown
-            className={cn("size-4 transition-transform", opsOpen && "rotate-180")}
-          />
+          <ChevronDown className={cn("size-4 transition-transform", opsOpen && "rotate-180")} />
         </button>
         {opsOpen ? (
-          <div className="space-y-1 pt-0.5">
-            {operations.map((n) => renderItem(n, true))}
-          </div>
+          <div className="space-y-1 pt-0.5">{operations.map((n) => renderItem(n, true))}</div>
         ) : null}
 
         {profile ? renderItem(profile) : null}
@@ -359,4 +354,3 @@ function SidebarInner({
     </div>
   );
 }
-

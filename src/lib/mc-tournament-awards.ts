@@ -42,7 +42,7 @@ export interface AwardWinner {
   name: string;
   teamName?: string | null;
   headline: string; // "487 runs @ 54.11 · SR 138"
-  score: number;   // sort/tiebreak
+  score: number; // sort/tiebreak
   raw?: Record<string, number>; // for future analytics
 }
 
@@ -83,7 +83,9 @@ function batterImpact(r: PlayerBattingRow): number {
   // runs, weighted by strike-rate and boundaries; not-outs boost avg
   const avgFactor = r.average > 0 ? r.average : r.runs;
   const srFactor = Math.min(r.strikeRate, 250) / 100;
-  return r.runs + avgFactor * 2 + srFactor * 25 + r.fifties * 15 + r.hundreds * 40 + r.matchWinning * 25;
+  return (
+    r.runs + avgFactor * 2 + srFactor * 25 + r.fifties * 15 + r.hundreds * 40 + r.matchWinning * 25
+  );
 }
 
 function bowlerImpact(r: PlayerBowlingRow): number {
@@ -91,10 +93,20 @@ function bowlerImpact(r: PlayerBowlingRow): number {
   const econPenalty = r.balls > 0 ? Math.max(0, r.economy - 6) * 8 : 0;
   const avg = r.average > 0 && Number.isFinite(r.average) ? r.average : 40;
   const avgPenalty = Math.max(0, avg - 20) * 1.5;
-  return r.wickets * 20 + r.fiveWicketHauls * 50 + r.hatTricks * 40 + r.matchWinning * 25 - econPenalty - avgPenalty;
+  return (
+    r.wickets * 20 +
+    r.fiveWicketHauls * 50 +
+    r.hatTricks * 40 +
+    r.matchWinning * 25 -
+    econPenalty -
+    avgPenalty
+  );
 }
 
-function allRounderImpact(bat: PlayerBattingRow | undefined, bowl: PlayerBowlingRow | undefined): number {
+function allRounderImpact(
+  bat: PlayerBattingRow | undefined,
+  bowl: PlayerBowlingRow | undefined,
+): number {
   const b = bat ? batterImpact(bat) : 0;
   const w = bowl ? bowlerImpact(bowl) : 0;
   // require BOTH sides to have contributed meaningfully
@@ -106,7 +118,11 @@ function fielderImpact(r: PlayerFieldingRow): number {
   return r.fieldingPoints;
 }
 
-function potmImpact(bat: PlayerBattingRow | undefined, bowl: PlayerBowlingRow | undefined, field: PlayerFieldingRow | undefined): number {
+function potmImpact(
+  bat: PlayerBattingRow | undefined,
+  bowl: PlayerBowlingRow | undefined,
+  field: PlayerFieldingRow | undefined,
+): number {
   const b = bat ? batterImpact(bat) : 0;
   const w = bowl ? bowlerImpact(bowl) : 0;
   const f = field ? fielderImpact(field) : 0;
@@ -155,7 +171,12 @@ function pickTeamOfTournament(
   // 3 all-rounders first (must have both sides contributed)
   const allRounderScored = batting
     .filter((b) => (bowlByKey.get(b.key)?.wickets ?? 0) >= 3 && b.runs >= 40)
-    .map((b) => ({ key: b.key, bat: b, bowl: bowlByKey.get(b.key)!, score: allRounderImpact(b, bowlByKey.get(b.key)) }))
+    .map((b) => ({
+      key: b.key,
+      bat: b,
+      bowl: bowlByKey.get(b.key)!,
+      score: allRounderImpact(b, bowlByKey.get(b.key)),
+    }))
     .sort((a, b) => b.score - a.score);
   for (const r of allRounderScored.slice(0, 3)) {
     if (usedKeys.has(r.key)) continue;
@@ -171,7 +192,12 @@ function pickTeamOfTournament(
   // 1 wicket-keeper (top by stumpings + catches while batting well)
   const wkScored = fielding
     .filter((f) => f.stumpings > 0)
-    .map((f) => ({ key: f.key, f, bat: batByKey.get(f.key), score: f.stumpings * 20 + f.catches * 8 + (batByKey.get(f.key)?.runs ?? 0) * 0.4 }))
+    .map((f) => ({
+      key: f.key,
+      f,
+      bat: batByKey.get(f.key),
+      score: f.stumpings * 20 + f.catches * 8 + (batByKey.get(f.key)?.runs ?? 0) * 0.4,
+    }))
     .sort((a, b) => b.score - a.score);
   for (const wk of wkScored) {
     if (usedKeys.has(wk.key)) continue;
@@ -191,7 +217,12 @@ function pickTeamOfTournament(
     if (picks.filter((p) => p.role === "batter").length >= 4) break;
     if (usedKeys.has(b.key)) continue;
     usedKeys.add(b.key);
-    picks.push({ role: "batter", athleteId: b.athleteId, name: b.name, headline: battingHeadline(b) });
+    picks.push({
+      role: "batter",
+      athleteId: b.athleteId,
+      name: b.name,
+      headline: battingHeadline(b),
+    });
   }
 
   // 3 bowlers
@@ -200,7 +231,12 @@ function pickTeamOfTournament(
     if (picks.filter((p) => p.role === "bowler").length >= 3) break;
     if (usedKeys.has(bw.key)) continue;
     usedKeys.add(bw.key);
-    picks.push({ role: "bowler", athleteId: bw.athleteId, name: bw.name, headline: bowlingHeadline(bw) });
+    picks.push({
+      role: "bowler",
+      athleteId: bw.athleteId,
+      name: bw.name,
+      headline: bowlingHeadline(bw),
+    });
   }
 
   return picks;
@@ -220,7 +256,12 @@ function fairPlayTeam(analytics: TournamentAnalytics): TeamAwardWinner | null {
     .sort((a, b) => b.score - a.score);
   const w = scored[0];
   return w
-    ? { teamId: w.t.teamId, name: w.t.name, headline: `${w.t.matches} played · ${w.t.wins}W ${w.t.losses}L`, score: w.score }
+    ? {
+        teamId: w.t.teamId,
+        name: w.t.name,
+        headline: `${w.t.matches} played · ${w.t.wins}W ${w.t.losses}L`,
+        score: w.score,
+      }
     : null;
 }
 
@@ -284,7 +325,11 @@ export function computeTournamentAwards(analytics: TournamentAnalytics): Tournam
 
   const allRounderPool = batting
     .filter((b) => bowlingByKey.has(b.key))
-    .map((b) => ({ b, bw: bowlingByKey.get(b.key)!, score: allRounderImpact(b, bowlingByKey.get(b.key)) }))
+    .map((b) => ({
+      b,
+      bw: bowlingByKey.get(b.key)!,
+      score: allRounderImpact(b, bowlingByKey.get(b.key)),
+    }))
     .sort((a, b) => b.score - a.score);
   const bestAllRounderPick = allRounderPool[0] ?? null;
 
@@ -351,8 +396,16 @@ export function computeTournamentAwards(analytics: TournamentAnalytics): Tournam
 }
 
 /** Utility so callers can iterate a stable label list. */
-export const AWARD_LABELS: Array<{ key: keyof TournamentAwards; label: string; description: string }> = [
-  { key: "playerOfTournament", label: "Player of the Tournament", description: "Best composite performance" },
+export const AWARD_LABELS: Array<{
+  key: keyof TournamentAwards;
+  label: string;
+  description: string;
+}> = [
+  {
+    key: "playerOfTournament",
+    label: "Player of the Tournament",
+    description: "Best composite performance",
+  },
   { key: "bestBatter", label: "Best Batter", description: "Runs, average, strike rate & impact" },
   { key: "bestBowler", label: "Best Bowler", description: "Wickets, economy, hauls & hat-tricks" },
   { key: "bestAllRounder", label: "Best All-Rounder", description: "Bat + ball combined impact" },
@@ -364,7 +417,9 @@ export const AWARD_LABELS: Array<{ key: keyof TournamentAwards; label: string; d
 ];
 
 /** Reused by exports — flattens awards to CSV-shaped rows. */
-export function awardsToRows(a: TournamentAwards): Array<{ award: string; winner: string; details: string }> {
+export function awardsToRows(
+  a: TournamentAwards,
+): Array<{ award: string; winner: string; details: string }> {
   const rows: Array<{ award: string; winner: string; details: string }> = [];
   for (const item of AWARD_LABELS) {
     const w = a[item.key] as AwardWinner | TeamAwardWinner | null;
@@ -375,7 +430,11 @@ export function awardsToRows(a: TournamentAwards): Array<{ award: string; winner
     });
   }
   a.teamOfTournament.forEach((p, i) =>
-    rows.push({ award: `Team of the Tournament #${i + 1} (${p.role})`, winner: p.name, details: p.headline }),
+    rows.push({
+      award: `Team of the Tournament #${i + 1} (${p.role})`,
+      winner: p.name,
+      details: p.headline,
+    }),
   );
   return rows;
 }

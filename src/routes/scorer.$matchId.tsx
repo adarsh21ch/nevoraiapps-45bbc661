@@ -47,13 +47,7 @@ import { LiveScorecard } from "@/components/match-center/live-scorecard";
 import { ShareMatchDialog } from "@/components/match-center/share-match-dialog";
 import { FinalizationDialog, UnlockMatchDialog } from "@/components/match-center/finalization-ui";
 import { detectMatchResult, type InningsRow, type MatchResult } from "@/lib/mc-finalization";
-import {
-  Printer,
-  Share2,
-  FileText,
-  Trophy,
-} from "lucide-react";
-
+import { Printer, Share2, FileText, Trophy } from "lucide-react";
 
 export const Route = createFileRoute("/scorer/$matchId")({
   head: () => ({
@@ -79,9 +73,6 @@ const DISMISSAL_MAP: Record<DismissalKind, DismissalType> = {
   "Retired Out": "retired_out",
   "Timed Out": "timed_out",
 };
-
-
-
 
 function ScorerPage() {
   const { matchId } = Route.useParams();
@@ -187,23 +178,17 @@ function ScorerPage() {
 
   const findSquad = (opt: PlayerOption) =>
     session.playingXI.find(
-      (p) =>
-        (p.athlete_profile_id && opt.id === p.athlete_profile_id) ||
-        opt.id === `ext:${p.id}`,
+      (p) => (p.athlete_profile_id && opt.id === p.athlete_profile_id) || opt.id === `ext:${p.id}`,
     );
 
-  const setPlayer = (
-    slot: "striker" | "nonStriker" | "bowler",
-    opt: PlayerOption,
-  ) => {
+  const setPlayer = (slot: "striker" | "nonStriker" | "bowler", opt: PlayerOption) => {
     const squad = findSquad(opt);
     const payload = {
       athleteId: squad?.athlete_profile_id ?? null,
       name: opt.name,
     };
     if (slot === "striker") session.setStriker({ ...payload, onStrike: true });
-    else if (slot === "nonStriker")
-      session.setNonStriker({ ...payload, onStrike: false });
+    else if (slot === "nonStriker") session.setNonStriker({ ...payload, onStrike: false });
     else session.setBowler(payload);
   };
 
@@ -227,7 +212,9 @@ function ScorerPage() {
   const [finalizeDialogOpen, setFinalizeDialogOpen] = useState(false);
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
-  const [pendingBallIntent, setPendingBallIntent] = useState<Parameters<typeof session.submitBall>[0] | null>(null);
+  const [pendingBallIntent, setPendingBallIntent] = useState<
+    Parameters<typeof session.submitBall>[0] | null
+  >(null);
 
   /* ---------- hydrate current players from event log on resume ---------- */
   useEffect(() => {
@@ -242,13 +229,15 @@ function ScorerPage() {
       const dismissed =
         (rs.athleteId && session.matchState.innings.dismissedIds.has(rs.athleteId)) ||
         (rs.name && session.matchState.innings.dismissedNames.has(rs.name));
-      if (!dismissed) session.setStriker({ athleteId: rs.athleteId, name: rs.name, onStrike: true });
+      if (!dismissed)
+        session.setStriker({ athleteId: rs.athleteId, name: rs.name, onStrike: true });
     }
     if (nonStrikerEmpty && (rn.athleteId || rn.name)) {
       const dismissed =
         (rn.athleteId && session.matchState.innings.dismissedIds.has(rn.athleteId)) ||
         (rn.name && session.matchState.innings.dismissedNames.has(rn.name));
-      if (!dismissed) session.setNonStriker({ athleteId: rn.athleteId, name: rn.name, onStrike: false });
+      if (!dismissed)
+        session.setNonStriker({ athleteId: rn.athleteId, name: rn.name, onStrike: false });
     }
     if (bowlerEmpty && (rb.athleteId || rb.name) && !session.matchState.innings.awaitingNewBowler) {
       session.setBowler({ athleteId: rb.athleteId, name: rb.name });
@@ -322,7 +311,9 @@ function ScorerPage() {
           strikeRate: s ? String(s.strikeRate) : "0.0",
           order: s?.battingPosition,
           last5: session.events
-            .filter((e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name)
+            .filter(
+              (e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name,
+            )
             .slice(-5)
             .map(ballChipLabel),
           onStrike: true,
@@ -367,32 +358,32 @@ function ScorerPage() {
     preOver: session.matchState.innings.awaitingNewBowler,
   });
 
-
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
   const nonStrikerSelected = Boolean(nonStriker.athleteId || nonStriker.name);
   const bowlerSelected = Boolean(bowlerRef.athleteId || bowlerRef.name);
   const strikerDismissed = Boolean(
     (striker.athleteId && session.matchState.innings.dismissedIds.has(striker.athleteId)) ||
-      (striker.name && session.matchState.innings.dismissedNames.has(striker.name)),
+    (striker.name && session.matchState.innings.dismissedNames.has(striker.name)),
   );
   const nonStrikerDismissed = Boolean(
     (nonStriker.athleteId && session.matchState.innings.dismissedIds.has(nonStriker.athleteId)) ||
-      (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
+    (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
   );
-  const incomingBatterRole = !strikerSelected || strikerDismissed
-    ? "striker"
-    : !nonStrikerSelected || nonStrikerDismissed
-      ? "nonStriker"
-      : null;
+  const incomingBatterRole =
+    !strikerSelected || strikerDismissed
+      ? "striker"
+      : !nonStrikerSelected || nonStrikerDismissed
+        ? "nonStriker"
+        : null;
   const sameAsPreviousBowler = Boolean(
     previousOverBowler &&
-      ((bowlerRef.athleteId &&
-        previousOverBowler.bowlerAthleteId &&
-        bowlerRef.athleteId === previousOverBowler.bowlerAthleteId) ||
-        (bowlerRef.name &&
-          previousOverBowler.bowlerName &&
-          bowlerRef.name === previousOverBowler.bowlerName)),
+    ((bowlerRef.athleteId &&
+      previousOverBowler.bowlerAthleteId &&
+      bowlerRef.athleteId === previousOverBowler.bowlerAthleteId) ||
+      (bowlerRef.name &&
+        previousOverBowler.bowlerName &&
+        bowlerRef.name === previousOverBowler.bowlerName)),
   );
   const newBowlerStillNeeded = Boolean(
     session.matchState.innings.awaitingNewBowler && (!bowlerSelected || sameAsPreviousBowler),
@@ -415,7 +406,6 @@ function ScorerPage() {
             ? "bowler"
             : null;
 
-
   /* ---------- header text ---------- */
   const teamMap = new Map((teamsQ.data ?? []).map((t) => [t.id, t]));
   const battingTeamId = session.activeInnings?.batting_team_id ?? session.match?.team_a_id ?? "";
@@ -425,11 +415,8 @@ function ScorerPage() {
 
   // (connection status handled implicitly by MobileScorer; kept for future use)
 
-
   /* ---------- ball submission ---------- */
-  const [redoStack, setRedoStack] = useState<
-    Awaited<ReturnType<typeof session.undo>>[]
-  >([]);
+  const [redoStack, setRedoStack] = useState<Awaited<ReturnType<typeof session.undo>>[]>([]);
   const submittingBallRef = useRef(false);
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
     if (submittingBallRef.current) return;
@@ -456,7 +443,6 @@ function ScorerPage() {
     }
     void submit(partial);
   };
-
 
   useEffect(() => {
     if (!pendingBallIntent || requiredPicker) return;
@@ -613,9 +599,7 @@ function ScorerPage() {
     [inningsRowsQ.data, session.match?.team_a_id, session.match?.team_b_id, session.match?.status],
   );
 
-  const matchLocked = Boolean(
-    (session.match as { match_locked?: boolean } | null)?.match_locked,
-  );
+  const matchLocked = Boolean((session.match as { match_locked?: boolean } | null)?.match_locked);
 
   /* ---------- result string ---------- */
   const resultLine = (() => {
@@ -656,11 +640,17 @@ function ScorerPage() {
   const navigate = useNavigate();
   const teamAShort =
     teamMap.get(session.match?.team_a_id ?? "")?.short_name ??
-    teamMap.get(session.match?.team_a_id ?? "")?.name?.slice(0, 3).toUpperCase() ??
+    teamMap
+      .get(session.match?.team_a_id ?? "")
+      ?.name?.slice(0, 3)
+      .toUpperCase() ??
     "A";
   const teamBShort =
     teamMap.get(session.match?.team_b_id ?? "")?.short_name ??
-    teamMap.get(session.match?.team_b_id ?? "")?.name?.slice(0, 3).toUpperCase() ??
+    teamMap
+      .get(session.match?.team_b_id ?? "")
+      ?.name?.slice(0, 3)
+      .toUpperCase() ??
     "B";
   const matchTitle = `${teamAShort} vs ${teamBShort}`;
   const tournamentLabel = [
@@ -682,8 +672,6 @@ function ScorerPage() {
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
 
-
-
   return (
     <div className="scorer-root fixed inset-0 z-40 flex flex-col overflow-hidden bg-background text-foreground">
       {isDemo ? (
@@ -691,8 +679,8 @@ function ScorerPage() {
           <div className="max-w-md space-y-3">
             <div className="text-lg font-semibold">Demo scorer</div>
             <p className="text-sm text-muted-foreground">
-              This is a placeholder route. Create a real match from Match
-              Center → Create, then open its scorer.
+              This is a placeholder route. Create a real match from Match Center → Create, then open
+              its scorer.
             </p>
             <Button asChild>
               <Link to="/match-center/create">Create a match</Link>
@@ -704,8 +692,8 @@ function ScorerPage() {
           <div className="max-w-sm space-y-3">
             <div className="text-lg font-semibold">Match is being scored</div>
             <p className="text-sm text-muted-foreground">
-              This match is currently being scored by another user. To prevent
-              conflicting updates, only one scorer can be active at a time.
+              This match is currently being scored by another user. To prevent conflicting updates,
+              only one scorer can be active at a time.
             </p>
             <Button variant="outline" onClick={() => void navigate({ to: "/match-center/live" })}>
               Back to live matches
@@ -763,9 +751,7 @@ function ScorerPage() {
           crr={String(stats.team.runRate)}
           rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={
-            session.activeInnings?.target != null
-              ? String(session.activeInnings.target)
-              : undefined
+            session.activeInnings?.target != null ? String(session.activeInnings.target) : undefined
           }
           chase={chase}
           striker={strikerStat}
@@ -779,7 +765,11 @@ function ScorerPage() {
                 }
               : null
           }
-          overBalls={session.matchState.innings.awaitingNewBowler ? [] : session.currentOver.events.map(ballChipLabel)}
+          overBalls={
+            session.matchState.innings.awaitingNewBowler
+              ? []
+              : session.currentOver.events.map(ballChipLabel)
+          }
           currentOverLabel={currentOverLabel}
           overHistory={computeOverHistory(session.events, ballChipLabel)}
           inningsLabel={undefined}
@@ -861,18 +851,11 @@ function ScorerPage() {
           bowledBowlerIds={bowledBowlerIds}
           dismissedBatterIds={Array.from(session.matchState.innings.dismissedIds)}
           dismissedBatterNames={Array.from(session.matchState.innings.dismissedNames)}
-
         />
-
       )}
 
-
       {/* ---------- modals ---------- */}
-      <DismissalModal
-        open={dismissOpen}
-        onOpenChange={setDismissOpen}
-        onSelect={handleDismissal}
-      />
+      <DismissalModal open={dismissOpen} onOpenChange={setDismissOpen} onSelect={handleDismissal} />
 
       <PlayerPickerModal
         open={caughtOpen}
@@ -1008,7 +991,9 @@ function ScorerPage() {
             <div className="text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
+            <div className="text-xs text-muted-foreground">
+              {formatOversCompact(stats.team.legalBalls)} overs
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>
@@ -1030,9 +1015,7 @@ function ScorerPage() {
             <DialogTitle className="flex items-center gap-2">
               <Trophy className="size-5 text-primary" /> Match complete
             </DialogTitle>
-            <DialogDescription>
-              {resultLine ?? "Match ended."}
-            </DialogDescription>
+            <DialogDescription>{resultLine ?? "Match ended."}</DialogDescription>
           </DialogHeader>
           <div className="rounded-lg border bg-card p-4 text-center">
             <div className="text-xs uppercase tracking-widest text-muted-foreground">
@@ -1041,7 +1024,9 @@ function ScorerPage() {
             <div className="mt-1 text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
+            <div className="text-xs text-muted-foreground">
+              {formatOversCompact(stats.team.legalBalls)} overs
+            </div>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>
@@ -1053,25 +1038,18 @@ function ScorerPage() {
       </Dialog>
 
       {/* Right squad drawer */}
-      <SquadDrawer
-        open={rightDrawer}
-        onOpenChange={setRightDrawer}
-        side="right"
-        title="Squad"
-      >
+      <SquadDrawer open={rightDrawer} onOpenChange={setRightDrawer} side="right" title="Squad">
         <SquadSection title={`${homeName} · Batting`} players={battingOptions} />
         <SquadSection title={`${awayName} · Bowling`} players={bowlingOptions} />
       </SquadDrawer>
 
       {/* Left match info drawer */}
-      <SquadDrawer
-        open={leftDrawer}
-        onOpenChange={setLeftDrawer}
-        side="left"
-        title="Match info"
-      >
+      <SquadDrawer open={leftDrawer} onOpenChange={setLeftDrawer} side="left" title="Match info">
         <InfoRow label="Format" value={session.match?.match_format ?? "—"} />
-        <InfoRow label="Overs" value={session.match?.overs != null ? String(session.match.overs) : "—"} />
+        <InfoRow
+          label="Overs"
+          value={session.match?.overs != null ? String(session.match.overs) : "—"}
+        />
         <InfoRow label="Ground" value={session.match?.ground_name ?? "—"} />
         <InfoRow label="Tournament" value={session.match?.match_type ?? "—"} />
         <InfoRow label="Umpire" value={session.match?.umpire ?? "—"} />
@@ -1104,7 +1082,9 @@ function ScorerPage() {
             tenantId={session.match.tenant_id}
             actorId={userQ.data?.id ?? null}
             role="owner"
-            onUnlocked={() => { /* refresh handled by realtime */ }}
+            onUnlocked={() => {
+              /* refresh handled by realtime */
+            }}
           />
           <ShareMatchDialog
             open={shareOpen}
@@ -1114,7 +1094,6 @@ function ScorerPage() {
           />
         </>
       )}
-
     </div>
   );
 }
@@ -1187,7 +1166,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   const [inningsCompleteOpen, setInningsCompleteOpen] = useState(false);
   const [matchCompleteOpen, setMatchCompleteOpen] = useState(false);
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
-  const [pendingBallIntent, setPendingBallIntent] = useState<Parameters<typeof session.submitBall>[0] | null>(null);
+  const [pendingBallIntent, setPendingBallIntent] = useState<
+    Parameters<typeof session.submitBall>[0] | null
+  >(null);
 
   useEffect(() => {
     if (session.matchState.inningsShouldEnd && !inningsCompleteOpen) {
@@ -1209,8 +1190,8 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         <div className="max-w-sm space-y-3">
           <div className="text-lg font-semibold">Demo match unavailable</div>
           <p className="text-sm text-muted-foreground">
-            The demo fixtures aren't loaded on this device. Turn on Demo Mode
-            from Match Center → Settings, then reopen this match.
+            The demo fixtures aren't loaded on this device. Turn on Demo Mode from Match Center →
+            Settings, then reopen this match.
           </p>
           <div className="flex justify-center gap-2">
             <Button asChild size="sm" variant="outline">
@@ -1247,10 +1228,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     role: p.role ?? undefined,
   }));
 
-  const setPlayer = (
-    slot: "striker" | "nonStriker" | "bowler",
-    opt: PlayerOption,
-  ) => {
+  const setPlayer = (slot: "striker" | "nonStriker" | "bowler", opt: PlayerOption) => {
     const payload = { athleteId: opt.id.startsWith("ext:") ? null : opt.id, name: opt.name };
     if (slot === "striker") session.setStriker({ ...payload, onStrike: true });
     else if (slot === "nonStriker") session.setNonStriker({ ...payload, onStrike: false });
@@ -1268,13 +1246,19 @@ function DemoScorerView({ matchId }: { matchId: string }) {
 
   const strikerKey = striker.athleteId
     ? `id:${striker.athleteId}`
-    : striker.name ? `name:${striker.name.toLowerCase()}` : null;
+    : striker.name
+      ? `name:${striker.name.toLowerCase()}`
+      : null;
   const nonStrikerKey = nonStriker.athleteId
     ? `id:${nonStriker.athleteId}`
-    : nonStriker.name ? `name:${nonStriker.name.toLowerCase()}` : null;
+    : nonStriker.name
+      ? `name:${nonStriker.name.toLowerCase()}`
+      : null;
   const bowlerKey = bowlerRef.athleteId
     ? `id:${bowlerRef.athleteId}`
-    : bowlerRef.name ? `name:${bowlerRef.name.toLowerCase()}` : null;
+    : bowlerRef.name
+      ? `name:${bowlerRef.name.toLowerCase()}`
+      : null;
 
   const strikerStat: BatterStats | undefined = strikerKey
     ? (() => {
@@ -1288,7 +1272,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           strikeRate: s ? String(s.strikeRate) : "0.0",
           order: s?.battingPosition,
           last5: session.events
-            .filter((e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name)
+            .filter(
+              (e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name,
+            )
             .slice(-5)
             .map(ballChipLabel),
           onStrike: true,
@@ -1339,25 +1325,26 @@ function DemoScorerView({ matchId }: { matchId: string }) {
   const bowlerSelected = Boolean(bowlerRef.athleteId || bowlerRef.name);
   const strikerDismissed = Boolean(
     (striker.athleteId && session.matchState.innings.dismissedIds.has(striker.athleteId)) ||
-      (striker.name && session.matchState.innings.dismissedNames.has(striker.name)),
+    (striker.name && session.matchState.innings.dismissedNames.has(striker.name)),
   );
   const nonStrikerDismissed = Boolean(
     (nonStriker.athleteId && session.matchState.innings.dismissedIds.has(nonStriker.athleteId)) ||
-      (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
+    (nonStriker.name && session.matchState.innings.dismissedNames.has(nonStriker.name)),
   );
-  const incomingBatterRole = !strikerSelected || strikerDismissed
-    ? "striker"
-    : !nonStrikerSelected || nonStrikerDismissed
-      ? "nonStriker"
-      : null;
+  const incomingBatterRole =
+    !strikerSelected || strikerDismissed
+      ? "striker"
+      : !nonStrikerSelected || nonStrikerDismissed
+        ? "nonStriker"
+        : null;
   const sameAsPreviousBowler = Boolean(
     previousOverBowler &&
-      ((bowlerRef.athleteId &&
-        previousOverBowler.bowlerAthleteId &&
-        bowlerRef.athleteId === previousOverBowler.bowlerAthleteId) ||
-        (bowlerRef.name &&
-          previousOverBowler.bowlerName &&
-          bowlerRef.name === previousOverBowler.bowlerName)),
+    ((bowlerRef.athleteId &&
+      previousOverBowler.bowlerAthleteId &&
+      bowlerRef.athleteId === previousOverBowler.bowlerAthleteId) ||
+      (bowlerRef.name &&
+        previousOverBowler.bowlerName &&
+        bowlerRef.name === previousOverBowler.bowlerName)),
   );
   const newBowlerStillNeeded = Boolean(
     session.matchState.innings.awaitingNewBowler && (!bowlerSelected || sameAsPreviousBowler),
@@ -1377,20 +1364,17 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             ? "bowler"
             : null;
 
-
   const matchWithTeams = (demo.matches.find((m) => m.id === matchId) ?? match) as MatchWithTeams;
   const teamA = matchWithTeams.team_a;
   const teamB = matchWithTeams.team_b;
   const battingTeamId = activeInnings?.batting_team_id ?? teamA?.id ?? "";
-  const homeName = battingTeamId === teamA?.id ? teamA?.name ?? "Home" : teamB?.name ?? "Home";
-  const awayName = battingTeamId === teamA?.id ? teamB?.name ?? "Away" : teamA?.name ?? "Away";
+  const homeName = battingTeamId === teamA?.id ? (teamA?.name ?? "Home") : (teamB?.name ?? "Home");
+  const awayName = battingTeamId === teamA?.id ? (teamB?.name ?? "Away") : (teamA?.name ?? "Away");
 
   // commentary intentionally omitted from compact mobile UI — available via scorecard.
 
   /* ---------- ball submission ---------- */
-  const [redoStack, setRedoStack] = useState<
-    Awaited<ReturnType<typeof session.undo>>[]
-  >([]);
+  const [redoStack, setRedoStack] = useState<Awaited<ReturnType<typeof session.undo>>[]>([]);
   const submittingBallRef = useRef(false);
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
     if (submittingBallRef.current) return;
@@ -1417,7 +1401,6 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     }
     void submit(partial);
   };
-
 
   useEffect(() => {
     if (!pendingBallIntent || requiredPicker) return;
@@ -1586,7 +1569,6 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
 
-
   return (
     <div className="scorer-root fixed inset-0 z-40 flex flex-col overflow-hidden bg-background text-foreground">
       {match.match_locked ? (
@@ -1631,7 +1613,11 @@ function DemoScorerView({ matchId }: { matchId: string }) {
                 }
               : null
           }
-          overBalls={session.matchState.innings.awaitingNewBowler ? [] : session.currentOver.events.map(ballChipLabel)}
+          overBalls={
+            session.matchState.innings.awaitingNewBowler
+              ? []
+              : session.currentOver.events.map(ballChipLabel)
+          }
           currentOverLabel={currentOverLabel}
           overHistory={computeOverHistory(session.events, ballChipLabel)}
           insights={{
@@ -1667,9 +1653,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             session.setNonStriker({ ...s, onStrike: false });
           }}
           onRetiredHurt={() => void finalizeWicket("retired_hurt")}
-          onFinishInnings={
-            activeInnings?.innings_number === 1 ? startSecondInnings : undefined
-          }
+          onFinishInnings={activeInnings?.innings_number === 1 ? startSecondInnings : undefined}
           showFinishInnings={activeInnings?.innings_number === 1}
           onEndMatch={finalizeMatch}
           onOpenScorecard={() => setScorecardOpen(true)}
@@ -1702,9 +1686,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           previousBowlerName={previousOverBowler?.bowlerName ?? null}
           bowledBowlerIds={bowledBowlerIds}
         />
-
       )}
-
 
       {/* ---------- modals ---------- */}
       <DismissalModal open={dismissOpen} onOpenChange={setDismissOpen} onSelect={handleDismissal} />
@@ -1798,7 +1780,9 @@ function DemoScorerView({ matchId }: { matchId: string }) {
           <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-muted-foreground/30" />
           <SheetHeader className="shrink-0 space-y-0.5 px-5 pt-3 pb-2 text-left">
             <SheetTitle className="text-[22px] font-black tracking-tight">Scorecard</SheetTitle>
-            <SheetDescription className="text-[12px]">Demo match · derived from ball events.</SheetDescription>
+            <SheetDescription className="text-[12px]">
+              Demo match · derived from ball events.
+            </SheetDescription>
           </SheetHeader>
           <div className="flex-1 min-h-0 overflow-hidden px-4">
             <LiveScorecard
@@ -1834,10 +1818,14 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             <div className="text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
+            <div className="text-xs text-muted-foreground">
+              {formatOversCompact(stats.team.legalBalls)} overs
+            </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setScorecardOpen(true)}>Review</Button>
+            <Button variant="outline" onClick={() => setScorecardOpen(true)}>
+              Review
+            </Button>
             {session.matchState.matchShouldEnd ? (
               <Button onClick={finalizeMatch}>Finalize match</Button>
             ) : (
@@ -1857,14 +1845,20 @@ function DemoScorerView({ matchId }: { matchId: string }) {
             <DialogDescription>{resultLine ?? "Match ended."}</DialogDescription>
           </DialogHeader>
           <div className="rounded-lg border bg-card p-4 text-center">
-            <div className="text-xs uppercase tracking-widest text-muted-foreground">Final score</div>
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">
+              Final score
+            </div>
             <div className="mt-1 text-3xl font-black tabular-nums">
               {stats.team.runs}/{stats.team.wickets}
             </div>
-            <div className="text-xs text-muted-foreground">{formatOversCompact(stats.team.legalBalls)} overs</div>
+            <div className="text-xs text-muted-foreground">
+              {formatOversCompact(stats.team.legalBalls)} overs
+            </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setScorecardOpen(true)}>View scorecard</Button>
+            <Button variant="outline" onClick={() => setScorecardOpen(true)}>
+              View scorecard
+            </Button>
             <Button onClick={finalizeMatch}>Finalize</Button>
           </DialogFooter>
         </DialogContent>

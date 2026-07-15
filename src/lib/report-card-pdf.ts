@@ -17,7 +17,9 @@ export type ReportCardData = {
   photoPath: string | null;
 };
 
-async function loadImageDataUrl(url: string): Promise<{ dataUrl: string; w: number; h: number } | null> {
+async function loadImageDataUrl(
+  url: string,
+): Promise<{ dataUrl: string; w: number; h: number } | null> {
   try {
     const res = await fetch(url);
     if (!res.ok) return null;
@@ -173,10 +175,7 @@ export async function generateReportCardPdf(tenant: Tenant, r: ReportCardData) {
   if (r.guardianPhone) drawRow("Guardian phone", r.guardianPhone);
   drawRow("Address", r.address ?? "—");
   drawRow("Batch", r.batchName ?? "—");
-  drawRow(
-    "Monthly fee",
-    r.fee != null ? `Rs. ${Number(r.fee).toLocaleString("en-IN")}` : "—",
-  );
+  drawRow("Monthly fee", r.fee != null ? `Rs. ${Number(r.fee).toLocaleString("en-IN")}` : "—");
 
   // Footer
   const footerY = h - 40;
@@ -193,12 +192,16 @@ export async function generateReportCardPdf(tenant: Tenant, r: ReportCardData) {
   const filename = `${tenant.slug}-${(r.playerId || r.name).replace(/\s+/g, "-").toLowerCase()}-card.pdf`;
   try {
     doc.save(filename);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   // Also open in a new tab — reliable on iOS/Android where doc.save() can be blocked.
   try {
     const blobUrl = doc.output("bloburl") as unknown as string;
     if (typeof window !== "undefined" && blobUrl) {
       window.open(blobUrl, "_blank", "noopener,noreferrer");
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }

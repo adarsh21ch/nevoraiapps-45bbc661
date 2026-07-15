@@ -87,7 +87,13 @@ export function Avatar({
     >
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={name ?? ""} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+        <img
+          src={src}
+          alt={name ?? ""}
+          loading="lazy"
+          decoding="async"
+          className="w-full h-full object-cover"
+        />
       ) : (
         <span>{initials}</span>
       )}
@@ -96,13 +102,7 @@ export function Avatar({
 }
 
 /* -------- Reusable Athlete Card -------- */
-export function AthleteCard({
-  athlete,
-  to,
-}: {
-  athlete: AthleteWithStudent;
-  to?: string;
-}) {
+export function AthleteCard({ athlete, to }: { athlete: AthleteWithStudent; to?: string }) {
   const s = athlete.student;
   const age = ageFromDob(s?.dob);
   const role = labelFor(CRICKET_ROLES, athlete.cricket?.playing_role);
@@ -222,9 +222,7 @@ export function KindBadge({
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
-        tone === "brand"
-          ? "bg-primary/15 text-primary"
-          : "bg-accent/50 text-muted-foreground",
+        tone === "brand" ? "bg-primary/15 text-primary" : "bg-accent/50 text-muted-foreground",
       )}
     >
       <Icon className="size-3" />

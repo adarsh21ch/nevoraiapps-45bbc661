@@ -97,10 +97,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // so iOS won't auto-zoom on focus.
       {
         name: "viewport",
-        content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+        content:
+          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
       },
       { title: "Academy OS" },
-      { name: "description", content: "Academy OS — the white-label operating system for sports academies, gyms and coaching centres." },
+      {
+        name: "description",
+        content:
+          "Academy OS — the white-label operating system for sports academies, gyms and coaching centres.",
+      },
       { name: "author", content: "Lovable" },
       // PWA / standalone app hints so installed app launches without browser chrome.
       { name: "theme-color", content: "#0a0a0a" },
@@ -111,14 +116,30 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "application-name", content: "Academy OS" },
       { name: "format-detection", content: "telephone=no" },
       { property: "og:title", content: "Academy OS" },
-      { property: "og:description", content: "Academy OS — the white-label operating system for sports academies, gyms and coaching centres." },
+      {
+        property: "og:description",
+        content:
+          "Academy OS — the white-label operating system for sports academies, gyms and coaching centres.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Academy OS" },
-      { name: "twitter:description", content: "Academy OS — the white-label operating system for sports academies, gyms and coaching centres." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a79bd1d0-a426-4630-9f49-ec348bbfce86/id-preview-e4e25ca1--1720a839-1551-46d2-be56-cea0a1c13adf.lovable.app-1783239834008.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a79bd1d0-a426-4630-9f49-ec348bbfce86/id-preview-e4e25ca1--1720a839-1551-46d2-be56-cea0a1c13adf.lovable.app-1783239834008.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Academy OS — the white-label operating system for sports academies, gyms and coaching centres.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a79bd1d0-a426-4630-9f49-ec348bbfce86/id-preview-e4e25ca1--1720a839-1551-46d2-be56-cea0a1c13adf.lovable.app-1783239834008.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a79bd1d0-a426-4630-9f49-ec348bbfce86/id-preview-e4e25ca1--1720a839-1551-46d2-be56-cea0a1c13adf.lovable.app-1783239834008.png",
+      },
     ],
     links: [
       {
@@ -168,11 +189,16 @@ function ThemeSystemListener() {
     if (typeof window === "undefined") return;
     const apply = () => {
       let mode: string | null = null;
-      try { mode = localStorage.getItem("acadaos.theme"); } catch { /* ignore */ }
+      try {
+        mode = localStorage.getItem("acadaos.theme");
+      } catch {
+        /* ignore */
+      }
       if (mode !== "system" && mode !== null) return;
       const dark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
       const el = document.documentElement;
-      if (dark) el.classList.add("dark"); else el.classList.remove("dark");
+      if (dark) el.classList.add("dark");
+      else el.classList.remove("dark");
     };
     const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
     mq?.addEventListener?.("change", apply);
@@ -204,4 +230,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

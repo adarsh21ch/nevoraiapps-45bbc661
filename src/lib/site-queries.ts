@@ -43,14 +43,7 @@ export const batchesQuery = (tenantId: string) => ({
   },
 });
 
-export type PolicyKind =
-  | "terms"
-  | "privacy"
-  | "refund"
-  | "fee"
-  | "conduct"
-  | "leave"
-  | "medical";
+export type PolicyKind = "terms" | "privacy" | "refund" | "fee" | "conduct" | "leave" | "medical";
 
 export type PolicyDocument = {
   id: string;
@@ -81,7 +74,9 @@ export const publishedPoliciesQuery = (tenantId: string) => ({
   queryFn: async (): Promise<PolicyDocument[]> => {
     const { data, error } = await (supabase as any)
       .from("policy_documents")
-      .select("id,tenant_id,kind,version,title,body_md,is_published,published_at,created_at,updated_at")
+      .select(
+        "id,tenant_id,kind,version,title,body_md,is_published,published_at,created_at,updated_at",
+      )
       .eq("tenant_id", tenantId)
       .eq("is_published", true)
       .order("version", { ascending: false });
@@ -102,7 +97,9 @@ export const allPoliciesQuery = (tenantId: string) => ({
   queryFn: async (): Promise<PolicyDocument[]> => {
     const { data, error } = await (supabase as any)
       .from("policy_documents")
-      .select("id,tenant_id,kind,version,title,body_md,is_published,published_at,created_at,updated_at")
+      .select(
+        "id,tenant_id,kind,version,title,body_md,is_published,published_at,created_at,updated_at",
+      )
       .eq("tenant_id", tenantId)
       .order("kind", { ascending: true })
       .order("version", { ascending: false });

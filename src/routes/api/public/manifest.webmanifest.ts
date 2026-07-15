@@ -36,8 +36,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           });
 
           // Try custom_domain match first
-          const first = await (supabase
-            .from("tenants") as any)
+          const first = await (supabase.from("tenants") as any)
             .select(COLS)
             .eq("custom_domain", hostname)
             .maybeSingle();
@@ -45,10 +44,12 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
 
           // Fallback: {slug}.{platformBase}
           if (!data && hostname.endsWith("." + platformBase)) {
-            const slug = hostname.replace("." + platformBase, "").split(".").pop();
+            const slug = hostname
+              .replace("." + platformBase, "")
+              .split(".")
+              .pop();
             if (slug) {
-              const res = await (supabase
-                .from("tenants") as any)
+              const res = await (supabase.from("tenants") as any)
                 .select(COLS)
                 .eq("slug", slug)
                 .maybeSingle();
@@ -79,7 +80,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
 
         const name = tenant?.name ?? "Academy OS";
         const shortName =
-          (tenant?.short_name && tenant.short_name.trim())
+          tenant?.short_name && tenant.short_name.trim()
             ? tenant.short_name.trim().slice(0, 12)
             : (tenant?.name ?? "Academy").slice(0, 12);
         const themeColor = tenant?.primary_color ?? "#0a0a0a";
@@ -128,4 +129,3 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
     },
   },
 });
-

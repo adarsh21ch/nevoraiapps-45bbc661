@@ -140,9 +140,7 @@ export function TournamentHeader({
                 <ArrowLeft className="mr-0.5 size-3" /> Tournaments
               </Link>
             </div>
-            <h1 className="truncate text-lg font-black tracking-tight sm:text-2xl">
-              {t.name}
-            </h1>
+            <h1 className="truncate text-lg font-black tracking-tight sm:text-2xl">{t.name}</h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
               {t.season ? <span>{t.season}</span> : null}
               {t.format ? <span>· {t.format}</span> : null}
@@ -366,9 +364,7 @@ function TabButton({
       onClick={() => onSelect(section.id)}
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-        active
-          ? "bg-foreground text-background"
-          : "text-muted-foreground hover:text-foreground",
+        active ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground",
       )}
     >
       <Icon className="size-4" />

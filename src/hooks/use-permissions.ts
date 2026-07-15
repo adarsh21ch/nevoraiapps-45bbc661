@@ -28,11 +28,11 @@ export type PermissionFeature =
   | "canManageSubscription";
 
 const RULES: Record<PermissionFeature, AppRole[]> = {
-  canViewFees:           ["owner"],
-  canScoreMatch:         ["owner", "admin"],
-  canMarkAttendance:     ["owner", "admin"],
-  canManageAdmins:       ["owner"],
-  canManageWebsite:      ["owner"],
+  canViewFees: ["owner"],
+  canScoreMatch: ["owner", "admin"],
+  canMarkAttendance: ["owner", "admin"],
+  canManageAdmins: ["owner"],
+  canManageWebsite: ["owner"],
   canManageSubscription: ["owner"],
 };
 
@@ -64,11 +64,12 @@ export function usePermissions(tenantId?: string | null) {
   });
 
   const role: AppRole = ctxProfileRole
-    ? ctxProfileRole === "owner" ? "owner" : "admin"
+    ? ctxProfileRole === "owner"
+      ? "owner"
+      : "admin"
     : (q.data ?? "student");
 
-  const can = (feature: PermissionFeature): boolean =>
-    RULES[feature]?.includes(role) ?? false;
+  const can = (feature: PermissionFeature): boolean => RULES[feature]?.includes(role) ?? false;
 
   return {
     role,

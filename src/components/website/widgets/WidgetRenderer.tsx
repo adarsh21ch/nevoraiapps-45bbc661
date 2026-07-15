@@ -26,12 +26,19 @@ export function WidgetRenderer({
   switch (widgetKey) {
     case "live_match": {
       const live = bundle.upcoming_matches.find(
-        (m) => (m.scheduled_date as string) &&
+        (m) =>
+          (m.scheduled_date as string) &&
           new Date(m.scheduled_date as string).getTime() <= Date.now() + 3 * 60 * 60 * 1000,
       );
       const slug = (live?.id as string | undefined) ?? null;
       return (
-        <Suspense fallback={<WidgetCard title="Live Match"><EmptyLine>Loading…</EmptyLine></WidgetCard>}>
+        <Suspense
+          fallback={
+            <WidgetCard title="Live Match">
+              <EmptyLine>Loading…</EmptyLine>
+            </WidgetCard>
+          }
+        >
           <LiveMatchWidget academySlug={bundle.academy.slug} liveMatchSlug={slug} />
         </Suspense>
       );
@@ -45,9 +52,7 @@ export function WidgetRenderer({
           render={(m) => (
             <div className="flex items-center justify-between">
               <span>{(m.format as string) ?? "Match"}</span>
-              <span className="text-xs text-muted-foreground">
-                {formatDate(m.scheduled_date)}
-              </span>
+              <span className="text-xs text-muted-foreground">{formatDate(m.scheduled_date)}</span>
             </div>
           )}
         />
@@ -74,9 +79,7 @@ export function WidgetRenderer({
           empty="No records set yet."
           render={(r) => (
             <div className="flex items-center justify-between">
-              <span className="capitalize">
-                {String(r.record_type ?? "").replace(/_/g, " ")}
-              </span>
+              <span className="capitalize">{String(r.record_type ?? "").replace(/_/g, " ")}</span>
               <span className="font-semibold">{String(r.record_value ?? "—")}</span>
             </div>
           )}
@@ -108,9 +111,7 @@ export function WidgetRenderer({
           render={(r) => (
             <div>
               <p className="font-medium">{String(r.title ?? r.award_type ?? "Award")}</p>
-              <p className="text-xs text-muted-foreground">
-                {String(r.recipient_name ?? "")}
-              </p>
+              <p className="text-xs text-muted-foreground">{String(r.recipient_name ?? "")}</p>
             </div>
           )}
         />

@@ -5,34 +5,14 @@
  * fans out through `publish_notification` (server-side RPC) and reuses
  * `notifications` + `notification_outbox` + `notification_deliveries`.
  */
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type {
-  NotificationCategory,
-  NotificationPriority,
-} from "@/lib/notifications";
+import type { NotificationCategory, NotificationPriority } from "@/lib/notifications";
 
 export type Channel = "in_app" | "push" | "email" | "whatsapp" | "sms";
-export type CampaignStatus =
-  | "draft"
-  | "scheduled"
-  | "sending"
-  | "sent"
-  | "failed"
-  | "cancelled";
+export type CampaignStatus = "draft" | "scheduled" | "sending" | "sent" | "failed" | "cancelled";
 
-export type AudienceKind =
-  | "all"
-  | "students"
-  | "parents"
-  | "admins"
-  | "batches"
-  | "custom";
+export type AudienceKind = "all" | "students" | "parents" | "admins" | "batches" | "custom";
 
 export type Audience = {
   kind: AudienceKind;
@@ -245,17 +225,30 @@ export function useCancelCampaign() {
 export function useSaveTemplate() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (t: Partial<CommTemplate> & { tenant_id: string; name: string; title_template: string; category: NotificationCategory }) => {
+    mutationFn: async (
+      t: Partial<CommTemplate> & {
+        tenant_id: string;
+        name: string;
+        title_template: string;
+        category: NotificationCategory;
+      },
+    ) => {
       if (t.id) {
-        const { error } = await from("comm_templates").update(t as never).eq("id", t.id);
+        const { error } = await from("comm_templates")
+          .update(t as never)
+          .eq("id", t.id);
         if (error) throw error;
         return t.id;
       }
-      const { data, error } = await from("comm_templates").insert(t as never).select("id").single();
+      const { data, error } = await from("comm_templates")
+        .insert(t as never)
+        .select("id")
+        .single();
       if (error) throw error;
       return (data as { id: string }).id;
     },
-    onSuccess: (_id, vars) => qc.invalidateQueries({ queryKey: commKeys.templates(vars.tenant_id) }),
+    onSuccess: (_id, vars) =>
+      qc.invalidateQueries({ queryKey: commKeys.templates(vars.tenant_id) }),
   });
 }
 
@@ -273,11 +266,17 @@ export function useDeleteTemplate(tenantId: string) {
 export function statusTone(s: CampaignStatus): { label: string; className: string } {
   switch (s) {
     case "sent":
-      return { label: "Sent", className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" };
+      return {
+        label: "Sent",
+        className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+      };
     case "sending":
       return { label: "Sending", className: "bg-blue-500/10 text-blue-700 dark:text-blue-400" };
     case "scheduled":
-      return { label: "Scheduled", className: "bg-amber-500/10 text-amber-700 dark:text-amber-400" };
+      return {
+        label: "Scheduled",
+        className: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+      };
     case "failed":
       return { label: "Failed", className: "bg-rose-500/10 text-rose-700 dark:text-rose-400" };
     case "cancelled":
@@ -289,11 +288,16 @@ export function statusTone(s: CampaignStatus): { label: string; className: strin
 
 export function audienceLabel(a: Audience): string {
   switch (a.kind) {
-    case "all": return "Entire academy";
-    case "students": return "All students";
-    case "parents": return "All parents";
-    case "admins": return "All staff";
-    case "batches": return `${a.batch_ids?.length ?? 0} batch(es)`;
+    case "all":
+      return "Entire academy";
+    case "students":
+      return "All students";
+    case "parents":
+      return "All parents";
+    case "admins":
+      return "All staff";
+    case "batches":
+      return `${a.batch_ids?.length ?? 0} batch(es)`;
     case "custom": {
       const bits: string[] = [];
       if (a.student_ids?.length) bits.push(`${a.student_ids.length} students`);
@@ -301,6 +305,7 @@ export function audienceLabel(a: Audience): string {
       if (a.admin_ids?.length) bits.push(`${a.admin_ids.length} staff`);
       return bits.join(" + ") || "Custom (empty)";
     }
-    default: return "Audience";
+    default:
+      return "Audience";
   }
 }

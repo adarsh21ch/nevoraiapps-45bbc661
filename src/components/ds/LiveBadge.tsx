@@ -18,7 +18,8 @@ export interface LiveBadgeProps {
 }
 
 export function LiveBadge({ state = "live", label, className }: LiveBadgeProps) {
-  const text = label ?? (state === "live" ? "LIVE" : state === "connecting" ? "SYNCING" : "OFFLINE");
+  const text =
+    label ?? (state === "live" ? "LIVE" : state === "connecting" ? "SYNCING" : "OFFLINE");
   return (
     <span
       className={cn(

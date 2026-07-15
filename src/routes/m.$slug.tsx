@@ -9,7 +9,10 @@ export const Route = createFileRoute("/m/$slug")({
   head: ({ params }) => ({
     meta: [
       { title: `Live match · ${params.slug}` },
-      { name: "description", content: "Follow the live cricket match — ball-by-ball score, batters and bowlers." },
+      {
+        name: "description",
+        content: "Follow the live cricket match — ball-by-ball score, batters and bowlers.",
+      },
       { property: "og:title", content: "Live cricket match" },
       { property: "og:description", content: "Live score and scorecard." },
       { property: "og:type", content: "website" },
@@ -25,7 +28,12 @@ type Bundle = {
   teams: Array<{ id: string; name: string; short_name: string | null; logo_url: string | null }>;
   innings: Array<Record<string, unknown>>;
   ball_events: Array<Record<string, unknown>>;
-  squads: Array<{ athlete_profile_id: string; team_id: string; name: string | null; batting_order: number | null }>;
+  squads: Array<{
+    athlete_profile_id: string;
+    team_id: string;
+    name: string | null;
+    batting_order: number | null;
+  }>;
   pom_name: string | null;
 };
 
@@ -63,14 +71,20 @@ function PublicMatchPage() {
       <div className="min-h-screen grid place-items-center p-6 text-center">
         <div>
           <h1 className="text-2xl font-bold mb-2">Match not found</h1>
-          <p className="text-muted-foreground">The link is invalid or sharing has been turned off.</p>
+          <p className="text-muted-foreground">
+            The link is invalid or sharing has been turned off.
+          </p>
         </div>
       </div>
     );
   }
 
   if (!bundle) {
-    return <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
   }
 
   const match = bundle.match;
@@ -101,17 +115,13 @@ function PublicMatchPage() {
               <div className="text-xs text-muted-foreground uppercase tracking-wide">
                 {(match.match_format as string) ?? ""} · {(match.overs as number) ?? "-"} ov
               </div>
-              <div className="text-xs mt-1">
-                {status === "finalized" ? "Result" : status}
-              </div>
+              <div className="text-xs mt-1">{status === "finalized" ? "Result" : status}</div>
             </div>
             <TeamBadge team={teamB} align="right" />
           </div>
 
           {match.result ? (
-            <div className="mt-4 text-center text-sm font-medium">
-              {match.result as string}
-            </div>
+            <div className="mt-4 text-center text-sm font-medium">{match.result as string}</div>
           ) : null}
         </Card>
 

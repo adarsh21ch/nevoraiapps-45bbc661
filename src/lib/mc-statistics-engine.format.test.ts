@@ -163,8 +163,20 @@ describe("completedLegalBallsFromEvents — live label input", () => {
     // Even if legacy demo data stored over_number 1-indexed and live data
     // stored 0-indexed, the count of legal events is the same.
     const events: MCBallEvent[] = [
-      { id: "a", sequence_number: 1, over_number: 999, ball_number: 999, extra_type: null } as MCBallEvent,
-      { id: "b", sequence_number: 2, over_number: 0, ball_number: 1, extra_type: null } as MCBallEvent,
+      {
+        id: "a",
+        sequence_number: 1,
+        over_number: 999,
+        ball_number: 999,
+        extra_type: null,
+      } as MCBallEvent,
+      {
+        id: "b",
+        sequence_number: 2,
+        over_number: 0,
+        ball_number: 1,
+        extra_type: null,
+      } as MCBallEvent,
     ];
     expect(completedLegalBallsFromEvents(events)).toBe(2);
     expect(formatLiveOver(completedLegalBallsFromEvents(events))).toBe("1.2");

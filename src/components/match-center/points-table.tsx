@@ -27,12 +27,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,11 +44,7 @@ import {
   type MCTournament,
 } from "@/lib/mc-tournaments";
 import { rebuildTournamentStandings } from "@/lib/mc-tournament-engine";
-import {
-  computePointsTable,
-  type PointsTableRow,
-  type FormResult,
-} from "@/lib/mc-points-table";
+import { computePointsTable, type PointsTableRow, type FormResult } from "@/lib/mc-points-table";
 
 interface Group {
   id: string;
@@ -176,7 +167,10 @@ export function PointsTable({ tournamentId }: Props) {
   }, [tQ.data, teamsQ.data, fxQ.data, groupsQ.data]);
 
   const teamNameMap = useMemo(() => {
-    const m = new Map<string, { name: string; short: string | null; logo: string | null; color: string | null }>();
+    const m = new Map<
+      string,
+      { name: string; short: string | null; logo: string | null; color: string | null }
+    >();
     for (const r of teamsQ.data ?? []) {
       m.set(r.team_id, {
         name: r.team?.name ?? "Team",
@@ -203,7 +197,9 @@ export function PointsTable({ tournamentId }: Props) {
 
   const groups = result.groups;
   const activeGroups =
-    activeGroup === "__all__" ? groups : groups.filter((g) => (g.id ?? "__league__") === activeGroup);
+    activeGroup === "__all__"
+      ? groups
+      : groups.filter((g) => (g.id ?? "__league__") === activeGroup);
 
   const onRebuild = async () => {
     setRebuilding(true);
@@ -299,7 +295,7 @@ export function PointsTable({ tournamentId }: Props) {
         open={detailTeam !== null}
         onOpenChange={(v) => !v && setDetailTeam(null)}
         row={detailTeam}
-        teamName={detailTeam ? teamNameMap.get(detailTeam.team_id)?.name ?? "Team" : ""}
+        teamName={detailTeam ? (teamNameMap.get(detailTeam.team_id)?.name ?? "Team") : ""}
         tournament={tQ.data ?? null}
         fixtures={fxQ.data ?? []}
         teamNameMap={teamNameMap}
@@ -395,7 +391,9 @@ function TabBtn({
       onClick={() => onClick(value)}
       className={cn(
         "whitespace-nowrap rounded-md px-2.5 py-1 font-medium",
-        active === value ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground",
+        active === value
+          ? "bg-background shadow-sm"
+          : "text-muted-foreground hover:text-foreground",
       )}
     >
       {label}
@@ -419,7 +417,10 @@ function PointsTableCard({
   matchesRemaining: number;
   matchesTotal: number;
   rows: PointsTableRow[];
-  teamNameMap: Map<string, { name: string; short: string | null; logo: string | null; color: string | null }>;
+  teamNameMap: Map<
+    string,
+    { name: string; short: string | null; logo: string | null; color: string | null }
+  >;
   onOpenTeam: (row: PointsTableRow) => void;
 }) {
   if (rows.length === 0) return null;
@@ -473,11 +474,7 @@ function PointsTableCard({
                     </td>
                     <td className="sticky left-8 z-10 bg-inherit px-2 py-2">
                       <div className="flex items-center gap-2">
-                        <TeamAvatar
-                          name={t?.name ?? "Team"}
-                          logo={t?.logo}
-                          color={t?.color}
-                        />
+                        <TeamAvatar name={t?.name ?? "Team"} logo={t?.logo} color={t?.color} />
                         <div className="min-w-0">
                           <div className="truncate text-sm font-medium">{t?.name ?? "Team"}</div>
                           <QualBadge state={row.qualification} />
@@ -566,10 +563,8 @@ function TeamAvatar({
 }
 
 function MoveArrow({ delta }: { delta: PointsTableRow["positionDelta"] }) {
-  if (delta === "up")
-    return <ArrowUp className="size-3 text-emerald-600" aria-label="Up" />;
-  if (delta === "down")
-    return <ArrowDown className="size-3 text-red-600" aria-label="Down" />;
+  if (delta === "up") return <ArrowUp className="size-3 text-emerald-600" aria-label="Up" />;
+  if (delta === "down") return <ArrowDown className="size-3 text-red-600" aria-label="Down" />;
   if (delta === "same")
     return <Minus className="size-3 text-muted-foreground" aria-label="No change" />;
   return null;
@@ -604,12 +599,7 @@ function FormPill({ r }: { r: FormResult }) {
   };
   const s = map[r];
   return (
-    <span
-      className={cn(
-        "grid size-4 place-items-center rounded-sm text-[9px] font-bold",
-        s.bg,
-      )}
-    >
+    <span className={cn("grid size-4 place-items-center rounded-sm text-[9px] font-bold", s.bg)}>
       {s.label}
     </span>
   );
@@ -652,13 +642,14 @@ function TeamDetailDialog({
   teamName: string;
   tournament: MCTournament | null;
   fixtures: Awaited<ReturnType<typeof listFixtures>>;
-  teamNameMap: Map<string, { name: string; short: string | null; logo: string | null; color: string | null }>;
+  teamNameMap: Map<
+    string,
+    { name: string; short: string | null; logo: string | null; color: string | null }
+  >;
 }) {
   if (!row) return null;
   const teamId = row.team_id;
-  const teamFixtures = fixtures.filter(
-    (f) => f.team_a_id === teamId || f.team_b_id === teamId,
-  );
+  const teamFixtures = fixtures.filter((f) => f.team_a_id === teamId || f.team_b_id === teamId);
   const completed = teamFixtures.filter((f) => f.match_locked);
   const upcoming = teamFixtures.filter((f) => !f.match_locked);
   const streak = deriveStreak(row.form);
@@ -711,12 +702,10 @@ function TeamDetailDialog({
               <ul className="divide-y divide-border rounded-lg border border-border">
                 {completed.slice(0, 8).map((f) => {
                   const won = f.victory_type === "won" && f.winner_team === teamId;
-                  const lost = f.victory_type === "won" && f.winner_team && f.winner_team !== teamId;
+                  const lost =
+                    f.victory_type === "won" && f.winner_team && f.winner_team !== teamId;
                   return (
-                    <li
-                      key={f.id}
-                      className="flex items-center justify-between px-3 py-2 text-sm"
-                    >
+                    <li key={f.id} className="flex items-center justify-between px-3 py-2 text-sm">
                       <span className="truncate">vs {opponentOf(f)}</span>
                       <span
                         className={cn(
@@ -742,10 +731,7 @@ function TeamDetailDialog({
               </div>
               <ul className="divide-y divide-border rounded-lg border border-border">
                 {upcoming.slice(0, 6).map((f) => (
-                  <li
-                    key={f.id}
-                    className="flex items-center justify-between px-3 py-2 text-sm"
-                  >
+                  <li key={f.id} className="flex items-center justify-between px-3 py-2 text-sm">
                     <span className="truncate">vs {opponentOf(f)}</span>
                     <span className="text-xs text-muted-foreground">
                       {f.scheduled_date ?? "TBD"} {f.scheduled_time ?? ""}
@@ -765,8 +751,8 @@ function TeamDetailDialog({
           </div>
 
           <p className="text-[10px] text-muted-foreground">
-            Batting, bowling and fielding leaderboards are in the Stats tab — this
-            dialog reuses the tournament&apos;s aggregated standings and fixture list only.
+            Batting, bowling and fielding leaderboards are in the Stats tab — this dialog reuses the
+            tournament&apos;s aggregated standings and fixture list only.
           </p>
           {tournament ? null : null}
         </div>

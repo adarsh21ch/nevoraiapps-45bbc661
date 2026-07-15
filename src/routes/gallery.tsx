@@ -25,15 +25,13 @@ export const Route = createFileRoute("/gallery")({
 function GalleryPage() {
   const tenant = useTenant();
   const { data: sections = [] } = useQuery(siteContentQuery(tenant.id));
-  const items = sectionsBy(sections, "gallery").map((s) => s.content as { url?: string; caption?: string });
+  const items = sectionsBy(sections, "gallery").map(
+    (s) => s.content as { url?: string; caption?: string },
+  );
 
   return (
     <>
-      <PageHero
-        eyebrow="Moments"
-        title="Gallery"
-        subtitle={`Life at ${tenant.name}.`}
-      />
+      <PageHero eyebrow="Moments" title="Gallery" subtitle={`Life at ${tenant.name}.`} />
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         {items.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 p-12 text-center text-muted-foreground">
@@ -42,7 +40,10 @@ function GalleryPage() {
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {items.map((it, i) => (
-              <figure key={i} className="group overflow-hidden rounded-xl border border-border/60 bg-muted">
+              <figure
+                key={i}
+                className="group overflow-hidden rounded-xl border border-border/60 bg-muted"
+              >
                 {it.url && (
                   <div className="aspect-square overflow-hidden">
                     <StoragedImage
@@ -53,7 +54,9 @@ function GalleryPage() {
                   </div>
                 )}
                 {it.caption && (
-                  <figcaption className="px-3 py-2 text-xs text-muted-foreground">{it.caption}</figcaption>
+                  <figcaption className="px-3 py-2 text-xs text-muted-foreground">
+                    {it.caption}
+                  </figcaption>
                 )}
               </figure>
             ))}

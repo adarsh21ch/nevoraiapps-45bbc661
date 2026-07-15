@@ -7,7 +7,10 @@ export const Route = createFileRoute("/match-center")({
   head: () => ({
     meta: [
       { title: "Match Center · Academy OS" },
-      { name: "description", content: "Live matches, teams, players, tournaments and awards for your academy." },
+      {
+        name: "description",
+        content: "Live matches, teams, players, tournaments and awards for your academy.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),

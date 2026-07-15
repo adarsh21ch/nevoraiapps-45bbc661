@@ -2,10 +2,25 @@ import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { LayoutDashboard, Building2, Plus, Receipt, LogOut, Menu, Shield, Settings, Sparkles, BarChart3, Activity, ScrollText, LifeBuoy, Search, Trophy } from "lucide-react";
+import {
+  LayoutDashboard,
+  Building2,
+  Plus,
+  Receipt,
+  LogOut,
+  Menu,
+  Shield,
+  Settings,
+  Sparkles,
+  BarChart3,
+  Activity,
+  ScrollText,
+  LifeBuoy,
+  Search,
+  Trophy,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatform } from "@/lib/platform-context";
-
 
 const nav = [
   { to: "/platform-admin", label: "Overview", icon: LayoutDashboard, exact: true },
@@ -33,7 +48,11 @@ export function PlatformShell({ children }: { children: ReactNode }) {
         className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-neutral-950"
         style={{ height: "env(safe-area-inset-top)" }}
       />
-      <div aria-hidden="true" className="bg-neutral-950" style={{ height: "env(safe-area-inset-top)" }} />
+      <div
+        aria-hidden="true"
+        className="bg-neutral-950"
+        style={{ height: "env(safe-area-inset-top)" }}
+      />
       <header
         className="sticky z-40 border-b border-white/10 bg-neutral-950/80 backdrop-blur"
         style={{ top: "env(safe-area-inset-top)" }}
@@ -41,12 +60,23 @@ export function PlatformShell({ children }: { children: ReactNode }) {
         <div className="flex h-14 items-center gap-3 px-4 md:px-6">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden text-white hover:bg-white/10">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden text-white hover:bg-white/10"
+              >
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0 bg-neutral-950 text-neutral-100 border-r border-white/10">
-              <Inner onNavigate={() => setOpen(false)} onSignOut={signOut} email={session.user.email ?? ""} />
+            <SheetContent
+              side="left"
+              className="w-72 p-0 bg-neutral-950 text-neutral-100 border-r border-white/10"
+            >
+              <Inner
+                onNavigate={() => setOpen(false)}
+                onSignOut={signOut}
+                email={session.user.email ?? ""}
+              />
             </SheetContent>
           </Sheet>
 
@@ -63,7 +93,12 @@ export function PlatformShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex text-white hover:bg-white/10">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="hidden md:inline-flex text-white hover:bg-white/10"
+            >
               <LogOut className="size-4 mr-1" /> Sign out
             </Button>
           </div>
@@ -81,8 +116,14 @@ export function PlatformShell({ children }: { children: ReactNode }) {
 }
 
 function Inner({
-  onNavigate, onSignOut, email,
-}: { onNavigate?: () => void; onSignOut: () => void; email: string }) {
+  onNavigate,
+  onSignOut,
+  email,
+}: {
+  onNavigate?: () => void;
+  onSignOut: () => void;
+  email: string;
+}) {
   const loc = useLocation();
   return (
     <div className="flex h-full flex-col">
@@ -101,7 +142,9 @@ function Inner({
               onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                active ? "bg-white/10 text-white font-medium" : "text-neutral-400 hover:bg-white/5 hover:text-white",
+                active
+                  ? "bg-white/10 text-white font-medium"
+                  : "text-neutral-400 hover:bg-white/5 hover:text-white",
               )}
             >
               <Icon className="size-4" />
@@ -111,7 +154,12 @@ function Inner({
         })}
       </nav>
       <div className="p-2 border-t border-white/10">
-        <Button variant="ghost" size="sm" className="w-full justify-start text-neutral-300 hover:text-white hover:bg-white/10" onClick={onSignOut}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-neutral-300 hover:text-white hover:bg-white/10"
+          onClick={onSignOut}
+        >
           <LogOut className="size-4 mr-2" /> Sign out
         </Button>
       </div>

@@ -73,10 +73,7 @@ export function useMCTeamProfile(
   teamId: string | null | undefined,
 ): TeamProfile | null {
   const demo = useDemoData(tenantId);
-  return useMemo(
-    () => (demo && teamId ? deriveTeamProfile(demo, teamId) : null),
-    [demo, teamId],
-  );
+  return useMemo(() => (demo && teamId ? deriveTeamProfile(demo, teamId) : null), [demo, teamId]);
 }
 
 export function useMCTournament(

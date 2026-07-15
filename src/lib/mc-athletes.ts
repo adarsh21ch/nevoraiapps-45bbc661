@@ -167,7 +167,7 @@ export async function listAthletes(tenantId: string): Promise<AthleteWithStudent
       cricket: MCCricket[] | MCCricket | null;
       student: StudentLite | null;
     } & MCAthlete;
-    const cricket = Array.isArray(r.cricket) ? r.cricket[0] ?? null : r.cricket ?? null;
+    const cricket = Array.isArray(r.cricket) ? (r.cricket[0] ?? null) : (r.cricket ?? null);
     return { ...r, cricket, team: null } as AthleteWithStudent;
   });
 }
@@ -189,7 +189,7 @@ export async function getAthlete(tenantId: string, athleteId: string) {
     cricket: MCCricket[] | MCCricket | null;
     student: StudentLite | null;
   } & MCAthlete;
-  const cricket = Array.isArray(r.cricket) ? r.cricket[0] ?? null : r.cricket ?? null;
+  const cricket = Array.isArray(r.cricket) ? (r.cricket[0] ?? null) : (r.cricket ?? null);
   return { ...r, cricket } as AthleteWithStudent;
 }
 

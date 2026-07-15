@@ -12,7 +12,9 @@ import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
 import { removeMember } from "@/lib/removal";
 
 export const Route = createFileRoute("/dashboard/admins")({
-  head: () => ({ meta: [{ title: "Team & Access · Academy" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Team & Access · Academy" }, { name: "robots", content: "noindex" }],
+  }),
   component: AdminsEntry,
 });
 
@@ -38,12 +40,21 @@ function AdminsEntry() {
 
   return (
     <div className="space-y-4 max-w-3xl">
-      <Link to="/dashboard/academy" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        to="/dashboard/academy"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
         <ArrowLeft className="size-4" /> Manage
       </Link>
       <Card className="p-6">
         <div className="flex items-start gap-3">
-          <div className="size-11 rounded-xl grid place-items-center" style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)", color: "var(--brand)" }}>
+          <div
+            className="size-11 rounded-xl grid place-items-center"
+            style={{
+              backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)",
+              color: "var(--brand)",
+            }}
+          >
             <ShieldCheck className="size-5" />
           </div>
           <div className="flex-1">
@@ -60,7 +71,13 @@ function AdminsEntry() {
   );
 }
 
-function MembersList({ tenantId, currentUserId }: { tenantId: string; currentUserId: string | null }) {
+function MembersList({
+  tenantId,
+  currentUserId,
+}: {
+  tenantId: string;
+  currentUserId: string | null;
+}) {
   const qc = useQueryClient();
   const { data: members = [], isLoading } = useQuery({
     queryKey: ["d", "members", tenantId],
@@ -86,7 +103,9 @@ function MembersList({ tenantId, currentUserId }: { tenantId: string; currentUse
     return <Card className="p-4 text-sm text-muted-foreground">Loading members…</Card>;
   }
   if (removable.length === 0) {
-    return <Card className="p-4 text-sm text-muted-foreground">No coaches, admins or staff yet.</Card>;
+    return (
+      <Card className="p-4 text-sm text-muted-foreground">No coaches, admins or staff yet.</Card>
+    );
   }
 
   return (

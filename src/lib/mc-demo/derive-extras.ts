@@ -51,7 +51,9 @@ function nameFor(demo: DemoData, id: string | null, fallback: string) {
   return p?.student?.name ?? fallback;
 }
 
-function detectHatTricks(events: MCBallEvent[]): Array<{ bowler: string; bowlerId: string | null }> {
+function detectHatTricks(
+  events: MCBallEvent[],
+): Array<{ bowler: string; bowlerId: string | null }> {
   const hats: Array<{ bowler: string; bowlerId: string | null }> = [];
   let streak: Array<{ bowler: string; bowlerId: string | null }> = [];
   for (const e of events) {
@@ -240,7 +242,13 @@ export function deriveAwards(demo: DemoData): DerivedAward[] {
       const r = runsByPlayer.get(k) ?? { name, id: s.player.athleteId, runs: 0 };
       r.runs += s.runs;
       runsByPlayer.set(k, r);
-      const sr = srByPlayer.get(k) ?? { name, id: s.player.athleteId, runs: 0, balls: 0, matches: 0 };
+      const sr = srByPlayer.get(k) ?? {
+        name,
+        id: s.player.athleteId,
+        runs: 0,
+        balls: 0,
+        matches: 0,
+      };
       sr.runs += s.runs;
       sr.balls += s.balls;
       sr.matches += 1;
@@ -296,7 +304,10 @@ export function deriveAwards(demo: DemoData): DerivedAward[] {
     });
   }
   // All-rounder: highest combined (runs + wickets*20)
-  const allR = new Map<string, { name: string; id: string | null; score: number; runs: number; wkts: number }>();
+  const allR = new Map<
+    string,
+    { name: string; id: string | null; score: number; runs: number; wkts: number }
+  >();
   runsByPlayer.forEach((v, k) => {
     allR.set(k, { name: v.name, id: v.id, score: v.runs, runs: v.runs, wkts: 0 });
   });
@@ -480,13 +491,20 @@ export function derivePlayerPerformance(
   const cv = mean > 0 ? runsSd / mean : 0;
   const score = Math.max(0, Math.min(100, Math.round(100 - cv * 60)));
   const band: DemoPlayerPerformance["consistency"]["band"] =
-    score >= 80 ? "Excellent" : score >= 65 ? "Good" : score >= 45 ? "Average" : "Needs Improvement";
+    score >= 80
+      ? "Excellent"
+      : score >= 65
+        ? "Good"
+        : score >= 45
+          ? "Average"
+          : "Needs Improvement";
 
   const last = (n: number) => bucketFromPoints(`Last ${n}`, points.slice(-n), career);
   const l5 = last(5);
   const l10 = last(10);
   const l20 = last(20);
-  const recent = points.slice(-5).reduce((s, p) => s + p.runs, 0) / Math.max(1, Math.min(5, points.length));
+  const recent =
+    points.slice(-5).reduce((s, p) => s + p.runs, 0) / Math.max(1, Math.min(5, points.length));
   const prior =
     points.slice(-10, -5).reduce((s, p) => s + p.runs, 0) /
     Math.max(1, Math.min(5, points.length - 5));
@@ -528,10 +546,7 @@ export interface DemoChildSummary {
   }>;
 }
 
-export function deriveChildSummary(
-  demo: DemoData,
-  athleteId: string,
-): DemoChildSummary | null {
+export function deriveChildSummary(demo: DemoData, athleteId: string): DemoChildSummary | null {
   const player = demo.players.find((p) => p.id === athleteId);
   if (!player) return null;
   const career = derivePlayerCareer(demo, athleteId);
@@ -543,7 +558,8 @@ export function deriveChildSummary(
       scheduled_date: h.date,
       team_a_id: m?.team_a_id ?? null,
       team_b_id: m?.team_b_id ?? null,
-      winner_team: (m as unknown as { winner_team?: string | null } | undefined)?.winner_team ?? null,
+      winner_team:
+        (m as unknown as { winner_team?: string | null } | undefined)?.winner_team ?? null,
       result: m?.result ?? null,
       match_locked: m?.status === "completed",
     };
@@ -569,7 +585,8 @@ export function deriveChildSummary(
       overs: career.bowling.overs,
       economy: career.bowling.economy,
       best_bowling: career.bowling.bestFigures,
-      five_wicket_hauls: recognitions.filter((r) => r.recognitionType === "five_wicket_haul").length,
+      five_wicket_hauls: recognitions.filter((r) => r.recognitionType === "five_wicket_haul")
+        .length,
       maidens: career.bowling.maidens,
       catches: career.fielding.catches,
       stumpings: career.fielding.stumpings,
@@ -588,7 +605,12 @@ export function deriveChildSummary(
       badge: r.badge,
     })),
     achievements: recognitions
-      .filter((r) => r.recognitionType === "century" || r.recognitionType === "five_wicket_haul" || r.recognitionType === "hat_trick")
+      .filter(
+        (r) =>
+          r.recognitionType === "century" ||
+          r.recognitionType === "five_wicket_haul" ||
+          r.recognitionType === "hat_trick",
+      )
       .map((r) => ({
         id: r.id,
         title: r.title,
