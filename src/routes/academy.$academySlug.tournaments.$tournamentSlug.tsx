@@ -82,7 +82,7 @@ async function loadPublicTournament(academySlug: string, tournamentSlug: string)
     .select("id,name,slug,logo_url,primary_color,tagline")
     .eq("slug", academySlug)
     .maybeSingle();
-  if (!acad) return null;
+  if (!acad || !acad.id || !acad.slug || !acad.name) return null;
 
   const { data: tRow } = await supabase
     .from("mc_tournaments")
