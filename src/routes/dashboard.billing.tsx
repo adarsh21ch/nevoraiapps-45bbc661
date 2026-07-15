@@ -594,17 +594,25 @@ function PaymentsTable({
         <div className="col-span-2">Reference</div>
         <div className="col-span-2 text-right">Amount</div>
       </div>
-      {payments.map((p) => (
-        <div key={p.id} className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b last:border-b-0">
-          <div className="col-span-3 text-muted-foreground">
-            {format(new Date(p.collected_at), "dd MMM yyyy, HH:mm")}
+      <VirtualList
+        items={payments}
+        estimateSize={52}
+        overscan={10}
+        className="max-h-[70vh]"
+        getKey={(p) => p.id}
+        renderItem={(p) => (
+          <div className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b">
+            <div className="col-span-3 text-muted-foreground">
+              {format(new Date(p.collected_at), "dd MMM yyyy, HH:mm")}
+            </div>
+            <div className="col-span-3 truncate">{sMap.get(p.student_id)?.name ?? "—"}</div>
+            <div className="col-span-2">{paymentMethodLabel[p.method]}</div>
+            <div className="col-span-2 text-xs font-mono truncate">{p.reference_number ?? "—"}</div>
+            <div className="col-span-2 text-right tabular-nums font-medium">{formatMoney(p.amount, p.currency)}</div>
           </div>
-          <div className="col-span-3 truncate">{sMap.get(p.student_id)?.name ?? "—"}</div>
-          <div className="col-span-2">{paymentMethodLabel[p.method]}</div>
-          <div className="col-span-2 text-xs font-mono truncate">{p.reference_number ?? "—"}</div>
-          <div className="col-span-2 text-right tabular-nums font-medium">{formatMoney(p.amount, p.currency)}</div>
-        </div>
-      ))}
+        )}
+      />
+
     </div>
   );
 }
