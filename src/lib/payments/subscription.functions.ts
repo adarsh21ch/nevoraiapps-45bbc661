@@ -24,10 +24,8 @@ import {
 
 const TIERS = ["starter", "professional", "enterprise"] as const;
 
-async function assertPlatformAdmin(ctx: {
-  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }> };
-  userId: string;
-}) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function assertPlatformAdmin(ctx: { supabase: any; userId: string }) {
   const { data, error } = await ctx.supabase.rpc("is_platform_admin", { _uid: ctx.userId });
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Forbidden");
