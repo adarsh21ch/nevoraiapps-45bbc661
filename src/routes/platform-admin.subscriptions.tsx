@@ -147,6 +147,7 @@ function Row({ t, onMarkPaid, busy }: { t: TenantRow; onMarkPaid: () => void; bu
             {t.name}
             <StatusChip status={t.status} />
             <SubChip sub={t.subscription_status} />
+            <PlanChip tier={(t as unknown as { plan_tier?: string }).plan_tier ?? "starter"} />
           </div>
           <div className="text-xs text-neutral-400">
             Bill day {t.billing_day ?? 1} · Last paid{" "}
@@ -154,6 +155,7 @@ function Row({ t, onMarkPaid, busy }: { t: TenantRow; onMarkPaid: () => void; bu
           </div>
         </div>
       </Link>
+      <PlanActions tenantId={t.id} currentTier={(t as unknown as { plan_tier?: string }).plan_tier ?? "starter"} suspended={t.status !== "active"} />
       <div className="text-right">
         <div className="text-sm font-semibold">
           ₹{amount.toLocaleString("en-IN")}
