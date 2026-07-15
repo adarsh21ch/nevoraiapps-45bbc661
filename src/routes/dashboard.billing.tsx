@@ -259,7 +259,7 @@ function InvoicesTable({
 
   if (loading) return <SkeletonList />;
   if (invoices.length === 0)
-    return <EmptyState title="No invoices yet" hint="Create your first invoice to get started." />;
+    return <EmptyState title="No fee bills created yet" hint="Generate your first fee bill to start tracking student fees." />;
 
   return (
     <>
