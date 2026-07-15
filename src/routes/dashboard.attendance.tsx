@@ -168,19 +168,46 @@ function AttendancePage() {
     return { inAcademy, present, checkedOutToday, notArrived, total: rosterStudents.length };
   }, [rosterStudents, stateByStudent]);
 
+  // Grouped roster — Waiting / Present / Checked Out.
+  // Sorting: students with an upcoming action first (Present sorted by earliest
+  // check-in so those closest to leaving surface first), then alphabetical.
+  const groups = useMemo(() => {
+    const waiting: typeof rosterStudents = [];
+    const present: typeof rosterStudents = [];
+    const done: typeof rosterStudents = [];
+    for (const s of rosterStudents) {
+      const state: AttendanceState = stateByStudent.get(s.id)?.current_state ?? "not_marked";
+      if (state === "in_academy") present.push(s);
+      else if (state === "checked_out") done.push(s);
+      else waiting.push(s);
+    }
+    const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name);
+    waiting.sort(byName);
+    done.sort(byName);
+    present.sort((a, b) => {
+      const ta = stateByStudent.get(a.id)?.check_in_at ?? "";
+      const tb = stateByStudent.get(b.id)?.check_in_at ?? "";
+      return ta.localeCompare(tb) || byName(a, b);
+    });
+    return { waiting, present, done };
+  }, [rosterStudents, stateByStudent]);
+
   const isLoading = batchesQ.isLoading || studentsQ.isLoading || todayQ.isLoading;
   const isError = batchesQ.isError || studentsQ.isError || todayQ.isError;
 
   return (
     <AppShell>
-      <TopBar
-        title="Attendance"
-        subtitle={format(new Date(), "EEE, d MMM · h:mm a")}
-        trailing={<LiveBadge state="live" />}
-      />
+      {/* Compact header — one row, saves ~40px vs default TopBar. */}
+      <div className="flex items-center justify-between gap-2 pt-2 pb-1">
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight leading-tight">Attendance</h1>
+          <p className="text-[11px] text-muted-foreground leading-tight">{format(new Date(), "EEE, d MMM · h:mm a")}</p>
+        </div>
+        <LiveBadge state="live" />
+      </div>
 
       {/* Sticky filter + search — always accessible while scrolling. */}
-      <div className="sticky top-0 z-20 -mx-4 mb-2 border-b border-border/60 bg-background/85 px-4 py-3 backdrop-blur">
+      <div className="sticky top-0 z-20 -mx-4 mb-2 border-b border-border/60 bg-background/90 px-4 py-2 backdrop-blur">
         <SegmentedControl
           value={session}
           onChange={(v) => setSession(v as SessionFilter)}
@@ -213,11 +240,13 @@ function AttendancePage() {
 
       {isLoading ? (
         <Section>
-          <div className="grid grid-cols-2 gap-2">
-            <Skeleton className="h-20" />
-            <Skeleton className="h-20" />
+          <div className="grid grid-cols-4 gap-2">
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
           </div>
-          <div className="mt-4 space-y-2">
+          <div className="mt-3 space-y-2">
             <Skeleton className="h-14" />
             <Skeleton className="h-14" />
             <Skeleton className="h-14" />
@@ -230,40 +259,135 @@ function AttendancePage() {
         />
       ) : (
         <>
-          {/* KPI strip — all values derived from the attendance lifecycle. */}
-          <Section>
-            <div className="grid grid-cols-2 gap-2">
-              <StatCard label="In Academy Now" value={kpis.inAcademy} tone="success" />
-              <StatCard label="Present Today" value={kpis.present} tone="default" />
-              <StatCard label="Checked Out" value={kpis.checkedOutToday} tone="default" />
-              <StatCard label="Not Yet Arrived" value={kpis.notArrived} tone="default" />
-            </div>
-          </Section>
+          {/* Compact KPI strip — 4-up so it fits above the fold. */}
+          <div className="grid grid-cols-4 gap-2">
+            <StatCard label="Waiting" value={kpis.notArrived} tone="default" />
+            <StatCard label="In Academy" value={kpis.inAcademy} tone="success" />
+            <StatCard label="Checked Out" value={kpis.checkedOutToday} tone="default" />
+            <StatCard label="Total" value={kpis.total} tone="default" />
+          </div>
 
-          <Section title={query ? `Results (${rosterStudents.length})` : "Roster"}>
-            {rosterStudents.length === 0 ? (
-              <EmptyState
-                title={query ? "No matches" : "No students in this session"}
-                description={query ? "Try a different name, player ID or number." : "Change the session filter or add students to a batch."}
+          {rosterStudents.length === 0 ? (
+            <EmptyState
+              title={query ? "No matches" : "No students in this session"}
+              description={query ? "Try a different name, player ID or number." : "Change the session filter or add students to a batch."}
+            />
+          ) : (
+            <div className="space-y-3">
+              <RosterGroup
+                title="Waiting"
+                dot="bg-muted-foreground/60"
+                count={groups.waiting.length}
+                defaultOpen
+                empty="Everyone has arrived."
+                students={groups.waiting}
+                batchNameById={batchNameById}
+                stateByStudent={stateByStudent}
+                canMark={canMark}
+                tenantId={tenant.id}
               />
-            ) : (
-              <Card className="p-1 divide-y divide-border/60">
-                {rosterStudents.map((s) => (
-                  <StudentRow
-                    key={s.id}
-                    student={s}
-                    batchName={s.batch_id ? batchNameById.get(s.batch_id) ?? null : null}
-                    row={stateByStudent.get(s.id)}
-                    canMark={canMark}
-                    tenantId={tenant.id}
-                  />
-                ))}
-              </Card>
-            )}
-          </Section>
+              <RosterGroup
+                title="Present"
+                dot="bg-emerald-500"
+                count={groups.present.length}
+                defaultOpen={false}
+                empty="No players currently inside."
+                students={groups.present}
+                batchNameById={batchNameById}
+                stateByStudent={stateByStudent}
+                canMark={canMark}
+                tenantId={tenant.id}
+              />
+              <RosterGroup
+                title="Checked Out"
+                dot="bg-sky-500"
+                count={groups.done.length}
+                defaultOpen={false}
+                empty="No one has checked out yet."
+                students={groups.done}
+                batchNameById={batchNameById}
+                stateByStudent={stateByStudent}
+                canMark={canMark}
+                tenantId={tenant.id}
+              />
+            </div>
+          )}
         </>
       )}
     </AppShell>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Group
+// ---------------------------------------------------------------------------
+
+function RosterGroup({
+  title,
+  dot,
+  count,
+  defaultOpen,
+  empty,
+  students,
+  batchNameById,
+  stateByStudent,
+  canMark,
+  tenantId,
+}: {
+  title: string;
+  dot: string;
+  count: number;
+  defaultOpen: boolean;
+  empty: string;
+  students: Array<{
+    id: string;
+    name: string;
+    photo_url: string | null;
+    player_id: string | null;
+    batch_id: string | null;
+  }>;
+  batchNameById: Map<string, string>;
+  stateByStudent: Map<string, TodayRow>;
+  canMark: boolean;
+  tenantId: string;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 px-0.5 py-1.5"
+        aria-expanded={open}
+      >
+        <span className="flex items-center gap-2">
+          <span className={cn("inline-block size-2 rounded-full", dot)} aria-hidden />
+          <span className="text-sm font-semibold tracking-tight">{title}</span>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground tabular-nums">
+            {count}
+          </span>
+        </span>
+        <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", open ? "rotate-0" : "-rotate-90")} />
+      </button>
+      {open ? (
+        count === 0 ? (
+          <p className="px-1 py-3 text-sm text-muted-foreground">{empty}</p>
+        ) : (
+          <Card className="p-1 divide-y divide-border/60">
+            {students.map((s) => (
+              <StudentRow
+                key={s.id}
+                student={s}
+                batchName={s.batch_id ? batchNameById.get(s.batch_id) ?? null : null}
+                row={stateByStudent.get(s.id)}
+                canMark={canMark}
+                tenantId={tenantId}
+              />
+            ))}
+          </Card>
+        )
+      ) : null}
+    </section>
   );
 }
 
