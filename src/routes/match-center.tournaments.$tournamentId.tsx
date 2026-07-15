@@ -66,6 +66,9 @@ import { TournamentDashboard } from "@/components/match-center/tournament-dashbo
 import { PointsTable } from "@/components/match-center/points-table";
 import { TournamentBracket } from "@/components/match-center/tournament-bracket";
 import { TournamentStatistics } from "@/components/match-center/tournament-statistics";
+import { TournamentAwardsPanel } from "@/components/match-center/tournament-awards";
+import { TournamentShareDialog } from "@/components/match-center/tournament-share-dialog";
+import { downloadCSV, tournamentPublicUrl } from "@/lib/mc-tournament-export";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -84,6 +87,7 @@ function TournamentDetailPage() {
   const { tenant } = useDashboard();
   const [section, setSection] = useState<string>("overview");
   const [genOpen, setGenOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const demoEntity = useDemoEntity(tenant.id, tournamentId);
   const demoData = useDemoData(tenant.id);
 
@@ -120,21 +124,32 @@ function TournamentDetailPage() {
   const matchTotal = fxQ.data?.length ?? 0;
   const matchCompleted = fxQ.data?.filter((m) => m.match_locked).length ?? 0;
   const teamCount = teamsQ.data?.length ?? 0;
-  const publicUrl =
-    t.published && t.slug
-      ? `${typeof window !== "undefined" ? window.location.origin : ""}/academy/${tenant.slug ?? tenant.id}/tournaments/${t.slug}`
-      : null;
+  const publicUrl = tournamentPublicUrl({
+    academySlug: tenant.slug ?? null,
+    tournamentSlug: t.slug ?? null,
+    published: t.published,
+  });
 
   const currentStage = deriveCurrentStage(fxQ.data ?? []);
 
+  const onShare = () => setShareOpen(true);
 
-  const onShare = () => {
-    const url = publicUrl ?? (typeof window !== "undefined" ? window.location.href : "");
-    if (!url) return;
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(url);
-      toast.success("Link copied");
+  const onExport = () => {
+    const rows = (fxQ.data ?? []).map((m) => ({
+      matchday: m.matchday_no ?? "",
+      date: m.scheduled_date ?? "",
+      time: m.scheduled_time ?? "",
+      team_a: m.team_a?.name ?? "",
+      team_b: m.team_b?.name ?? "",
+      status: m.status,
+      result: m.result ?? "",
+    }));
+    if (rows.length === 0) {
+      toast.info("Nothing to export yet");
+      return;
     }
+    downloadCSV(`${t.name}-fixtures`, rows);
+    toast.success("Fixtures exported");
   };
 
   const quickActions = (
@@ -145,7 +160,7 @@ function TournamentDetailPage() {
       {publicUrl ? (
         <QuickActionButton icon={ExternalLink} label="Open public site" href={publicUrl} />
       ) : null}
-      <QuickActionButton icon={Download} label="Export" onClick={() => toast.info("Export coming soon")} />
+      <QuickActionButton icon={Download} label="Export fixtures" onClick={onExport} />
     </>
   );
 
@@ -178,7 +193,7 @@ function TournamentDetailPage() {
               if (id === "generate") setGenOpen(true);
               else if (id === "create") setSection("fixtures");
               else if (id === "share") onShare();
-              else if (id === "export") toast.info("Export coming soon");
+              else if (id === "export") onExport();
             }}
             publicUrl={publicUrl}
           />
@@ -191,12 +206,20 @@ function TournamentDetailPage() {
         {section === "players" && <PlayersTab tournamentId={tournamentId} />}
         {section === "stats" && <TournamentStatistics tournamentId={tournamentId} />}
         {section === "records" && <RecordsTab tournamentId={tournamentId} />}
-        {section === "awards" && <AwardsTab tournamentId={tournamentId} />}
+        {section === "awards" && <TournamentAwardsPanel tournamentId={tournamentId} tournamentName={t.name} />}
         {section === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "venues" && <VenuesTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "officials" && <OfficialsTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "settings" && <SettingsTab tournament={t} />}
       </TournamentWorkspaceShell>
+
+      <TournamentShareDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        url={publicUrl ?? (typeof window !== "undefined" ? window.location.href : "")}
+        title={t.name}
+        description={t.description ?? undefined}
+      />
 
       <FixtureGeneratorDialog
         open={genOpen}

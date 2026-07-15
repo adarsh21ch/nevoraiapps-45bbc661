@@ -118,6 +118,7 @@ import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.stud
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 import { Route as ApiPublicHooksDispatchCampaignsRouteImport } from './routes/api/public/hooks/dispatch-campaigns'
+import { Route as AcademyAcademySlugTournamentsTournamentSlugRouteImport } from './routes/academy.$academySlug.tournaments.$tournamentSlug'
 
 const TestimonialsRoute = TestimonialsRouteImport.update({
   id: '/testimonials',
@@ -674,6 +675,12 @@ const ApiPublicHooksDispatchCampaignsRoute =
     path: '/api/public/hooks/dispatch-campaigns',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AcademyAcademySlugTournamentsTournamentSlugRoute =
+  AcademyAcademySlugTournamentsTournamentSlugRouteImport.update({
+    id: '/academy/$academySlug/tournaments/$tournamentSlug',
+    path: '/academy/$academySlug/tournaments/$tournamentSlug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -782,6 +789,7 @@ export interface FileRoutesByFullPath {
   '/match-center/players/': typeof MatchCenterPlayersIndexRoute
   '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
+  '/academy/$academySlug/tournaments/$tournamentSlug': typeof AcademyAcademySlugTournamentsTournamentSlugRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -888,6 +896,7 @@ export interface FileRoutesByTo {
   '/match-center/players': typeof MatchCenterPlayersIndexRoute
   '/match-center/teams': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants': typeof PlatformAdminTenantsIndexRoute
+  '/academy/$academySlug/tournaments/$tournamentSlug': typeof AcademyAcademySlugTournamentsTournamentSlugRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -1000,6 +1009,7 @@ export interface FileRoutesById {
   '/match-center/players/': typeof MatchCenterPlayersIndexRoute
   '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
+  '/academy/$academySlug/tournaments/$tournamentSlug': typeof AcademyAcademySlugTournamentsTournamentSlugRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -1113,6 +1123,7 @@ export interface FileRouteTypes {
     | '/match-center/players/'
     | '/match-center/teams/'
     | '/platform-admin/tenants/'
+    | '/academy/$academySlug/tournaments/$tournamentSlug'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
@@ -1219,6 +1230,7 @@ export interface FileRouteTypes {
     | '/match-center/players'
     | '/match-center/teams'
     | '/platform-admin/tenants'
+    | '/academy/$academySlug/tournaments/$tournamentSlug'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
@@ -1330,6 +1342,7 @@ export interface FileRouteTypes {
     | '/match-center/players/'
     | '/match-center/teams/'
     | '/platform-admin/tenants/'
+    | '/academy/$academySlug/tournaments/$tournamentSlug'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
@@ -1372,6 +1385,7 @@ export interface RootRouteChildren {
   MatchSlugRoute: typeof MatchSlugRoute
   PoliciesKindRoute: typeof PoliciesKindRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
+  AcademyAcademySlugTournamentsTournamentSlugRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRoute
   ApiPublicHooksDispatchCampaignsRoute: typeof ApiPublicHooksDispatchCampaignsRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
@@ -2142,6 +2156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDispatchCampaignsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/academy/$academySlug/tournaments/$tournamentSlug': {
+      id: '/academy/$academySlug/tournaments/$tournamentSlug'
+      path: '/academy/$academySlug/tournaments/$tournamentSlug'
+      fullPath: '/academy/$academySlug/tournaments/$tournamentSlug'
+      preLoaderRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -2404,6 +2425,8 @@ const rootRouteChildren: RootRouteChildren = {
   MatchSlugRoute: MatchSlugRoute,
   PoliciesKindRoute: PoliciesKindRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
+  AcademyAcademySlugTournamentsTournamentSlugRoute:
+    AcademyAcademySlugTournamentsTournamentSlugRoute,
   ApiPublicHooksDispatchCampaignsRoute: ApiPublicHooksDispatchCampaignsRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
