@@ -64,6 +64,8 @@ export const approveRegistration = createServerFn({ method: "POST" })
       gender: reg.gender,
       email: reg.email,
       roll_number: data.rollNumber ?? null,
+      coach_name: data.coachName ?? null,
+      joined_at: data.admissionDate ?? new Date().toISOString().slice(0, 10),
       user_id: reg.applicant_user_id,
       lifecycle_status: "approved",
       approved_at: new Date().toISOString(),
