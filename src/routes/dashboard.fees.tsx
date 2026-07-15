@@ -229,62 +229,114 @@ function FeeRegister() {
   };
 
   return (
-    <div className="-mt-4 md:-mt-8 space-y-4">
+    <div className="-mt-4 md:-mt-8 space-y-3">
       {/* Header — uniform across dashboard tabs */}
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 pt-2 pb-1">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 pt-2 pb-1">
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">Fees</h1>
+          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">Student Fees</h1>
           <p className="text-[11px] text-muted-foreground leading-tight truncate">
-            Collect this month's fees and follow up on pending.
+            Who's paid, who's pending — collect in one tap.
           </p>
         </div>
-        {cycle === "calendar_month" && (
-          <div className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1 shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full h-8 w-8"
-              aria-label="Previous month"
-              onClick={() => setMonthOffset((m) => m - 1)}
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <div className="text-xs font-semibold w-24 text-center tabular-nums">
-              {format(selectedMonth, "MMM yyyy")}
+        <div className="flex items-center gap-1 shrink-0">
+          {cycle === "calendar_month" && (
+            <div className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-8 w-8"
+                aria-label="Previous month"
+                onClick={() => setMonthOffset((m) => m - 1)}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <div className="text-xs font-semibold w-20 text-center tabular-nums">
+                {format(selectedMonth, "MMM yyyy")}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-8 w-8"
+                aria-label="Next month"
+                disabled={monthOffset >= 0}
+                onClick={() => setMonthOffset((m) => Math.min(0, m + 1))}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full h-8 w-8"
-              aria-label="Next month"
-              disabled={monthOffset >= 0}
-              onClick={() => setMonthOffset((m) => Math.min(0, m + 1))}
-            >
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
-        )}
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-9 w-9 bg-card border border-border shadow-sm"
+                aria-label="More actions"
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/fee-plans">Manage Fee Plans</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/students">Assign to Students</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/reminders">Send Reminders</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/reports">Reports &amp; Exports</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
-      <CollectionStrip
+      {/* Compact KPI strip */}
+      <KpiStrip
+        pending={pendingAmount}
         collected={collectedAmount}
-        expected={collectedAmount + pendingAmount}
-        paidCount={paidRows.length}
-        totalCount={rows.length}
+        overdueCount={overdueRows.length}
+        pct={collectionPct}
       />
 
-      <SegmentedToggle
-        value={filter}
-        onChange={setFilter}
-        counts={{ pending: pendingRows.length, paid: paidRows.length, all: rows.length }}
-      />
+      {/* Sticky search + chip filters */}
+      <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 space-y-2">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search name, player ID or mobile"
+            className="h-10 pl-9 rounded-full bg-card"
+          />
+        </div>
+        <ChipFilters
+          value={filter}
+          onChange={setFilter}
+          counts={{
+            all: rows.length,
+            pending: pendingRows.length,
+            paid: paidRows.length,
+            overdue: overdueRows.length,
+          }}
+        />
+      </div>
 
       <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
         {loading ? (
           <SkeletonList />
         ) : visible.length === 0 ? (
-          <EmptyState filter={filter} monthLabel={format(selectedMonth, "MMMM")} />
+          <EmptyState
+            filter={filter}
+            monthLabel={format(selectedMonth, "MMMM")}
+            searching={q.length > 0}
+            hasStudents={rows.length > 0}
+          />
         ) : (
+
           <ul className="divide-y divide-border">
             {visible.map((r) => (
               <FeeRow
