@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
+import { useScoringLock } from "@/hooks/use-scoring-lock";
 import {
   completedLegalBallsFromEvents,
   calculateInningsStatistics,
