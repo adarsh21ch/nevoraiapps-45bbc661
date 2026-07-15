@@ -20,7 +20,6 @@ import { usePermissions } from "@/hooks/use-permissions";
 import {
   AppShell,
   Section,
-  Section,
   Card,
   StatCard,
   ListItem,
