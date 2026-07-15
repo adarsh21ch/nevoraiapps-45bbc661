@@ -639,19 +639,27 @@ function SubscriptionsTable({
         <div className="col-span-2">Since</div>
         <div className="col-span-2 text-right">Status</div>
       </div>
-      {subs.map((s) => (
-        <div key={s.id} className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b last:border-b-0">
-          <div className="col-span-4 truncate">{sMap.get(s.student_id)?.name ?? "—"}</div>
-          <div className="col-span-2 capitalize">{s.billing_cycle.replace("_", " ")}</div>
-          <div className="col-span-2 text-right tabular-nums">{formatMoney(s.unit_amount, s.currency)}</div>
-          <div className="col-span-2 text-muted-foreground">{s.start_date}</div>
-          <div className="col-span-2 text-right">
-            <Badge variant={s.status === "active" ? "default" : "secondary"} className="capitalize">
-              {s.status.replace("_", " ")}
-            </Badge>
+      <VirtualList
+        items={subs}
+        estimateSize={52}
+        overscan={10}
+        className="max-h-[70vh]"
+        getKey={(s) => s.id}
+        renderItem={(s) => (
+          <div className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b">
+            <div className="col-span-4 truncate">{sMap.get(s.student_id)?.name ?? "—"}</div>
+            <div className="col-span-2 capitalize">{s.billing_cycle.replace("_", " ")}</div>
+            <div className="col-span-2 text-right tabular-nums">{formatMoney(s.unit_amount, s.currency)}</div>
+            <div className="col-span-2 text-muted-foreground">{s.start_date}</div>
+            <div className="col-span-2 text-right">
+              <Badge variant={s.status === "active" ? "default" : "secondary"} className="capitalize">
+                {s.status.replace("_", " ")}
+              </Badge>
+            </div>
           </div>
-        </div>
-      ))}
+        )}
+      />
+
     </div>
   );
 }
