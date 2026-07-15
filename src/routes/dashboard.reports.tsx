@@ -211,28 +211,12 @@ function CategorySegments<T extends string>({
   options: { value: T; label: string }[];
 }) {
   return (
-    <div className="-mx-1 overflow-x-auto no-scrollbar">
-      <div className="mx-1 inline-flex min-w-full gap-1 rounded-xl bg-muted p-0.5">
-        {options.map((opt) => {
-          const active = opt.value === value;
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => onChange(opt.value)}
-              className={cn(
-                "shrink-0 px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap",
-                active
-                  ? "bg-background text-foreground shadow-[var(--shadow-soft)]"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <FilterTabs<T>
+      value={value}
+      onChange={onChange}
+      items={options.map((o) => ({ key: o.value, label: o.label }))}
+      ariaLabel="Report category"
+    />
   );
 }
 
