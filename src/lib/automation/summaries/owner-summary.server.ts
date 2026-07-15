@@ -119,8 +119,7 @@ async function sumColumn(
   }
 }
 
-  }
-}
+
 
 export async function computeOwnerSummary(
   tenantId: string,
