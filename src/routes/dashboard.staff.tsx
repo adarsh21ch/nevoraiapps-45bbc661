@@ -165,23 +165,15 @@ function StaffPage() {
       </Card>
 
       <Tabs defaultValue="directory">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="directory" className="flex-1 sm:flex-none">
-            Directory
-            <Badge variant="secondary" className="ml-2">
-              {membersQ.data?.length ?? 0}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="invitations" className="flex-1 sm:flex-none">
-            Invitations
-            <Badge variant="secondary" className="ml-2">
-              {(invitesQ.data ?? []).filter((i) => invitationStatus(i) === "pending").length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="flex-1 sm:flex-none">
-            Activity
-          </TabsTrigger>
+        <TabsList className="hidden">
+          <TabsTrigger value="directory" />
+          <TabsTrigger value="invitations" />
+          <TabsTrigger value="activity" />
         </TabsList>
+        <StaffTabsBar
+          membersCount={membersQ.data?.length ?? 0}
+          pendingInvites={(invitesQ.data ?? []).filter((i) => invitationStatus(i) === "pending").length}
+        />
 
         <TabsContent value="directory" className="mt-4">
           <Directory
