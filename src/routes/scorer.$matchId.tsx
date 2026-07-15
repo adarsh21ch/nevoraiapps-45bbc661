@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useScoringSession, ballHelpers } from "@/hooks/use-scoring-session";
+import { useScoringLock } from "@/hooks/use-scoring-lock";
 import {
   completedLegalBallsFromEvents,
   calculateInningsStatistics,
@@ -118,6 +119,9 @@ function ScorerPage() {
     tenantId: tenantQ.data ?? undefined,
     userId: userQ.data?.id ?? null,
   });
+
+  // Phase 3 — advisory lock. Only one active scorer per match at a time.
+  const lockStatus = useScoringLock(isDemo ? null : matchId, !isDemo);
 
   // Team names
   const teamsQ = useQuery({
@@ -694,6 +698,23 @@ function ScorerPage() {
               <Link to="/match-center/create">Create a match</Link>
             </Button>
           </div>
+        </div>
+      ) : lockStatus === "blocked" ? (
+        <div className="grid flex-1 place-items-center p-6 text-center">
+          <div className="max-w-sm space-y-3">
+            <div className="text-lg font-semibold">Match is being scored</div>
+            <p className="text-sm text-muted-foreground">
+              This match is currently being scored by another user. To prevent
+              conflicting updates, only one scorer can be active at a time.
+            </p>
+            <Button variant="outline" onClick={() => void navigate({ to: "/match-center/live" })}>
+              Back to live matches
+            </Button>
+          </div>
+        </div>
+      ) : lockStatus === "pending" ? (
+        <div className="grid flex-1 place-items-center text-sm text-muted-foreground">
+          Preparing scoring session…
         </div>
       ) : session.loading ? (
         <div className="grid flex-1 place-items-center text-sm text-muted-foreground">
