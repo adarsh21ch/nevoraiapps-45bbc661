@@ -51,6 +51,7 @@ import {
   markManualPaymentViewed,
 } from "@/lib/payments/manual.functions";
 import { formatMoney } from "@/lib/billing";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/payment-verification")({
   head: () => ({
