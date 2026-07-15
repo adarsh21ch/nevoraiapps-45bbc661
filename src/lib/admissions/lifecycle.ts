@@ -81,7 +81,19 @@ export function isPendingApproval(status: string | null | undefined): boolean {
 
 export function isActiveStudent(status: string | null | undefined): boolean {
   if (!status) return false;
-  return ["active", "activated", "profile_completed", "fee_plan_assigned", "batch_assigned", "approved"].includes(
+  return ["active", "activated", "profile_completed", "fee_plan_assigned", "batch_assigned"].includes(
     status,
   );
+}
+
+/** Approved but not yet activated — needs to complete activation link flow. */
+export function needsActivation(status: string | null | undefined): boolean {
+  if (!status) return false;
+  return ["approved", "imported", "invitation_sent"].includes(status);
+}
+
+/** Terminal/blocked states — student cannot access portal. */
+export function isBlocked(status: string | null | undefined): boolean {
+  if (!status) return false;
+  return ["inactive", "transferred", "alumni", "rejected"].includes(status);
 }
