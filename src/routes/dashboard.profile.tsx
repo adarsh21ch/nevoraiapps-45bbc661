@@ -72,15 +72,15 @@ function ProfilePage() {
       rows: [
         { to: "/dashboard/settings", label: "Academy Profile", hint: "Name, hours, contact, address", icon: Settings2 },
         { to: "/dashboard/branding", label: "Branding", hint: "Logo, theme, colors", icon: Palette },
+        { to: "/dashboard/site", label: "Public Website", hint: "Edit pages, SEO, social, payments", icon: Globe },
         { to: "/dashboard/subscription", label: "Subscription & Plan", hint: "Your AcademyOS plan", icon: CreditCard },
-        { to: "/dashboard/site", label: "Website Settings", hint: "SEO, contact, social, payments", icon: Globe },
       ],
     });
 
     sections.push({
       title: "Data",
       rows: [
-        { to: "/dashboard/students", label: "Import & Export Players", hint: "Bulk upload and downloads", icon: Database },
+        { to: "/dashboard/students", label: "Import & Export Students", hint: "Bulk upload, downloads & backup", icon: Database },
       ],
     });
   }
