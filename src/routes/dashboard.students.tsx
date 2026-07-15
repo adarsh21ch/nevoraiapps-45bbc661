@@ -78,14 +78,20 @@ export const Route = createFileRoute("/dashboard/students")({
   component: StudentsPage,
 });
 
-const STATUS_TAB_ORDER: PlayerStatus[] = [
-  "active",
+// Primary status tabs — only the two states operators actually manage day-to-day.
+// Everything else (trial, paused, suspended, graduated, transferred) is still
+// stored in the DB and reachable through Advanced Filters below.
+const PRIMARY_STATUS_TABS: { key: string; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "active", label: "Active" },
+  { key: "left", label: "Left" },
+];
+const ADVANCED_STATUSES: PlayerStatus[] = [
   "trial",
   "paused",
   "suspended",
   "graduated",
   "transferred",
-  "left",
 ];
 
 function StudentsPage() {
