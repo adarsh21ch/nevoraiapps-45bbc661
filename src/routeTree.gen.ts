@@ -57,6 +57,7 @@ import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platfor
 import { Route as PlatformAdminSportsRouteImport } from './routes/platform-admin.sports'
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
 import { Route as PlatformAdminSearchRouteImport } from './routes/platform-admin.search'
+import { Route as PlatformAdminPushRouteImport } from './routes/platform-admin.push'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
 import { Route as PlatformAdminHealthRouteImport } from './routes/platform-admin.health'
 import { Route as PlatformAdminFlagsRouteImport } from './routes/platform-admin.flags'
@@ -364,6 +365,11 @@ const PlatformAdminSettingsRoute = PlatformAdminSettingsRouteImport.update({
 const PlatformAdminSearchRoute = PlatformAdminSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminPushRoute = PlatformAdminPushRouteImport.update({
+  id: '/push',
+  path: '/push',
   getParentRoute: () => PlatformAdminRoute,
 } as any)
 const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
@@ -797,6 +803,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
   '/platform-admin/health': typeof PlatformAdminHealthRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/push': typeof PlatformAdminPushRoute
   '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/sports': typeof PlatformAdminSportsRoute
@@ -909,6 +916,7 @@ export interface FileRoutesByTo {
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
   '/platform-admin/health': typeof PlatformAdminHealthRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/push': typeof PlatformAdminPushRoute
   '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/sports': typeof PlatformAdminSportsRoute
@@ -1027,6 +1035,7 @@ export interface FileRoutesById {
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
   '/platform-admin/health': typeof PlatformAdminHealthRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/push': typeof PlatformAdminPushRoute
   '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
   '/platform-admin/sports': typeof PlatformAdminSportsRoute
@@ -1146,6 +1155,7 @@ export interface FileRouteTypes {
     | '/platform-admin/flags'
     | '/platform-admin/health'
     | '/platform-admin/new'
+    | '/platform-admin/push'
     | '/platform-admin/search'
     | '/platform-admin/settings'
     | '/platform-admin/sports'
@@ -1258,6 +1268,7 @@ export interface FileRouteTypes {
     | '/platform-admin/flags'
     | '/platform-admin/health'
     | '/platform-admin/new'
+    | '/platform-admin/push'
     | '/platform-admin/search'
     | '/platform-admin/settings'
     | '/platform-admin/sports'
@@ -1375,6 +1386,7 @@ export interface FileRouteTypes {
     | '/platform-admin/flags'
     | '/platform-admin/health'
     | '/platform-admin/new'
+    | '/platform-admin/push'
     | '/platform-admin/search'
     | '/platform-admin/settings'
     | '/platform-admin/sports'
@@ -1791,6 +1803,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/platform-admin/search'
       preLoaderRoute: typeof PlatformAdminSearchRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/push': {
+      id: '/platform-admin/push'
+      path: '/push'
+      fullPath: '/platform-admin/push'
+      preLoaderRoute: typeof PlatformAdminPushRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
     '/platform-admin/new': {
@@ -2444,6 +2463,7 @@ interface PlatformAdminRouteChildren {
   PlatformAdminFlagsRoute: typeof PlatformAdminFlagsRoute
   PlatformAdminHealthRoute: typeof PlatformAdminHealthRoute
   PlatformAdminNewRoute: typeof PlatformAdminNewRoute
+  PlatformAdminPushRoute: typeof PlatformAdminPushRoute
   PlatformAdminSearchRoute: typeof PlatformAdminSearchRoute
   PlatformAdminSettingsRoute: typeof PlatformAdminSettingsRoute
   PlatformAdminSportsRoute: typeof PlatformAdminSportsRoute
@@ -2461,6 +2481,7 @@ const PlatformAdminRouteChildren: PlatformAdminRouteChildren = {
   PlatformAdminFlagsRoute: PlatformAdminFlagsRoute,
   PlatformAdminHealthRoute: PlatformAdminHealthRoute,
   PlatformAdminNewRoute: PlatformAdminNewRoute,
+  PlatformAdminPushRoute: PlatformAdminPushRoute,
   PlatformAdminSearchRoute: PlatformAdminSearchRoute,
   PlatformAdminSettingsRoute: PlatformAdminSettingsRoute,
   PlatformAdminSportsRoute: PlatformAdminSportsRoute,
