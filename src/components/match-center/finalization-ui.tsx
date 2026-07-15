@@ -457,10 +457,14 @@ export function UnlockMatchDialog({
       await unlockMatch({ matchId, tenantId, actorId, reason: reason.trim() });
       // Career Engine: rebuild affected athletes so unlocked match is excluded.
       try {
+        const [{ rebuildCareersAfterUnlock }, { updateTournamentForMatch }, { rebuildAcademyRecords }] = await Promise.all([
+          import("@/lib/mc-career-engine"),
+          import("@/lib/mc-tournament-engine"),
+          import("@/lib/mc-academy-records"),
+        ]);
         await rebuildCareersAfterUnlock(matchId);
         await updateTournamentForMatch(matchId);
         // Academy Records must be rebuilt (a broken record may need to revert).
-        const { rebuildAcademyRecords } = await import("@/lib/mc-academy-records");
         await rebuildAcademyRecords(tenantId);
       } catch (careerErr) {
         console.error("Career rebuild after unlock failed", careerErr);
