@@ -1,12 +1,28 @@
 /**
- * Parent-facing dialog to submit proof of a UPI / QR / Bank / Cash payment.
- * Uploads the screenshot to the existing `tenant-assets` bucket, then calls
- * `submitManualPayment` which inserts the row and emits automation events.
+ * Parent-facing guided payment flow (4 steps + confirmation).
+ *   1) Choose method (UPI / QR / Bank)
+ *   2) Show payment info with copy buttons
+ *   3) Submit proof (screenshot + UTR + amount + date + notes)
+ *   4) Confirmation screen with status
+ *
+ * Reuses uploadTenantFile (R2) and submitManualPayment server function.
  */
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { UploadCloud, Loader2, Copy, Check } from "lucide-react";
+import {
+  UploadCloud,
+  Loader2,
+  Copy,
+  Check,
+  QrCode,
+  Smartphone,
+  Landmark,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +36,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { uploadTenantFile } from "@/lib/storage";
 import { submitManualPayment } from "@/lib/payments/manual.functions";
 import { formatMoney } from "@/lib/billing";
@@ -33,6 +50,9 @@ export type PaymentSetup = {
   bank_ifsc: string | null;
   payment_instructions: string | null;
 };
+
+type Method = "upi" | "qr" | "bank_transfer";
+type Step = 1 | 2 | 3 | 4;
 
 export function ManualPaymentDialog({
   open,
@@ -51,6 +71,8 @@ export function ManualPaymentDialog({
   setup: PaymentSetup;
   onSubmitted: () => void;
 }) {
+  const [step, setStep] = useState<Step>(1);
+  const [method, setMethod] = useState<Method>("upi");
   const [amount, setAmount] = useState(String(invoice.balance));
   const [utr, setUtr] = useState("");
   const [paidAt, setPaidAt] = useState(new Date().toISOString().slice(0, 10));
@@ -77,7 +99,7 @@ export function ManualPaymentDialog({
           tenantId,
           studentId,
           invoiceId: invoice.id,
-          method: "upi",
+          method,
           amount: Number(amount),
           currency: invoice.currency,
           utr: utr.trim() || null,
@@ -88,13 +110,31 @@ export function ManualPaymentDialog({
       });
     },
     onSuccess: () => {
-      toast.success("Payment submitted for verification");
       qc.invalidateQueries({ queryKey: ["parent"] });
-      onSubmitted();
-      onOpenChange(false);
+      setStep(4);
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed to submit"),
   });
+
+  function reset() {
+    setStep(1);
+    setMethod("upi");
+    setAmount(String(invoice.balance));
+    setUtr("");
+    setPaidAt(new Date().toISOString().slice(0, 10));
+    setNotes("");
+    setFile(null);
+  }
+
+  function close(v: boolean) {
+    if (!v) {
+      onOpenChange(false);
+      if (step === 4) onSubmitted();
+      setTimeout(reset, 200);
+    } else {
+      onOpenChange(true);
+    }
+  }
 
   function copy(v: string | null | undefined, key: string) {
     if (!v) return;
@@ -103,80 +143,187 @@ export function ManualPaymentDialog({
     setTimeout(() => setCopied(null), 1500);
   }
 
+  const methods: Array<{ id: Method; label: string; icon: any; available: boolean }> = [
+    { id: "upi", label: "UPI ID", icon: Smartphone, available: !!setup.upi_id },
+    { id: "qr", label: "QR Code", icon: QrCode, available: !!setup.upi_qr_url },
+    {
+      id: "bank_transfer",
+      label: "Bank Transfer",
+      icon: Landmark,
+      available: !!(setup.bank_account_number || setup.bank_ifsc),
+    },
+  ];
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={close}>
+      <DialogContent className="max-w-md max-h-[92vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Pay {formatMoney(invoice.balance, invoice.currency)}</DialogTitle>
+          <DialogTitle>
+            {step === 4
+              ? "Payment submitted"
+              : `Pay ${formatMoney(invoice.balance, invoice.currency)}`}
+          </DialogTitle>
           <DialogDescription>
-            {invoice.number ?? "Invoice"} · Pay via UPI/QR/bank, then submit proof below.
+            {step === 4 ? (
+              <>Your proof is pending owner verification.</>
+            ) : (
+              <>
+                {invoice.number ?? "Invoice"} · Step {step} of 3
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
-          {(setup.upi_qr_url || setup.upi_id) && (
-            <div className="rounded-lg border p-3 space-y-2 bg-muted/30">
-              <p className="text-xs font-semibold">Pay via UPI</p>
-              {setup.upi_qr_url && (
+        {step < 4 && (
+          <div className="flex gap-1 mb-2">
+            {[1, 2, 3].map((s) => (
+              <div
+                key={s}
+                className={cn(
+                  "h-1 flex-1 rounded-full",
+                  s <= step ? "bg-primary" : "bg-muted",
+                )}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Step 1 — choose method */}
+        {step === 1 && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">Choose how you'd like to pay</p>
+            {methods.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                disabled={!m.available}
+                onClick={() => {
+                  setMethod(m.id);
+                  setStep(2);
+                }}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-lg border text-left transition",
+                  m.available
+                    ? "hover:bg-muted/60 cursor-pointer"
+                    : "opacity-40 cursor-not-allowed",
+                )}
+              >
+                <m.icon className="size-5 text-primary" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{m.label}</p>
+                  {!m.available && (
+                    <p className="text-[10px] text-muted-foreground">Not configured</p>
+                  )}
+                </div>
+                <ArrowRight className="size-4 text-muted-foreground" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Step 2 — payment info */}
+        {step === 2 && (
+          <div className="space-y-3">
+            {method === "qr" && setup.upi_qr_url && (
+              <div className="rounded-lg border p-3 space-y-2 bg-muted/30 text-center">
+                <p className="text-xs font-semibold">Scan this QR</p>
                 <img
                   src={setup.upi_qr_url}
                   alt="UPI QR"
-                  className="mx-auto rounded-md max-h-40"
+                  className="mx-auto rounded-md max-h-56"
                 />
-              )}
-              {setup.upi_id && (
+                <p className="text-[11px] text-muted-foreground">
+                  Open any UPI app and scan
+                </p>
+              </div>
+            )}
+
+            {method === "upi" && setup.upi_id && (
+              <div className="rounded-lg border p-3 space-y-2 bg-muted/30">
+                <p className="text-xs font-semibold">Pay to UPI ID</p>
                 <button
                   type="button"
                   onClick={() => copy(setup.upi_id, "upi")}
-                  className="w-full flex items-center justify-between text-xs px-2 py-1.5 rounded border bg-background hover:bg-muted"
+                  className="w-full flex items-center justify-between text-sm px-3 py-2 rounded border bg-background hover:bg-muted"
                 >
-                  <span className="truncate">{setup.upi_id}</span>
-                  {copied === "upi" ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                  <span className="truncate font-mono">{setup.upi_id}</span>
+                  {copied === "upi" ? (
+                    <Check className="size-4 text-emerald-500" />
+                  ) : (
+                    <Copy className="size-4" />
+                  )}
                 </button>
-              )}
+              </div>
+            )}
+
+            {method === "bank_transfer" && (
+              <div className="rounded-lg border p-3 space-y-2 bg-muted/30">
+                <p className="text-xs font-semibold">Bank transfer details</p>
+                {setup.bank_account_name && (
+                  <p className="text-xs">
+                    <span className="text-muted-foreground">Name: </span>
+                    {setup.bank_account_name}
+                  </p>
+                )}
+                {setup.bank_account_number && (
+                  <button
+                    type="button"
+                    onClick={() => copy(setup.bank_account_number, "acc")}
+                    className="w-full flex items-center justify-between text-xs px-2 py-1.5 rounded border bg-background hover:bg-muted"
+                  >
+                    <span className="font-mono">A/c {setup.bank_account_number}</span>
+                    {copied === "acc" ? (
+                      <Check className="size-3.5 text-emerald-500" />
+                    ) : (
+                      <Copy className="size-3.5" />
+                    )}
+                  </button>
+                )}
+                {setup.bank_ifsc && (
+                  <button
+                    type="button"
+                    onClick={() => copy(setup.bank_ifsc, "ifsc")}
+                    className="w-full flex items-center justify-between text-xs px-2 py-1.5 rounded border bg-background hover:bg-muted"
+                  >
+                    <span className="font-mono">IFSC {setup.bank_ifsc}</span>
+                    {copied === "ifsc" ? (
+                      <Check className="size-3.5 text-emerald-500" />
+                    ) : (
+                      <Copy className="size-3.5" />
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="rounded-lg border p-3 bg-primary/5">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                Amount to pay
+              </p>
+              <p className="text-2xl font-bold">
+                {formatMoney(invoice.balance, invoice.currency)}
+              </p>
             </div>
-          )}
 
-          {(setup.bank_account_number || setup.bank_ifsc) && (
-            <div className="rounded-lg border p-3 space-y-1 bg-muted/30 text-xs">
-              <p className="font-semibold">Bank transfer</p>
-              {setup.bank_account_name && <p>Name: {setup.bank_account_name}</p>}
-              {setup.bank_account_number && (
-                <button
-                  type="button"
-                  onClick={() => copy(setup.bank_account_number, "acc")}
-                  className="w-full flex items-center justify-between px-2 py-1 rounded border bg-background hover:bg-muted"
-                >
-                  <span>A/c {setup.bank_account_number}</span>
-                  {copied === "acc" ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-                </button>
-              )}
-              {setup.bank_ifsc && (
-                <button
-                  type="button"
-                  onClick={() => copy(setup.bank_ifsc, "ifsc")}
-                  className="w-full flex items-center justify-between px-2 py-1 rounded border bg-background hover:bg-muted"
-                >
-                  <span>IFSC {setup.bank_ifsc}</span>
-                  {copied === "ifsc" ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-                </button>
-              )}
-            </div>
-          )}
+            {setup.payment_instructions && (
+              <p className="text-xs text-muted-foreground whitespace-pre-line">
+                {setup.payment_instructions}
+              </p>
+            )}
+          </div>
+        )}
 
-          {setup.payment_instructions && (
-            <p className="text-xs text-muted-foreground whitespace-pre-line">
-              {setup.payment_instructions}
-            </p>
-          )}
-
-          <div className="border-t pt-3 space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Submit proof
+        {/* Step 3 — submit proof */}
+        {step === 3 && (
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              After completing the payment, submit proof so the owner can verify.
             </p>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label htmlFor="mp-amount" className="text-xs">Amount paid</Label>
+                <Label htmlFor="mp-amount" className="text-xs">
+                  Amount paid
+                </Label>
                 <Input
                   id="mp-amount"
                   type="number"
@@ -186,7 +333,9 @@ export function ManualPaymentDialog({
                 />
               </div>
               <div>
-                <Label htmlFor="mp-date" className="text-xs">Payment date</Label>
+                <Label htmlFor="mp-date" className="text-xs">
+                  Payment date
+                </Label>
                 <Input
                   id="mp-date"
                   type="date"
@@ -196,7 +345,9 @@ export function ManualPaymentDialog({
               </div>
             </div>
             <div>
-              <Label htmlFor="mp-utr" className="text-xs">UTR / Transaction ID (optional)</Label>
+              <Label htmlFor="mp-utr" className="text-xs">
+                UTR / Transaction ID
+              </Label>
               <Input
                 id="mp-utr"
                 value={utr}
@@ -206,13 +357,19 @@ export function ManualPaymentDialog({
               />
             </div>
             <div>
-              <Label htmlFor="mp-file" className="text-xs">Screenshot</Label>
+              <Label htmlFor="mp-file" className="text-xs">
+                Screenshot
+              </Label>
               <label
                 htmlFor="mp-file"
                 className="flex items-center gap-2 rounded-md border border-dashed p-3 text-xs cursor-pointer hover:bg-muted/40"
               >
                 <UploadCloud className="size-4 text-muted-foreground" />
-                {file ? <span className="truncate">{file.name}</span> : "Tap to attach screenshot"}
+                {file ? (
+                  <span className="truncate">{file.name}</span>
+                ) : (
+                  "Tap to attach payment screenshot"
+                )}
               </label>
               <input
                 id="mp-file"
@@ -223,7 +380,9 @@ export function ManualPaymentDialog({
               />
             </div>
             <div>
-              <Label htmlFor="mp-notes" className="text-xs">Notes (optional)</Label>
+              <Label htmlFor="mp-notes" className="text-xs">
+                Notes (optional)
+              </Label>
               <Textarea
                 id="mp-notes"
                 rows={2}
@@ -233,21 +392,74 @@ export function ManualPaymentDialog({
               />
             </div>
           </div>
-        </div>
+        )}
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitMut.isPending}>
-            Cancel
-          </Button>
-          <Button
-            onClick={() => submitMut.mutate()}
-            disabled={submitMut.isPending || !amount || Number(amount) <= 0}
-          >
-            {(submitMut.isPending || uploading) && (
-              <Loader2 className="size-4 animate-spin mr-1" />
-            )}
-            Submit
-          </Button>
+        {/* Step 4 — confirmation */}
+        {step === 4 && (
+          <div className="space-y-4 py-4 text-center">
+            <div className="mx-auto size-14 rounded-full bg-emerald-500/10 flex items-center justify-center">
+              <CheckCircle2 className="size-8 text-emerald-500" />
+            </div>
+            <div className="space-y-1">
+              <p className="font-semibold">Payment Proof Submitted</p>
+              <p className="text-xs text-muted-foreground">
+                {formatMoney(Number(amount), invoice.currency)} · {method.replace("_", " ")}
+              </p>
+            </div>
+            <div className="rounded-lg border p-3 bg-muted/30 text-left space-y-2">
+              <div className="flex items-center gap-2 text-xs">
+                <Clock className="size-3.5 text-amber-500" />
+                <span className="font-medium">Pending verification</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                The owner will review your payment shortly, typically within a few
+                hours. You'll be notified once it's approved and your receipt is ready.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <DialogFooter className="gap-2">
+          {step === 1 && (
+            <Button variant="ghost" onClick={() => close(false)}>
+              Cancel
+            </Button>
+          )}
+          {step === 2 && (
+            <>
+              <Button variant="ghost" onClick={() => setStep(1)}>
+                <ArrowLeft className="size-4 mr-1" /> Back
+              </Button>
+              <Button onClick={() => setStep(3)}>
+                I've paid <ArrowRight className="size-4 ml-1" />
+              </Button>
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <Button
+                variant="ghost"
+                onClick={() => setStep(2)}
+                disabled={submitMut.isPending}
+              >
+                <ArrowLeft className="size-4 mr-1" /> Back
+              </Button>
+              <Button
+                onClick={() => submitMut.mutate()}
+                disabled={submitMut.isPending || !amount || Number(amount) <= 0}
+              >
+                {(submitMut.isPending || uploading) && (
+                  <Loader2 className="size-4 animate-spin mr-1" />
+                )}
+                Submit proof
+              </Button>
+            </>
+          )}
+          {step === 4 && (
+            <Button className="w-full" onClick={() => close(false)}>
+              Done
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
