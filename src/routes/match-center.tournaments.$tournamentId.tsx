@@ -201,11 +201,14 @@ function OverviewTab({ tournamentId, tenantId: _tenantId, hasGroups }: { tournam
   );
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {card("Teams", teamCount)}
-      {card("Fixtures", total)}
-      {card("Completed", completed)}
-      {card("Remaining", total - completed)}
+    <div className="space-y-4">
+      <SetupProgress tournamentId={tournamentId} hasGroups={hasGroups} />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {card("Teams", teamCount)}
+        {card("Fixtures", total)}
+        {card("Completed", completed)}
+        {card("Remaining", total - completed)}
+      </div>
     </div>
   );
 }
