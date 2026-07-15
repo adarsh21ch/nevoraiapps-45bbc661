@@ -99,6 +99,8 @@ import { Route as DashboardCommunicationsRouteImport } from './routes/dashboard.
 import { Route as DashboardBrandingRouteImport } from './routes/dashboard.branding'
 import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
+import { Route as DashboardAutomationTestRouteImport } from './routes/dashboard.automation-test'
+import { Route as DashboardAutomationSettingsRouteImport } from './routes/dashboard.automation-settings'
 import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
@@ -573,6 +575,17 @@ const DashboardBatchesRoute = DashboardBatchesRouteImport.update({
   path: '/batches',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAutomationTestRoute = DashboardAutomationTestRouteImport.update({
+  id: '/automation-test',
+  path: '/automation-test',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAutomationSettingsRoute =
+  DashboardAutomationSettingsRouteImport.update({
+    id: '/automation-settings',
+    path: '/automation-settings',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardAutomationRoute = DashboardAutomationRouteImport.update({
   id: '/automation',
   path: '/automation',
@@ -732,6 +745,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
+  '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
+  '/dashboard/automation-test': typeof DashboardAutomationTestRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
@@ -841,6 +856,8 @@ export interface FileRoutesByTo {
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
+  '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
+  '/dashboard/automation-test': typeof DashboardAutomationTestRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
@@ -956,6 +973,8 @@ export interface FileRoutesById {
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
+  '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
+  '/dashboard/automation-test': typeof DashboardAutomationTestRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
@@ -1072,6 +1091,8 @@ export interface FileRouteTypes {
     | '/dashboard/admins'
     | '/dashboard/attendance'
     | '/dashboard/automation'
+    | '/dashboard/automation-settings'
+    | '/dashboard/automation-test'
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
@@ -1181,6 +1202,8 @@ export interface FileRouteTypes {
     | '/dashboard/admins'
     | '/dashboard/attendance'
     | '/dashboard/automation'
+    | '/dashboard/automation-settings'
+    | '/dashboard/automation-test'
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
@@ -1295,6 +1318,8 @@ export interface FileRouteTypes {
     | '/dashboard/admins'
     | '/dashboard/attendance'
     | '/dashboard/automation'
+    | '/dashboard/automation-settings'
+    | '/dashboard/automation-test'
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
@@ -2049,6 +2074,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBatchesRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/automation-test': {
+      id: '/dashboard/automation-test'
+      path: '/automation-test'
+      fullPath: '/dashboard/automation-test'
+      preLoaderRoute: typeof DashboardAutomationTestRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/automation-settings': {
+      id: '/dashboard/automation-settings'
+      path: '/automation-settings'
+      fullPath: '/dashboard/automation-settings'
+      preLoaderRoute: typeof DashboardAutomationSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/automation': {
       id: '/dashboard/automation'
       path: '/automation'
@@ -2222,6 +2261,8 @@ interface DashboardRouteChildren {
   DashboardAdminsRoute: typeof DashboardAdminsRoute
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardAutomationRoute: typeof DashboardAutomationRoute
+  DashboardAutomationSettingsRoute: typeof DashboardAutomationSettingsRoute
+  DashboardAutomationTestRoute: typeof DashboardAutomationTestRoute
   DashboardBatchesRoute: typeof DashboardBatchesRoute
   DashboardBillingRoute: typeof DashboardBillingRoute
   DashboardBrandingRoute: typeof DashboardBrandingRoute
@@ -2247,6 +2288,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminsRoute: DashboardAdminsRoute,
   DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardAutomationRoute: DashboardAutomationRoute,
+  DashboardAutomationSettingsRoute: DashboardAutomationSettingsRoute,
+  DashboardAutomationTestRoute: DashboardAutomationTestRoute,
   DashboardBatchesRoute: DashboardBatchesRoute,
   DashboardBillingRoute: DashboardBillingRoute,
   DashboardBrandingRoute: DashboardBrandingRoute,

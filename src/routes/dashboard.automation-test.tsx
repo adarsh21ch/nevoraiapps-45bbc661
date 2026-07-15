@@ -141,7 +141,7 @@ function AutomationTestPage() {
     <div className="space-y-6">
       <ModuleHeader
         title="Automation Test"
-        description="Send a WhatsApp message through the automation engine without touching attendance."
+       
       />
 
       <Card className="p-5 space-y-4">

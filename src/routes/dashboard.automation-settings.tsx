@@ -135,7 +135,7 @@ function AutomationSettingsPage() {
     <div className="space-y-6">
       <ModuleHeader
         title="Automation Settings"
-        description="Choose the WhatsApp provider and enable parent notifications."
+       
       />
 
       <Card className="p-5 space-y-4">
