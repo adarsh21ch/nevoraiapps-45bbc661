@@ -67,6 +67,7 @@ type RegisterRow = {
   photoUrl: string | null;
   batchName: string | null;
   planName: string | null;
+  playerId: string | null;
   amount: number; // effective (custom_fee ?? plan amount)
   planAmount: number;
   hasCustomFee: boolean;
@@ -76,6 +77,7 @@ type RegisterRow = {
   due: DueStatus;
   paidPayment: PaidPayment | null;
 };
+
 
 type PaidPayment = {
   id: string;
