@@ -42,7 +42,7 @@ export const saveWhatsAppConfig = createServerFn({ method: "POST" })
     z
       .object({
         tenantId: z.string().uuid(),
-        adapter: z.enum(["mock", "meta", "botbiz"]),
+        adapter: z.enum(["mock", "meta"]),
         enabled: z.boolean(),
       })
       .parse(v),

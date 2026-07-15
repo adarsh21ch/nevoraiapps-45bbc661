@@ -3,7 +3,7 @@
  *
  * The provider itself is a single ActionProvider registered in the automation
  * engine. It delegates the actual HTTP send to a swappable adapter so we can
- * ship a mock today and plug in Meta Cloud API / BotBiz / 360dialog / Twilio
+ * plug in Meta Cloud API today and add 360dialog / Twilio / Gupshup
  * later without touching the engine or business modules.
  */
 
@@ -27,7 +27,7 @@ export interface WhatsAppSendResult {
 }
 
 export interface WhatsAppAdapter {
-  /** Stable adapter key (mock / meta / botbiz / 360dialog / twilio). */
+  /** Stable adapter key (mock / meta / 360dialog / twilio / gupshup). */
   key: string;
   /** Human label surfaced in the settings UI. */
   label: string;
