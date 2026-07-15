@@ -39,6 +39,40 @@ export const TOURNAMENT_STATUSES = [
 export const TOURNAMENT_VISIBILITIES = ["internal", "academy", "public"] as const;
 
 /* ================================================================
+ * Slug helpers — slugs are for public URLs only; UUIDs remain the
+ * internal identifier. Uniqueness is scoped per tenant.
+ * ================================================================ */
+
+export function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80) || "tournament";
+}
+
+/** Ensure the slug is unique within a tenant, suffixing -2, -3, … as needed. */
+export async function generateUniqueSlug(
+  tenantId: string,
+  base: string,
+): Promise<string> {
+  const root = slugify(base);
+  const { data, error } = await supabase
+    .from("mc_tournaments")
+    .select("slug")
+    .eq("tenant_id", tenantId)
+    .like("slug", `${root}%`);
+  if (error) throw error;
+  const taken = new Set((data ?? []).map((r) => r.slug).filter(Boolean) as string[]);
+  if (!taken.has(root)) return root;
+  let i = 2;
+  while (taken.has(`${root}-${i}`)) i++;
+  return `${root}-${i}`;
+}
+
+/* ================================================================
  * CRUD
  * ================================================================ */
 
