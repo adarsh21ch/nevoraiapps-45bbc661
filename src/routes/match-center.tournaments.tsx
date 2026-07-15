@@ -94,9 +94,11 @@ function TournamentsPage() {
         </div>
       )}
 
-      <CreateTournamentDialog
+      <TournamentWizard
         open={open}
         onOpenChange={setOpen}
+        tenantId={tenant.id}
+        createdBy={null}
         onCreated={() => {
           qc.invalidateQueries({ queryKey: ["mc-tournaments", tenant.id] });
         }}
