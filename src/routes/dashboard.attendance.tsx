@@ -488,21 +488,21 @@ function AttendancePage() {
             </div>
           </div>
 
-          {/* Bulk action bar. */}
+          {/* Bulk action bar — single compact horizontal strip. */}
           {selectMode ? (
-            <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-lg border border-border/60 bg-background/95 p-2">
-              <span className="text-xs text-muted-foreground">
-                {selected.size} selected
+            <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-border/60 bg-background/95 p-1.5">
+              <span className="text-[11px] font-medium text-muted-foreground tabular-nums px-1 shrink-0">
+                {selected.size}
               </span>
-              <div className="ml-auto flex flex-wrap items-center gap-1.5">
-                <Button size="sm" variant="secondary" onClick={bulkCheckIn} className="min-h-9">
-                  Check In Selected
+              <div className="ml-auto flex items-center gap-1.5">
+                <Button size="sm" variant="default" onClick={bulkCheckIn} className="h-8 px-2.5 text-xs">
+                  Check-In All
                 </Button>
-                <Button size="sm" variant="secondary" onClick={bulkCheckOut} className="min-h-9">
-                  Check Out Selected
+                <Button size="sm" variant="secondary" onClick={markAllWaitingPresent} className="h-8 px-2.5 text-xs">
+                  Present All
                 </Button>
-                <Button size="sm" variant="outline" onClick={markAllWaitingPresent} className="min-h-9">
-                  Mark all present
+                <Button size="sm" variant="outline" onClick={bulkCheckOut} className="h-8 px-2.5 text-xs">
+                  Check-Out All
                 </Button>
               </div>
             </div>
@@ -518,9 +518,10 @@ function AttendancePage() {
           ) : (
             <div key={rosterTab} className="mt-2 animate-in fade-in duration-150" ref={rosterRef}>
               <Card className="p-1 divide-y divide-border/60">
-                {activeStudents.map((s) => (
+                {activeStudents.map((s, i) => (
                   <StudentRow
                     key={s.id}
+                    index={i + 1}
                     student={s}
                     batchName={s.batch_id ? batchNameById.get(s.batch_id) ?? null : null}
                     row={stateByStudent.get(s.id)}
