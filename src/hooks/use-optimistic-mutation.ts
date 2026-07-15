@@ -36,7 +36,8 @@ export function useOptimisticMutation<TData, TVars, TSnap = unknown>(opts: {
     },
     onError: (err, vars, ctx) => {
       if (ctx?.prev !== undefined) qc.setQueryData(opts.queryKey, ctx.prev);
-      opts.onError?.(err, vars, ctx);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (opts.onError as any)?.(err, vars, ctx);
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: opts.queryKey });
