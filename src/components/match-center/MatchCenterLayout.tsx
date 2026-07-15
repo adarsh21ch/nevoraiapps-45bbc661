@@ -6,7 +6,6 @@ import { useDashboard } from "@/lib/dashboard-context";
 import {
   PlusCircle,
   Search,
-  ArrowLeft,
   ChevronRight,
   Radio,
   Swords,
@@ -15,8 +14,11 @@ import {
   UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DemoBadge } from "@/components/match-center/demo-badge";
+import { ModuleHeader } from "@/components/shared/ModuleHeader";
+
 
 /* -------------------------------------------------------------------------- */
 /* Shared page bits — kept exported for existing pages that import them.      */
@@ -217,36 +219,29 @@ function ModuleSubTabs() {
 /* Match Center module header (Back · Title · Actions)                        */
 /* -------------------------------------------------------------------------- */
 
+
+
 function MatchCenterModuleHeader() {
   const navigate = useNavigate();
   return (
-    <div className="flex items-center gap-2 pt-1 pb-2 -mt-2">
-      <button
-        type="button"
-        onClick={() => navigate({ to: "/dashboard/academy" })}
-        className="-ml-2 grid size-9 shrink-0 place-items-center rounded-full active:bg-accent/60 no-tap-highlight"
-        aria-label="Back to Academy"
-      >
-        <ArrowLeft className="size-[18px]" />
-      </button>
-      <div className="min-w-0 flex-1">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground leading-tight">
-          Academy
-        </div>
-        <div className="text-[15px] font-semibold leading-tight truncate">
-          Match Center
-        </div>
-      </div>
-      <DemoBadge />
-      <button
-        type="button"
-        onClick={() => navigate({ to: "/match-center/create" })}
-        className="grid size-9 shrink-0 place-items-center rounded-full active:bg-accent/60 no-tap-highlight"
-        aria-label="New match"
-      >
-        <PlusCircle className="size-[20px]" />
-      </button>
-    </div>
+    <ModuleHeader
+      overline="Academy"
+      title="Match Center"
+      backTo="/dashboard/academy"
+      action={
+        <>
+          <DemoBadge />
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/match-center/create" })}
+            className="grid size-9 shrink-0 place-items-center rounded-full active:bg-accent/60 no-tap-highlight"
+            aria-label="New match"
+          >
+            <PlusCircle className="size-[20px]" />
+          </button>
+        </>
+      }
+    />
   );
 }
 
@@ -265,3 +260,4 @@ export function MatchCenterLayout({ children }: { children?: ReactNode }) {
     </DashboardShell>
   );
 }
+

@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ModuleHeader } from "@/components/shared/ModuleHeader";
+
 import {
   useCampaigns,
   useTemplates,
@@ -93,24 +95,18 @@ function CommunicationsHub() {
   );
 
   return (
-    <div className="space-y-5 pb-4">
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-            <Megaphone className="size-3.5" /> Communication Hub
-          </div>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-            Broadcasts
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            One place to reach students, parents and staff. Delivered through
-            the same notification pipeline your app already uses.
-          </p>
-        </div>
-        <Button onClick={() => setComposerOpen(true)} className="shrink-0">
-          <Plus className="size-4 mr-1.5" /> New broadcast
-        </Button>
-      </header>
+    <div className="space-y-4 pb-4">
+      <ModuleHeader
+        overline="Academy"
+        title="Communications"
+        backTo="/dashboard/academy"
+        action={
+          <Button size="sm" onClick={() => setComposerOpen(true)} className="h-9 rounded-full px-3">
+            <Plus className="size-4 mr-1" /> New
+          </Button>
+        }
+      />
+
 
       <div className="relative">
         <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />

@@ -20,6 +20,8 @@ import {
   type Preset, type Range,
 } from "@/lib/reports";
 import { fetchKpis, qk } from "@/lib/dashboard-queries";
+import { ModuleHeader } from "@/components/shared/ModuleHeader";
+
 
 export const Route = createFileRoute("/dashboard/reports")({
   head: () => ({ meta: [{ title: "Reports · Decision Center" }, { name: "robots", content: "noindex" }] }),
@@ -55,28 +57,30 @@ function ReportsHub() {
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Decision Center</h1>
-          <p className="text-sm text-muted-foreground">
-            {rangeLabel(range)} · {tenant.name}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              placeholder="Search reports…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 h-9 w-56"
-            />
-          </div>
-          <Button variant="outline" size="sm" onClick={() => window.print()} className="print:hidden">
+      <ModuleHeader
+        overline="Academy"
+        title="Reports"
+        backTo="/dashboard/academy"
+        action={
+          <Button variant="outline" size="sm" onClick={() => window.print()} className="print:hidden h-9">
             <Printer className="size-4 mr-1" /> Print
           </Button>
-        </div>
-      </header>
+        }
+      />
+      <p className="text-xs text-muted-foreground -mt-2">
+        {rangeLabel(range)} · {tenant.name}
+      </p>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Input
+          placeholder="Search reports…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9 h-10 rounded-xl"
+        />
+      </div>
+
 
       <FilterBar
         preset={preset}

@@ -15,6 +15,8 @@ import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { tenantSiteUrl } from "@/lib/tenant";
 import { SiteContentTabs } from "@/components/dashboard/SiteContentTabs";
 import { PoliciesEditor } from "@/components/dashboard/PoliciesEditor";
+import { ModuleHeader } from "@/components/shared/ModuleHeader";
+
 
 
 export const Route = createFileRoute("/dashboard/site")({
@@ -38,17 +40,19 @@ function SiteEditor() {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Site editor</h1>
-          <p className="text-sm text-muted-foreground">Update what visitors see on your public website.</p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <a href={siteBase || "/"} target="_blank" rel="noreferrer">
-            View site <ExternalLink className="size-3 ml-1" />
-          </a>
-        </Button>
-      </header>
+      <ModuleHeader
+        overline="Academy"
+        title="Website"
+        backTo="/dashboard/academy"
+        action={
+          <Button asChild variant="outline" size="sm" className="h-9">
+            <a href={siteBase || "/"} target="_blank" rel="noreferrer">
+              View <ExternalLink className="size-3 ml-1" />
+            </a>
+          </Button>
+        }
+      />
+
 
       <Card className="p-4">
         <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
