@@ -488,16 +488,16 @@ function QuickActionsGrid({
   ];
 
   const adminActions: QAItem[] = [
+    { to: "/dashboard/attendance", label: "Check Attendance", icon: <ClipboardCheck className="size-5" /> },
     { to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
     { to: "/dashboard/registrations", label: "New Registration", icon: <Inbox className="size-5" /> },
-    { to: "/dashboard/batches", label: "Create Batch", icon: <CalendarDays className="size-5" /> },
-    { to: "/dashboard/attendance", label: "QR Scanner", icon: <QrCode className="size-5" /> },
-    { to: "/dashboard/students", label: "Search Player", icon: <Search className="size-5" /> },
     ...(canScoreMatch
       ? [{ to: "/match-center", label: "Start Match", icon: <Swords className="size-5" /> } as QAItem]
       : []),
+    { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> },
+    { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     { to: "/dashboard/communications", label: "Send Announcement", icon: <Megaphone className="size-5" /> },
-    { to: "/dashboard/insights", label: "Performance", icon: <TrendingUp className="size-5" /> },
+    { to: "/dashboard/students", label: "Player List", icon: <Users className="size-5" /> },
   ];
 
   const items = (role === "owner" ? ownerActions : adminActions).slice(0, 8);
