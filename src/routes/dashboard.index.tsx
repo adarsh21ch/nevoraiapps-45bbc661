@@ -571,7 +571,10 @@ function ActivityFeed({
   );
   if (events.length === 0) {
     return (
-      <div className="rounded-2xl border border-border bg-card px-4 py-6 text-center">
+      <Link
+        to="/dashboard/attendance"
+        className="block rounded-2xl border border-border bg-card px-4 py-6 text-center hover:bg-accent/40 active:scale-[0.99] transition-all"
+      >
         <div className="mx-auto grid size-9 place-items-center rounded-full bg-muted text-muted-foreground">
           <Activity className="size-4" />
         </div>
@@ -579,7 +582,7 @@ function ActivityFeed({
         <div className="text-[11px] text-muted-foreground">
           Check-ins, registrations and fees appear here as they happen.
         </div>
-      </div>
+      </Link>
     );
   }
 
