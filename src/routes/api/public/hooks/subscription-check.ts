@@ -88,8 +88,9 @@ export const Route = createFileRoute("/api/public/hooks/subscription-check")({
         }
 
         if (events.length) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await supabaseAdmin.from("automation_events").insert(
-            events.map((e) => ({ ...e, status: "pending" })),
+            events.map((e) => ({ ...e, payload: e.payload as never, status: "pending" })) as any,
           );
         }
 

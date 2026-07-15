@@ -137,6 +137,7 @@ import { Route as DashboardCoachOnboardingRouteImport } from './routes/dashboard
 import { Route as DashboardCoachApprovalsRouteImport } from './routes/dashboard.coach.approvals'
 import { Route as DashboardCoachAnalyticsRouteImport } from './routes/dashboard.coach.analytics'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
+import { Route as ApiPublicHooksSubscriptionCheckRouteImport } from './routes/api/public/hooks/subscription-check'
 import { Route as ApiPublicHooksOwnerSummariesRouteImport } from './routes/api/public/hooks/owner-summaries'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 import { Route as ApiPublicHooksDispatchCampaignsRouteImport } from './routes/api/public/hooks/dispatch-campaigns'
@@ -799,6 +800,12 @@ const ApiPublicManifestWebmanifestRoute =
     path: '/api/public/manifest/webmanifest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksSubscriptionCheckRoute =
+  ApiPublicHooksSubscriptionCheckRouteImport.update({
+    id: '/api/public/hooks/subscription-check',
+    path: '/api/public/hooks/subscription-check',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksOwnerSummariesRoute =
   ApiPublicHooksOwnerSummariesRouteImport.update({
     id: '/api/public/hooks/owner-summaries',
@@ -969,6 +976,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
+  '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
@@ -1100,6 +1108,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
+  '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
@@ -1237,6 +1246,7 @@ export interface FileRoutesById {
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
+  '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
@@ -1375,6 +1385,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/hooks/owner-summaries'
+    | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
     | '/api/public/payments/$provider/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -1506,6 +1517,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/hooks/owner-summaries'
+    | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
     | '/api/public/payments/$provider/webhook'
   id:
@@ -1642,6 +1654,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/hooks/owner-summaries'
+    | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
     | '/api/public/payments/$provider/webhook'
   fileRoutesById: FileRoutesById
@@ -1691,6 +1704,7 @@ export interface RootRouteChildren {
   ApiPublicHooksDispatchCampaignsRoute: typeof ApiPublicHooksDispatchCampaignsRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
   ApiPublicHooksOwnerSummariesRoute: typeof ApiPublicHooksOwnerSummariesRoute
+  ApiPublicHooksSubscriptionCheckRoute: typeof ApiPublicHooksSubscriptionCheckRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
   ApiPublicPaymentsProviderWebhookRoute: typeof ApiPublicPaymentsProviderWebhookRoute
 }
@@ -2593,6 +2607,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicManifestWebmanifestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/subscription-check': {
+      id: '/api/public/hooks/subscription-check'
+      path: '/api/public/hooks/subscription-check'
+      fullPath: '/api/public/hooks/subscription-check'
+      preLoaderRoute: typeof ApiPublicHooksSubscriptionCheckRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/owner-summaries': {
       id: '/api/public/hooks/owner-summaries'
       path: '/api/public/hooks/owner-summaries'
@@ -2952,6 +2973,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksDispatchCampaignsRoute: ApiPublicHooksDispatchCampaignsRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
   ApiPublicHooksOwnerSummariesRoute: ApiPublicHooksOwnerSummariesRoute,
+  ApiPublicHooksSubscriptionCheckRoute: ApiPublicHooksSubscriptionCheckRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
   ApiPublicPaymentsProviderWebhookRoute: ApiPublicPaymentsProviderWebhookRoute,
 }
