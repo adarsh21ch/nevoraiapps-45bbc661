@@ -227,7 +227,7 @@ export const verifyClientPayment = createServerFn({ method: "POST" })
           _gateway_reference: data.providerPaymentId,
           _idempotency_key: tx.idempotency_key ?? tx.id,
           _collected_at: new Date().toISOString(),
-          _remarks: null,
+          _remarks: undefined,
           _status: "succeeded",
         });
         if (!rerr) billingPaymentId = pid as string;
