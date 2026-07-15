@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DemoBadge } from "@/components/match-center/demo-badge";
+import { ModuleHeader } from "@/components/shared/ModuleHeader";
+
 
 /* -------------------------------------------------------------------------- */
 /* Shared page bits — kept exported for existing pages that import them.      */
