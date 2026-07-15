@@ -3,10 +3,10 @@ import { useMemo, useState } from "react";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { AdmissionActionDialog } from "@/components/dashboard/AdmissionActionDialog";
 import { useDashboard } from "@/lib/dashboard-context";
 import { admissionsRegistrationsQuery } from "@/lib/admissions/queries";
 import {
-  approveRegistration,
   rejectRegistration,
   waitlistRegistration,
 } from "@/lib/admissions/admissions.functions";
@@ -27,40 +27,34 @@ export const Route = createFileRoute("/dashboard/admissions-review")({
 
 const FILTERS = [
   { key: "pending", label: "Pending" },
+  { key: "changes_requested", label: "Changes Requested" },
   { key: "approved", label: "Approved" },
   { key: "rejected", label: "Rejected" },
   { key: "waitlisted", label: "Waitlisted" },
 ] as const;
 
 function AdmissionsReviewPage() {
-  const { tenant } = useDashboard(); const tenantId = tenant.id;
+  const { tenant } = useDashboard();
+  const tenantId = tenant.id!;
   const [filter, setFilter] = useState<string>("pending");
   const [search, setSearch] = useState("");
-  const { data: rows } = useSuspenseQuery(admissionsRegistrationsQuery(tenantId!, filter));
+  const [dialog, setDialog] = useState<{ id: string; mode: "approve" | "changes" } | null>(null);
+  const { data: rows } = useSuspenseQuery(admissionsRegistrationsQuery(tenantId, filter));
   const qc = useQueryClient();
 
-  const approve = useServerFn(approveRegistration);
   const reject = useServerFn(rejectRegistration);
   const waitlist = useServerFn(waitlistRegistration);
 
-  const approveMut = useMutation({
-    mutationFn: (registrationId: string) => approve({ data: { registrationId, tenantId: tenantId! } }),
-    onSuccess: () => {
-      toast.success("Registration approved");
-      qc.invalidateQueries({ queryKey: ["admissions"] });
-    },
-    onError: (e: any) => toast.error(e?.message ?? "Failed to approve"),
-  });
   const rejectMut = useMutation({
     mutationFn: (registrationId: string) =>
-      reject({ data: { registrationId, tenantId: tenantId!, reason: "Not eligible" } }),
+      reject({ data: { registrationId, tenantId, reason: "Not eligible" } }),
     onSuccess: () => {
       toast.success("Registration rejected");
       qc.invalidateQueries({ queryKey: ["admissions"] });
     },
   });
   const waitlistMut = useMutation({
-    mutationFn: (registrationId: string) => waitlist({ data: { registrationId, tenantId: tenantId! } }),
+    mutationFn: (registrationId: string) => waitlist({ data: { registrationId, tenantId } }),
     onSuccess: () => {
       toast.success("Waitlisted");
       qc.invalidateQueries({ queryKey: ["admissions"] });
@@ -86,7 +80,7 @@ function AdmissionsReviewPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Admissions Review</h1>
-          <p className="text-sm text-muted-foreground">Approve, reject, or waitlist incoming applications.</p>
+          <p className="text-sm text-muted-foreground">Approve, request changes, waitlist, or reject applications.</p>
         </div>
         <Link to="/dashboard/students" className="text-sm text-primary underline">
           View all students →
@@ -126,50 +120,28 @@ function AdmissionsReviewPage() {
               <CardContent className="grid gap-3 text-sm md:grid-cols-2">
                 <div className="space-y-1">
                   {r.guardian_name && (
-                    <div>
-                      <span className="text-muted-foreground">Guardian:</span> {r.guardian_name} · {r.guardian_phone}
-                    </div>
+                    <div><span className="text-muted-foreground">Guardian:</span> {r.guardian_name} · {r.guardian_phone}</div>
                   )}
-                  {r.email && (
-                    <div>
-                      <span className="text-muted-foreground">Email:</span> {r.email}
-                    </div>
-                  )}
-                  {r.sport && (
-                    <div>
-                      <span className="text-muted-foreground">Sport:</span> {r.sport}
-                    </div>
-                  )}
-                  {r.dob && (
-                    <div>
-                      <span className="text-muted-foreground">DOB:</span> {r.dob}
-                    </div>
+                  {r.email && <div><span className="text-muted-foreground">Email:</span> {r.email}</div>}
+                  {r.sport && <div><span className="text-muted-foreground">Sport:</span> {r.sport}</div>}
+                  {r.dob && <div><span className="text-muted-foreground">DOB:</span> {r.dob}</div>}
+                  {r.review_notes && (
+                    <div className="text-muted-foreground text-xs italic">Notes: {r.review_notes}</div>
                   )}
                 </div>
                 <div className="flex flex-wrap items-end justify-end gap-2">
-                  {r.review_status === "pending" && (
+                  {(r.review_status === "pending" || r.review_status === "changes_requested") && (
                     <>
-                      <Button
-                        size="sm"
-                        onClick={() => approveMut.mutate(r.id)}
-                        disabled={approveMut.isPending}
-                      >
-                        Approve
+                      <Button size="sm" onClick={() => setDialog({ id: r.id, mode: "approve" })}>
+                        Approve…
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => waitlistMut.mutate(r.id)}
-                        disabled={waitlistMut.isPending}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => setDialog({ id: r.id, mode: "changes" })}>
+                        Request Changes
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => waitlistMut.mutate(r.id)} disabled={waitlistMut.isPending}>
                         Waitlist
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => rejectMut.mutate(r.id)}
-                        disabled={rejectMut.isPending}
-                      >
+                      <Button size="sm" variant="destructive" onClick={() => rejectMut.mutate(r.id)} disabled={rejectMut.isPending}>
                         Reject
                       </Button>
                     </>
@@ -180,6 +152,14 @@ function AdmissionsReviewPage() {
           ))}
         </div>
       )}
+
+      <AdmissionActionDialog
+        registrationId={dialog?.id ?? null}
+        mode={dialog?.mode ?? null}
+        tenantId={tenantId}
+        onClose={() => setDialog(null)}
+      />
     </div>
   );
 }
+
