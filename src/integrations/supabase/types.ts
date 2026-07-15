@@ -2667,16 +2667,19 @@ export type Database = {
           finalized_at: string | null
           ground_id: string | null
           ground_name: string | null
+          group_id: string | null
           id: string
           match_format: string
           match_locked: boolean
           match_type: string
+          matchday_no: number | null
           notes: string | null
           overs: number
           pitch: string | null
           player_of_match_athlete_id: string | null
           public_slug: string | null
           result: string | null
+          round_id: string | null
           scheduled_date: string | null
           scheduled_time: string | null
           scorecard_generated: boolean
@@ -2691,6 +2694,7 @@ export type Database = {
           tournament_id: string | null
           umpire: string | null
           updated_at: string
+          venue_id: string | null
           victory_type: string | null
           visibility: string
           weather: string | null
@@ -2707,16 +2711,19 @@ export type Database = {
           finalized_at?: string | null
           ground_id?: string | null
           ground_name?: string | null
+          group_id?: string | null
           id?: string
           match_format?: string
           match_locked?: boolean
           match_type?: string
+          matchday_no?: number | null
           notes?: string | null
           overs?: number
           pitch?: string | null
           player_of_match_athlete_id?: string | null
           public_slug?: string | null
           result?: string | null
+          round_id?: string | null
           scheduled_date?: string | null
           scheduled_time?: string | null
           scorecard_generated?: boolean
@@ -2731,6 +2738,7 @@ export type Database = {
           tournament_id?: string | null
           umpire?: string | null
           updated_at?: string
+          venue_id?: string | null
           victory_type?: string | null
           visibility?: string
           weather?: string | null
@@ -2747,16 +2755,19 @@ export type Database = {
           finalized_at?: string | null
           ground_id?: string | null
           ground_name?: string | null
+          group_id?: string | null
           id?: string
           match_format?: string
           match_locked?: boolean
           match_type?: string
+          matchday_no?: number | null
           notes?: string | null
           overs?: number
           pitch?: string | null
           player_of_match_athlete_id?: string | null
           public_slug?: string | null
           result?: string | null
+          round_id?: string | null
           scheduled_date?: string | null
           scheduled_time?: string | null
           scorecard_generated?: boolean
@@ -2771,6 +2782,7 @@ export type Database = {
           tournament_id?: string | null
           umpire?: string | null
           updated_at?: string
+          venue_id?: string | null
           victory_type?: string | null
           visibility?: string
           weather?: string | null
@@ -3477,9 +3489,236 @@ export type Database = {
           },
         ]
       }
+      mc_tournament_groups: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+          qualify_count: number
+          tenant_id: string
+          tournament_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+          qualify_count?: number
+          tenant_id: string
+          tournament_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+          qualify_count?: number
+          tenant_id?: string
+          tournament_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_tournament_groups_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_groups_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_groups_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "mc_tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_tournament_officials: {
+        Row: {
+          athlete_id: string | null
+          contact: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          role: string
+          tenant_id: string
+          tournament_id: string
+          updated_at: string
+        }
+        Insert: {
+          athlete_id?: string | null
+          contact?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          role: string
+          tenant_id: string
+          tournament_id: string
+          updated_at?: string
+        }
+        Update: {
+          athlete_id?: string | null
+          contact?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          role?: string
+          tenant_id?: string
+          tournament_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_tournament_officials_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_officials_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_officials_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "mc_tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mc_tournament_rounds: {
+        Row: {
+          advances_to_round_id: string | null
+          created_at: string
+          feeder_a_round_id: string | null
+          feeder_b_round_id: string | null
+          feeder_type: string
+          id: string
+          is_placeholder: boolean
+          match_id: string | null
+          name: string | null
+          slot_index: number
+          stage: string
+          stage_order: number
+          team_a_id: string | null
+          team_b_id: string | null
+          tenant_id: string
+          tournament_id: string
+          updated_at: string
+        }
+        Insert: {
+          advances_to_round_id?: string | null
+          created_at?: string
+          feeder_a_round_id?: string | null
+          feeder_b_round_id?: string | null
+          feeder_type?: string
+          id?: string
+          is_placeholder?: boolean
+          match_id?: string | null
+          name?: string | null
+          slot_index?: number
+          stage: string
+          stage_order?: number
+          team_a_id?: string | null
+          team_b_id?: string | null
+          tenant_id: string
+          tournament_id: string
+          updated_at?: string
+        }
+        Update: {
+          advances_to_round_id?: string | null
+          created_at?: string
+          feeder_a_round_id?: string | null
+          feeder_b_round_id?: string | null
+          feeder_type?: string
+          id?: string
+          is_placeholder?: boolean
+          match_id?: string | null
+          name?: string | null
+          slot_index?: number
+          stage?: string
+          stage_order?: number
+          team_a_id?: string | null
+          team_b_id?: string | null
+          tenant_id?: string
+          tournament_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_tournament_rounds_advances_to_round_id_fkey"
+            columns: ["advances_to_round_id"]
+            isOneToOne: false
+            referencedRelation: "mc_tournament_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_rounds_feeder_a_round_id_fkey"
+            columns: ["feeder_a_round_id"]
+            isOneToOne: false
+            referencedRelation: "mc_tournament_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_rounds_feeder_b_round_id_fkey"
+            columns: ["feeder_b_round_id"]
+            isOneToOne: false
+            referencedRelation: "mc_tournament_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_rounds_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "mc_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_rounds_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_rounds_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_rounds_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "mc_tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_tournament_teams: {
         Row: {
           created_at: string
+          group_id: string | null
           id: string
           last_rebuilt_at: string
           lost: number
@@ -3492,6 +3731,7 @@ export type Database = {
           position: number
           runs_conceded: number
           runs_scored: number
+          seed: number | null
           team_id: string
           tenant_id: string
           tied: number
@@ -3503,6 +3743,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          group_id?: string | null
           id?: string
           last_rebuilt_at?: string
           lost?: number
@@ -3515,6 +3756,7 @@ export type Database = {
           position?: number
           runs_conceded?: number
           runs_scored?: number
+          seed?: number | null
           team_id: string
           tenant_id: string
           tied?: number
@@ -3526,6 +3768,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          group_id?: string | null
           id?: string
           last_rebuilt_at?: string
           lost?: number
@@ -3538,6 +3781,7 @@ export type Database = {
           position?: number
           runs_conceded?: number
           runs_scored?: number
+          seed?: number | null
           team_id?: string
           tenant_id?: string
           tied?: number
@@ -3578,17 +3822,88 @@ export type Database = {
           },
         ]
       }
+      mc_tournament_venues: {
+        Row: {
+          address: string | null
+          capacity: number | null
+          city: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          pitch_type: string | null
+          tenant_id: string
+          tournament_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          capacity?: number | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          pitch_type?: string | null
+          tenant_id: string
+          tournament_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          capacity?: number | null
+          city?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          pitch_type?: string | null
+          tenant_id?: string
+          tournament_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_tournament_venues_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_venues_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_tournament_venues_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "mc_tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_tournaments: {
         Row: {
           age_group: string | null
+          banner_url: string | null
+          city: string | null
+          country: string | null
           created_at: string
           created_by: string | null
           description: string | null
           end_date: string | null
           format: string
           ground_name: string | null
+          has_groups: boolean
+          has_knockout: boolean
           id: string
+          location: string | null
           logo_url: string | null
+          match_format_config: Json
           max_teams: number
           name: string
           overs: number
@@ -3596,24 +3911,37 @@ export type Database = {
           points_for_no_result: number
           points_for_tie: number
           points_for_win: number
+          published: boolean
+          qualification_rules: Json
           season: string | null
+          slug: string | null
+          sponsors: Json
           start_date: string | null
           status: string
           tenant_id: string
+          third_place_match: boolean
+          tiebreak_rules: string[]
           tournament_type: string
           updated_at: string
           visibility: string
         }
         Insert: {
           age_group?: string | null
+          banner_url?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           end_date?: string | null
           format?: string
           ground_name?: string | null
+          has_groups?: boolean
+          has_knockout?: boolean
           id?: string
+          location?: string | null
           logo_url?: string | null
+          match_format_config?: Json
           max_teams?: number
           name: string
           overs?: number
@@ -3621,24 +3949,37 @@ export type Database = {
           points_for_no_result?: number
           points_for_tie?: number
           points_for_win?: number
+          published?: boolean
+          qualification_rules?: Json
           season?: string | null
+          slug?: string | null
+          sponsors?: Json
           start_date?: string | null
           status?: string
           tenant_id: string
+          third_place_match?: boolean
+          tiebreak_rules?: string[]
           tournament_type?: string
           updated_at?: string
           visibility?: string
         }
         Update: {
           age_group?: string | null
+          banner_url?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           end_date?: string | null
           format?: string
           ground_name?: string | null
+          has_groups?: boolean
+          has_knockout?: boolean
           id?: string
+          location?: string | null
           logo_url?: string | null
+          match_format_config?: Json
           max_teams?: number
           name?: string
           overs?: number
@@ -3646,10 +3987,16 @@ export type Database = {
           points_for_no_result?: number
           points_for_tie?: number
           points_for_win?: number
+          published?: boolean
+          qualification_rules?: Json
           season?: string | null
+          slug?: string | null
+          sponsors?: Json
           start_date?: string | null
           status?: string
           tenant_id?: string
+          third_place_match?: boolean
+          tiebreak_rules?: string[]
           tournament_type?: string
           updated_at?: string
           visibility?: string
