@@ -135,9 +135,27 @@ function RegistrationsInbox() {
         action={<ShareLinkButton tenant={tenant} />}
       />
       {newCount > 0 ? (
-        <p className="text-xs text-muted-foreground -mt-2">
-          {newCount} unactioned · newest first
-        </p>
+        <div className="-mt-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            {newCount} unactioned · newest first
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={bulkApprove.isPending}
+            onClick={() => {
+              const ids = sorted
+                .filter((r: any) => r.status === "new" || r.status === "reviewed")
+                .map((r: any) => r.id);
+              if (ids.length === 0) return;
+              bulkApprove.mutate(ids);
+            }}
+            className="h-8 rounded-full"
+          >
+            <CheckCheck className="size-3.5 mr-1" />
+            Approve all pending
+          </Button>
+        </div>
       ) : null}
 
 
