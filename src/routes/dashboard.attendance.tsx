@@ -812,34 +812,17 @@ function AttendancePage() {
           </div>
 
           {/* Roster tab selector — Waiting / Present / Checked Out. */}
-          <div
-            role="tablist"
-            aria-label="Attendance groups"
-            className="sticky top-[8.5rem] z-10 mt-2 -mx-4 md:-mx-8 border-b border-border/60 bg-background/95 px-4 md:px-8 py-1.5 backdrop-blur"
-          >
-            <div className="grid grid-cols-3 gap-1 rounded-lg bg-muted/60 p-0.5">
-              <RosterTabButton
-                active={rosterTab === "waiting"}
-                onClick={() => changeRosterTab("waiting")}
-                label="Waiting"
-                count={groups.waiting.length}
-                dot="bg-muted-foreground/60"
-              />
-              <RosterTabButton
-                active={rosterTab === "present"}
-                onClick={() => changeRosterTab("present")}
-                label="Present"
-                count={groups.present.length}
-                dot="bg-emerald-500"
-              />
-              <RosterTabButton
-                active={rosterTab === "done"}
-                onClick={() => changeRosterTab("done")}
-                label="Checked Out"
-                count={groups.done.length}
-                dot="bg-sky-500"
-              />
-            </div>
+          <div className="sticky top-[8.5rem] z-10 mt-2 -mx-4 md:-mx-8 border-b border-border/60 bg-background/95 px-4 md:px-8 py-1.5 backdrop-blur">
+            <FilterTabs
+              value={rosterTab}
+              onChange={(k: string) => changeRosterTab(k as RosterTab)}
+              items={[
+                { key: "waiting", label: "Waiting", count: groups.waiting.length },
+                { key: "present", label: "Present", count: groups.present.length },
+                { key: "done", label: "Checked Out", count: groups.done.length },
+              ]}
+              ariaLabel="Attendance groups"
+            />
           </div>
 
           {/* Bulk action bar — writes disabled in History mode. */}
