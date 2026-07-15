@@ -6383,6 +6383,7 @@ export type Database = {
           feature_overrides: Json
           features: Json
           fee_cycle: string
+          grace_ends_at: string | null
           id: string
           last_paid_date: string | null
           logo_url: string | null
@@ -6424,6 +6425,7 @@ export type Database = {
           feature_overrides?: Json
           features?: Json
           fee_cycle?: string
+          grace_ends_at?: string | null
           id?: string
           last_paid_date?: string | null
           logo_url?: string | null
@@ -6465,6 +6467,7 @@ export type Database = {
           feature_overrides?: Json
           features?: Json
           fee_cycle?: string
+          grace_ends_at?: string | null
           id?: string
           last_paid_date?: string | null
           logo_url?: string | null
@@ -6967,6 +6970,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_feature_usage: {
+        Args: { _delta?: number; _feature_id: string; _tenant_id: string }
+        Returns: undefined
+      }
       is_coach_for_batch: { Args: { _batch_id: string }; Returns: boolean }
       is_match_scorer: {
         Args: { _tenant: string; _uid: string }
@@ -7133,6 +7140,16 @@ export type Database = {
           _whatsapp?: string
         }
         Returns: string
+      }
+      subscription_platform_snapshot: {
+        Args: never
+        Returns: {
+          active_count: number
+          plan_tier: string
+          suspended_count: number
+          tenant_count: number
+          trial_count: number
+        }[]
       }
       track_website_event: {
         Args: {
