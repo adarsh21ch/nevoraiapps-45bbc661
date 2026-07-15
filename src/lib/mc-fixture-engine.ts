@@ -420,7 +420,7 @@ export function scheduleFixtures(
   const gap = opts.gapBetweenSlotsMinutes ?? 30;
   const dayStart = opts.dayStartTime ?? "10:00";
   const restDays = opts.restDaysBetweenMatches ?? 0;
-  const venues = opts.venues.filter((v) => v.is_active !== false);
+  const venues = opts.venues;
   const blackout = new Set(opts.blackoutDates ?? []);
 
   // Order fixtures: leagues/groups first by matchday, then knockout by round.
