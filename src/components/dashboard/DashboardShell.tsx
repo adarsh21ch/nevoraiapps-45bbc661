@@ -323,7 +323,7 @@ function SidebarInner({
               />
             ) : null}
           </span>
-          <span className="flex-1 text-left">{t("Operations")}</span>
+          <span className="flex-1 text-left">{t("Manage")}</span>
           {!opsOpen && opsBadge > 0 ? (
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white bg-rose-600">
               {opsBadge}
