@@ -563,16 +563,37 @@ function AttendancePage() {
         />
       </div>
 
-      {isError ? (
+      {hardFailure ? (
         <ErrorState
           title="Couldn't load attendance"
-          description="Please try again."
+          description={
+            failedQueries.length
+              ? `Failed to load ${failedQueries.map((f) => f.label).join(", ")}. Please try again.`
+              : "Please try again."
+          }
           onRetry={() => {
             batchesQ.refetch();
             studentsQ.refetch();
             todayQ.refetch();
           }}
         />
+      ) : partialFailure ? (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-200"
+        >
+          <span>
+            Some data couldn't refresh ({failedQueries.map((f) => f.label).join(", ")}). Showing
+            last known values.
+          </span>
+          <button
+            type="button"
+            className="rounded border border-amber-500/50 px-2 py-0.5 font-medium hover:bg-amber-500/20"
+            onClick={() => failedQueries.forEach((f) => f.refetch())}
+          >
+            Retry
+          </button>
+        </div>
       ) : null}
 
       {isLoading ? (
