@@ -15,6 +15,8 @@ import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { tenantSiteUrl } from "@/lib/tenant";
 import { SiteContentTabs } from "@/components/dashboard/SiteContentTabs";
 import { PoliciesEditor } from "@/components/dashboard/PoliciesEditor";
+import { ModuleHeader } from "@/components/shared/ModuleHeader";
+
 
 
 export const Route = createFileRoute("/dashboard/site")({
