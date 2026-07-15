@@ -7,7 +7,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { isOwner } from "@/lib/roles";
 
 export const Route = createFileRoute("/dashboard/subscription")({
-  head: () => ({ meta: [{ title: "Subscription · Academy" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "AcademyOS Plan · Academy" }, { name: "robots", content: "noindex" }] }),
   component: () => (<OwnerOnly><SubscriptionEntry /></OwnerOnly>),
 });
 
