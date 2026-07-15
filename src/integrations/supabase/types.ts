@@ -4112,6 +4112,48 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_sports: {
+        Row: {
+          blurb: string | null
+          created_at: string
+          icon: string
+          id: string
+          key: string
+          launch_date: string | null
+          name: string
+          sort_order: number
+          status: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          blurb?: string | null
+          created_at?: string
+          icon?: string
+          id?: string
+          key: string
+          launch_date?: string | null
+          name: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          blurb?: string | null
+          created_at?: string
+          icon?: string
+          id?: string
+          key?: string
+          launch_date?: string | null
+          name?: string
+          sort_order?: number
+          status?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       platform_support_notes: {
         Row: {
           author_id: string
@@ -4736,6 +4778,7 @@ export type Database = {
           short_name: string | null
           show_billing_to_parents: boolean
           slug: string
+          sport_id: string | null
           status: string
           subscription_status: string
           tagline: string | null
@@ -4766,6 +4809,7 @@ export type Database = {
           short_name?: string | null
           show_billing_to_parents?: boolean
           slug: string
+          sport_id?: string | null
           status?: string
           subscription_status?: string
           tagline?: string | null
@@ -4796,6 +4840,7 @@ export type Database = {
           short_name?: string | null
           show_billing_to_parents?: boolean
           slug?: string
+          sport_id?: string | null
           status?: string
           subscription_status?: string
           tagline?: string | null
@@ -4803,7 +4848,15 @@ export type Database = {
           upi_qr_url?: string | null
           whatsapp?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenants_sport_id_fkey"
+            columns: ["sport_id"]
+            isOneToOne: false
+            referencedRelation: "platform_sports"
+            referencedColumns: ["key"]
+          },
+        ]
       }
     }
     Views: {
