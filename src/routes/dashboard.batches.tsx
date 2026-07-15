@@ -103,6 +103,14 @@ function BatchesPage() {
                 <Button
                   size="icon"
                   variant="ghost"
+                  title="Manage coaches"
+                  onClick={() => setCoachBatch({ id: b.id, name: b.name })}
+                >
+                  <ShieldCheck className="size-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
                   onClick={() => {
                     setEditing({
                       id: b.id,
@@ -124,6 +132,7 @@ function BatchesPage() {
                   <Trash2 className="size-4" />
                 </Button>
               </div>
+
             </Card>
           );
         })}
