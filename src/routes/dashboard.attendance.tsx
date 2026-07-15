@@ -13,16 +13,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { LogIn, LogOut, Clock, ChevronDown, CheckCircle2, Zap, CheckSquare } from "lucide-react";
+import { LogIn, LogOut, Clock, CheckCircle2, Zap, CheckSquare } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { usePermissions } from "@/hooks/use-permissions";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  AppShell,
-  Section,
   Card,
-  StatCard,
   ListItem,
   EmptyState,
   ErrorState,
@@ -108,8 +105,11 @@ function parseBatchStartMs(timing: string | null | undefined, dayISO: string): n
 }
 const LATE_GRACE_MS = 10 * 60 * 1000;
 
-// Owner/Admin preference — persisted per device.
+// Owner/Admin preferences — persisted per device.
 const QUICK_MODE_KEY = "academyos.attendance.quickMode";
+const ROSTER_TAB_KEY = "academyos.attendance.rosterTab";
+
+type RosterTab = "waiting" | "present" | "done";
 
 function AttendancePage() {
   const { tenant } = useDashboard();
@@ -122,10 +122,13 @@ function AttendancePage() {
   const [quickMode, setQuickMode] = useState<boolean>(false);
   const [selectMode, setSelectMode] = useState<boolean>(false);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [rosterTab, setRosterTab] = useState<RosterTab>("waiting");
 
   useEffect(() => {
     try {
       setQuickMode(localStorage.getItem(QUICK_MODE_KEY) === "1");
+      const t = localStorage.getItem(ROSTER_TAB_KEY);
+      if (t === "waiting" || t === "present" || t === "done") setRosterTab(t);
     } catch { /* ignore */ }
   }, []);
   const toggleQuick = useCallback(() => {
@@ -134,6 +137,10 @@ function AttendancePage() {
       try { localStorage.setItem(QUICK_MODE_KEY, next ? "1" : "0"); } catch { /* ignore */ }
       return next;
     });
+  }, []);
+  const changeRosterTab = useCallback((t: RosterTab) => {
+    setRosterTab(t);
+    try { localStorage.setItem(ROSTER_TAB_KEY, t); } catch { /* ignore */ }
   }, []);
 
   const batchesQ = useQuery({ queryKey: qk.batches(tenant.id), queryFn: () => fetchBatches(tenant.id) });
@@ -325,9 +332,18 @@ function AttendancePage() {
   const isLoading = batchesQ.isLoading || studentsQ.isLoading || todayQ.isLoading;
   const isError = batchesQ.isError || studentsQ.isError || todayQ.isError;
 
+  const activeStudents =
+    rosterTab === "waiting" ? groups.waiting
+    : rosterTab === "present" ? groups.present
+    : groups.done;
+  const activeEmpty =
+    rosterTab === "waiting" ? "Everyone has arrived."
+    : rosterTab === "present" ? "No players currently inside."
+    : "No players have checked out yet.";
+
   return (
-    <AppShell>
-      {/* Compact header — one row, saves ~40px vs default TopBar. */}
+    <div className="-mt-4 md:-mt-8">
+      {/* Compact header — flush against DashboardShell top bar. */}
       <div className="flex items-center justify-between gap-2 pt-2 pb-1">
         <div className="min-w-0">
           <h1 className="text-lg font-semibold tracking-tight leading-tight">Attendance</h1>
@@ -369,7 +385,7 @@ function AttendancePage() {
       </div>
 
       {/* Sticky filter + search — always accessible while scrolling. */}
-      <div className="sticky top-0 z-20 -mx-4 mb-2 border-b border-border/60 bg-background/90 px-4 py-2 backdrop-blur">
+      <div className="sticky top-14 z-20 -mx-4 md:-mx-8 mb-2 border-b border-border/60 bg-background/90 px-4 md:px-8 py-2 backdrop-blur">
         <SegmentedControl
           value={session}
           onChange={(v) => setSession(v as SessionFilter)}
@@ -401,19 +417,14 @@ function AttendancePage() {
       ) : null}
 
       {isLoading ? (
-        <Section>
-          <div className="grid grid-cols-4 gap-2">
-            <Skeleton className="h-16" />
-            <Skeleton className="h-16" />
-            <Skeleton className="h-16" />
-            <Skeleton className="h-16" />
-          </div>
-          <div className="mt-3 space-y-2">
+        <div>
+          <Skeleton className="h-12" />
+          <div className="mt-2 space-y-2">
             <Skeleton className="h-14" />
             <Skeleton className="h-14" />
             <Skeleton className="h-14" />
           </div>
-        </Section>
+        </div>
       ) : activeBatches.length === 0 ? (
         <EmptyState
           title="No active batches"
@@ -421,36 +432,65 @@ function AttendancePage() {
         />
       ) : (
         <>
-          {/* Progress summary — compact, derived, live via realtime. */}
-          <Card className="p-3">
-            <div className="flex items-center justify-between gap-2">
+          {/* Compact live summary + KPI strip fused into a single tight card. */}
+          <div className="rounded-lg border border-border/60 bg-card px-3 py-2">
+            <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Today's attendance</p>
-                <p className="text-sm font-semibold tabular-nums">
-                  {kpis.present} / {kpis.total} Present
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground leading-none">Today</p>
+                <p className="mt-0.5 text-sm font-semibold tabular-nums leading-tight">
+                  {kpis.present} / {kpis.total} <span className="text-muted-foreground font-normal">present</span>
                 </p>
               </div>
-              <p className="text-lg font-semibold tabular-nums">{kpis.pct}%</p>
+              <p className="text-lg font-bold tabular-nums leading-none">{kpis.pct}%</p>
             </div>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted" aria-hidden>
+            <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted" aria-hidden>
               <div
                 className="h-full rounded-full bg-emerald-500 transition-[width] duration-300"
                 style={{ width: `${kpis.pct}%` }}
               />
             </div>
-          </Card>
+            <div className="mt-2 grid grid-cols-4 gap-2 border-t border-border/50 pt-2">
+              <MiniKpi label="Waiting" value={kpis.notArrived} />
+              <MiniKpi label="Inside" value={kpis.inAcademy} tone="success" />
+              <MiniKpi label="Out" value={kpis.checkedOutToday} tone="info" />
+              <MiniKpi label="Total" value={kpis.total} />
+            </div>
+          </div>
 
-          {/* Compact KPI strip. */}
-          <div className="mt-2 grid grid-cols-4 gap-2">
-            <StatCard label="Waiting" value={kpis.notArrived} tone="default" />
-            <StatCard label="In Academy" value={kpis.inAcademy} tone="success" />
-            <StatCard label="Checked Out" value={kpis.checkedOutToday} tone="default" />
-            <StatCard label="Total" value={kpis.total} tone="default" />
+          {/* Roster tab selector — Waiting / Present / Checked Out. */}
+          <div
+            role="tablist"
+            aria-label="Attendance groups"
+            className="sticky top-[8.5rem] z-10 mt-2 -mx-4 md:-mx-8 border-b border-border/60 bg-background/95 px-4 md:px-8 py-1.5 backdrop-blur"
+          >
+            <div className="grid grid-cols-3 gap-1 rounded-lg bg-muted/60 p-0.5">
+              <RosterTabButton
+                active={rosterTab === "waiting"}
+                onClick={() => changeRosterTab("waiting")}
+                label="Waiting"
+                count={groups.waiting.length}
+                dot="bg-muted-foreground/60"
+              />
+              <RosterTabButton
+                active={rosterTab === "present"}
+                onClick={() => changeRosterTab("present")}
+                label="Present"
+                count={groups.present.length}
+                dot="bg-emerald-500"
+              />
+              <RosterTabButton
+                active={rosterTab === "done"}
+                onClick={() => changeRosterTab("done")}
+                label="Checked Out"
+                count={groups.done.length}
+                dot="bg-sky-500"
+              />
+            </div>
           </div>
 
           {/* Bulk action bar. */}
           {selectMode ? (
-            <div className="sticky top-[7.25rem] z-10 mt-2 flex flex-wrap items-center gap-1.5 rounded-lg border border-border/60 bg-background/95 p-2 backdrop-blur">
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-lg border border-border/60 bg-background/95 p-2">
               <span className="text-xs text-muted-foreground">
                 {selected.size} selected
               </span>
@@ -473,70 +513,75 @@ function AttendancePage() {
               title={query ? "No matches" : "No students in this session"}
               description={query ? "Try a different name, player ID or number." : "Change the session filter or add students to a batch."}
             />
+          ) : activeStudents.length === 0 ? (
+            <p className="px-1 py-6 text-center text-sm text-muted-foreground">{activeEmpty}</p>
           ) : (
-            <div className="space-y-3" ref={rosterRef}>
-              <RosterGroup
-                title="Waiting"
-                dot="bg-muted-foreground/60"
-                count={groups.waiting.length}
-                defaultOpen
-                empty="Everyone has arrived."
-                students={groups.waiting}
-                batchNameById={batchNameById}
-                stateByStudent={stateByStudent}
-                canMark={canMark}
-                tenantId={tenant.id}
-                lateThresholdByBatch={batchLateThresholdById}
-                selectMode={selectMode}
-                selected={selected}
-                onToggleSelected={toggleSelected}
-                onCheckedIn={focusNextWaiting}
-                onUndoCheckIn={undoCheckIn}
-                onUndoCheckOut={undoCheckOut}
-              />
-              <RosterGroup
-                title="Present"
-                dot="bg-emerald-500"
-                count={groups.present.length}
-                defaultOpen={false}
-                empty="No players currently inside."
-                students={groups.present}
-                batchNameById={batchNameById}
-                stateByStudent={stateByStudent}
-                canMark={canMark}
-                tenantId={tenant.id}
-                lateThresholdByBatch={batchLateThresholdById}
-                selectMode={selectMode}
-                selected={selected}
-                onToggleSelected={toggleSelected}
-                onCheckedIn={focusNextWaiting}
-                onUndoCheckIn={undoCheckIn}
-                onUndoCheckOut={undoCheckOut}
-              />
-              <RosterGroup
-                title="Checked Out"
-                dot="bg-sky-500"
-                count={groups.done.length}
-                defaultOpen={false}
-                empty="No players have checked out yet."
-                students={groups.done}
-                batchNameById={batchNameById}
-                stateByStudent={stateByStudent}
-                canMark={canMark}
-                tenantId={tenant.id}
-                lateThresholdByBatch={batchLateThresholdById}
-                selectMode={selectMode}
-                selected={selected}
-                onToggleSelected={toggleSelected}
-                onCheckedIn={focusNextWaiting}
-                onUndoCheckIn={undoCheckIn}
-                onUndoCheckOut={undoCheckOut}
-              />
+            <div key={rosterTab} className="mt-2 animate-in fade-in duration-150" ref={rosterRef}>
+              <Card className="p-1 divide-y divide-border/60">
+                {activeStudents.map((s) => (
+                  <StudentRow
+                    key={s.id}
+                    student={s}
+                    batchName={s.batch_id ? batchNameById.get(s.batch_id) ?? null : null}
+                    row={stateByStudent.get(s.id)}
+                    canMark={canMark}
+                    tenantId={tenant.id}
+                    lateAfterMs={s.batch_id ? batchLateThresholdById.get(s.batch_id) ?? null : null}
+                    selectMode={selectMode}
+                    isSelected={selected.has(s.id)}
+                    onToggleSelected={toggleSelected}
+                    onCheckedIn={focusNextWaiting}
+                    onUndoCheckIn={undoCheckIn}
+                    onUndoCheckOut={undoCheckOut}
+                  />
+                ))}
+              </Card>
             </div>
           )}
         </>
       )}
-    </AppShell>
+    </div>
+  );
+}
+
+function MiniKpi({ label, value, tone = "default" }: { label: string; value: number; tone?: "default" | "success" | "info" }) {
+  const toneClass =
+    tone === "success" ? "text-emerald-600 dark:text-emerald-400"
+    : tone === "info" ? "text-sky-600 dark:text-sky-400"
+    : "text-foreground";
+  return (
+    <div className="min-w-0">
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground leading-none">{label}</p>
+      <p className={cn("mt-0.5 text-base font-semibold tabular-nums leading-tight", toneClass)}>{value}</p>
+    </div>
+  );
+}
+
+function RosterTabButton({
+  active, onClick, label, count, dot,
+}: { active: boolean; onClick: () => void; label: string; count: number; dot: string }) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cn(
+        "flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors min-h-9",
+        active
+          ? "bg-background text-foreground shadow-sm"
+          : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      <span className={cn("inline-block size-1.5 rounded-full", dot)} aria-hidden />
+      <span className="truncate">{label}</span>
+      <span className={cn(
+        "rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+        active ? "bg-muted text-foreground" : "bg-muted/60 text-muted-foreground",
+      )}>
+        {count}
+      </span>
+    </button>
   );
 }
 
@@ -562,78 +607,6 @@ interface TodayRow {
   visit_count?: number;
 }
 
-interface GroupProps {
-  title: string;
-  dot: string;
-  count: number;
-  defaultOpen: boolean;
-  empty: string;
-  students: StudentLite[];
-  batchNameById: Map<string, string>;
-  stateByStudent: Map<string, TodayRow>;
-  canMark: boolean;
-  tenantId: string;
-  lateThresholdByBatch: Map<string, number | null>;
-  selectMode: boolean;
-  selected: Set<string>;
-  onToggleSelected: (id: string) => void;
-  onCheckedIn: (studentId: string) => void;
-  onUndoCheckIn: (markId: string) => void;
-  onUndoCheckOut: (markId: string) => void;
-}
-
-function RosterGroup(props: GroupProps) {
-  const {
-    title, dot, count, defaultOpen, empty, students,
-    batchNameById, stateByStudent, canMark, tenantId, lateThresholdByBatch,
-    selectMode, selected, onToggleSelected, onCheckedIn, onUndoCheckIn, onUndoCheckOut,
-  } = props;
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <section>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 px-0.5 py-1.5 min-h-9"
-        aria-expanded={open}
-      >
-        <span className="flex items-center gap-2">
-          <span className={cn("inline-block size-2 rounded-full", dot)} aria-hidden />
-          <span className="text-sm font-semibold tracking-tight">{title}</span>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground tabular-nums">
-            {count}
-          </span>
-        </span>
-        <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", open ? "rotate-0" : "-rotate-90")} />
-      </button>
-      {open ? (
-        count === 0 ? (
-          <p className="px-1 py-3 text-sm text-muted-foreground">{empty}</p>
-        ) : (
-          <Card className="p-1 divide-y divide-border/60">
-            {students.map((s) => (
-              <StudentRow
-                key={s.id}
-                student={s}
-                batchName={s.batch_id ? batchNameById.get(s.batch_id) ?? null : null}
-                row={stateByStudent.get(s.id)}
-                canMark={canMark}
-                tenantId={tenantId}
-                lateAfterMs={s.batch_id ? lateThresholdByBatch.get(s.batch_id) ?? null : null}
-                selectMode={selectMode}
-                isSelected={selected.has(s.id)}
-                onToggleSelected={onToggleSelected}
-                onCheckedIn={onCheckedIn}
-                onUndoCheckIn={onUndoCheckIn}
-                onUndoCheckOut={onUndoCheckOut}
-              />
-            ))}
-          </Card>
-        )
-      ) : null}
-    </section>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Row
