@@ -114,6 +114,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       .filter((n) => !n.requiresFeature || features[n.requiresFeature] !== false)
       .filter((n) => (n.ownerOnly ? isOwner : true))
       .filter((n) => (n.adminOnly ? !isOwner : true))
+      .filter((n) => (n.coachOnly ? isAnyCoach : true))
       .map((n) => {
         const label = t(n.label);
         let badge: number | undefined;
