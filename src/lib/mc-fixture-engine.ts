@@ -767,7 +767,12 @@ export async function advanceKnockoutWinner(matchId: string): Promise<void> {
   if (Object.keys(patch).length > 0) {
     await supabase.from("mc_tournament_rounds").update(patch).eq("id", nextRound.id);
     if (nextRound.match_id) {
-      await supabase.from("mc_matches").update(patch).eq("id", nextRound.match_id);
+      const matchPatch: Database["public"]["Tables"]["mc_matches"]["Update"] = {};
+      if (patch.team_a_id) matchPatch.team_a_id = patch.team_a_id;
+      if (patch.team_b_id) matchPatch.team_b_id = patch.team_b_id;
+      if (Object.keys(matchPatch).length > 0) {
+        await supabase.from("mc_matches").update(matchPatch).eq("id", nextRound.match_id);
+      }
     }
   }
 }
