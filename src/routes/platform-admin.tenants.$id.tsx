@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fetchPriceLog, fetchTenantById, pqk } from "@/lib/platform-queries";
-import { StatusChip, SubChip } from "./platform-admin.index";
+import { StatusChip, SubChip } from "@/components/platform/StatusChips";
 import { niche, nicheOptions, type NicheKey } from "@/lib/niche";
 import { getFeatures, tenantSiteUrl, type Tenant, type TenantFeatures } from "@/lib/tenant";
 import { ArrowLeft, ExternalLink, Globe, Info, Pause, Play, ShieldAlert, UserCog } from "lucide-react";

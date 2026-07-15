@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchTenants, pqk, type TenantRow } from "@/lib/platform-queries";
-import { SubChip, StatusChip } from "./platform-admin.index";
+import { SubChip, StatusChip } from "@/components/platform/StatusChips";
 import { CheckCircle2, MessageCircle, TrendingUp } from "lucide-react";
 
 export const Route = createFileRoute("/platform-admin/subscriptions")({

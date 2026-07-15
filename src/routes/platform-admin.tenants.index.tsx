@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchTenants, pqk } from "@/lib/platform-queries";
-import { StatusChip, SubChip } from "./platform-admin.index";
+import { StatusChip, SubChip } from "@/components/platform/StatusChips";
 import { niche, nicheOptions } from "@/lib/niche";
 import { ChevronRight, Search } from "lucide-react";
 
