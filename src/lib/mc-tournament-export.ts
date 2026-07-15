@@ -112,11 +112,11 @@ export function printElement(el: HTMLElement | null): void {
 
 /* ---------------- PNG / PDF via dynamic import ---------------- */
 
-async function loadHtml2Canvas(): Promise<((el: HTMLElement, opts?: unknown) => Promise<HTMLCanvasElement>) | null> {
+type Html2CanvasFn = (el: HTMLElement, opts?: Record<string, unknown>) => Promise<HTMLCanvasElement>;
+
+async function loadHtml2Canvas(): Promise<Html2CanvasFn | null> {
   try {
-    // html2canvas is an OPTIONAL dependency; degrade gracefully when absent.
-    const mod: { default: (el: HTMLElement, opts?: unknown) => Promise<HTMLCanvasElement> } =
-      await import(/* @vite-ignore */ "html2canvas");
+    const mod = (await import("html2canvas")) as unknown as { default: Html2CanvasFn };
     return mod.default;
   } catch {
     return null;
