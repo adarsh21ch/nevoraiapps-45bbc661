@@ -34,6 +34,7 @@ import { format, differenceInYears, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { fetchStudent } from "@/lib/dashboard-queries";
 import {
   fetchAthleteByStudent,
