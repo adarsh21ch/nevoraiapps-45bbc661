@@ -332,7 +332,7 @@ function StudentsPage() {
       {/* Primary status tabs — All / Active / Left. Advanced statuses live inside the Filters panel. */}
       <FilterTabs
         value={PRIMARY_STATUS_TABS.some((t) => t.key === status) ? status : "all"}
-        onChange={(k) => setStatus(k)}
+        onChange={(k: string) => setStatus(k)}
         items={PRIMARY_STATUS_TABS.map((t) => ({
           key: t.key,
           label: t.label,
