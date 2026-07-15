@@ -781,3 +781,452 @@ function CostsTab() {
     </Card>
   );
 }
+
+function ChannelsTab({
+  channelRows,
+  providers,
+  active,
+}: {
+  channelRows: Channel[];
+  providers: Provider[];
+  active: Active[];
+}) {
+  const list = channelRows.length
+    ? channelRows
+    : (Array.from(new Set(providers.map((p) => p.channel))).map((c) => ({
+        channel: c,
+        display_name: c,
+        description: null,
+        enabled: true,
+      })) as Channel[]);
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {list.map((c) => {
+        const chProviders = providers.filter((p) => p.channel === c.channel);
+        const act = active.find((a) => a.channel === c.channel);
+        const activeProv = providers.find((p) => p.id === act?.provider_id);
+        return (
+          <Card key={c.channel} className="p-4 bg-neutral-900 border-white/10">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <div className="text-white text-sm font-semibold capitalize">
+                  {c.display_name}
+                </div>
+                {c.description && (
+                  <div className="text-xs text-neutral-500">{c.description}</div>
+                )}
+              </div>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "border-white/20",
+                  c.enabled ? "text-emerald-300 border-emerald-500/40" : "text-neutral-400",
+                )}
+              >
+                {c.enabled ? "Enabled" : "Disabled"}
+              </Badge>
+            </div>
+            <div className="grid gap-1 text-xs text-neutral-400">
+              <div>
+                Active provider:{" "}
+                <span className="text-white">
+                  {activeProv ? activeProv.display_name : "Not configured"}
+                </span>
+              </div>
+              <div>Adapters available: {chProviders.length}</div>
+              <div>
+                Automation event type:{" "}
+                <code className="text-neutral-300">notification.{c.channel}</code>
+              </div>
+            </div>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+function PriorityTab({
+  channels,
+  providers,
+  onChanged,
+}: {
+  channels: string[];
+  providers: Provider[];
+  onChanged: () => void;
+}) {
+  const setPriorityFn = useServerFn(setProviderPriority);
+  const mutate = useMutation({
+    mutationFn: (v: { providerId: string; priority: number }) =>
+      setPriorityFn({ data: v }),
+    onSuccess: () => {
+      toast.success("Priority updated");
+      onChanged();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="space-y-6">
+      <Card className="p-4 bg-amber-500/5 border-amber-500/30">
+        <div className="text-sm font-medium text-amber-200">Failover not yet wired</div>
+        <div className="text-xs text-amber-200/70 mt-1">
+          Providers are ordered here for future priority routing, cost routing, and automatic
+          failover. Today the lowest-priority Active provider is used.
+        </div>
+      </Card>
+      {channels.map((ch) => {
+        const list = [...providers]
+          .filter((p) => p.channel === ch)
+          .sort((a, b) => a.priority - b.priority);
+        return (
+          <Card key={ch} className="p-4 bg-neutral-900 border-white/10">
+            <div className="text-sm font-semibold text-white mb-3 capitalize">{ch}</div>
+            <div className="grid gap-2">
+              {list.map((p, i) => (
+                <div
+                  key={p.id}
+                  className="flex items-center gap-3 rounded border border-white/10 px-3 py-2 text-sm"
+                >
+                  <span className="w-6 text-neutral-500">#{i + 1}</span>
+                  <div className="flex-1">
+                    <div className="text-white">{p.display_name}</div>
+                    <div className="text-xs text-neutral-500">
+                      {p.adapter_key} · priority {p.priority}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={mutate.isPending || i === 0}
+                      onClick={() =>
+                        mutate.mutate({
+                          providerId: p.id,
+                          priority: Math.max(0, p.priority - 10),
+                        })
+                      }
+                    >
+                      Up
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={mutate.isPending || i === list.length - 1}
+                      onClick={() =>
+                        mutate.mutate({
+                          providerId: p.id,
+                          priority: p.priority + 10,
+                        })
+                      }
+                    >
+                      Down
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+function PreviewTab({ templates }: { templates: Template[] }) {
+  const previewFn = useServerFn(previewCommTemplate);
+  const [templateId, setTemplateId] = useState("");
+  const [parent, setParent] = useState("Priya Sharma");
+  const [student, setStudent] = useState("Arjun Sharma");
+  const [rendered, setRendered] = useState<string | null>(null);
+
+  const mut = useMutation({
+    mutationFn: () =>
+      previewFn({
+        data: {
+          templateId,
+          variables: { ParentName: parent, StudentName: student },
+        },
+      }),
+    onSuccess: (r) => setRendered(r.rendered),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card className="p-4 bg-neutral-900 border-white/10 space-y-3">
+        <div>
+          <Label className="text-neutral-400">Template</Label>
+          <Select value={templateId} onValueChange={setTemplateId}>
+            <SelectTrigger className="bg-neutral-950 border-white/10">
+              <SelectValue placeholder="Select…" />
+            </SelectTrigger>
+            <SelectContent>
+              {templates.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.category} · {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-neutral-400">Sample parent</Label>
+          <Input
+            value={parent}
+            onChange={(e) => setParent(e.target.value)}
+            className="bg-neutral-950 border-white/10"
+          />
+        </div>
+        <div>
+          <Label className="text-neutral-400">Sample student</Label>
+          <Input
+            value={student}
+            onChange={(e) => setStudent(e.target.value)}
+            className="bg-neutral-950 border-white/10"
+          />
+        </div>
+        <Button
+          disabled={!templateId || mut.isPending}
+          onClick={() => mut.mutate()}
+        >
+          Render preview
+        </Button>
+      </Card>
+      <Card className="p-4 bg-neutral-900 border-white/10">
+        <div className="text-xs uppercase tracking-wide text-neutral-500 mb-2">
+          Rendered message
+        </div>
+        <div className="min-h-[120px] whitespace-pre-wrap text-sm text-white">
+          {rendered ?? (
+            <span className="text-neutral-500">Pick a template and press Render.</span>
+          )}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function SandboxTab({
+  templates,
+  onSent,
+}: {
+  templates: Template[];
+  onSent: () => void;
+}) {
+  const sendFn = useServerFn(sendSandboxMessage);
+  const [channel, setChannel] = useState<"whatsapp" | "email" | "sms" | "push" | "webhook">(
+    "whatsapp",
+  );
+  const [recipient, setRecipient] = useState("");
+  const [templateId, setTemplateId] = useState("");
+  const [message, setMessage] = useState("");
+  const [last, setLast] = useState<Awaited<
+    ReturnType<typeof sendSandboxMessage>
+  > | null>(null);
+
+  const mut = useMutation({
+    mutationFn: () =>
+      sendFn({
+        data: {
+          channel,
+          recipient,
+          templateId: templateId || undefined,
+          message: message || undefined,
+        },
+      }),
+    onSuccess: (r) => {
+      setLast(r);
+      toast.success("Sent through gateway");
+      onSent();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const eligibleTemplates = templates.filter((t) => t.channel === channel);
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card className="p-4 bg-neutral-900 border-white/10 space-y-3">
+        <div className="text-sm font-semibold text-white">Provider Sandbox</div>
+        <div className="text-xs text-neutral-500 -mt-1">
+          Requests pass through the Communication Gateway exactly like production.
+        </div>
+        <div>
+          <Label className="text-neutral-400">Channel</Label>
+          <Select value={channel} onValueChange={(v) => setChannel(v as typeof channel)}>
+            <SelectTrigger className="bg-neutral-950 border-white/10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {["whatsapp", "email", "sms", "push", "webhook"].map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-neutral-400">Recipient</Label>
+          <Input
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            placeholder="+91 90000 00000"
+            className="bg-neutral-950 border-white/10"
+          />
+        </div>
+        <div>
+          <Label className="text-neutral-400">Template (optional)</Label>
+          <Select value={templateId} onValueChange={setTemplateId}>
+            <SelectTrigger className="bg-neutral-950 border-white/10">
+              <SelectValue placeholder="No template — free-form message" />
+            </SelectTrigger>
+            <SelectContent>
+              {eligibleTemplates.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.category} · {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-neutral-400">Message (if no template)</Label>
+          <Textarea
+            rows={3}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className="bg-neutral-950 border-white/10 text-white"
+          />
+        </div>
+        <Button
+          disabled={!recipient || mut.isPending}
+          onClick={() => mut.mutate()}
+        >
+          Send test
+        </Button>
+      </Card>
+      <Card className="p-4 bg-neutral-900 border-white/10 text-sm space-y-2">
+        <div className="text-xs uppercase tracking-wide text-neutral-500">Last request</div>
+        {!last && (
+          <div className="text-neutral-500">
+            No test sent yet. Sends will surface observability details here.
+          </div>
+        )}
+        {last && (
+          <div className="space-y-1 text-neutral-300">
+            <div>
+              Request ID: <code className="text-white">{last.requestId}</code>
+            </div>
+            <div>Channel: {last.resolution.channel}</div>
+            <div>
+              Adapter:{" "}
+              <span className="text-white">{last.resolution.adapterKey ?? "—"}</span>
+            </div>
+            <div>Account: {last.resolution.accountLabel ?? "—"}</div>
+            <div>
+              Provider ready:{" "}
+              {last.resolution.ready ? (
+                <span className="text-emerald-300">yes</span>
+              ) : (
+                <span className="text-amber-300">no (scaffold)</span>
+              )}
+            </div>
+            <div>Secondaries prepared: {last.resolution.secondaryCount}</div>
+            <div>
+              Result:{" "}
+              {last.result.ok ? (
+                <span className="text-emerald-300">delivered</span>
+              ) : (
+                <span className="text-rose-300">{last.result.error ?? "failed"}</span>
+              )}
+            </div>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function MonitorTab({
+  monitor,
+}: {
+  monitor: Awaited<ReturnType<typeof getCommMonitor>> | undefined;
+}) {
+  if (!monitor) {
+    return (
+      <Card className="p-6 bg-neutral-900 border-white/10 text-neutral-400">
+        Loading monitor…
+      </Card>
+    );
+  }
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="Total 24h" value={monitor.total} />
+        <StatCard label="Delivered" value={monitor.delivered} />
+        <StatCard label="Failed" value={monitor.failed} />
+        <StatCard label="Queued" value={monitor.queued} />
+        <StatCard label="Retrying" value={monitor.retrying} />
+        <StatCard label="Avg delivery" value={`${monitor.avgDurationMs} ms`} />
+        <StatCard label="Queue size" value={monitor.queueSize} />
+        <StatCard
+          label="Last success"
+          value={monitor.lastSuccessAt ? format(new Date(monitor.lastSuccessAt), "HH:mm") : "—"}
+          hint={
+            monitor.lastSuccessAt
+              ? format(new Date(monitor.lastSuccessAt), "MMM d")
+              : undefined
+          }
+        />
+      </div>
+
+      {monitor.lastError && (
+        <Card className="p-4 bg-rose-500/5 border-rose-500/30 text-sm">
+          <div className="text-rose-200 font-medium">
+            Last error — {monitor.lastError.provider ?? "unknown"}
+          </div>
+          <div className="text-rose-200/80 text-xs mt-1">
+            {format(new Date(monitor.lastError.at), "MMM d HH:mm")} —{" "}
+            {monitor.lastError.message}
+          </div>
+        </Card>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <BreakdownCard title="Per channel" rows={monitor.byChannel} />
+        <BreakdownCard title="Per provider" rows={monitor.byProvider} />
+        <BreakdownCard title="Per tenant" rows={monitor.byTenant} />
+      </div>
+    </div>
+  );
+}
+
+function BreakdownCard({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: Array<{ key: string; total: number; delivered: number; failed: number }>;
+}) {
+  return (
+    <Card className="p-4 bg-neutral-900 border-white/10">
+      <div className="text-sm font-semibold text-white mb-2">{title}</div>
+      <div className="space-y-1 text-sm">
+        {rows.length === 0 && (
+          <div className="text-neutral-500 text-xs">No data yet.</div>
+        )}
+        {rows.map((r) => (
+          <div key={r.key} className="flex items-center justify-between gap-2">
+            <span className="text-neutral-300 truncate">{r.key}</span>
+            <span className="text-xs text-neutral-500">
+              <span className="text-emerald-300">{r.delivered}</span> /{" "}
+              <span className="text-rose-300">{r.failed}</span> / {r.total}
+            </span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
