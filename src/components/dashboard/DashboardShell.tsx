@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
@@ -9,15 +9,18 @@ import {
   Inbox,
   Users,
   CalendarDays,
-  Wallet,
   LogOut,
   ExternalLink,
   IndianRupee,
   BarChart3,
   ClipboardCheck,
-  BellRing,
   UserCircle,
   Swords,
+  Building2,
+  Globe,
+  Megaphone,
+  Settings as SettingsIcon,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
@@ -36,26 +39,26 @@ type NavItem = {
   requiresFeature?: "fee_tracking";
 };
 
-// Primary nav — 5 tabs: Home, Students (incl. Registrations), Match Center, Fees, Profile.
+// Unified IA — matches mobile bottom nav (Home · Attendance · Fees · Operations · Profile).
+// Owner/Admin sidebar top-level:
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/dashboard/students", label: "Students", icon: Users },
-  { to: "/match-center", label: "Match Center", icon: Swords },
+  { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
-// Mobile bottom tabs mirror the primary nav (5 tabs, one-hand friendly).
-const mobilePrimary: NavItem[] = primaryNav;
-
-// Secondary — reached from Profile page or desktop sidebar Settings section.
-const secondaryNav: NavItem[] = [
+// Operations — expands to expose the full academy toolset. Single source of
+// truth: nothing here is repeated in `primaryNav`.
+const operationsNav: NavItem[] = [
+  { to: "/dashboard/students", label: "Players", icon: Users },
+  { to: "/match-center", label: "Match Center", icon: Swords },
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
-  { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-  { to: "/dashboard/reminders", label: "Reminders", icon: BellRing, requiresFeature: "fee_tracking" },
   { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
-  { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet, requiresFeature: "fee_tracking" },
-  { to: "/dashboard/reports", label: "Reports", icon: BarChart3, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+  { to: "/dashboard/site", label: "Website", icon: Globe },
+  { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
+  { to: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -96,7 +99,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 
   const primary = withBadges(primaryNav);
-  const secondary = withBadges(secondaryNav);
+  const operations = withBadges(operationsNav);
+
 
 
 
@@ -160,11 +164,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <SidebarInner
             tenant={tenant}
             primary={primary}
-            secondary={secondary}
+            operations={operations}
             onSignOut={signOut}
             role={profile.role}
           />
         </aside>
+
 
         <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-32 md:pb-8">
           <div className="mb-4"><TrialBanner /></div>
@@ -209,23 +214,35 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
 function SidebarInner({
   tenant,
   primary,
-  secondary,
+  operations,
   onSignOut,
   role,
 }: {
   tenant: { name: string };
   primary: (NavItem & { badge?: number; live?: boolean })[];
-  secondary: (NavItem & { badge?: number; live?: boolean })[];
+  operations: (NavItem & { badge?: number; live?: boolean })[];
   onSignOut: () => void;
   role: string;
 }) {
   const location = useLocation();
   const { t } = useT();
-  const renderItem = (n: NavItem & { badge?: number; live?: boolean }) => {
-    const active =
-      n.to === "/dashboard"
-        ? location.pathname === "/dashboard"
-        : location.pathname.startsWith(n.to);
+
+  const isItemActive = (to: string) =>
+    to === "/dashboard"
+      ? location.pathname === "/dashboard"
+      : location.pathname === to || location.pathname.startsWith(to + "/");
+
+  // Operations aggregate badge count (e.g. new registrations while collapsed).
+  const opsBadge = useMemo(
+    () => operations.reduce((s, n) => s + (n.badge ?? 0), 0),
+    [operations],
+  );
+  const opsLive = operations.some((n) => n.live);
+  const opsActive = operations.some((n) => isItemActive(n.to));
+  const [opsOpen, setOpsOpen] = useState(opsActive);
+
+  const renderItem = (n: NavItem & { badge?: number; live?: boolean }, indent = false) => {
+    const active = isItemActive(n.to);
     const Icon = n.icon;
     return (
       <Link
@@ -235,6 +252,7 @@ function SidebarInner({
         className={cn(
           "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
           "outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]",
+          indent && "ml-4 pl-3 border-l border-border/70",
           active
             ? "font-semibold text-foreground bg-accent/40"
             : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
@@ -269,6 +287,11 @@ function SidebarInner({
       </Link>
     );
   };
+
+  // Insert Operations group after Attendance/Fees, before Profile.
+  const homeAttendanceFees = primary.filter((n) => n.to !== "/dashboard/profile");
+  const profile = primary.find((n) => n.to === "/dashboard/profile");
+
   return (
     <div className="flex h-full flex-col">
       <div className="p-4 border-b border-border">
@@ -276,11 +299,47 @@ function SidebarInner({
         <div className="text-xs text-muted-foreground capitalize">{role}</div>
       </div>
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-        {primary.map(renderItem)}
-        <div className="pt-3 pb-1 px-3 text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
-          {t("Settings")}
-        </div>
-        {secondary.map(renderItem)}
+        {homeAttendanceFees.map((n) => renderItem(n))}
+
+        {/* Operations — expandable group */}
+        <button
+          type="button"
+          onClick={() => setOpsOpen((v) => !v)}
+          aria-expanded={opsOpen}
+          className={cn(
+            "w-full relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+            "outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]",
+            opsActive
+              ? "font-semibold text-foreground bg-accent/40"
+              : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
+          )}
+        >
+          <span className="relative inline-flex">
+            <Building2 className="size-4" />
+            {opsLive ? (
+              <span
+                aria-hidden
+                className="absolute -top-0.5 -right-1 size-1.5 rounded-full bg-rose-600 ring-2 ring-background animate-pulse"
+              />
+            ) : null}
+          </span>
+          <span className="flex-1 text-left">{t("Operations")}</span>
+          {!opsOpen && opsBadge > 0 ? (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white bg-rose-600">
+              {opsBadge}
+            </span>
+          ) : null}
+          <ChevronDown
+            className={cn("size-4 transition-transform", opsOpen && "rotate-180")}
+          />
+        </button>
+        {opsOpen ? (
+          <div className="space-y-1 pt-0.5">
+            {operations.map((n) => renderItem(n, true))}
+          </div>
+        ) : null}
+
+        {profile ? renderItem(profile) : null}
       </nav>
       <div className="p-2 border-t border-border">
         <Button variant="ghost" size="sm" className="w-full justify-start" onClick={onSignOut}>
@@ -290,3 +349,4 @@ function SidebarInner({
     </div>
   );
 }
+
