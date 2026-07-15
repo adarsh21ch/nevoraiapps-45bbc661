@@ -87,12 +87,13 @@ type Template = {
 type Delivery = {
   id: string;
   tenant_id: string;
-  recipient: string | null;
+  recipient_name: string | null;
+  recipient_number: string | null;
   channel: string;
   provider: string | null;
   status: string;
   duration_ms: number | null;
-  attempt: number;
+  attempts: number;
   created_at: string;
 };
 
