@@ -134,6 +134,11 @@ export function FinalizationDialog({
       toast.success("Match finalized and locked");
       // Career Engine: refresh every participant's cache from finalized matches.
       try {
+        const [{ updateCareersForMatch }, { updateTournamentForMatch }, { updateAcademyRecordsForMatch }] = await Promise.all([
+          import("@/lib/mc-career-engine"),
+          import("@/lib/mc-tournament-engine"),
+          import("@/lib/mc-academy-records"),
+        ]);
         await updateCareersForMatch(matchId);
         await updateTournamentForMatch(matchId);
         const rec = await updateAcademyRecordsForMatch(matchId);
