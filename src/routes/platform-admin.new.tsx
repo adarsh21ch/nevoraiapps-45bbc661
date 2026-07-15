@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Trash2, Copy, Check, ArrowRight, ArrowLeft, ExternalLink } from "lucide-react";
 import { nicheOptions, niche, type NicheKey } from "@/lib/niche";
+import { sportsList, type SportKey } from "@/lib/sports";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { useServerFn } from "@tanstack/react-start";
 import { createTenantOwner } from "@/lib/tenant-owner.functions";
@@ -37,7 +38,7 @@ function Wizard() {
 
   // Form state
   const [biz, setBiz] = useState({
-    name: "", slug: "", niche: "academy" as NicheKey,
+    name: "", slug: "", niche: "academy" as NicheKey, sport: "cricket" as SportKey,
     phone: "", whatsapp: "", email: "", address: "",
     upi_id: "",
   });
@@ -136,7 +137,7 @@ function Wizard() {
           setup_fee: parseInt(pricing.setup_fee || "0", 10),
           billing_day: Math.max(1, Math.min(28, parseInt(pricing.billing_day || "1", 10))),
           status: "active",
-          features: { online_registration: true, fee_tracking: true, powered_by_badge: true },
+          features: { online_registration: true, fee_tracking: true, powered_by_badge: true, sport: biz.sport },
         })
         .select("id, slug")
         .single();
@@ -287,7 +288,21 @@ function Wizard() {
                 )}
               </div>
               <div className="space-y-1.5">
-                <Label className="text-neutral-300">Niche *</Label>
+                <Label className="text-neutral-300">Sport *</Label>
+                <Select value={biz.sport} onValueChange={(v) => setBiz({ ...biz, sport: v as SportKey })}>
+                  <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {sportsList.map((s) => (
+                      <SelectItem key={s.key} value={s.key}>
+                        {s.emoji} {s.label}{s.status !== "live" ? " — coming soon" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-neutral-500">Cricket is fully live. Other sports enable shared modules today; sport-specific scoring ships as we go.</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-neutral-300">Wording style</Label>
                 <Select value={biz.niche} onValueChange={(v) => setBiz({ ...biz, niche: v as NicheKey })}>
                   <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
                   <SelectContent>{nicheOptions.map((n) => <SelectItem key={n.value} value={n.value}>{n.label}</SelectItem>)}</SelectContent>

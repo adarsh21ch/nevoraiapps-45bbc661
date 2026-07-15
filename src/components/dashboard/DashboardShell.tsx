@@ -26,6 +26,7 @@ import { StoragedImage } from "@/components/site/StoragedImage";
 import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
 import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { TrialBanner } from "@/components/dashboard/TrialBanner";
 
 
 type NavItem = {
@@ -166,6 +167,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </aside>
 
         <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-32 md:pb-8">
+          <div className="mb-4"><TrialBanner /></div>
           {children ?? <Outlet />}
         </main>
       </div>
