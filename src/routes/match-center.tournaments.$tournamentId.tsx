@@ -80,6 +80,7 @@ function TournamentDetailPage() {
   const { tournamentId } = Route.useParams();
   const { tenant } = useDashboard();
   const [section, setSection] = useState<string>("overview");
+  const [genOpen, setGenOpen] = useState(false);
   const demoEntity = useDemoEntity(tenant.id, tournamentId);
   const demoData = useDemoData(tenant.id);
 
