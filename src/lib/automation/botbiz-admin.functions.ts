@@ -76,12 +76,12 @@ export const sendBotBizTest = createServerFn({ method: "POST" })
     const now = new Date().toISOString();
     const eventInsert = await supabaseAdmin
       .from("automation_events")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert({
-        tenant_id: null,
         event_type: "sandbox.whatsapp.test",
         payload: { to: data.to, message: data.message, initiated_by: context.userId },
         status: "processing",
-      })
+      } as any)
       .select("id")
       .maybeSingle();
     const eventId = (eventInsert.data as { id?: string } | null)?.id ?? `sandbox_${Date.now()}`;
@@ -119,10 +119,20 @@ export const sendBotBizTest = createServerFn({ method: "POST" })
         ok: result.ok,
         provider: result.provider,
         error: result.error ?? null,
-        data: (result.data as Record<string, unknown>) ?? null,
+        providerMessageId:
+          ((result.data as Record<string, unknown> | undefined)?.provider_message_id as
+            | string
+            | null
+            | undefined) ?? null,
+        deliveryId:
+          ((result.data as Record<string, unknown> | undefined)?.delivery_id as
+            | string
+            | null
+            | undefined) ?? null,
       },
     };
   });
+
 
 export const sendBotBizTestAttendance = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
