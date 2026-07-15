@@ -148,7 +148,7 @@ function AttendancePage() {
   const stateByStudent = useMemo(() => {
     const m = new Map<string, TodayRow>();
     for (const row of todayQ.data ?? []) {
-      if (sessionBatchIds.has(row.batch_id)) m.set(row.student_id, row as unknown as TodayRow);
+      if (row.batch_id && sessionBatchIds.has(row.batch_id)) m.set(row.student_id, row as unknown as TodayRow);
     }
     return m;
   }, [todayQ.data, sessionBatchIds]);
