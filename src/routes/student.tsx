@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Home, TrendingUp, Building2, UserCircle, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyStudentContext, studentKeys } from "@/lib/student-app";
+import { isPendingApproval } from "@/lib/admissions/lifecycle";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
