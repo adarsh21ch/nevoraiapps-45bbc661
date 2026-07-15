@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { emitEvent } from "@/lib/automation/emit-client";
 
 export type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 export type MCMatchInsert = Database["public"]["Tables"]["mc_matches"]["Insert"];
