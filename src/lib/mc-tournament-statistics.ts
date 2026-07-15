@@ -104,8 +104,8 @@ export async function loadTournamentAnalyticsData(
   const { data: mRows } = await supabase
     .from("mc_matches")
     .select(
-      `id, team_a_id, team_b_id, winner_team, victory_type, victory_margin,
-       victory_margin_type, overs, scheduled_date, result,
+      `id, team_a_id, team_b_id, winner_team, victory_type, winning_margin,
+       winning_margin_type, overs, scheduled_date, result,
        player_of_match_athlete_id, group_id,
        team_a:mc_teams!mc_matches_team_a_id_fkey(id,name),
        team_b:mc_teams!mc_matches_team_b_id_fkey(id,name)`,
@@ -113,12 +113,27 @@ export async function loadTournamentAnalyticsData(
     .eq("tournament_id", tournamentId)
     .eq("match_locked", true);
 
-  const rows = mRows ?? [];
+  const rows = (mRows ?? []) as Array<{
+    id: string;
+    team_a_id: string;
+    team_b_id: string;
+    winner_team: string | null;
+    victory_type: string | null;
+    winning_margin: number | null;
+    winning_margin_type: string | null;
+    overs: number;
+    scheduled_date: string | null;
+    result: string | null;
+    player_of_match_athlete_id: string | null;
+    group_id: string | null;
+    team_a: { id: string; name: string } | null;
+    team_b: { id: string; name: string } | null;
+  }>;
   const matchIds = rows.map((r) => r.id);
   const teamNames = new Map<string, string>();
   const metas: MatchMeta[] = rows.map((r) => {
-    const ta = (r as { team_a?: { id: string; name: string } | null }).team_a;
-    const tb = (r as { team_b?: { id: string; name: string } | null }).team_b;
+    const ta = r.team_a;
+    const tb = r.team_b;
     if (ta) teamNames.set(ta.id, ta.name);
     if (tb) teamNames.set(tb.id, tb.name);
     return {
@@ -129,13 +144,13 @@ export async function loadTournamentAnalyticsData(
       team_b_name: tb?.name ?? null,
       winner_team: r.winner_team,
       victory_type: r.victory_type,
-      victory_margin: r.victory_margin as number | null,
-      victory_margin_type: r.victory_margin_type as string | null,
+      winning_margin: r.winning_margin,
+      winning_margin_type: r.winning_margin_type,
       overs: r.overs,
       scheduled_date: r.scheduled_date,
       result: r.result,
       player_of_match_athlete_id: r.player_of_match_athlete_id,
-      group_id: r.group_id as string | null,
+      group_id: r.group_id,
     };
   });
 
