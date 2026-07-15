@@ -494,7 +494,7 @@ function PaymentDialog({
     mutationFn: async () => {
       const amt = Number(amount);
       if (!(amt > 0)) throw new Error("Amount must be positive");
-      if (amt > invoice.balance + 0.005) throw new Error("Amount exceeds outstanding balance");
+      if (amt > invoice.balance + 0.005) throw new Error("Amount exceeds pending balance");
       return recordPayment({
         tenant_id: tenantId,
         student_id: invoice.student_id,
@@ -507,7 +507,7 @@ function PaymentDialog({
       });
     },
     onSuccess: () => {
-      toast.success("Payment recorded");
+      toast.success("Fee collection recorded");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -517,14 +517,14 @@ function PaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Record payment</DialogTitle>
+          <DialogTitle>Record fee collection</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
             <Label>Amount</Label>
             <Input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
             <div className="text-xs text-muted-foreground mt-1">
-              Outstanding: {formatMoney(invoice.balance, invoice.currency)}
+              Pending: {formatMoney(invoice.balance, invoice.currency)}
             </div>
           </div>
           <div>
