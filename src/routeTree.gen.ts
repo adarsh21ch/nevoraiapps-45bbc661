@@ -47,6 +47,7 @@ import { Route as MatchCenterIndexRouteImport } from './routes/match-center.inde
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as StudentProgressRouteImport } from './routes/student.progress'
 import { Route as StudentProfileRouteImport } from './routes/student.profile'
+import { Route as StudentPendingRouteImport } from './routes/student.pending'
 import { Route as StudentMatchesRouteImport } from './routes/student.matches'
 import { Route as StudentManageRouteImport } from './routes/student.manage'
 import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
@@ -108,8 +109,11 @@ import { Route as DashboardAutomationTestRouteImport } from './routes/dashboard.
 import { Route as DashboardAutomationSettingsRouteImport } from './routes/dashboard.automation-settings'
 import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
+import { Route as DashboardAdmissionsReviewRouteImport } from './routes/dashboard.admissions-review'
 import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
+import { Route as DashboardActivationRouteImport } from './routes/dashboard.activation'
 import { Route as DashboardAcademyRouteImport } from './routes/dashboard.academy'
+import { Route as ApplySlugRouteImport } from './routes/apply.$slug'
 import { Route as AcademySlugRouteImport } from './routes/academy.$slug'
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
 import { Route as MatchCenterTeamsIndexRouteImport } from './routes/match-center.teams.index'
@@ -321,6 +325,11 @@ const StudentProgressRoute = StudentProgressRouteImport.update({
 const StudentProfileRoute = StudentProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentPendingRoute = StudentPendingRouteImport.update({
+  id: '/pending',
+  path: '/pending',
   getParentRoute: () => StudentRoute,
 } as any)
 const StudentMatchesRoute = StudentMatchesRouteImport.update({
@@ -631,15 +640,31 @@ const DashboardAttendanceRoute = DashboardAttendanceRouteImport.update({
   path: '/attendance',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAdmissionsReviewRoute =
+  DashboardAdmissionsReviewRouteImport.update({
+    id: '/admissions-review',
+    path: '/admissions-review',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardAdminsRoute = DashboardAdminsRouteImport.update({
   id: '/admins',
   path: '/admins',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardActivationRoute = DashboardActivationRouteImport.update({
+  id: '/activation',
+  path: '/activation',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardAcademyRoute = DashboardAcademyRouteImport.update({
   id: '/academy',
   path: '/academy',
   getParentRoute: () => DashboardRoute,
+} as any)
+const ApplySlugRoute = ApplySlugRouteImport.update({
+  id: '/apply/$slug',
+  path: '/apply/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AcademySlugRoute = AcademySlugRouteImport.update({
   id: '/academy/$slug',
@@ -798,8 +823,11 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
+  '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
+  '/dashboard/activation': typeof DashboardActivationRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
+  '/dashboard/admissions-review': typeof DashboardAdmissionsReviewRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
@@ -861,6 +889,7 @@ export interface FileRoutesByFullPath {
   '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
+  '/student/pending': typeof StudentPendingRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/progress': typeof StudentProgressRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -918,8 +947,11 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
+  '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
+  '/dashboard/activation': typeof DashboardActivationRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
+  '/dashboard/admissions-review': typeof DashboardAdmissionsReviewRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
@@ -981,6 +1013,7 @@ export interface FileRoutesByTo {
   '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
+  '/student/pending': typeof StudentPendingRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/progress': typeof StudentProgressRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -1044,8 +1077,11 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
+  '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
+  '/dashboard/activation': typeof DashboardActivationRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
+  '/dashboard/admissions-review': typeof DashboardAdmissionsReviewRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
@@ -1107,6 +1143,7 @@ export interface FileRoutesById {
   '/scorer/$matchId': typeof ScorerMatchIdRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
+  '/student/pending': typeof StudentPendingRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/progress': typeof StudentProgressRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -1171,8 +1208,11 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/academy/$slug'
+    | '/apply/$slug'
     | '/dashboard/academy'
+    | '/dashboard/activation'
     | '/dashboard/admins'
+    | '/dashboard/admissions-review'
     | '/dashboard/attendance'
     | '/dashboard/automation'
     | '/dashboard/automation-settings'
@@ -1234,6 +1274,7 @@ export interface FileRouteTypes {
     | '/scorer/$matchId'
     | '/student/manage'
     | '/student/matches'
+    | '/student/pending'
     | '/student/profile'
     | '/student/progress'
     | '/dashboard/'
@@ -1291,8 +1332,11 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/academy/$slug'
+    | '/apply/$slug'
     | '/dashboard/academy'
+    | '/dashboard/activation'
     | '/dashboard/admins'
+    | '/dashboard/admissions-review'
     | '/dashboard/attendance'
     | '/dashboard/automation'
     | '/dashboard/automation-settings'
@@ -1354,6 +1398,7 @@ export interface FileRouteTypes {
     | '/scorer/$matchId'
     | '/student/manage'
     | '/student/matches'
+    | '/student/pending'
     | '/student/profile'
     | '/student/progress'
     | '/dashboard'
@@ -1416,8 +1461,11 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/academy/$slug'
+    | '/apply/$slug'
     | '/dashboard/academy'
+    | '/dashboard/activation'
     | '/dashboard/admins'
+    | '/dashboard/admissions-review'
     | '/dashboard/attendance'
     | '/dashboard/automation'
     | '/dashboard/automation-settings'
@@ -1479,6 +1527,7 @@ export interface FileRouteTypes {
     | '/scorer/$matchId'
     | '/student/manage'
     | '/student/matches'
+    | '/student/pending'
     | '/student/profile'
     | '/student/progress'
     | '/dashboard/'
@@ -1542,6 +1591,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TestimonialsRoute: typeof TestimonialsRoute
   AcademySlugRoute: typeof AcademySlugRoute
+  ApplySlugRoute: typeof ApplySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
@@ -1821,6 +1871,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/student/profile'
       preLoaderRoute: typeof StudentProfileRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/pending': {
+      id: '/student/pending'
+      path: '/pending'
+      fullPath: '/student/pending'
+      preLoaderRoute: typeof StudentPendingRouteImport
       parentRoute: typeof StudentRoute
     }
     '/student/matches': {
@@ -2250,11 +2307,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAttendanceRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/admissions-review': {
+      id: '/dashboard/admissions-review'
+      path: '/admissions-review'
+      fullPath: '/dashboard/admissions-review'
+      preLoaderRoute: typeof DashboardAdmissionsReviewRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/admins': {
       id: '/dashboard/admins'
       path: '/admins'
       fullPath: '/dashboard/admins'
       preLoaderRoute: typeof DashboardAdminsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/activation': {
+      id: '/dashboard/activation'
+      path: '/activation'
+      fullPath: '/dashboard/activation'
+      preLoaderRoute: typeof DashboardActivationRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/academy': {
@@ -2263,6 +2334,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/academy'
       preLoaderRoute: typeof DashboardAcademyRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/apply/$slug': {
+      id: '/apply/$slug'
+      path: '/apply/$slug'
+      fullPath: '/apply/$slug'
+      preLoaderRoute: typeof ApplySlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/academy/$slug': {
       id: '/academy/$slug'
@@ -2450,7 +2528,9 @@ const DashboardStudentsRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardAcademyRoute: typeof DashboardAcademyRoute
+  DashboardActivationRoute: typeof DashboardActivationRoute
   DashboardAdminsRoute: typeof DashboardAdminsRoute
+  DashboardAdmissionsReviewRoute: typeof DashboardAdmissionsReviewRoute
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
   DashboardAutomationRoute: typeof DashboardAutomationRoute
   DashboardAutomationSettingsRoute: typeof DashboardAutomationSettingsRoute
@@ -2479,7 +2559,9 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAcademyRoute: DashboardAcademyRoute,
+  DashboardActivationRoute: DashboardActivationRoute,
   DashboardAdminsRoute: DashboardAdminsRoute,
+  DashboardAdmissionsReviewRoute: DashboardAdmissionsReviewRoute,
   DashboardAttendanceRoute: DashboardAttendanceRoute,
   DashboardAutomationRoute: DashboardAutomationRoute,
   DashboardAutomationSettingsRoute: DashboardAutomationSettingsRoute,
@@ -2657,6 +2739,7 @@ const PlatformAdminRouteWithChildren = PlatformAdminRoute._addFileChildren(
 interface StudentRouteChildren {
   StudentManageRoute: typeof StudentManageRoute
   StudentMatchesRoute: typeof StudentMatchesRoute
+  StudentPendingRoute: typeof StudentPendingRoute
   StudentProfileRoute: typeof StudentProfileRoute
   StudentProgressRoute: typeof StudentProgressRoute
   StudentIndexRoute: typeof StudentIndexRoute
@@ -2665,6 +2748,7 @@ interface StudentRouteChildren {
 const StudentRouteChildren: StudentRouteChildren = {
   StudentManageRoute: StudentManageRoute,
   StudentMatchesRoute: StudentMatchesRoute,
+  StudentPendingRoute: StudentPendingRoute,
   StudentProfileRoute: StudentProfileRoute,
   StudentProgressRoute: StudentProgressRoute,
   StudentIndexRoute: StudentIndexRoute,
@@ -2706,6 +2790,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TestimonialsRoute: TestimonialsRoute,
   AcademySlugRoute: AcademySlugRoute,
+  ApplySlugRoute: ApplySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,

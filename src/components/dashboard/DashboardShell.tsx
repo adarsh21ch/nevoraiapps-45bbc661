@@ -66,6 +66,8 @@ const primaryNav: NavItem[] = [
 // Everything below Match Center in the daily sidebar list.
 const secondaryNav: NavItem[] = [
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
+  { to: "/dashboard/admissions-review", label: "Admissions", icon: Inbox, ownerOnly: true },
+  { to: "/dashboard/activation", label: "Activation", icon: Users, ownerOnly: true },
   { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
   { to: "/dashboard/staff", label: "Staff", icon: Users, adminOnly: false, ownerOnly: false },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
