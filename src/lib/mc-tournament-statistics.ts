@@ -626,7 +626,7 @@ export function buildTournamentAnalytics(
       row.recentScores.push(bstat.runs);
       // Match-winning innings: batter's team won
       const batterTeamWon = (meta.winner_team === meta.team_a_id || meta.winner_team === meta.team_b_id) &&
-        eventsPlayerTeam(events, bstat) === meta.winner_team;
+        eventsPlayerTeam(events, bstat, teamByInningsId) === meta.winner_team;
       if (batterTeamWon && (bstat.runs >= 50 || (battingTbl.highestScore && battingTbl.highestScore.player.key === key))) {
         row.matchWinning += 1;
       }
@@ -691,7 +691,7 @@ export function buildTournamentAnalytics(
       });
       // Match-winning spell: >=3 wickets in a match his team won.
       const bowlerTeamWon = (meta.winner_team === meta.team_a_id || meta.winner_team === meta.team_b_id) &&
-        eventsBowlerTeam(events, bwstat) === meta.winner_team;
+        eventsBowlerTeam(events, bwstat, teamByInningsId) === meta.winner_team;
       if (bowlerTeamWon && bwstat.wickets >= 3) row.matchWinning += 1;
       const h = hatTricks.get(key);
       if (h) row.hatTricks = (row.hatTricks ?? 0) + h;
