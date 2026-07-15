@@ -179,6 +179,13 @@ export const grantTrial = createServerFn({ method: "POST" })
     if (data.tier) patch.plan_tier = data.tier;
     const { error } = await context.supabase.from("tenants").update(patch).eq("id", data.tenantId);
     if (error) throw new Error(error.message);
+    emitEvent({
+      tenantId: data.tenantId,
+      eventType: AUTOMATION_EVENTS.SubscriptionTrialStarted,
+      sourceModule: "subscription",
+      sourceId: data.tenantId,
+      payload: { trialEndsAt, days: data.days, tier: data.tier ?? null },
+    });
     return { ok: true, trialEndsAt };
   });
 
@@ -202,6 +209,13 @@ export const extendPeriod = createServerFn({ method: "POST" })
       .update({ current_period_end: next })
       .eq("id", data.tenantId);
     if (error) throw new Error(error.message);
+    emitEvent({
+      tenantId: data.tenantId,
+      eventType: AUTOMATION_EVENTS.SubscriptionRenewed,
+      sourceModule: "subscription",
+      sourceId: data.tenantId,
+      payload: { currentPeriodEnd: next, days: data.days },
+    });
     return { ok: true, currentPeriodEnd: next };
   });
 
@@ -217,6 +231,12 @@ export const suspendTenant = createServerFn({ method: "POST" })
       .update({ status: "suspended" })
       .eq("id", data.tenantId);
     if (error) throw new Error(error.message);
+    emitEvent({
+      tenantId: data.tenantId,
+      eventType: AUTOMATION_EVENTS.SubscriptionSuspended,
+      sourceModule: "subscription",
+      sourceId: data.tenantId,
+    });
     return { ok: true };
   });
 
@@ -232,6 +252,12 @@ export const resumeTenant = createServerFn({ method: "POST" })
       .update({ status: "active" })
       .eq("id", data.tenantId);
     if (error) throw new Error(error.message);
+    emitEvent({
+      tenantId: data.tenantId,
+      eventType: AUTOMATION_EVENTS.SubscriptionResumed,
+      sourceModule: "subscription",
+      sourceId: data.tenantId,
+    });
     return { ok: true };
   });
 
