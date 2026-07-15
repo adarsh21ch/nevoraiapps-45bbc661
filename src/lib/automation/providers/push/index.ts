@@ -208,7 +208,7 @@ export const pushProvider: ActionProvider = {
     let coachName: string | null = null;
 
     if (studentId) {
-      const { student, parentUserId } = await resolveStudentParentUser(studentId, ctx.tenantId);
+      const { student, parentUserIds } = await resolveStudentParentUser(studentId, ctx.tenantId);
       if (student) {
         studentName = student.name;
         coachName = student.coach_name;
@@ -221,7 +221,7 @@ export const pushProvider: ActionProvider = {
           batchName = (batch as { name?: string } | null)?.name ?? null;
         }
       }
-      if (parentUserId) recipientUserIds.add(parentUserId);
+      for (const uid of parentUserIds) recipientUserIds.add(uid);
     }
 
     if (params.target_roles && params.target_roles.length > 0) {
