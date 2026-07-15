@@ -25,7 +25,17 @@ export type FeatureId =
   | "founder_intelligence"
   | "campaigns"
   | "website_builder"
-  | "api_access";
+  | "api_access"
+  // Future AI Platform (registered, not implemented)
+  | "ai_chat"
+  | "ai_business_insights"
+  | "ai_student_analysis"
+  | "ai_attendance_summary"
+  | "ai_fee_analysis"
+  | "ai_coach_assistant"
+  | "ai_parent_summary"
+  | "ai_ocr"
+  | "ai_founder_brief";
 
 export type LimitId =
   | "students"
