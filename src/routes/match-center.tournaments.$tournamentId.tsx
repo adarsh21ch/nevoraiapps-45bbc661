@@ -193,7 +193,7 @@ function TournamentDetailPage() {
               if (id === "generate") setGenOpen(true);
               else if (id === "create") setSection("fixtures");
               else if (id === "share") onShare();
-              else if (id === "export") toast.info("Export coming soon");
+              else if (id === "export") onExport();
             }}
             publicUrl={publicUrl}
           />
@@ -206,12 +206,20 @@ function TournamentDetailPage() {
         {section === "players" && <PlayersTab tournamentId={tournamentId} />}
         {section === "stats" && <TournamentStatistics tournamentId={tournamentId} />}
         {section === "records" && <RecordsTab tournamentId={tournamentId} />}
-        {section === "awards" && <AwardsTab tournamentId={tournamentId} />}
+        {section === "awards" && <TournamentAwardsPanel tournamentId={tournamentId} tournamentName={t.name} />}
         {section === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "venues" && <VenuesTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "officials" && <OfficialsTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "settings" && <SettingsTab tournament={t} />}
       </TournamentWorkspaceShell>
+
+      <TournamentShareDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        url={publicUrl ?? (typeof window !== "undefined" ? window.location.href : "")}
+        title={t.name}
+        description={t.description ?? undefined}
+      />
 
       <FixtureGeneratorDialog
         open={genOpen}
