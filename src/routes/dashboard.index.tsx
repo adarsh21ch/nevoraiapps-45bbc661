@@ -227,20 +227,10 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* ─── Section 2 · Quick actions ───────────────────────────────── */}
+      {/* ─── Section 2 · Quick actions (role-based, 4×2 grid) ─────────── */}
       <section aria-label="Quick actions">
         <SectionLabel>Quick actions</SectionLabel>
-        <div className="grid grid-cols-4 gap-2 md:grid-cols-5">
-          <QuickAction to="/dashboard/attendance" label="Attendance" icon={<ClipboardCheck className="size-5" />} />
-          <QuickAction to="/dashboard/registrations" label="Register" icon={<UserPlus className="size-5" />} />
-          {canScoreMatch ? (
-            <QuickAction to="/match-center" label="Match" icon={<Swords className="size-5" />} />
-          ) : null}
-          <QuickAction to="/dashboard/students" label="Players" icon={<Users className="size-5" />} />
-          {canViewFees && feeEnabled ? (
-            <QuickAction to="/dashboard/fees" label="Fees" icon={<Wallet className="size-5" />} />
-          ) : null}
-        </div>
+        <QuickActionsGrid role={role} canScoreMatch={canScoreMatch} />
       </section>
 
       {/* ─── Section 3 · Today's activity ────────────────────────────── */}
