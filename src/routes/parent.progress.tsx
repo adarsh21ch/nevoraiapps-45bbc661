@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchStudentProgress, studentKeys } from "@/lib/student-app";
-import { useParentChild } from "./parent";
+import { useParentChild } from "@/hooks/use-parent-child";
 
 export const Route = createFileRoute("/parent/progress")({
   component: ParentProgressPage,

@@ -70,6 +70,8 @@ import { BulkImportStudents } from "@/components/dashboard/BulkImportStudents";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { VirtualList } from "@/components/ds/VirtualList";
+
 
 export const Route = createFileRoute("/dashboard/students")({
   validateSearch: (search: Record<string, unknown>): { status?: string } => {
@@ -443,25 +445,32 @@ function StudentsPage() {
             {status === "active" ? "Add your first player to get started." : ""}
           </div>
         ) : (
-          <ul className="divide-y divide-border">
-            {filtered.map((s: any, i: number) => (
-              <PlayerRow
-                key={s.id}
-                index={i}
-                s={s}
-                paid={paidSet.has(s.id)}
-                onOpen={() => {
-                  qc.setQueryData(qk.student(s.id), s);
-                  setProfileId(s.id);
-                }}
-                onArchiveDone={() => {
-                  qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
-                }}
-              />
-            ))}
-          </ul>
+          <VirtualList
+            items={filtered}
+            estimateSize={84}
+            overscan={10}
+            className="max-h-[calc(100vh-320px)] min-h-[400px]"
+            getKey={(s: any) => s.id}
+            renderItem={(s: any, i: number) => (
+              <div className="border-b border-border last:border-b-0">
+                <PlayerRow
+                  index={i}
+                  s={s}
+                  paid={paidSet.has(s.id)}
+                  onOpen={() => {
+                    qc.setQueryData(qk.student(s.id), s);
+                    setProfileId(s.id);
+                  }}
+                  onArchiveDone={() => {
+                    qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
+                  }}
+                />
+              </div>
+            )}
+          />
         )}
       </section>
+
 
       <AddStudentSheet open={addOpen} onOpenChange={setAddOpen} />
       <ProfileSheet id={profileId} onOpenChange={(open) => !open && setProfileId(null)} />
@@ -566,7 +575,7 @@ function PlayerRow({
   };
 
   return (
-    <li className="flex items-center gap-2 md:gap-3 pr-2">
+    <div className="flex items-center gap-2 md:gap-3 pr-2">
       <button
         type="button"
         onClick={onOpen}
@@ -633,7 +642,7 @@ function PlayerRow({
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-    </li>
+    </div>
   );
 }
 

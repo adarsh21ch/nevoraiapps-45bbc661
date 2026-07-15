@@ -18,7 +18,7 @@ import {
   type ChildContext,
   type ParentChildRow,
 } from "@/lib/parent-app";
-import { useParentChild } from "./parent";
+import { useParentChild } from "@/hooks/use-parent-child";
 
 export const Route = createFileRoute("/parent/")({
   component: ParentHomePage,

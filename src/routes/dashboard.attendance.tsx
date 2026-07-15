@@ -44,6 +44,8 @@ import {
   type AttendanceState,
 } from "@/lib/attendance/constants";
 import { cn } from "@/lib/utils";
+import { VirtualList } from "@/components/ds/VirtualList";
+
 
 export const Route = createFileRoute("/dashboard/attendance")({
   head: () => ({
@@ -560,27 +562,36 @@ function AttendancePage() {
             <p className="px-1 py-6 text-center text-sm text-muted-foreground">{activeEmpty}</p>
           ) : (
             <div key={rosterTab} className="mt-2 animate-in fade-in duration-150" ref={rosterRef}>
-              <Card className="p-1 divide-y divide-border/60">
-                {activeStudents.map((s) => (
-                  <StudentRow
-                    key={s.id}
-                    student={s}
-                    batchName={s.batch_id ? batchNameById.get(s.batch_id) ?? null : null}
-                    row={stateByStudent.get(s.id)}
-                    canMark={canMark}
-                    tenantId={tenant.id}
-                    lateAfterMs={s.batch_id ? batchLateThresholdById.get(s.batch_id) ?? null : null}
-                    selectMode={selectMode}
-                    isSelected={selected.has(s.id)}
-                    onToggleSelected={toggleSelected}
-                    onCheckedIn={focusNextWaiting}
-                    onUndoCheckIn={undoCheckIn}
-                    onUndoCheckOut={undoCheckOut}
-                  />
-                ))}
+              <Card className="p-1">
+                <VirtualList
+                  items={activeStudents}
+                  estimateSize={76}
+                  overscan={8}
+                  className="max-h-[calc(100vh-360px)] min-h-[400px]"
+                  getKey={(s: any) => s.id}
+                  renderItem={(s: any) => (
+                    <div className="border-b border-border/60 last:border-b-0">
+                      <StudentRow
+                        student={s}
+                        batchName={s.batch_id ? batchNameById.get(s.batch_id) ?? null : null}
+                        row={stateByStudent.get(s.id)}
+                        canMark={canMark}
+                        tenantId={tenant.id}
+                        lateAfterMs={s.batch_id ? batchLateThresholdById.get(s.batch_id) ?? null : null}
+                        selectMode={selectMode}
+                        isSelected={selected.has(s.id)}
+                        onToggleSelected={toggleSelected}
+                        onCheckedIn={focusNextWaiting}
+                        onUndoCheckIn={undoCheckIn}
+                        onUndoCheckOut={undoCheckOut}
+                      />
+                    </div>
+                  )}
+                />
               </Card>
             </div>
           )}
+
         </>
       )}
     </div>

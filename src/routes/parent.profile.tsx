@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchStudentProfile, studentKeys } from "@/lib/student-app";
-import { useParentChild } from "./parent";
+import { useParentChild } from "@/hooks/use-parent-child";
 
 export const Route = createFileRoute("/parent/profile")({
   component: ParentProfilePage,
