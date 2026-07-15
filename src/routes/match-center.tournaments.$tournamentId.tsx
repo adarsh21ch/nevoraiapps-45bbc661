@@ -124,7 +124,6 @@ function TournamentDetailPage() {
 
   const currentStage = deriveCurrentStage(fxQ.data ?? []);
 
-  const [genOpen, setGenOpen] = useState(false);
 
   const onShare = () => {
     const url = publicUrl ?? (typeof window !== "undefined" ? window.location.href : "");
