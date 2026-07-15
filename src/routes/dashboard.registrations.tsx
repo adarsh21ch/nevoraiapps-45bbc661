@@ -6,6 +6,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { fetchRegistrations, qk } from "@/lib/dashboard-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { bulkApproveRegistrations } from "@/lib/bulk-ops";
+import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
 import { markRegistrationsReviewed, newRegsQueryKey } from "@/hooks/use-new-registrations";
 
 import { PersonAvatar } from "@/components/site/PersonAvatar";
