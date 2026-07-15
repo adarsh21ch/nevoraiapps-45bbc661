@@ -24,7 +24,7 @@ export const Route = createFileRoute("/dashboard/activation")({
 });
 
 function ActivationCenter() {
-  const { tenantId } = useDashboard();
+  const { tenant } = useDashboard(); const tenantId = tenant.id;
   const { data: students } = useSuspenseQuery(importedStudentsQuery(tenantId!));
   const { data: batches } = useSuspenseQuery(importBatchesQuery(tenantId!));
   const [selected, setSelected] = useState<Set<string>>(new Set());

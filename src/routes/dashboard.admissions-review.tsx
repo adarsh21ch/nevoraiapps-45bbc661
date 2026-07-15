@@ -33,7 +33,7 @@ const FILTERS = [
 ] as const;
 
 function AdmissionsReviewPage() {
-  const { tenantId } = useDashboard();
+  const { tenant } = useDashboard(); const tenantId = tenant.id;
   const [filter, setFilter] = useState<string>("pending");
   const [search, setSearch] = useState("");
   const { data: rows } = useSuspenseQuery(admissionsRegistrationsQuery(tenantId!, filter));
