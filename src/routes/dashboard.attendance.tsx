@@ -35,10 +35,10 @@ import {
   EmptyState,
   ErrorState,
   Skeleton,
-  SegmentedControl,
   SearchBar,
   LiveBadge,
 } from "@/components/ds";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
