@@ -342,7 +342,7 @@ function FeeRegister() {
             items={visible}
             estimateSize={84}
             overscan={8}
-            className="max-h-[calc(100vh-260px)]"
+            className="max-h-[calc(100vh-260px)] min-h-[400px]"
             getKey={(r) => r.studentId}
             renderItem={(r) => (
               <div className="border-b border-border">
