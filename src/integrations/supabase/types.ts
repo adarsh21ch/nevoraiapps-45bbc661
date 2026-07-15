@@ -4870,6 +4870,36 @@ export type Database = {
           },
         ]
       }
+      platform_comm_channels: {
+        Row: {
+          channel: string
+          created_at: string
+          description: string | null
+          display_name: string
+          enabled: boolean
+          metadata: Json
+          updated_at: string
+        }
+        Insert: {
+          channel: string
+          created_at?: string
+          description?: string | null
+          display_name: string
+          enabled?: boolean
+          metadata?: Json
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          enabled?: boolean
+          metadata?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_comm_providers: {
         Row: {
           adapter_key: string
@@ -4882,6 +4912,7 @@ export type Database = {
           metadata: Json
           priority: number
           ready: boolean
+          role: string
           updated_at: string
         }
         Insert: {
@@ -4895,6 +4926,7 @@ export type Database = {
           metadata?: Json
           priority?: number
           ready?: boolean
+          role?: string
           updated_at?: string
         }
         Update: {
@@ -4908,6 +4940,7 @@ export type Database = {
           metadata?: Json
           priority?: number
           ready?: boolean
+          role?: string
           updated_at?: string
         }
         Relationships: []
@@ -4915,6 +4948,7 @@ export type Database = {
       platform_comm_templates: {
         Row: {
           body: string
+          category: string
           channel: string
           created_at: string
           enabled: boolean
@@ -4926,6 +4960,7 @@ export type Database = {
         }
         Insert: {
           body: string
+          category?: string
           channel: string
           created_at?: string
           enabled?: boolean
@@ -4937,6 +4972,7 @@ export type Database = {
         }
         Update: {
           body?: string
+          category?: string
           channel?: string
           created_at?: string
           enabled?: boolean

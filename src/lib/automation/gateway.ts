@@ -94,14 +94,70 @@ export async function resolveActiveProvider(
 }
 
 /**
+ * Channel Layer — the Automation Engine only speaks channels
+ * (whatsapp | email | sms | push | webhook). Providers, accounts, and
+ * adapters live entirely below this line and are resolved by the gateway.
+ */
+export interface ChannelResolution extends ActiveProviderResolution {
+  requestId: string;
+  primary: ActiveProviderResolution;
+  secondaries: ActiveProviderResolution[];
+}
+
+function newRequestId(): string {
+  return `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+/**
+ * Resolve a channel end-to-end: primary provider + prepared secondaries
+ * ordered by priority. Failover is NOT executed yet — the secondaries are
+ * exposed so future code can consume them without another architecture pass.
+ */
+export async function resolveChannel(channel: CommChannel): Promise<ChannelResolution> {
+  const primary = await resolveActiveProvider(channel);
+  const secondaries: ActiveProviderResolution[] = [];
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("platform_comm_providers")
+      .select("id, adapter_key, ready, enabled, priority")
+      .eq("channel", channel)
+      .eq("enabled", true)
+      .order("priority");
+    for (const row of (data ?? []) as Array<{
+      id: string;
+      adapter_key: string;
+      ready: boolean;
+      priority: number;
+    }>) {
+      if (row.id === primary.providerId) continue;
+      secondaries.push({
+        channel,
+        providerId: row.id,
+        adapterKey: row.adapter_key,
+        accountId: null,
+        accountLabel: null,
+        ready: row.ready,
+      });
+    }
+  } catch {
+    /* no-op */
+  }
+  return { ...primary, requestId: newRequestId(), primary, secondaries };
+}
+
+/**
  * Dispatch an action through the gateway. The active provider for the
  * channel wins; if none is configured, the ActionProvider registry falls
  * back to sensible defaults (mock / notification-log).
+ *
+ * Returned result includes the requestId for end-to-end observability.
  */
 export async function dispatchThroughGateway(
   ctx: ActionContext,
-): Promise<ActionResult> {
+): Promise<ActionResult & { requestId: string }> {
   const channel = channelForAction(ctx.action.type);
+  const requestId = newRequestId();
   let adapterOverride: string | undefined;
   if (channel) {
     const active = await resolveActiveProvider(channel);
@@ -110,5 +166,7 @@ export async function dispatchThroughGateway(
     }
   }
   const provider = resolveProvider(ctx.action.type, adapterOverride ?? ctx.action.provider);
-  return provider.dispatch(ctx);
+  const result = await provider.dispatch(ctx);
+  return { ...result, requestId };
 }
+
