@@ -6628,6 +6628,10 @@ export type Database = {
         Args: { _confirm_name: string; _student_id: string }
         Returns: undefined
       }
+      parent_can_read_session: {
+        Args: { _session_id: string }
+        Returns: boolean
+      }
       platform_delete_tenant: {
         Args: { _confirm_name: string; _tenant_id: string }
         Returns: undefined
@@ -6703,6 +6707,10 @@ export type Database = {
         Returns: undefined
       }
       slugify: { Args: { _input: string }; Returns: string }
+      student_can_read_session: {
+        Args: { _session_id: string }
+        Returns: boolean
+      }
       submit_lead: {
         Args: {
           _message?: string
