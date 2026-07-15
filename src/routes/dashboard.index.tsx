@@ -46,6 +46,8 @@ import {
   fetchKpis,
   fetchDashboardInsights,
   fetchDashboardActivity,
+  fetchBatches,
+  fetchStudents,
   qk,
   type ActivityEvent,
 } from "@/lib/dashboard-queries";
@@ -115,6 +117,8 @@ function DashboardHome() {
     queryFn: () => fetchAttendanceToday(tenant.id),
     staleTime: 15_000,
   });
+  const batchesQ = useQuery({ queryKey: qk.batches(tenant.id), queryFn: () => fetchBatches(tenant.id) });
+  const studentsQ = useQuery({ queryKey: qk.students(tenant.id), queryFn: () => fetchStudents(tenant.id) });
   const activityQ = useQuery({
     queryKey: qk.activity(tenant.id),
     queryFn: () => fetchDashboardActivity(tenant.id, { includeFees: canViewFees }),
@@ -122,39 +126,65 @@ function DashboardHome() {
   });
   const newRegs = useNewRegistrationsCount(tenant.id);
 
+  // ── Single source of truth ────────────────────────────────────────────
+  // Reuse the exact same engine as the Attendance page (session = "all"):
+  //   roster  = active students in active batches
+  //   present = students with current_state ∈ { in_academy, checked_out }
+  //   pct     = present / roster
+  // Any Waiting student counts against the denominator — no divergence.
   const attendanceRows = attendanceQ.data ?? [];
+  const activeBatchIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const b of (batchesQ.data ?? []) as Array<{ id: string; active: boolean }>) {
+      if (b.active) set.add(b.id);
+    }
+    return set;
+  }, [batchesQ.data]);
+  const rosterStudents = useMemo(
+    () =>
+      (studentsQ.data ?? []).filter(
+        (s: { status: string; batch_id: string | null }) =>
+          s.status === "active" && !!s.batch_id && activeBatchIds.has(s.batch_id),
+      ),
+    [studentsQ.data, activeBatchIds],
+  );
+  const stateByStudent = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of attendanceRows) {
+      if (r.batch_id && activeBatchIds.has(r.batch_id)) m.set(r.student_id, r.current_state);
+    }
+    return m;
+  }, [attendanceRows, activeBatchIds]);
   const inAcademy = useMemo(
     () => attendanceRows.filter((r) => r.current_state === "in_academy").length,
     [attendanceRows],
   );
-  const playersPresent = useMemo(
-    () =>
-      attendanceRows.filter(
-        (r) => r.current_state === "in_academy" || r.current_state === "checked_out",
-      ).length,
-    [attendanceRows],
-  );
+  const { attPresent, attTotal, attPct } = useMemo(() => {
+    let present = 0;
+    for (const s of rosterStudents) {
+      const state = stateByStudent.get(s.id);
+      if (state === "in_academy" || state === "checked_out") present++;
+    }
+    const total = rosterStudents.length;
+    const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+    return { attPresent: present, attTotal: total, attPct: pct };
+  }, [rosterStudents, stateByStudent]);
+  const playersPresent = attPresent;
 
   const insights = insightsQ.data;
   const kpis = kpisQ.data;
-  const attPct = insights?.attendanceToday.percent ?? 0;
-  const attPresent = insights?.attendanceToday.present ?? 0;
-  const attTotal = insights?.attendanceToday.total ?? 0;
   const pendingFees = kpis?.pendingFeeCount ?? 0;
   const collectedMonth = kpis?.collectionThisMonth ?? 0;
+  const attendanceLoading = attendanceQ.isLoading || batchesQ.isLoading || studentsQ.isLoading;
+
 
   const displayName =
     (profile as { display_name?: string })?.display_name ?? tenant.name;
   const greeting = greetingFor(now);
 
-  // Pending actions for admins = new regs + not-yet-arrived count (heuristic)
-  const notArrived = useMemo(() => {
-    const total = attendanceRows.length;
-    const arrived = attendanceRows.filter(
-      (r) => r.current_state === "in_academy" || r.current_state === "checked_out",
-    ).length;
-    return Math.max(0, total - arrived);
-  }, [attendanceRows]);
+  // Pending actions for admins = new regs + not-yet-arrived count.
+  // Derived from the same roster as the Attendance page — never a separate calc.
+  const notArrived = Math.max(0, attTotal - attPresent);
   const pendingActions = newRegs + (notArrived > 0 ? 1 : 0);
 
   return (
@@ -178,7 +208,7 @@ function DashboardHome() {
           <KpiTile
             to="/dashboard/attendance"
             label="In Academy Now"
-            value={attendanceQ.isLoading ? null : inAcademy}
+            value={attendanceLoading ? null : inAcademy}
             hint="Live"
             icon={<ClipboardCheck className="size-4" />}
             tone="live"
@@ -199,8 +229,8 @@ function DashboardHome() {
             <KpiTile
               to="/dashboard/attendance"
               label="Players Present"
-              value={attendanceQ.isLoading ? null : playersPresent}
-              hint={`of ${attendanceRows.length}`}
+              value={attendanceLoading ? null : playersPresent}
+              hint={`of ${attTotal}`}
               icon={<Users className="size-4" />}
               tone="brand"
             />
@@ -208,11 +238,12 @@ function DashboardHome() {
           <KpiTile
             to="/dashboard/attendance"
             label="Attendance"
-            value={insightsQ.isLoading ? null : `${attPct}%`}
+            value={attendanceLoading ? null : `${attPct}%`}
             hint={attTotal > 0 ? `${attPresent}/${attTotal} today` : "No marks yet"}
             icon={<Sparkles className="size-4" />}
             tone={attPct >= 80 ? "success" : attPct >= 60 ? "warn" : "muted"}
           />
+
           {role === "owner" ? (
             <KpiTile
               to="/dashboard/registrations"
@@ -276,8 +307,8 @@ function DashboardHome() {
       <section aria-label="Live status" className="pt-1">
         <LiveStatusStrip
           inAcademy={inAcademy}
-          totalToday={attendanceRows.length}
-          isLoading={attendanceQ.isLoading}
+          totalToday={attTotal}
+          isLoading={attendanceLoading}
         />
       </section>
     </div>
