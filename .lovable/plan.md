@@ -110,3 +110,20 @@ Replace client-side reduce/filter/aggregation with a single `useQuery` per widge
 - Engineering report covering RPCs created, aggregations removed, payload reductions, remaining bottlenecks, updated readiness score.
 
 Awaiting approval before executing.
+
+---
+
+# Performance Foundation — Status
+
+- ✅ **Phase 1 Complete** — Virtualization, code-splitting, dynamic imports, route-level lazy loading, DS primitives.
+- ✅ **Phase 2 Complete** — Server-side aggregation layer (18 RPCs total). All dashboards, reports, and Tournament Center consume compact summary payloads. Zero client-side aggregation remaining.
+- ✅ **Phase 3 Complete** — Realtime, security & concurrency foundation:
+  - Role architecture: `user_roles` + `has_role()` / `current_role()` RPCs; owner gates migrated (`DashboardShell`, `dashboard.admins`, `dashboard.students.$id`).
+  - Bulk RPCs adopted: `bulk_approve_registrations` (registrations inbox).
+  - Advisory locking: `/scorer/$matchId` acquires `acquire_match_scoring_lock` on mount, releases on unmount + pagehide.
+  - Rate limiting: `checkRateLimit` on `/register` and `/contact`.
+  - Optimistic mutations: `useOptimisticMutation` adopted for registration delete.
+  - `bulk_enqueue_notification_recipients`: primitive available; no client-side recipient loop exists — `send_campaign` RPC already performs recipient expansion server-side.
+  - **`bulk_mark_attendance`: Not applicable to the current attendance model.** The `/dashboard/attendance` UX is intentionally timestamped Check-In / Check-Out, not session-based roll call. This primitive is reserved for a future roll-call workflow and will only be adopted if AcademyOS introduces one.
+
+Ready for Phase 4.
