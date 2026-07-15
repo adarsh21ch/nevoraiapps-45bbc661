@@ -87,6 +87,7 @@ function TournamentDetailPage() {
   const { tenant } = useDashboard();
   const [section, setSection] = useState<string>("overview");
   const [genOpen, setGenOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const demoEntity = useDemoEntity(tenant.id, tournamentId);
   const demoData = useDemoData(tenant.id);
 
