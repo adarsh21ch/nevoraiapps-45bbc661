@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -7,7 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchTenants, pqk, type TenantRow } from "@/lib/platform-queries";
 import { SubChip, StatusChip } from "@/components/platform/StatusChips";
-import { CheckCircle2, MessageCircle, TrendingUp } from "lucide-react";
+import { CheckCircle2, MessageCircle, TrendingUp, Gift, ArrowUp, ArrowDown, PauseCircle, PlayCircle, CalendarPlus } from "lucide-react";
+import {
+  grantTrial,
+  extendPeriod,
+  setPlanTier,
+  suspendTenant,
+  resumeTenant,
+} from "@/lib/payments/subscription.functions";
+import { PLAN_META, type PlanTier } from "@/lib/payments/plans";
 
 export const Route = createFileRoute("/platform-admin/subscriptions")({
   component: Subs,
