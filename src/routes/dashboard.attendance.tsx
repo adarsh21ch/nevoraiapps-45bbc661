@@ -44,6 +44,8 @@ import {
   type AttendanceState,
 } from "@/lib/attendance/constants";
 import { cn } from "@/lib/utils";
+import { VirtualList } from "@/components/ds/VirtualList";
+
 
 export const Route = createFileRoute("/dashboard/attendance")({
   head: () => ({
