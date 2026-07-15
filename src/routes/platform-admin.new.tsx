@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Trash2, Copy, Check, ArrowRight, ArrowLeft, ExternalLink } from "lucide-react";
 import { nicheOptions, niche, type NicheKey } from "@/lib/niche";
-import { sportsList, type SportKey } from "@/lib/sports";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { useServerFn } from "@tanstack/react-start";
 import { createTenantOwner } from "@/lib/tenant-owner.functions";
@@ -36,9 +35,23 @@ function Wizard() {
   const [createdTenantId, setCreatedTenantId] = useState<string | null>(null);
   const [ownerCreds, setOwnerCreds] = useState<{ email: string; password: string } | null>(null);
 
+  // Load enabled sports from Platform Admin catalog — no hardcoded list.
+  const { data: enabledSports = [] } = useQuery({
+    queryKey: ["platform_sports", "enabled"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("platform_sports")
+        .select("key,name,icon,version")
+        .eq("status", "enabled")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data as { key: string; name: string; icon: string; version: string }[];
+    },
+  });
+
   // Form state
   const [biz, setBiz] = useState({
-    name: "", slug: "", niche: "academy" as NicheKey, sport: "cricket" as SportKey,
+    name: "", slug: "", niche: "academy" as NicheKey, sport_id: "cricket",
     phone: "", whatsapp: "", email: "", address: "",
     upi_id: "",
   });
@@ -137,7 +150,8 @@ function Wizard() {
           setup_fee: parseInt(pricing.setup_fee || "0", 10),
           billing_day: Math.max(1, Math.min(28, parseInt(pricing.billing_day || "1", 10))),
           status: "active",
-          features: { online_registration: true, fee_tracking: true, powered_by_badge: true, sport: biz.sport },
+          sport_id: biz.sport_id,
+          features: { online_registration: true, fee_tracking: true, powered_by_badge: true, sport: biz.sport_id },
         })
         .select("id, slug")
         .single();
@@ -289,17 +303,19 @@ function Wizard() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-neutral-300">Sport *</Label>
-                <Select value={biz.sport} onValueChange={(v) => setBiz({ ...biz, sport: v as SportKey })}>
-                  <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
+                <Select value={biz.sport_id} onValueChange={(v) => setBiz({ ...biz, sport_id: v })}>
+                  <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue placeholder="Select a sport" /></SelectTrigger>
                   <SelectContent>
-                    {sportsList.map((s) => (
+                    {enabledSports.length === 0 ? (
+                      <div className="px-2 py-1.5 text-xs text-neutral-500">No sports enabled. Add one in Supported sports.</div>
+                    ) : enabledSports.map((s) => (
                       <SelectItem key={s.key} value={s.key}>
-                        {s.emoji} {s.label}{s.status !== "live" ? " — coming soon" : ""}
+                        {s.icon} {s.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-neutral-500">Cricket is fully live. Other sports enable shared modules today; sport-specific scoring ships as we go.</p>
+                <p className="text-xs text-neutral-500">Only sports enabled in Platform Admin → Supported sports appear here.</p>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-neutral-300">Wording style</Label>

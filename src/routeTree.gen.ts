@@ -53,6 +53,7 @@ import { Route as PoliciesKindRouteImport } from './routes/policies.$kind'
 import { Route as PlatformAdminUsageRouteImport } from './routes/platform-admin.usage'
 import { Route as PlatformAdminSupportRouteImport } from './routes/platform-admin.support'
 import { Route as PlatformAdminSubscriptionsRouteImport } from './routes/platform-admin.subscriptions'
+import { Route as PlatformAdminSportsRouteImport } from './routes/platform-admin.sports'
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
 import { Route as PlatformAdminSearchRouteImport } from './routes/platform-admin.search'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
@@ -338,6 +339,11 @@ const PlatformAdminSubscriptionsRoute =
     path: '/subscriptions',
     getParentRoute: () => PlatformAdminRoute,
   } as any)
+const PlatformAdminSportsRoute = PlatformAdminSportsRouteImport.update({
+  id: '/sports',
+  path: '/sports',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
 const PlatformAdminSettingsRoute = PlatformAdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -743,6 +749,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
+  '/platform-admin/sports': typeof PlatformAdminSportsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/platform-admin/support': typeof PlatformAdminSupportRoute
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
@@ -847,6 +854,7 @@ export interface FileRoutesByTo {
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
+  '/platform-admin/sports': typeof PlatformAdminSportsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/platform-admin/support': typeof PlatformAdminSupportRoute
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
@@ -957,6 +965,7 @@ export interface FileRoutesById {
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
+  '/platform-admin/sports': typeof PlatformAdminSportsRoute
   '/platform-admin/subscriptions': typeof PlatformAdminSubscriptionsRoute
   '/platform-admin/support': typeof PlatformAdminSupportRoute
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
@@ -1068,6 +1077,7 @@ export interface FileRouteTypes {
     | '/platform-admin/new'
     | '/platform-admin/search'
     | '/platform-admin/settings'
+    | '/platform-admin/sports'
     | '/platform-admin/subscriptions'
     | '/platform-admin/support'
     | '/platform-admin/usage'
@@ -1172,6 +1182,7 @@ export interface FileRouteTypes {
     | '/platform-admin/new'
     | '/platform-admin/search'
     | '/platform-admin/settings'
+    | '/platform-admin/sports'
     | '/platform-admin/subscriptions'
     | '/platform-admin/support'
     | '/platform-admin/usage'
@@ -1281,6 +1292,7 @@ export interface FileRouteTypes {
     | '/platform-admin/new'
     | '/platform-admin/search'
     | '/platform-admin/settings'
+    | '/platform-admin/sports'
     | '/platform-admin/subscriptions'
     | '/platform-admin/support'
     | '/platform-admin/usage'
@@ -1661,6 +1673,13 @@ declare module '@tanstack/react-router' {
       path: '/subscriptions'
       fullPath: '/platform-admin/subscriptions'
       preLoaderRoute: typeof PlatformAdminSubscriptionsRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/sports': {
+      id: '/platform-admin/sports'
+      path: '/sports'
+      fullPath: '/platform-admin/sports'
+      preLoaderRoute: typeof PlatformAdminSportsRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
     '/platform-admin/settings': {
@@ -2281,6 +2300,7 @@ interface PlatformAdminRouteChildren {
   PlatformAdminNewRoute: typeof PlatformAdminNewRoute
   PlatformAdminSearchRoute: typeof PlatformAdminSearchRoute
   PlatformAdminSettingsRoute: typeof PlatformAdminSettingsRoute
+  PlatformAdminSportsRoute: typeof PlatformAdminSportsRoute
   PlatformAdminSubscriptionsRoute: typeof PlatformAdminSubscriptionsRoute
   PlatformAdminSupportRoute: typeof PlatformAdminSupportRoute
   PlatformAdminUsageRoute: typeof PlatformAdminUsageRoute
@@ -2296,6 +2316,7 @@ const PlatformAdminRouteChildren: PlatformAdminRouteChildren = {
   PlatformAdminNewRoute: PlatformAdminNewRoute,
   PlatformAdminSearchRoute: PlatformAdminSearchRoute,
   PlatformAdminSettingsRoute: PlatformAdminSettingsRoute,
+  PlatformAdminSportsRoute: PlatformAdminSportsRoute,
   PlatformAdminSubscriptionsRoute: PlatformAdminSubscriptionsRoute,
   PlatformAdminSupportRoute: PlatformAdminSupportRoute,
   PlatformAdminUsageRoute: PlatformAdminUsageRoute,
