@@ -114,6 +114,7 @@ import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
 import { Route as DashboardActivationRouteImport } from './routes/dashboard.activation'
 import { Route as DashboardAcademyRouteImport } from './routes/dashboard.academy'
 import { Route as ApplySlugRouteImport } from './routes/apply.$slug'
+import { Route as ActivateTokenRouteImport } from './routes/activate.$token'
 import { Route as AcademySlugRouteImport } from './routes/academy.$slug'
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
 import { Route as MatchCenterTeamsIndexRouteImport } from './routes/match-center.teams.index'
@@ -666,6 +667,11 @@ const ApplySlugRoute = ApplySlugRouteImport.update({
   path: '/apply/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ActivateTokenRoute = ActivateTokenRouteImport.update({
+  id: '/activate/$token',
+  path: '/activate/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AcademySlugRoute = AcademySlugRouteImport.update({
   id: '/academy/$slug',
   path: '/academy/$slug',
@@ -823,6 +829,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
+  '/activate/$token': typeof ActivateTokenRoute
   '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
@@ -947,6 +954,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
+  '/activate/$token': typeof ActivateTokenRoute
   '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
@@ -1077,6 +1085,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
+  '/activate/$token': typeof ActivateTokenRoute
   '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
@@ -1208,6 +1217,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/academy/$slug'
+    | '/activate/$token'
     | '/apply/$slug'
     | '/dashboard/academy'
     | '/dashboard/activation'
@@ -1332,6 +1342,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/academy/$slug'
+    | '/activate/$token'
     | '/apply/$slug'
     | '/dashboard/academy'
     | '/dashboard/activation'
@@ -1461,6 +1472,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/testimonials'
     | '/academy/$slug'
+    | '/activate/$token'
     | '/apply/$slug'
     | '/dashboard/academy'
     | '/dashboard/activation'
@@ -1591,6 +1603,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TestimonialsRoute: typeof TestimonialsRoute
   AcademySlugRoute: typeof AcademySlugRoute
+  ActivateTokenRoute: typeof ActivateTokenRoute
   ApplySlugRoute: typeof ApplySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
@@ -2342,6 +2355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApplySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/activate/$token': {
+      id: '/activate/$token'
+      path: '/activate/$token'
+      fullPath: '/activate/$token'
+      preLoaderRoute: typeof ActivateTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/academy/$slug': {
       id: '/academy/$slug'
       path: '/academy/$slug'
@@ -2790,6 +2810,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TestimonialsRoute: TestimonialsRoute,
   AcademySlugRoute: AcademySlugRoute,
+  ActivateTokenRoute: ActivateTokenRoute,
   ApplySlugRoute: ApplySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,

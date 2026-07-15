@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchFeePlans, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { detectDuplicates } from "@/lib/students-manage";
+import { bulkImportStudents } from "@/lib/admissions/admissions.functions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -109,6 +111,9 @@ export function BulkImportStudents() {
   const [rows, setRows] = useState<Row[]>([]);
   const [fileName, setFileName] = useState("");
   const [skipDupes, setSkipDupes] = useState(true);
+  const [markImported, setMarkImported] = useState(true);
+  const bulkImport = useServerFn(bulkImportStudents);
+
 
   const batches = useQuery({
     queryKey: qk.batches(tenant.id),
@@ -174,6 +179,29 @@ export function BulkImportStudents() {
         if (skipDupes && p.dupe) return false;
         return true;
       });
+      if (eligible.length === 0) throw new Error("Nothing to import after filtering");
+
+      // Route through server fn when marking as imported (creates rollback batch + emits events).
+      if (markImported) {
+        const rowsPayload = eligible.map(({ row: r }) => ({
+          name: r.name,
+          phone: r.phone,
+          email: r.email || null,
+          guardian_name: r.guardian_name || null,
+          guardian_phone: r.guardian_phone || null,
+          dob: r.dob || null,
+          address: null,
+          batch_id: r.batch ? (batchByName.get(r.batch.toLowerCase()) ?? null) : null,
+          fee_plan_id: r.fee_plan ? (planByName.get(r.fee_plan.toLowerCase()) ?? null) : null,
+          roll_number: null,
+        }));
+        const res: any = await bulkImport({
+          data: { tenantId: tenant.id, fileName, rows: rowsPayload },
+        });
+        return res.success ?? rowsPayload.length;
+      }
+
+      // Legacy direct insert path (active students).
       const payload = eligible.map(({ row: r }) => ({
         tenant_id: tenant.id,
         name: r.name,
@@ -197,7 +225,6 @@ export function BulkImportStudents() {
         fee_plan_id: r.fee_plan ? (planByName.get(r.fee_plan.toLowerCase()) ?? null) : null,
         status: (r.status || "active").toLowerCase(),
       }));
-      if (payload.length === 0) throw new Error("Nothing to import after filtering");
       const { error } = await supabase.from("students").insert(payload);
       if (error) throw error;
       return payload.length;
@@ -315,6 +342,15 @@ export function BulkImportStudents() {
                 <SummaryTile label="Invalid rows" value={invalidCount} tone="rose" />
               </div>
 
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={markImported}
+                  onChange={(e) => setMarkImported(e.target.checked)}
+                  className="size-4 accent-current"
+                />
+                Mark as imported (creates activation tokens, allows rollback, sends via Activation Center)
+              </label>
               {dupeCount > 0 && (
                 <label className="flex items-center gap-2 text-xs cursor-pointer">
                   <input

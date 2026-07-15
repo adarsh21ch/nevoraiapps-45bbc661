@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { useDashboard } from "@/lib/dashboard-context";
+import { supabase } from "@/integrations/supabase/client";
 import { importedStudentsQuery, importBatchesQuery } from "@/lib/admissions/queries";
 import { sendActivations, rollbackImport } from "@/lib/admissions/admissions.functions";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { Copy, QrCode } from "lucide-react";
 import { LIFECYCLE_LABEL, LIFECYCLE_TONE, type LifecycleStatus } from "@/lib/admissions/lifecycle";
 
 export const Route = createFileRoute("/dashboard/activation")({
@@ -24,19 +32,21 @@ export const Route = createFileRoute("/dashboard/activation")({
 });
 
 function ActivationCenter() {
-  const { tenant } = useDashboard(); const tenantId = tenant.id;
-  const { data: students } = useSuspenseQuery(importedStudentsQuery(tenantId!));
-  const { data: batches } = useSuspenseQuery(importBatchesQuery(tenantId!));
+  const { tenant } = useDashboard();
+  const tenantId = tenant.id!;
+  const { data: students } = useSuspenseQuery(importedStudentsQuery(tenantId));
+  const { data: batches } = useSuspenseQuery(importBatchesQuery(tenantId));
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [qrFor, setQrFor] = useState<{ name: string; token: string } | null>(null);
   const qc = useQueryClient();
 
   const send = useServerFn(sendActivations);
   const rollback = useServerFn(rollbackImport);
 
   const sendMut = useMutation({
-    mutationFn: (studentIds: string[]) => send({ data: { tenantId: tenantId!, studentIds } }),
+    mutationFn: (studentIds: string[]) => send({ data: { tenantId, studentIds } }),
     onSuccess: (res: any) => {
       toast.success(`Sent ${res.results.length} activations`);
       setSelected(new Set());
@@ -46,7 +56,7 @@ function ActivationCenter() {
   });
 
   const rollbackMut = useMutation({
-    mutationFn: (batchId: string) => rollback({ data: { batchId, tenantId: tenantId! } }),
+    mutationFn: (batchId: string) => rollback({ data: { batchId, tenantId } }),
     onSuccess: () => {
       toast.success("Import rolled back");
       qc.invalidateQueries({ queryKey: ["admissions"] });
@@ -63,13 +73,36 @@ function ActivationCenter() {
 
   const toggle = (id: string) => {
     const next = new Set(selected);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
+    if (next.has(id)) next.delete(id); else next.add(id);
     setSelected(next);
   };
   const toggleAll = () => {
     if (selected.size === filtered.length) setSelected(new Set());
     else setSelected(new Set(filtered.map((s: any) => s.id)));
+  };
+
+  const copyLink = async (studentId: string) => {
+    const { data } = await supabase
+      .from("students")
+      .select("activation_token, name")
+      .eq("id", studentId)
+      .maybeSingle();
+    const token = (data as any)?.activation_token;
+    if (!token) { toast.error("No active token — send activation first"); return; }
+    const link = `${window.location.origin}/activate/${token}`;
+    await navigator.clipboard.writeText(link);
+    toast.success("Activation link copied");
+  };
+
+  const showQr = async (studentId: string) => {
+    const { data } = await supabase
+      .from("students")
+      .select("activation_token, name")
+      .eq("id", studentId)
+      .maybeSingle();
+    const token = (data as any)?.activation_token;
+    if (!token) { toast.error("No active token — send activation first"); return; }
+    setQrFor({ name: (data as any).name, token });
   };
 
   const counts = {
@@ -82,7 +115,7 @@ function ActivationCenter() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Activation Center</h1>
-        <p className="text-sm text-muted-foreground">Send activation invites to imported students and track progress.</p>
+        <p className="text-sm text-muted-foreground">Send activation invites, copy links, and track progress.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -98,18 +131,13 @@ function ActivationCenter() {
             Students {statusFilter !== "all" && <Badge variant="outline">{statusFilter}</Badge>}
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search…"
-              className="w-56"
-            />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="w-56" />
             <Button
               size="sm"
               disabled={selected.size === 0 || sendMut.isPending}
               onClick={() => sendMut.mutate([...selected])}
             >
-              Send Activation ({selected.size})
+              {sendMut.isPending ? "Sending…" : `Send Activation (${selected.size})`}
             </Button>
           </div>
         </CardHeader>
@@ -128,6 +156,7 @@ function ActivationCenter() {
                     <th className="pb-2">Phone</th>
                     <th className="pb-2">Status</th>
                     <th className="pb-2">Sent</th>
+                    <th className="pb-2 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -146,6 +175,16 @@ function ActivationCenter() {
                       <td className="py-2 text-xs text-muted-foreground">
                         {s.activation_sent_at ? new Date(s.activation_sent_at).toLocaleDateString() : "—"}
                       </td>
+                      <td className="py-2">
+                        <div className="flex justify-end gap-1">
+                          <Button size="icon" variant="ghost" title="Copy link" onClick={() => copyLink(s.id)}>
+                            <Copy className="size-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" title="QR" onClick={() => showQr(s.id)}>
+                            <QrCode className="size-3.5" />
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -157,9 +196,7 @@ function ActivationCenter() {
 
       {batches.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Import History</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-base">Import History</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             {batches.map((b: any) => (
               <div key={b.id} className="flex items-center justify-between rounded border p-3 text-sm">
@@ -188,6 +225,8 @@ function ActivationCenter() {
           </CardContent>
         </Card>
       )}
+
+      <QrDialog data={qrFor} onClose={() => setQrFor(null)} />
     </div>
   );
 }
@@ -200,3 +239,36 @@ function StatCard({ label, value, onClick }: { label: string; value: number; onC
     </button>
   );
 }
+
+function QrDialog({ data, onClose }: { data: { name: string; token: string } | null; onClose: () => void }) {
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!data) { setDataUrl(null); return; }
+    (async () => {
+      const { default: QRCode } = await import("qrcode");
+      const link = `${window.location.origin}/activate/${data.token}`;
+      const url = await QRCode.toDataURL(link, { width: 320, margin: 1 });
+      setDataUrl(url);
+    })();
+  }, [data]);
+  return (
+    <Dialog open={Boolean(data)} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Activation QR — {data?.name}</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col items-center gap-3 py-2">
+          {dataUrl ? (
+            <img src={dataUrl} alt="Activation QR" className="rounded border" />
+          ) : (
+            <div className="h-64 w-64 animate-pulse rounded bg-muted" />
+          )}
+          <p className="text-xs text-muted-foreground text-center">
+            Scan to activate the student account.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+

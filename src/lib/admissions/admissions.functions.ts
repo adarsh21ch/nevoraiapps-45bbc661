@@ -327,3 +327,66 @@ export const activateStudent = createServerFn({ method: "POST" })
     });
     return { ok: true, studentId: student.id, tenantId: student.tenant_id };
   });
+
+/** Request changes on a submitted registration. */
+export const requestRegistrationChanges = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (i: { registrationId: string; tenantId: string; notes: string; missingDocs?: string[] }) => i,
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.tenantId);
+    const { error } = await context.supabase
+      .from("registrations")
+      .update({
+        review_status: "changes_requested",
+        review_notes: data.notes,
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: context.userId,
+        status: "changes_requested",
+      })
+      .eq("id", data.registrationId)
+      .eq("tenant_id", data.tenantId);
+    if (error) throw error;
+    await context.supabase.from("automation_events").insert({
+      tenant_id: data.tenantId,
+      event_type: "student.registration_changes_requested",
+      source_module: "admissions",
+      source_id: data.registrationId,
+      payload: { notes: data.notes, missing_docs: data.missingDocs ?? [] },
+    });
+    return { ok: true };
+  });
+
+/** Bulk update lifecycle / batch / fee plan for many students in one call. */
+export const bulkUpdateStudents = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (i: {
+      tenantId: string;
+      studentIds: string[];
+      batchId?: string | null;
+      feePlanId?: string | null;
+      lifecycleStatus?: string | null;
+      status?: string | null;
+    }) => i,
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.tenantId);
+    const patch: Record<string, string | null> = {};
+    if (data.batchId !== undefined) patch.batch_id = data.batchId;
+    if (data.feePlanId !== undefined) patch.fee_plan_id = data.feePlanId;
+    if (data.lifecycleStatus !== undefined && data.lifecycleStatus !== null)
+      patch.lifecycle_status = data.lifecycleStatus;
+    if (data.status !== undefined && data.status !== null) patch.status = data.status;
+    if (Object.keys(patch).length === 0) return { ok: true, count: 0 };
+    const { data: updated, error } = await context.supabase
+      .from("students")
+      .update(patch as any)
+      .in("id", data.studentIds)
+      .eq("tenant_id", data.tenantId)
+      .select("id");
+    if (error) throw error;
+    return { ok: true, count: updated?.length ?? 0 };
+  });
+
