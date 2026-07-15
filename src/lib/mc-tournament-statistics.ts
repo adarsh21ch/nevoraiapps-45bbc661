@@ -67,8 +67,8 @@ interface MatchMeta {
   team_b_name: string | null;
   winner_team: string | null;
   victory_type: string | null;
-  victory_margin: number | null;
-  victory_margin_type: string | null; // 'runs' | 'wickets' | null
+  winning_margin: number | null;
+  winning_margin_type: string | null; // 'runs' | 'wickets' | null
   overs: number;
   scheduled_date: string | null;
   result: string | null;
