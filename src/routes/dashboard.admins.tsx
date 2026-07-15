@@ -5,7 +5,7 @@ import { ShieldCheck, ArrowLeft, Lock, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ds/Card";
 import { useDashboard } from "@/lib/dashboard-context";
-import { isOwner } from "@/lib/roles";
+import { usePermissions } from "@/hooks/use-permissions";
 import { supabase } from "@/integrations/supabase/client";
 import { DangerZone } from "@/components/shared/DangerZone";
 import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
