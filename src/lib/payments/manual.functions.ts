@@ -87,7 +87,7 @@ export const listMyManualPayments = createServerFn({ method: "POST" })
     const { data: rows, error } = await context.supabase
       .from("manual_payment_submissions")
       .select(
-        "id, invoice_id, method, amount, currency, utr, paid_at, screenshot_path, status, review_reason, created_at",
+        "id, invoice_id, method, amount, currency, utr, paid_at, screenshot_path, status, review_reason, created_at, viewed_at, reviewed_at, billing_payment_id",
       )
       .eq("student_id", data.studentId)
       .order("created_at", { ascending: false })
