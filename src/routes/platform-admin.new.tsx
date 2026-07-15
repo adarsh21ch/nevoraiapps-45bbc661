@@ -35,9 +35,23 @@ function Wizard() {
   const [createdTenantId, setCreatedTenantId] = useState<string | null>(null);
   const [ownerCreds, setOwnerCreds] = useState<{ email: string; password: string } | null>(null);
 
+  // Load enabled sports from Platform Admin catalog — no hardcoded list.
+  const { data: enabledSports = [] } = useQuery({
+    queryKey: ["platform_sports", "enabled"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("platform_sports")
+        .select("key,name,icon,version")
+        .eq("status", "enabled")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data as { key: string; name: string; icon: string; version: string }[];
+    },
+  });
+
   // Form state
   const [biz, setBiz] = useState({
-    name: "", slug: "", niche: "academy" as NicheKey, sport: "cricket" as SportKey,
+    name: "", slug: "", niche: "academy" as NicheKey, sport_id: "cricket",
     phone: "", whatsapp: "", email: "", address: "",
     upi_id: "",
   });
