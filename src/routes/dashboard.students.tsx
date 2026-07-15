@@ -575,7 +575,7 @@ function PlayerRow({
   };
 
   return (
-    <li className="flex items-center gap-2 md:gap-3 pr-2">
+    <div className="flex items-center gap-2 md:gap-3 pr-2">
       <button
         type="button"
         onClick={onOpen}
