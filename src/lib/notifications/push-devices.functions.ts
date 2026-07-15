@@ -181,13 +181,25 @@ export const pingPushDevice = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export interface MyPushDevice {
+  id: string;
+  device_id: string;
+  platform: "ios" | "android" | "web";
+  app_version: string | null;
+  locale: string | null;
+  enabled: boolean;
+  last_seen_at: string;
+  created_at: string;
+  disabled_reason: string | null;
+}
+
 export const listMyPushDevices = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<{ devices: MyPushDevice[] }> => {
     const { data } = await context.supabase
       .from("push_devices")
       .select("id, device_id, platform, app_version, locale, enabled, last_seen_at, created_at, disabled_reason")
       .eq("user_id", context.userId)
       .order("last_seen_at", { ascending: false });
-    return { devices: (data ?? []) as unknown as Array<Record<string, unknown>> };
+    return { devices: (data ?? []) as unknown as MyPushDevice[] };
   });
