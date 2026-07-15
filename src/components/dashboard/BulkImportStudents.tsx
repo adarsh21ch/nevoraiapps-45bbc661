@@ -351,8 +351,7 @@ export function BulkImportStudents() {
                 />
                 Mark as imported (creates activation tokens, allows rollback, sends via Activation Center)
               </label>
-
-
+              {dupeCount > 0 && (
                 <label className="flex items-center gap-2 text-xs cursor-pointer">
                   <input
                     type="checkbox"
