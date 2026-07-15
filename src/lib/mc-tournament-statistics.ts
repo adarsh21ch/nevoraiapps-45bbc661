@@ -729,11 +729,11 @@ export function buildTournamentAnalytics(
     }
 
     // Match row
-    const marginText = meta.victory_margin != null && meta.victory_margin_type
-      ? `${meta.victory_margin} ${meta.victory_margin_type}`
+    const marginText = meta.winning_margin != null && meta.winning_margin_type
+      ? `${meta.winning_margin} ${meta.winning_margin_type}`
       : meta.result ?? "";
     const excitement =
-      matchRuns / Math.max(1, meta.victory_margin ?? 999);
+      matchRuns / Math.max(1, meta.winning_margin ?? 999);
     matchRows.push({
       matchId: meta.id,
       teamA: meta.team_a_name ?? "—",
