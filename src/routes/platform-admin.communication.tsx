@@ -50,8 +50,16 @@ import {
   ScrollText,
   Server,
   SlidersHorizontal,
+  Send,
 } from "lucide-react";
 import { format } from "date-fns";
+import {
+  getBotBizStatus,
+  runBotBizHealthCheck,
+  sendBotBizTest,
+  sendBotBizTestAttendance,
+  getBotBizRecentDeliveries,
+} from "@/lib/automation/botbiz-admin.functions";
 
 export const Route = createFileRoute("/platform-admin/communication")({
   head: () => ({
@@ -118,6 +126,7 @@ const TABS = [
   { key: "templates", label: "Templates", icon: MessageSquare },
   { key: "preview", label: "Preview", icon: Eye },
   { key: "sandbox", label: "Sandbox", icon: FlaskConical },
+  { key: "botbiz", label: "BotBiz", icon: Send },
   { key: "monitor", label: "Monitor", icon: Gauge },
   { key: "queue", label: "Queue", icon: Inbox },
   { key: "logs", label: "Logs", icon: ScrollText },
@@ -252,6 +261,7 @@ function CommunicationInfrastructurePage() {
       {tab === "health" && (
         <HealthTab health={health.data as Awaited<ReturnType<typeof getGatewayHealth>> | undefined} />
       )}
+      {tab === "botbiz" && <BotBizTab />}
       {tab === "costs" && <CostsTab />}
     </div>
   );
@@ -1228,5 +1238,241 @@ function BreakdownCard({
         ))}
       </div>
     </Card>
+  );
+}
+
+function BotBizTab() {
+  const qc = useQueryClient();
+  const statusFn = useServerFn(getBotBizStatus);
+  const healthFn = useServerFn(runBotBizHealthCheck);
+  const testFn = useServerFn(sendBotBizTest);
+  const attFn = useServerFn(sendBotBizTestAttendance);
+  const listFn = useServerFn(getBotBizRecentDeliveries);
+
+  const status = useQuery({ queryKey: ["botbiz-status"], queryFn: () => statusFn() });
+  const deliveries = useQuery({
+    queryKey: ["botbiz-deliveries"],
+    queryFn: () => listFn(),
+    refetchInterval: 5000,
+  });
+
+  const [to, setTo] = useState("");
+  const [msg, setMsg] = useState("Hello from BotBiz sandbox ✅");
+  const [studentName, setStudentName] = useState("Test Student");
+  const [parentName, setParentName] = useState("Test Parent");
+
+  const runHealth = useMutation({
+    mutationFn: () => healthFn(),
+    onSuccess: () => {
+      toast.success("Health check complete");
+      qc.invalidateQueries({ queryKey: ["botbiz-status"] });
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Health check failed"),
+  });
+  const sendTest = useMutation({
+    mutationFn: () => testFn({ data: { to, message: msg } }),
+    onSuccess: (r) => {
+      if (r.result.ok) toast.success(`Sent via ${r.result.provider} (${r.requestId})`);
+      else toast.error(r.result.error ?? "Send failed");
+      qc.invalidateQueries({ queryKey: ["botbiz-deliveries"] });
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Send failed"),
+  });
+  const sendAtt = useMutation({
+    mutationFn: (eventType: "student.check_in" | "student.check_out") =>
+      attFn({
+        data: {
+          to,
+          studentName,
+          parentName,
+          academyName: "Sandbox Academy",
+          coachName: "Coach",
+          eventType,
+        },
+      }),
+    onSuccess: (r) => {
+      if (r.result.ok) toast.success(`Attendance test sent (${r.requestId})`);
+      else toast.error(r.result.error ?? "Send failed");
+      qc.invalidateQueries({ queryKey: ["botbiz-deliveries"] });
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Send failed"),
+  });
+
+  const s = status.data;
+  const health = s?.health;
+  const cfg = s?.config;
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <Card className="p-4 bg-neutral-900 border-white/10 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-white font-semibold">BotBiz Account</h3>
+          <Badge variant={s?.configured ? "default" : "destructive"}>
+            {s?.configured ? "Connected" : "Not Configured"}
+          </Badge>
+        </div>
+        {!s?.configured && (
+          <p className="text-sm text-neutral-400">
+            {s?.reason ?? "Add the BOTBIZ_API_KEY secret to activate this adapter."}
+          </p>
+        )}
+        {s?.configured && cfg && (
+          <div className="text-sm text-neutral-300 space-y-1">
+            <div>Base URL: <span className="text-neutral-400">{cfg.baseUrl}</span></div>
+            <div>Send Path: <span className="text-neutral-400">{cfg.sendPath}</span></div>
+            <div>Bot ID: <span className="text-neutral-400">{cfg.botId ?? "—"}</span></div>
+            <div>Timeout: <span className="text-neutral-400">{cfg.timeoutMs} ms</span></div>
+            <div>API Key: <span className="text-neutral-400">••• stored securely</span></div>
+          </div>
+        )}
+        <div className="pt-2 border-t border-white/10 space-y-1 text-sm">
+          <div className="flex items-center gap-2">
+            {health?.ok ? (
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            ) : (
+              <Clock className="h-4 w-4 text-yellow-500" />
+            )}
+            <span className="text-white">
+              {health ? health.message : "Health check not yet run"}
+            </span>
+          </div>
+          {health?.latencyMs != null && (
+            <div className="text-neutral-500">Latency: {health.latencyMs} ms</div>
+          )}
+        </div>
+        <Button
+          size="sm"
+          onClick={() => runHealth.mutate()}
+          disabled={runHealth.isPending}
+        >
+          {runHealth.isPending ? "Checking…" : "Run Health Check"}
+        </Button>
+      </Card>
+
+      <Card className="p-4 bg-neutral-900 border-white/10 space-y-3">
+        <h3 className="text-white font-semibold">Send Test Message</h3>
+        <div className="space-y-2">
+          <Label>Recipient phone (E.164, e.g. +919999999999)</Label>
+          <Input value={to} onChange={(e) => setTo(e.target.value)} placeholder="+91..." />
+          <Label>Message</Label>
+          <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={3} />
+          <Button
+            onClick={() => sendTest.mutate()}
+            disabled={!to || !msg || sendTest.isPending}
+          >
+            {sendTest.isPending ? "Sending…" : "Send via Gateway"}
+          </Button>
+        </div>
+        <div className="pt-3 border-t border-white/10 space-y-2">
+          <h4 className="text-sm font-medium text-white">Send Test Attendance</h4>
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              placeholder="Student name"
+              value={studentName}
+              onChange={(e) => setStudentName(e.target.value)}
+            />
+            <Input
+              placeholder="Parent name"
+              value={parentName}
+              onChange={(e) => setParentName(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => sendAtt.mutate("student.check_in")}
+              disabled={!to || sendAtt.isPending}
+            >
+              Check-In
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => sendAtt.mutate("student.check_out")}
+              disabled={!to || sendAtt.isPending}
+            >
+              Check-Out
+            </Button>
+          </div>
+          <p className="text-xs text-neutral-500">
+            Routes through Automation Engine → Gateway → BotBiz.
+          </p>
+        </div>
+      </Card>
+
+      <Card className="p-4 bg-neutral-900 border-white/10 lg:col-span-2">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-white font-semibold">Recent BotBiz Deliveries</h3>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => qc.invalidateQueries({ queryKey: ["botbiz-deliveries"] })}
+          >
+            Refresh
+          </Button>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-neutral-500 text-left">
+              <tr>
+                <th className="py-2">Time</th>
+                <th>Recipient</th>
+                <th>Status</th>
+                <th>Attempts</th>
+                <th>Duration</th>
+                <th>Provider Msg ID</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody className="text-neutral-300">
+              {(deliveries.data ?? []).map((d: {
+                id: string;
+                created_at: string;
+                recipient_number: string | null;
+                recipient_name: string | null;
+                status: string;
+                attempts: number;
+                duration_ms: number | null;
+                provider_message_id: string | null;
+                error: string | null;
+              }) => (
+                <tr key={d.id} className="border-t border-white/5">
+                  <td className="py-2">{format(new Date(d.created_at), "HH:mm:ss")}</td>
+                  <td>
+                    {d.recipient_name ?? "—"}
+                    <div className="text-xs text-neutral-500">{d.recipient_number}</div>
+                  </td>
+                  <td>
+                    <Badge
+                      variant={
+                        d.status === "delivered"
+                          ? "default"
+                          : d.status === "failed"
+                          ? "destructive"
+                          : "secondary"
+                      }
+                    >
+                      {d.status}
+                    </Badge>
+                  </td>
+                  <td>{d.attempts}</td>
+                  <td>{d.duration_ms != null ? `${d.duration_ms} ms` : "—"}</td>
+                  <td className="font-mono text-xs">{d.provider_message_id ?? "—"}</td>
+                  <td className="text-red-400 text-xs max-w-xs truncate">{d.error ?? ""}</td>
+                </tr>
+              ))}
+              {!(deliveries.data ?? []).length && (
+                <tr>
+                  <td colSpan={7} className="text-center py-6 text-neutral-500">
+                    No BotBiz deliveries yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
   );
 }
