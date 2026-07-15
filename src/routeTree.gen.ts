@@ -87,6 +87,7 @@ import { Route as MSlugRouteImport } from './routes/m.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DashboardSubscriptionRouteImport } from './routes/dashboard.subscription'
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
+import { Route as DashboardStaffRouteImport } from './routes/dashboard.staff'
 import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
@@ -520,6 +521,11 @@ const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
   path: '/students',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardStaffRoute = DashboardStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardSiteRoute = DashboardSiteRouteImport.update({
   id: '/site',
   path: '/site',
@@ -788,6 +794,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
+  '/dashboard/staff': typeof DashboardStaffRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/dashboard/subscription': typeof DashboardSubscriptionRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -903,6 +910,7 @@ export interface FileRoutesByTo {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
+  '/dashboard/staff': typeof DashboardStaffRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/dashboard/subscription': typeof DashboardSubscriptionRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -1024,6 +1032,7 @@ export interface FileRoutesById {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
+  '/dashboard/staff': typeof DashboardStaffRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/dashboard/subscription': typeof DashboardSubscriptionRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -1146,6 +1155,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/site'
+    | '/dashboard/staff'
     | '/dashboard/students'
     | '/dashboard/subscription'
     | '/invite/$token'
@@ -1261,6 +1271,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/site'
+    | '/dashboard/staff'
     | '/dashboard/students'
     | '/dashboard/subscription'
     | '/invite/$token'
@@ -1381,6 +1392,7 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/site'
+    | '/dashboard/staff'
     | '/dashboard/students'
     | '/dashboard/subscription'
     | '/invite/$token'
@@ -2042,6 +2054,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/staff': {
+      id: '/dashboard/staff'
+      path: '/staff'
+      fullPath: '/dashboard/staff'
+      preLoaderRoute: typeof DashboardStaffRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/site': {
       id: '/dashboard/site'
       path: '/site'
@@ -2358,6 +2377,7 @@ interface DashboardRouteChildren {
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSiteRoute: typeof DashboardSiteRoute
+  DashboardStaffRoute: typeof DashboardStaffRoute
   DashboardStudentsRoute: typeof DashboardStudentsRouteWithChildren
   DashboardSubscriptionRoute: typeof DashboardSubscriptionRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -2385,6 +2405,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSiteRoute: DashboardSiteRoute,
+  DashboardStaffRoute: DashboardStaffRoute,
   DashboardStudentsRoute: DashboardStudentsRouteWithChildren,
   DashboardSubscriptionRoute: DashboardSubscriptionRoute,
   DashboardIndexRoute: DashboardIndexRoute,
