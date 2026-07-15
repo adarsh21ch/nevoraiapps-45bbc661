@@ -72,6 +72,22 @@ function CoachHome() {
     refetchInterval: 60_000,
   });
 
+  // First-login onboarding redirect (coaches only; owners/admins skip).
+  const uid = profile?.user_id ?? "";
+  const onboardingQ = useQuery({
+    enabled: canBeHere && !!uid && (isCoach || isHeadCoach) && !isAdmin,
+    queryKey: onboardingKeys.status(uid),
+    queryFn: () => fetchOnboardingStatus(uid),
+    staleTime: 5 * 60_000,
+  });
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (onboardingQ.isSuccess && onboardingQ.data === null) {
+      navigate({ to: "/dashboard/coach/onboarding" });
+    }
+  }, [onboardingQ.isSuccess, onboardingQ.data, navigate]);
+
+
   if (!canBeHere) {
     return (
       <EmptyState
