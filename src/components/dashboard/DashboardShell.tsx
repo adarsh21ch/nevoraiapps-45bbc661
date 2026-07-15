@@ -43,6 +43,7 @@ type NavItem = {
   requiresFeature?: "fee_tracking";
   ownerOnly?: boolean;
   adminOnly?: boolean;
+  coachOnly?: boolean;
 };
 
 // Simplified daily navigation — optimized for academy owners' daily workflow.
