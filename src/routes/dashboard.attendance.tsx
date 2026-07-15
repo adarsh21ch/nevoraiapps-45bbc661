@@ -122,10 +122,13 @@ function AttendancePage() {
   const [quickMode, setQuickMode] = useState<boolean>(false);
   const [selectMode, setSelectMode] = useState<boolean>(false);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [rosterTab, setRosterTab] = useState<RosterTab>("waiting");
 
   useEffect(() => {
     try {
       setQuickMode(localStorage.getItem(QUICK_MODE_KEY) === "1");
+      const t = localStorage.getItem(ROSTER_TAB_KEY);
+      if (t === "waiting" || t === "present" || t === "done") setRosterTab(t);
     } catch { /* ignore */ }
   }, []);
   const toggleQuick = useCallback(() => {
@@ -134,6 +137,10 @@ function AttendancePage() {
       try { localStorage.setItem(QUICK_MODE_KEY, next ? "1" : "0"); } catch { /* ignore */ }
       return next;
     });
+  }, []);
+  const changeRosterTab = useCallback((t: RosterTab) => {
+    setRosterTab(t);
+    try { localStorage.setItem(ROSTER_TAB_KEY, t); } catch { /* ignore */ }
   }, []);
 
   const batchesQ = useQuery({ queryKey: qk.batches(tenant.id), queryFn: () => fetchBatches(tenant.id) });
