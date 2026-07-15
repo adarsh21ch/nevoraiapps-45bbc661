@@ -117,6 +117,8 @@ function DashboardHome() {
     queryFn: () => fetchAttendanceToday(tenant.id),
     staleTime: 15_000,
   });
+  const batchesQ = useQuery({ queryKey: qk.batches(tenant.id), queryFn: () => fetchBatches(tenant.id) });
+  const studentsQ = useQuery({ queryKey: qk.students(tenant.id), queryFn: () => fetchStudents(tenant.id) });
   const activityQ = useQuery({
     queryKey: qk.activity(tenant.id),
     queryFn: () => fetchDashboardActivity(tenant.id, { includeFees: canViewFees }),
@@ -124,26 +126,57 @@ function DashboardHome() {
   });
   const newRegs = useNewRegistrationsCount(tenant.id);
 
+  // ── Single source of truth ────────────────────────────────────────────
+  // Reuse the exact same engine as the Attendance page (session = "all"):
+  //   roster  = active students in active batches
+  //   present = students with current_state ∈ { in_academy, checked_out }
+  //   pct     = present / roster
+  // Any Waiting student counts against the denominator — no divergence.
   const attendanceRows = attendanceQ.data ?? [];
+  const activeBatchIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const b of (batchesQ.data ?? []) as Array<{ id: string; active: boolean }>) {
+      if (b.active) set.add(b.id);
+    }
+    return set;
+  }, [batchesQ.data]);
+  const rosterStudents = useMemo(
+    () =>
+      (studentsQ.data ?? []).filter(
+        (s: { status: string; batch_id: string | null }) =>
+          s.status === "active" && !!s.batch_id && activeBatchIds.has(s.batch_id),
+      ),
+    [studentsQ.data, activeBatchIds],
+  );
+  const stateByStudent = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of attendanceRows) {
+      if (r.batch_id && activeBatchIds.has(r.batch_id)) m.set(r.student_id, r.current_state);
+    }
+    return m;
+  }, [attendanceRows, activeBatchIds]);
   const inAcademy = useMemo(
     () => attendanceRows.filter((r) => r.current_state === "in_academy").length,
     [attendanceRows],
   );
-  const playersPresent = useMemo(
-    () =>
-      attendanceRows.filter(
-        (r) => r.current_state === "in_academy" || r.current_state === "checked_out",
-      ).length,
-    [attendanceRows],
-  );
+  const { attPresent, attTotal, attPct } = useMemo(() => {
+    let present = 0;
+    for (const s of rosterStudents) {
+      const state = stateByStudent.get(s.id);
+      if (state === "in_academy" || state === "checked_out") present++;
+    }
+    const total = rosterStudents.length;
+    const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+    return { attPresent: present, attTotal: total, attPct: pct };
+  }, [rosterStudents, stateByStudent]);
+  const playersPresent = attPresent;
 
   const insights = insightsQ.data;
   const kpis = kpisQ.data;
-  const attPct = insights?.attendanceToday.percent ?? 0;
-  const attPresent = insights?.attendanceToday.present ?? 0;
-  const attTotal = insights?.attendanceToday.total ?? 0;
   const pendingFees = kpis?.pendingFeeCount ?? 0;
   const collectedMonth = kpis?.collectionThisMonth ?? 0;
+  const attendanceLoading = attendanceQ.isLoading || batchesQ.isLoading || studentsQ.isLoading;
+
 
   const displayName =
     (profile as { display_name?: string })?.display_name ?? tenant.name;
