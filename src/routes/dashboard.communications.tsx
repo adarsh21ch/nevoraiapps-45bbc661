@@ -111,28 +111,30 @@ function CommunicationsHub() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="grid grid-cols-5 w-full">
-          <TabsTrigger value="broadcasts">
-            <Send className="size-3.5 mr-1.5" />
-            All
-          </TabsTrigger>
-          <TabsTrigger value="announcements">
-            <Megaphone className="size-3.5 mr-1.5" />
-            Announcements
-          </TabsTrigger>
-          <TabsTrigger value="scheduled">
-            <Clock className="size-3.5 mr-1.5" />
-            Scheduled
-          </TabsTrigger>
-          <TabsTrigger value="templates">
-            <FileText className="size-3.5 mr-1.5" />
-            Templates
-          </TabsTrigger>
-          <TabsTrigger value="history">
-            <History className="size-3.5 mr-1.5" />
-            History
-          </TabsTrigger>
-        </TabsList>
+        <div className="-mx-4 md:mx-0 overflow-x-auto scrollbar-none">
+          <TabsList className="inline-flex md:grid md:grid-cols-5 md:w-full w-max min-w-full px-4 md:px-0 gap-1">
+            <TabsTrigger value="broadcasts" className="whitespace-nowrap shrink-0">
+              <Send className="size-3.5 mr-1.5" />
+              All
+            </TabsTrigger>
+            <TabsTrigger value="announcements" className="whitespace-nowrap shrink-0">
+              <Megaphone className="size-3.5 mr-1.5" />
+              Announcements
+            </TabsTrigger>
+            <TabsTrigger value="scheduled" className="whitespace-nowrap shrink-0">
+              <Clock className="size-3.5 mr-1.5" />
+              Scheduled
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="whitespace-nowrap shrink-0">
+              <FileText className="size-3.5 mr-1.5" />
+              Templates
+            </TabsTrigger>
+            <TabsTrigger value="history" className="whitespace-nowrap shrink-0">
+              <History className="size-3.5 mr-1.5" />
+              History
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="broadcasts" className="mt-4">
           <CampaignList items={filtered} loading={campaigns.isLoading} />
