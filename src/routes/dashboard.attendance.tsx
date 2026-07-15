@@ -1136,7 +1136,9 @@ function StudentRow({
           </div>
         }
         trailing={
-          canMark ? (
+          readOnly ? (
+            <HistoryStatusChip state={state} />
+          ) : canMark ? (
             <div className="flex items-center gap-1.5">
               {state === "in_academy" ? (
                 <Button
