@@ -699,6 +699,23 @@ function ScorerPage() {
             </Button>
           </div>
         </div>
+      ) : lockStatus === "blocked" ? (
+        <div className="grid flex-1 place-items-center p-6 text-center">
+          <div className="max-w-sm space-y-3">
+            <div className="text-lg font-semibold">Match is being scored</div>
+            <p className="text-sm text-muted-foreground">
+              This match is currently being scored by another user. To prevent
+              conflicting updates, only one scorer can be active at a time.
+            </p>
+            <Button variant="outline" onClick={() => void navigate({ to: "/match-center/live" })}>
+              Back to live matches
+            </Button>
+          </div>
+        </div>
+      ) : lockStatus === "pending" ? (
+        <div className="grid flex-1 place-items-center text-sm text-muted-foreground">
+          Preparing scoring session…
+        </div>
       ) : session.loading ? (
         <div className="grid flex-1 place-items-center text-sm text-muted-foreground">
           Loading match…
