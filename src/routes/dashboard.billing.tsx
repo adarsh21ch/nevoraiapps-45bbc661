@@ -50,6 +50,7 @@ import {
 import { toast } from "sonner";
 import { Banknote, CheckCircle2, Coins, FileText, IndianRupee, Lock, Plus, Receipt, Users } from "lucide-react";
 import { format } from "date-fns";
+import { VirtualList } from "@/components/ds/VirtualList";
 
 export const Route = createFileRoute("/dashboard/billing")({
   head: () => ({
