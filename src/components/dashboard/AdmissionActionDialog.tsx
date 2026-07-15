@@ -35,6 +35,8 @@ export function AdmissionActionDialog({ registrationId, tenantId, mode, onClose 
   const [batchId, setBatchId] = useState<string>("");
   const [feePlanId, setFeePlanId] = useState<string>("");
   const [rollNumber, setRollNumber] = useState("");
+  const [coachName, setCoachName] = useState("");
+  const [admissionDate, setAdmissionDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
 
   const batches = useQuery({
