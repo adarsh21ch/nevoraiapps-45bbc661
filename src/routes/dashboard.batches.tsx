@@ -142,9 +142,20 @@ function BatchesPage() {
           </Card>
         )}
       </div>
+
+      {coachBatch && (
+        <CoachAssignmentsDialog
+          open={!!coachBatch}
+          onOpenChange={(v) => !v && setCoachBatch(null)}
+          tenantId={tenant.id}
+          batchId={coachBatch.id}
+          batchName={coachBatch.name}
+        />
+      )}
     </div>
   );
 }
+
 
 function BatchDialog({ initial, onClose }: { initial: BatchForm; onClose: () => void }) {
   const { tenant } = useDashboard();
