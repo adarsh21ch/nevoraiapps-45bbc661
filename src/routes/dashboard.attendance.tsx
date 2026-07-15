@@ -531,10 +531,10 @@ function AttendancePage() {
         : groups.done;
   const activeEmpty =
     rosterTab === "waiting"
-      ? "Everyone has arrived."
+      ? "No students are waiting for check-in."
       : rosterTab === "present"
-        ? "No players currently inside."
-        : "No players have checked out yet.";
+        ? "No students are currently present."
+        : "No students have checked out yet.";
 
   return (
     <div className="-mt-4 md:-mt-8">
