@@ -307,7 +307,7 @@ function DashboardHome() {
       <section aria-label="Live status" className="pt-1">
         <LiveStatusStrip
           inAcademy={inAcademy}
-          totalToday={attendanceRows.length}
+          totalToday={attTotal}
           isLoading={attendanceQ.isLoading}
         />
       </section>
