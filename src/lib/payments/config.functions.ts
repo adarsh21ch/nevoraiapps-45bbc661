@@ -114,13 +114,14 @@ export const testPaymentConfig = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (error || !row) throw new Error("Config not found");
-    await authorize(context, row.scope, row.tenant_id);
+    await authorize(context, row.scope as PaymentScope, row.tenant_id);
     if (!row.key_id || !row.key_secret_ciphertext) {
       return { status: "failed" as const, detail: "Missing key id or secret" };
     }
     const { decryptSecret } = await import("./crypto.server");
     const { getProvider } = await import("./registry.server");
-    const provider = getProvider(row.provider);
+    const provider = getProvider(row.provider as PaymentProviderId);
+
     const health = await provider.testConnection({
       keyId: row.key_id,
       keySecret: decryptSecret(row.key_secret_ciphertext),
@@ -149,17 +150,18 @@ export const rotatePaymentCredentials = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (error || !row) throw new Error("Config not found");
-    await authorize(context, row.scope, row.tenant_id);
+    await authorize(context, row.scope as PaymentScope, row.tenant_id);
     const { encryptSecret } = await import("./crypto.server");
-    const patch: Record<string, unknown> = {
+    const patch = {
       key_id: data.key_id,
       key_secret_ciphertext: encryptSecret(data.key_secret),
       last_tested_at: null,
       last_test_status: null,
       last_test_error: null,
+      ...(data.webhook_secret ? { webhook_secret_ciphertext: encryptSecret(data.webhook_secret) } : {}),
     };
-    if (data.webhook_secret) patch.webhook_secret_ciphertext = encryptSecret(data.webhook_secret);
     const { error: uerr } = await context.supabase.from("payment_provider_configs").update(patch).eq("id", row.id);
+
     if (uerr) throw uerr;
     return { ok: true };
   });
