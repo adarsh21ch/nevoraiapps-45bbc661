@@ -18,6 +18,7 @@ import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tansta
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
+import { emitEvent } from "@/lib/automation/emit-client";
 import type { AttendanceState, AttendanceStatus, AttendanceSource } from "./constants";
 
 // ---------------------------------------------------------------------------
