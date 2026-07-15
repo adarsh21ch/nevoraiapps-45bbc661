@@ -4775,6 +4775,179 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_comm_accounts: {
+        Row: {
+          created_at: string
+          credentials_ref: string | null
+          errors_today: number
+          health: string
+          id: string
+          label: string
+          last_activity_at: string | null
+          messages_today: number
+          metadata: Json
+          notes: string | null
+          provider_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credentials_ref?: string | null
+          errors_today?: number
+          health?: string
+          id?: string
+          label: string
+          last_activity_at?: string | null
+          messages_today?: number
+          metadata?: Json
+          notes?: string | null
+          provider_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credentials_ref?: string | null
+          errors_today?: number
+          health?: string
+          id?: string
+          label?: string
+          last_activity_at?: string | null
+          messages_today?: number
+          metadata?: Json
+          notes?: string | null
+          provider_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_comm_accounts_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "platform_comm_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_comm_active: {
+        Row: {
+          account_id: string | null
+          channel: string
+          provider_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          channel: string
+          provider_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          channel?: string
+          provider_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_comm_active_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "platform_comm_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_comm_active_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "platform_comm_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_comm_providers: {
+        Row: {
+          adapter_key: string
+          channel: string
+          created_at: string
+          description: string | null
+          display_name: string
+          enabled: boolean
+          id: string
+          metadata: Json
+          priority: number
+          ready: boolean
+          updated_at: string
+        }
+        Insert: {
+          adapter_key: string
+          channel: string
+          created_at?: string
+          description?: string | null
+          display_name: string
+          enabled?: boolean
+          id?: string
+          metadata?: Json
+          priority?: number
+          ready?: boolean
+          updated_at?: string
+        }
+        Update: {
+          adapter_key?: string
+          channel?: string
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          enabled?: boolean
+          id?: string
+          metadata?: Json
+          priority?: number
+          ready?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      platform_comm_templates: {
+        Row: {
+          body: string
+          channel: string
+          created_at: string
+          enabled: boolean
+          id: string
+          key: string
+          name: string
+          updated_at: string
+          variables: Json
+        }
+        Insert: {
+          body: string
+          channel: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          key: string
+          name: string
+          updated_at?: string
+          variables?: Json
+        }
+        Update: {
+          body?: string
+          channel?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          key?: string
+          name?: string
+          updated_at?: string
+          variables?: Json
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           contact_email: string
