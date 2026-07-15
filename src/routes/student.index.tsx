@@ -267,22 +267,3 @@ function StatCard({
     </Card>
   );
 }
-
-function QuickAction({
-  to,
-  icon,
-  children,
-}: {
-  to: "/student" | "/student/progress" | "/student/matches" | "/student/profile";
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link to={to}>
-      <Card className="p-3 flex items-center gap-2 hover:bg-muted/40 transition-colors">
-        <span className="text-primary">{icon}</span>
-        <span className="text-sm font-medium">{children}</span>
-      </Card>
-    </Link>
-  );
-}
