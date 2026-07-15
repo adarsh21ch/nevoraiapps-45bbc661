@@ -30,23 +30,27 @@ async function resolveTenantForUser(
 }
 
 async function getTenantForUser(
-  supabase: {
+  supabase: unknown,
+  userId: string,
+): Promise<string | null> {
+  const s = supabase as {
     from: (t: string) => {
       select: (c: string) => {
         eq: (col: string, v: string) => {
-          maybeSingle: () => Promise<{ data: unknown }>;
           order: (
             col: string,
             opts: { ascending: boolean },
-          ) => { limit: (n: number) => { maybeSingle: () => Promise<{ data: unknown }> } };
+          ) => {
+            limit: (n: number) => {
+              maybeSingle: () => Promise<{ data: unknown }>;
+            };
+          };
         };
       };
     };
-  },
-  userId: string,
-): Promise<string | null> {
+  };
   // Prefer user_roles.tenant_id (owner/admin), fall back to student profile.
-  const { data: role } = await supabase
+  const { data: role } = await s
     .from("user_roles")
     .select("tenant_id")
     .eq("user_id", userId)
@@ -56,8 +60,7 @@ async function getTenantForUser(
   const tenantFromRole = (role as { tenant_id?: string | null } | null)?.tenant_id;
   if (tenantFromRole) return tenantFromRole;
 
-  // Parents/students often only have a row in the students table.
-  const { data: student } = await supabase
+  const { data: student } = await s
     .from("students")
     .select("tenant_id")
     .eq("user_id", userId)
