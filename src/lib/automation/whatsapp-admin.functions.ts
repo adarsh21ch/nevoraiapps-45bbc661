@@ -48,7 +48,7 @@ export const saveWhatsAppConfig = createServerFn({ method: "POST" })
       .parse(v),
   )
   .handler(async ({ data, context }) => {
-    await assertTenantOwner(context, context.userId, data.tenantId);
+    await assertTenantOwner(context, data.tenantId);
 
     const { data: existing } = await context.supabase
       .from("automation_provider_configs")
@@ -82,7 +82,7 @@ export const loadWhatsAppConfig = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => z.object({ tenantId: z.string().uuid() }).parse(v))
   .handler(async ({ data, context }) => {
-    await assertTenantOwner(context, context.userId, data.tenantId);
+    await assertTenantOwner(context, data.tenantId);
     const { data: row } = await context.supabase
       .from("automation_provider_configs")
       .select("config, enabled")
@@ -115,7 +115,7 @@ export const toggleWhatsAppRules = createServerFn({ method: "POST" })
       .parse(v),
   )
   .handler(async ({ data, context }) => {
-    await assertTenantOwner(context, context.userId, data.tenantId);
+    await assertTenantOwner(context, data.tenantId);
 
     async function upsert(
       name: string,
@@ -164,7 +164,7 @@ export const loadWhatsAppRuleStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((v: unknown) => z.object({ tenantId: z.string().uuid() }).parse(v))
   .handler(async ({ data, context }) => {
-    await assertTenantOwner(context, context.userId, data.tenantId);
+    await assertTenantOwner(context, data.tenantId);
     const { data: rows } = await context.supabase
       .from("automation_rules")
       .select("name, enabled")
@@ -193,7 +193,7 @@ export const sendTestWhatsApp = createServerFn({ method: "POST" })
       .parse(v),
   )
   .handler(async ({ data, context }) => {
-    await assertTenantOwner(context, context.userId, data.tenantId);
+    await assertTenantOwner(context, data.tenantId);
 
     // Route through the real engine path so audit/deliveries look identical
     // to production traffic. We emit a synthetic event tagged as a test and
