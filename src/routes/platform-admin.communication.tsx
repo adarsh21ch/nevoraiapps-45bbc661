@@ -608,32 +608,53 @@ function TemplatesTab({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const grouped = useMemo(() => {
+    const g = new Map<string, Template[]>();
+    for (const t of templates) {
+      const arr = g.get(t.category) ?? [];
+      arr.push(t);
+      g.set(t.category, arr);
+    }
+    return Array.from(g.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [templates]);
+
   return (
-    <div className="grid gap-3">
-      {templates.map((t) => (
-        <Card key={t.id} className="p-4 bg-neutral-900 border-white/10">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <div className="text-white text-sm font-medium">{t.name}</div>
-              <div className="text-xs text-neutral-500">
-                {t.channel} · {t.key}
-              </div>
-            </div>
-            <Button
-              size="sm"
-              onClick={() => saveMut.mutate(t)}
-              disabled={saveMut.isPending}
-            >
-              Save
-            </Button>
+    <div className="space-y-6">
+      {grouped.map(([category, items]) => (
+        <div key={category} className="space-y-2">
+          <div className="text-xs uppercase tracking-wide text-neutral-500">
+            {category}
           </div>
-          <Textarea
-            defaultValue={t.body}
-            onChange={(e) => setEdits((s) => ({ ...s, [t.id]: e.target.value }))}
-            rows={3}
-            className="bg-neutral-950 border-white/10 text-sm text-white"
-          />
-        </Card>
+          <div className="grid gap-3">
+            {items.map((t) => (
+              <Card key={t.id} className="p-4 bg-neutral-900 border-white/10">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <div className="text-white text-sm font-medium">{t.name}</div>
+                    <div className="text-xs text-neutral-500">
+                      {t.channel} · {t.key}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => saveMut.mutate(t)}
+                    disabled={saveMut.isPending}
+                  >
+                    Save
+                  </Button>
+                </div>
+                <Textarea
+                  defaultValue={t.body}
+                  onChange={(e) =>
+                    setEdits((s) => ({ ...s, [t.id]: e.target.value }))
+                  }
+                  rows={3}
+                  className="bg-neutral-950 border-white/10 text-sm text-white"
+                />
+              </Card>
+            ))}
+          </div>
+        </div>
       ))}
       {templates.length === 0 && (
         <Card className="p-6 text-center text-sm text-neutral-500 bg-neutral-900 border-white/10">
