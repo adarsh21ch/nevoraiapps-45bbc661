@@ -1,92 +1,82 @@
 /**
- * AcademyOS V2 — Capability layer.
+ * Phase 3 — canonical permission hook.
  *
- * Navigation is role-based (stable, hardcoded per role — see nav-config.ts).
- * Actions inside modules are capability-based.
+ * Server-side truth: user_roles + has_role() / current_role() RPCs.
+ * Client-side: this hook exposes a role (owner / admin / platform_admin /
+ * student) plus a legacy `can(feature)` predicate consumed by existing
+ * screens. Feature gates:
  *
- * Capabilities are derived from (role × tenant plan). They do NOT drive
- * menu visibility — that is `nav-config` + `getFeatures(tenant)`. They
- * gate buttons, forms, and mutations.
+ *   canViewFees         → owner only
+ *   canScoreMatch       → owner + admin
+ *   canMarkAttendance   → owner + admin
  *
- * Usage:
- *   const { can } = usePermissions();
- *   if (can("canManageFees")) { ... }
+ * IMPORTANT: this is a UI-only gate. Every mutation and RPC MUST also
+ * enforce the permission server-side via RLS or has_role().
  */
-
-import { useMemo } from "react";
-import { useCurrentRole, type AppRole } from "@/hooks/use-current-role";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useDashboardOptional } from "@/lib/dashboard-context";
-import { getFeatures } from "@/lib/tenant";
 
-export type Capability =
-  | "canManagePlayers"
+export type AppRole = "owner" | "admin" | "platform_admin" | "student";
+
+export type PermissionFeature =
   | "canViewFees"
-  | "canManageFees"
+  | "canScoreMatch"
+  | "canMarkAttendance"
   | "canManageAdmins"
   | "canManageWebsite"
-  | "canManageReports"
-  | "canViewReports"
-  | "canScoreMatch"
-  | "canManageAttendance"
-  | "canMarkAttendance"
-  | "canManageBatches"
-  | "canManageSettings"
-  | "canManageTenant";
+  | "canManageSubscription";
 
-const roleCaps: Record<AppRole, ReadonlySet<Capability>> = {
-  owner: new Set<Capability>([
-    "canManagePlayers",
-    "canViewFees",
-    "canManageFees",
-    "canManageAdmins",
-    "canManageWebsite",
-    "canManageReports",
-    "canViewReports",
-    "canScoreMatch",
-    "canManageAttendance",
-    "canMarkAttendance",
-    "canManageBatches",
-    "canManageSettings",
-    "canManageTenant",
-  ]),
-  admin: new Set<Capability>([
-    "canManagePlayers",
-    "canViewReports",
-    "canScoreMatch",
-    "canManageAttendance",
-    "canMarkAttendance",
-    "canManageBatches",
-  ]),
-  student: new Set<Capability>([]),
+const RULES: Record<PermissionFeature, AppRole[]> = {
+  canViewFees:           ["owner"],
+  canScoreMatch:         ["owner", "admin"],
+  canMarkAttendance:     ["owner", "admin"],
+  canManageAdmins:       ["owner"],
+  canManageWebsite:      ["owner"],
+  canManageSubscription: ["owner"],
 };
 
-export interface PermissionResult {
-  role: AppRole;
-  can: (cap: Capability) => boolean;
-  all: (...caps: Capability[]) => boolean;
-  any: (...caps: Capability[]) => boolean;
-}
-
-export function usePermissions(): PermissionResult {
-  const role = useCurrentRole();
+/**
+ * `usePermissions()` with no args reads role from DashboardContext (the
+ * pattern existing screens already use). Pass a `tenantId` to bypass the
+ * context (e.g. platform-admin views operating on another tenant).
+ */
+export function usePermissions(tenantId?: string | null) {
   const ctx = useDashboardOptional();
-  const features = ctx?.tenant ? getFeatures(ctx.tenant) : null;
+  const ctxTenantId = ctx?.tenant?.id ?? null;
+  const ctxProfileRole = ctx?.profile?.role ?? null;
+  const effectiveTenantId = tenantId ?? ctxTenantId;
 
-  return useMemo(() => {
-    const base = roleCaps[role];
-    const can = (cap: Capability): boolean => {
-      if (!base.has(cap)) return false;
-      // Tenant plan gates — action is only exposed when the module is enabled.
-      if ((cap === "canViewFees" || cap === "canManageFees") && features && features.fee_tracking === false) {
-        return false;
-      }
-      return true;
-    };
-    return {
-      role,
-      can,
-      all: (...caps: Capability[]) => caps.every(can),
-      any: (...caps: Capability[]) => caps.some(can),
-    };
-  }, [role, features]);
+  // Only hit the RPC when we cannot derive the role from context.
+  const q = useQuery({
+    enabled: !!effectiveTenantId && !ctxProfileRole,
+    queryKey: ["perm", "role", effectiveTenantId],
+    queryFn: async (): Promise<AppRole> => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any).rpc("current_role", {
+        _tenant_id: effectiveTenantId,
+      });
+      if (error) throw error;
+      return (data as AppRole) ?? "student";
+    },
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+  });
+
+  const role: AppRole = ctxProfileRole
+    ? ctxProfileRole === "owner" ? "owner" : "admin"
+    : (q.data ?? "student");
+
+  const can = (feature: PermissionFeature): boolean =>
+    RULES[feature]?.includes(role) ?? false;
+
+  return {
+    role,
+    can,
+    isOwner: role === "owner",
+    isAdmin: role === "admin" || role === "owner",
+    isPlatformAdmin: role === "platform_admin",
+    isStudent: role === "student",
+    isLoading: q.isLoading,
+  };
 }
