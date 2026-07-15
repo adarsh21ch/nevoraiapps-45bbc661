@@ -124,21 +124,32 @@ function TournamentDetailPage() {
   const matchTotal = fxQ.data?.length ?? 0;
   const matchCompleted = fxQ.data?.filter((m) => m.match_locked).length ?? 0;
   const teamCount = teamsQ.data?.length ?? 0;
-  const publicUrl =
-    t.published && t.slug
-      ? `${typeof window !== "undefined" ? window.location.origin : ""}/academy/${tenant.slug ?? tenant.id}/tournaments/${t.slug}`
-      : null;
+  const publicUrl = tournamentPublicUrl({
+    academySlug: tenant.slug ?? null,
+    tournamentSlug: t.slug ?? null,
+    published: t.published,
+  });
 
   const currentStage = deriveCurrentStage(fxQ.data ?? []);
 
+  const onShare = () => setShareOpen(true);
 
-  const onShare = () => {
-    const url = publicUrl ?? (typeof window !== "undefined" ? window.location.href : "");
-    if (!url) return;
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(url);
-      toast.success("Link copied");
+  const onExport = () => {
+    const rows = (fxQ.data ?? []).map((m) => ({
+      matchday: m.matchday_no ?? "",
+      date: m.scheduled_date ?? "",
+      time: m.scheduled_time ?? "",
+      team_a: m.team_a?.name ?? "",
+      team_b: m.team_b?.name ?? "",
+      status: m.status,
+      result: m.result ?? "",
+    }));
+    if (rows.length === 0) {
+      toast.info("Nothing to export yet");
+      return;
     }
+    downloadCSV(`${t.name}-fixtures`, rows);
+    toast.success("Fixtures exported");
   };
 
   const quickActions = (
@@ -149,7 +160,7 @@ function TournamentDetailPage() {
       {publicUrl ? (
         <QuickActionButton icon={ExternalLink} label="Open public site" href={publicUrl} />
       ) : null}
-      <QuickActionButton icon={Download} label="Export" onClick={() => toast.info("Export coming soon")} />
+      <QuickActionButton icon={Download} label="Export fixtures" onClick={onExport} />
     </>
   );
 
