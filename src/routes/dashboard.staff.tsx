@@ -195,8 +195,35 @@ function StaffPage() {
         <TabsContent value="activity" className="mt-4">
           <ActivityFeed tenantId={tenant.id} />
         </TabsContent>
-      </Tabs>
+      </StaffTabs>
     </div>
+  );
+}
+
+function StaffTabs({
+  membersCount,
+  pendingInvites,
+  children,
+}: {
+  membersCount: number;
+  pendingInvites: number;
+  children: React.ReactNode;
+}) {
+  const [value, setValue] = useState<string>("directory");
+  return (
+    <Tabs value={value} onValueChange={setValue}>
+      <FilterTabs
+        value={value}
+        onChange={setValue}
+        items={[
+          { key: "directory", label: "Directory", count: membersCount },
+          { key: "invitations", label: "Invitations", count: pendingInvites },
+          { key: "activity", label: "Activity" },
+        ]}
+        ariaLabel="Staff sections"
+      />
+      {children}
+    </Tabs>
   );
 }
 
