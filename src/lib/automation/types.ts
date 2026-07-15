@@ -59,6 +59,14 @@ export const AUTOMATION_EVENTS = {
   SubscriptionCancelled: "subscription.cancelled",
   FeePaymentReceived: "fee.payment_received",
   RegistrationPaymentReceived: "registration.payment_received",
+  // Manual payment verification
+  PaymentProofUploaded: "payment.proof_uploaded",
+  PaymentVerificationRequested: "payment.verification_requested",
+  PaymentViewed: "payment.viewed",
+  PaymentApproved: "payment.approved",
+  PaymentRejected: "payment.rejected",
+  PaymentResubmitted: "payment.resubmitted",
+  PaymentReceiptGenerated: "payment.receipt_generated",
 } as const;
 
 
