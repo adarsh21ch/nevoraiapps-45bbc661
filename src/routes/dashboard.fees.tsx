@@ -545,8 +545,23 @@ function FeeRow({
   const isPending = due.state === "pending";
   const isOverdue = isPending && due.overdueDays > 0;
 
+  const statusLabel = isPending
+    ? isOverdue
+      ? `Overdue · ${due.overdueDays}d`
+      : "Pending"
+    : "Paid";
+  const statusClass = isPending
+    ? isOverdue
+      ? "bg-rose-100 text-rose-700 border-rose-200"
+      : "bg-amber-100 text-amber-700 border-amber-200"
+    : "bg-emerald-100 text-emerald-700 border-emerald-200";
+
+  const meta = [row.batchName, isPending ? periodLabel(due.period) : null]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <li className="p-3 md:px-5 md:py-3.5 hover:bg-accent/60 transition-colors">
+    <li className="p-3 md:px-5 md:py-3 hover:bg-accent/60 transition-colors">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -563,7 +578,24 @@ function FeeRow({
               />
             )}
           </div>
-          <span className="font-semibold text-[15px] truncate min-w-0">{row.name}</span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-semibold text-[15px] truncate">{row.name}</span>
+              <span
+                className={cn(
+                  "shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border tabular-nums",
+                  statusClass,
+                )}
+              >
+                {statusLabel}
+              </span>
+            </div>
+            {meta && (
+              <div className="text-[11px] text-muted-foreground truncate leading-tight">
+                {meta}
+              </div>
+            )}
+          </div>
         </button>
 
         <div className="text-right shrink-0">
@@ -607,26 +639,22 @@ function FeeRow({
               </Button>
             </>
           ) : (
-            <>
-              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-                <CheckCircle2 className="size-3.5" /> Paid
-              </span>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="rounded-full h-9 w-9"
-                aria-label="Download receipt"
-                onClick={onReceipt}
-              >
-                <Download className="size-4" />
-              </Button>
-            </>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="rounded-full h-9 w-9"
+              aria-label="Download receipt"
+              onClick={onReceipt}
+            >
+              <Download className="size-4" />
+            </Button>
           )}
         </div>
       </div>
     </li>
   );
 }
+
 
 
 /* ---------- Empty / loading ---------- */
