@@ -99,6 +99,7 @@ import { Route as DashboardCommunicationsRouteImport } from './routes/dashboard.
 import { Route as DashboardBrandingRouteImport } from './routes/dashboard.branding'
 import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
+import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
 import { Route as DashboardAcademyRouteImport } from './routes/dashboard.academy'
@@ -572,6 +573,11 @@ const DashboardBatchesRoute = DashboardBatchesRouteImport.update({
   path: '/batches',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAutomationRoute = DashboardAutomationRouteImport.update({
+  id: '/automation',
+  path: '/automation',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAttendanceRoute = DashboardAttendanceRouteImport.update({
   id: '/attendance',
   path: '/attendance',
@@ -725,6 +731,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
+  '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
@@ -833,6 +840,7 @@ export interface FileRoutesByTo {
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
+  '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
@@ -947,6 +955,7 @@ export interface FileRoutesById {
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
+  '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
@@ -1062,6 +1071,7 @@ export interface FileRouteTypes {
     | '/dashboard/academy'
     | '/dashboard/admins'
     | '/dashboard/attendance'
+    | '/dashboard/automation'
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
@@ -1170,6 +1180,7 @@ export interface FileRouteTypes {
     | '/dashboard/academy'
     | '/dashboard/admins'
     | '/dashboard/attendance'
+    | '/dashboard/automation'
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
@@ -1283,6 +1294,7 @@ export interface FileRouteTypes {
     | '/dashboard/academy'
     | '/dashboard/admins'
     | '/dashboard/attendance'
+    | '/dashboard/automation'
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
@@ -2037,6 +2049,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBatchesRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/automation': {
+      id: '/dashboard/automation'
+      path: '/automation'
+      fullPath: '/dashboard/automation'
+      preLoaderRoute: typeof DashboardAutomationRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/attendance': {
       id: '/dashboard/attendance'
       path: '/attendance'
@@ -2202,6 +2221,7 @@ interface DashboardRouteChildren {
   DashboardAcademyRoute: typeof DashboardAcademyRoute
   DashboardAdminsRoute: typeof DashboardAdminsRoute
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
+  DashboardAutomationRoute: typeof DashboardAutomationRoute
   DashboardBatchesRoute: typeof DashboardBatchesRoute
   DashboardBillingRoute: typeof DashboardBillingRoute
   DashboardBrandingRoute: typeof DashboardBrandingRoute
@@ -2226,6 +2246,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAcademyRoute: DashboardAcademyRoute,
   DashboardAdminsRoute: DashboardAdminsRoute,
   DashboardAttendanceRoute: DashboardAttendanceRoute,
+  DashboardAutomationRoute: DashboardAutomationRoute,
   DashboardBatchesRoute: DashboardBatchesRoute,
   DashboardBillingRoute: DashboardBillingRoute,
   DashboardBrandingRoute: DashboardBrandingRoute,
