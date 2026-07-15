@@ -13,16 +13,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { LogIn, LogOut, Clock, ChevronDown, CheckCircle2, Zap, CheckSquare } from "lucide-react";
+import { LogIn, LogOut, Clock, CheckCircle2, Zap, CheckSquare } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { usePermissions } from "@/hooks/use-permissions";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  AppShell,
-  Section,
   Card,
-  StatCard,
   ListItem,
   EmptyState,
   ErrorState,
