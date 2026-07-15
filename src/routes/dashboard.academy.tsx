@@ -6,7 +6,6 @@ import {
   Activity,
   BarChart3,
   ShieldCheck,
-  ShieldCheck,
   ChevronRight,
   Search,
   IndianRupee,
