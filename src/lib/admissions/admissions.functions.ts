@@ -32,6 +32,8 @@ export const approveRegistration = createServerFn({ method: "POST" })
       batchId?: string | null;
       feePlanId?: string | null;
       rollNumber?: string | null;
+      coachName?: string | null;
+      admissionDate?: string | null;
       notes?: string | null;
     }) => i,
   )
