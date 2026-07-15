@@ -13,7 +13,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { LogIn, LogOut, Clock } from "lucide-react";
+import { LogIn, LogOut, Clock, ChevronDown, CheckCircle2 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { usePermissions } from "@/hooks/use-permissions";
