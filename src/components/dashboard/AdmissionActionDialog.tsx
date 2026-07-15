@@ -35,6 +35,8 @@ export function AdmissionActionDialog({ registrationId, tenantId, mode, onClose 
   const [batchId, setBatchId] = useState<string>("");
   const [feePlanId, setFeePlanId] = useState<string>("");
   const [rollNumber, setRollNumber] = useState("");
+  const [coachName, setCoachName] = useState("");
+  const [admissionDate, setAdmissionDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
 
   const batches = useQuery({
@@ -58,7 +60,8 @@ export function AdmissionActionDialog({ registrationId, tenantId, mode, onClose 
   });
 
   const reset = () => {
-    setBatchId(""); setFeePlanId(""); setRollNumber(""); setNotes("");
+    setBatchId(""); setFeePlanId(""); setRollNumber(""); setCoachName(""); setNotes("");
+    setAdmissionDate(new Date().toISOString().slice(0, 10));
     onClose();
   };
 
@@ -71,6 +74,8 @@ export function AdmissionActionDialog({ registrationId, tenantId, mode, onClose 
           batchId: batchId || null,
           feePlanId: feePlanId || null,
           rollNumber: rollNumber || null,
+          coachName: coachName || null,
+          admissionDate: admissionDate || null,
           notes: notes || null,
         },
       }),
@@ -136,9 +141,19 @@ export function AdmissionActionDialog({ registrationId, tenantId, mode, onClose 
                 ))}
               </select>
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Roll Number (optional)</Label>
+                <Input value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} />
+              </div>
+              <div>
+                <Label>Admission Date</Label>
+                <Input type="date" value={admissionDate} onChange={(e) => setAdmissionDate(e.target.value)} />
+              </div>
+            </div>
             <div>
-              <Label>Roll Number (optional)</Label>
-              <Input value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} />
+              <Label>Coach (optional)</Label>
+              <Input value={coachName} onChange={(e) => setCoachName(e.target.value)} placeholder="Coach name" />
             </div>
             <div>
               <Label>Notes (optional)</Label>

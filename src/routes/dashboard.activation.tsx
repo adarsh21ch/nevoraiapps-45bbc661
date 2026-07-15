@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Copy, QrCode } from "lucide-react";
+import { Copy, QrCode, MessageCircle, Mail, Send, RefreshCw } from "lucide-react";
 import { LIFECYCLE_LABEL, LIFECYCLE_TONE, type LifecycleStatus } from "@/lib/admissions/lifecycle";
 
 export const Route = createFileRoute("/dashboard/activation")({
@@ -64,8 +64,19 @@ function ActivationCenter() {
     onError: (e: any) => toast.error(e?.message ?? "Rollback failed"),
   });
 
+  const isExpired = (s: any) => {
+    if (!s.activation_sent_at) return false;
+    if (["activated", "profile_completed"].includes(s.lifecycle_status)) return false;
+    const ageMs = Date.now() - new Date(s.activation_sent_at).getTime();
+    return ageMs > 30 * 24 * 60 * 60 * 1000;
+  };
+
   const filtered = students.filter((s: any) => {
-    if (statusFilter !== "all" && s.lifecycle_status !== statusFilter) return false;
+    if (statusFilter === "expired") {
+      if (!isExpired(s)) return false;
+    } else if (statusFilter !== "all" && s.lifecycle_status !== statusFilter) {
+      return false;
+    }
     if (!search) return true;
     const q = search.toLowerCase();
     return s.name?.toLowerCase().includes(q) || s.phone?.includes(q) || s.email?.toLowerCase().includes(q);
@@ -81,35 +92,71 @@ function ActivationCenter() {
     else setSelected(new Set(filtered.map((s: any) => s.id)));
   };
 
-  const copyLink = async (studentId: string) => {
+  const fetchToken = async (studentId: string) => {
     const { data } = await supabase
       .from("students")
-      .select("activation_token, name")
+      .select("activation_token, name, phone, email")
       .eq("id", studentId)
       .maybeSingle();
-    const token = (data as any)?.activation_token;
-    if (!token) { toast.error("No active token — send activation first"); return; }
-    const link = `${window.location.origin}/activate/${token}`;
-    await navigator.clipboard.writeText(link);
+    return data as { activation_token: string | null; name: string; phone: string | null; email: string | null } | null;
+  };
+
+  const linkFor = (token: string) => `${window.location.origin}/activate/${token}`;
+
+  const copyLink = async (studentId: string) => {
+    const s = await fetchToken(studentId);
+    if (!s?.activation_token) { toast.error("No active token — send activation first"); return; }
+    await navigator.clipboard.writeText(linkFor(s.activation_token));
     toast.success("Activation link copied");
   };
 
+  const shareWhatsApp = async (studentId: string) => {
+    const s = await fetchToken(studentId);
+    if (!s?.activation_token) { toast.error("No active token — send activation first"); return; }
+    const msg = `Hi ${s.name}, activate your academy account here: ${linkFor(s.activation_token)}`;
+    const phone = (s.phone ?? "").replace(/\D/g, "");
+    const url = phone
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank", "noopener");
+  };
+
+  const shareSMS = async (studentId: string) => {
+    const s = await fetchToken(studentId);
+    if (!s?.activation_token) { toast.error("No active token — send activation first"); return; }
+    const msg = `Activate your academy account: ${linkFor(s.activation_token)}`;
+    const phone = (s.phone ?? "").replace(/\s+/g, "");
+    window.location.href = `sms:${phone}?&body=${encodeURIComponent(msg)}`;
+  };
+
+  const shareEmail = async (studentId: string) => {
+    const s = await fetchToken(studentId);
+    if (!s?.activation_token) { toast.error("No active token — send activation first"); return; }
+    const subject = "Activate your academy account";
+    const body = `Hi ${s.name},\n\nActivate your account: ${linkFor(s.activation_token)}\n\nSee you on the field!`;
+    window.location.href = `mailto:${s.email ?? ""}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   const showQr = async (studentId: string) => {
-    const { data } = await supabase
-      .from("students")
-      .select("activation_token, name")
-      .eq("id", studentId)
-      .maybeSingle();
-    const token = (data as any)?.activation_token;
-    if (!token) { toast.error("No active token — send activation first"); return; }
-    setQrFor({ name: (data as any).name, token });
+    const s = await fetchToken(studentId);
+    if (!s?.activation_token) { toast.error("No active token — send activation first"); return; }
+    setQrFor({ name: s.name, token: s.activation_token });
   };
 
   const counts = {
     imported: students.filter((s: any) => s.lifecycle_status === "imported").length,
     invitation_sent: students.filter((s: any) => s.lifecycle_status === "invitation_sent").length,
     activated: students.filter((s: any) => s.lifecycle_status === "activated" || s.lifecycle_status === "profile_completed").length,
+    expired: students.filter(isExpired).length,
   };
+
+  const filterChips = [
+    { key: "all", label: `All (${students.length})` },
+    { key: "imported", label: `Pending (${counts.imported})` },
+    { key: "invitation_sent", label: `Invited (${counts.invitation_sent})` },
+    { key: "expired", label: `Expired (${counts.expired})` },
+    { key: "activated", label: `Activated (${counts.activated})` },
+  ];
 
   return (
     <div className="space-y-6">
@@ -126,10 +173,19 @@ function ActivationCenter() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
-          <CardTitle className="text-base">
-            Students {statusFilter !== "all" && <Badge variant="outline">{statusFilter}</Badge>}
-          </CardTitle>
+        <CardHeader className="flex flex-col gap-3 space-y-0 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            {filterChips.map((f) => (
+              <Button
+                key={f.key}
+                size="sm"
+                variant={statusFilter === f.key ? "default" : "outline"}
+                onClick={() => setStatusFilter(f.key)}
+              >
+                {f.label}
+              </Button>
+            ))}
+          </div>
           <div className="flex items-center gap-2">
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="w-56" />
             <Button
@@ -137,7 +193,8 @@ function ActivationCenter() {
               disabled={selected.size === 0 || sendMut.isPending}
               onClick={() => sendMut.mutate([...selected])}
             >
-              {sendMut.isPending ? "Sending…" : `Send Activation (${selected.size})`}
+              <Send className="size-3.5 mr-1" />
+              {sendMut.isPending ? "Sending…" : `Send/Resend (${selected.size})`}
             </Button>
           </div>
         </CardHeader>
@@ -180,8 +237,20 @@ function ActivationCenter() {
                           <Button size="icon" variant="ghost" title="Copy link" onClick={() => copyLink(s.id)}>
                             <Copy className="size-3.5" />
                           </Button>
+                          <Button size="icon" variant="ghost" title="WhatsApp" onClick={() => shareWhatsApp(s.id)}>
+                            <MessageCircle className="size-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" title="Email" onClick={() => shareEmail(s.id)}>
+                            <Mail className="size-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" title="SMS" onClick={() => shareSMS(s.id)}>
+                            <Send className="size-3.5" />
+                          </Button>
                           <Button size="icon" variant="ghost" title="QR" onClick={() => showQr(s.id)}>
                             <QrCode className="size-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" title="Resend invitation" onClick={() => sendMut.mutate([s.id])} disabled={sendMut.isPending}>
+                            <RefreshCw className="size-3.5" />
                           </Button>
                         </div>
                       </td>
