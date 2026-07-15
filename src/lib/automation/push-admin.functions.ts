@@ -7,10 +7,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function assertPlatformAdmin(
-  supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }> },
+  supabase: unknown,
   userId: string,
 ): Promise<void> {
-  const { data, error } = await supabase.rpc("is_platform_admin", { _user_id: userId });
+  const rpc = (supabase as {
+    rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
+  }).rpc;
+  const { data, error } = await rpc("is_platform_admin", { _user_id: userId });
   if (error) throw new Error("Authorization check failed");
   if (!data) throw new Error("Forbidden: platform admin only");
 }
