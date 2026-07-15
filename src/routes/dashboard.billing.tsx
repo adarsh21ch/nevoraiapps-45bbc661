@@ -273,31 +273,38 @@ function InvoicesTable({
           <div className="col-span-2 text-right">Pending</div>
           <div className="col-span-1 text-right">Status</div>
         </div>
-        {invoices.map((inv) => {
-          const stu = sMap.get(inv.student_id);
-          return (
-            <button
-              key={inv.id}
-              onClick={() => setSelected(inv)}
-              className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b last:border-b-0 hover:bg-muted/40 text-left w-full"
-            >
-              <div className="col-span-2 font-mono text-xs">{inv.number ?? <span className="text-muted-foreground">Draft</span>}</div>
-              <div className="col-span-3 truncate">{stu?.name ?? "—"}</div>
-              <div className="col-span-2 text-muted-foreground">{inv.due_date ?? "—"}</div>
-              <div className="col-span-2 text-right tabular-nums">{formatMoney(inv.total, inv.currency)}</div>
-              <div className="col-span-2 text-right tabular-nums">
-                {inv.balance > 0 ? (
-                  <span className="text-amber-600 dark:text-amber-400">{formatMoney(inv.balance, inv.currency)}</span>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </div>
-              <div className="col-span-1 text-right">
-                <StatusPill status={inv.status} />
-              </div>
-            </button>
-          );
-        })}
+        <VirtualList
+          items={invoices}
+          estimateSize={52}
+          overscan={10}
+          className="max-h-[70vh]"
+          getKey={(inv) => inv.id}
+          renderItem={(inv) => {
+            const stu = sMap.get(inv.student_id);
+            return (
+              <button
+                onClick={() => setSelected(inv)}
+                className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b hover:bg-muted/40 text-left w-full"
+              >
+                <div className="col-span-2 font-mono text-xs">{inv.number ?? <span className="text-muted-foreground">Draft</span>}</div>
+                <div className="col-span-3 truncate">{stu?.name ?? "—"}</div>
+                <div className="col-span-2 text-muted-foreground">{inv.due_date ?? "—"}</div>
+                <div className="col-span-2 text-right tabular-nums">{formatMoney(inv.total, inv.currency)}</div>
+                <div className="col-span-2 text-right tabular-nums">
+                  {inv.balance > 0 ? (
+                    <span className="text-amber-600 dark:text-amber-400">{formatMoney(inv.balance, inv.currency)}</span>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </div>
+                <div className="col-span-1 text-right">
+                  <StatusPill status={inv.status} />
+                </div>
+              </button>
+            );
+          }}
+        />
+
       </div>
       <InvoiceDetailDialog
         tenantId={tenantId}
