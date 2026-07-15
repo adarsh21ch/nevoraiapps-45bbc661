@@ -195,27 +195,42 @@ function StudentHomePage() {
         </Card>
       )}
 
-      {/* Quick actions */}
+      {/* Quick actions — player workflows only (no academy management) */}
       <section aria-label="Quick actions">
         <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
           Quick Actions
         </p>
-        <div className="grid grid-cols-2 gap-3">
-          <QuickAction to="/student/progress" icon={<TrendingUp className="size-4" />}>
-            Attendance & Progress
-          </QuickAction>
-          <QuickAction to="/student/matches" icon={<Swords className="size-4" />}>
-            Matches
-          </QuickAction>
-          <QuickAction to="/student/progress" icon={<History className="size-4" />}>
-            Practice History
-          </QuickAction>
-          <QuickAction to="/student/profile" icon={<CalendarCheck2 className="size-4" />}>
-            My Profile
-          </QuickAction>
+        <div className="grid grid-cols-4 grid-rows-2 gap-2">
+          <PlayerQuickAction to="/student/progress" icon={<CalendarCheck2 className="size-5" />} label="My Schedule" />
+          <PlayerQuickAction to="/student/progress" icon={<QrCode className="size-5" />} label="QR Check-In" />
+          <PlayerQuickAction to="/student/matches" icon={<Swords className="size-5" />} label="My Matches" />
+          <PlayerQuickAction to="/student/progress" icon={<TrendingUp className="size-5" />} label="Performance" />
+          <PlayerQuickAction to="/student/progress" icon={<MessageSquareQuote className="size-5" />} label="Coach Feedback" />
+          <PlayerQuickAction to="/student/manage" icon={<Megaphone className="size-5" />} label="Announcements" />
+          <PlayerQuickAction to="/student/manage" icon={<Mail className="size-5" />} label="Contact Academy" />
+          <PlayerQuickAction to="/student/profile" icon={<FileText className="size-5" />} label="My Documents" />
         </div>
       </section>
     </div>
+  );
+}
+
+function PlayerQuickAction({
+  to,
+  icon,
+  label,
+}: {
+  to: "/student" | "/student/progress" | "/student/matches" | "/student/profile" | "/student/manage";
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <Link to={to}>
+      <Card className="p-2 flex flex-col items-center justify-center gap-1 h-full min-h-[76px] hover:bg-muted/40 transition-colors">
+        <span className="text-primary">{icon}</span>
+        <span className="text-[11px] font-medium text-center leading-tight">{label}</span>
+      </Card>
+    </Link>
   );
 }
 
