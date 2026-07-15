@@ -328,29 +328,22 @@ function StudentsPage() {
         </div>
       ) : null}
 
-      {/* Status tabs — all 7 statuses */}
-      <div className="flex items-center gap-2 overflow-x-auto -mx-1 px-1">
-        <div className="inline-flex items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1">
-          <TabBtn
-            active={status === "all"}
-            onClick={() => setStatus("all")}
-            label="All"
-            count={counts.all}
-          />
-          {STATUS_TAB_ORDER.map((key) => {
-            const meta = PLAYER_STATUSES.find((s) => s.value === key)!;
-            return (
-              <TabBtn
-                key={key}
-                active={status === key}
-                onClick={() => setStatus(key)}
-                label={meta.label}
-                count={counts[key] ?? 0}
-              />
-            );
-          })}
-        </div>
-      </div>
+      {/* Primary status tabs — All / Active / Left. Advanced statuses live inside the Filters panel. */}
+      <FilterTabs
+        value={PRIMARY_STATUS_TABS.some((t) => t.key === status) ? status : "all"}
+        onChange={(k) => setStatus(k)}
+        items={PRIMARY_STATUS_TABS.map((t) => ({
+          key: t.key,
+          label: t.label,
+          count:
+            t.key === "all"
+              ? counts.all
+              : t.key === "left"
+                ? counts.left ?? 0
+                : counts[t.key] ?? 0,
+        }))}
+        ariaLabel="Student status"
+      />
 
       {/* Search + filters toggle */}
       <div className="flex items-center gap-2">
