@@ -1659,6 +1659,51 @@ export type Database = {
           },
         ]
       }
+      feature_usage: {
+        Row: {
+          count: number
+          feature_id: string
+          id: string
+          meta: Json
+          period_start: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          count?: number
+          feature_id: string
+          id?: string
+          meta?: Json
+          period_start?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          count?: number
+          feature_id?: string
+          id?: string
+          meta?: Json
+          period_start?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feature_usage_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feature_usage_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fee_plans: {
         Row: {
           active: boolean
@@ -6332,8 +6377,10 @@ export type Database = {
           bank_ifsc: string | null
           billing_day: number
           created_at: string
+          current_period_end: string | null
           custom_domain: string | null
           email: string | null
+          feature_overrides: Json
           features: Json
           fee_cycle: string
           id: string
@@ -6345,6 +6392,7 @@ export type Database = {
           online_payments_enabled: boolean
           payment_instructions: string | null
           phone: string | null
+          plan_tier: string
           platform_notes: string | null
           player_prefix: string | null
           primary_color: string
@@ -6357,8 +6405,10 @@ export type Database = {
           status: string
           subscription_status: string
           tagline: string | null
+          trial_ends_at: string | null
           upi_id: string | null
           upi_qr_url: string | null
+          usage_limits: Json
           whatsapp: string | null
         }
         Insert: {
@@ -6368,8 +6418,10 @@ export type Database = {
           bank_ifsc?: string | null
           billing_day?: number
           created_at?: string
+          current_period_end?: string | null
           custom_domain?: string | null
           email?: string | null
+          feature_overrides?: Json
           features?: Json
           fee_cycle?: string
           id?: string
@@ -6381,6 +6433,7 @@ export type Database = {
           online_payments_enabled?: boolean
           payment_instructions?: string | null
           phone?: string | null
+          plan_tier?: string
           platform_notes?: string | null
           player_prefix?: string | null
           primary_color?: string
@@ -6393,8 +6446,10 @@ export type Database = {
           status?: string
           subscription_status?: string
           tagline?: string | null
+          trial_ends_at?: string | null
           upi_id?: string | null
           upi_qr_url?: string | null
+          usage_limits?: Json
           whatsapp?: string | null
         }
         Update: {
@@ -6404,8 +6459,10 @@ export type Database = {
           bank_ifsc?: string | null
           billing_day?: number
           created_at?: string
+          current_period_end?: string | null
           custom_domain?: string | null
           email?: string | null
+          feature_overrides?: Json
           features?: Json
           fee_cycle?: string
           id?: string
@@ -6417,6 +6474,7 @@ export type Database = {
           online_payments_enabled?: boolean
           payment_instructions?: string | null
           phone?: string | null
+          plan_tier?: string
           platform_notes?: string | null
           player_prefix?: string | null
           primary_color?: string
@@ -6429,8 +6487,10 @@ export type Database = {
           status?: string
           subscription_status?: string
           tagline?: string | null
+          trial_ends_at?: string | null
           upi_id?: string | null
           upi_qr_url?: string | null
+          usage_limits?: Json
           whatsapp?: string | null
         }
         Relationships: [
