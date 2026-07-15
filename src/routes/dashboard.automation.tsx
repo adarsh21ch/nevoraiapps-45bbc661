@@ -141,16 +141,24 @@ function AutomationHistoryPage() {
         title="Automation History"
         backTo="/dashboard/profile"
         action={
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9"
-            onClick={() => void q.refetch()}
-            disabled={q.isFetching}
-          >
-            <RefreshCw className={cn("size-4 mr-1", q.isFetching && "animate-spin")} />
-            Refresh
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="h-9" asChild>
+              <a href="/dashboard/automation-settings">Settings</a>
+            </Button>
+            <Button variant="outline" size="sm" className="h-9" asChild>
+              <a href="/dashboard/automation-test">Test</a>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9"
+              onClick={() => void q.refetch()}
+              disabled={q.isFetching}
+            >
+              <RefreshCw className={cn("size-4 mr-1", q.isFetching && "animate-spin")} />
+              Refresh
+            </Button>
+          </div>
         }
       />
 

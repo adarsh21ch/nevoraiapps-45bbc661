@@ -284,6 +284,100 @@ export type Database = {
           },
         ]
       }
+      automation_deliveries: {
+        Row: {
+          adapter: string
+          attempts: number
+          channel: string
+          created_at: string
+          delivered_at: string | null
+          duration_ms: number | null
+          error: string | null
+          event_id: string | null
+          execution_id: string | null
+          id: string
+          message: string
+          provider: string
+          provider_message_id: string | null
+          recipient_name: string | null
+          recipient_number: string | null
+          rule_id: string | null
+          sent_at: string | null
+          status: string
+          student_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          adapter?: string
+          attempts?: number
+          channel?: string
+          created_at?: string
+          delivered_at?: string | null
+          duration_ms?: number | null
+          error?: string | null
+          event_id?: string | null
+          execution_id?: string | null
+          id?: string
+          message: string
+          provider?: string
+          provider_message_id?: string | null
+          recipient_name?: string | null
+          recipient_number?: string | null
+          rule_id?: string | null
+          sent_at?: string | null
+          status?: string
+          student_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          adapter?: string
+          attempts?: number
+          channel?: string
+          created_at?: string
+          delivered_at?: string | null
+          duration_ms?: number | null
+          error?: string | null
+          event_id?: string | null
+          execution_id?: string | null
+          id?: string
+          message?: string
+          provider?: string
+          provider_message_id?: string | null
+          recipient_name?: string | null
+          recipient_number?: string | null
+          rule_id?: string | null
+          sent_at?: string | null
+          status?: string
+          student_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_deliveries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "automation_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_deliveries_execution_id_fkey"
+            columns: ["execution_id"]
+            isOneToOne: false
+            referencedRelation: "automation_executions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_deliveries_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "automation_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automation_events: {
         Row: {
           created_at: string
@@ -5193,16 +5287,21 @@ export type Database = {
           gender: string | null
           guardian_name: string | null
           guardian_phone: string | null
+          guardian_whatsapp: string | null
           id: string
           joined_at: string
           medical_notes: string | null
           name: string
           notes: string | null
+          parent_mobile: string | null
+          parent_name: string | null
+          parent_whatsapp: string | null
           phone: string
           photo_url: string | null
           pincode: string | null
           player_id: string | null
           playing_role: string | null
+          preferred_notification_channel: string
           public_slug: string | null
           school_college: string | null
           state: string | null
@@ -5231,16 +5330,21 @@ export type Database = {
           gender?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
+          guardian_whatsapp?: string | null
           id?: string
           joined_at?: string
           medical_notes?: string | null
           name: string
           notes?: string | null
+          parent_mobile?: string | null
+          parent_name?: string | null
+          parent_whatsapp?: string | null
           phone: string
           photo_url?: string | null
           pincode?: string | null
           player_id?: string | null
           playing_role?: string | null
+          preferred_notification_channel?: string
           public_slug?: string | null
           school_college?: string | null
           state?: string | null
@@ -5269,16 +5373,21 @@ export type Database = {
           gender?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
+          guardian_whatsapp?: string | null
           id?: string
           joined_at?: string
           medical_notes?: string | null
           name?: string
           notes?: string | null
+          parent_mobile?: string | null
+          parent_name?: string | null
+          parent_whatsapp?: string | null
           phone?: string
           photo_url?: string | null
           pincode?: string | null
           player_id?: string | null
           playing_role?: string | null
+          preferred_notification_channel?: string
           public_slug?: string | null
           school_college?: string | null
           state?: string | null

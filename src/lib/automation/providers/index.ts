@@ -1,6 +1,7 @@
 import type { ActionContext, ActionResult, ActionType } from "../types";
 import { mockProvider } from "./mock";
 import { notificationLogProvider } from "./notification-log";
+import { whatsappProvider } from "./whatsapp";
 
 export interface ActionProvider {
   /** Unique key, e.g. "whatsapp.meta", "notification.log". */
@@ -38,6 +39,8 @@ function defaultProviderKeyFor(type: ActionType): string | null {
   switch (type) {
     case "notification.create":
       return "notification.log";
+    case "notification.whatsapp":
+      return "whatsapp";
     // future defaults land here when real providers are added
     default:
       return null;
@@ -47,5 +50,6 @@ function defaultProviderKeyFor(type: ActionType): string | null {
 // Register built-in providers
 registerProvider(mockProvider);
 registerProvider(notificationLogProvider);
+registerProvider(whatsappProvider);
 
-export { mockProvider, notificationLogProvider };
+export { mockProvider, notificationLogProvider, whatsappProvider };
