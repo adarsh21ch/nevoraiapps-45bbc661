@@ -41,9 +41,6 @@ import {
   registerTeams,
   removeTeam,
   listFixtures,
-  generateRoundRobin,
-  generateKnockout,
-  persistFixtures,
 } from "@/lib/mc-tournaments";
 import {
   rebuildTournamentStandings,
@@ -60,6 +57,8 @@ import {
   VenuesTab,
   OfficialsTab,
 } from "@/components/match-center/tournament-setup";
+import { FixtureGeneratorDialog } from "@/components/match-center/fixture-generator";
+import { supabase } from "@/integrations/supabase/client";
 
 
 export const Route = createFileRoute("/match-center/tournaments/$tournamentId")({
