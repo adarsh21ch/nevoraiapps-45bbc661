@@ -17,8 +17,10 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { CoachAssignmentsDialog } from "@/components/staff/CoachAssignmentsDialog";
+
 
 export const Route = createFileRoute("/dashboard/batches")({
   component: BatchesPage,
