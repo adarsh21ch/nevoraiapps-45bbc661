@@ -9,7 +9,6 @@ import {
   LayoutDashboard,
   Inbox,
   Users,
-  CalendarDays,
   LogOut,
   ExternalLink,
   IndianRupee,
@@ -17,12 +16,16 @@ import {
   ClipboardCheck,
   UserCircle,
   Swords,
-  Building2,
-  Globe,
   Megaphone,
-  Settings as SettingsIcon,
   ChevronDown,
-  TrendingUp,
+  Image as ImageIcon,
+  Trophy,
+  Radio,
+  ListOrdered,
+  GitBranch,
+  Award,
+  BarChart2,
+  ListChecks,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
@@ -42,11 +45,12 @@ type NavItem = {
   adminOnly?: boolean;
 };
 
-// Unified IA — matches mobile bottom nav.
-// Owner: Home · Attendance · Fees · Manage · Profile
-// Admin: Home · Attendance · Performance · Manage · Profile (no finance)
+// Simplified daily navigation — optimized for academy owners' daily workflow.
+// Low-frequency configuration (Batches, Settings, Billing, Staff, etc.) lives
+// under Profile — the single home for owner-level administration.
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   {
     to: "/dashboard/fees",
@@ -55,21 +59,24 @@ const primaryNav: NavItem[] = [
     requiresFeature: "fee_tracking",
     ownerOnly: true,
   },
-  { to: "/dashboard/insights", label: "Performance", icon: TrendingUp, adminOnly: true },
+];
+
+// Everything below Match Center in the daily sidebar list.
+const secondaryNav: NavItem[] = [
+  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
+  { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
+  { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+  { to: "/dashboard/site", label: "Gallery", icon: ImageIcon },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
-// Manage — expands to expose the full academy toolset. Single source of
-// truth: nothing here is repeated in `primaryNav`.
-const operationsNav: NavItem[] = [
-  { to: "/dashboard/students", label: "Players", icon: Users },
-  { to: "/match-center", label: "Match Center", icon: Swords },
-  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
-  { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
-  { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-  { to: "/dashboard/site", label: "Website", icon: Globe },
-  { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
-  { to: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
+// Match Center sub-entries — surface Tournament Center prominently.
+const matchCenterNav: NavItem[] = [
+  { to: "/match-center/matches", label: "Matches", icon: Swords },
+  { to: "/match-center/tournaments", label: "Tournaments", icon: Trophy },
+  { to: "/match-center/live", label: "Live", icon: Radio },
+  { to: "/match-center/leaderboards", label: "Statistics", icon: BarChart2 },
+  { to: "/match-center/awards", label: "Awards", icon: Award },
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
