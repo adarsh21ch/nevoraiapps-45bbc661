@@ -413,7 +413,7 @@ function DeliveryLogs() {
           <Filter className="mr-1 h-3 w-3" /> Clear
         </Button>
       </div>
-      <DeliveryTable rows={data?.rows ?? []} loading={isFetching && !data} />
+      <DeliveryTable rows={(data?.rows ?? []) as unknown as DeliveryRow[]} loading={isFetching && !data} />
       <PaginationBar
         total={data?.total ?? 0}
         page={filters.page}
