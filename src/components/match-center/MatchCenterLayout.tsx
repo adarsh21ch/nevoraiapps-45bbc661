@@ -6,7 +6,6 @@ import { useDashboard } from "@/lib/dashboard-context";
 import {
   PlusCircle,
   Search,
-  ArrowLeft,
   ChevronRight,
   Radio,
   Swords,
@@ -15,6 +14,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DemoBadge } from "@/components/match-center/demo-badge";
 
