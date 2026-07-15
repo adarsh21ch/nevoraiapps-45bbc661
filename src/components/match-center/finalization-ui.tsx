@@ -44,12 +44,10 @@ import {
   notifyFinalResult,
 } from "@/lib/mc-finalization";
 import type { MCBallEvent } from "@/lib/mc-ball-events";
-import {
-  updateCareersForMatch,
-  rebuildCareersAfterUnlock,
-} from "@/lib/mc-career-engine";
-import { updateTournamentForMatch } from "@/lib/mc-tournament-engine";
-import { updateAcademyRecordsForMatch } from "@/lib/mc-academy-records";
+// Heavy engines are dynamic-imported inside the finalize handler so they
+// only enter the chunk graph when the user actually finalizes / unlocks
+// a match (a rare, action-triggered operation).
+
 
 /* ============================================================
  * Finalization dialog
