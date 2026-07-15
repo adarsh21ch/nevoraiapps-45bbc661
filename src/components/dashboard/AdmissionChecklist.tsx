@@ -18,8 +18,11 @@ export function AdmissionChecklist({ lead }: { lead: PipelineLead }) {
     enabled: !!regId,
     queryKey: ["admissions", "reg", regId],
     queryFn: async () => {
-      const { data } = await supabase.from("registrations").select("id, status, payment_status")
-        .eq("id", regId!).maybeSingle();
+      const { data } = await supabase
+        .from("registrations")
+        .select("id, status, payment_status")
+        .eq("id", regId!)
+        .maybeSingle();
       return data;
     },
   });
@@ -28,9 +31,11 @@ export function AdmissionChecklist({ lead }: { lead: PipelineLead }) {
     enabled: !!studentId,
     queryKey: ["admissions", "student", studentId],
     queryFn: async () => {
-      const { data } = await supabase.from("students")
+      const { data } = await supabase
+        .from("students")
         .select("id, player_id, user_id, email")
-        .eq("id", studentId!).maybeSingle();
+        .eq("id", studentId!)
+        .maybeSingle();
       return data;
     },
   });
@@ -39,15 +44,19 @@ export function AdmissionChecklist({ lead }: { lead: PipelineLead }) {
     enabled: !!studentId,
     queryKey: ["admissions", "parent", studentId],
     queryFn: async () => {
-      const { data } = await supabase.from("mc_parent_links")
-        .select("id").eq("student_id", studentId!).limit(1);
+      const { data } = await supabase
+        .from("mc_parent_links")
+        .select("id")
+        .eq("student_id", studentId!)
+        .limit(1);
       return data ?? [];
     },
   });
 
   const steps = useMemo<Step[]>(() => {
     const contacted = lead.pipeline_stage !== "new";
-    const trialDone = !!lead.trial_rating || ["decision","approved","converted"].includes(lead.pipeline_stage);
+    const trialDone =
+      !!lead.trial_rating || ["decision", "approved", "converted"].includes(lead.pipeline_stage);
     const regSubmitted = !!regId;
     const regApproved = regQ.data?.status === "approved";
     const studentCreated = !!studentId;
@@ -55,11 +64,27 @@ export function AdmissionChecklist({ lead }: { lead: PipelineLead }) {
 
     return [
       { key: "contact", label: "Contacted family", done: contacted },
-      { key: "counselling", label: "Counselling", done: !!lead.counselling_at || ["trial","decision","approved","converted"].includes(lead.pipeline_stage) },
-      { key: "trial", label: "Trial completed", done: trialDone, hint: lead.trial_rating ? `${lead.trial_rating}/5` : undefined },
+      {
+        key: "counselling",
+        label: "Counselling",
+        done:
+          !!lead.counselling_at ||
+          ["trial", "decision", "approved", "converted"].includes(lead.pipeline_stage),
+      },
+      {
+        key: "trial",
+        label: "Trial completed",
+        done: trialDone,
+        hint: lead.trial_rating ? `${lead.trial_rating}/5` : undefined,
+      },
       { key: "registration", label: "Registration submitted", done: regSubmitted },
       { key: "approved", label: "Registration approved", done: regApproved },
-      { key: "student", label: "Player profile created", done: studentCreated, hint: studentQ.data?.player_id ?? undefined },
+      {
+        key: "student",
+        label: "Player profile created",
+        done: studentCreated,
+        hint: studentQ.data?.player_id ?? undefined,
+      },
       { key: "parent", label: "Parent linked", done: parentLinked },
     ];
   }, [lead, regId, studentId, regQ.data, studentQ.data, parentQ.data]);
@@ -71,7 +96,9 @@ export function AdmissionChecklist({ lead }: { lead: PipelineLead }) {
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div className="text-sm font-semibold">Admission checklist</div>
-        <div className="text-xs text-muted-foreground">{doneCount}/{steps.length} · {pct}%</div>
+        <div className="text-xs text-muted-foreground">
+          {doneCount}/{steps.length} · {pct}%
+        </div>
       </div>
       <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
         <div className="h-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
@@ -93,7 +120,18 @@ export function AdmissionChecklist({ lead }: { lead: PipelineLead }) {
   );
 }
 
-export function AdmissionTimelineList({ events }: { events: { id: string; event_type: string; from_stage: string | null; to_stage: string | null; remark: string | null; created_at: string }[] }) {
+export function AdmissionTimelineList({
+  events,
+}: {
+  events: {
+    id: string;
+    event_type: string;
+    from_stage: string | null;
+    to_stage: string | null;
+    remark: string | null;
+    created_at: string;
+  }[];
+}) {
   if (!events.length) {
     return <div className="text-sm text-muted-foreground">No admission events yet.</div>;
   }

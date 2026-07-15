@@ -81,8 +81,8 @@ function WebsiteAdmin() {
       <header>
         <h1 className="text-2xl font-bold">Website Builder</h1>
         <p className="text-sm text-muted-foreground">
-          Configure the public site at <code>/academy/{tenant?.slug}</code>. Data is pulled
-          live from your existing engines.
+          Configure the public site at <code>/academy/{tenant?.slug}</code>. Data is pulled live
+          from your existing engines.
         </p>
       </header>
 
@@ -147,11 +147,7 @@ function WebsiteAdmin() {
                   ↓
                 </button>
                 <label className="flex items-center gap-1 text-xs">
-                  <input
-                    type="checkbox"
-                    checked={w.enabled}
-                    onChange={() => toggle(i)}
-                  />
+                  <input type="checkbox" checked={w.enabled} onChange={() => toggle(i)} />
                   Show
                 </label>
               </div>

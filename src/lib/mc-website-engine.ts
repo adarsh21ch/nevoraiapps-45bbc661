@@ -146,9 +146,11 @@ export async function upsertWebsiteConfig(
     hero: (patch.hero ?? existing?.hero ?? {}) as never,
     widgets: (patch.widgets ?? existing?.widgets ?? DEFAULT_WIDGETS) as never,
     featured_player_ids: (patch.featured_player_ids ??
-      existing?.featured_player_ids ?? []) as never,
+      existing?.featured_player_ids ??
+      []) as never,
     featured_tournament_ids: (patch.featured_tournament_ids ??
-      existing?.featured_tournament_ids ?? []) as never,
+      existing?.featured_tournament_ids ??
+      []) as never,
     seo: (patch.seo ?? existing?.seo ?? {}) as never,
   };
   const { data, error } = await supabase

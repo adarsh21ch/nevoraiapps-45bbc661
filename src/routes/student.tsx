@@ -73,8 +73,8 @@ function StudentLayout() {
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">No player record</h1>
           <p className="text-sm text-muted-foreground">
-            Your sign-in email is not linked to a student. Please contact your academy so
-            they can update your email in your profile.
+            Your sign-in email is not linked to a student. Please contact your academy so they can
+            update your email in your profile.
           </p>
           <Button
             variant="outline"

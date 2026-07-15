@@ -50,7 +50,9 @@ export interface ChildSummary {
 }
 
 export async function getChildSummary(studentId: string): Promise<ChildSummary | null> {
-  const { data, error } = await supabase.rpc("get_parent_child_summary", { _student_id: studentId });
+  const { data, error } = await supabase.rpc("get_parent_child_summary", {
+    _student_id: studentId,
+  });
   if (error) throw error;
   return (data as unknown as ChildSummary) ?? null;
 }

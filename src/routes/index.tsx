@@ -2,7 +2,18 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { ArrowRight, Phone, MessageCircle, Sparkles, Trophy, Users, ShieldCheck, Star, MapPin, Mail } from "lucide-react";
+import {
+  ArrowRight,
+  Phone,
+  MessageCircle,
+  Sparkles,
+  Trophy,
+  Users,
+  ShieldCheck,
+  Star,
+  MapPin,
+  Mail,
+} from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
 import { feePlansQuery, sectionsBy, sectionOne, siteContentQuery } from "@/lib/site-queries";
@@ -41,7 +52,6 @@ function useStandaloneAppRedirect() {
   }, [navigate]);
 }
 
-
 type Hero = {
   headline?: string;
   subheadline?: string;
@@ -60,17 +70,32 @@ type Coach = { name?: string; role?: string; bio?: string; photo_url?: string | 
 type GalleryItem = { url?: string; caption?: string };
 type StarPlayer = { name: string; achievement: string; photo_url?: string | null };
 type Spotlight = { name?: string; role?: string; bio?: string; photo_url?: string | null };
-type Cta = { headline?: string; subheadline?: string; background_url?: string; background_type?: "image" | "video" | "" };
+type Cta = {
+  headline?: string;
+  subheadline?: string;
+  background_url?: string;
+  background_type?: "image" | "video" | "";
+};
 type MapContent = { embed_url?: string; directions_url?: string };
 
 function useResolvedUrl(path?: string | null) {
   const [url, setUrl] = useState("");
   useEffect(() => {
-    if (!path) { setUrl(""); return; }
-    if (path.startsWith("http")) { setUrl(path); return; }
+    if (!path) {
+      setUrl("");
+      return;
+    }
+    if (path.startsWith("http")) {
+      setUrl(path);
+      return;
+    }
     let active = true;
-    signedUrl(path).then((u) => { if (active) setUrl(u); });
-    return () => { active = false; };
+    signedUrl(path).then((u) => {
+      if (active) setUrl(u);
+    });
+    return () => {
+      active = false;
+    };
   }, [path]);
   return url;
 }
@@ -99,11 +124,15 @@ function HomeContent() {
   const ctaIsVideo = cta?.background_type === "video";
 
   const nicheLabel =
-    tenant.niche === "gym" ? "Modern gym"
-    : tenant.niche === "tuition" ? "Learning centre"
-    : tenant.niche === "dance" ? "Dance studio"
-    : tenant.niche === "music" ? "Music school"
-    : "Sports academy";
+    tenant.niche === "gym"
+      ? "Modern gym"
+      : tenant.niche === "tuition"
+        ? "Learning centre"
+        : tenant.niche === "dance"
+          ? "Dance studio"
+          : tenant.niche === "music"
+            ? "Music school"
+            : "Sports academy";
 
   return (
     <>
@@ -117,11 +146,23 @@ function HomeContent() {
           }}
         />
         {bgUrl && bgIsVideo ? (
-          <video src={bgUrl} autoPlay muted loop playsInline preload="auto" aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60" />
+          <video
+            src={bgUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60"
+          />
         ) : bgUrl ? (
-          <img src={bgUrl} alt="" aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-55" />
+          <img
+            src={bgUrl}
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-55"
+          />
         ) : null}
         <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-[#05060a]" />
@@ -129,39 +170,59 @@ function HomeContent() {
         <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-24 sm:px-6 md:py-32 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:py-40">
           <div>
             <motion.div
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/80 backdrop-blur"
             >
-              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: tenant.primary_color, boxShadow: `0 0 12px ${tenant.primary_color}` }} />
-              {nicheLabel} · Est. {tenant.address ? tenant.address.split(",").slice(-1)[0]?.trim() : "India"}
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{
+                  backgroundColor: tenant.primary_color,
+                  boxShadow: `0 0 12px ${tenant.primary_color}`,
+                }}
+              />
+              {nicheLabel} · Est.{" "}
+              {tenant.address ? tenant.address.split(",").slice(-1)[0]?.trim() : "India"}
             </motion.div>
             <motion.h1
-              initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.65, delay: 0.05 }}
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, delay: 0.05 }}
               className="mt-7 font-black leading-[0.98] tracking-tight text-white text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[5.25rem]"
             >
               {hero?.headline ?? tenant.tagline ?? tenant.name}
             </motion.h1>
             <motion.p
-              initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.15 }}
               className="mt-6 max-w-xl text-lg leading-relaxed text-white/75 sm:text-xl"
             >
-              {hero?.subheadline ?? `Professional training, transparent fees and a home for every athlete at ${tenant.name}.`}
+              {hero?.subheadline ??
+                `Professional training, transparent fees and a home for every athlete at ${tenant.name}.`}
             </motion.p>
             <motion.div
-              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.22 }}
               className="mt-10 flex flex-wrap items-center gap-3"
             >
               <Link
                 to="/register"
                 className="group inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.6)] transition-transform hover:scale-[1.02]"
-                style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+                style={{
+                  background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                }}
               >
                 {hero?.cta_label ?? "Start your trial"}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
               {tenant.phone ? (
-                <a href={`tel:${tenant.phone}`}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/10">
+                <a
+                  href={`tel:${tenant.phone}`}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/[0.04] px-6 py-3.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/10"
+                >
                   <Phone className="h-4 w-4" /> {tenant.phone}
                 </a>
               ) : null}
@@ -169,45 +230,72 @@ function HomeContent() {
 
             {/* Trust bar */}
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.7 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.7 }}
               className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/10 pt-6 text-xs uppercase tracking-[0.22em] text-white/50"
             >
-              <span className="flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5" /> Certified coaches</span>
-              <span className="flex items-center gap-2"><Trophy className="h-3.5 w-3.5" /> Proven results</span>
-              <span className="flex items-center gap-2"><Users className="h-3.5 w-3.5" /> Small batch sizes</span>
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="h-3.5 w-3.5" /> Certified coaches
+              </span>
+              <span className="flex items-center gap-2">
+                <Trophy className="h-3.5 w-3.5" /> Proven results
+              </span>
+              <span className="flex items-center gap-2">
+                <Users className="h-3.5 w-3.5" /> Small batch sizes
+              </span>
             </motion.div>
           </div>
 
           {/* Floating premium card cluster */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
             className="relative hidden lg:block"
           >
             <div className="relative mx-auto aspect-[4/5] w-full max-w-md">
-              <div className="absolute inset-0 rounded-[36px]"
-                style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`, filter: "blur(60px)", opacity: 0.5 }} />
+              <div
+                className="absolute inset-0 rounded-[36px]"
+                style={{
+                  background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                  filter: "blur(60px)",
+                  opacity: 0.5,
+                }}
+              />
               <div className="absolute inset-0 overflow-hidden rounded-[32px] border border-white/15 bg-white/[0.04] backdrop-blur-xl">
                 {bgUrl && !bgIsVideo ? (
                   <img src={bgUrl} alt="" className="h-full w-full object-cover opacity-80" />
                 ) : (
-                  <div className="h-full w-full"
-                    style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }} />
+                  <div
+                    className="h-full w-full"
+                    style={{
+                      background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                    }}
+                  />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-6">
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/70">Today at {tenant.name}</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/70">
+                    Today at {tenant.name}
+                  </div>
                   <div className="mt-2 text-2xl font-bold text-white">Live training in session</div>
                 </div>
               </div>
               {/* Floating stat cards */}
               <div className="absolute -left-8 top-10 rounded-2xl border border-white/15 bg-black/60 p-4 backdrop-blur-xl shadow-2xl">
                 <div className="flex items-center gap-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-xl" style={{ backgroundColor: tenant.primary_color }}>
+                  <div
+                    className="grid h-10 w-10 place-items-center rounded-xl"
+                    style={{ backgroundColor: tenant.primary_color }}
+                  >
                     <Trophy className="h-5 w-5 text-white" />
                   </div>
                   <div>
                     <div className="text-lg font-bold">{stars.length || 25}+</div>
-                    <div className="text-[10px] uppercase tracking-widest text-white/60">Champions trained</div>
+                    <div className="text-[10px] uppercase tracking-widest text-white/60">
+                      Champions trained
+                    </div>
                   </div>
                 </div>
               </div>
@@ -218,7 +306,9 @@ function HomeContent() {
                   </div>
                   <div>
                     <div className="text-lg font-bold">4.9 / 5</div>
-                    <div className="text-[10px] uppercase tracking-widest text-white/60">Parent rating</div>
+                    <div className="text-[10px] uppercase tracking-widest text-white/60">
+                      Parent rating
+                    </div>
                   </div>
                 </div>
               </div>
@@ -234,7 +324,9 @@ function HomeContent() {
             <div className="relative">
               <div
                 className="absolute -inset-3 rounded-[32px] opacity-40 blur-2xl"
-                style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+                style={{
+                  background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                }}
               />
               <div className="relative aspect-square w-full overflow-hidden rounded-full border-[6px] border-background bg-muted shadow-xl">
                 <StoragedImage
@@ -244,7 +336,9 @@ function HomeContent() {
                   fallback={
                     <div
                       className="grid h-full w-full place-items-center text-6xl font-bold text-white"
-                      style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+                      style={{
+                        background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                      }}
                     >
                       {(founder.name ?? "★").charAt(0)}
                     </div>
@@ -253,7 +347,10 @@ function HomeContent() {
               </div>
             </div>
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.25em]" style={{ color: "var(--brand)" }}>
+              <div
+                className="text-xs font-semibold uppercase tracking-[0.25em]"
+                style={{ color: "var(--brand)" }}
+              >
                 The founder
               </div>
               <h2 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-5xl">
@@ -265,7 +362,9 @@ function HomeContent() {
                 </div>
               ) : null}
               {founder.credentials ? (
-                <div className="mt-1 text-sm font-medium text-muted-foreground">{founder.credentials}</div>
+                <div className="mt-1 text-sm font-medium text-muted-foreground">
+                  {founder.credentials}
+                </div>
               ) : null}
               {founder.bio ? (
                 <p className="mt-5 whitespace-pre-line text-base leading-relaxed text-muted-foreground sm:text-lg">
@@ -282,7 +381,10 @@ function HomeContent() {
         <section className="bg-muted/30 py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="text-center">
-              <div className="text-xs font-semibold uppercase tracking-[0.25em]" style={{ color: "var(--brand)" }}>
+              <div
+                className="text-xs font-semibold uppercase tracking-[0.25em]"
+                style={{ color: "var(--brand)" }}
+              >
                 The team
               </div>
               <h2 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
@@ -300,7 +402,9 @@ function HomeContent() {
                       fallback={
                         <div
                           className="grid h-full w-full place-items-center text-3xl font-bold text-white"
-                          style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+                          style={{
+                            background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                          }}
                         >
                           {(c.name ?? "?").charAt(0)}
                         </div>
@@ -309,7 +413,9 @@ function HomeContent() {
                   </div>
                   <div className="mt-4 text-lg font-bold text-foreground">{c.name ?? "Coach"}</div>
                   {c.role ? <div className="text-sm text-muted-foreground">{c.role}</div> : null}
-                  {c.bio ? <p className="mt-2 text-xs text-muted-foreground line-clamp-3">{c.bio}</p> : null}
+                  {c.bio ? (
+                    <p className="mt-2 text-xs text-muted-foreground line-clamp-3">{c.bio}</p>
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -338,26 +444,44 @@ function HomeContent() {
                 <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/60">
                   <span style={{ color: tenant.primary_color }}>01 —</span> Our champions
                 </div>
-                <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Star players</h2>
+                <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+                  Star players
+                </h2>
               </div>
-              <Link to="/star-players" className="hidden text-sm font-medium text-white/70 hover:text-white sm:inline">
+              <Link
+                to="/star-players"
+                className="hidden text-sm font-medium text-white/70 hover:text-white sm:inline"
+              >
                 See all →
               </Link>
             </div>
             <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {stars.slice(0, 6).map((p, i) => (
-                <div key={i} className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 transition-all hover:-translate-y-1 hover:border-white/25">
-                  <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl transition-opacity group-hover:opacity-90"
-                    style={{ backgroundColor: `${tenant.primary_color}40` }} />
+                <div
+                  key={i}
+                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 transition-all hover:-translate-y-1 hover:border-white/25"
+                >
+                  <div
+                    className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl transition-opacity group-hover:opacity-90"
+                    style={{ backgroundColor: `${tenant.primary_color}40` }}
+                  />
                   <div className="relative flex items-center gap-4">
                     <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl ring-2 ring-white/20">
-                      <StoragedImage path={p.photo_url} alt={p.name} className="h-full w-full object-cover"
+                      <StoragedImage
+                        path={p.photo_url}
+                        alt={p.name}
+                        className="h-full w-full object-cover"
                         fallback={
-                          <div className="flex h-full w-full items-center justify-center text-xl font-bold text-white"
-                            style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}>
+                          <div
+                            className="flex h-full w-full items-center justify-center text-xl font-bold text-white"
+                            style={{
+                              background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                            }}
+                          >
                             {p.name.charAt(0)}
                           </div>
-                        } />
+                        }
+                      />
                     </div>
                     <div className="min-w-0">
                       <div className="truncate text-lg font-bold">{p.name}</div>
@@ -376,7 +500,10 @@ function HomeContent() {
         <section className="bg-background py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="text-center">
-              <div className="text-xs font-semibold uppercase tracking-[0.25em]" style={{ color: "var(--brand)" }}>
+              <div
+                className="text-xs font-semibold uppercase tracking-[0.25em]"
+                style={{ color: "var(--brand)" }}
+              >
                 Our ground
               </div>
               <h2 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
@@ -417,34 +544,65 @@ function HomeContent() {
               <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
                 <span style={{ color: "var(--brand)" }}>02 —</span> Simple pricing
               </div>
-              <h2 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-5xl">Plans built for every athlete</h2>
-              <p className="mt-4 text-lg text-muted-foreground">No hidden charges. Cancel anytime. See all plans and one-time fees on the fees page.</p>
+              <h2 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-5xl">
+                Plans built for every athlete
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                No hidden charges. Cancel anytime. See all plans and one-time fees on the fees page.
+              </p>
             </div>
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               {monthly.map((p, i) => {
                 const featured = i === 1 && monthly.length >= 2;
                 return (
-                  <div key={p.id} className={`group relative rounded-3xl p-[1.5px] transition-transform hover:-translate-y-1 ${featured ? "shadow-[0_25px_60px_-25px_rgba(0,0,0,0.35)]" : ""}`}
-                    style={featured
-                      ? { background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }
-                      : { background: "hsl(var(--border) / 0.6)" }}>
+                  <div
+                    key={p.id}
+                    className={`group relative rounded-3xl p-[1.5px] transition-transform hover:-translate-y-1 ${featured ? "shadow-[0_25px_60px_-25px_rgba(0,0,0,0.35)]" : ""}`}
+                    style={
+                      featured
+                        ? {
+                            background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                          }
+                        : { background: "hsl(var(--border) / 0.6)" }
+                    }
+                  >
                     <div className="relative flex h-full flex-col rounded-[calc(1.5rem-1.5px)] bg-card p-7">
                       {featured ? (
-                        <div className="absolute -top-3 right-6 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white"
-                          style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}>
+                        <div
+                          className="absolute -top-3 right-6 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white"
+                          style={{
+                            background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                          }}
+                        >
                           Most popular
                         </div>
                       ) : null}
-                      <div className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">{p.name}</div>
+                      <div className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+                        {p.name}
+                      </div>
                       <div className="mt-5 flex items-baseline gap-1">
-                        <span className="text-5xl font-black tracking-tight text-foreground">₹{p.amount.toLocaleString("en-IN")}</span>
+                        <span className="text-5xl font-black tracking-tight text-foreground">
+                          ₹{p.amount.toLocaleString("en-IN")}
+                        </span>
                         <span className="text-base text-muted-foreground">/month</span>
                       </div>
-                      {p.description ? <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{p.description}</p> : null}
+                      {p.description ? (
+                        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                          {p.description}
+                        </p>
+                      ) : null}
                       <div className="mt-auto pt-6">
-                        <Link to="/register"
+                        <Link
+                          to="/register"
                           className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition-transform hover:scale-[1.02] ${featured ? "text-white" : "border border-border text-foreground hover:bg-muted"}`}
-                          style={featured ? { background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` } : {}}>
+                          style={
+                            featured
+                              ? {
+                                  background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                                }
+                              : {}
+                          }
+                        >
                           Get started <ArrowRight className="h-4 w-4" />
                         </Link>
                       </div>
@@ -454,7 +612,11 @@ function HomeContent() {
               })}
             </div>
             <div className="mt-10">
-              <Link to="/fees" className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: "var(--brand)" }}>
+              <Link
+                to="/fees"
+                className="inline-flex items-center gap-1 text-sm font-semibold"
+                style={{ color: "var(--brand)" }}
+              >
                 View all fees →
               </Link>
             </div>
@@ -463,12 +625,15 @@ function HomeContent() {
       ) : null}
 
       {/* Contact + Map */}
-      {(tenant.phone || tenant.email || tenant.address || mapContent?.embed_url) ? (
+      {tenant.phone || tenant.email || tenant.address || mapContent?.embed_url ? (
         <section className="bg-background py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
               <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.25em]" style={{ color: "var(--brand)" }}>
+                <div
+                  className="text-xs font-semibold uppercase tracking-[0.25em]"
+                  style={{ color: "var(--brand)" }}
+                >
                   Get in touch
                 </div>
                 <h2 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
@@ -476,15 +641,26 @@ function HomeContent() {
                 </h2>
                 <div className="mt-6 space-y-4 text-base">
                   {tenant.phone ? (
-                    <a href={`tel:${tenant.phone}`} className="flex items-center gap-3 text-foreground hover:opacity-80">
-                      <span className="grid h-10 w-10 place-items-center rounded-full" style={{ backgroundColor: "var(--brand)", color: "white" }}>
+                    <a
+                      href={`tel:${tenant.phone}`}
+                      className="flex items-center gap-3 text-foreground hover:opacity-80"
+                    >
+                      <span
+                        className="grid h-10 w-10 place-items-center rounded-full"
+                        style={{ backgroundColor: "var(--brand)", color: "white" }}
+                      >
                         <Phone className="h-4 w-4" />
                       </span>
                       <span className="font-semibold">{tenant.phone}</span>
                     </a>
                   ) : null}
                   {wa ? (
-                    <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-foreground hover:opacity-80">
+                    <a
+                      href={`https://wa.me/${wa}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-3 text-foreground hover:opacity-80"
+                    >
                       <span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-500 text-white">
                         <MessageCircle className="h-4 w-4" />
                       </span>
@@ -492,7 +668,10 @@ function HomeContent() {
                     </a>
                   ) : null}
                   {tenant.email ? (
-                    <a href={`mailto:${tenant.email}`} className="flex items-center gap-3 text-foreground hover:opacity-80">
+                    <a
+                      href={`mailto:${tenant.email}`}
+                      className="flex items-center gap-3 text-foreground hover:opacity-80"
+                    >
                       <span className="grid h-10 w-10 place-items-center rounded-full bg-muted text-foreground">
                         <Mail className="h-4 w-4" />
                       </span>
@@ -532,12 +711,18 @@ function HomeContent() {
       {/* Brand-tinted CTA with optional background image */}
       <section
         className="relative w-full overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+        style={{
+          background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+        }}
       >
         {ctaBgUrl && ctaIsVideo ? (
           <video
             src={ctaBgUrl}
-            autoPlay muted loop playsInline preload="auto"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           />
@@ -564,7 +749,10 @@ function HomeContent() {
               {cta?.headline ?? `Ready to join ${tenant.name}?`}
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base text-white/90 sm:text-lg">
-              {cta?.subheadline || hero?.subheadline || tenant.tagline || `Get in touch to learn more about ${tenant.name}.`}
+              {cta?.subheadline ||
+                hero?.subheadline ||
+                tenant.tagline ||
+                `Get in touch to learn more about ${tenant.name}.`}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
@@ -596,11 +784,15 @@ function HomeContent() {
 function SpotlightBlock({ spotlight, flip }: { spotlight: Spotlight; flip: boolean }) {
   const tenant = useTenant();
   return (
-    <div className={`grid gap-8 md:grid-cols-2 md:items-center ${flip ? "md:[&>*:first-child]:order-2" : ""}`}>
+    <div
+      className={`grid gap-8 md:grid-cols-2 md:items-center ${flip ? "md:[&>*:first-child]:order-2" : ""}`}
+    >
       <div className="relative">
         <div
           className="absolute -inset-3 rounded-[28px] opacity-40 blur-2xl"
-          style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+          style={{
+            background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+          }}
         />
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[24px] border border-border/60 bg-muted">
           <StoragedImage
@@ -610,7 +802,9 @@ function SpotlightBlock({ spotlight, flip }: { spotlight: Spotlight; flip: boole
             fallback={
               <div
                 className="grid h-full w-full place-items-center text-6xl font-bold text-white"
-                style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+                style={{
+                  background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                }}
               >
                 {(spotlight.name ?? "★").charAt(0)}
               </div>
@@ -619,7 +813,10 @@ function SpotlightBlock({ spotlight, flip }: { spotlight: Spotlight; flip: boole
         </div>
       </div>
       <div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--brand)" }}>
+        <div
+          className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em]"
+          style={{ color: "var(--brand)" }}
+        >
           <Star className="h-3.5 w-3.5" /> Spotlight
         </div>
         <h2 className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">

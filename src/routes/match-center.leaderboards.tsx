@@ -7,7 +7,9 @@ import { useDemoData } from "@/lib/mc-demo/store";
 import { deriveLeaderboards, type LeaderRow } from "@/lib/mc-demo/derive";
 
 export const Route = createFileRoute("/match-center/leaderboards")({
-  head: () => ({ meta: [{ title: "Leaderboards · Match Center" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Leaderboards · Match Center" }, { name: "robots", content: "noindex" }],
+  }),
   component: LeaderboardsPage,
 });
 
@@ -18,7 +20,9 @@ function LeaderboardsPage() {
   const leaders = demo ? deriveLeaderboards(demo) : null;
   const hasData =
     !!leaders &&
-    (leaders.mostRuns.length > 0 || leaders.mostWickets.length > 0 || leaders.mostBoundaries.length > 0);
+    (leaders.mostRuns.length > 0 ||
+      leaders.mostWickets.length > 0 ||
+      leaders.mostBoundaries.length > 0);
 
   return (
     <div>
@@ -38,18 +42,8 @@ function LeaderboardsPage() {
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <LeaderCard
-            icon={Trophy}
-            title="Most Runs"
-            unit="runs"
-            rows={leaders!.mostRuns}
-          />
-          <LeaderCard
-            icon={Target}
-            title="Most Wickets"
-            unit="wkts"
-            rows={leaders!.mostWickets}
-          />
+          <LeaderCard icon={Trophy} title="Most Runs" unit="runs" rows={leaders!.mostRuns} />
+          <LeaderCard icon={Target} title="Most Wickets" unit="wkts" rows={leaders!.mostWickets} />
           <LeaderCard
             icon={Zap}
             title="Most Boundaries"
@@ -103,9 +97,7 @@ function LeaderCard({
             </div>
             <span className="shrink-0 text-sm font-bold tabular-nums">
               {r.value}
-              <span className="ml-1 text-[10px] font-normal text-muted-foreground">
-                {unit}
-              </span>
+              <span className="ml-1 text-[10px] font-normal text-muted-foreground">{unit}</span>
             </span>
           </li>
         ))}

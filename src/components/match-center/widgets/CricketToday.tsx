@@ -56,8 +56,7 @@ export function CricketToday({ tenantId }: { tenantId: string }) {
   const recent = useRecentMatches(tenantId, 3);
 
   const anyLoading = live.isLoading || upcoming.isLoading || recent.isLoading;
-  const anyData =
-    live.data.length + upcoming.data.length + recent.data.length > 0;
+  const anyData = live.data.length + upcoming.data.length + recent.data.length > 0;
 
   // Hide the whole section when the tenant has no cricket activity — keeps
   // the frozen dashboard clean for non-cricket academies.
@@ -83,11 +82,7 @@ export function CricketToday({ tenantId }: { tenantId: string }) {
         {live.data.length > 0 ? (
           <LiveMatchTile match={live.data[0]} extra={live.data.length - 1} />
         ) : (
-          <EmptyTile
-            icon={<Radio className="size-4" />}
-            label="Live now"
-            hint="No live matches"
-          />
+          <EmptyTile icon={<Radio className="size-4" />} label="Live now" hint="No live matches" />
         )}
 
         {/* Next upcoming */}
@@ -116,19 +111,9 @@ export function CricketToday({ tenantId }: { tenantId: string }) {
   );
 }
 
-function LiveMatchTile({
-  match,
-  extra,
-}: {
-  match: MatchWithTeams;
-  extra: number;
-}) {
+function LiveMatchTile({ match, extra }: { match: MatchWithTeams; extra: number }) {
   return (
-    <Link
-      to="/scorer/$matchId"
-      params={{ matchId: match.id }}
-      className="group"
-    >
+    <Link to="/scorer/$matchId" params={{ matchId: match.id }} className="group">
       <Card className="p-3.5 min-h-[96px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
         <div className="flex items-center justify-between">
           <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
@@ -138,16 +123,10 @@ function LiveMatchTile({
             </span>
             Live
           </span>
-          {extra > 0 && (
-            <span className="text-[10px] text-muted-foreground">
-              +{extra} more
-            </span>
-          )}
+          {extra > 0 && <span className="text-[10px] text-muted-foreground">+{extra} more</span>}
         </div>
         <div>
-          <div className="text-sm font-semibold tracking-tight truncate">
-            {teamsLabel(match)}
-          </div>
+          <div className="text-sm font-semibold tracking-tight truncate">{teamsLabel(match)}</div>
           <div className="text-[11px] text-muted-foreground truncate">
             {match.match_format ?? match.match_type ?? "Match"}
             {match.ground_name ? ` · ${match.ground_name}` : ""}
@@ -160,10 +139,7 @@ function LiveMatchTile({
 
 function UpcomingTile({ match }: { match: MatchWithTeams }) {
   return (
-    <Link
-      to="/match-center/matches"
-      className="group"
-    >
+    <Link to="/match-center/matches" className="group">
       <Card className="p-3.5 min-h-[96px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
         <div className="flex items-center justify-between">
           <span className="grid size-7 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#E8873C)_14%,transparent)] text-[color:var(--brand,#E8873C)]">
@@ -174,9 +150,7 @@ function UpcomingTile({ match }: { match: MatchWithTeams }) {
           </span>
         </div>
         <div>
-          <div className="text-sm font-semibold tracking-tight truncate">
-            {teamsLabel(match)}
-          </div>
+          <div className="text-sm font-semibold tracking-tight truncate">{teamsLabel(match)}</div>
           <div className="text-[11px] text-muted-foreground truncate">
             {formatWhen(match.scheduled_date)}
           </div>
@@ -195,10 +169,7 @@ function RecentTile({ match }: { match: MatchWithTeams }) {
         ? `${match.team_b?.short_name ?? "Team B"} won`
         : "Completed");
   return (
-    <Link
-      to="/match-center/matches"
-      className="group"
-    >
+    <Link to="/match-center/matches" className="group">
       <Card className="p-3.5 min-h-[96px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
         <div className="flex items-center justify-between">
           <span className="grid size-7 place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
@@ -209,27 +180,15 @@ function RecentTile({ match }: { match: MatchWithTeams }) {
           </span>
         </div>
         <div>
-          <div className="text-sm font-semibold tracking-tight truncate">
-            {teamsLabel(match)}
-          </div>
-          <div className="text-[11px] text-muted-foreground truncate">
-            {summary}
-          </div>
+          <div className="text-sm font-semibold tracking-tight truncate">{teamsLabel(match)}</div>
+          <div className="text-[11px] text-muted-foreground truncate">{summary}</div>
         </div>
       </Card>
     </Link>
   );
 }
 
-function EmptyTile({
-  icon,
-  label,
-  hint,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  hint: string;
-}) {
+function EmptyTile({ icon, label, hint }: { icon: React.ReactNode; label: string; hint: string }) {
   return (
     <Card className="p-3.5 min-h-[96px] flex flex-col justify-between opacity-70">
       <div className="flex items-center justify-between">

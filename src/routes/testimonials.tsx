@@ -25,9 +25,14 @@ export const Route = createFileRoute("/testimonials")({
 function TestimonialsPage() {
   const tenant = useTenant();
   const { data: sections = [] } = useQuery(siteContentQuery(tenant.id));
-  const items = sectionsBy(sections, "testimonials").map((s) => s.content as {
-    name?: string; role?: string; quote?: string;
-  });
+  const items = sectionsBy(sections, "testimonials").map(
+    (s) =>
+      s.content as {
+        name?: string;
+        role?: string;
+        quote?: string;
+      },
+  );
 
   return (
     <>
@@ -46,7 +51,11 @@ function TestimonialsPage() {
             {items.map((t, i) => (
               <figure key={i} className="rounded-2xl border border-border/60 bg-card p-6">
                 <Quote className="size-6 opacity-30" style={{ color: "var(--brand)" }} />
-                {t.quote && <blockquote className="mt-3 text-sm leading-relaxed text-foreground">{t.quote}</blockquote>}
+                {t.quote && (
+                  <blockquote className="mt-3 text-sm leading-relaxed text-foreground">
+                    {t.quote}
+                  </blockquote>
+                )}
                 <figcaption className="mt-4 text-sm">
                   <span className="font-semibold">{t.name}</span>
                   {t.role && <span className="text-muted-foreground"> · {t.role}</span>}

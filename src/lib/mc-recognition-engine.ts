@@ -17,12 +17,9 @@ import { listMatchBallEvents } from "@/lib/mc-ball-events";
 import { suggestPlayerOfMatch } from "@/lib/mc-finalization";
 import { analyzeMatchInsights } from "@/lib/mc-academy-records";
 
-export type MCRecognition =
-  Database["public"]["Tables"]["mc_recognitions"]["Row"];
-export type MCCertificateTemplate =
-  Database["public"]["Tables"]["mc_certificate_templates"]["Row"];
-export type MCAcademyTimelineRow =
-  Database["public"]["Tables"]["mc_academy_timeline"]["Row"];
+export type MCRecognition = Database["public"]["Tables"]["mc_recognitions"]["Row"];
+export type MCCertificateTemplate = Database["public"]["Tables"]["mc_certificate_templates"]["Row"];
+export type MCAcademyTimelineRow = Database["public"]["Tables"]["mc_academy_timeline"]["Row"];
 
 export type RecognitionType =
   | "player_of_match"
@@ -49,11 +46,7 @@ export type RecognitionType =
   | "tournament_winner"
   | "custom";
 
-export type RecognitionStatus =
-  | "suggested"
-  | "approved"
-  | "published"
-  | "rejected";
+export type RecognitionStatus = "suggested" | "approved" | "published" | "rejected";
 
 export const RECOGNITION_BADGES: Record<string, string> = {
   century_club: "🏏 Century Club",
@@ -96,9 +89,7 @@ export interface RecognitionSuggestion {
  *  - Emits `mc_recognitions` rows in `suggested` state
  * ================================================================ */
 
-export async function generateMatchRecognitions(
-  matchId: string,
-): Promise<RecognitionSuggestion[]> {
+export async function generateMatchRecognitions(matchId: string): Promise<RecognitionSuggestion[]> {
   const { data: match, error } = await supabase
     .from("mc_matches")
     .select("id, tenant_id, tournament_id, match_locked")
@@ -342,9 +333,7 @@ export async function generateMonthlyRecognitions(
   const careers = await fetchTenantCareers(tenantId);
   const out: RecognitionSuggestion[] = [];
 
-  const topRuns = [...careers]
-    .filter((c) => c.runs > 0)
-    .sort((a, b) => b.runs - a.runs)[0];
+  const topRuns = [...careers].filter((c) => c.runs > 0).sort((a, b) => b.runs - a.runs)[0];
   const topWkts = [...careers]
     .filter((c) => c.wickets > 0)
     .sort((a, b) => b.wickets - a.wickets)[0];
@@ -500,10 +489,7 @@ export async function processYearlyRecognitions(
  * Approval workflow
  * ================================================================ */
 
-export async function approveRecognition(
-  id: string,
-  actorId: string | null,
-): Promise<void> {
+export async function approveRecognition(id: string, actorId: string | null): Promise<void> {
   const { data: row, error } = await supabase
     .from("mc_recognitions")
     .update({
@@ -525,10 +511,7 @@ export async function approveRecognition(
   });
 }
 
-export async function publishRecognition(
-  id: string,
-  actorId: string | null,
-): Promise<void> {
+export async function publishRecognition(id: string, actorId: string | null): Promise<void> {
   const { data: row, error } = await supabase
     .from("mc_recognitions")
     .update({
@@ -567,10 +550,7 @@ export async function updateRecognition(
     >
   >,
 ): Promise<void> {
-  const { error } = await supabase
-    .from("mc_recognitions")
-    .update(patch)
-    .eq("id", id);
+  const { error } = await supabase.from("mc_recognitions").update(patch).eq("id", id);
   if (error) throw error;
 }
 
@@ -628,8 +608,9 @@ export async function listRecognitions(
   const { data, error } = await q;
   if (error) throw error;
   return (data ?? []).map((r) => {
-    const ap = (r as unknown as { mc_athlete_profiles?: { students?: { name?: string } | null } | null })
-      .mc_athlete_profiles;
+    const ap = (
+      r as unknown as { mc_athlete_profiles?: { students?: { name?: string } | null } | null }
+    ).mc_athlete_profiles;
     return { ...(r as MCRecognition), athleteName: ap?.students?.name };
   });
 }
@@ -651,9 +632,7 @@ export async function listRecognitionsForAthlete(
  * Certificate templates CRUD
  * ================================================================ */
 
-export async function listCertificateTemplates(
-  tenantId: string,
-): Promise<MCCertificateTemplate[]> {
+export async function listCertificateTemplates(tenantId: string): Promise<MCCertificateTemplate[]> {
   const { data, error } = await supabase
     .from("mc_certificate_templates")
     .select("*")
@@ -691,10 +670,7 @@ export async function upsertCertificateTemplate(
 }
 
 export async function deleteCertificateTemplate(id: string): Promise<void> {
-  const { error } = await supabase
-    .from("mc_certificate_templates")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("mc_certificate_templates").delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -767,7 +743,7 @@ export async function appendAcademyTimeline(input: {
   });
   if (error) {
     // best-effort — timeline should never break the primary flow.
-    // eslint-disable-next-line no-console
+
     console.error("appendAcademyTimeline failed", error);
   }
 }
@@ -827,11 +803,13 @@ export async function searchRecognitions(
     }
   }
   for (const t of timeline) {
-    if (
-      t.title.toLowerCase().includes(q) ||
-      (t.description ?? "").toLowerCase().includes(q)
-    ) {
-      hits.push({ kind: "timeline", title: t.title, subtitle: t.description ?? undefined, id: t.id });
+    if (t.title.toLowerCase().includes(q) || (t.description ?? "").toLowerCase().includes(q)) {
+      hits.push({
+        kind: "timeline",
+        title: t.title,
+        subtitle: t.description ?? undefined,
+        id: t.id,
+      });
     }
   }
   for (const t of templates) {

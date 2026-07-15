@@ -8,8 +8,7 @@ export type MCMatchUpdate = Database["public"]["Tables"]["mc_matches"]["Update"]
 export type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
 export type MCMatchSquadInsert = Database["public"]["Tables"]["mc_match_squads"]["Insert"];
 
-export type MCCustomMatchType =
-  Database["public"]["Tables"]["mc_custom_match_types"]["Row"];
+export type MCCustomMatchType = Database["public"]["Tables"]["mc_custom_match_types"]["Row"];
 
 export type MCTeam = Database["public"]["Tables"]["mc_teams"]["Row"];
 export type MCTeamInsert = Database["public"]["Tables"]["mc_teams"]["Insert"];
@@ -98,11 +97,7 @@ export async function createExternalTeam(input: {
     logo_url: input.logo_url?.trim() || null,
     status: "active",
   };
-  const { data, error } = await supabase
-    .from("mc_teams")
-    .insert(payload)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.from("mc_teams").insert(payload).select("*").single();
   if (error) throw error;
   return data;
 }
@@ -381,10 +376,7 @@ export async function deleteMatch(id: string) {
 export async function duplicateMatch(tenantId: string, matchId: string) {
   const source = await getMatch(tenantId, matchId);
   if (!source) throw new Error("Match not found");
-  const squads = await supabase
-    .from("mc_match_squads")
-    .select("*")
-    .eq("match_id", matchId);
+  const squads = await supabase.from("mc_match_squads").select("*").eq("match_id", matchId);
   if (squads.error) throw squads.error;
 
   const {

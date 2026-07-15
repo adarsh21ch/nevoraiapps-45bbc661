@@ -19,8 +19,8 @@ export function DomainNotConfigured() {
           linked to an academy yet.
         </p>
         <p className="text-xs text-zinc-500">
-          If you are the academy owner, contact us to finish setup. If you were
-          looking for Academy OS, visit{" "}
+          If you are the academy owner, contact us to finish setup. If you were looking for Academy
+          OS, visit{" "}
           <a href="https://academy.nevorai.com" className="text-lime-400 underline">
             academy.nevorai.com
           </a>

@@ -10,16 +10,42 @@ export type PipelineStage =
   | "rejected"
   | "converted";
 
-export const PIPELINE_STAGES: { key: PipelineStage; label: string; hint: string; tone: string }[] = [
-  { key: "new",          label: "New",          hint: "Fresh enquiry",     tone: "bg-blue-100 text-blue-700" },
-  { key: "contacted",    label: "Contacted",    hint: "Reached out",       tone: "bg-sky-100 text-sky-700" },
-  { key: "counselling",  label: "Counselling",  hint: "Talking to family", tone: "bg-violet-100 text-violet-700" },
-  { key: "trial",        label: "Trial",        hint: "On-ground trial",   tone: "bg-amber-100 text-amber-700" },
-  { key: "decision",     label: "Decision",     hint: "Awaiting yes/no",   tone: "bg-orange-100 text-orange-700" },
-  { key: "approved",     label: "Approved",     hint: "Ready to register", tone: "bg-emerald-100 text-emerald-700" },
-  { key: "converted",    label: "Enrolled",     hint: "Student created",   tone: "bg-emerald-600 text-white" },
-  { key: "rejected",     label: "Rejected",     hint: "Did not convert",   tone: "bg-rose-100 text-rose-700" },
-];
+export const PIPELINE_STAGES: { key: PipelineStage; label: string; hint: string; tone: string }[] =
+  [
+    { key: "new", label: "New", hint: "Fresh enquiry", tone: "bg-blue-100 text-blue-700" },
+    { key: "contacted", label: "Contacted", hint: "Reached out", tone: "bg-sky-100 text-sky-700" },
+    {
+      key: "counselling",
+      label: "Counselling",
+      hint: "Talking to family",
+      tone: "bg-violet-100 text-violet-700",
+    },
+    { key: "trial", label: "Trial", hint: "On-ground trial", tone: "bg-amber-100 text-amber-700" },
+    {
+      key: "decision",
+      label: "Decision",
+      hint: "Awaiting yes/no",
+      tone: "bg-orange-100 text-orange-700",
+    },
+    {
+      key: "approved",
+      label: "Approved",
+      hint: "Ready to register",
+      tone: "bg-emerald-100 text-emerald-700",
+    },
+    {
+      key: "converted",
+      label: "Enrolled",
+      hint: "Student created",
+      tone: "bg-emerald-600 text-white",
+    },
+    {
+      key: "rejected",
+      label: "Rejected",
+      hint: "Did not convert",
+      tone: "bg-rose-100 text-rose-700",
+    },
+  ];
 
 export const STAGE_LABEL: Record<PipelineStage, string> = Object.fromEntries(
   PIPELINE_STAGES.map((s) => [s.key, s.label]),
@@ -104,18 +130,25 @@ export function admissionTimelineQuery(params: {
 }
 
 export async function advanceLeadStage(leadId: string, newStage: PipelineStage, remark?: string) {
-  const { error } = await supabase.rpc("advance_lead_stage" as never, {
-    _lead_id: leadId,
-    _new_stage: newStage,
-    _remark: remark ?? null,
-  } as never);
+  const { error } = await supabase.rpc(
+    "advance_lead_stage" as never,
+    {
+      _lead_id: leadId,
+      _new_stage: newStage,
+      _remark: remark ?? null,
+    } as never,
+  );
   if (error) throw error;
 }
 
 export async function scheduleTrial(leadId: string, trialAt: string, assignedTo?: string | null) {
   const { error } = await supabase
     .from("leads" as never)
-    .update({ trial_at: trialAt, assigned_to: assignedTo ?? null, pipeline_stage: "trial" } as never)
+    .update({
+      trial_at: trialAt,
+      assigned_to: assignedTo ?? null,
+      pipeline_stage: "trial",
+    } as never)
     .eq("id", leadId);
   if (error) throw error;
 }

@@ -8,15 +8,7 @@
  * ================================================================ */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import {
-  Printer,
-  Share2,
-  Download,
-  Maximize2,
-  Minimize2,
-  ImageDown,
-  FileText,
-} from "lucide-react";
+import { Printer, Share2, Download, Maximize2, Minimize2, ImageDown, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
@@ -104,11 +96,11 @@ export function OfficialScorebook({
   );
 
   const teamA = orderedInnings[0]
-    ? teamById.get(orderedInnings[0].batting_team_id) ?? null
-    : teams[0] ?? null;
+    ? (teamById.get(orderedInnings[0].batting_team_id) ?? null)
+    : (teams[0] ?? null);
   const teamB = orderedInnings[1]
-    ? teamById.get(orderedInnings[1].batting_team_id) ?? null
-    : teams.find((t) => t.id !== teamA?.id) ?? null;
+    ? (teamById.get(orderedInnings[1].batting_team_id) ?? null)
+    : (teams.find((t) => t.id !== teamA?.id) ?? null);
 
   const handlePrint = () => {
     window.print();
@@ -174,21 +166,38 @@ export function OfficialScorebook({
   }, []);
 
   return (
-    <div ref={wrapRef} className={`scorebook-fs-wrap ${fullscreen ? "min-h-screen bg-background" : ""}`}>
+    <div
+      ref={wrapRef}
+      className={`scorebook-fs-wrap ${fullscreen ? "min-h-screen bg-background" : ""}`}
+    >
       {toolbar && (
         <div className="scorebook-toolbar no-print mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-card px-3 py-2">
           <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Official Scorebook
             {matchInfo.locked ? (
-              <Badge variant="secondary" className="ml-2 align-middle">Final</Badge>
+              <Badge variant="secondary" className="ml-2 align-middle">
+                Final
+              </Badge>
             ) : (
-              <Badge variant="outline" className="ml-2 align-middle border-emerald-500/40 text-emerald-600 dark:text-emerald-400">Live</Badge>
+              <Badge
+                variant="outline"
+                className="ml-2 align-middle border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+              >
+                Live
+              </Badge>
             )}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            <Button size="sm" variant="outline" onClick={handleFullscreen} aria-label="Toggle fullscreen">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleFullscreen}
+              aria-label="Toggle fullscreen"
+            >
               {isFullscreen ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-              <span className="ml-1.5 hidden sm:inline">{isFullscreen ? "Exit" : "Fullscreen"}</span>
+              <span className="ml-1.5 hidden sm:inline">
+                {isFullscreen ? "Exit" : "Fullscreen"}
+              </span>
             </Button>
             <Button size="sm" variant="outline" onClick={handlePrint} aria-label="Print scorebook">
               <Printer className="size-4" />
@@ -288,11 +297,10 @@ function ScorebookHeader({
             Official Scorebook
           </div>
           <h1 className="mt-0.5 text-xl font-black tracking-tight sm:text-2xl">
-            {teamA?.name ?? "Team A"} <span className="text-muted-foreground">v</span> {teamB?.name ?? "Team B"}
+            {teamA?.name ?? "Team A"} <span className="text-muted-foreground">v</span>{" "}
+            {teamB?.name ?? "Team B"}
           </h1>
-          {info.tournament && (
-            <div className="mt-0.5 text-sm font-medium">{info.tournament}</div>
-          )}
+          {info.tournament && <div className="mt-0.5 text-sm font-medium">{info.tournament}</div>}
         </div>
         <div className="text-right text-[11px] text-muted-foreground">
           {info.date && <div className="font-semibold text-foreground">{info.date}</div>}
@@ -317,15 +325,7 @@ function ScorebookHeader({
   );
 }
 
-function MetaCell({
-  label,
-  value,
-  span,
-}: {
-  label: string;
-  value?: string | null;
-  span?: number;
-}) {
+function MetaCell({ label, value, span }: { label: string; value?: string | null; span?: number }) {
   return (
     <div className={span === 2 ? "sm:col-span-2" : undefined}>
       <dt className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -359,8 +359,7 @@ function MatchSummaryStrip({
     });
     return {
       inn,
-      teamName:
-        (inn.batting_team_id === teamA?.id ? teamA?.name : teamB?.name) ?? "Team",
+      teamName: (inn.batting_team_id === teamA?.id ? teamA?.name : teamB?.name) ?? "Team",
       stats: s,
     };
   });
@@ -377,10 +376,7 @@ function MatchSummaryStrip({
           {rows.map(({ inn, teamName, stats }) => {
             const isChase = chase?.inn.id === inn.id && rows.length > 1;
             return (
-              <div
-                key={inn.id}
-                className="rounded-xl border bg-background/60 p-4"
-              >
+              <div key={inn.id} className="rounded-xl border bg-background/60 p-4">
                 <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   <span>Innings {inn.innings_number}</span>
                   {inn.target != null && (
@@ -389,9 +385,7 @@ function MatchSummaryStrip({
                     </span>
                   )}
                 </div>
-                <div className="mt-1.5 truncate text-base font-bold sm:text-lg">
-                  {teamName}
-                </div>
+                <div className="mt-1.5 truncate text-base font-bold sm:text-lg">{teamName}</div>
                 <div className="mt-1 flex items-baseline gap-2 num-display">
                   <span className="text-4xl font-black tracking-tight sm:text-5xl">
                     {stats.team.runs}
@@ -404,13 +398,24 @@ function MatchSummaryStrip({
                   </span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-                  <span>RR <b className="text-foreground tabular-nums">{stats.team.runRate.toFixed(2)}</b></span>
+                  <span>
+                    RR{" "}
+                    <b className="text-foreground tabular-nums">{stats.team.runRate.toFixed(2)}</b>
+                  </span>
                   {isChase && rrr != null && (
-                    <span>RRR <b className="text-foreground tabular-nums">{rrr.toFixed(2)}</b></span>
+                    <span>
+                      RRR <b className="text-foreground tabular-nums">{rrr.toFixed(2)}</b>
+                    </span>
                   )}
-                  <span>Extras <b className="text-foreground tabular-nums">{stats.team.extras.total}</b></span>
-                  <span>4s <b className="text-foreground tabular-nums">{stats.team.fours}</b></span>
-                  <span>6s <b className="text-foreground tabular-nums">{stats.team.sixes}</b></span>
+                  <span>
+                    Extras <b className="text-foreground tabular-nums">{stats.team.extras.total}</b>
+                  </span>
+                  <span>
+                    4s <b className="text-foreground tabular-nums">{stats.team.fours}</b>
+                  </span>
+                  <span>
+                    6s <b className="text-foreground tabular-nums">{stats.team.sixes}</b>
+                  </span>
                 </div>
               </div>
             );
@@ -456,7 +461,11 @@ function InningsBlock({
           Innings {inningsNumber} — {battingTeamName} batting
         </h2>
         <div className="text-[11px] font-semibold text-muted-foreground sm:text-xs">
-          v {bowlingTeamName} · <b className="text-foreground tabular-nums">{stats.team.runs}/{stats.team.wickets}</b> ({stats.team.oversDisplay})
+          v {bowlingTeamName} ·{" "}
+          <b className="text-foreground tabular-nums">
+            {stats.team.runs}/{stats.team.wickets}
+          </b>{" "}
+          ({stats.team.oversDisplay})
         </div>
       </div>
 
@@ -493,15 +502,19 @@ function SectionBlock({ title, children }: { title: string; children: React.Reac
   return (
     <div className="mt-5 first:mt-0">
       <div className="mb-2 flex items-center gap-3">
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-border" aria-hidden="true" />
+        <span
+          className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-border"
+          aria-hidden="true"
+        />
         <h3 className="text-[11px] font-black uppercase tracking-[0.28em] text-foreground/80">
           {title}
         </h3>
-        <span className="h-px flex-1 bg-gradient-to-l from-transparent via-border to-border" aria-hidden="true" />
+        <span
+          className="h-px flex-1 bg-gradient-to-l from-transparent via-border to-border"
+          aria-hidden="true"
+        />
       </div>
-      <div className="rounded-xl border bg-background/40 p-3 sm:p-4">
-        {children}
-      </div>
+      <div className="rounded-xl border bg-background/40 p-3 sm:p-4">{children}</div>
     </div>
   );
 }
@@ -534,15 +547,20 @@ function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: s
             >
               <div className="flex items-baseline justify-between gap-2">
                 <div className="min-w-0 truncate text-[13px] font-semibold">
-                  {isPom ? <span className="mr-1 text-amber-600 dark:text-amber-400">★</span>
-                    : isTop ? <span className="mr-1 text-emerald-600 dark:text-emerald-400">◆</span>
-                    : null}
+                  {isPom ? (
+                    <span className="mr-1 text-amber-600 dark:text-amber-400">★</span>
+                  ) : isTop ? (
+                    <span className="mr-1 text-emerald-600 dark:text-emerald-400">◆</span>
+                  ) : null}
                   {name}
                   {b.notOut && <span className="ml-0.5 text-muted-foreground">*</span>}
                 </div>
                 <div className="shrink-0 tabular-nums text-[15px] font-black">
                   {b.runs}
-                  <span className="text-[11px] font-medium text-muted-foreground"> ({b.balls})</span>
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    {" "}
+                    ({b.balls})
+                  </span>
                 </div>
               </div>
               <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
@@ -550,9 +568,16 @@ function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: s
                 {b.dismissedBy?.name ? ` · b ${b.dismissedBy.name}` : ""}
               </div>
               <div className="mt-1 flex gap-3 text-[10.5px] text-muted-foreground tabular-nums">
-                <span>4s <b className="text-foreground">{b.fours}</b></span>
-                <span>6s <b className="text-foreground">{b.sixes}</b></span>
-                <span>SR <b className="text-foreground">{b.strikeRate ? b.strikeRate.toFixed(1) : "—"}</b></span>
+                <span>
+                  4s <b className="text-foreground">{b.fours}</b>
+                </span>
+                <span>
+                  6s <b className="text-foreground">{b.sixes}</b>
+                </span>
+                <span>
+                  SR{" "}
+                  <b className="text-foreground">{b.strikeRate ? b.strikeRate.toFixed(1) : "—"}</b>
+                </span>
               </div>
             </li>
           );
@@ -595,15 +620,25 @@ function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: s
                 >
                   <td className="py-2 pl-2 font-semibold">
                     {isPom ? (
-                      <span className="mr-1 text-amber-600 dark:text-amber-400" title="Player of the Match">★</span>
+                      <span
+                        className="mr-1 text-amber-600 dark:text-amber-400"
+                        title="Player of the Match"
+                      >
+                        ★
+                      </span>
                     ) : isTop ? (
-                      <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Top scorer">◆</span>
+                      <span
+                        className="mr-1 text-emerald-600 dark:text-emerald-400"
+                        title="Top scorer"
+                      >
+                        ◆
+                      </span>
                     ) : null}
                     {b.player.name ?? "—"}
                     {b.notOut && <span className="ml-1 text-muted-foreground">*</span>}
                   </td>
                   <td className="text-[11px] text-muted-foreground">
-                    {b.notOut ? "not out" : b.dismissalType ?? "—"}
+                    {b.notOut ? "not out" : (b.dismissalType ?? "—")}
                   </td>
                   <td className="text-[11px] text-muted-foreground">
                     {b.dismissedBy?.name ?? "—"}
@@ -626,12 +661,21 @@ function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: s
           </tbody>
           <tfoot>
             <tr className="border-t-2 border-foreground/80 bg-foreground/5">
-              <td colSpan={3} className="py-2 pl-2 text-[11px] font-black uppercase tracking-widest">
+              <td
+                colSpan={3}
+                className="py-2 pl-2 text-[11px] font-black uppercase tracking-widest"
+              >
                 Total
               </td>
-              <td className="pr-2 text-right text-base font-black tabular-nums">{stats.team.runs}</td>
-              <td colSpan={4} className="pr-2 text-right text-[11px] font-semibold text-muted-foreground">
-                {stats.team.wickets} wkts · {stats.team.oversDisplay} ov · RR {stats.team.runRate.toFixed(2)}
+              <td className="pr-2 text-right text-base font-black tabular-nums">
+                {stats.team.runs}
+              </td>
+              <td
+                colSpan={4}
+                className="pr-2 text-right text-[11px] font-semibold text-muted-foreground"
+              >
+                {stats.team.wickets} wkts · {stats.team.oversDisplay} ov · RR{" "}
+                {stats.team.runRate.toFixed(2)}
               </td>
             </tr>
           </tfoot>
@@ -640,7 +684,6 @@ function BattingTable({ stats, playerOfMatch }: { stats: Stats; playerOfMatch: s
     </>
   );
 }
-
 
 function ExtrasLine({ stats }: { stats: Stats }) {
   const e = stats.team.extras;
@@ -680,15 +723,28 @@ function BowlingTable({ stats }: { stats: Stats }) {
                 </div>
                 <div className="shrink-0 tabular-nums text-[15px] font-black">
                   {b.wickets}/{b.runsConceded}
-                  <span className="text-[11px] font-medium text-muted-foreground"> ({b.oversDisplay})</span>
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    {" "}
+                    ({b.oversDisplay})
+                  </span>
                 </div>
               </div>
               <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[10.5px] text-muted-foreground tabular-nums">
-                <span>M <b className="text-foreground">{b.maidens}</b></span>
-                <span>Econ <b className="text-foreground">{b.economy ? b.economy.toFixed(2) : "—"}</b></span>
-                <span>Dots <b className="text-foreground">{b.dotBalls}</b></span>
-                <span>Wd <b className="text-foreground">{b.wides}</b></span>
-                <span>Nb <b className="text-foreground">{b.noBalls}</b></span>
+                <span>
+                  M <b className="text-foreground">{b.maidens}</b>
+                </span>
+                <span>
+                  Econ <b className="text-foreground">{b.economy ? b.economy.toFixed(2) : "—"}</b>
+                </span>
+                <span>
+                  Dots <b className="text-foreground">{b.dotBalls}</b>
+                </span>
+                <span>
+                  Wd <b className="text-foreground">{b.wides}</b>
+                </span>
+                <span>
+                  Nb <b className="text-foreground">{b.noBalls}</b>
+                </span>
               </div>
             </li>
           );
@@ -720,7 +776,14 @@ function BowlingTable({ stats }: { stats: Stats }) {
                   className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""} ${isBest ? "bg-emerald-500/5" : ""}`}
                 >
                   <td className="py-2 pl-2 font-semibold">
-                    {isBest && <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Best bowler">◆</span>}
+                    {isBest && (
+                      <span
+                        className="mr-1 text-emerald-600 dark:text-emerald-400"
+                        title="Best bowler"
+                      >
+                        ◆
+                      </span>
+                    )}
                     {b.player.name ?? "—"}
                   </td>
                   <Td>{b.oversDisplay}</Td>
@@ -748,7 +811,6 @@ function BowlingTable({ stats }: { stats: Stats }) {
   );
 }
 
-
 function FallOfWicketsTable({ stats }: { stats: Stats }) {
   if (stats.team.fallOfWickets.length === 0) {
     return <p className="text-[11px] text-muted-foreground">No wickets fallen.</p>;
@@ -766,7 +828,10 @@ function FallOfWicketsTable({ stats }: { stats: Stats }) {
       </thead>
       <tbody>
         {stats.team.fallOfWickets.map((f, i) => (
-          <tr key={f.wicketNumber} className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""}`}>
+          <tr
+            key={f.wicketNumber}
+            className={`border-b last:border-0 ${i % 2 === 1 ? "bg-muted/20" : ""}`}
+          >
             <td className="py-1.5 pl-2 font-bold tabular-nums">{f.wicketNumber}</td>
             <td className="text-right font-semibold tabular-nums">{f.score}</td>
             <td>{f.batter?.name ?? "—"}</td>
@@ -805,8 +870,15 @@ function PartnershipsTable({ stats }: { stats: Stats }) {
             >
               <td className="py-1.5 pl-2 font-bold tabular-nums">{p.startWicket + 1}</td>
               <td>
-                {isBest && <span className="mr-1 text-emerald-600 dark:text-emerald-400" title="Highest partnership">◆</span>}
-                {(p.batterA?.name ?? "?")} & {(p.batterB?.name ?? "?")}
+                {isBest && (
+                  <span
+                    className="mr-1 text-emerald-600 dark:text-emerald-400"
+                    title="Highest partnership"
+                  >
+                    ◆
+                  </span>
+                )}
+                {p.batterA?.name ?? "?"} & {p.batterB?.name ?? "?"}
                 {p.endWicket == null && (
                   <span className="ml-1 text-[10px] font-bold uppercase text-primary">Live</span>
                 )}
@@ -834,9 +906,7 @@ function OverSummary({ stats }: { stats: Stats }) {
           className="flex items-center gap-2 rounded-md border bg-card px-2 py-1.5 text-[11px]"
         >
           <span className="w-9 font-bold tabular-nums">Ov{o.overNumber + 1}</span>
-          <span className="flex-1 truncate text-muted-foreground">
-            {o.bowler?.name ?? "—"}
-          </span>
+          <span className="flex-1 truncate text-muted-foreground">{o.bowler?.name ?? "—"}</span>
           <span className="tabular-nums font-semibold">
             {o.runs}r · {o.wickets}w{o.isMaiden ? " · M" : ""}
           </span>
@@ -912,7 +982,5 @@ function Th({ children, className = "" }: { children: React.ReactNode; className
   );
 }
 function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <td className={`text-right tabular-nums ${className}`}>{children}</td>
-  );
+  return <td className={`text-right tabular-nums ${className}`}>{children}</td>;
 }

@@ -70,10 +70,7 @@ import { listAthletes } from "@/lib/mc-athletes";
 
 export const Route = createFileRoute("/match-center/records")({
   head: () => ({
-    meta: [
-      { title: "Academy Records · Match Center" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Academy Records · Match Center" }, { name: "robots", content: "noindex" }],
   }),
   component: RecordsPage,
 });
@@ -249,7 +246,8 @@ function OverviewTab({
       </div>
     );
   }
-  if (!overview) return <EmptyState icon={Medal} title="No data" description="No finalized matches yet." />;
+  if (!overview)
+    return <EmptyState icon={Medal} title="No data" description="No finalized matches yet." />;
   return (
     <div className="space-y-6">
       <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
@@ -346,7 +344,9 @@ function LeaderboardTable({
     return <Skeleton className="h-40 w-full" />;
   }
   if (rows.length === 0) {
-    return <EmptyState icon={Medal} title="No entries" description="Finalize matches to populate." />;
+    return (
+      <EmptyState icon={Medal} title="No entries" description="Finalize matches to populate." />
+    );
   }
   return (
     <>
@@ -363,7 +363,9 @@ function LeaderboardTable({
             <span className="min-w-0 flex-1 truncate text-sm font-medium">{r.athleteName}</span>
             <span className="shrink-0 text-sm font-bold tabular-nums">
               {r.value}
-              <span className="ml-1 text-[10px] font-normal text-muted-foreground">{valueLabel}</span>
+              <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+                {valueLabel}
+              </span>
             </span>
           </li>
         ))}
@@ -393,7 +395,6 @@ function LeaderboardTable({
   );
 }
 
-
 function BattingRecordsTab({
   careers,
   records,
@@ -401,7 +402,9 @@ function BattingRecordsTab({
   careers: Array<Record<string, unknown>>;
   records: MCAcademyRecord[];
 }) {
-  const typed = careers as unknown as Array<Record<string, unknown> & { runs: number; wickets: number; athlete_profile_id: string }>;
+  const typed = careers as unknown as Array<
+    Record<string, unknown> & { runs: number; wickets: number; athlete_profile_id: string }
+  >;
   const highIS = records.find((r) => r.record_type === "highest_individual_score");
   return (
     <div className="space-y-6">
@@ -446,15 +449,15 @@ function BowlingRecordsTab({
   careers: Array<Record<string, unknown>>;
   records: MCAcademyRecord[];
 }) {
-  const typed = careers as unknown as Array<Record<string, unknown> & { runs: number; wickets: number; athlete_profile_id: string }>;
+  const typed = careers as unknown as Array<
+    Record<string, unknown> & { runs: number; wickets: number; athlete_profile_id: string }
+  >;
   const bestBowl = records.find((r) => r.record_type === "best_bowling");
   return (
     <div className="space-y-6">
       {bestBowl ? (
         <Card className="p-4">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">
-            Best Bowling
-          </div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Best Bowling</div>
           <div className="text-2xl font-bold tabular-nums">
             {(bestBowl.metadata as Record<string, unknown>).name as string} —{" "}
             {((bestBowl.metadata as Record<string, unknown>).figures as string) ?? bestBowl.value}
@@ -478,7 +481,9 @@ function BowlingRecordsTab({
 }
 
 function FieldingRecordsTab({ careers }: { careers: Array<Record<string, unknown>> }) {
-  const typed = careers as unknown as Array<Record<string, unknown> & { runs: number; wickets: number; athlete_profile_id: string }>;
+  const typed = careers as unknown as Array<
+    Record<string, unknown> & { runs: number; wickets: number; athlete_profile_id: string }
+  >;
   return (
     <div className="space-y-6">
       <div>
@@ -507,7 +512,13 @@ function TeamRecordsTab({ records }: { records: MCAcademyRecord[] }) {
     ].includes(r.record_type),
   );
   if (teamRecords.length === 0) {
-    return <EmptyState icon={Users} title="No team records" description="Finalize matches to populate." />;
+    return (
+      <EmptyState
+        icon={Users}
+        title="No team records"
+        description="Finalize matches to populate."
+      />
+    );
   }
   return (
     <div className="grid gap-3 md:grid-cols-2">
@@ -521,25 +532,34 @@ function TeamRecordsTab({ records }: { records: MCAcademyRecord[] }) {
 function CaptainRecordsTab({ careers }: { careers: Array<Record<string, unknown>> }) {
   const rows = useMemo(() => computeCaptainRecords(careers), [careers]);
   if (rows.length === 0) {
-    return <EmptyState icon={Trophy} title="No captain records" description="No captained matches yet." />;
+    return (
+      <EmptyState
+        icon={Trophy}
+        title="No captain records"
+        description="No captained matches yet."
+      />
+    );
   }
   return (
     <>
       {/* Mobile — stacked cards */}
       <ul className="space-y-2 sm:hidden">
         {rows.map((r) => (
-          <li
-            key={r.athleteProfileId}
-            className="rounded-xl border border-border bg-card p-3"
-          >
+          <li key={r.athleteProfileId} className="rounded-xl border border-border bg-card p-3">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0 truncate text-sm font-semibold">{r.name}</div>
               <div className="shrink-0 text-sm font-bold tabular-nums">{r.winPct}%</div>
             </div>
             <div className="mt-1.5 grid grid-cols-3 gap-2 text-[11px] text-muted-foreground">
-              <div>M <b className="tabular-nums text-foreground">{r.matches}</b></div>
-              <div>W <b className="tabular-nums text-foreground">{r.wins}</b></div>
-              <div>L <b className="tabular-nums text-foreground">{r.losses}</b></div>
+              <div>
+                M <b className="tabular-nums text-foreground">{r.matches}</b>
+              </div>
+              <div>
+                W <b className="tabular-nums text-foreground">{r.wins}</b>
+              </div>
+              <div>
+                L <b className="tabular-nums text-foreground">{r.losses}</b>
+              </div>
             </div>
           </li>
         ))}
@@ -573,17 +593,15 @@ function CaptainRecordsTab({ careers }: { careers: Array<Record<string, unknown>
   );
 }
 
-
 function AwardsTab({ careers }: { careers: Array<Record<string, unknown>> }) {
-  const typed = careers as unknown as Array<Record<string, unknown> & { runs: number; wickets: number; athlete_profile_id: string }>;
+  const typed = careers as unknown as Array<
+    Record<string, unknown> & { runs: number; wickets: number; athlete_profile_id: string }
+  >;
   return (
     <div className="space-y-6">
       <div>
         <SectionTitle title="Most Player of the Match awards" />
-        <LeaderboardTable
-          rows={leaderboardCareer(typed, "player_of_match")}
-          valueLabel="Awards"
-        />
+        <LeaderboardTable rows={leaderboardCareer(typed, "player_of_match")} valueLabel="Awards" />
       </div>
       <div>
         <SectionTitle title="Best captain (win %)" />
@@ -612,7 +630,13 @@ function MilestonesTab({ tenantId }: { tenantId: string }) {
   if (q.isLoading) return <Skeleton className="h-40 w-full" />;
   const rows = q.data ?? [];
   if (rows.length === 0) {
-    return <EmptyState icon={Star} title="No milestones yet" description="Milestones are appended after every finalized match." />;
+    return (
+      <EmptyState
+        icon={Star}
+        title="No milestones yet"
+        description="Milestones are appended after every finalized match."
+      />
+    );
   }
   return (
     <div className="space-y-2">
@@ -645,13 +669,7 @@ function MilestonesTab({ tenantId }: { tenantId: string }) {
 
 /* ---------- Timeline ---------- */
 
-function TimelineTab({
-  records,
-  tenantId,
-}: {
-  records: MCAcademyRecord[];
-  tenantId: string;
-}) {
+function TimelineTab({ records, tenantId }: { records: MCAcademyRecord[]; tenantId: string }) {
   const auditQ = useQuery({
     queryKey: ["mc-audit-log", tenantId],
     queryFn: async () => {
@@ -682,7 +700,13 @@ function TimelineTab({
   }
   events.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
   if (events.length === 0) {
-    return <EmptyState icon={Trophy} title="Nothing yet" description="Timeline builds as records and matches are finalized." />;
+    return (
+      <EmptyState
+        icon={Trophy}
+        title="Nothing yet"
+        description="Timeline builds as records and matches are finalized."
+      />
+    );
   }
   return (
     <div className="space-y-2">
@@ -741,7 +765,10 @@ function HallOfFameTab({
             ))}
           </SelectContent>
         </Select>
-        <HallOfFameAddDialog tenantId={tenantId} onAdded={() => queryClient.invalidateQueries({ queryKey: ["mc-hof", tenantId] })} />
+        <HallOfFameAddDialog
+          tenantId={tenantId}
+          onAdded={() => queryClient.invalidateQueries({ queryKey: ["mc-hof", tenantId] })}
+        />
       </div>
 
       {loading ? (
@@ -786,9 +813,7 @@ function HallOfFameTab({
               ) : null}
               <div className="flex items-center gap-2 mt-2">
                 <Badge variant="outline">{e.category.replace(/_/g, " ")}</Badge>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {e.awarded_at}
-                </span>
+                <span className="text-xs text-muted-foreground tabular-nums">{e.awarded_at}</span>
               </div>
             </Card>
           ))}
@@ -798,13 +823,7 @@ function HallOfFameTab({
   );
 }
 
-function HallOfFameAddDialog({
-  tenantId,
-  onAdded,
-}: {
-  tenantId: string;
-  onAdded: () => void;
-}) {
+function HallOfFameAddDialog({ tenantId, onAdded }: { tenantId: string; onAdded: () => void }) {
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<string>("batting");
   const [athleteId, setAthleteId] = useState<string>("");
@@ -860,10 +879,14 @@ function HallOfFameAddDialog({
           <div>
             <Label>Category</Label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 {HOF_CATEGORIES.map((c) => (
-                  <SelectItem key={c} value={c}>{c.replace(/_/g, " ")}</SelectItem>
+                  <SelectItem key={c} value={c}>
+                    {c.replace(/_/g, " ")}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -871,14 +894,17 @@ function HallOfFameAddDialog({
           <div>
             <Label>Player</Label>
             <Select value={athleteId} onValueChange={setAthleteId}>
-              <SelectTrigger><SelectValue placeholder="Choose a player" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a player" />
+              </SelectTrigger>
               <SelectContent>
                 {(athletesQ.data ?? []).map((a) => {
                   const name =
-                    (a as unknown as { students?: { name?: string } }).students?.name ??
-                    a.id;
+                    (a as unknown as { students?: { name?: string } }).students?.name ?? a.id;
                   return (
-                    <SelectItem key={a.id} value={a.id}>{name}</SelectItem>
+                    <SelectItem key={a.id} value={a.id}>
+                      {name}
+                    </SelectItem>
                   );
                 })}
               </SelectContent>
@@ -898,7 +924,9 @@ function HallOfFameAddDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
           <Button onClick={submit}>Induct</Button>
         </DialogFooter>
       </DialogContent>
@@ -911,15 +939,15 @@ function HallOfFameAddDialog({
 function SearchResults({ hits, loading }: { hits: SearchHit[]; loading: boolean }) {
   if (loading) return <Skeleton className="h-16 w-full" />;
   if (hits.length === 0) {
-    return (
-      <Card className="p-3 text-sm text-muted-foreground">No matches.</Card>
-    );
+    return <Card className="p-3 text-sm text-muted-foreground">No matches.</Card>;
   }
   return (
     <Card className="p-2 space-y-1 max-h-72 overflow-auto">
       {hits.map((h, i) => (
         <div key={i} className="flex items-center gap-2 p-2 hover:bg-muted/40 rounded">
-          <Badge variant="outline" className="text-[10px] uppercase">{h.kind.replace(/_/g, " ")}</Badge>
+          <Badge variant="outline" className="text-[10px] uppercase">
+            {h.kind.replace(/_/g, " ")}
+          </Badge>
           <div className="min-w-0">
             <div className="text-sm font-medium truncate">{h.title}</div>
             {h.subtitle ? (

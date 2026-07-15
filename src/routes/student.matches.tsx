@@ -46,9 +46,7 @@ function StudentMatchesPage() {
 
       {/* Career summary */}
       <Card className="p-4 bg-gradient-to-br from-primary/10 to-transparent">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-3">
-          Career Summary
-        </p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-3">Career Summary</p>
         <div className="grid grid-cols-4 gap-3">
           <Stat label="Matches" value={c?.matches ?? 0} />
           <Stat label="Runs" value={c?.runs ?? 0} />
@@ -59,9 +57,7 @@ function StudentMatchesPage() {
 
       {/* Upcoming */}
       <section aria-label="Upcoming matches">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-          Upcoming
-        </p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">Upcoming</p>
         {data.upcoming.length === 0 ? (
           <Card className="p-4 text-sm text-muted-foreground">No upcoming matches.</Card>
         ) : (
@@ -75,13 +71,9 @@ function StudentMatchesPage() {
 
       {/* Recent */}
       <section aria-label="Recent matches">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-          Recent
-        </p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">Recent</p>
         {data.recent.length === 0 ? (
-          <Card className="p-4 text-sm text-muted-foreground">
-            No matches played yet.
-          </Card>
+          <Card className="p-4 text-sm text-muted-foreground">No matches played yet.</Card>
         ) : (
           <div className="space-y-2">
             {data.recent.slice(0, 10).map((m) => (
@@ -94,9 +86,7 @@ function StudentMatchesPage() {
       {/* Awards */}
       {data.awards.length > 0 && (
         <section aria-label="Awards">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-            Awards
-          </p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">Awards</p>
           <div className="space-y-2">
             {data.awards.map((a) => (
               <Card key={a.id} className="p-3 flex items-center gap-3">
@@ -142,9 +132,7 @@ function MatchRow({ m, upcoming = false }: { m: PlayerMatchAppearance; upcoming?
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-medium truncate">
-              {m.match?.match_format ?? "Match"}
-            </p>
+            <p className="text-sm font-medium truncate">{m.match?.match_format ?? "Match"}</p>
             {m.is_captain && (
               <Badge variant="secondary" className="text-[10px]">
                 Captain
@@ -180,9 +168,7 @@ function MatchRow({ m, upcoming = false }: { m: PlayerMatchAppearance; upcoming?
               </span>
             )}
           </div>
-          {m.match?.result && (
-            <p className="text-xs mt-1 text-foreground/80">{m.match.result}</p>
-          )}
+          {m.match?.result && <p className="text-xs mt-1 text-foreground/80">{m.match.result}</p>}
         </div>
       </div>
     </Card>

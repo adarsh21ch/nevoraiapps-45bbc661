@@ -15,12 +15,7 @@
  * subsumed by "Obstructing the field".
  * ================================================================ */
 
-import type {
-  DismissalType,
-  ExtraType,
-  MCBallEvent,
-  MCInnings,
-} from "@/lib/mc-ball-events";
+import type { DismissalType, ExtraType, MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
 import { BallEventError, isLegalDelivery } from "@/lib/mc-ball-events-core";
 
 /* ---------------- Modern dismissal set (MCC Laws) ---------------- */
@@ -88,8 +83,7 @@ export function totalRunsForBall(e: MCBallEvent): number {
   const type = e.extra_type as ExtraType | null;
   if (type === "wide") return ex; // extraRuns already accounts for the 1
   if (type === "no_ball") return 1 + off + ex;
-  if (type === "bye" || type === "leg_bye" || type === "penalty")
-    return off + ex;
+  if (type === "bye" || type === "leg_bye" || type === "penalty") return off + ex;
   return off;
 }
 
@@ -164,11 +158,7 @@ export interface MatchState {
   requiredRuns: number | null;
   ballsRemaining: number | null;
   /** Completion signal — the UI decides whether to confirm end-of-innings. */
-  inningsShouldEnd:
-    | null
-    | "all_out"
-    | "overs_finished"
-    | "target_achieved";
+  inningsShouldEnd: null | "all_out" | "overs_finished" | "target_achieved";
   matchShouldEnd: boolean;
 }
 
@@ -187,10 +177,7 @@ export interface ReplayOptions {
  * Replay a full innings from its event log. Deterministic and pure.
  * Complexity: O(n) over events.
  */
-export function replayInnings(
-  events: MCBallEvent[],
-  opts: ReplayOptions = {},
-): MatchState {
+export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): MatchState {
   const maxWickets = opts.maxWickets ?? 10;
   const totalOvers = opts.totalOvers ?? null;
 
@@ -228,8 +215,7 @@ export function replayInnings(
       bowlerName: curOverBowlerName,
       legalBalls: curOverLegal,
       runsConceded: curOverRuns,
-      isMaiden:
-        finished && curOverLegal === 6 && curOverRuns === 0 && !curOverHadBoundary,
+      isMaiden: finished && curOverLegal === 6 && curOverRuns === 0 && !curOverHadBoundary,
       completed: finished,
       events: curOverEvents.slice(),
     };
@@ -349,13 +335,11 @@ export function replayInnings(
 
   let inningsShouldEnd: MatchState["inningsShouldEnd"] = null;
   if (wickets >= maxWickets) inningsShouldEnd = "all_out";
-  else if (totalOvers != null && legalBalls >= totalOvers * 6)
-    inningsShouldEnd = "overs_finished";
+  else if (totalOvers != null && legalBalls >= totalOvers * 6) inningsShouldEnd = "overs_finished";
   else if (target != null && runs >= target) inningsShouldEnd = "target_achieved";
 
   const matchShouldEnd =
-    inningsShouldEnd === "target_achieved" ||
-    (inningsShouldEnd != null && target != null);
+    inningsShouldEnd === "target_achieved" || (inningsShouldEnd != null && target != null);
 
   const innings: InningsState = {
     runs,
@@ -427,8 +411,7 @@ export function validateBallDraft(
     matchStatus?: string | null;
   },
 ): void {
-  if (!ctx.innings)
-    throw new BallEventError("INVALID_INNINGS", "Start an innings first.");
+  if (!ctx.innings) throw new BallEventError("INVALID_INNINGS", "Start an innings first.");
   if (ctx.innings.status !== "in_progress")
     throw new BallEventError("INNINGS_CLOSED", "Innings is not in progress.");
   if (ctx.matchStatus === "completed" || ctx.matchStatus === "archived")
@@ -442,32 +425,21 @@ export function validateBallDraft(
       "'Handled the ball' is no longer a distinct dismissal under MCC Laws. Use 'Obstructing the field'.",
     );
   if (dt && !(MODERN_DISMISSALS as readonly string[]).includes(dt))
-    throw new BallEventError(
-      "INVALID_DISMISSAL",
-      `Unsupported dismissal type: ${dt}.`,
-    );
+    throw new BallEventError("INVALID_DISMISSAL", `Unsupported dismissal type: ${dt}.`);
 
   // Batters
   if (!draft.strikerAthleteId && !draft.strikerName)
     throw new BallEventError("NO_STRIKER", "Striker is required.");
   if (!draft.bowlerAthleteId && !draft.bowlerName)
     throw new BallEventError("NO_BOWLER", "Bowler is required.");
-  if (
-    draft.strikerAthleteId &&
-    draft.strikerAthleteId === draft.nonStrikerAthleteId
-  )
-    throw new BallEventError(
-      "DUPLICATE_STRIKER",
-      "Striker and non-striker must differ.",
-    );
+  if (draft.strikerAthleteId && draft.strikerAthleteId === draft.nonStrikerAthleteId)
+    throw new BallEventError("DUPLICATE_STRIKER", "Striker and non-striker must differ.");
 
   // Runs / extras sanity
   const off = draft.runsOffBat ?? 0;
   const ex = draft.extraRuns ?? 0;
-  if (off < 0 || off > 7)
-    throw new BallEventError("INVALID_RUNS", "Runs off bat out of range.");
-  if (ex < 0 || ex > 10)
-    throw new BallEventError("INVALID_EXTRAS", "Extras out of range.");
+  if (off < 0 || off > 7) throw new BallEventError("INVALID_RUNS", "Runs off bat out of range.");
+  if (ex < 0 || ex > 10) throw new BallEventError("INVALID_EXTRAS", "Extras out of range.");
 
   // State-based rules
   if (state.innings.awaitingNewBatter) {
@@ -480,16 +452,10 @@ export function validateBallDraft(
     const isDismissed = (athleteId?: string | null, name?: string | null) =>
       Boolean(
         (athleteId && state.innings.dismissedIds.has(athleteId)) ||
-          (name && state.innings.dismissedNames.has(name)),
+        (name && state.innings.dismissedNames.has(name)),
       );
-    const strikerStillDismissed = isDismissed(
-      draft.strikerAthleteId,
-      draft.strikerName,
-    );
-    const nonStrikerStillDismissed = isDismissed(
-      draft.nonStrikerAthleteId,
-      draft.nonStrikerName,
-    );
+    const strikerStillDismissed = isDismissed(draft.strikerAthleteId, draft.strikerName);
+    const nonStrikerStillDismissed = isDismissed(draft.nonStrikerAthleteId, draft.nonStrikerName);
     const unchangedPair =
       sameRef(
         { athleteId: draft.strikerAthleteId, name: draft.strikerName },
@@ -508,8 +474,7 @@ export function validateBallDraft(
   }
   if (state.innings.awaitingNewBowler) {
     // A new bowler must be assigned. Verify he isn't the previous over's bowler.
-    const prevOver =
-      state.innings.completedOvers[state.innings.completedOvers.length - 1];
+    const prevOver = state.innings.completedOvers[state.innings.completedOvers.length - 1];
     if (
       prevOver &&
       draft.bowlerAthleteId &&
@@ -526,16 +491,10 @@ export function validateBallDraft(
   if (isWicketDismissal(dt)) {
     if (draft.dismissedAthleteId) {
       if (state.innings.dismissedIds.has(draft.dismissedAthleteId))
-        throw new BallEventError(
-          "DUPLICATE_WICKET",
-          "This batter is already dismissed.",
-        );
+        throw new BallEventError("DUPLICATE_WICKET", "This batter is already dismissed.");
     } else if (draft.dismissedName) {
       if (state.innings.dismissedNames.has(draft.dismissedName))
-        throw new BallEventError(
-          "DUPLICATE_WICKET",
-          "This batter is already dismissed.",
-        );
+        throw new BallEventError("DUPLICATE_WICKET", "This batter is already dismissed.");
     }
     // Caught / run-out / stumped need a fielder
     if (
@@ -543,10 +502,7 @@ export function validateBallDraft(
       !draft.fielderAthleteId &&
       !draft.fielderName
     )
-      throw new BallEventError(
-        "FIELDER_REQUIRED",
-        `${dt.replace("_", " ")} requires a fielder.`,
-      );
+      throw new BallEventError("FIELDER_REQUIRED", `${dt.replace("_", " ")} requires a fielder.`);
   }
 
   // Innings/match completion
@@ -601,9 +557,7 @@ export function replayMatch(
   let currentInningsId: string | null = null;
   let matchShouldEnd = false;
 
-  const sorted = [...innings].sort(
-    (a, b) => (a.innings_number ?? 0) - (b.innings_number ?? 0),
-  );
+  const sorted = [...innings].sort((a, b) => (a.innings_number ?? 0) - (b.innings_number ?? 0));
   for (const inn of sorted) {
     const evs = eventsByInnings[inn.id] ?? [];
     const state = replayInnings(evs, {

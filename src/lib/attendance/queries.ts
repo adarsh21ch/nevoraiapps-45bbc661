@@ -14,12 +14,7 @@
  */
 
 import { useMemo } from "react";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type QueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
@@ -34,8 +29,7 @@ export const attendanceKeys = {
     ["attendance", "session", tenantId, batchId, date] as const,
   studentHistory: (tenantId: string, studentId: string) =>
     ["attendance", "history", tenantId, studentId] as const,
-  inAcademyCount: (tenantId: string) =>
-    ["attendance", "in-academy-count", tenantId] as const,
+  inAcademyCount: (tenantId: string) => ["attendance", "in-academy-count", tenantId] as const,
 };
 
 // ---------------------------------------------------------------------------
@@ -47,17 +41,17 @@ export const attendanceKeys = {
  * Backed by the `attendance_today` view. See migration for derivation rules.
  */
 export interface AttendanceTodayRow {
-  mark_id: string;                  // latest visit's mark id (for Check Out)
+  mark_id: string; // latest visit's mark id (for Check Out)
   tenant_id: string;
   student_id: string;
   session_id: string;
   batch_id: string | null;
   session_date: string;
   status: AttendanceStatus;
-  check_in_at: string | null;       // FIRST check-in of the day
-  check_out_at: string | null;      // LAST check-out of the day
-  duration_minutes: number | null;  // SUM of all completed visits
-  visit_count: number;              // number of check-ins today
+  check_in_at: string | null; // FIRST check-in of the day
+  check_out_at: string | null; // LAST check-out of the day
+  duration_minutes: number | null; // SUM of all completed visits
+  visit_count: number; // number of check-ins today
   source: AttendanceSource | null;
   marked_by: string | null;
   current_state: AttendanceState;
@@ -172,10 +166,7 @@ export function useInAcademyCount(tenantId: string | null | undefined) {
 // Realtime — one subscription per tenant, refcounted via `useRealtimeChannel`.
 // Invalidates all attendance queries for this tenant on any change.
 // ---------------------------------------------------------------------------
-export function useAttendanceRealtime(
-  tenantId: string | null | undefined,
-  qc: QueryClient,
-) {
+export function useAttendanceRealtime(tenantId: string | null | undefined, qc: QueryClient) {
   useRealtimeChannel(
     tenantId ? `attendance:${tenantId}` : null,
     (channel) => {
@@ -212,8 +203,6 @@ export function useAttendanceRealtime(
     [tenantId],
   );
 }
-
-
 
 // ---------------------------------------------------------------------------
 // Writes

@@ -22,12 +22,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { EmptyState, LoadingSkeleton } from "@/components/match-center/ui";
@@ -106,10 +101,7 @@ export function TournamentBracket({ tournamentId, publicMode = false }: Props) {
 
       {/* Desktop / tablet horizontal bracket */}
       <div className="hidden md:block">
-        <DesktopBracket
-          columns={tree.columns}
-          onOpen={(n) => setSelected(n)}
-        />
+        <DesktopBracket columns={tree.columns} onOpen={(n) => setSelected(n)} />
       </div>
 
       {/* Mobile vertical bracket */}
@@ -139,7 +131,11 @@ export function TournamentBracket({ tournamentId, publicMode = false }: Props) {
 
 /* --------------------------- Header --------------------------- */
 
-function ProgressHeader({ tree }: { tree: NonNullable<ReturnType<typeof fetchBracketTree> extends Promise<infer T> ? T : never> }) {
+function ProgressHeader({
+  tree,
+}: {
+  tree: NonNullable<ReturnType<typeof fetchBracketTree> extends Promise<infer T> ? T : never>;
+}) {
   const currentCol = tree.columns.find((c) => c.isCurrent);
   const pct = tree.totalNodes > 0 ? Math.round((tree.completedNodes / tree.totalNodes) * 100) : 0;
   return (
@@ -182,9 +178,7 @@ function ChampionBanner({
         </div>
         <div className="truncate text-lg font-bold">{champion.name}</div>
         {runnerUp ? (
-          <div className="text-xs text-muted-foreground">
-            Runner-up · {runnerUp.name}
-          </div>
+          <div className="text-xs text-muted-foreground">Runner-up · {runnerUp.name}</div>
         ) : null}
       </div>
     </div>
@@ -363,13 +357,20 @@ function TeamRow({
       className={cn(
         "flex items-center justify-between gap-2 rounded-md px-1.5 py-1 text-sm",
         completed && isWinner && "bg-emerald-500/10 font-semibold",
-        completed && !isWinner && team && "text-muted-foreground line-through decoration-muted-foreground/40",
+        completed &&
+          !isWinner &&
+          team &&
+          "text-muted-foreground line-through decoration-muted-foreground/40",
         !team && "text-muted-foreground",
       )}
     >
       <div className="flex min-w-0 items-center gap-1.5">
         {team?.logo ? (
-          <img src={team.logo} alt="" className="size-4 shrink-0 rounded-full border border-border object-cover" />
+          <img
+            src={team.logo}
+            alt=""
+            className="size-4 shrink-0 rounded-full border border-border object-cover"
+          />
         ) : (
           <span
             className="grid size-4 shrink-0 place-items-center rounded-full text-[8px] font-bold text-white"
@@ -380,9 +381,7 @@ function TeamRow({
         )}
         <span className="truncate">{label}</span>
       </div>
-      {score ? (
-        <span className="shrink-0 tabular-nums text-xs">{formatScore(score)}</span>
-      ) : null}
+      {score ? <span className="shrink-0 tabular-nums text-xs">{formatScore(score)}</span> : null}
     </div>
   );
 }

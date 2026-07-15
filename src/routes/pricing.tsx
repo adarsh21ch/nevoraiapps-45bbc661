@@ -11,7 +11,10 @@ export const Route = createFileRoute("/pricing")({
         content: `Simple, transparent pricing for sports academies. Start with a ${TRIAL_DAYS}-day free trial. From ₹999/month.`,
       },
       { property: "og:title", content: "AcademyOS Pricing" },
-      { property: "og:description", content: "Plans for solo coaches to multi-branch academies. Start free." },
+      {
+        property: "og:description",
+        content: "Plans for solo coaches to multi-branch academies. Start free.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -51,7 +54,10 @@ function PricingPage() {
       <section className="max-w-6xl mx-auto px-4 py-16 text-center">
         <p
           className="inline-flex items-center gap-1.5 text-xs font-medium mb-4 px-3 py-1 rounded-full"
-          style={{ color: "var(--brand)", background: "color-mix(in oklab, var(--brand) 10%, transparent)" }}
+          style={{
+            color: "var(--brand)",
+            background: "color-mix(in oklab, var(--brand) 10%, transparent)",
+          }}
         >
           <Sparkles className="size-3.5" /> {TRIAL_DAYS}-day free trial · No card required
         </p>
@@ -154,14 +160,30 @@ function PricingPage() {
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
         <div className="max-w-6xl mx-auto px-4 flex flex-wrap justify-center gap-4">
-          <Link to="/" className="hover:text-foreground">Home</Link>
-          <Link to="/features" className="hover:text-foreground">Features</Link>
-          <Link to="/pricing" className="hover:text-foreground">Pricing</Link>
-          <Link to="/demo" className="hover:text-foreground">Book demo</Link>
-          <Link to="/faq" className="hover:text-foreground">FAQ</Link>
-          <Link to="/contact" className="hover:text-foreground">Contact</Link>
-          <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-          <Link to="/terms" className="hover:text-foreground">Terms</Link>
+          <Link to="/" className="hover:text-foreground">
+            Home
+          </Link>
+          <Link to="/features" className="hover:text-foreground">
+            Features
+          </Link>
+          <Link to="/pricing" className="hover:text-foreground">
+            Pricing
+          </Link>
+          <Link to="/demo" className="hover:text-foreground">
+            Book demo
+          </Link>
+          <Link to="/faq" className="hover:text-foreground">
+            FAQ
+          </Link>
+          <Link to="/contact" className="hover:text-foreground">
+            Contact
+          </Link>
+          <Link to="/privacy" className="hover:text-foreground">
+            Privacy
+          </Link>
+          <Link to="/terms" className="hover:text-foreground">
+            Terms
+          </Link>
         </div>
         <p className="mt-4">© {new Date().getFullYear()} AcademyOS. The Sports Operating System.</p>
       </footer>

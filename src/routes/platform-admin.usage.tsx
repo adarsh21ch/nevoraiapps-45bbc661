@@ -12,7 +12,10 @@ export const Route = createFileRoute("/platform-admin/usage")({
 });
 
 function Usage() {
-  const { data: tenants = [], isLoading } = useQuery({ queryKey: pqk.tenants, queryFn: fetchTenants });
+  const { data: tenants = [], isLoading } = useQuery({
+    queryKey: pqk.tenants,
+    queryFn: fetchTenants,
+  });
 
   return (
     <div className="space-y-5">
@@ -20,14 +23,18 @@ function Usage() {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
           <BarChart3 className="size-6" /> Usage analytics
         </h1>
-        <p className="text-sm text-neutral-400">Per-academy activity signals — students, admins, comms.</p>
+        <p className="text-sm text-neutral-400">
+          Per-academy activity signals — students, admins, comms.
+        </p>
       </header>
 
       {isLoading ? (
         <Skeleton className="h-40 bg-white/5" />
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
-          {tenants.map((t) => <UsageCard key={t.id} tenantId={t.id} name={t.name} slug={t.slug} />)}
+          {tenants.map((t) => (
+            <UsageCard key={t.id} tenantId={t.id} name={t.name} slug={t.slug} />
+          ))}
         </div>
       )}
     </div>

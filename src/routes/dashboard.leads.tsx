@@ -11,7 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { BulkImportLeads } from "@/components/dashboard/BulkImportLeads";
-import { AdmissionChecklist, AdmissionTimelineList } from "@/components/dashboard/AdmissionChecklist";
+import {
+  AdmissionChecklist,
+  AdmissionTimelineList,
+} from "@/components/dashboard/AdmissionChecklist";
 import {
   PIPELINE_STAGES,
   STAGE_TONE,
@@ -60,16 +63,26 @@ function LeadsPipelineRoute() {
   const advance = useMutation({
     mutationFn: async (v: { id: string; stage: PipelineStage; remark?: string }) =>
       advanceLeadStage(v.id, v.stage, v.remark),
-    onSuccess: (_d, v) => { toast.success(`Moved to ${v.stage}`); invalidate(); },
+    onSuccess: (_d, v) => {
+      toast.success(`Moved to ${v.stage}`);
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("leads" as never).delete().eq("id", id);
+      const { error } = await supabase
+        .from("leads" as never)
+        .delete()
+        .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Lead removed"); invalidate(); setOpenId(null); },
+    onSuccess: () => {
+      toast.success("Lead removed");
+      invalidate();
+      setOpenId(null);
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -86,7 +99,12 @@ function LeadsPipelineRoute() {
       </header>
 
       <div className="flex flex-wrap gap-2 overflow-x-auto">
-        <StageChip active={filter === "all"} label="All" count={counts.all ?? 0} onClick={() => setFilter("all")} />
+        <StageChip
+          active={filter === "all"}
+          label="All"
+          count={counts.all ?? 0}
+          onClick={() => setFilter("all")}
+        />
         {PIPELINE_STAGES.map((s) => (
           <StageChip
             key={s.key}
@@ -102,7 +120,8 @@ function LeadsPipelineRoute() {
       {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
       {!isLoading && visible.length === 0 && (
         <Card className="p-10 text-center text-sm text-muted-foreground">
-          No leads {filter === "all" ? "yet" : `in "${filter}"`}. Share your website — enquiries land here.
+          No leads {filter === "all" ? "yet" : `in "${filter}"`}. Share your website — enquiries
+          land here.
         </Card>
       )}
 
@@ -132,24 +151,41 @@ function LeadsPipelineRoute() {
 }
 
 function StageChip({
-  active, label, count, tone, onClick,
-}: { active: boolean; label: string; count: number; tone?: string; onClick: () => void }) {
+  active,
+  label,
+  count,
+  tone,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  count: number;
+  tone?: string;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
       className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-        active ? "border-transparent text-white" : "border-border bg-background text-muted-foreground hover:text-foreground"
+        active
+          ? "border-transparent text-white"
+          : "border-border bg-background text-muted-foreground hover:text-foreground"
       }`}
       style={active ? { backgroundColor: "var(--brand)" } : undefined}
     >
       {label} <span className="opacity-70">({count})</span>
-      {tone && !active && <span className={`ml-1.5 inline-block size-1.5 rounded-full ${tone.split(" ")[0]}`} />}
+      {tone && !active && (
+        <span className={`ml-1.5 inline-block size-1.5 rounded-full ${tone.split(" ")[0]}`} />
+      )}
     </button>
   );
 }
 
 function LeadRow({
-  lead, tenantName, onOpen, onAdvance,
+  lead,
+  tenantName,
+  onOpen,
+  onAdvance,
 }: {
   lead: PipelineLead;
   tenantName: string;
@@ -179,15 +215,31 @@ function LeadRow({
         <button className="flex-1 min-w-0 text-left" onClick={onOpen}>
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold truncate">{lead.name}</span>
-            <Badge className={`${STAGE_TONE[lead.pipeline_stage]} border-0 capitalize`} variant="secondary">
+            <Badge
+              className={`${STAGE_TONE[lead.pipeline_stage]} border-0 capitalize`}
+              variant="secondary"
+            >
               {lead.pipeline_stage}
             </Badge>
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{lead.source}</span>
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+              {lead.source}
+            </span>
           </div>
           <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1"><Phone className="size-3" /> {lead.phone}</span>
-            {lead.trial_at && <span className="inline-flex items-center gap-1"><Calendar className="size-3" /> Trial {new Date(lead.trial_at).toLocaleDateString("en-IN")}</span>}
-            {lead.trial_rating != null && <span className="inline-flex items-center gap-1"><Star className="size-3" /> {lead.trial_rating}/5</span>}
+            <span className="inline-flex items-center gap-1">
+              <Phone className="size-3" /> {lead.phone}
+            </span>
+            {lead.trial_at && (
+              <span className="inline-flex items-center gap-1">
+                <Calendar className="size-3" /> Trial{" "}
+                {new Date(lead.trial_at).toLocaleDateString("en-IN")}
+              </span>
+            )}
+            {lead.trial_rating != null && (
+              <span className="inline-flex items-center gap-1">
+                <Star className="size-3" /> {lead.trial_rating}/5
+              </span>
+            )}
             <span>{new Date(lead.created_at).toLocaleDateString("en-IN")}</span>
           </div>
         </button>
@@ -199,7 +251,9 @@ function LeadRow({
           href={waUrl}
           target="_blank"
           rel="noreferrer"
-          onClick={() => lead.pipeline_stage === "new" && onAdvance("contacted", "WhatsApp reply sent")}
+          onClick={() =>
+            lead.pipeline_stage === "new" && onAdvance("contacted", "WhatsApp reply sent")
+          }
           className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:brightness-110"
         >
           <MessageCircle className="size-3.5" fill="currentColor" /> WhatsApp
@@ -226,8 +280,12 @@ function LeadRow({
           </Link>
         )}
         {lead.pipeline_stage !== "rejected" && lead.pipeline_stage !== "converted" && (
-          <Button size="sm" variant="ghost" className="text-rose-600 hover:text-rose-700 ml-auto"
-                  onClick={() => onAdvance("rejected", "Not proceeding")}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-rose-600 hover:text-rose-700 ml-auto"
+            onClick={() => onAdvance("rejected", "Not proceeding")}
+          >
             Reject
           </Button>
         )}
@@ -237,7 +295,11 @@ function LeadRow({
 }
 
 function LeadDrawer({
-  lead, tenantSlug, onClose, onDelete, onChanged,
+  lead,
+  tenantSlug,
+  onClose,
+  onDelete,
+  onChanged,
 }: {
   lead: PipelineLead;
   tenantSlug: string;
@@ -263,7 +325,9 @@ function LeadDrawer({
       await advanceLeadStage(lead.id, "counselling", "Counselling scheduled");
       toast.success("Counselling scheduled");
       onChanged();
-    } catch (e) { toast.error((e as Error).message); }
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   };
 
   const saveTrialSchedule = async () => {
@@ -273,7 +337,9 @@ function LeadDrawer({
       await advanceLeadStage(lead.id, "trial", "Trial scheduled");
       toast.success("Trial scheduled");
       onChanged();
-    } catch (e) { toast.error((e as Error).message); }
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   };
 
   const saveTrialResult = async () => {
@@ -282,7 +348,9 @@ function LeadDrawer({
       await advanceLeadStage(lead.id, "decision", `Trial rated ${rating}/5`);
       toast.success("Trial recorded");
       onChanged();
-    } catch (e) { toast.error((e as Error).message); }
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   };
 
   const addRemark = async () => {
@@ -292,11 +360,16 @@ function LeadDrawer({
       setRemark("");
       toast.success("Note added");
       onChanged();
-    } catch (e) { toast.error((e as Error).message); }
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40"
+      onClick={onClose}
+    >
       <div
         className="w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-background shadow-xl border"
         onClick={(e) => e.stopPropagation()}
@@ -305,17 +378,24 @@ function LeadDrawer({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold truncate">{lead.name}</h2>
-              <Badge className={`${STAGE_TONE[lead.pipeline_stage]} border-0 capitalize`} variant="secondary">
+              <Badge
+                className={`${STAGE_TONE[lead.pipeline_stage]} border-0 capitalize`}
+                variant="secondary"
+              >
                 {lead.pipeline_stage}
               </Badge>
             </div>
-            <div className="text-xs text-muted-foreground">{lead.phone} · {lead.source}</div>
+            <div className="text-xs text-muted-foreground">
+              {lead.phone} · {lead.source}
+            </div>
           </div>
           <div className="flex items-center gap-1">
             <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={onDelete}>
               <Trash2 className="size-4" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={onClose}>Close</Button>
+            <Button size="sm" variant="ghost" onClick={onClose}>
+              Close
+            </Button>
           </div>
         </div>
 
@@ -343,23 +423,43 @@ function LeadDrawer({
               )}
 
               <div className="space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Counselling</div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Counselling
+                </div>
                 <div className="flex gap-2">
-                  <Input type="datetime-local" value={counsellingAt} onChange={(e) => setCounsellingAt(e.target.value)} />
-                  <Button size="sm" onClick={saveCounselling}>Schedule</Button>
+                  <Input
+                    type="datetime-local"
+                    value={counsellingAt}
+                    onChange={(e) => setCounsellingAt(e.target.value)}
+                  />
+                  <Button size="sm" onClick={saveCounselling}>
+                    Schedule
+                  </Button>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Add note</div>
-                <Textarea value={remark} onChange={(e) => setRemark(e.target.value)} rows={2} placeholder="Internal note — timestamped in the audit log." />
+                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Add note
+                </div>
+                <Textarea
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  rows={2}
+                  placeholder="Internal note — timestamped in the audit log."
+                />
                 <div className="flex justify-end">
-                  <Button size="sm" onClick={addRemark} disabled={!remark.trim()}>Add note</Button>
+                  <Button size="sm" onClick={addRemark} disabled={!remark.trim()}>
+                    Add note
+                  </Button>
                 </div>
               </div>
 
               {lead.converted_registration_id && (
-                <Link to="/dashboard/registrations" className="block rounded-md border border-dashed p-3 text-sm hover:bg-muted/50">
+                <Link
+                  to="/dashboard/registrations"
+                  className="block rounded-md border border-dashed p-3 text-sm hover:bg-muted/50"
+                >
                   → Open linked registration
                 </Link>
               )}
@@ -378,17 +478,27 @@ function LeadDrawer({
           {tab === "trial" && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Schedule trial</div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Schedule trial
+                </div>
                 <div className="flex gap-2">
-                  <Input type="datetime-local" value={trialDate} onChange={(e) => setTrialDate(e.target.value)} />
-                  <Button size="sm" onClick={saveTrialSchedule}>Schedule</Button>
+                  <Input
+                    type="datetime-local"
+                    value={trialDate}
+                    onChange={(e) => setTrialDate(e.target.value)}
+                  />
+                  <Button size="sm" onClick={saveTrialSchedule}>
+                    Schedule
+                  </Button>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Record trial</div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Record trial
+                </div>
                 <div className="flex items-center gap-2">
-                  {[1,2,3,4,5].map((r) => (
+                  {[1, 2, 3, 4, 5].map((r) => (
                     <button
                       key={r}
                       onClick={() => setRating(r)}
@@ -399,17 +509,41 @@ function LeadDrawer({
                   ))}
                   <span className="text-xs text-muted-foreground ml-2">Performance rating</span>
                 </div>
-                <Textarea rows={3} value={remarks} onChange={(e) => setRemarks(e.target.value)} placeholder="Coach observations, strengths, next steps…" />
+                <Textarea
+                  rows={3}
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  placeholder="Coach observations, strengths, next steps…"
+                />
                 <div className="flex justify-end gap-2">
-                  <Button size="sm" onClick={saveTrialResult}>Save trial → Decision</Button>
+                  <Button size="sm" onClick={saveTrialResult}>
+                    Save trial → Decision
+                  </Button>
                 </div>
               </div>
 
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={async () => { await advanceLeadStage(lead.id, "approved", "Trial approved"); onChanged(); toast.success("Approved"); }}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    await advanceLeadStage(lead.id, "approved", "Trial approved");
+                    onChanged();
+                    toast.success("Approved");
+                  }}
+                >
                   Approve
                 </Button>
-                <Button size="sm" variant="ghost" className="text-rose-600" onClick={async () => { await advanceLeadStage(lead.id, "rejected", "Not proceeding after trial"); onChanged(); toast.success("Rejected"); }}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-rose-600"
+                  onClick={async () => {
+                    await advanceLeadStage(lead.id, "rejected", "Not proceeding after trial");
+                    onChanged();
+                    toast.success("Rejected");
+                  }}
+                >
                   Reject
                 </Button>
                 {lead.pipeline_stage === "approved" && !lead.converted_registration_id && (
@@ -422,7 +556,9 @@ function LeadDrawer({
                   </Link>
                 )}
               </div>
-              <p className="text-[11px] text-muted-foreground">Site: /{tenantSlug} · WhatsApp opens with pre-filled text on the row action.</p>
+              <p className="text-[11px] text-muted-foreground">
+                Site: /{tenantSlug} · WhatsApp opens with pre-filled text on the row action.
+              </p>
             </div>
           )}
 

@@ -72,10 +72,7 @@ import { useMCRecognitions } from "@/lib/mc-data";
 
 export const Route = createFileRoute("/match-center/recognition")({
   head: () => ({
-    meta: [
-      { title: "Recognition · Match Center" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Recognition · Match Center" }, { name: "robots", content: "noindex" }],
   }),
   component: RecognitionPage,
 });
@@ -156,11 +153,23 @@ function RecognitionPage() {
         ]}
         actions={
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => monthlyMut.mutate()} disabled={monthlyMut.isPending}>
-              <RefreshCw className={`size-4 mr-1.5 ${monthlyMut.isPending ? "animate-spin" : ""}`} />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => monthlyMut.mutate()}
+              disabled={monthlyMut.isPending}
+            >
+              <RefreshCw
+                className={`size-4 mr-1.5 ${monthlyMut.isPending ? "animate-spin" : ""}`}
+              />
               Monthly
             </Button>
-            <Button size="sm" variant="outline" onClick={() => yearlyMut.mutate()} disabled={yearlyMut.isPending}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => yearlyMut.mutate()}
+              disabled={yearlyMut.isPending}
+            >
               <Sparkles className="size-4 mr-1.5" />
               Yearly
             </Button>
@@ -182,7 +191,6 @@ function RecognitionPage() {
         <SearchResults hits={searchQ.data ?? []} loading={searchQ.isLoading} />
       )}
       <DemoDerivedRecognitions tenantId={tenantId} />
-
 
       <Tabs defaultValue="suggestions" className="mt-4">
         <TabsList className="flex flex-wrap h-auto">
@@ -269,7 +277,9 @@ function DemoDerivedRecognitions({ tenantId }: { tenantId: string }) {
                 <p className="text-xs text-muted-foreground mt-1">{r.description}</p>
                 <div className="text-[10px] text-muted-foreground mt-1">{r.matchLabel}</div>
               </div>
-              <div className="text-2xl shrink-0" aria-hidden>{r.badge}</div>
+              <div className="text-2xl shrink-0" aria-hidden>
+                {r.badge}
+              </div>
             </div>
           </Card>
         ))}
@@ -419,7 +429,9 @@ function SuggestionCard({
           <>
             <Button
               size="sm"
-              onClick={() => act(async () => await publishRecognition(recognition.id, null), "Published")}
+              onClick={() =>
+                act(async () => await publishRecognition(recognition.id, null), "Published")
+              }
               disabled={busy}
             >
               <Check className="size-4 mr-1" /> Publish
@@ -427,7 +439,9 @@ function SuggestionCard({
             <Button
               size="sm"
               variant="secondary"
-              onClick={() => act(async () => await approveRecognition(recognition.id, null), "Approved")}
+              onClick={() =>
+                act(async () => await approveRecognition(recognition.id, null), "Approved")
+              }
               disabled={busy}
             >
               Approve
@@ -464,7 +478,11 @@ function PublishedTab({
   if (loading) return <Skeleton className="h-40" />;
   if (items.length === 0) {
     return (
-      <EmptyState icon={Award} title="No published awards" description="Approve suggestions to publish them." />
+      <EmptyState
+        icon={Award}
+        title="No published awards"
+        description="Approve suggestions to publish them."
+      />
     );
   }
   return (
@@ -565,11 +583,10 @@ function CertificatesTab({
       <div className="space-y-3">
         <div>
           <Label className="text-xs">Recipient</Label>
-          <Select
-            value={rec?.id ?? ""}
-            onValueChange={(v) => setSelected(v)}
-          >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+          <Select value={rec?.id ?? ""} onValueChange={(v) => setSelected(v)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {recognitions.map((r) => (
                 <SelectItem key={r.id} value={r.id}>
@@ -587,10 +604,14 @@ function CertificatesTab({
             </SelectTrigger>
             <SelectContent>
               {templates.map((t) => (
-                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name}
+                </SelectItem>
               ))}
               {templates.length === 0 && (
-                <SelectItem value="none" disabled>No templates</SelectItem>
+                <SelectItem value="none" disabled>
+                  No templates
+                </SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -657,14 +678,8 @@ function TemplatesTab({
                 {t.is_default && <Badge variant="secondary">default</Badge>}
               </div>
               <div className="flex gap-2 mt-2">
-                <div
-                  className="h-8 w-8 rounded"
-                  style={{ backgroundColor: t.primary_color }}
-                />
-                <div
-                  className="h-8 w-8 rounded"
-                  style={{ backgroundColor: t.secondary_color }}
-                />
+                <div className="h-8 w-8 rounded" style={{ backgroundColor: t.primary_color }} />
+                <div className="h-8 w-8 rounded" style={{ backgroundColor: t.secondary_color }} />
               </div>
               <div className="flex gap-2 mt-3">
                 <Button size="sm" variant="ghost" onClick={() => setEditing(t)}>
@@ -782,7 +797,9 @@ function TemplateEditor({
           </div>
         )}
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
           <Button onClick={save}>Save</Button>
         </DialogFooter>
       </DialogContent>
@@ -792,11 +809,7 @@ function TemplateEditor({
 
 /* ---------- Badges ---------- */
 
-function BadgesTab({
-  published,
-}: {
-  published: Array<MCRecognition & { athleteName?: string }>;
-}) {
+function BadgesTab({ published }: { published: Array<MCRecognition & { athleteName?: string }> }) {
   const badgeMap = useMemo(() => {
     const map = new Map<string, { athletes: Set<string>; count: number }>();
     for (const r of published) {
@@ -826,7 +839,11 @@ function BadgesTab({
       <div>
         <SectionTitle title="Badges awarded" />
         {badgeMap.length === 0 ? (
-          <EmptyState icon={Trophy} title="None yet" description="Publish recognitions to award badges." />
+          <EmptyState
+            icon={Trophy}
+            title="None yet"
+            description="Publish recognitions to award badges."
+          />
         ) : (
           <div className="grid gap-2 md:grid-cols-2">
             {badgeMap.map(([badge, entry]) => (
@@ -852,13 +869,7 @@ function BadgesTab({
 
 /* ---------- Timeline ---------- */
 
-function TimelineTab({
-  items,
-  loading,
-}: {
-  items: MCAcademyTimelineRow[];
-  loading: boolean;
-}) {
+function TimelineTab({ items, loading }: { items: MCAcademyTimelineRow[]; loading: boolean }) {
   if (loading) return <Skeleton className="h-40" />;
   if (items.length === 0) {
     return (
@@ -900,7 +911,8 @@ function SettingsTab() {
         <div>
           <Label>Auto-approve suggestions</Label>
           <p className="text-xs text-muted-foreground">
-            When enabled, match recognition suggestions are published automatically without coach approval.
+            When enabled, match recognition suggestions are published automatically without coach
+            approval.
           </p>
         </div>
       </div>
@@ -996,7 +1008,9 @@ function CustomRecognitionDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
           <Button onClick={submit}>Award</Button>
         </DialogFooter>
       </DialogContent>
@@ -1013,7 +1027,9 @@ function SearchResults({ hits, loading }: { hits: RecognitionSearchHit[]; loadin
     <Card className="p-2 space-y-1 max-h-72 overflow-auto">
       {hits.map((h) => (
         <div key={h.kind + h.id} className="flex items-center gap-2 p-2 hover:bg-muted/40 rounded">
-          <Badge variant="outline" className="text-[10px] uppercase">{h.kind}</Badge>
+          <Badge variant="outline" className="text-[10px] uppercase">
+            {h.kind}
+          </Badge>
           <div className="min-w-0">
             <div className="text-sm font-medium truncate">{h.title}</div>
             {h.subtitle ? (

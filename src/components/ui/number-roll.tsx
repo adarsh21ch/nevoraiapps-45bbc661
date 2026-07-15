@@ -28,7 +28,8 @@ export function NumberRoll({
     // Determine direction: higher number slides up-in, lower slides down-in.
     const nextNum = Number(strValue.replace(/[^\d.-]/g, ""));
     const prevNum = Number(prev.current.replace(/[^\d.-]/g, ""));
-    const direction = Number.isFinite(nextNum) && Number.isFinite(prevNum) && nextNum < prevNum ? "down" : "up";
+    const direction =
+      Number.isFinite(nextNum) && Number.isFinite(prevNum) && nextNum < prevNum ? "down" : "up";
 
     setPhase("out");
     const t1 = window.setTimeout(() => {

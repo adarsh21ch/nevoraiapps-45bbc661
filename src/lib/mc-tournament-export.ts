@@ -112,7 +112,10 @@ export function printElement(el: HTMLElement | null): void {
 
 /* ---------------- PNG / PDF via dynamic import ---------------- */
 
-type Html2CanvasFn = (el: HTMLElement, opts?: Record<string, unknown>) => Promise<HTMLCanvasElement>;
+type Html2CanvasFn = (
+  el: HTMLElement,
+  opts?: Record<string, unknown>,
+) => Promise<HTMLCanvasElement>;
 
 async function loadHtml2Canvas(): Promise<Html2CanvasFn | null> {
   try {
@@ -128,7 +131,9 @@ export async function downloadElementPNG(el: HTMLElement | null, name: string): 
   const html2canvas = await loadHtml2Canvas();
   if (!html2canvas) return false;
   const canvas = await html2canvas(el, { backgroundColor: "#ffffff", scale: 2 });
-  const blob: Blob | null = await new Promise((resolve) => canvas.toBlob((b) => resolve(b), "image/png"));
+  const blob: Blob | null = await new Promise((resolve) =>
+    canvas.toBlob((b) => resolve(b), "image/png"),
+  );
   if (!blob) return false;
   downloadBlob(sanitizeFilename(name, "png"), blob);
   return true;
@@ -141,7 +146,11 @@ export async function downloadElementPDF(el: HTMLElement | null, name: string): 
   const { jsPDF } = await import("jspdf");
   const canvas = await html2canvas(el, { backgroundColor: "#ffffff", scale: 2 });
   const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF({ orientation: canvas.width > canvas.height ? "l" : "p", unit: "pt", format: "a4" });
+  const pdf = new jsPDF({
+    orientation: canvas.width > canvas.height ? "l" : "p",
+    unit: "pt",
+    format: "a4",
+  });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
@@ -169,10 +178,11 @@ export function tournamentPublicUrl(input: PublicUrlInput): string | null {
 /* ---------------- Filename hygiene ---------------- */
 
 export function sanitizeFilename(name: string, ext: string): string {
-  const safe = name
-    .toLowerCase()
-    .replace(/[^a-z0-9-_\s.]/g, "")
-    .replace(/\s+/g, "-")
-    .slice(0, 80) || "export";
+  const safe =
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9-_\s.]/g, "")
+      .replace(/\s+/g, "-")
+      .slice(0, 80) || "export";
   return `${safe}.${ext}`;
 }

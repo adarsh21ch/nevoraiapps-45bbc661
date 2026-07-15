@@ -138,17 +138,13 @@ function Section({
   if (visible.length === 0) return null;
   return (
     <section aria-label={title}>
-      <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-        {title}
-      </p>
+      <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">{title}</p>
       <Card className="divide-y">
         {visible.map((i) => (
           <div key={i.label} className="p-3 flex items-center gap-3">
             <span className="text-muted-foreground">{i.icon}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                {i.label}
-              </p>
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{i.label}</p>
               <p className="text-sm truncate">{i.value}</p>
             </div>
           </div>

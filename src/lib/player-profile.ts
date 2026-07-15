@@ -5,7 +5,11 @@
  * business logic — just typed queries scoped to a single student/athlete.
  */
 import { supabase } from "@/integrations/supabase/client";
-import { fetchStudentVisits, groupVisitsByDay, type AttendanceVisit } from "@/lib/attendance/queries";
+import {
+  fetchStudentVisits,
+  groupVisitsByDay,
+  type AttendanceVisit,
+} from "@/lib/attendance/queries";
 
 export const playerKeys = {
   athlete: (tid: string, sid: string) => ["player", "athlete", tid, sid] as const,
@@ -28,7 +32,10 @@ export async function fetchAthleteByStudent(tenantId: string, studentId: string)
   if (!data) return null;
   const r = data as unknown as { cricket: unknown } & Record<string, unknown>;
   const cricket = Array.isArray(r.cricket) ? (r.cricket[0] ?? null) : (r.cricket ?? null);
-  return { ...r, cricket } as Record<string, unknown> & { id: string; cricket: Record<string, unknown> | null };
+  return { ...r, cricket } as Record<string, unknown> & {
+    id: string;
+    cricket: Record<string, unknown> | null;
+  };
 }
 
 export type PlayerCareer = {
@@ -112,13 +119,10 @@ export async function fetchRecentMatches(
       is_substitute: r.is_substitute,
       role: r.role,
       match,
-      is_player_of_match:
-        !!match && match.player_of_match_athlete_id === athleteProfileId,
+      is_player_of_match: !!match && match.player_of_match_athlete_id === athleteProfileId,
     };
   });
 }
-
-
 
 export type PlayerRemark = {
   id: string;

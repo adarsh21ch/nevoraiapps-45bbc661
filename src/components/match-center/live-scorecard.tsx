@@ -52,46 +52,55 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
   return (
     <div className="flex h-full min-h-0 flex-col">
       {!hideHero && (
-      <div className="px-1 pb-3">
-        <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card p-4 shadow-sm">
-          <div className="flex items-baseline justify-between gap-3">
-            <div className="min-w-0">
-              <div className="truncate text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                {matchInfo?.homeTeam ?? "Home"} vs {matchInfo?.awayTeam ?? "Away"}
+        <div className="px-1 pb-3">
+          <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card p-4 shadow-sm">
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="min-w-0">
+                <div className="truncate text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  {matchInfo?.homeTeam ?? "Home"} vs {matchInfo?.awayTeam ?? "Away"}
+                </div>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-[34px] font-black leading-none tabular-nums tracking-tight">
+                    {stats.team.runs}
+                    <span className="text-muted-foreground">/</span>
+                    {stats.team.wickets}
+                  </span>
+                  <span className="text-sm font-semibold tabular-nums text-muted-foreground">
+                    ({stats.team.oversDisplay})
+                  </span>
+                </div>
               </div>
-              <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-[34px] font-black leading-none tabular-nums tracking-tight">
-                  {stats.team.runs}
-                  <span className="text-muted-foreground">/</span>
-                  {stats.team.wickets}
-                </span>
-                <span className="text-sm font-semibold tabular-nums text-muted-foreground">
-                  ({stats.team.oversDisplay})
-                </span>
+              <div className="shrink-0 text-right">
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  CRR
+                </div>
+                <div className="text-xl font-bold tabular-nums">{stats.team.runRate}</div>
+                {stats.team.requiredRunRate != null && (
+                  <>
+                    <div className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      RRR
+                    </div>
+                    <div className="text-sm font-bold tabular-nums text-primary">
+                      {stats.team.requiredRunRate}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-            <div className="shrink-0 text-right">
-              <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">CRR</div>
-              <div className="text-xl font-bold tabular-nums">{stats.team.runRate}</div>
-              {stats.team.requiredRunRate != null && (
-                <>
-                  <div className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">RRR</div>
-                  <div className="text-sm font-bold tabular-nums text-primary">{stats.team.requiredRunRate}</div>
-                </>
+            {stats.team.target != null &&
+              stats.team.requiredRuns != null &&
+              stats.team.ballsRemaining != null && (
+                <div className="mt-3 rounded-xl bg-background/60 px-3 py-2 text-xs font-medium tabular-nums">
+                  Need <span className="font-bold text-foreground">{stats.team.requiredRuns}</span>{" "}
+                  from{" "}
+                  <span className="font-bold text-foreground">{stats.team.ballsRemaining}</span>{" "}
+                  balls · Target{" "}
+                  <span className="font-bold text-foreground">{stats.team.target}</span>
+                </div>
               )}
-            </div>
           </div>
-          {stats.team.target != null && stats.team.requiredRuns != null && stats.team.ballsRemaining != null && (
-            <div className="mt-3 rounded-xl bg-background/60 px-3 py-2 text-xs font-medium tabular-nums">
-              Need <span className="font-bold text-foreground">{stats.team.requiredRuns}</span> from{" "}
-              <span className="font-bold text-foreground">{stats.team.ballsRemaining}</span> balls · Target{" "}
-              <span className="font-bold text-foreground">{stats.team.target}</span>
-            </div>
-          )}
         </div>
-      </div>
       )}
-
 
       {/* Segment control */}
       <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 pb-2 backdrop-blur">
@@ -116,8 +125,12 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
       {/* Scroll content */}
       <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 pt-3 pb-4 animate-fade-in">
         {tab === "summary" && <SummaryPane stats={stats} matchInfo={matchInfo} />}
-        {tab === "batting" && <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />}
-        {tab === "bowling" && <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />}
+        {tab === "batting" && (
+          <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />
+        )}
+        {tab === "bowling" && (
+          <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />
+        )}
         {tab === "overs" && <OversPane overs={stats.team.overs_summary} />}
         {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} />}
       </div>
@@ -143,7 +156,13 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
 
 /* ----------------------------- Compact tables ---------------------------- */
 
-function BattingTable({ batters, onSelect }: { batters: BattingStat[]; onSelect?: (b: BattingStat) => void }) {
+function BattingTable({
+  batters,
+  onSelect,
+}: {
+  batters: BattingStat[];
+  onSelect?: (b: BattingStat) => void;
+}) {
   if (batters.length === 0) return <EmptyState text="No balls yet." />;
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
@@ -211,7 +230,13 @@ function BattingTable({ batters, onSelect }: { batters: BattingStat[]; onSelect?
   );
 }
 
-function BowlingTable({ bowlers, onSelect }: { bowlers: BowlingStat[]; onSelect?: (b: BowlingStat) => void }) {
+function BowlingTable({
+  bowlers,
+  onSelect,
+}: {
+  bowlers: BowlingStat[];
+  onSelect?: (b: BowlingStat) => void;
+}) {
   if (bowlers.length === 0) return <EmptyState text="No balls yet." />;
   return (
     <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
@@ -247,7 +272,8 @@ function BowlingTable({ bowlers, onSelect }: { bowlers: BowlingStat[]; onSelect?
                 {b.player.name ?? "—"}
               </div>
               <div className="truncate text-[10.5px] font-medium text-muted-foreground">
-                {b.dotBalls} dots • {b.wides} wd • {b.noBalls} nb • {b.maidens} {b.maidens === 1 ? "maiden" : "maidens"}
+                {b.dotBalls} dots • {b.wides} wd • {b.noBalls} nb • {b.maidens}{" "}
+                {b.maidens === 1 ? "maiden" : "maidens"}
               </div>
             </div>
             <div className="text-right">{b.oversDisplay}</div>
@@ -260,8 +286,6 @@ function BowlingTable({ bowlers, onSelect }: { bowlers: BowlingStat[]; onSelect?
     </div>
   );
 }
-
-
 
 /* --------------------------------- Panes --------------------------------- */
 
@@ -378,7 +402,9 @@ function BowlerCard({ b }: { b: BowlingStat }) {
     <div className="rounded-2xl border border-border/60 bg-card p-3 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[15px] font-semibold leading-tight">{b.player.name ?? "—"}</div>
+          <div className="truncate text-[15px] font-semibold leading-tight">
+            {b.player.name ?? "—"}
+          </div>
           <div className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
             {b.oversDisplay} ov · Econ {b.economy}
           </div>
@@ -406,7 +432,10 @@ function OversPane({ overs }: { overs: OverSummaryStat[] }) {
   return (
     <div className="space-y-2">
       {[...overs].reverse().map((o) => (
-        <div key={o.overNumber} className="rounded-2xl border border-border/60 bg-card p-3 shadow-sm">
+        <div
+          key={o.overNumber}
+          className="rounded-2xl border border-border/60 bg-card p-3 shadow-sm"
+        >
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -417,7 +446,9 @@ function OversPane({ overs }: { overs: OverSummaryStat[] }) {
                   </span>
                 )}
               </div>
-              <div className="mt-0.5 truncate text-[13px] font-semibold">{o.bowler?.name ?? "—"}</div>
+              <div className="mt-0.5 truncate text-[13px] font-semibold">
+                {o.bowler?.name ?? "—"}
+              </div>
             </div>
             <div className="shrink-0 text-right">
               <div className="text-lg font-black leading-none tabular-nums">
@@ -485,7 +516,10 @@ function MorePane({
 
       <Section title="Match info">
         <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/50">
-          <InfoRow label="Teams" value={`${matchInfo?.homeTeam ?? "Home"} vs ${matchInfo?.awayTeam ?? "Away"}`} />
+          <InfoRow
+            label="Teams"
+            value={`${matchInfo?.homeTeam ?? "Home"} vs ${matchInfo?.awayTeam ?? "Away"}`}
+          />
           {matchInfo?.format && <InfoRow label="Format" value={matchInfo.format} />}
           {matchInfo?.ground && <InfoRow label="Ground" value={matchInfo.ground} />}
           {matchInfo?.tournament && <InfoRow label="Tournament" value={matchInfo.tournament} />}
@@ -507,7 +541,9 @@ function MetricCard({ label, value, accent }: { label: string; value: string; ac
         accent ? "border-primary/40 bg-primary/5" : "border-border/60 bg-card",
       )}
     >
-      <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        {label}
+      </div>
       <div className="mt-1 text-lg font-black tabular-nums leading-none">{value}</div>
     </div>
   );
@@ -516,7 +552,9 @@ function MetricCard({ label, value, accent }: { label: string; value: string; ac
 function MiniStat({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="rounded-lg bg-muted/60 px-2 py-1.5 text-center">
-      <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
       <div className="text-[13px] font-bold tabular-nums leading-tight">{value}</div>
     </div>
   );
@@ -526,7 +564,9 @@ function HighlightRow({ label, name, value }: { label: string; name: string; val
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card px-3.5 py-2.5 shadow-sm">
       <div className="min-w-0 flex-1">
-        <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{label}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {label}
+        </div>
         <div className="truncate text-[14px] font-semibold">{name}</div>
       </div>
       <div className="shrink-0 text-right text-sm font-bold tabular-nums">{value}</div>
@@ -548,7 +588,8 @@ function PartnershipCard({ p, current }: { p: Partnership; current?: boolean }) 
           <div className="text-[9px] font-bold uppercase tracking-widest text-primary">Current</div>
         )}
         <div className="truncate text-[13px] font-semibold">
-          {p.batterA?.name ?? "?"} <span className="text-muted-foreground">&</span> {p.batterB?.name ?? "?"}
+          {p.batterA?.name ?? "?"} <span className="text-muted-foreground">&</span>{" "}
+          {p.batterB?.name ?? "?"}
         </div>
         <div className="text-[10px] text-muted-foreground tabular-nums">RR {rr}</div>
       </div>
@@ -592,7 +633,9 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{title}</h3>
+      <h3 className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+        {title}
+      </h3>
       {children}
     </section>
   );

@@ -27,10 +27,8 @@ import {
 } from "@/lib/mc-statistics-engine";
 import { createTimelineEntry } from "@/lib/mc-athletes";
 
-export type MCAcademyRecord =
-  Database["public"]["Tables"]["mc_academy_records"]["Row"];
-export type MCHallOfFame =
-  Database["public"]["Tables"]["mc_hall_of_fame"]["Row"];
+export type MCAcademyRecord = Database["public"]["Tables"]["mc_academy_records"]["Row"];
+export type MCHallOfFame = Database["public"]["Tables"]["mc_hall_of_fame"]["Row"];
 
 /* ================================================================
  * Record type registry (extensible via config)
@@ -123,10 +121,7 @@ async function fetchFinalizedMatches(tenantId: string) {
 }
 
 async function fetchInnings(tenantId: string) {
-  const { data, error } = await supabase
-    .from("mc_innings")
-    .select("*")
-    .eq("tenant_id", tenantId);
+  const { data, error } = await supabase.from("mc_innings").select("*").eq("tenant_id", tenantId);
   if (error) throw error;
   return data ?? [];
 }
@@ -159,10 +154,7 @@ async function fetchTeams(tenantId: string) {
 }
 
 function careerAthleteName(row: Record<string, unknown>): string {
-  const ap = row.mc_athlete_profiles as
-    | { students?: { name?: string } | null }
-    | null
-    | undefined;
+  const ap = row.mc_athlete_profiles as { students?: { name?: string } | null } | null | undefined;
   return ap?.students?.name ?? "Unknown Player";
 }
 
@@ -221,9 +213,7 @@ export function leaderboardHighestAverage(
 ): LeaderboardRow[] {
   return careers
     .filter(
-      (c) =>
-        (c.balls as number) >= minBalls &&
-        (c.innings as number) - (c.not_outs as number) > 0,
+      (c) => (c.balls as number) >= minBalls && (c.innings as number) - (c.not_outs as number) > 0,
     )
     .sort((a, b) => (b.average as number) - (a.average as number))
     .slice(0, limit)
@@ -258,9 +248,7 @@ export function leaderboardBestEconomy(
   limit = 25,
 ): LeaderboardRow[] {
   return careers
-    .filter(
-      (c) => (c.balls_bowled as number) >= minBalls && (c.economy as number) > 0,
-    )
+    .filter((c) => (c.balls_bowled as number) >= minBalls && (c.economy as number) > 0)
     .sort((a, b) => (a.economy as number) - (b.economy as number))
     .slice(0, limit)
     .map((c) => ({
@@ -566,15 +554,13 @@ export function computeTeamRecords(
       winnerId = tid;
     }
   }
-  const teamName = winnerId ? teams.find((t) => t.id === winnerId)?.name ?? "Team" : null;
+  const teamName = winnerId ? (teams.find((t) => t.id === winnerId)?.name ?? "Team") : null;
 
   return {
     highestScore,
     lowestScore,
     longestWinningStreak:
-      winnerId && teamName
-        ? { teamId: winnerId, teamName, streak: winnerStreak }
-        : null,
+      winnerId && teamName ? { teamId: winnerId, teamName, streak: winnerStreak } : null,
   };
 }
 
@@ -587,9 +573,7 @@ export interface CaptainRecordRow {
   winPct: number;
 }
 
-export function computeCaptainRecords(
-  careers: Array<Record<string, unknown>>,
-): CaptainRecordRow[] {
+export function computeCaptainRecords(careers: Array<Record<string, unknown>>): CaptainRecordRow[] {
   return careers
     .filter((c) => (c.captain_matches as number) > 0)
     .map((c) => {
@@ -740,22 +724,16 @@ export async function rebuildAcademyRecords(
     written++;
   }
   if (bestBowl) {
-    await upsertRecord(
-      tenantId,
-      "best_bowling",
-      "all_time",
-      bestBowl.wickets,
-      {
-        athleteProfileId: bestBowl.athleteId,
-        matchId: bestBowl.matchId,
-        metadata: {
-          name: bestBowl.name,
-          runsConceded: bestBowl.runsConceded,
-          overs: bestBowl.overs,
-          figures: `${bestBowl.wickets}/${bestBowl.runsConceded}`,
-        },
+    await upsertRecord(tenantId, "best_bowling", "all_time", bestBowl.wickets, {
+      athleteProfileId: bestBowl.athleteId,
+      matchId: bestBowl.matchId,
+      metadata: {
+        name: bestBowl.name,
+        runsConceded: bestBowl.runsConceded,
+        overs: bestBowl.overs,
+        figures: `${bestBowl.wickets}/${bestBowl.runsConceded}`,
       },
-    );
+    });
     written++;
   }
   if (bestPship) {
@@ -791,31 +769,19 @@ export async function rebuildAcademyRecords(
   // ---- Team-level records ----
   const teamRec = computeTeamRecords(innings, matches, teams);
   if (teamRec.highestScore) {
-    await upsertRecord(
-      tenantId,
-      "highest_team_score",
-      "all_time",
-      teamRec.highestScore.value,
-      {
-        matchId: teamRec.highestScore.matchId,
-        teamId: teamRec.highestScore.teamId,
-        metadata: teamRec.highestScore.metadata,
-      },
-    );
+    await upsertRecord(tenantId, "highest_team_score", "all_time", teamRec.highestScore.value, {
+      matchId: teamRec.highestScore.matchId,
+      teamId: teamRec.highestScore.teamId,
+      metadata: teamRec.highestScore.metadata,
+    });
     written++;
   }
   if (teamRec.lowestScore) {
-    await upsertRecord(
-      tenantId,
-      "lowest_team_score",
-      "all_time",
-      teamRec.lowestScore.value,
-      {
-        matchId: teamRec.lowestScore.matchId,
-        teamId: teamRec.lowestScore.teamId,
-        metadata: teamRec.lowestScore.metadata,
-      },
-    );
+    await upsertRecord(tenantId, "lowest_team_score", "all_time", teamRec.lowestScore.value, {
+      matchId: teamRec.lowestScore.matchId,
+      teamId: teamRec.lowestScore.teamId,
+      metadata: teamRec.lowestScore.metadata,
+    });
     written++;
   }
   if (teamRec.longestWinningStreak) {
@@ -833,9 +799,13 @@ export async function rebuildAcademyRecords(
   }
 
   // ---- Career-derived leaderboards ----
-  const careersTyped = careers as unknown as Array<Record<string, unknown> & {
-    runs: number; wickets: number; athlete_profile_id: string;
-  }>;
+  const careersTyped = careers as unknown as Array<
+    Record<string, unknown> & {
+      runs: number;
+      wickets: number;
+      athlete_profile_id: string;
+    }
+  >;
 
   const topRuns = leaderboardMostRuns(careersTyped, 1)[0];
   if (topRuns) {
@@ -893,11 +863,7 @@ export async function rebuildAcademyRecords(
     });
     written++;
   }
-  const bestSR = leaderboardHighestStrikeRate(
-    careersTyped,
-    config.minBallsForStrikeRate,
-    1,
-  )[0];
+  const bestSR = leaderboardHighestStrikeRate(careersTyped, config.minBallsForStrikeRate, 1)[0];
   if (bestSR) {
     await upsertRecord(tenantId, "highest_strike_rate", "career", bestSR.value, {
       athleteProfileId: bestSR.athleteProfileId,
@@ -913,11 +879,7 @@ export async function rebuildAcademyRecords(
     });
     written++;
   }
-  const bestCap = leaderboardBestCaptain(
-    careersTyped,
-    config.minMatchesForCaptainPct,
-    1,
-  )[0];
+  const bestCap = leaderboardBestCaptain(careersTyped, config.minMatchesForCaptainPct, 1)[0];
   if (bestCap) {
     await upsertRecord(tenantId, "best_captain_win_pct", "all_time", bestCap.value, {
       athleteProfileId: bestCap.athleteProfileId,
@@ -1010,8 +972,10 @@ export async function updateAcademyRecordsForMatch(
       (tieBreaker &&
         Number(cur.value) === value &&
         (tieBreaker.lowerIsBetter
-          ? tieBreaker.newValue < Number((cur.metadata as Record<string, unknown>)[tieBreaker.key] ?? Infinity)
-          : tieBreaker.newValue > Number((cur.metadata as Record<string, unknown>)[tieBreaker.key] ?? -Infinity)));
+          ? tieBreaker.newValue <
+            Number((cur.metadata as Record<string, unknown>)[tieBreaker.key] ?? Infinity)
+          : tieBreaker.newValue >
+            Number((cur.metadata as Record<string, unknown>)[tieBreaker.key] ?? -Infinity)));
     if (better) {
       await upsertRecord(tenantId, type, key, value, payload);
       updated++;
@@ -1165,9 +1129,14 @@ export async function computeAcademyOverview(
     listAcademyRecords(tenantId),
   ]);
 
-  const careersTyped = careers as unknown as Array<Record<string, unknown> & {
-    runs: number; wickets: number; matches: number; athlete_profile_id: string;
-  }>;
+  const careersTyped = careers as unknown as Array<
+    Record<string, unknown> & {
+      runs: number;
+      wickets: number;
+      matches: number;
+      athlete_profile_id: string;
+    }
+  >;
 
   const totals = {
     runs: 0,
@@ -1282,8 +1251,9 @@ export async function listHallOfFame(
   const { data, error } = await q;
   if (error) throw error;
   return (data ?? []).map((r) => {
-    const ap = (r as unknown as { mc_athlete_profiles?: { students?: { name?: string } | null } | null })
-      .mc_athlete_profiles;
+    const ap = (
+      r as unknown as { mc_athlete_profiles?: { students?: { name?: string } | null } | null }
+    ).mc_athlete_profiles;
     return { ...(r as MCHallOfFame), athleteName: ap?.students?.name };
   });
 }
@@ -1332,8 +1302,7 @@ export async function globalSearch(tenantId: string, term: string): Promise<Sear
     }
   }
   for (const r of records) {
-    const name =
-      (r.metadata as Record<string, unknown> | null)?.name?.toString() ?? "";
+    const name = (r.metadata as Record<string, unknown> | null)?.name?.toString() ?? "";
     const type = r.record_type.replace(/_/g, " ");
     if (type.toLowerCase().includes(q) || name.toLowerCase().includes(q)) {
       hits.push({

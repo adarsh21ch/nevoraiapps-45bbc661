@@ -94,7 +94,14 @@ export function BulkImportLeads() {
 
   const downloadTemplate = () => {
     const ws = XLSX.utils.json_to_sheet([
-      { name: "Priya Verma", phone: "9876543210", message: "Interested in evening batch", source: "instagram", status: "new", notes: "" },
+      {
+        name: "Priya Verma",
+        phone: "9876543210",
+        message: "Interested in evening batch",
+        source: "instagram",
+        status: "new",
+        notes: "",
+      },
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Leads");
@@ -114,8 +121,12 @@ export function BulkImportLeads() {
         </DialogHeader>
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Upload an <span className="font-medium">.xlsx</span> or <span className="font-medium">.csv</span> with columns:{" "}
-            <code className="text-xs bg-muted px-1 py-0.5 rounded">name, phone, message, source, status, notes</code>.
+            Upload an <span className="font-medium">.xlsx</span> or{" "}
+            <span className="font-medium">.csv</span> with columns:{" "}
+            <code className="text-xs bg-muted px-1 py-0.5 rounded">
+              name, phone, message, source, status, notes
+            </code>
+            .
           </p>
 
           <Button variant="ghost" size="sm" onClick={downloadTemplate} className="text-xs">
@@ -149,7 +160,9 @@ export function BulkImportLeads() {
                     {r.name} · {r.phone} {r.source ? `· ${r.source}` : ""}
                   </div>
                 ))}
-                {rows.length > 5 && <div className="text-muted-foreground">…and {rows.length - 5} more</div>}
+                {rows.length > 5 && (
+                  <div className="text-muted-foreground">…and {rows.length - 5} more</div>
+                )}
               </div>
             </div>
           )}
@@ -161,7 +174,9 @@ export function BulkImportLeads() {
           )}
         </div>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
           <Button
             onClick={() => importer.mutate()}
             disabled={importer.isPending || rows.length === 0}

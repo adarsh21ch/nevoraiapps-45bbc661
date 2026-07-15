@@ -53,8 +53,12 @@ export function TopBar({
         {leading}
       </div>
       <div className="min-w-0 text-center">
-        {title ? <div className="truncate text-base font-semibold leading-tight">{title}</div> : null}
-        {subtitle ? <div className="truncate text-xs text-muted-foreground leading-tight">{subtitle}</div> : null}
+        {title ? (
+          <div className="truncate text-base font-semibold leading-tight">{title}</div>
+        ) : null}
+        {subtitle ? (
+          <div className="truncate text-xs text-muted-foreground leading-tight">{subtitle}</div>
+        ) : null}
       </div>
       <div className="flex items-center justify-end gap-1">{trailing}</div>
     </header>

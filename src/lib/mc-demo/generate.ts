@@ -16,18 +16,99 @@ import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
 
 /* ---------- name / photo pools ---------- */
 const FIRST_NAMES = [
-  "Arjun", "Rohan", "Kabir", "Aarav", "Vihaan", "Aditya", "Ishaan", "Reyansh", "Krishna", "Rudra",
-  "Yash", "Rehan", "Dev", "Manav", "Aryan", "Karan", "Nitin", "Sanjay", "Rahul", "Vikram",
-  "Priya", "Ananya", "Kavya", "Diya", "Ishita", "Meera", "Riya", "Sanya", "Tanvi", "Zara",
-  "Sai", "Advait", "Neel", "Ved", "Aayan", "Farhan", "Zayn", "Kunal", "Rohit", "Aakash",
-  "Siddharth", "Varun", "Nikhil", "Harsh", "Parth", "Ayush", "Om", "Shivansh", "Atharv", "Raghav",
+  "Arjun",
+  "Rohan",
+  "Kabir",
+  "Aarav",
+  "Vihaan",
+  "Aditya",
+  "Ishaan",
+  "Reyansh",
+  "Krishna",
+  "Rudra",
+  "Yash",
+  "Rehan",
+  "Dev",
+  "Manav",
+  "Aryan",
+  "Karan",
+  "Nitin",
+  "Sanjay",
+  "Rahul",
+  "Vikram",
+  "Priya",
+  "Ananya",
+  "Kavya",
+  "Diya",
+  "Ishita",
+  "Meera",
+  "Riya",
+  "Sanya",
+  "Tanvi",
+  "Zara",
+  "Sai",
+  "Advait",
+  "Neel",
+  "Ved",
+  "Aayan",
+  "Farhan",
+  "Zayn",
+  "Kunal",
+  "Rohit",
+  "Aakash",
+  "Siddharth",
+  "Varun",
+  "Nikhil",
+  "Harsh",
+  "Parth",
+  "Ayush",
+  "Om",
+  "Shivansh",
+  "Atharv",
+  "Raghav",
 ];
 const LAST_NAMES = [
-  "Sharma", "Verma", "Reddy", "Iyer", "Nair", "Menon", "Patel", "Shah", "Rao", "Kumar",
-  "Singh", "Kapoor", "Malhotra", "Chopra", "Bansal", "Gupta", "Mehta", "Joshi", "Desai", "Bhatt",
-  "Khan", "Ahmed", "Naidu", "Pillai", "Das", "Ghosh", "Roy", "Banerjee", "Sen", "Mitra",
+  "Sharma",
+  "Verma",
+  "Reddy",
+  "Iyer",
+  "Nair",
+  "Menon",
+  "Patel",
+  "Shah",
+  "Rao",
+  "Kumar",
+  "Singh",
+  "Kapoor",
+  "Malhotra",
+  "Chopra",
+  "Bansal",
+  "Gupta",
+  "Mehta",
+  "Joshi",
+  "Desai",
+  "Bhatt",
+  "Khan",
+  "Ahmed",
+  "Naidu",
+  "Pillai",
+  "Das",
+  "Ghosh",
+  "Roy",
+  "Banerjee",
+  "Sen",
+  "Mitra",
 ];
-const CITIES = ["Bengaluru", "Mumbai", "Chennai", "Delhi", "Hyderabad", "Pune", "Kolkata", "Ahmedabad"];
+const CITIES = [
+  "Bengaluru",
+  "Mumbai",
+  "Chennai",
+  "Delhi",
+  "Hyderabad",
+  "Pune",
+  "Kolkata",
+  "Ahmedabad",
+];
 const GROUNDS = [
   "Sai Main Ground",
   "Practice Ground",
@@ -36,13 +117,30 @@ const GROUNDS = [
   "Wankhede Practice Field",
   "Sardar Patel Ground",
 ];
-const TEAM_COLORS = ["#E8873C", "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#0EA5E9", "#EC4899", "#22C55E", "#F97316", "#14B8A6", "#A855F7"];
+const TEAM_COLORS = [
+  "#E8873C",
+  "#3B82F6",
+  "#10B981",
+  "#F59E0B",
+  "#EF4444",
+  "#8B5CF6",
+  "#0EA5E9",
+  "#EC4899",
+  "#22C55E",
+  "#F97316",
+  "#14B8A6",
+  "#A855F7",
+];
 const ROLES = ["batter", "bowler", "all_rounder", "wicket_keeper"] as const;
 
 /** Named players that must always appear in the demo dataset so search
  * behaves predictably (e.g. typing "rah" surfaces Rahul Sharma → U16). */
 const NAMED_U16_PLAYERS = [
-  "Rahul Sharma", "Aman Patel", "Aryan Singh", "Mohit Verma", "Rohit Yadav",
+  "Rahul Sharma",
+  "Aman Patel",
+  "Aryan Singh",
+  "Mohit Verma",
+  "Rohit Yadav",
 ] as const;
 
 function photo(seed: string) {
@@ -108,8 +206,20 @@ export type DemoData = {
   ballEvents: MCBallEvent[];
   liveState: DemoLiveState;
   matchSquads: Record<string, DemoMatchSquads>;
-  records: Array<{ id: string; record_type: string; title: string; player_name: string; value: string }>;
-  recognitions: Array<{ id: string; title: string; recognition_type: string; player_name: string; awarded_at: string }>;
+  records: Array<{
+    id: string;
+    record_type: string;
+    title: string;
+    player_name: string;
+    value: string;
+  }>;
+  recognitions: Array<{
+    id: string;
+    title: string;
+    recognition_type: string;
+    player_name: string;
+    awarded_at: string;
+  }>;
   hallOfFame: Array<{ id: string; player_name: string; era: string; note: string }>;
   perfRows: DemoPerfRow[];
   aiReports: DemoAIReport[];
@@ -160,7 +270,8 @@ function rollOutcome(rng: Rng): {
 } {
   const r = rng.next();
   // 4% wide, 2% no-ball
-  if (r < 0.04) return { legal: false, runs_off_bat: 0, extra_runs: 1, extra_type: "wide", wicket: null };
+  if (r < 0.04)
+    return { legal: false, runs_off_bat: 0, extra_runs: 1, extra_type: "wide", wicket: null };
   if (r < 0.06) {
     // no ball + off-bat runs
     const off = rng.chance(0.35) ? rng.pick([0, 1, 2, 4]) : 0;
@@ -173,7 +284,13 @@ function rollOutcome(rng: Rng): {
   }
   // byes/leg-byes ~2%
   if (r < 0.125) {
-    return { legal: true, runs_off_bat: 0, extra_runs: rng.pick([1, 1, 1, 2, 4]), extra_type: rng.chance(0.5) ? "bye" : "leg_bye", wicket: null };
+    return {
+      legal: true,
+      runs_off_bat: 0,
+      extra_runs: rng.pick([1, 1, 1, 2, 4]),
+      extra_type: rng.chance(0.5) ? "bye" : "leg_bye",
+      wicket: null,
+    };
   }
   // scoring runs distribution over remaining ~87.5%
   const s = rng.next();
@@ -189,8 +306,19 @@ function rollOutcome(rng: Rng): {
 
 function simulateInnings(opts: SimOptions): SimResult {
   const {
-    rng, tenantId, matchId, inningsNumber, battingTeamId, bowlingTeamId,
-    batters, bowlers, maxOvers, target, stopAtLegalBalls, seqStart, startedAt,
+    rng,
+    tenantId,
+    matchId,
+    inningsNumber,
+    battingTeamId,
+    bowlingTeamId,
+    batters,
+    bowlers,
+    maxOvers,
+    target,
+    stopAtLegalBalls,
+    seqStart,
+    startedAt,
   } = opts;
 
   const events: MCBallEvent[] = [];
@@ -280,13 +408,17 @@ function simulateInnings(opts: SimOptions): SimResult {
       }
     } else if (o.runs_off_bat % 2 === 1) {
       // rotate strike on odd runs
-      const t = strikerIdx; strikerIdx = nonStrikerIdx; nonStrikerIdx = t;
+      const t = strikerIdx;
+      strikerIdx = nonStrikerIdx;
+      nonStrikerIdx = t;
     }
 
     // end of over
     if (o.legal && ballInOver >= 6) {
       // rotate strike
-      const t = strikerIdx; strikerIdx = nonStrikerIdx; nonStrikerIdx = t;
+      const t = strikerIdx;
+      strikerIdx = nonStrikerIdx;
+      nonStrikerIdx = t;
       overNumber += 1;
       ballInOver = 0;
       // change bowler (avoid same as previous)
@@ -298,7 +430,9 @@ function simulateInnings(opts: SimOptions): SimResult {
       // safety hatch — shouldn't happen but avoid runaway
       ballInOver = 0;
       overNumber += 1;
-      const t = strikerIdx; strikerIdx = nonStrikerIdx; nonStrikerIdx = t;
+      const t = strikerIdx;
+      strikerIdx = nonStrikerIdx;
+      nonStrikerIdx = t;
       let next = rng.int(0, bowlers.length - 1);
       if (bowlers.length > 1 && next === bowlerIdx) next = (next + 1) % bowlers.length;
       lastBowlerIdx = bowlerIdx;
@@ -358,8 +492,8 @@ export function generateDemoData(tenantId: string): DemoData {
   const isoDate = (offsetDays: number) => iso(offsetDays).slice(0, 10);
 
   /* --- 150 players. Slots 0..4 are the pre-planted named U16 stars so
-     * search "rah" / "aman" / "aryan" / "mohit" / "rohit" surfaces them and
-     * (through the squad assignment below) the U16 team. */
+   * search "rah" / "aman" / "aryan" / "mohit" / "rohit" surfaces them and
+   * (through the squad assignment below) the U16 team. */
   const players: AthleteWithStudent[] = Array.from({ length: 150 }, (_, i) => {
     const pn = i < NAMED_U16_PLAYERS.length ? NAMED_U16_PLAYERS[i] : name(rng);
     const role = rng.pick(ROLES);
@@ -389,50 +523,155 @@ export function generateDemoData(tenantId: string): DemoData {
         athlete_profile_id: id,
         playing_role: role,
         batting_style: rng.chance(0.8) ? "right_hand" : "left_hand",
-        bowling_style: rng.pick(["Right-arm fast", "Right-arm medium", "Off-spin", "Leg-spin", "Left-arm orthodox"]),
+        bowling_style: rng.pick([
+          "Right-arm fast",
+          "Right-arm medium",
+          "Off-spin",
+          "Leg-spin",
+          "Left-arm orthodox",
+        ]),
       } as unknown as AthleteWithStudent["cricket"],
       team: null,
     } as unknown as AthleteWithStudent;
   });
 
-  const asPlayer = (p: AthleteWithStudent): Player => ({ id: p.id, name: p.student?.name ?? "Player" });
+  const asPlayer = (p: AthleteWithStudent): Player => ({
+    id: p.id,
+    name: p.student?.name ?? "Player",
+  });
 
   /* --- 11 teams: 6 academy + 5 external opponents --- */
   const teamDefs: Array<{
-    name: string; short: string; age: string; color: string;
-    coach: string; city: string; external: boolean;
+    name: string;
+    short: string;
+    age: string;
+    color: string;
+    coach: string;
+    city: string;
+    external: boolean;
   }> = [
     // teams[0] is the live-match academy team. Keep the id "demo-team-live-a".
-    { name: "Sai Sports Academy U16", short: "SAI_U16", age: "U16", color: "#3B82F6", coach: "Coach V. Menon", city: "Bengaluru", external: false },
+    {
+      name: "Sai Sports Academy U16",
+      short: "SAI_U16",
+      age: "U16",
+      color: "#3B82F6",
+      coach: "Coach V. Menon",
+      city: "Bengaluru",
+      external: false,
+    },
     // teams[1] is the live-match opponent. Keep the id "demo-team-live-b".
-    { name: "Sky Cricket Academy", short: "SKY", age: "U16", color: "#EF4444", coach: "Coach P. Sharma", city: "Mumbai", external: true },
-    { name: "Sai Sports Academy U12", short: "SAI_U12", age: "U12", color: "#10B981", coach: "Coach R. Kulkarni", city: "Bengaluru", external: false },
-    { name: "Sai Sports Academy U14", short: "SAI_U14", age: "U14", color: "#F59E0B", coach: "Coach S. Iyer", city: "Bengaluru", external: false },
-    { name: "Sai Sports Academy U19", short: "SAI_U19", age: "U19", color: "#0EA5E9", coach: "Coach A. Khan", city: "Bengaluru", external: false },
-    { name: "Sai Sports Academy Senior Team", short: "SAI_SEN", age: "Senior", color: "#22C55E", coach: "Coach R. Kulkarni", city: "Bengaluru", external: false },
-    { name: "Sai Sports Academy Girls Team", short: "SAI_GIR", age: "Girls", color: "#EC4899", coach: "Coach A. Khan", city: "Bengaluru", external: false },
-    { name: "Royal Cricket Club", short: "ROY", age: "Senior", color: "#8B5CF6", coach: "Coach D. Rao", city: "Mumbai", external: true },
-    { name: "City Cricket Academy", short: "CIT", age: "U19", color: "#E8873C", coach: "Coach N. Gupta", city: "Chennai", external: true },
-    { name: "Lions CC", short: "LIO", age: "Senior", color: "#F97316", coach: "Coach A. Bhatt", city: "Pune", external: true },
-    { name: "Warriors CC", short: "WAR", age: "Senior", color: "#A855F7", coach: "Coach K. Malhotra", city: "Delhi", external: true },
+    {
+      name: "Sky Cricket Academy",
+      short: "SKY",
+      age: "U16",
+      color: "#EF4444",
+      coach: "Coach P. Sharma",
+      city: "Mumbai",
+      external: true,
+    },
+    {
+      name: "Sai Sports Academy U12",
+      short: "SAI_U12",
+      age: "U12",
+      color: "#10B981",
+      coach: "Coach R. Kulkarni",
+      city: "Bengaluru",
+      external: false,
+    },
+    {
+      name: "Sai Sports Academy U14",
+      short: "SAI_U14",
+      age: "U14",
+      color: "#F59E0B",
+      coach: "Coach S. Iyer",
+      city: "Bengaluru",
+      external: false,
+    },
+    {
+      name: "Sai Sports Academy U19",
+      short: "SAI_U19",
+      age: "U19",
+      color: "#0EA5E9",
+      coach: "Coach A. Khan",
+      city: "Bengaluru",
+      external: false,
+    },
+    {
+      name: "Sai Sports Academy Senior Team",
+      short: "SAI_SEN",
+      age: "Senior",
+      color: "#22C55E",
+      coach: "Coach R. Kulkarni",
+      city: "Bengaluru",
+      external: false,
+    },
+    {
+      name: "Sai Sports Academy Girls Team",
+      short: "SAI_GIR",
+      age: "Girls",
+      color: "#EC4899",
+      coach: "Coach A. Khan",
+      city: "Bengaluru",
+      external: false,
+    },
+    {
+      name: "Royal Cricket Club",
+      short: "ROY",
+      age: "Senior",
+      color: "#8B5CF6",
+      coach: "Coach D. Rao",
+      city: "Mumbai",
+      external: true,
+    },
+    {
+      name: "City Cricket Academy",
+      short: "CIT",
+      age: "U19",
+      color: "#E8873C",
+      coach: "Coach N. Gupta",
+      city: "Chennai",
+      external: true,
+    },
+    {
+      name: "Lions CC",
+      short: "LIO",
+      age: "Senior",
+      color: "#F97316",
+      coach: "Coach A. Bhatt",
+      city: "Pune",
+      external: true,
+    },
+    {
+      name: "Warriors CC",
+      short: "WAR",
+      age: "Senior",
+      color: "#A855F7",
+      coach: "Coach K. Malhotra",
+      city: "Delhi",
+      external: true,
+    },
   ];
-  const teams: TeamWithCount[] = teamDefs.map((t, i) => ({
-    id: i === 0 ? "demo-team-live-a" : i === 1 ? "demo-team-live-b" : `demo-team-${i + 1}`,
-    tenant_id: tenantId,
-    name: t.name,
-    short_name: t.short,
-    age_group: t.age,
-    logo_url: null,
-    team_color: t.color,
-    coach_name: t.coach,
-    city: t.city,
-    status: "active",
-    season: "2026",
-    is_external: t.external,
-    created_at: iso(-rng.int(200, 700)),
-    updated_at: iso(-rng.int(0, 30)),
-    player_count: 14 + rng.int(0, 4),
-  } as unknown as TeamWithCount));
+  const teams: TeamWithCount[] = teamDefs.map(
+    (t, i) =>
+      ({
+        id: i === 0 ? "demo-team-live-a" : i === 1 ? "demo-team-live-b" : `demo-team-${i + 1}`,
+        tenant_id: tenantId,
+        name: t.name,
+        short_name: t.short,
+        age_group: t.age,
+        logo_url: null,
+        team_color: t.color,
+        coach_name: t.coach,
+        city: t.city,
+        status: "active",
+        season: "2026",
+        is_external: t.external,
+        created_at: iso(-rng.int(200, 700)),
+        updated_at: iso(-rng.int(0, 30)),
+        player_count: 14 + rng.int(0, 4),
+      }) as unknown as TeamWithCount,
+  );
 
   // 14 players per team so squads look real. First team (U16) uses the
   // pre-planted named players (Rahul Sharma, Aman Patel, ...) which live at
@@ -442,7 +681,8 @@ export function generateDemoData(tenantId: string): DemoData {
   teams.forEach((t, ti) => {
     const start = (ti * SQUAD_SIZE) % players.length;
     const squad: Player[] = [];
-    for (let k = 0; k < SQUAD_SIZE; k++) squad.push(asPlayer(players[(start + k) % players.length]));
+    for (let k = 0; k < SQUAD_SIZE; k++)
+      squad.push(asPlayer(players[(start + k) % players.length]));
     teamSquads[t.id] = squad;
   });
 
@@ -459,21 +699,34 @@ export function generateDemoData(tenantId: string): DemoData {
     tournamentId: "demo-tournament-1",
   };
   const m1_i1 = simulateInnings({
-    rng, tenantId, matchId: m1.id, inningsNumber: 1,
-    battingTeamId: m1.teamA.id, bowlingTeamId: m1.teamB.id,
-    batters: teamSquads[m1.teamA.id], bowlers: teamSquads[m1.teamB.id].slice(0, 6),
-    maxOvers: 20, seqStart: 0, startedAt: iso(-4),
+    rng,
+    tenantId,
+    matchId: m1.id,
+    inningsNumber: 1,
+    battingTeamId: m1.teamA.id,
+    bowlingTeamId: m1.teamB.id,
+    batters: teamSquads[m1.teamA.id],
+    bowlers: teamSquads[m1.teamB.id].slice(0, 6),
+    maxOvers: 20,
+    seqStart: 0,
+    startedAt: iso(-4),
   });
   const m1_i2 = simulateInnings({
-    rng, tenantId, matchId: m1.id, inningsNumber: 2,
-    battingTeamId: m1.teamB.id, bowlingTeamId: m1.teamA.id,
-    batters: teamSquads[m1.teamB.id], bowlers: teamSquads[m1.teamA.id].slice(0, 6),
-    maxOvers: 20, target: m1_i1.runs + 1, seqStart: 0, startedAt: iso(-4),
+    rng,
+    tenantId,
+    matchId: m1.id,
+    inningsNumber: 2,
+    battingTeamId: m1.teamB.id,
+    bowlingTeamId: m1.teamA.id,
+    batters: teamSquads[m1.teamB.id],
+    bowlers: teamSquads[m1.teamA.id].slice(0, 6),
+    maxOvers: 20,
+    target: m1_i1.runs + 1,
+    seqStart: 0,
+    startedAt: iso(-4),
   });
   const m1_winner = m1_i1.runs >= m1_i2.runs ? m1.teamA : m1.teamB;
-  const m1_margin = m1_i1.runs >= m1_i2.runs
-    ? m1_i1.runs - m1_i2.runs
-    : 10 - m1_i2.wickets;
+  const m1_margin = m1_i1.runs >= m1_i2.runs ? m1_i1.runs - m1_i2.runs : 10 - m1_i2.wickets;
   const m1_marginType = m1_i1.runs >= m1_i2.runs ? "runs" : "wickets";
   const m1_pom = players[3];
 
@@ -489,21 +742,34 @@ export function generateDemoData(tenantId: string): DemoData {
     tournamentId: "demo-tournament-2",
   };
   const m2_i1 = simulateInnings({
-    rng, tenantId, matchId: m2.id, inningsNumber: 1,
-    battingTeamId: m2.teamA.id, bowlingTeamId: m2.teamB.id,
-    batters: teamSquads[m2.teamA.id], bowlers: teamSquads[m2.teamB.id].slice(0, 6),
-    maxOvers: 20, seqStart: 0, startedAt: iso(-10),
+    rng,
+    tenantId,
+    matchId: m2.id,
+    inningsNumber: 1,
+    battingTeamId: m2.teamA.id,
+    bowlingTeamId: m2.teamB.id,
+    batters: teamSquads[m2.teamA.id],
+    bowlers: teamSquads[m2.teamB.id].slice(0, 6),
+    maxOvers: 20,
+    seqStart: 0,
+    startedAt: iso(-10),
   });
   const m2_i2 = simulateInnings({
-    rng, tenantId, matchId: m2.id, inningsNumber: 2,
-    battingTeamId: m2.teamB.id, bowlingTeamId: m2.teamA.id,
-    batters: teamSquads[m2.teamB.id], bowlers: teamSquads[m2.teamA.id].slice(0, 6),
-    maxOvers: 20, target: m2_i1.runs + 1, seqStart: 0, startedAt: iso(-10),
+    rng,
+    tenantId,
+    matchId: m2.id,
+    inningsNumber: 2,
+    battingTeamId: m2.teamB.id,
+    bowlingTeamId: m2.teamA.id,
+    batters: teamSquads[m2.teamB.id],
+    bowlers: teamSquads[m2.teamA.id].slice(0, 6),
+    maxOvers: 20,
+    target: m2_i1.runs + 1,
+    seqStart: 0,
+    startedAt: iso(-10),
   });
   const m2_winner = m2_i1.runs >= m2_i2.runs ? m2.teamA : m2.teamB;
-  const m2_margin = m2_i1.runs >= m2_i2.runs
-    ? m2_i1.runs - m2_i2.runs
-    : 10 - m2_i2.wickets;
+  const m2_margin = m2_i1.runs >= m2_i2.runs ? m2_i1.runs - m2_i2.runs : 10 - m2_i2.wickets;
   const m2_marginType = m2_i1.runs >= m2_i2.runs ? "runs" : "wickets";
   const m2_pom = players[17];
 
@@ -517,10 +783,18 @@ export function generateDemoData(tenantId: string): DemoData {
   const liveMatchId = "demo-match-live";
   // Stop at 65 legal balls == 10 overs + 5 balls == 10.5 overs display
   const live_i1 = simulateInnings({
-    rng, tenantId, matchId: liveMatchId, inningsNumber: 1,
-    battingTeamId: liveTeamA.id, bowlingTeamId: liveTeamB.id,
-    batters: teamSquads[liveTeamA.id], bowlers: teamSquads[liveTeamB.id].slice(0, 6),
-    maxOvers: 20, stopAtLegalBalls: 65, seqStart: 0, startedAt: iso(0),
+    rng,
+    tenantId,
+    matchId: liveMatchId,
+    inningsNumber: 1,
+    battingTeamId: liveTeamA.id,
+    bowlingTeamId: liveTeamB.id,
+    batters: teamSquads[liveTeamA.id],
+    bowlers: teamSquads[liveTeamB.id].slice(0, 6),
+    maxOvers: 20,
+    stopAtLegalBalls: 65,
+    seqStart: 0,
+    startedAt: iso(0),
   });
 
   const liveMatch = {
@@ -575,34 +849,35 @@ export function generateDemoData(tenantId: string): DemoData {
     margin: number,
     marginType: string,
     pomId: string,
-  ): MatchWithTeams => ({
-    id: def.id,
-    tenant_id: tenantId,
-    team_a_id: def.teamA.id,
-    team_b_id: def.teamB.id,
-    match_type: "tournament",
-    match_format: "T20",
-    overs: 20,
-    scheduled_date: def.date,
-    scheduled_time: "14:30",
-    ground_name: def.ground,
-    status: "completed",
-    toss_winner: def.teamA.id,
-    toss_decision: "bat",
-    winner_team: winner.id,
-    result: `${winner.name} won by ${margin} ${marginType}`,
-    winning_margin: margin,
-    winning_margin_type: marginType,
-    victory_type: marginType,
-    player_of_match_athlete_id: pomId,
-    match_locked: true,
-    tournament_id: def.tournamentId,
-    umpire: "R. Menon",
-    created_at: def.date,
-    updated_at: def.date,
-    team_a: def.teamA,
-    team_b: def.teamB,
-  } as unknown as MatchWithTeams);
+  ): MatchWithTeams =>
+    ({
+      id: def.id,
+      tenant_id: tenantId,
+      team_a_id: def.teamA.id,
+      team_b_id: def.teamB.id,
+      match_type: "tournament",
+      match_format: "T20",
+      overs: 20,
+      scheduled_date: def.date,
+      scheduled_time: "14:30",
+      ground_name: def.ground,
+      status: "completed",
+      toss_winner: def.teamA.id,
+      toss_decision: "bat",
+      winner_team: winner.id,
+      result: `${winner.name} won by ${margin} ${marginType}`,
+      winning_margin: margin,
+      winning_margin_type: marginType,
+      victory_type: marginType,
+      player_of_match_athlete_id: pomId,
+      match_locked: true,
+      tournament_id: def.tournamentId,
+      umpire: "R. Menon",
+      created_at: def.date,
+      updated_at: def.date,
+      team_a: def.teamA,
+      team_b: def.teamB,
+    }) as unknown as MatchWithTeams;
 
   const featuredMatches: MatchWithTeams[] = [
     liveMatch,
@@ -681,8 +956,20 @@ export function generateDemoData(tenantId: string): DemoData {
 
   const matches: MatchWithTeams[] = [...featuredMatches, ...backgroundMatches, ...upcoming];
 
-  const innings: MCInnings[] = [m1_i1.innings, m1_i2.innings, m2_i1.innings, m2_i2.innings, live_i1.innings];
-  const ballEvents: MCBallEvent[] = [...m1_i1.events, ...m1_i2.events, ...m2_i1.events, ...m2_i2.events, ...live_i1.events];
+  const innings: MCInnings[] = [
+    m1_i1.innings,
+    m1_i2.innings,
+    m2_i1.innings,
+    m2_i2.innings,
+    live_i1.innings,
+  ];
+  const ballEvents: MCBallEvent[] = [
+    ...m1_i1.events,
+    ...m1_i2.events,
+    ...m2_i1.events,
+    ...m2_i2.events,
+    ...live_i1.events,
+  ];
 
   /* --- 5 tournaments --- */
   const tournamentNames = [
@@ -692,43 +979,82 @@ export function generateDemoData(tenantId: string): DemoData {
     { name: "District Championship", type: "knockout", season: "2026" },
     { name: "State Qualifier", type: "league_knockout", season: "2026" },
   ];
-  const tournaments: MCTournament[] = tournamentNames.map((t, i) => ({
-    id: `demo-tournament-${i + 1}`,
-    tenant_id: tenantId,
-    name: t.name,
-    season: t.season,
-    age_group: rng.pick(["Senior", "U19", "U16"]),
-    tournament_type: t.type,
-    format: "T20",
-    overs: 20,
-    status: i < 2 ? "ongoing" : "completed",
-    start_date: isoDate(-rng.int(30, 200)),
-    end_date: isoDate(rng.int(-10, 40)),
-    ground_name: rng.pick(GROUNDS),
-    max_teams: 8,
-    points_for_win: 2,
-    points_for_tie: 1,
-    points_for_loss: 0,
-    points_for_no_result: 1,
-    description: `${t.name} — demo tournament with sample fixtures.`,
-    logo_url: null,
-    visibility: "academy",
-    created_at: iso(-rng.int(60, 200)),
-    updated_at: iso(-rng.int(0, 5)),
-    created_by: null,
-  } as unknown as MCTournament));
+  const tournaments: MCTournament[] = tournamentNames.map(
+    (t, i) =>
+      ({
+        id: `demo-tournament-${i + 1}`,
+        tenant_id: tenantId,
+        name: t.name,
+        season: t.season,
+        age_group: rng.pick(["Senior", "U19", "U16"]),
+        tournament_type: t.type,
+        format: "T20",
+        overs: 20,
+        status: i < 2 ? "ongoing" : "completed",
+        start_date: isoDate(-rng.int(30, 200)),
+        end_date: isoDate(rng.int(-10, 40)),
+        ground_name: rng.pick(GROUNDS),
+        max_teams: 8,
+        points_for_win: 2,
+        points_for_tie: 1,
+        points_for_loss: 0,
+        points_for_no_result: 1,
+        description: `${t.name} — demo tournament with sample fixtures.`,
+        logo_url: null,
+        visibility: "academy",
+        created_at: iso(-rng.int(60, 200)),
+        updated_at: iso(-rng.int(0, 5)),
+        created_by: null,
+      }) as unknown as MCTournament,
+  );
 
   /* --- Records / recognitions / hall of fame --- */
   const records = [
-    { id: "demo-rec-1", record_type: "highest_score", title: "Highest individual score", player_name: m1_pom.student!.name, value: `${Math.max(m1_i1.runs, m1_i2.runs, 90)}*` },
-    { id: "demo-rec-2", record_type: "best_bowling", title: "Best bowling figures", player_name: players[5].student!.name, value: "6/12" },
-    { id: "demo-rec-3", record_type: "highest_total", title: "Highest team total", player_name: m1.teamA.name, value: `${m1_i1.runs}/${m1_i1.wickets}` },
-    { id: "demo-rec-4", record_type: "most_sixes", title: "Most sixes in an innings", player_name: players[12].student!.name, value: "11" },
-    { id: "demo-rec-5", record_type: "fastest_fifty", title: "Fastest fifty", player_name: players[8].student!.name, value: "19 balls" },
+    {
+      id: "demo-rec-1",
+      record_type: "highest_score",
+      title: "Highest individual score",
+      player_name: m1_pom.student!.name,
+      value: `${Math.max(m1_i1.runs, m1_i2.runs, 90)}*`,
+    },
+    {
+      id: "demo-rec-2",
+      record_type: "best_bowling",
+      title: "Best bowling figures",
+      player_name: players[5].student!.name,
+      value: "6/12",
+    },
+    {
+      id: "demo-rec-3",
+      record_type: "highest_total",
+      title: "Highest team total",
+      player_name: m1.teamA.name,
+      value: `${m1_i1.runs}/${m1_i1.wickets}`,
+    },
+    {
+      id: "demo-rec-4",
+      record_type: "most_sixes",
+      title: "Most sixes in an innings",
+      player_name: players[12].student!.name,
+      value: "11",
+    },
+    {
+      id: "demo-rec-5",
+      record_type: "fastest_fifty",
+      title: "Fastest fifty",
+      player_name: players[8].student!.name,
+      value: "19 balls",
+    },
   ];
   const recognitions = Array.from({ length: 12 }, (_, i) => ({
     id: `demo-recognition-${i + 1}`,
-    title: rng.pick(["Player of the Week", "Rising Star", "Batter of the Month", "Bowler of the Month", "Team Player Award"]),
+    title: rng.pick([
+      "Player of the Week",
+      "Rising Star",
+      "Batter of the Month",
+      "Bowler of the Month",
+      "Team Player Award",
+    ]),
     recognition_type: rng.pick(["performance", "achievement", "milestone"]),
     player_name: players[rng.int(0, players.length - 1)].student!.name,
     awarded_at: iso(-rng.int(1, 90)),
@@ -746,7 +1072,9 @@ export function generateDemoData(tenantId: string): DemoData {
     const matchesPlayed = rng.int(4, 28);
     const bat = role === "bowler" ? rng.chance(0.3) : true;
     const bowl = role === "batter" ? rng.chance(0.3) : true;
-    const runs = bat ? rng.int(matchesPlayed * 8, matchesPlayed * 55) : rng.int(0, matchesPlayed * 8);
+    const runs = bat
+      ? rng.int(matchesPlayed * 8, matchesPlayed * 55)
+      : rng.int(0, matchesPlayed * 8);
     const wkts = bowl ? rng.int(0, Math.round(matchesPlayed * 1.8)) : rng.int(0, 2);
     const notOuts = rng.int(0, Math.max(1, Math.round(matchesPlayed * 0.2)));
     const dismissed = Math.max(1, matchesPlayed - notOuts);
@@ -778,14 +1106,17 @@ export function generateDemoData(tenantId: string): DemoData {
         "Strong month across senior and U16 squads. Batting depth improved; new-ball bowling remains the growth area.",
       generated_at: iso(-2),
       key_findings: [
-        { label: "Top run scorer", detail: `${players[0].student!.name} — ${perfRows[0].runs} runs` },
-        { label: "Leading wicket taker", detail: `${players[5].student!.name} — ${perfRows[5].wickets} wickets` },
+        {
+          label: "Top run scorer",
+          detail: `${players[0].student!.name} — ${perfRows[0].runs} runs`,
+        },
+        {
+          label: "Leading wicket taker",
+          detail: `${players[5].student!.name} — ${perfRows[5].wickets} wickets`,
+        },
         { label: "Win rate", detail: "62% across recent matches" },
       ],
-      strengths: [
-        { label: "Middle-order stability" },
-        { label: "Spin bowling in death overs" },
-      ],
+      strengths: [{ label: "Middle-order stability" }, { label: "Spin bowling in death overs" }],
     },
     {
       id: "demo-ai-match-1",
@@ -800,24 +1131,35 @@ export function generateDemoData(tenantId: string): DemoData {
       ],
       strengths: [{ label: "Powerplay execution" }, { label: "Death-overs discipline" }],
     },
-    ...players.slice(0, 6).map((p, i): DemoAIReport => ({
-      id: `demo-ai-player-${i + 1}`,
-      report_type: "player",
-      title: `${p.student!.name} — Player Report`,
-      summary: `Consistent performer averaging ${perfRows[i].average.toFixed(1)} across ${perfRows[i].matches} matches.`,
-      generated_at: iso(-rng.int(3, 40)),
-      key_findings: [
-        { label: `${perfRows[i].runs} runs`, detail: `SR ${perfRows[i].strikeRate.toFixed(0)}` },
-        { label: `${perfRows[i].wickets} wickets`, detail: `Econ ${perfRows[i].economy.toFixed(2)}` },
-      ],
-      strengths: [{ label: "Composed under pressure" }, { label: "High conversion rate on starts" }],
-    })),
+    ...players.slice(0, 6).map(
+      (p, i): DemoAIReport => ({
+        id: `demo-ai-player-${i + 1}`,
+        report_type: "player",
+        title: `${p.student!.name} — Player Report`,
+        summary: `Consistent performer averaging ${perfRows[i].average.toFixed(1)} across ${perfRows[i].matches} matches.`,
+        generated_at: iso(-rng.int(3, 40)),
+        key_findings: [
+          { label: `${perfRows[i].runs} runs`, detail: `SR ${perfRows[i].strikeRate.toFixed(0)}` },
+          {
+            label: `${perfRows[i].wickets} wickets`,
+            detail: `Econ ${perfRows[i].economy.toFixed(2)}`,
+          },
+        ],
+        strengths: [
+          { label: "Composed under pressure" },
+          { label: "High conversion rate on starts" },
+        ],
+      }),
+    ),
   ];
 
   const matchSquads: Record<string, DemoMatchSquads> = {
     [m1.id]: { [m1.teamA.id]: teamSquads[m1.teamA.id], [m1.teamB.id]: teamSquads[m1.teamB.id] },
     [m2.id]: { [m2.teamA.id]: teamSquads[m2.teamA.id], [m2.teamB.id]: teamSquads[m2.teamB.id] },
-    [liveMatchId]: { [liveTeamA.id]: teamSquads[liveTeamA.id], [liveTeamB.id]: teamSquads[liveTeamB.id] },
+    [liveMatchId]: {
+      [liveTeamA.id]: teamSquads[liveTeamA.id],
+      [liveTeamB.id]: teamSquads[liveTeamB.id],
+    },
   };
 
   return {

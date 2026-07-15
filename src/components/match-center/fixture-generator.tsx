@@ -190,8 +190,8 @@ export function FixtureGeneratorDialog({
         <DialogHeader>
           <DialogTitle>Generate fixtures</DialogTitle>
           <DialogDescription>
-            Configure scheduling and format options. All logic runs through the
-            shared Fixture Engine — matches launch straight into Match Center.
+            Configure scheduling and format options. All logic runs through the shared Fixture
+            Engine — matches launch straight into Match Center.
           </DialogDescription>
         </DialogHeader>
 
@@ -200,7 +200,10 @@ export function FixtureGeneratorDialog({
             <div className="font-medium text-destructive">Setup incomplete</div>
             <ul className="mt-1 list-inside list-disc text-xs text-muted-foreground">
               {failing.map((c) => (
-                <li key={c.id}>{c.label}{c.detail ? ` — ${c.detail}` : ""}</li>
+                <li key={c.id}>
+                  {c.label}
+                  {c.detail ? ` — ${c.detail}` : ""}
+                </li>
               ))}
             </ul>
           </div>
@@ -209,19 +212,11 @@ export function FixtureGeneratorDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label>Start date</Label>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
+            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label>Day starts at</Label>
-            <Input
-              type="time"
-              value={dayStart}
-              onChange={(e) => setDayStart(e.target.value)}
-            />
+            <Input type="time" value={dayStart} onChange={(e) => setDayStart(e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label>Matches per day</Label>
@@ -254,7 +249,10 @@ export function FixtureGeneratorDialog({
           </div>
           <div className="space-y-1.5">
             <Label>Bracket seeding</Label>
-            <Select value={seeding} onValueChange={(v) => setSeeding(v as "standard" | "sequential")}>
+            <Select
+              value={seeding}
+              onValueChange={(v) => setSeeding(v as "standard" | "sequential")}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -284,10 +282,7 @@ export function FixtureGeneratorDialog({
             Double round robin (home & away)
           </label>
           <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <Checkbox
-              checked={autoOfficials}
-              onCheckedChange={(v) => setAutoOfficials(!!v)}
-            />
+            <Checkbox checked={autoOfficials} onCheckedChange={(v) => setAutoOfficials(!!v)} />
             Auto-assign officials
           </label>
           <label className="flex cursor-pointer items-center gap-2 text-sm">
@@ -300,8 +295,7 @@ export function FixtureGeneratorDialog({
           <div className="flex items-center justify-between">
             <div>
               <div className="font-medium">
-                {preview.fixtures.length} fixture{preview.fixtures.length === 1 ? "" : "s"}
-                {" "}planned
+                {preview.fixtures.length} fixture{preview.fixtures.length === 1 ? "" : "s"} planned
               </div>
               <div className="text-xs text-muted-foreground">
                 {playable} playable · {placeholders} placeholder
@@ -325,11 +319,7 @@ export function FixtureGeneratorDialog({
           </Button>
           <Button
             onClick={() => run.mutate()}
-            disabled={
-              run.isPending ||
-              !canGenerate ||
-              playable === 0
-            }
+            disabled={run.isPending || !canGenerate || playable === 0}
           >
             {run.isPending ? (
               <Loader2 className="mr-2 size-4 animate-spin" />

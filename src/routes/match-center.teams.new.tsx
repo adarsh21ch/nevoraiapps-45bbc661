@@ -10,11 +10,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useDashboard } from "@/lib/dashboard-context";
-import { AGE_GROUPS, addPlayersToTeam, createTeam, listStudents, TEAM_STATUSES } from "@/lib/mc-teams";
+import {
+  AGE_GROUPS,
+  addPlayersToTeam,
+  createTeam,
+  listStudents,
+  TEAM_STATUSES,
+} from "@/lib/mc-teams";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/match-center/teams/new")({
-  head: () => ({ meta: [{ title: "Create team · Match Center" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Create team · Match Center" }, { name: "robots", content: "noindex" }],
+  }),
   component: CreateTeamPage,
 });
 
@@ -225,9 +233,7 @@ function CreateTeamPage() {
           <Section
             title="Squad"
             action={
-              <span className="text-xs text-muted-foreground">
-                {selectedIds.length} selected
-              </span>
+              <span className="text-xs text-muted-foreground">{selectedIds.length} selected</span>
             }
           >
             <p className="mb-3 text-xs text-muted-foreground">

@@ -41,12 +41,7 @@ export type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number];
 // Current state — DERIVED (not stored). Computed by `attendance_today` view.
 // The single "live" state per player. Never maintained in multiple places.
 // ---------------------------------------------------------------------------
-export const ATTENDANCE_STATES = [
-  "not_marked",
-  "in_academy",
-  "checked_out",
-  "absent",
-] as const;
+export const ATTENDANCE_STATES = ["not_marked", "in_academy", "checked_out", "absent"] as const;
 export type AttendanceState = (typeof ATTENDANCE_STATES)[number];
 
 export const attendanceStateLabels: Record<AttendanceState, string> = {

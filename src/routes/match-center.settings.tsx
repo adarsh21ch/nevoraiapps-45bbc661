@@ -3,7 +3,9 @@ import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { DemoSettingsCard } from "@/components/match-center/demo-settings-card";
 
 export const Route = createFileRoute("/match-center/settings")({
-  head: () => ({ meta: [{ title: "Settings · Match Center" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Settings · Match Center" }, { name: "robots", content: "noindex" }],
+  }),
   component: SettingsPage,
 });
 

@@ -102,7 +102,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
 
   const patch = useMutation({
     mutationFn: async (payload: Record<string, any>) => {
-      const { error } = await (supabase.from("students") as any).update(payload).eq("id", studentId);
+      const { error } = await (supabase.from("students") as any)
+        .update(payload)
+        .eq("id", studentId);
       if (error) throw error;
     },
     onSuccess: () => invalidate(),
@@ -169,9 +171,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             <div className="text-lg md:text-xl font-bold truncate">{s.name}</div>
             <div className="flex items-center gap-2 flex-wrap mt-1">
               {s.player_id && (
-                <span
-                  className="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-[11px] font-mono font-semibold tracking-wider text-foreground"
-                >
+                <span className="inline-flex items-center rounded-md border border-border bg-muted px-2 py-0.5 text-[11px] font-mono font-semibold tracking-wider text-foreground">
                   {s.player_id}
                 </span>
               )}
@@ -207,7 +207,6 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           </div>
         </div>
       </div>
-
 
       {/* Fee card */}
       <div
@@ -260,7 +259,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             className="text-xs"
             onClick={() => setEditingCore((v) => !v)}
           >
-            {editingCore ? "Done" : (
+            {editingCore ? (
+              "Done"
+            ) : (
               <>
                 <Pencil className="size-3.5 mr-1" /> Edit
               </>
@@ -395,8 +396,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Mark {s.name} as Left?</AlertDialogTitle>
             <AlertDialogDescription>
-              They will no longer appear in Active students or this month's fee follow-ups. You
-              can reactivate later.
+              They will no longer appear in Active students or this month's fee follow-ups. You can
+              reactivate later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -432,22 +433,15 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
   );
 }
 
-function Row({
-  label,
-  value,
-  multiline,
-}: {
-  label: string;
-  value: string;
-  multiline?: boolean;
-}) {
+function Row({ label, value, multiline }: { label: string; value: string; multiline?: boolean }) {
   return (
     <div className="px-4 py-3 grid grid-cols-[110px_minmax(0,1fr)] gap-3 items-start">
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-        {label}
-      </dt>
+      <dt className="text-xs uppercase tracking-wide text-muted-foreground font-medium">{label}</dt>
       <dd
-        className={cn("font-medium text-foreground", multiline ? "whitespace-pre-wrap" : "truncate")}
+        className={cn(
+          "font-medium text-foreground",
+          multiline ? "whitespace-pre-wrap" : "truncate",
+        )}
       >
         {value}
       </dd>
@@ -534,11 +528,7 @@ function EditFeeInline({
               Reset to plan
             </button>
           )}
-          <button
-            type="button"
-            className="hover:text-foreground"
-            onClick={onClose}
-          >
+          <button type="button" className="hover:text-foreground" onClick={onClose}>
             Cancel
           </button>
         </div>
@@ -595,13 +585,13 @@ function CoreEditor({
     >
       <FormField label="Name" required value={f.name} onChange={(v) => setF({ ...f, name: v })} />
       <div className="grid grid-cols-2 gap-2">
-        <FormField label="Phone" required value={f.phone} onChange={(v) => setF({ ...f, phone: v })} />
         <FormField
-          label="DOB"
-          type="date"
-          value={f.dob}
-          onChange={(v) => setF({ ...f, dob: v })}
+          label="Phone"
+          required
+          value={f.phone}
+          onChange={(v) => setF({ ...f, phone: v })}
         />
+        <FormField label="DOB" type="date" value={f.dob} onChange={(v) => setF({ ...f, dob: v })} />
       </div>
       <div className="grid grid-cols-2 gap-2">
         <FormField
@@ -618,7 +608,9 @@ function CoreEditor({
       <div className="space-y-1.5">
         <Label>Gender</Label>
         <Select value={f.gender} onValueChange={(v) => setF({ ...f, gender: v })}>
-          <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue placeholder="Select" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="male">Male</SelectItem>
             <SelectItem value="female">Female</SelectItem>
@@ -637,10 +629,14 @@ function CoreEditor({
       <div className="space-y-1.5">
         <Label>Batch</Label>
         <Select value={f.batch_id} onValueChange={(v) => setF({ ...f, batch_id: v })}>
-          <SelectTrigger><SelectValue placeholder="Select batch" /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue placeholder="Select batch" />
+          </SelectTrigger>
           <SelectContent>
             {batches.map((b) => (
-              <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+              <SelectItem key={b.id} value={b.id}>
+                {b.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -648,7 +644,9 @@ function CoreEditor({
       <div className="space-y-1.5">
         <Label>Fee plan</Label>
         <Select value={f.fee_plan_id} onValueChange={(v) => setF({ ...f, fee_plan_id: v })}>
-          <SelectTrigger><SelectValue placeholder="Select fee plan" /></SelectTrigger>
+          <SelectTrigger>
+            <SelectValue placeholder="Select fee plan" />
+          </SelectTrigger>
           <SelectContent>
             {feePlans.map((p) => (
               <SelectItem key={p.id} value={p.id}>
@@ -788,10 +786,14 @@ function ReactivateDialog({
           <div className="space-y-1.5">
             <Label>Batch</Label>
             <Select value={batch_id} onValueChange={setBatchId}>
-              <SelectTrigger><SelectValue placeholder="Select batch" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Select batch" />
+              </SelectTrigger>
               <SelectContent>
                 {batches.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -799,7 +801,9 @@ function ReactivateDialog({
           <div className="space-y-1.5">
             <Label>Fee plan</Label>
             <Select value={fee_plan_id} onValueChange={setFeePlanId}>
-              <SelectTrigger><SelectValue placeholder="Select fee plan" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Select fee plan" />
+              </SelectTrigger>
               <SelectContent>
                 {feePlans.map((p) => (
                   <SelectItem key={p.id} value={p.id}>

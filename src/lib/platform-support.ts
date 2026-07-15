@@ -29,7 +29,11 @@ export async function listSupportNotes(tenantId?: string) {
   return (data ?? []) as unknown as SupportNote[];
 }
 
-export async function addSupportNote(input: { tenantId: string; body: string; priority?: SupportNote["priority"] }) {
+export async function addSupportNote(input: {
+  tenantId: string;
+  body: string;
+  priority?: SupportNote["priority"];
+}) {
   const { data: session } = await supabase.auth.getSession();
   const uid = session.session?.user.id;
   if (!uid) throw new Error("Not authenticated");
@@ -68,8 +72,15 @@ export async function resolveSupportNote(id: string, tenantId: string) {
   });
 }
 
-export async function setTenantStatus(tenantId: string, status: "active" | "suspended" | "trial" | "archived") {
-  const { data: before } = await supabase.from("tenants").select("status").eq("id", tenantId).maybeSingle();
+export async function setTenantStatus(
+  tenantId: string,
+  status: "active" | "suspended" | "trial" | "archived",
+) {
+  const { data: before } = await supabase
+    .from("tenants")
+    .select("status")
+    .eq("id", tenantId)
+    .maybeSingle();
   const { error } = await supabase.from("tenants").update({ status }).eq("id", tenantId);
   if (error) throw error;
   await logPlatformAction({
@@ -83,6 +94,10 @@ export async function setTenantStatus(tenantId: string, status: "active" | "susp
 }
 
 export async function setTenantFeature(tenantId: string, key: string, enabled: boolean) {
-  const { error } = await supabase.rpc("set_tenant_feature" as any, { _tenant_id: tenantId, _key: key, _enabled: enabled });
+  const { error } = await supabase.rpc("set_tenant_feature" as any, {
+    _tenant_id: tenantId,
+    _key: key,
+    _enabled: enabled,
+  });
   if (error) throw error;
 }

@@ -27,10 +27,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/match-center/performance/$athleteId")({
   head: () => ({
-    meta: [
-      { title: "Player Performance · Match Center" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Player Performance · Match Center" }, { name: "robots", content: "noindex" }],
   }),
   component: PlayerPerformancePage,
 });
@@ -150,11 +147,7 @@ function PlayerPerformancePage() {
               }
             />
             <div className="rounded-xl border bg-card p-3 flex items-center gap-3">
-              <ProgressRing
-                value={perf.consistency.score}
-                label="Consistency"
-                hint="/100"
-              />
+              <ProgressRing value={perf.consistency.score} label="Consistency" hint="/100" />
               <div>
                 <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                   Band
@@ -241,10 +234,7 @@ function PlayerPerformancePage() {
                       {d.type.replace(/_/g, " ")}
                     </span>
                     <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full bg-primary"
-                        style={{ width: `${d.pct}%` }}
-                      />
+                      <div className="h-full bg-primary" style={{ width: `${d.pct}%` }} />
                     </div>
                     <span className="w-12 text-right tabular-nums text-muted-foreground">
                       {d.count} · {d.pct}%
@@ -267,8 +257,14 @@ function PlayerPerformancePage() {
           {athlete && (
             <SectionCard title="Fitness & Profile" subtitle="From athlete profile.">
               <div className="grid gap-3 md:grid-cols-4 text-[12px]">
-                <ProfileField label="Height" value={athlete.height_cm ? `${athlete.height_cm} cm` : "—"} />
-                <ProfileField label="Weight" value={athlete.weight_kg ? `${athlete.weight_kg} kg` : "—"} />
+                <ProfileField
+                  label="Height"
+                  value={athlete.height_cm ? `${athlete.height_cm} cm` : "—"}
+                />
+                <ProfileField
+                  label="Weight"
+                  value={athlete.weight_kg ? `${athlete.weight_kg} kg` : "—"}
+                />
                 <ProfileField label="Fitness" value={athlete.fitness_status ?? "—"} />
                 <ProfileField label="Status" value={athlete.current_status ?? "—"} />
               </div>
@@ -287,7 +283,9 @@ function PlayerPerformancePage() {
 
 /* ---------------- helpers ---------------- */
 
-type Perf = NonNullable<ReturnType<typeof buildPlayerPerformance> extends Promise<infer T> ? T : never>;
+type Perf = NonNullable<
+  ReturnType<typeof buildPlayerPerformance> extends Promise<infer T> ? T : never
+>;
 
 function playerRadar(perf: Perf, career: Record<string, unknown> | null | undefined): number[] {
   const t = perf.totals;
@@ -314,9 +312,7 @@ function SectionCard({
     <section className="rounded-2xl border bg-card p-4 sm:p-5">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-sm font-black uppercase tracking-widest">{title}</h2>
-        {subtitle && (
-          <p className="text-[11px] text-muted-foreground">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-[11px] text-muted-foreground">{subtitle}</p>}
       </div>
       {children}
     </section>
@@ -357,7 +353,15 @@ function SplitTable({
   data,
 }: {
   title: string;
-  data: Array<{ label: string; matches: number; runs: number; average: number; strikeRate: number; wickets: number; economy: number }>;
+  data: Array<{
+    label: string;
+    matches: number;
+    runs: number;
+    average: number;
+    strikeRate: number;
+    wickets: number;
+    economy: number;
+  }>;
 }) {
   return (
     <div>
@@ -401,17 +405,34 @@ function SplitTable({
 function InsightList({ insights }: { insights: CoachInsight[] }) {
   if (insights.length === 0) {
     return (
-      <p className="text-[12px] text-muted-foreground">
-        Not enough data yet to generate insights.
-      </p>
+      <p className="text-[12px] text-muted-foreground">Not enough data yet to generate insights.</p>
     );
   }
   const badge = (k: CoachInsight["kind"]) => {
-    const map: Record<CoachInsight["kind"], { label: string; cls: string; icon: React.ComponentType<{ className?: string }> }> = {
-      strength: { label: "Strength", cls: "border-emerald-500/40 text-emerald-600 dark:text-emerald-400", icon: Trophy },
-      weakness: { label: "Weakness", cls: "border-rose-500/40 text-rose-600 dark:text-rose-400", icon: Target },
-      development: { label: "Development", cls: "border-amber-500/40 text-amber-600 dark:text-amber-400", icon: Activity },
-      suggestion: { label: "Training", cls: "border-blue-500/40 text-blue-600 dark:text-blue-400", icon: Activity },
+    const map: Record<
+      CoachInsight["kind"],
+      { label: string; cls: string; icon: React.ComponentType<{ className?: string }> }
+    > = {
+      strength: {
+        label: "Strength",
+        cls: "border-emerald-500/40 text-emerald-600 dark:text-emerald-400",
+        icon: Trophy,
+      },
+      weakness: {
+        label: "Weakness",
+        cls: "border-rose-500/40 text-rose-600 dark:text-rose-400",
+        icon: Target,
+      },
+      development: {
+        label: "Development",
+        cls: "border-amber-500/40 text-amber-600 dark:text-amber-400",
+        icon: Activity,
+      },
+      suggestion: {
+        label: "Training",
+        cls: "border-blue-500/40 text-blue-600 dark:text-blue-400",
+        icon: Activity,
+      },
       selection: { label: "Selection", cls: "border-primary/40 text-primary", icon: User },
     };
     return map[k];

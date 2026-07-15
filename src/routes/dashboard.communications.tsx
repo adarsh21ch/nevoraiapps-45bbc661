@@ -46,10 +46,7 @@ import type { NotificationCategory } from "@/lib/notifications";
 
 export const Route = createFileRoute("/dashboard/communications")({
   head: () => ({
-    meta: [
-      { title: "Communications · Academy" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Communications · Academy" }, { name: "robots", content: "noindex" }],
   }),
   component: CommunicationsHub,
 });
@@ -87,12 +84,8 @@ function CommunicationsHub() {
   }, [list, q]);
 
   const scheduled = filtered.filter((c) => c.status === "scheduled");
-  const history = filtered.filter((c) =>
-    ["sent", "failed", "cancelled"].includes(c.status),
-  );
-  const announcements = filtered.filter(
-    (c) => c.category === "system" && c.status !== "cancelled",
-  );
+  const history = filtered.filter((c) => ["sent", "failed", "cancelled"].includes(c.status));
+  const announcements = filtered.filter((c) => c.category === "system" && c.status !== "cancelled");
 
   return (
     <div className="space-y-4 pb-4">
@@ -106,7 +99,6 @@ function CommunicationsHub() {
           </Button>
         }
       />
-
 
       <div className="relative">
         <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -153,11 +145,7 @@ function CommunicationsHub() {
         </TabsContent>
         <TabsContent value="templates" className="mt-4 space-y-3">
           <div className="flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setEditTemplate({} as CommTemplate)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setEditTemplate({} as CommTemplate)}>
               <Plus className="size-4 mr-1.5" /> New template
             </Button>
           </div>
@@ -225,7 +213,9 @@ function CampaignList({ items, loading }: { items: CommCampaign[]; loading: bool
             <div className="flex items-start gap-3">
               <div className="min-w-0 flex-1 space-y-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-[11px] font-semibold uppercase tracking-wider rounded px-1.5 py-0.5 ${tone.className}`}>
+                  <span
+                    className={`text-[11px] font-semibold uppercase tracking-wider rounded px-1.5 py-0.5 ${tone.className}`}
+                  >
                     {tone.label}
                   </span>
                   <span className="text-[11px] text-muted-foreground uppercase">
@@ -245,9 +235,7 @@ function CampaignList({ items, loading }: { items: CommCampaign[]; loading: bool
                   {c.scheduled_for ? (
                     <span>Scheduled {new Date(c.scheduled_for).toLocaleString()}</span>
                   ) : null}
-                  {c.sent_at ? (
-                    <span>Sent {new Date(c.sent_at).toLocaleString()}</span>
-                  ) : null}
+                  {c.sent_at ? <span>Sent {new Date(c.sent_at).toLocaleString()}</span> : null}
                 </div>
                 {total > 0 ? (
                   <div className="pt-2 space-y-1">
@@ -261,14 +249,16 @@ function CampaignList({ items, loading }: { items: CommCampaign[]; loading: bool
                 ) : null}
               </div>
               <div className="flex flex-col gap-1.5 shrink-0">
-                {(c.status === "draft" || c.status === "scheduled") ? (
+                {c.status === "draft" || c.status === "scheduled" ? (
                   <>
                     <Button
                       size="sm"
-                      onClick={() => send.mutate(c.id, {
-                        onSuccess: (r) => toast.success(`Sent to ${r.delivered}/${r.total}`),
-                        onError: (e: Error) => toast.error(e.message),
-                      })}
+                      onClick={() =>
+                        send.mutate(c.id, {
+                          onSuccess: (r) => toast.success(`Sent to ${r.delivered}/${r.total}`),
+                          onError: (e: Error) => toast.error(e.message),
+                        })
+                      }
                       disabled={send.isPending}
                     >
                       <Send className="size-3.5 mr-1" /> Send now
@@ -276,10 +266,12 @@ function CampaignList({ items, loading }: { items: CommCampaign[]; loading: bool
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => cancel.mutate(c.id, {
-                        onSuccess: () => toast.success("Cancelled"),
-                        onError: (e: Error) => toast.error(e.message),
-                      })}
+                      onClick={() =>
+                        cancel.mutate(c.id, {
+                          onSuccess: () => toast.success("Cancelled"),
+                          onError: (e: Error) => toast.error(e.message),
+                        })
+                      }
                     >
                       Cancel
                     </Button>
@@ -308,7 +300,8 @@ function TemplateList({
   tenantId: string;
 }) {
   const del = useDeleteTemplate(tenantId);
-  if (loading) return <div className="text-sm text-muted-foreground p-6 text-center">Loading templates…</div>;
+  if (loading)
+    return <div className="text-sm text-muted-foreground p-6 text-center">Loading templates…</div>;
   if (!items.length) {
     return (
       <Card className="p-10 text-center space-y-2">
@@ -323,16 +316,18 @@ function TemplateList({
   return (
     <div className="grid gap-2.5 sm:grid-cols-2">
       {items.map((t) => (
-        <Card key={t.id} className="p-4 cursor-pointer hover:border-[color:var(--brand)]/40 transition" onClick={() => onEdit(t)}>
+        <Card
+          key={t.id}
+          className="p-4 cursor-pointer hover:border-[color:var(--brand)]/40 transition"
+          onClick={() => onEdit(t)}
+        >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <div className="font-semibold text-sm truncate">{t.name}</div>
               <div className="text-[11px] uppercase text-muted-foreground tracking-wider mt-0.5">
                 {t.category}
               </div>
-              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                {t.title_template}
-              </p>
+              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{t.title_template}</p>
             </div>
             <button
               className="text-muted-foreground hover:text-rose-500 shrink-0 p-1"
@@ -379,7 +374,11 @@ function TemplateComposer({
   return (
     <ModalShell onClose={onClose} title={initial?.id ? "Edit template" : "New template"}>
       <Field label="Name">
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Fee due reminder" />
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Fee due reminder"
+        />
       </Field>
       <Field label="Category">
         <select
@@ -387,13 +386,29 @@ function TemplateComposer({
           value={category}
           onChange={(e) => setCategory(e.target.value as NotificationCategory)}
         >
-          {(["system", "attendance", "match", "coach", "registration", "achievement", ...(isOwner ? ["billing"] : [])] as NotificationCategory[]).map((c) => (
-            <option key={c} value={c}>{c}</option>
+          {(
+            [
+              "system",
+              "attendance",
+              "match",
+              "coach",
+              "registration",
+              "achievement",
+              ...(isOwner ? ["billing"] : []),
+            ] as NotificationCategory[]
+          ).map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
           ))}
         </select>
       </Field>
       <Field label="Title">
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Hi {{student_name}}" />
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Hi {{student_name}}"
+        />
       </Field>
       <Field label="Body">
         <Textarea value={body ?? ""} onChange={(e) => setBody(e.target.value)} rows={4} />
@@ -411,7 +426,9 @@ function TemplateComposer({
         ))}
       </div>
       <div className="flex justify-end gap-2 pt-2">
-        <Button variant="ghost" onClick={onClose}>Cancel</Button>
+        <Button variant="ghost" onClick={onClose}>
+          Cancel
+        </Button>
         <Button
           onClick={() =>
             save.mutate(
@@ -532,14 +549,20 @@ function Composer({
           >
             <option value="">— None —</option>
             {templates.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
             ))}
           </select>
         </Field>
       ) : null}
 
       <Field label="Campaign name (internal)">
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="July holiday notice" />
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="July holiday notice"
+        />
       </Field>
 
       <div className="grid grid-cols-2 gap-3">
@@ -549,8 +572,20 @@ function Composer({
             value={category}
             onChange={(e) => setCategory(e.target.value as NotificationCategory)}
           >
-            {(["system", "attendance", "match", "coach", "registration", "achievement", ...(isOwner ? ["billing"] : [])] as NotificationCategory[]).map((c) => (
-              <option key={c} value={c}>{c}</option>
+            {(
+              [
+                "system",
+                "attendance",
+                "match",
+                "coach",
+                "registration",
+                "achievement",
+                ...(isOwner ? ["billing"] : []),
+              ] as NotificationCategory[]
+            ).map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
         </Field>
@@ -561,14 +596,20 @@ function Composer({
             onChange={(e) => setMessageType(e.target.value)}
           >
             {allowedTypes.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
             ))}
           </select>
         </Field>
       </div>
 
       <Field label="Title">
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Hi {{student_name}}, practice cancelled tomorrow" />
+        <Input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Hi {{student_name}}, practice cancelled tomorrow"
+        />
       </Field>
       <Field label="Body">
         <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} />
@@ -615,7 +656,8 @@ function Composer({
           ))}
         </div>
         <p className="text-[11px] text-muted-foreground mt-1">
-          Push / WhatsApp / SMS / Email queue into notification_outbox — connect a delivery worker to fan out.
+          Push / WhatsApp / SMS / Email queue into notification_outbox — connect a delivery worker
+          to fan out.
         </p>
       </Field>
 
@@ -650,16 +692,31 @@ function Composer({
 
 /* ---------------- Layout primitives ---------------- */
 
-function ModalShell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+function ModalShell({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 grid place-items-end sm:place-items-center" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 bg-black/40 grid place-items-end sm:place-items-center"
+      onClick={onClose}
+    >
       <div
         className="w-full sm:max-w-lg bg-background rounded-t-2xl sm:rounded-2xl shadow-xl p-5 space-y-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground" aria-label="Close">
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground"
+            aria-label="Close"
+          >
             <X className="size-5" />
           </button>
         </div>
@@ -677,5 +734,3 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
-
-

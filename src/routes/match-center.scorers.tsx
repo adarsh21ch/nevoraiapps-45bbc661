@@ -9,11 +9,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Trash2, UserPlus, ShieldCheck, Copy } from "lucide-react";
 
 export const Route = createFileRoute("/match-center/scorers")({
-  head: () => ({ meta: [{ title: "Scorers · Match Center" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Scorers · Match Center" }, { name: "robots", content: "noindex" }],
+  }),
   component: ScorersPage,
 });
 
@@ -84,7 +93,10 @@ function ScorersPage() {
 
   const revokeM = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("mc_scorers").update({ status: "revoked" }).eq("id", id);
+      const { error } = await supabase
+        .from("mc_scorers")
+        .update({ status: "revoked" })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -126,7 +138,8 @@ function ScorersPage() {
           <div className="flex-1 min-w-0">
             <div className="text-sm font-medium">Scorer sign-in link</div>
             <div className="text-xs text-muted-foreground mb-2">
-              Share this with your assigned scorers. They sign in with their account and see only their scoring surface.
+              Share this with your assigned scorers. They sign in with their account and see only
+              their scoring surface.
             </div>
             <div className="flex items-center gap-2">
               <Input readOnly value={scorerLink} className="text-xs font-mono" />
@@ -167,9 +180,7 @@ function ScorersPage() {
                     {s.user_id}
                   </div>
                 </div>
-                <Badge variant={s.status === "active" ? "default" : "secondary"}>
-                  {s.status}
-                </Badge>
+                <Badge variant={s.status === "active" ? "default" : "secondary"}>{s.status}</Badge>
                 {s.status === "active" ? (
                   <Button
                     variant="ghost"
@@ -234,10 +245,7 @@ function ScorersPage() {
             <Button variant="outline" onClick={() => setAddOpen(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={() => addM.mutate()}
-              disabled={!selectedUser || addM.isPending}
-            >
+            <Button onClick={() => addM.mutate()} disabled={!selectedUser || addM.isPending}>
               {addM.isPending ? "Adding…" : "Add scorer"}
             </Button>
           </DialogFooter>

@@ -10,10 +10,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type {
-  NotificationCategory,
-  NotificationPriority,
-} from "@/lib/notifications";
+import type { NotificationCategory, NotificationPriority } from "@/lib/notifications";
 
 export type PublishInput = {
   recipient_user_id: string;
@@ -39,7 +36,9 @@ export async function publishNotificationForCaller(
   supabase: import("@supabase/supabase-js").SupabaseClient,
   input: PublishInput,
 ): Promise<string | null> {
-  const { data, error } = await (supabase.rpc as unknown as (...a: unknown[])=>Promise<{data:unknown;error:unknown}>)("publish_notification", {
+  const { data, error } = await (
+    supabase.rpc as unknown as (...a: unknown[]) => Promise<{ data: unknown; error: unknown }>
+  )("publish_notification", {
     _recipient_user_id: input.recipient_user_id,
     _category: input.category,
     _type: input.type,
@@ -70,6 +69,4 @@ export async function publishNotificationForCaller(
 export const publishNotification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: PublishInput) => data)
-  .handler(async ({ data, context }) =>
-    publishNotificationForCaller(context.supabase, data),
-  );
+  .handler(async ({ data, context }) => publishNotificationForCaller(context.supabase, data));

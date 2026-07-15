@@ -29,15 +29,12 @@ export async function bulkMarkAttendance(
   return Number(data ?? 0);
 }
 
-export async function bulkApproveRegistrations(
-  tenantId: string,
-  ids: string[],
-): Promise<number> {
+export async function bulkApproveRegistrations(tenantId: string, ids: string[]): Promise<number> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any).rpc(
-    "bulk_approve_registrations",
-    { _tenant_id: tenantId, _ids: ids },
-  );
+  const { data, error } = await (supabase as any).rpc("bulk_approve_registrations", {
+    _tenant_id: tenantId,
+    _ids: ids,
+  });
   if (error) throw error;
   return Number(data ?? 0);
 }
@@ -47,10 +44,10 @@ export async function bulkEnqueueNotificationRecipients(
   recipientIds: string[],
 ): Promise<number> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any).rpc(
-    "bulk_enqueue_notification_recipients",
-    { _campaign_id: campaignId, _recipient_ids: recipientIds },
-  );
+  const { data, error } = await (supabase as any).rpc("bulk_enqueue_notification_recipients", {
+    _campaign_id: campaignId,
+    _recipient_ids: recipientIds,
+  });
   if (error) throw error;
   return Number(data ?? 0);
 }
@@ -59,20 +56,18 @@ export async function bulkEnqueueNotificationRecipients(
 
 export async function acquireMatchScoringLock(matchId: string): Promise<boolean> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any).rpc(
-    "acquire_match_scoring_lock",
-    { _match_id: matchId },
-  );
+  const { data, error } = await (supabase as any).rpc("acquire_match_scoring_lock", {
+    _match_id: matchId,
+  });
   if (error) throw error;
   return Boolean(data);
 }
 
 export async function releaseMatchScoringLock(matchId: string): Promise<boolean> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any).rpc(
-    "release_match_scoring_lock",
-    { _match_id: matchId },
-  );
+  const { data, error } = await (supabase as any).rpc("release_match_scoring_lock", {
+    _match_id: matchId,
+  });
   if (error) throw error;
   return Boolean(data);
 }

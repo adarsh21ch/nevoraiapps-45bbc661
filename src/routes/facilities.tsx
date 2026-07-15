@@ -26,9 +26,14 @@ export const Route = createFileRoute("/facilities")({
 function FacilitiesPage() {
   const tenant = useTenant();
   const { data: sections = [] } = useQuery(siteContentQuery(tenant.id));
-  const facilities = sectionsBy(sections, "facilities").map((s) => s.content as {
-    title?: string; description?: string; image_url?: string;
-  });
+  const facilities = sectionsBy(sections, "facilities").map(
+    (s) =>
+      s.content as {
+        title?: string;
+        description?: string;
+        image_url?: string;
+      },
+  );
 
   return (
     <>
@@ -48,15 +53,24 @@ function FacilitiesPage() {
               <div key={i} className="overflow-hidden rounded-2xl border border-border/60 bg-card">
                 {f.image_url && (
                   <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
-                    <StoragedImage path={f.image_url} alt={f.title ?? ""} className="h-full w-full object-cover" />
+                    <StoragedImage
+                      path={f.image_url}
+                      alt={f.title ?? ""}
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                 )}
                 <div className="p-6">
                   <div className="flex items-start gap-2">
-                    <Check className="mt-1 size-4 flex-shrink-0" style={{ color: "var(--brand)" }} />
+                    <Check
+                      className="mt-1 size-4 flex-shrink-0"
+                      style={{ color: "var(--brand)" }}
+                    />
                     <div>
                       <h3 className="text-lg font-semibold">{f.title ?? "Facility"}</h3>
-                      {f.description && <p className="mt-2 text-sm text-muted-foreground">{f.description}</p>}
+                      {f.description && (
+                        <p className="mt-2 text-sm text-muted-foreground">{f.description}</p>
+                      )}
                     </div>
                   </div>
                 </div>

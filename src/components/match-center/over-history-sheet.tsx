@@ -12,11 +12,13 @@ export interface OverHistorySheetProps {
 
 function chipTone(label: string): string {
   const t = label.trim().toUpperCase();
-  if (t === "W" || t.startsWith("W")) return "bg-destructive/15 text-destructive border-destructive/30";
+  if (t === "W" || t.startsWith("W"))
+    return "bg-destructive/15 text-destructive border-destructive/30";
   if (t === "4") return "bg-primary/12 text-primary border-primary/30";
   if (t === "6") return "bg-primary/20 text-primary border-primary/40";
   if (t === "•" || t === "0") return "bg-muted text-muted-foreground border-border/50";
-  if (/^(WD|NB|B|LB)/.test(t)) return "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400";
+  if (/^(WD|NB|B|LB)/.test(t))
+    return "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400";
   return "bg-card text-foreground border-border/60";
 }
 

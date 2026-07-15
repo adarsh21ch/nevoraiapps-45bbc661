@@ -44,10 +44,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/match-center/create")({
   head: () => ({
-    meta: [
-      { title: "Create match · Match Center" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Create match · Match Center" }, { name: "robots", content: "noindex" }],
   }),
   component: CreateMatchPage,
 });
@@ -107,9 +104,7 @@ function CreateMatchPage() {
   const [matchType, setMatchType] = useState(defaults.match_type ?? "practice");
   const [matchFormat, setMatchFormat] = useState(defaults.match_format ?? "T20");
   const [overs, setOvers] = useState<number>(defaults.overs ?? 20);
-  const [scheduledDate, setScheduledDate] = useState<string>(
-    new Date().toISOString().slice(0, 10),
-  );
+  const [scheduledDate, setScheduledDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [scheduledTime, setScheduledTime] = useState<string>("");
 
   const [panelA, setPanelA] = useState<TeamPanelState>(emptyPanel("existing"));
@@ -259,26 +254,31 @@ function CreateMatchPage() {
   /* ----- Derived: names for summary ----- */
   const teamAName =
     panelA.mode === "existing"
-      ? teams.find((t) => t.id === panelA.selectedTeamId)?.name ?? "Team A"
+      ? (teams.find((t) => t.id === panelA.selectedTeamId)?.name ?? "Team A")
       : panelA.draftName.trim() || "Team A";
   const teamBName =
     panelB.mode === "existing"
-      ? teams.find((t) => t.id === panelB.selectedTeamId)?.name ?? "Team B"
+      ? (teams.find((t) => t.id === panelB.selectedTeamId)?.name ?? "Team B")
       : panelB.draftName.trim() || "Team B";
 
   /* ----- Advanced-fields-set counter ----- */
-  const advFilled =
-    [ground, pitch, weather, scorer, umpire, notes, streamingUrl, ballType].filter(
-      (v) => v.trim() !== "",
-    ).length;
+  const advFilled = [ground, pitch, weather, scorer, umpire, notes, streamingUrl, ballType].filter(
+    (v) => v.trim() !== "",
+  ).length;
 
   /* ----- Validation ----- */
   const validationError = (() => {
-    const readyA = panelA.mode === "existing" ? !!panelA.selectedTeamId : panelA.draftName.trim().length > 0;
-    const readyB = panelB.mode === "existing" ? !!panelB.selectedTeamId : panelB.draftName.trim().length > 0;
+    const readyA =
+      panelA.mode === "existing" ? !!panelA.selectedTeamId : panelA.draftName.trim().length > 0;
+    const readyB =
+      panelB.mode === "existing" ? !!panelB.selectedTeamId : panelB.draftName.trim().length > 0;
     if (!readyA) return "Choose or name Team A";
     if (!readyB) return "Choose or name Team B";
-    if (panelA.mode === "existing" && panelB.mode === "existing" && panelA.selectedTeamId === panelB.selectedTeamId)
+    if (
+      panelA.mode === "existing" &&
+      panelB.mode === "existing" &&
+      panelA.selectedTeamId === panelB.selectedTeamId
+    )
       return "Teams must be different";
     if (panelA.players.length < 2) return "Add at least 2 players to Team A";
     if (panelB.players.length < 2) return "Add at least 2 players to Team B";
@@ -392,8 +392,7 @@ function CreateMatchPage() {
       toast.success("Match created");
       navigate({ to: "/match-center/matches" });
     },
-    onError: (e) =>
-      toast.error(e instanceof Error ? e.message : "Failed to create match"),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to create match"),
   });
 
   /* --- Resolve a panel to a concrete team id (creating a team if needed) --- */
@@ -566,8 +565,18 @@ function CreateMatchPage() {
               onChange={setBallType}
               placeholder="Leather / Tennis / Season"
             />
-            <FieldInput label="Date" type="date" value={scheduledDate} onChange={setScheduledDate} />
-            <FieldInput label="Start time" type="time" value={scheduledTime} onChange={setScheduledTime} />
+            <FieldInput
+              label="Date"
+              type="date"
+              value={scheduledDate}
+              onChange={setScheduledDate}
+            />
+            <FieldInput
+              label="Start time"
+              type="time"
+              value={scheduledTime}
+              onChange={setScheduledTime}
+            />
             <FieldInput
               label="Streaming URL"
               value={streamingUrl}
@@ -639,9 +648,7 @@ function Section({
           {step}
         </span>
         <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
-        {caption && (
-          <span className="text-xs text-muted-foreground">· {caption}</span>
-        )}
+        {caption && <span className="text-xs text-muted-foreground">· {caption}</span>}
       </div>
       {children}
     </div>
@@ -708,9 +715,19 @@ function TeamPanel({
   const removePlayer = (key: string) =>
     onChange({ ...state, players: state.players.filter((p) => p.key !== key) });
 
-  const modeCards: { mode: TeamMode; title: string; caption: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  const modeCards: {
+    mode: TeamMode;
+    title: string;
+    caption: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }[] = [
     { mode: "existing", title: "Use existing team", caption: "Search academy teams", icon: Users },
-    { mode: "new", title: "Create team for this match", caption: "Pick players now", icon: UserPlus },
+    {
+      mode: "new",
+      title: "Create team for this match",
+      caption: "Pick players now",
+      icon: UserPlus,
+    },
     { mode: "guest", title: "Guest team", caption: "Type opponent names", icon: UserSearch },
   ];
 
@@ -748,9 +765,7 @@ function TeamPanel({
             />
             <div>
               <div className="text-sm font-medium leading-tight">{c.title}</div>
-              <div className="mt-0.5 text-[11px] text-muted-foreground">
-                {c.caption}
-              </div>
+              <div className="mt-0.5 text-[11px] text-muted-foreground">{c.caption}</div>
             </div>
           </button>
         ))}
@@ -792,11 +807,7 @@ function TeamPanel({
 
       {/* Playing XI summary — only when the panel has players */}
       {state.players.length > 0 && (
-        <SquadFooter
-          players={state.players}
-          onPlayers={setPlayers}
-          onRemove={removePlayer}
-        />
+        <SquadFooter players={state.players} onPlayers={setPlayers} onRemove={removePlayer} />
       )}
     </div>
   );
@@ -893,9 +904,7 @@ function TeamRow({
       onClick={onClick}
       className={cn(
         "flex w-full items-center gap-3 rounded-xl border p-2.5 text-left transition-colors",
-        selected
-          ? "border-primary bg-primary/5"
-          : "border-border bg-background hover:bg-accent/40",
+        selected ? "border-primary bg-primary/5" : "border-border bg-background hover:bg-accent/40",
       )}
     >
       <div
@@ -1144,9 +1153,7 @@ function SquadFooter({
               {idx + 1}
             </span>
             <Avatar src={p.photo_url} name={p.name} size={28} className="rounded-full" />
-            <span className="min-w-0 flex-1 truncate text-sm font-medium">
-              {p.name}
-            </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
             <button
               type="button"
               onClick={() => onRemove(p.key)}
@@ -1197,9 +1204,7 @@ function SummaryCard({
           </div>
           <div className="mt-3 grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
             <div className="text-left">
-              <div className="truncate text-lg font-bold tracking-tight">
-                {teamAName}
-              </div>
+              <div className="truncate text-lg font-bold tracking-tight">{teamAName}</div>
               <div className="text-xs text-muted-foreground">
                 {playersA} {playersA === 1 ? "player" : "players"}
               </div>
@@ -1208,9 +1213,7 @@ function SummaryCard({
               vs
             </div>
             <div className="text-right">
-              <div className="truncate text-lg font-bold tracking-tight">
-                {teamBName}
-              </div>
+              <div className="truncate text-lg font-bold tracking-tight">{teamBName}</div>
               <div className="text-xs text-muted-foreground">
                 {playersB} {playersB === 1 ? "player" : "players"}
               </div>
@@ -1224,11 +1227,7 @@ function SummaryCard({
                 </span>
               )}
             </div>
-            <Button
-              size="lg"
-              disabled={!!error || pending}
-              onClick={onStart}
-            >
+            <Button size="lg" disabled={!!error || pending} onClick={onStart}>
               {pending ? (
                 <Loader2 className="size-4 mr-1.5 animate-spin" />
               ) : (

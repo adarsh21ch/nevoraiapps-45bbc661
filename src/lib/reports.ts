@@ -11,48 +11,61 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type Range = { from: string; to: string }; // ISO
-export type Preset =
-  | "today"
-  | "yesterday"
-  | "7d"
-  | "30d"
-  | "quarter"
-  | "year"
-  | "custom";
+export type Preset = "today" | "yesterday" | "7d" | "30d" | "quarter" | "year" | "custom";
 
 export function presetRange(preset: Preset, custom?: Range): Range {
   const now = new Date();
   const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+  const endOfDay = (d: Date) =>
+    new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
   let from: Date, to: Date;
   switch (preset) {
-    case "today":     from = startOfDay(now); to = endOfDay(now); break;
+    case "today":
+      from = startOfDay(now);
+      to = endOfDay(now);
+      break;
     case "yesterday": {
-      const y = new Date(now); y.setDate(y.getDate() - 1);
-      from = startOfDay(y); to = endOfDay(y); break;
+      const y = new Date(now);
+      y.setDate(y.getDate() - 1);
+      from = startOfDay(y);
+      to = endOfDay(y);
+      break;
     }
-    case "7d":  from = startOfDay(new Date(now.getTime() - 6 * 86400000));  to = endOfDay(now); break;
-    case "30d": from = startOfDay(new Date(now.getTime() - 29 * 86400000)); to = endOfDay(now); break;
+    case "7d":
+      from = startOfDay(new Date(now.getTime() - 6 * 86400000));
+      to = endOfDay(now);
+      break;
+    case "30d":
+      from = startOfDay(new Date(now.getTime() - 29 * 86400000));
+      to = endOfDay(now);
+      break;
     case "quarter": {
       const q = Math.floor(now.getMonth() / 3);
-      from = new Date(now.getFullYear(), q * 3, 1); to = endOfDay(now); break;
+      from = new Date(now.getFullYear(), q * 3, 1);
+      to = endOfDay(now);
+      break;
     }
-    case "year": from = new Date(now.getFullYear(), 0, 1); to = endOfDay(now); break;
+    case "year":
+      from = new Date(now.getFullYear(), 0, 1);
+      to = endOfDay(now);
+      break;
     case "custom":
       if (custom) return custom;
-      from = startOfDay(new Date(now.getTime() - 29 * 86400000)); to = endOfDay(now); break;
+      from = startOfDay(new Date(now.getTime() - 29 * 86400000));
+      to = endOfDay(now);
+      break;
   }
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
 export const rqk = {
   attendance: (t: string, r: Range) => ["r", "att", t, r.from, r.to] as const,
-  billing:    (t: string, r: Range) => ["r", "bill", t, r.from, r.to] as const,
+  billing: (t: string, r: Range) => ["r", "bill", t, r.from, r.to] as const,
   admissions: (t: string, r: Range) => ["r", "adm", t, r.from, r.to] as const,
-  players:    (t: string, r: Range) => ["r", "ply", t, r.from, r.to] as const,
-  matches:    (t: string, r: Range) => ["r", "mch", t, r.from, r.to] as const,
-  comms:      (t: string, r: Range) => ["r", "cmm", t, r.from, r.to] as const,
-  website:    (t: string, r: Range) => ["r", "web", t, r.from, r.to] as const,
+  players: (t: string, r: Range) => ["r", "ply", t, r.from, r.to] as const,
+  matches: (t: string, r: Range) => ["r", "mch", t, r.from, r.to] as const,
+  comms: (t: string, r: Range) => ["r", "cmm", t, r.from, r.to] as const,
+  website: (t: string, r: Range) => ["r", "web", t, r.from, r.to] as const,
 };
 
 // -------- Shared RPC caller ------------------------------------------------
@@ -151,7 +164,10 @@ export async function fetchCommsReport(tenantId: string, r: Range): Promise<Comm
   // Server-aggregated via get_communication_summary. The shape mapping below
   // is a rename — no aggregation happens in the browser.
   const { getCommunicationSummary } = await import("./aggregations");
-  const s = await getCommunicationSummary(tenantId, { from: r.from.slice(0, 10), to: r.to.slice(0, 10) });
+  const s = await getCommunicationSummary(tenantId, {
+    from: r.from.slice(0, 10),
+    to: r.to.slice(0, 10),
+  });
   const byStatus: { label: string; count: number }[] = [
     { label: "sent", count: s.sent },
     { label: "failed", count: s.failed },

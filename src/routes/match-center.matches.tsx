@@ -142,7 +142,6 @@ function MatchesPage() {
               />
             )}
           />
-
         )}
       </div>
     </div>

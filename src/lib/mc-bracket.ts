@@ -170,11 +170,7 @@ export async function fetchBracketTree(tournamentId: string): Promise<BracketTre
     new Set(roundList.map((r) => r.match_id).filter((v): v is string => !!v)),
   );
   const teamIds = Array.from(
-    new Set(
-      roundList
-        .flatMap((r) => [r.team_a_id, r.team_b_id])
-        .filter((v): v is string => !!v),
-    ),
+    new Set(roundList.flatMap((r) => [r.team_a_id, r.team_b_id]).filter((v): v is string => !!v)),
   );
 
   const [matchesRes, inningsRes, teamsRes] = await Promise.all([
@@ -224,8 +220,8 @@ export async function fetchBracketTree(tournamentId: string): Promise<BracketTre
 
   // Build nodes.
   const nodes: BracketNode[] = roundList.map((r) => {
-    const match = r.match_id ? matchMap.get(r.match_id) ?? null : null;
-    const inn = r.match_id ? inningsByMatch.get(r.match_id) ?? [] : [];
+    const match = r.match_id ? (matchMap.get(r.match_id) ?? null) : null;
+    const inn = r.match_id ? (inningsByMatch.get(r.match_id) ?? []) : [];
     const scoreFor = (teamId: string | null): BracketScore | null => {
       if (!teamId) return null;
       const row = inn.find((x) => x.batting_team_id === teamId);
@@ -252,8 +248,8 @@ export async function fetchBracketTree(tournamentId: string): Promise<BracketTre
       slotIndex: r.slot_index,
       name: r.name,
       matchId: r.match_id,
-      teamA: r.team_a_id ? teamMap.get(r.team_a_id) ?? null : null,
-      teamB: r.team_b_id ? teamMap.get(r.team_b_id) ?? null : null,
+      teamA: r.team_a_id ? (teamMap.get(r.team_a_id) ?? null) : null,
+      teamB: r.team_b_id ? (teamMap.get(r.team_b_id) ?? null) : null,
       winnerTeamId: match?.winner_team ?? null,
       victoryType: match?.victory_type ?? null,
       result: match?.result ?? null,
@@ -284,8 +280,7 @@ export async function fetchBracketTree(tournamentId: string): Promise<BracketTre
       list.sort((a, b) => a.slotIndex - b.slotIndex);
       const stageOrder = list[0]?.stageOrder ?? 0;
       const isCompleted = list.every((n) => n.status.completed);
-      const isCurrent =
-        !isCompleted && list.some((n) => n.status.live || n.status.completed);
+      const isCurrent = !isCompleted && list.some((n) => n.status.live || n.status.completed);
       return {
         stage,
         stageOrder,
@@ -308,7 +303,7 @@ export async function fetchBracketTree(tournamentId: string): Promise<BracketTre
   const finalNode = mainNodes.find((n) => n.isFinal) ?? null;
   const champion =
     finalNode && finalNode.status.completed && finalNode.winnerTeamId
-      ? teamMap.get(finalNode.winnerTeamId) ?? null
+      ? (teamMap.get(finalNode.winnerTeamId) ?? null)
       : null;
   const runnerUp =
     finalNode && finalNode.status.completed && finalNode.winnerTeamId
@@ -327,10 +322,13 @@ export async function fetchBracketTree(tournamentId: string): Promise<BracketTre
       n.isChampionPath = true;
       // pick the feeder whose winner is the champion's ancestor.
       const feeders = [n.feederAId, n.feederBId]
-        .map((id) => (id ? byId.get(id) ?? null : null))
+        .map((id) => (id ? (byId.get(id) ?? null) : null))
         .filter((x): x is BracketNode => x !== null);
       for (const f of feeders) {
-        if (f.winnerTeamId && (f.winnerTeamId === champion.id || descendantWon(f, champion.id, byId))) {
+        if (
+          f.winnerTeamId &&
+          (f.winnerTeamId === champion.id || descendantWon(f, champion.id, byId))
+        ) {
           stack.push(f);
         }
       }
@@ -343,14 +341,10 @@ export async function fetchBracketTree(tournamentId: string): Promise<BracketTre
   return { columns, thirdPlace, champion, runnerUp, totalNodes, completedNodes };
 }
 
-function descendantWon(
-  node: BracketNode,
-  teamId: string,
-  byId: Map<string, BracketNode>,
-): boolean {
+function descendantWon(node: BracketNode, teamId: string, byId: Map<string, BracketNode>): boolean {
   if (node.winnerTeamId === teamId) return true;
   const feeders = [node.feederAId, node.feederBId]
-    .map((id) => (id ? byId.get(id) ?? null : null))
+    .map((id) => (id ? (byId.get(id) ?? null) : null))
     .filter((x): x is BracketNode => x !== null);
   return feeders.some((f) => descendantWon(f, teamId, byId));
 }

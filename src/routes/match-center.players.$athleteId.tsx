@@ -140,7 +140,6 @@ function AthleteProfilePage() {
     );
   }
 
-
   if (athleteQ.isLoading) {
     return (
       <div>
@@ -256,9 +255,7 @@ function AthleteProfilePage() {
       </div>
 
       {/* Tab content */}
-      {tab === "overview" && (
-        <OverviewTab athlete={athlete} teamName={teamQ.data?.name ?? null} />
-      )}
+      {tab === "overview" && <OverviewTab athlete={athlete} teamName={teamQ.data?.name ?? null} />}
       {tab === "career" && <CareerTab athleteId={athlete.id} />}
       {tab === "statistics" && <PlaceholderTab title="Statistics" />}
       {tab === "achievements" && <AchievementsTab athleteId={athlete.id} tenantId={tenant.id} />}
@@ -298,12 +295,24 @@ function OverviewTab({
         <InfoRow label="Playing role" value={labelFor(CRICKET_ROLES, c?.playing_role)} />
         <InfoRow label="Batting style" value={labelFor(CRICKET_BATTING_STYLES, c?.batting_style)} />
         <InfoRow label="Bowling style" value={c?.bowling_style} />
-        <InfoRow label="Dominant hand" value={labelFor(DOMINANT_HANDS, c?.dominant_hand ?? athlete.dominant_hand)} icon={Hand} />
+        <InfoRow
+          label="Dominant hand"
+          value={labelFor(DOMINANT_HANDS, c?.dominant_hand ?? athlete.dominant_hand)}
+          icon={Hand}
+        />
         <InfoRow label="Jersey number" value={c?.jersey_number ?? null} />
       </InfoCard>
       <InfoCard title="Physical" icon={HeartPulse}>
-        <InfoRow label="Height" value={athlete.height_cm ? `${athlete.height_cm} cm` : null} icon={Ruler} />
-        <InfoRow label="Weight" value={athlete.weight_kg ? `${athlete.weight_kg} kg` : null} icon={Weight} />
+        <InfoRow
+          label="Height"
+          value={athlete.height_cm ? `${athlete.height_cm} cm` : null}
+          icon={Ruler}
+        />
+        <InfoRow
+          label="Weight"
+          value={athlete.weight_kg ? `${athlete.weight_kg} kg` : null}
+          icon={Weight}
+        />
         <InfoRow label="Fitness" value={labelFor(FITNESS_STATUSES, athlete.fitness_status)} />
         <InfoRow label="Joined sport" value={athlete.joining_sport_date} icon={Calendar} />
       </InfoCard>
@@ -364,9 +373,7 @@ function CareerTab({ athleteId }: { athleteId: string }) {
             onClick={() => rebuild.mutate()}
             disabled={rebuild.isPending}
           >
-            {rebuild.isPending ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : null}
+            {rebuild.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
             Rebuild career
           </Button>
         </div>
@@ -398,9 +405,7 @@ function CareerTab({ athleteId }: { athleteId: string }) {
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
           Auto-generated from finalized matches
-          {c.last_rebuilt_at
-            ? ` · updated ${new Date(c.last_rebuilt_at).toLocaleString()}`
-            : ""}
+          {c.last_rebuilt_at ? ` · updated ${new Date(c.last_rebuilt_at).toLocaleString()}` : ""}
         </div>
         <Button
           size="sm"
@@ -408,9 +413,7 @@ function CareerTab({ athleteId }: { athleteId: string }) {
           onClick={() => rebuild.mutate()}
           disabled={rebuild.isPending}
         >
-          {rebuild.isPending ? (
-            <Loader2 className="mr-2 size-4 animate-spin" />
-          ) : null}
+          {rebuild.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
           Rebuild career
         </Button>
       </div>
@@ -418,10 +421,7 @@ function CareerTab({ athleteId }: { athleteId: string }) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stat("Matches", c.matches)}
         {stat("Runs", c.runs, `${c.innings} innings · ${c.not_outs} NO`)}
-        {stat(
-          "Highest",
-          `${c.highest_score}${c.highest_score_not_out ? "*" : ""}`,
-        )}
+        {stat("Highest", `${c.highest_score}${c.highest_score_not_out ? "*" : ""}`)}
         {stat("Average", c.average.toFixed(2))}
         {stat("Strike Rate", c.strike_rate.toFixed(2))}
         {stat("50s / 100s", `${c.fifties} / ${c.hundreds}`)}
@@ -429,11 +429,7 @@ function CareerTab({ athleteId }: { athleteId: string }) {
         {stat("Best Bowling", c.best_bowling)}
         {stat("Economy", c.economy.toFixed(2))}
         {stat("Catches", c.catches, `${c.stumpings} st · ${c.run_outs} RO`)}
-        {stat(
-          "Captain",
-          `${c.captain_matches}`,
-          `${c.captain_wins}W / ${c.captain_losses}L`,
-        )}
+        {stat("Captain", `${c.captain_matches}`, `${c.captain_wins}W / ${c.captain_losses}L`)}
         {stat("Player of Match", c.player_of_match)}
       </div>
 
@@ -488,8 +484,6 @@ function SparkBars({ values, max }: { values: number[]; max: number }) {
   );
 }
 
-
-
 function PlaceholderTab({ title }: { title: string }) {
   return (
     <EmptyState
@@ -538,7 +532,10 @@ function AchievementsTab({ athleteId, tenantId }: { athleteId: string; tenantId:
               className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-card p-4"
             >
               <div className="min-w-0">
-                <KindBadge kind="achievement" label={labelFor(ACHIEVEMENT_KINDS, a.kind) ?? a.kind} />
+                <KindBadge
+                  kind="achievement"
+                  label={labelFor(ACHIEVEMENT_KINDS, a.kind) ?? a.kind}
+                />
                 <div className="mt-1.5 font-semibold text-sm">{a.title}</div>
                 {a.description && (
                   <div className="mt-1 text-sm text-muted-foreground">{a.description}</div>
@@ -667,7 +664,11 @@ function AchievementDialog({
             Cancel
           </Button>
           <Button disabled={m.isPending} onClick={() => m.mutate()}>
-            {m.isPending ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Save className="size-4 mr-1.5" />}
+            {m.isPending ? (
+              <Loader2 className="size-4 mr-1.5 animate-spin" />
+            ) : (
+              <Save className="size-4 mr-1.5" />
+            )}
             Save
           </Button>
         </DialogFooter>
@@ -818,7 +819,12 @@ function AwardDialog({
           </div>
           <div>
             <Label>Date</Label>
-            <Input type="date" className="mt-1" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input
+              type="date"
+              className="mt-1"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
           </div>
         </div>
         <DialogFooter>
@@ -826,7 +832,11 @@ function AwardDialog({
             Cancel
           </Button>
           <Button disabled={m.isPending} onClick={() => m.mutate()}>
-            {m.isPending ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Save className="size-4 mr-1.5" />}
+            {m.isPending ? (
+              <Loader2 className="size-4 mr-1.5 animate-spin" />
+            ) : (
+              <Save className="size-4 mr-1.5" />
+            )}
             Save
           </Button>
         </DialogFooter>
@@ -966,7 +976,12 @@ function TimelineDialog({
         <div className="space-y-3">
           <div>
             <Label>Date</Label>
-            <Input type="date" className="mt-1" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Input
+              type="date"
+              className="mt-1"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
           </div>
           <div>
             <Label>Title</Label>
@@ -1001,7 +1016,11 @@ function TimelineDialog({
             Cancel
           </Button>
           <Button disabled={!title.trim() || m.isPending} onClick={() => m.mutate()}>
-            {m.isPending ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Save className="size-4 mr-1.5" />}
+            {m.isPending ? (
+              <Loader2 className="size-4 mr-1.5 animate-spin" />
+            ) : (
+              <Save className="size-4 mr-1.5" />
+            )}
             Save
           </Button>
         </DialogFooter>
@@ -1218,9 +1237,7 @@ function SettingsTab({
               <Input
                 className="mt-1"
                 value={cricket.preferred_position}
-                onChange={(e) =>
-                  setCricket((c) => ({ ...c, preferred_position: e.target.value }))
-                }
+                onChange={(e) => setCricket((c) => ({ ...c, preferred_position: e.target.value }))}
               />
             </div>
             <div>

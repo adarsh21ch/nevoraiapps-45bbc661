@@ -103,11 +103,7 @@ export function SetupProgress({
 
 function CheckRow({ check }: { check: SetupCheck }) {
   const Icon =
-    check.status === "ok"
-      ? CheckCircle2
-      : check.status === "warn"
-        ? AlertCircle
-        : CircleX;
+    check.status === "ok" ? CheckCircle2 : check.status === "warn" ? AlertCircle : CircleX;
   const tone =
     check.status === "ok"
       ? "text-emerald-600"
@@ -119,9 +115,7 @@ function CheckRow({ check }: { check: SetupCheck }) {
       <Icon className={"mt-0.5 size-4 shrink-0 " + tone} />
       <div>
         <div className="font-medium">{check.label}</div>
-        {check.detail ? (
-          <div className="text-xs text-muted-foreground">{check.detail}</div>
-        ) : null}
+        {check.detail ? <div className="text-xs text-muted-foreground">{check.detail}</div> : null}
       </div>
     </li>
   );
@@ -131,13 +125,7 @@ function CheckRow({ check }: { check: SetupCheck }) {
  * Groups tab
  * ================================================================ */
 
-export function GroupsTab({
-  tenantId,
-  tournamentId,
-}: {
-  tenantId: string;
-  tournamentId: string;
-}) {
+export function GroupsTab({ tenantId, tournamentId }: { tenantId: string; tournamentId: string }) {
   const qc = useQueryClient();
   const groupsQ = useQuery({
     queryKey: ["mc-tournament-groups", tournamentId],
@@ -266,8 +254,8 @@ export function GroupsTab({
           </div>
         </div>
         <p className="mt-2 text-[11px] text-muted-foreground">
-          Uses a snake distribution so seeded strengths balance across groups.
-          Re-running clears existing group assignments.
+          Uses a snake distribution so seeded strengths balance across groups. Re-running clears
+          existing group assignments.
         </p>
       </div>
 
@@ -279,12 +267,7 @@ export function GroupsTab({
             placeholder="Add group manually (e.g. Group C)"
             className="max-w-xs"
           />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => add.mutate()}
-            disabled={add.isPending}
-          >
+          <Button variant="outline" size="sm" onClick={() => add.mutate()} disabled={add.isPending}>
             <Plus className="mr-1 size-4" /> Add
           </Button>
         </div>
@@ -301,10 +284,7 @@ export function GroupsTab({
           {groups.map((g) => {
             const inGroup = teams.filter((t) => t.group_id === g.id);
             return (
-              <div
-                key={g.id}
-                className="rounded-2xl border border-border bg-card p-3"
-              >
+              <div key={g.id} className="rounded-2xl border border-border bg-card p-3">
                 <div className="mb-2 flex items-center gap-2">
                   <Input
                     defaultValue={g.name}
@@ -315,9 +295,7 @@ export function GroupsTab({
                     className="h-8 text-sm font-semibold"
                   />
                   <div className="flex items-center gap-1">
-                    <Label className="text-[11px] text-muted-foreground">
-                      Qual
-                    </Label>
+                    <Label className="text-[11px] text-muted-foreground">Qual</Label>
                     <Input
                       type="number"
                       min={1}
@@ -425,13 +403,7 @@ export function GroupsTab({
  * Venues tab
  * ================================================================ */
 
-export function VenuesTab({
-  tenantId,
-  tournamentId,
-}: {
-  tenantId: string;
-  tournamentId: string;
-}) {
+export function VenuesTab({ tenantId, tournamentId }: { tenantId: string; tournamentId: string }) {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["mc-tournament-venues", tournamentId],
@@ -487,10 +459,7 @@ export function VenuesTab({
   });
 
   const save = useMutation({
-    mutationFn: async (v: {
-      id: string;
-      patch: Parameters<typeof updateVenue>[1];
-    }) => {
+    mutationFn: async (v: { id: string; patch: Parameters<typeof updateVenue>[1] }) => {
       await updateVenue(v.id, v.patch);
     },
     onSuccess: invalidate,
@@ -513,10 +482,7 @@ export function VenuesTab({
           </div>
           <div>
             <Label className="text-xs">City</Label>
-            <Input
-              value={form.city}
-              onChange={(e) => setForm({ ...form, city: e.target.value })}
-            />
+            <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
           </div>
           <div>
             <Label className="text-xs">Pitch</Label>
@@ -578,18 +544,14 @@ export function VenuesTab({
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
           {venues.map((v) => (
-            <div
-              key={v.id}
-              className="rounded-2xl border border-border bg-card p-3"
-            >
+            <div key={v.id} className="rounded-2xl border border-border bg-card p-3">
               <div className="mb-2 flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <Input
                     defaultValue={v.name}
                     onBlur={(e) => {
                       const val = e.target.value.trim();
-                      if (val && val !== v.name)
-                        save.mutate({ id: v.id, patch: { name: val } });
+                      if (val && val !== v.name) save.mutate({ id: v.id, patch: { name: val } });
                     }}
                     className="h-8 text-sm font-semibold"
                   />
@@ -608,14 +570,8 @@ export function VenuesTab({
                   <Trash2 className="size-4" />
                 </Button>
               </div>
-              {v.address ? (
-                <div className="text-xs text-muted-foreground">{v.address}</div>
-              ) : null}
-              {v.notes ? (
-                <div className="mt-1 text-xs text-muted-foreground">
-                  {v.notes}
-                </div>
-              ) : null}
+              {v.address ? <div className="text-xs text-muted-foreground">{v.address}</div> : null}
+              {v.notes ? <div className="mt-1 text-xs text-muted-foreground">{v.notes}</div> : null}
             </div>
           ))}
         </div>
@@ -690,10 +646,7 @@ export function OfficialsTab({
         <div className="grid gap-2 md:grid-cols-4">
           <div className="md:col-span-2">
             <Label className="text-xs">Name *</Label>
-            <Input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </div>
           <div>
             <Label className="text-xs">Role</Label>
@@ -749,15 +702,10 @@ export function OfficialsTab({
           {byRole
             .filter((r) => r.people.length > 0)
             .map((r) => (
-              <div
-                key={r.value}
-                className="rounded-2xl border border-border bg-card p-3"
-              >
+              <div key={r.value} className="rounded-2xl border border-border bg-card p-3">
                 <div className="mb-2 text-sm font-semibold">
                   {r.label}
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {r.people.length}
-                  </span>
+                  <span className="ml-2 text-xs text-muted-foreground">{r.people.length}</span>
                 </div>
                 <ul className="space-y-1">
                   {r.people.map((o) => (
@@ -768,9 +716,7 @@ export function OfficialsTab({
                       <div>
                         <div className="font-medium">{o.name}</div>
                         {o.contact ? (
-                          <div className="text-[11px] text-muted-foreground">
-                            {o.contact}
-                          </div>
+                          <div className="text-[11px] text-muted-foreground">{o.contact}</div>
                         ) : null}
                       </div>
                       <Button
@@ -789,9 +735,8 @@ export function OfficialsTab({
         </div>
       )}
       <p className="text-[11px] text-muted-foreground">
-        Per-match official assignment (with conflict detection) unlocks alongside
-        the Fixture Engine in the next step; the tournament-level roster you
-        build here is the source of truth.
+        Per-match official assignment (with conflict detection) unlocks alongside the Fixture Engine
+        in the next step; the tournament-level roster you build here is the source of truth.
       </p>
     </div>
   );

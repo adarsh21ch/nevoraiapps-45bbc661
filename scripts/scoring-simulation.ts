@@ -19,10 +19,7 @@ import {
   type MatchState,
 } from "../src/lib/mc-rules-engine";
 import { computeInningsStatistics } from "../src/lib/mc-statistics-engine";
-import type {
-  DismissalType,
-  ExtraType,
-} from "../src/lib/mc-ball-events-core";
+import type { DismissalType, ExtraType } from "../src/lib/mc-ball-events-core";
 import { isLegalDelivery } from "../src/lib/mc-ball-events-core";
 
 /* ----------- Minimal MCBallEvent shape (matches DB row) ----------- */
@@ -173,7 +170,9 @@ function expect(label: string, actual: unknown, expected: unknown) {
     console.log(`  ✓ ${label}`);
   } else {
     FAIL++;
-    console.log(`  ✗ ${label}\n      expected ${JSON.stringify(expected)}\n      got      ${JSON.stringify(actual)}`);
+    console.log(
+      `  ✗ ${label}\n      expected ${JSON.stringify(expected)}\n      got      ${JSON.stringify(actual)}`,
+    );
   }
 }
 function section(name: string) {
@@ -185,26 +184,67 @@ function section(name: string) {
  * ================================================================ */
 section("Per-ball run math");
 const shape = (partial: Partial<Ev>): Ev => ({
-  id: "x", tenant_id: "t", match_id: "m", innings_id: "i",
-  sequence_number: 1, over_number: 0, ball_number: 1, is_legal_delivery: true,
-  striker_athlete_id: null, striker_name: "A",
-  non_striker_athlete_id: null, non_striker_name: "B",
-  bowler_athlete_id: null, bowler_name: "X",
-  runs_off_bat: 0, extra_type: null, extra_runs: 0,
-  dismissal_type: null, dismissed_athlete_id: null, dismissed_name: null,
-  fielder_athlete_id: null, fielder_name: null, comment: null, created_by: null,
-  created_at: "2025-01-01T00:00:00Z", ...partial,
+  id: "x",
+  tenant_id: "t",
+  match_id: "m",
+  innings_id: "i",
+  sequence_number: 1,
+  over_number: 0,
+  ball_number: 1,
+  is_legal_delivery: true,
+  striker_athlete_id: null,
+  striker_name: "A",
+  non_striker_athlete_id: null,
+  non_striker_name: "B",
+  bowler_athlete_id: null,
+  bowler_name: "X",
+  runs_off_bat: 0,
+  extra_type: null,
+  extra_runs: 0,
+  dismissal_type: null,
+  dismissed_athlete_id: null,
+  dismissed_name: null,
+  fielder_athlete_id: null,
+  fielder_name: null,
+  comment: null,
+  created_by: null,
+  created_at: "2025-01-01T00:00:00Z",
+  ...partial,
 });
 expect("dot ball total = 0", totalRunsForBall(shape({}) as any), 0);
 expect("single total = 1", totalRunsForBall(shape({ runs_off_bat: 1 }) as any), 1);
 expect("four total = 4", totalRunsForBall(shape({ runs_off_bat: 4 }) as any), 4);
-expect("wide (1) total = 1", totalRunsForBall(shape({ extra_type: "wide", extra_runs: 1 }) as any), 1);
-expect("wide + 4 boundary total = 5", totalRunsForBall(shape({ extra_type: "wide", extra_runs: 5 }) as any), 5);
-expect("no-ball + 4 boundary total = 5", totalRunsForBall(shape({ extra_type: "no_ball", runs_off_bat: 4, extra_runs: 0 }) as any), 5);
-expect("no-ball + 2 byes total = 3", totalRunsForBall(shape({ extra_type: "no_ball", runs_off_bat: 0, extra_runs: 2 }) as any), 3);
+expect(
+  "wide (1) total = 1",
+  totalRunsForBall(shape({ extra_type: "wide", extra_runs: 1 }) as any),
+  1,
+);
+expect(
+  "wide + 4 boundary total = 5",
+  totalRunsForBall(shape({ extra_type: "wide", extra_runs: 5 }) as any),
+  5,
+);
+expect(
+  "no-ball + 4 boundary total = 5",
+  totalRunsForBall(shape({ extra_type: "no_ball", runs_off_bat: 4, extra_runs: 0 }) as any),
+  5,
+);
+expect(
+  "no-ball + 2 byes total = 3",
+  totalRunsForBall(shape({ extra_type: "no_ball", runs_off_bat: 0, extra_runs: 2 }) as any),
+  3,
+);
 expect("bye 2 total = 2", totalRunsForBall(shape({ extra_type: "bye", extra_runs: 2 }) as any), 2);
-expect("leg-bye 3 total = 3", totalRunsForBall(shape({ extra_type: "leg_bye", extra_runs: 3 }) as any), 3);
-expect("penalty 5 total = 5", totalRunsForBall(shape({ extra_type: "penalty", extra_runs: 5 }) as any), 5);
+expect(
+  "leg-bye 3 total = 3",
+  totalRunsForBall(shape({ extra_type: "leg_bye", extra_runs: 3 }) as any),
+  3,
+);
+expect(
+  "penalty 5 total = 5",
+  totalRunsForBall(shape({ extra_type: "penalty", extra_runs: 5 }) as any),
+  5,
+);
 
 /* ================================================================
  * Scenario 2 — Strike rotation (MCC Law 18)
@@ -216,12 +256,32 @@ expect("2 keeps", ballSwapsStrike(shape({ runs_off_bat: 2 }) as any), false);
 expect("3 rotates", ballSwapsStrike(shape({ runs_off_bat: 3 }) as any), true);
 expect("4 keeps", ballSwapsStrike(shape({ runs_off_bat: 4 }) as any), false);
 expect("6 keeps", ballSwapsStrike(shape({ runs_off_bat: 6 }) as any), false);
-expect("wide 1 (no run) keeps", ballSwapsStrike(shape({ extra_type: "wide", extra_runs: 1 }) as any), false);
-expect("wide + 1 additional run rotates", ballSwapsStrike(shape({ extra_type: "wide", extra_runs: 2 }) as any), true);
+expect(
+  "wide 1 (no run) keeps",
+  ballSwapsStrike(shape({ extra_type: "wide", extra_runs: 1 }) as any),
+  false,
+);
+expect(
+  "wide + 1 additional run rotates",
+  ballSwapsStrike(shape({ extra_type: "wide", extra_runs: 2 }) as any),
+  true,
+);
 expect("bye 1 rotates", ballSwapsStrike(shape({ extra_type: "bye", extra_runs: 1 }) as any), true);
-expect("leg-bye 3 rotates", ballSwapsStrike(shape({ extra_type: "leg_bye", extra_runs: 3 }) as any), true);
-expect("no-ball 0 keeps", ballSwapsStrike(shape({ extra_type: "no_ball", extra_runs: 0 }) as any), false);
-expect("no-ball + 1 rotates", ballSwapsStrike(shape({ extra_type: "no_ball", runs_off_bat: 1, extra_runs: 0 }) as any), true);
+expect(
+  "leg-bye 3 rotates",
+  ballSwapsStrike(shape({ extra_type: "leg_bye", extra_runs: 3 }) as any),
+  true,
+);
+expect(
+  "no-ball 0 keeps",
+  ballSwapsStrike(shape({ extra_type: "no_ball", extra_runs: 0 }) as any),
+  false,
+);
+expect(
+  "no-ball + 1 rotates",
+  ballSwapsStrike(shape({ extra_type: "no_ball", runs_off_bat: 1, extra_runs: 0 }) as any),
+  true,
+);
 
 /* ================================================================
  * Scenario 3 — Full 20-over innings, chase, tie, all-out
@@ -290,7 +350,12 @@ section("All out (10 wickets)");
 section("Chase — target achieved");
 {
   const b = new InningsBuilder("A", "B", "X");
-  b.run(6); b.run(6); b.run(6); b.run(6); b.run(6); b.run(6); // 36 in an over
+  b.run(6);
+  b.run(6);
+  b.run(6);
+  b.run(6);
+  b.run(6);
+  b.run(6); // 36 in an over
   const st = replayInnings(b.events as any, { totalOvers: 20, maxWickets: 10, target: 30 });
   expect("target achieved", st.inningsShouldEnd, "target_achieved");
   expect("match should end", st.matchShouldEnd, true);
@@ -329,10 +394,12 @@ section("Statistics engine derives correctly");
   });
   const totalBatterRuns = stats.batting.ordered.reduce((s, x) => s + x.runs, 0);
   const totalExtras = stats.team.extras.total;
-  expect("team total = batter runs + extras",
-    stats.team.runs, totalBatterRuns + totalExtras);
-  expect("legal balls in stats matches replay",
-    stats.team.legalBalls, replayInnings(b.events as any, { totalOvers: 20 }).innings.legalBalls);
+  expect("team total = batter runs + extras", stats.team.runs, totalBatterRuns + totalExtras);
+  expect(
+    "legal balls in stats matches replay",
+    stats.team.legalBalls,
+    replayInnings(b.events as any, { totalOvers: 20 }).innings.legalBalls,
+  );
   const x = stats.bowling.ordered.find((r) => r.player.name === "X");
   expect("bowler X runs = team runs (single bowler)", x?.runsConceded, stats.team.runs);
 }
@@ -353,17 +420,28 @@ section("validateBallDraft (rules)");
       stateFresh,
       { innings, events, matchStatus: "in_progress" },
     );
-  } catch (e: any) { threw = e.code; }
+  } catch (e: any) {
+    threw = e.code;
+  }
   expect("handled_ball rejected", threw, "DEPRECATED_DISMISSAL");
 
   // striker == non-striker
   threw = "";
   try {
     validateBallDraft(
-      { strikerAthleteId: "p1", strikerName: "A", nonStrikerAthleteId: "p1", nonStrikerName: "A", bowlerName: "X" },
-      stateFresh, { innings, events, matchStatus: "in_progress" },
+      {
+        strikerAthleteId: "p1",
+        strikerName: "A",
+        nonStrikerAthleteId: "p1",
+        nonStrikerName: "A",
+        bowlerName: "X",
+      },
+      stateFresh,
+      { innings, events, matchStatus: "in_progress" },
     );
-  } catch (e: any) { threw = e.code; }
+  } catch (e: any) {
+    threw = e.code;
+  }
   expect("duplicate striker rejected", threw, "DUPLICATE_STRIKER");
 
   // caught without fielder
@@ -371,9 +449,12 @@ section("validateBallDraft (rules)");
   try {
     validateBallDraft(
       { strikerName: "A", nonStrikerName: "B", bowlerName: "X", dismissalType: "caught" },
-      stateFresh, { innings, events, matchStatus: "in_progress" },
+      stateFresh,
+      { innings, events, matchStatus: "in_progress" },
     );
-  } catch (e: any) { threw = e.code; }
+  } catch (e: any) {
+    threw = e.code;
+  }
   expect("caught requires fielder", threw, "FIELDER_REQUIRED");
 }
 
@@ -389,11 +470,18 @@ section("Consecutive over rejection");
   let threw = "";
   try {
     validateBallDraft(
-      { strikerName: st.innings.striker.name!, nonStrikerName: st.innings.nonStriker.name!,
-        bowlerAthleteId: "X", bowlerName: "X" },
-      st, { innings: { id: "i", status: "in_progress" } as any, events: b.events as any },
+      {
+        strikerName: st.innings.striker.name!,
+        nonStrikerName: st.innings.nonStriker.name!,
+        bowlerAthleteId: "X",
+        bowlerName: "X",
+      },
+      st,
+      { innings: { id: "i", status: "in_progress" } as any, events: b.events as any },
     );
-  } catch (e: any) { threw = e.code; }
+  } catch (e: any) {
+    threw = e.code;
+  }
   expect("same bowler consecutive over rejected", threw, "CONSECUTIVE_OVERS");
 }
 
@@ -403,7 +491,11 @@ section("Consecutive over rejection");
 section("applyStrikeAfterBall parity with replay");
 {
   const b = new InningsBuilder("A", "B", "X");
-  b.run(1); b.run(2); b.run(3); b.run(4); b.run(6);
+  b.run(1);
+  b.run(2);
+  b.run(3);
+  b.run(4);
+  b.run(6);
   // apply-strike vs replay walk
   let s = { striker: { athleteId: null, name: "A" }, nonStriker: { athleteId: null, name: "B" } };
   const legalPerOver: number[] = [];
@@ -412,7 +504,10 @@ section("applyStrikeAfterBall parity with replay");
     if (e.is_legal_delivery) curLegal++;
     const overDone = e.is_legal_delivery && curLegal >= 6;
     s = applyStrikeAfterBall(s as any, e as any, overDone) as any;
-    if (overDone) { legalPerOver.push(curLegal); curLegal = 0; }
+    if (overDone) {
+      legalPerOver.push(curLegal);
+      curLegal = 0;
+    }
   }
   const st = replayInnings(b.events as any, { totalOvers: 20 });
   expect("striker parity", s.striker.name, st.innings.striker.name);

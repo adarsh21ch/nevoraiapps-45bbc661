@@ -22,10 +22,7 @@ import { SearchBar } from "@/components/ds/SearchBar";
 
 export const Route = createFileRoute("/dashboard/academy")({
   head: () => ({
-    meta: [
-      { title: "Manage · AcademyOS" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Manage · AcademyOS" }, { name: "robots", content: "noindex" }],
   }),
   component: ManageHub,
 });
@@ -51,32 +48,88 @@ const OWNER_GROUPS: Group[] = [
   {
     title: "Students",
     items: [
-      { to: "/dashboard/students", label: "Students", hint: "Roster, registrations, batches, documents, medical, performance, ID cards", icon: Users, keywords: ["players", "athletes", "roster", "registrations", "signups", "batches", "documents", "medical", "performance", "id cards"] },
+      {
+        to: "/dashboard/students",
+        label: "Students",
+        hint: "Roster, registrations, batches, documents, medical, performance, ID cards",
+        icon: Users,
+        keywords: [
+          "players",
+          "athletes",
+          "roster",
+          "registrations",
+          "signups",
+          "batches",
+          "documents",
+          "medical",
+          "performance",
+          "id cards",
+        ],
+      },
     ],
   },
   {
     title: "Cricket",
     items: [
-      { to: "/match-center", label: "Tournament Center", hint: "Tournaments, fixtures, teams, stats", icon: Swords, keywords: ["fixtures", "teams", "scorecards", "statistics", "officials", "venues", "groups", "points", "bracket"] },
-      { to: "/match-center/live", label: "Live Scoring", hint: "Score matches in real time", icon: Activity, keywords: ["ball", "score"] },
+      {
+        to: "/match-center",
+        label: "Tournament Center",
+        hint: "Tournaments, fixtures, teams, stats",
+        icon: Swords,
+        keywords: [
+          "fixtures",
+          "teams",
+          "scorecards",
+          "statistics",
+          "officials",
+          "venues",
+          "groups",
+          "points",
+          "bracket",
+        ],
+      },
+      {
+        to: "/match-center/live",
+        label: "Live Scoring",
+        hint: "Score matches in real time",
+        icon: Activity,
+        keywords: ["ball", "score"],
+      },
     ],
   },
   {
     title: "Communication",
     items: [
-      { to: "/dashboard/communications", label: "Broadcasts", hint: "Templates, history, scheduled messages", icon: Send, keywords: ["whatsapp", "sms", "email", "announcements", "templates", "notifications"] },
+      {
+        to: "/dashboard/communications",
+        label: "Broadcasts",
+        hint: "Templates, history, scheduled messages",
+        icon: Send,
+        keywords: ["whatsapp", "sms", "email", "announcements", "templates", "notifications"],
+      },
     ],
   },
   {
     title: "Reports",
     items: [
-      { to: "/dashboard/reports", label: "Reports", hint: "Decision center, insights & AI signals", icon: BarChart3, keywords: ["insights", "ai", "decision", "analytics"] },
+      {
+        to: "/dashboard/reports",
+        label: "Reports",
+        hint: "Decision center, insights & AI signals",
+        icon: BarChart3,
+        keywords: ["insights", "ai", "decision", "analytics"],
+      },
     ],
   },
   {
     title: "Team",
     items: [
-      { to: "/dashboard/admins", label: "Admins & Staff", hint: "Invite, suspend, reset access", icon: ShieldCheck },
+      {
+        to: "/dashboard/admins",
+        label: "Admins & Staff",
+        hint: "Invite, suspend, reset access",
+        icon: ShieldCheck,
+      },
     ],
   },
 ];
@@ -96,7 +149,12 @@ const PLAYER_GROUPS: Group[] = [
     title: "Training",
     items: [
       { to: "/student", label: "My Attendance", hint: "Sessions & streaks", icon: ClipboardCheck },
-      { to: "/student/progress", label: "My Performance", hint: "Progress & milestones", icon: LineChart },
+      {
+        to: "/student/progress",
+        label: "My Performance",
+        hint: "Progress & milestones",
+        icon: LineChart,
+      },
     ],
   },
   {
@@ -107,9 +165,7 @@ const PLAYER_GROUPS: Group[] = [
   },
   {
     title: "Fees",
-    items: [
-      { to: "/fees", label: "My Fees", hint: "Payments & receipts", icon: IndianRupee },
-    ],
+    items: [{ to: "/fees", label: "My Fees", hint: "Payments & receipts", icon: IndianRupee }],
   },
 ];
 
@@ -130,9 +186,7 @@ function ManageHub() {
     const gated = raw
       .map((g) => ({
         ...g,
-        items: g.items.filter(
-          (i) => !i.requiresFeature || features[i.requiresFeature] !== false,
-        ),
+        items: g.items.filter((i) => !i.requiresFeature || features[i.requiresFeature] !== false),
       }))
       .filter((g) => g.items.length > 0);
 
@@ -152,16 +206,13 @@ function ManageHub() {
       .filter((g) => g.items.length > 0);
   }, [role, q, features]);
 
-  const roleLabel =
-    role === "owner" ? "Owner" : role === "admin" ? "Admin" : "Player";
+  const roleLabel = role === "owner" ? "Owner" : role === "admin" ? "Admin" : "Player";
 
   return (
     <div className="-mt-4 md:-mt-8 space-y-4 pb-4">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 pt-2 pb-1">
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">
-            Manage
-          </h1>
+          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">Manage</h1>
           <p className="text-[11px] text-muted-foreground leading-tight truncate">
             {tenant.name} · {roleLabel} · Daily operations
           </p>

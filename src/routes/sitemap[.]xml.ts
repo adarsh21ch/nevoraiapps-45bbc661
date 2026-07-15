@@ -4,18 +4,37 @@ import type {} from "@tanstack/react-start";
 const BASE_URL = "https://nevoraiapps.lovable.app";
 
 const paths = [
-  "/", "/about", "/programs", "/coaches", "/facilities",
-  "/achievements", "/gallery", "/matches", "/testimonials",
-  "/faq", "/admissions", "/fees", "/contact", "/location", "/star-players",
-  "/policies/terms", "/policies/privacy", "/policies/refund",
-  "/policies/fee", "/policies/conduct", "/policies/leave", "/policies/medical",
+  "/",
+  "/about",
+  "/programs",
+  "/coaches",
+  "/facilities",
+  "/achievements",
+  "/gallery",
+  "/matches",
+  "/testimonials",
+  "/faq",
+  "/admissions",
+  "/fees",
+  "/contact",
+  "/location",
+  "/star-players",
+  "/policies/terms",
+  "/policies/privacy",
+  "/policies/refund",
+  "/policies/fee",
+  "/policies/conduct",
+  "/policies/leave",
+  "/policies/medical",
 ];
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const urls = paths.map((p) => `  <url><loc>${BASE_URL}${p}</loc><changefreq>weekly</changefreq></url>`).join("\n");
+        const urls = paths
+          .map((p) => `  <url><loc>${BASE_URL}${p}</loc><changefreq>weekly</changefreq></url>`)
+          .join("\n");
         const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>`;
         return new Response(xml, {
           headers: {

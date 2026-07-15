@@ -34,7 +34,9 @@ export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
           // Active students in this tenant with a fee plan
           const { data: students } = await supabaseAdmin
             .from("students")
-            .select("id, name, phone, guardian_name, guardian_phone, joined_at, fee_plans(amount, type)")
+            .select(
+              "id, name, phone, guardian_name, guardian_phone, joined_at, fee_plans(amount, type)",
+            )
             .eq("tenant_id", t.id)
             .eq("status", "active")
             .not("fee_plan_id", "is", null);
@@ -57,7 +59,10 @@ export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
             if (joined && joined > periodStart) continue; // not enrolled yet
 
             const phoneRaw = (s.guardian_phone || s.phone || "").replace(/\D/g, "");
-            if (!phoneRaw) { skipped++; continue; }
+            if (!phoneRaw) {
+              skipped++;
+              continue;
+            }
             const waNumber = phoneRaw.length === 10 ? `91${phoneRaw}` : phoneRaw;
 
             const greet = s.guardian_name?.trim()
@@ -70,19 +75,17 @@ export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
               `Kripya jald payment kar dein. Dhanyavaad 🙏 — ${t.name}`;
             const whatsapp_url = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
 
-            const { error: insErr } = await supabaseAdmin
-              .from("reminder_logs")
-              .insert({
-                tenant_id: t.id,
-                student_id: s.id,
-                period,
-                channel: "whatsapp",
-                message,
-                whatsapp_url,
-                phone: waNumber,
-                amount: plan.amount,
-                status: "queued",
-              });
+            const { error: insErr } = await supabaseAdmin.from("reminder_logs").insert({
+              tenant_id: t.id,
+              student_id: s.id,
+              period,
+              channel: "whatsapp",
+              message,
+              whatsapp_url,
+              phone: waNumber,
+              amount: plan.amount,
+              status: "queued",
+            });
             if (!insErr) queued++;
             else skipped++;
           }

@@ -81,12 +81,8 @@ function StudentProfilePage() {
         </div>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-semibold truncate">{s.name}</h1>
-          {s.player_id && (
-            <p className="text-xs text-muted-foreground">ID · {s.player_id}</p>
-          )}
-          {s.playing_role && (
-            <p className="text-xs text-muted-foreground">{s.playing_role}</p>
-          )}
+          {s.player_id && <p className="text-xs text-muted-foreground">ID · {s.player_id}</p>}
+          {s.playing_role && <p className="text-xs text-muted-foreground">{s.playing_role}</p>}
         </div>
       </Card>
 
@@ -141,9 +137,7 @@ function StudentProfilePage() {
       {/* Awards */}
       {p.awards.length > 0 && (
         <section aria-label="Awards">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-            Awards
-          </p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">Awards</p>
           <div className="space-y-2">
             {p.awards.slice(0, 10).map((a) => (
               <Card key={a.id} className="p-3 flex items-center gap-3">

@@ -49,16 +49,18 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { VirtualList } from "@/components/ds/VirtualList";
 
-
 export const Route = createFileRoute("/dashboard/fees")({
   validateSearch: (search: Record<string, unknown>): { filter?: Filter } => {
     const f = search.filter;
     return f === "pending" || f === "paid" || f === "all" || f === "overdue" ? { filter: f } : {};
   },
 
-  component: () => (<OwnerOnly><FeeRegister /></OwnerOnly>),
+  component: () => (
+    <OwnerOnly>
+      <FeeRegister />
+    </OwnerOnly>
+  ),
 });
-
 
 type Filter = "all" | "pending" | "paid" | "overdue";
 
@@ -78,7 +80,6 @@ type RegisterRow = {
   due: DueStatus;
   paidPayment: PaidPayment | null;
 };
-
 
 type PaidPayment = {
   id: string;
@@ -109,8 +110,9 @@ function FeeRegister() {
   const [search, setSearch] = useState("");
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
-  useEffect(() => { setFilter(initialFilter); }, [initialFilter]);
-
+  useEffect(() => {
+    setFilter(initialFilter);
+  }, [initialFilter]);
 
   const studentsQ = useQuery({
     queryKey: qk.students(tenant.id),
@@ -127,7 +129,6 @@ function FeeRegister() {
     if (s) qc.setQueryData(qk.student(studentId), s);
     setProfileId(studentId);
   };
-
 
   const rows: RegisterRow[] = useMemo(() => {
     const paidByStudent = new Map<string, Set<string>>();
@@ -188,16 +189,15 @@ function FeeRegister() {
 
   const pendingRows = rows.filter((r) => r.due.state === "pending");
   const paidRows = rows.filter((r) => r.due.state === "paid");
-  const overdueRows = pendingRows.filter(
-    (r) => r.due.state === "pending" && r.due.overdueDays > 0,
-  );
+  const overdueRows = pendingRows.filter((r) => r.due.state === "pending" && r.due.overdueDays > 0);
   const collectedAmount = paidRows.reduce(
     (s, r) => s + Number(r.paidPayment?.amount ?? r.amount),
     0,
   );
   const pendingAmount = pendingRows.reduce((s, r) => s + r.amount, 0);
   const expectedAmount = collectedAmount + pendingAmount;
-  const collectionPct = expectedAmount > 0 ? Math.round((collectedAmount / expectedAmount) * 100) : 0;
+  const collectionPct =
+    expectedAmount > 0 ? Math.round((collectedAmount / expectedAmount) * 100) : 0;
 
   const byFilter =
     filter === "pending"
@@ -223,7 +223,6 @@ function FeeRegister() {
     : byFilter;
   const loading = studentsQ.isLoading || paymentsQ.isLoading;
 
-
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["d", "fees"] });
     qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
@@ -234,7 +233,9 @@ function FeeRegister() {
       {/* Header — uniform across dashboard tabs */}
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 pt-2 pb-1">
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">Student Fees</h1>
+          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">
+            Student Fees
+          </h1>
           <p className="text-[11px] text-muted-foreground leading-tight truncate">
             Who's paid, who's pending — collect in one tap.
           </p>
@@ -337,7 +338,6 @@ function FeeRegister() {
             hasStudents={rows.length > 0}
           />
         ) : (
-
           <VirtualList
             items={visible}
             estimateSize={84}
@@ -368,7 +368,6 @@ function FeeRegister() {
               </div>
             )}
           />
-
         )}
       </section>
 
@@ -399,7 +398,10 @@ function FeesProfileSheet({
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="rounded-t-2xl p-0 border-0 max-h-[92vh] overflow-y-auto">
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl p-0 border-0 max-h-[92vh] overflow-y-auto"
+        >
           <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
           <div className="p-5 pt-3">
             <SheetHeader>
@@ -422,7 +424,6 @@ function FeesProfileSheet({
     </Dialog>
   );
 }
-
 
 /* ---------- Compact KPI strip ---------- */
 
@@ -530,7 +531,6 @@ function ChipFilters({
   );
 }
 
-
 /* ---------- Row ---------- */
 
 function FeeRow({
@@ -599,9 +599,7 @@ function FeeRow({
               </span>
             </div>
             {meta && (
-              <div className="text-[11px] text-muted-foreground truncate leading-tight">
-                {meta}
-              </div>
+              <div className="text-[11px] text-muted-foreground truncate leading-tight">{meta}</div>
             )}
           </div>
         </button>
@@ -662,8 +660,6 @@ function FeeRow({
     </li>
   );
 }
-
-
 
 /* ---------- Empty / loading ---------- */
 
@@ -744,23 +740,14 @@ function EmptyState({
           <PartyPopper className="size-7" style={{ color: "var(--brand)" }} />
         </div>
         <div className="mt-3 font-semibold text-lg">
-          {filter === "overdue"
-            ? "Nothing overdue"
-            : `All fees collected for ${monthLabel}`}
+          {filter === "overdue" ? "Nothing overdue" : `All fees collected for ${monthLabel}`}
         </div>
-        <div className="text-sm text-muted-foreground mt-1">
-          Nothing to chase right now 🎉
-        </div>
+        <div className="text-sm text-muted-foreground mt-1">Nothing to chase right now 🎉</div>
       </div>
     );
   }
-  return (
-    <div className="p-10 text-center text-sm text-muted-foreground">
-      Nothing here yet.
-    </div>
-  );
+  return <div className="p-10 text-center text-sm text-muted-foreground">Nothing here yet.</div>;
 }
-
 
 /* ---------- Collect flow (responsive: bottom-sheet on mobile, modal on desktop) ---------- */
 
@@ -788,9 +775,7 @@ function CollectFlow({
           <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
           <div className="p-5 pt-4">
             <SheetHeader>
-              <SheetTitle>
-                {row ? `Collect fee — ${row.name}` : "Collect fee"}
-              </SheetTitle>
+              <SheetTitle>{row ? `Collect fee — ${row.name}` : "Collect fee"}</SheetTitle>
             </SheetHeader>
             {row && <CollectForm row={row} tenantId={tenantId} onDone={onDone} />}
           </div>
@@ -872,8 +857,8 @@ function CollectForm({
         </div>
         <p className="text-xs text-muted-foreground">
           Fee is {money(row.amount)}
-          {row.hasCustomFee ? " (custom for this student)" : ""}. Edit for partial or
-          discounted amounts.
+          {row.hasCustomFee ? " (custom for this student)" : ""}. Edit for partial or discounted
+          amounts.
         </p>
       </div>
 
@@ -940,7 +925,11 @@ function MethodButton({
       )}
       style={
         active
-          ? { backgroundColor: "var(--brand)", borderColor: "var(--brand)", color: "var(--brand-ink)" }
+          ? {
+              backgroundColor: "var(--brand)",
+              borderColor: "var(--brand)",
+              color: "var(--brand-ink)",
+            }
           : undefined
       }
     >

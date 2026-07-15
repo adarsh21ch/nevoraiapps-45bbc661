@@ -15,11 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 // Query-key helper — one convention for all aggregation queries so any part of
 // the app can invalidate a domain cache cleanly.
 // -----------------------------------------------------------------------------
-export const aggKey = (
-  domain: string,
-  tenantId: string,
-  params?: Record<string, unknown>,
-) => ["agg", domain, tenantId, params ?? null] as const;
+export const aggKey = (domain: string, tenantId: string, params?: Record<string, unknown>) =>
+  ["agg", domain, tenantId, params ?? null] as const;
 
 // -----------------------------------------------------------------------------
 // Types (compact — mirror what each RPC returns)
@@ -45,7 +42,13 @@ export type DashboardSummary = {
 };
 
 export type AttendanceTrendPoint = { date: string; present: number; absent: number; total: number };
-export type AtRiskStudent = { student_id: string; name: string; absences: number; total: number; absent_pct: number };
+export type AtRiskStudent = {
+  student_id: string;
+  name: string;
+  absences: number;
+  total: number;
+  absent_pct: number;
+};
 export type AttendanceSummary = {
   range: { from: string; to: string };
   total_marks: number;
@@ -66,7 +69,13 @@ export type FinanceSummary = {
   overdue_amount: number;
   invoice_status: Record<string, { count: number; total: number }>;
   trend: { month: string; collected: number }[];
-  top_defaulters: { student_id: string; name: string; outstanding: number; invoices: number; latest_due: string | null }[];
+  top_defaulters: {
+    student_id: string;
+    name: string;
+    outstanding: number;
+    invoices: number;
+    latest_due: string | null;
+  }[];
 };
 
 export type RegistrationSummary = {
@@ -134,16 +143,46 @@ export type TournamentSummary = {
 };
 
 export type PointsTableRow = {
-  team_id: string; name: string; short_name: string | null; logo_url: string | null;
-  played: number; won: number; lost: number; tied: number; points: number;
+  team_id: string;
+  name: string;
+  short_name: string | null;
+  logo_url: string | null;
+  played: number;
+  won: number;
+  lost: number;
+  tied: number;
+  points: number;
 };
 
-export type TopBatter = { athlete_profile_id: string; name: string; runs: number; matches: number; highest_score: number | null; average: number | null; strike_rate: number | null };
-export type TopBowler = { athlete_profile_id: string; name: string; wickets: number; matches: number; best_bowling: string | null; average: number | null; economy_rate: number | null };
+export type TopBatter = {
+  athlete_profile_id: string;
+  name: string;
+  runs: number;
+  matches: number;
+  highest_score: number | null;
+  average: number | null;
+  strike_rate: number | null;
+};
+export type TopBowler = {
+  athlete_profile_id: string;
+  name: string;
+  wickets: number;
+  matches: number;
+  best_bowling: string | null;
+  average: number | null;
+  economy_rate: number | null;
+};
 
 export type AcademyRecordsSummary = {
   total: number;
-  top: Array<{ id: string; record_type: string; title: string; value: string | null; holder_name: string | null; achieved_at: string | null }>;
+  top: Array<{
+    id: string;
+    record_type: string;
+    title: string;
+    value: string | null;
+    holder_name: string | null;
+    achieved_at: string | null;
+  }>;
 };
 
 export type AiReportInputs = {
@@ -166,7 +205,7 @@ async function callRpc<T>(name: string, args: Record<string, unknown>): Promise<
 }
 
 const toIsoDate = (d: Date | string | undefined | null): string | null =>
-  d == null ? null : (typeof d === "string" ? d : d.toISOString().slice(0, 10));
+  d == null ? null : typeof d === "string" ? d : d.toISOString().slice(0, 10);
 
 // -----------------------------------------------------------------------------
 // Public API — one function per RPC.

@@ -8,9 +8,15 @@ export const Route = createFileRoute("/demo")({
   head: () => ({
     meta: [
       { title: "Book a demo · AcademyOS" },
-      { name: "description", content: "Book a 20-minute walkthrough of AcademyOS for your sports academy." },
+      {
+        name: "description",
+        content: "Book a 20-minute walkthrough of AcademyOS for your sports academy.",
+      },
       { property: "og:title", content: "Book an AcademyOS demo" },
-      { property: "og:description", content: "See how AcademyOS runs an academy end-to-end. 20 minutes, live." },
+      {
+        property: "og:description",
+        content: "See how AcademyOS runs an academy end-to-end. 20 minutes, live.",
+      },
       { property: "og:type", content: "website" },
     ],
   }),
@@ -42,7 +48,7 @@ function DemoPage() {
     }
     // Post to a general demo webhook via WhatsApp deep-link fallback (no backend endpoint yet).
     const body = encodeURIComponent(
-      `New AcademyOS demo request:\n\nName: ${parsed.data.name}\nEmail: ${parsed.data.email}\nPhone: ${parsed.data.phone}\nAcademy: ${parsed.data.academy ?? "-"}\nSport: ${parsed.data.sport ?? "-"}\nMessage: ${parsed.data.message ?? "-"}`
+      `New AcademyOS demo request:\n\nName: ${parsed.data.name}\nEmail: ${parsed.data.email}\nPhone: ${parsed.data.phone}\nAcademy: ${parsed.data.academy ?? "-"}\nSport: ${parsed.data.sport ?? "-"}\nMessage: ${parsed.data.message ?? "-"}`,
     );
     // Open a mailto so the user's client sends it (no backend key needed for launch).
     window.location.href = `mailto:hello@nevorai.com?subject=AcademyOS%20demo%20request&body=${body}`;
@@ -54,11 +60,19 @@ function DemoPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="font-semibold tracking-tight">AcademyOS</Link>
+          <Link to="/" className="font-semibold tracking-tight">
+            AcademyOS
+          </Link>
           <nav className="flex items-center gap-4 text-sm">
-            <Link to="/features" className="text-muted-foreground hover:text-foreground">Features</Link>
-            <Link to="/pricing" className="text-muted-foreground hover:text-foreground">Pricing</Link>
-            <Link to="/demo" className="font-medium">Book a demo</Link>
+            <Link to="/features" className="text-muted-foreground hover:text-foreground">
+              Features
+            </Link>
+            <Link to="/pricing" className="text-muted-foreground hover:text-foreground">
+              Pricing
+            </Link>
+            <Link to="/demo" className="font-medium">
+              Book a demo
+            </Link>
           </nav>
         </div>
       </header>
@@ -66,7 +80,8 @@ function DemoPage() {
       <section className="max-w-3xl mx-auto px-4 py-16">
         <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Book a 20-minute demo</h1>
         <p className="mt-2 text-muted-foreground">
-          We'll walk you through your setup live — attendance, billing, match center and the parent app.
+          We'll walk you through your setup live — attendance, billing, match center and the parent
+          app.
         </p>
 
         {sent ? (
@@ -75,7 +90,11 @@ function DemoPage() {
             <div>
               <p className="font-medium">Thanks! We'll be in touch within 1 business day.</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Meanwhile, feel free to <Link to="/auth" className="underline">start a free trial</Link>.
+                Meanwhile, feel free to{" "}
+                <Link to="/auth" className="underline">
+                  start a free trial
+                </Link>
+                .
               </p>
             </div>
           </div>

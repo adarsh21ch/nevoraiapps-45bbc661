@@ -116,8 +116,8 @@ function AuthPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg text-zinc-400"
           >
-            Sign in to run your academy — registrations, fees, batches and attendance,
-            all in one place on your phone.
+            Sign in to run your academy — registrations, fees, batches and attendance, all in one
+            place on your phone.
           </motion.p>
 
           <motion.ul
@@ -150,10 +150,7 @@ function AuthPage() {
       {/* Right — friendly form */}
       <main className="relative flex items-center justify-center bg-white p-6 sm:p-10">
         {/* Mobile-only mini brand strip */}
-        <Link
-          to="/"
-          className="absolute left-4 top-4 flex items-center gap-2 lg:hidden"
-        >
+        <Link to="/" className="absolute left-4 top-4 flex items-center gap-2 lg:hidden">
           <div className="grid h-8 w-8 place-items-center rounded bg-lime-400 text-[13px] font-black text-black">
             A
           </div>

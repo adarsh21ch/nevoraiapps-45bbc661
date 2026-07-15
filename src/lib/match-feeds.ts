@@ -42,10 +42,7 @@ export function useUpcomingMatches(tenantId: string | undefined, limit = 5) {
   today.setHours(0, 0, 0, 0);
   const data = (q.data ?? [])
     .filter(
-      (m) =>
-        m.status === "scheduled" &&
-        m.scheduled_date &&
-        new Date(m.scheduled_date) >= today,
+      (m) => m.status === "scheduled" && m.scheduled_date && new Date(m.scheduled_date) >= today,
     )
     .sort((a, b) => (a.scheduled_date! < b.scheduled_date! ? -1 : 1))
     .slice(0, limit);
@@ -63,9 +60,7 @@ export function useTodaysMatches(tenantId: string | undefined) {
 
 export function useRecentMatches(tenantId: string | undefined, limit = 5) {
   const q = useTenantMatches(tenantId);
-  const data = (q.data ?? [])
-    .filter((m) => m.status === "completed")
-    .slice(0, limit);
+  const data = (q.data ?? []).filter((m) => m.status === "completed").slice(0, limit);
   return { ...q, data };
 }
 

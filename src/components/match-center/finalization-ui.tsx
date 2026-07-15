@@ -48,7 +48,6 @@ import type { MCBallEvent } from "@/lib/mc-ball-events";
 // only enter the chunk graph when the user actually finalizes / unlocks
 // a match (a rare, action-triggered operation).
 
-
 /* ============================================================
  * Finalization dialog
  * ============================================================ */
@@ -97,8 +96,7 @@ export function FinalizationDialog({
   const [pomName, setPomName] = useState<string>(suggestions[0]?.name ?? "");
 
   const overridden =
-    victoryType !== detectedResult.victoryType ||
-    winnerTeamId !== detectedResult.winnerTeamId;
+    victoryType !== detectedResult.victoryType || winnerTeamId !== detectedResult.winnerTeamId;
 
   const runFinalize = async () => {
     if (!canFinalize(role)) {
@@ -134,7 +132,11 @@ export function FinalizationDialog({
       toast.success("Match finalized and locked");
       // Career Engine: refresh every participant's cache from finalized matches.
       try {
-        const [{ updateCareersForMatch }, { updateTournamentForMatch }, { updateAcademyRecordsForMatch }] = await Promise.all([
+        const [
+          { updateCareersForMatch },
+          { updateTournamentForMatch },
+          { updateAcademyRecordsForMatch },
+        ] = await Promise.all([
           import("@/lib/mc-career-engine"),
           import("@/lib/mc-tournament-engine"),
           import("@/lib/mc-academy-records"),
@@ -149,7 +151,9 @@ export function FinalizationDialog({
         const { processMatchRecognitions } = await import("@/lib/mc-recognition-engine");
         const recog = await processMatchRecognitions(matchId);
         if (recog.inserted > 0) {
-          toast.success(`${recog.inserted} recognition${recog.inserted === 1 ? "" : "s"} suggested`);
+          toast.success(
+            `${recog.inserted} recognition${recog.inserted === 1 ? "" : "s"} suggested`,
+          );
         }
         // AI Insights Engine: auto-generate match report (deterministic).
         const { processMatchAI } = await import("@/lib/mc-ai-engine");
@@ -179,8 +183,8 @@ export function FinalizationDialog({
             Finalize match — step {step} of 4
           </DialogTitle>
           <DialogDescription>
-            Finalizing is a one-way action. Once locked, only the Academy Owner
-            can reopen this match.
+            Finalizing is a one-way action. Once locked, only the Academy Owner can reopen this
+            match.
           </DialogDescription>
         </DialogHeader>
 
@@ -190,9 +194,7 @@ export function FinalizationDialog({
               <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Final result
               </div>
-              <div className="mt-1 text-xl font-semibold">
-                {detectedResult.summary}
-              </div>
+              <div className="mt-1 text-xl font-semibold">{detectedResult.summary}</div>
               <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <div className="text-xs text-muted-foreground">Team A</div>
@@ -205,8 +207,8 @@ export function FinalizationDialog({
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              Verify the detected outcome. If something looks wrong, you can
-              override it in the next step.
+              Verify the detected outcome. If something looks wrong, you can override it in the next
+              step.
             </p>
           </div>
         )}
@@ -303,9 +305,7 @@ export function FinalizationDialog({
                         setPomName(s.name);
                       }}
                       className={`w-full rounded-lg border p-3 text-left text-sm transition ${
-                        pomName === s.name
-                          ? "border-primary bg-primary/5"
-                          : "hover:bg-accent"
+                        pomName === s.name ? "border-primary bg-primary/5" : "hover:bg-accent"
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -315,9 +315,7 @@ export function FinalizationDialog({
                           {s.category}
                         </Badge>
                       </div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">
-                        {s.reason}
-                      </div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">{s.reason}</div>
                     </button>
                   ))}
                 </div>
@@ -358,9 +356,7 @@ export function FinalizationDialog({
                 </div>
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">
-                  Player of the Match
-                </div>
+                <div className="text-xs text-muted-foreground">Player of the Match</div>
                 <div className="font-medium">{pomName || "—"}</div>
               </div>
               {overridden && (
@@ -370,8 +366,7 @@ export function FinalizationDialog({
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              This match will be locked. Scoring, undo, XI edits and toss edits
-              will be disabled.
+              This match will be locked. Scoring, undo, XI edits and toss edits will be disabled.
             </p>
           </div>
         )}
@@ -387,10 +382,7 @@ export function FinalizationDialog({
             </Button>
           )}
           {step < 4 ? (
-            <Button
-              onClick={() => setStep((s) => (s + 1) as 1 | 2 | 3 | 4)}
-              disabled={busy}
-            >
+            <Button onClick={() => setStep((s) => (s + 1) as 1 | 2 | 3 | 4)} disabled={busy}>
               Next
             </Button>
           ) : (
@@ -457,7 +449,11 @@ export function UnlockMatchDialog({
       await unlockMatch({ matchId, tenantId, actorId, reason: reason.trim() });
       // Career Engine: rebuild affected athletes so unlocked match is excluded.
       try {
-        const [{ rebuildCareersAfterUnlock }, { updateTournamentForMatch }, { rebuildAcademyRecords }] = await Promise.all([
+        const [
+          { rebuildCareersAfterUnlock },
+          { updateTournamentForMatch },
+          { rebuildAcademyRecords },
+        ] = await Promise.all([
           import("@/lib/mc-career-engine"),
           import("@/lib/mc-tournament-engine"),
           import("@/lib/mc-academy-records"),
@@ -489,8 +485,8 @@ export function UnlockMatchDialog({
             <Unlock className="size-5 text-amber-500" /> Unlock finalized match
           </DialogTitle>
           <DialogDescription>
-            The match will be reopened for editing. A full audit log entry will
-            be created with your reason.
+            The match will be reopened for editing. A full audit log entry will be created with your
+            reason.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -511,8 +507,8 @@ export function UnlockMatchDialog({
               className="mt-1"
             />
             <span>
-              I understand this reopens scoring, undo and XI edits until the
-              match is finalized again.
+              I understand this reopens scoring, undo and XI edits until the match is finalized
+              again.
             </span>
           </label>
         </div>

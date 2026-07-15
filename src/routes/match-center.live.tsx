@@ -9,7 +9,9 @@ import { listMatches, type MatchWithTeams } from "@/lib/mc-matches";
 import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/live")({
-  head: () => ({ meta: [{ title: "Live · Match Center" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Live · Match Center" }, { name: "robots", content: "noindex" }],
+  }),
   component: LivePage,
 });
 
@@ -111,10 +113,7 @@ function LiveHeroCard({ match }: { match: MatchWithTeams }) {
 
       {/* CTA */}
       <div className="border-t border-border/60 bg-muted/30 px-3 py-2.5">
-        <Button
-          asChild
-          className="h-11 w-full rounded-xl text-[14px] font-semibold"
-        >
+        <Button asChild className="h-11 w-full rounded-xl text-[14px] font-semibold">
           <Link to="/scorer/$matchId" params={{ matchId: match.id }}>
             <Radio className="mr-1.5 size-4" /> Resume Live Match
             <ChevronRight className="ml-auto size-4 opacity-80" />

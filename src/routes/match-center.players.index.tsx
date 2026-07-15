@@ -164,7 +164,8 @@ function CreateAthleteDialog({
         <DialogHeader>
           <DialogTitle>Create athlete profile</DialogTitle>
           <DialogDescription>
-            Pick a student from your academy. Their profile becomes the anchor for every sport-specific detail.
+            Pick a student from your academy. Their profile becomes the anchor for every
+            sport-specific detail.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -222,7 +223,9 @@ function CreateAthleteDialog({
                           {age !== null && ` · ${age} yrs`}
                         </div>
                       </div>
-                      {active && <span className="text-xs text-primary font-semibold">Selected</span>}
+                      {active && (
+                        <span className="text-xs text-primary font-semibold">Selected</span>
+                      )}
                     </button>
                   );
                 })

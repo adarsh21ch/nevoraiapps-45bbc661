@@ -17,11 +17,7 @@
  * statistics coherent with the replay engine and avoids duplication.
  * ================================================================ */
 
-import type {
-  DismissalType,
-  ExtraType,
-  MCBallEvent,
-} from "@/lib/mc-ball-events";
+import type { DismissalType, ExtraType, MCBallEvent } from "@/lib/mc-ball-events";
 import { isLegalDelivery } from "@/lib/mc-ball-events-core";
 import {
   ballSwapsStrike,
@@ -132,10 +128,7 @@ export function computeBatting(events: MCBallEvent[]): BattingTable {
   const byKey = new Map<PlayerKey, BattingStat>();
   let position = 0;
 
-  const ensure = (
-    athleteId: string | null,
-    name: string | null,
-  ): BattingStat | null => {
+  const ensure = (athleteId: string | null, name: string | null): BattingStat | null => {
     const ref = refFrom(athleteId, name);
     if (!ref) return null;
     let row = byKey.get(ref.key);
@@ -190,9 +183,7 @@ export function computeBatting(events: MCBallEvent[]): BattingTable {
         e.dismissed_athlete_id ?? e.striker_athlete_id,
         e.dismissed_name ?? e.striker_name,
       );
-      const target = dismissedRef
-        ? byKey.get(dismissedRef.key) ?? null
-        : striker;
+      const target = dismissedRef ? (byKey.get(dismissedRef.key) ?? null) : striker;
       if (target && target.notOut) {
         target.notOut = false;
         target.dismissalType = dt;
@@ -213,16 +204,13 @@ export function computeBatting(events: MCBallEvent[]): BattingTable {
   let highest: BattingStat | null = null;
   for (const row of byKey.values()) {
     row.strikeRate = row.balls > 0 ? +((row.runs / row.balls) * 100).toFixed(2) : 0;
-    row.boundaryPct =
-      row.runs > 0 ? +((row.boundaryRuns / row.runs) * 100).toFixed(2) : 0;
+    row.boundaryPct = row.runs > 0 ? +((row.boundaryRuns / row.runs) * 100).toFixed(2) : 0;
     row.isCentury = row.runs >= 100;
     row.isHalfCentury = row.runs >= 50 && row.runs < 100;
     if (!highest || row.runs > highest.runs) highest = row;
   }
 
-  const ordered = Array.from(byKey.values()).sort(
-    (a, b) => a.battingPosition - b.battingPosition,
-  );
+  const ordered = Array.from(byKey.values()).sort((a, b) => a.battingPosition - b.battingPosition);
   return { byKey, ordered, highestScore: highest };
 }
 
@@ -323,8 +311,7 @@ export function computeBowling(events: MCBallEvent[]): BowlingTable {
 
     if (legal) row.legalBalls += 1;
     if (legal && conceded === 0 && (e.runs_off_bat ?? 0) === 0) row.dotBalls += 1;
-    if ((e.runs_off_bat ?? 0) === 4 || (e.runs_off_bat ?? 0) === 6)
-      row.boundaryBalls += 1;
+    if ((e.runs_off_bat ?? 0) === 4 || (e.runs_off_bat ?? 0) === 6) row.boundaryBalls += 1;
     if (e.extra_type === "wide") row.wides += 1;
     if (e.extra_type === "no_ball") row.noBalls += 1;
 
@@ -359,8 +346,7 @@ export function computeBowling(events: MCBallEvent[]): BowlingTable {
     const oversFloat = row.overs + row.overBalls / 6;
     row.economy = oversFloat > 0 ? +(row.runsConceded / oversFloat).toFixed(2) : 0;
     row.strikeRate = row.wickets > 0 ? +(row.legalBalls / row.wickets).toFixed(2) : 0;
-    row.average =
-      row.wickets > 0 ? +(row.runsConceded / row.wickets).toFixed(2) : 0;
+    row.average = row.wickets > 0 ? +(row.runsConceded / row.wickets).toFixed(2) : 0;
     row.bestBowlingRuns = row.runsConceded;
     row.bestBowlingWickets = row.wickets;
     row.bestBowlingDisplay = `${row.wickets}/${row.runsConceded}`;
@@ -375,9 +361,7 @@ export function computeBowling(events: MCBallEvent[]): BowlingTable {
 
   const ordered = Array.from(byKey.values()).sort(
     (a, b) =>
-      b.wickets - a.wickets ||
-      a.runsConceded - b.runsConceded ||
-      b.legalBalls - a.legalBalls,
+      b.wickets - a.wickets || a.runsConceded - b.runsConceded || b.legalBalls - a.legalBalls,
   );
   return { byKey, ordered, bestBowler: best };
 }
@@ -443,9 +427,7 @@ export function computeFielding(events: MCBallEvent[]): FieldingTable {
   }
 
   const ordered = Array.from(byKey.values()).sort(
-    (a, b) =>
-      b.catches + b.stumpings + b.runOuts -
-      (a.catches + a.stumpings + a.runOuts),
+    (a, b) => b.catches + b.stumpings + b.runOuts - (a.catches + a.stumpings + a.runOuts),
   );
   return { byKey, ordered };
 }
@@ -531,7 +513,8 @@ export function computeExtras(events: MCBallEvent[]): ExtrasBreakdown {
     const t = e.extra_type as ExtraType | null;
     const ex = e.extra_runs ?? 0;
     if (t === "wide") wides += ex;
-    else if (t === "no_ball") noBalls += 1; // +off-bat is batter runs; +ex is byes off no-ball
+    else if (t === "no_ball")
+      noBalls += 1; // +off-bat is batter runs; +ex is byes off no-ball
     else if (t === "bye") byes += ex;
     else if (t === "leg_bye") legByes += ex;
     else if (t === "penalty") penalty += ex;
@@ -572,11 +555,9 @@ export function computeOverSummaries(events: MCBallEvent[]): OverSummaryStat[] {
     const legal = isLegalDelivery(e.extra_type as ExtraType | null);
     if (legal) row.legalBalls += 1;
     else row.illegalBalls += 1;
-    if ((e.runs_off_bat ?? 0) === 4 || (e.runs_off_bat ?? 0) === 6)
-      row.boundaries += 1;
+    if ((e.runs_off_bat ?? 0) === 4 || (e.runs_off_bat ?? 0) === 6) row.boundaries += 1;
     if (legal && total === 0) row.dotBalls += 1;
-    if (isWicketDismissal(e.dismissal_type as DismissalType | null))
-      row.wickets += 1;
+    if (isWicketDismissal(e.dismissal_type as DismissalType | null)) row.wickets += 1;
   }
   for (const row of map.values()) {
     row.completed = row.legalBalls >= 6;
@@ -594,15 +575,15 @@ export function computeOverSummaries(events: MCBallEvent[]): OverSummaryStat[] {
  * ================================================================ */
 
 export interface OverHistoryRow {
-  overNumber: number;           // 0-indexed as stored
-  overLabel: string;            // "1", "2", ...
-  bowler: string;               // display name, "" if unknown
-  chips: string[];              // ball-by-ball chip labels (legal + illegal)
-  runs: number;                 // total runs in the over (bat + extras)
-  wickets: number;              // wickets in the over
-  runningScore: string;         // e.g. "87/2" at end of the over
+  overNumber: number; // 0-indexed as stored
+  overLabel: string; // "1", "2", ...
+  bowler: string; // display name, "" if unknown
+  chips: string[]; // ball-by-ball chip labels (legal + illegal)
+  runs: number; // total runs in the over (bat + extras)
+  wickets: number; // wickets in the over
+  runningScore: string; // e.g. "87/2" at end of the over
   legalBalls: number;
-  completed: boolean;           // 6 legal deliveries reached
+  completed: boolean; // 6 legal deliveries reached
 }
 
 export function computeOverHistory(
@@ -650,7 +631,6 @@ export function computeOverHistory(
   return out.sort((a, b) => a.overNumber - b.overNumber);
 }
 
-
 export function computeFallOfWickets(events: MCBallEvent[]): FallOfWicket[] {
   const out: FallOfWicket[] = [];
   let score = 0;
@@ -672,9 +652,7 @@ export function computeFallOfWickets(events: MCBallEvent[]): FallOfWicket[] {
           e.dismissed_athlete_id ?? e.striker_athlete_id,
           e.dismissed_name ?? e.striker_name,
         ),
-        bowler: isBowlerCredited(dt)
-          ? refFrom(e.bowler_athlete_id, e.bowler_name)
-          : null,
+        bowler: isBowlerCredited(dt) ? refFrom(e.bowler_athlete_id, e.bowler_name) : null,
         dismissal: dt,
       });
     }
@@ -730,9 +708,7 @@ export function computePartnerships(events: MCBallEvent[]): {
       striker = nonStriker;
       nonStriker = tmp;
     }
-
   }
-
 
   const current = cur;
   const all = current ? [...partnerships, current] : partnerships;
@@ -747,10 +723,7 @@ export interface TeamStatsOptions {
   target?: number | null;
 }
 
-export function computeTeamStats(
-  events: MCBallEvent[],
-  opts: TeamStatsOptions = {},
-): TeamStats {
+export function computeTeamStats(events: MCBallEvent[], opts: TeamStatsOptions = {}): TeamStats {
   let runs = 0;
   let wickets = 0;
   let legalBalls = 0;
@@ -770,8 +743,7 @@ export function computeTeamStats(
     if ((e.runs_off_bat ?? 0) === 4) fours += 1;
     else if ((e.runs_off_bat ?? 0) === 6) sixes += 1;
     if (legal && totalRunsForBall(e) === 0) dotBalls += 1;
-    if (isWicketDismissal(e.dismissal_type as DismissalType | null))
-      wickets += 1;
+    if (isWicketDismissal(e.dismissal_type as DismissalType | null)) wickets += 1;
   }
 
   const overs = Math.floor(legalBalls / 6);
@@ -790,9 +762,7 @@ export function computeTeamStats(
       ballsRemaining = Math.max(0, total * 6 - legalBalls);
       const oversLeft = ballsRemaining / 6;
       requiredRunRate =
-        oversLeft > 0 && requiredRuns > 0
-          ? +(requiredRuns / oversLeft).toFixed(2)
-          : 0;
+        oversLeft > 0 && requiredRuns > 0 ? +(requiredRuns / oversLeft).toFixed(2) : 0;
     }
   }
 
@@ -850,9 +820,7 @@ export function computeMatchSummary(
   let mostBoundaries: BattingStat | null = null;
   for (const b of batting.byKey.values()) {
     const total = b.fours + b.sixes;
-    const cur = mostBoundaries
-      ? mostBoundaries.fours + mostBoundaries.sixes
-      : -1;
+    const cur = mostBoundaries ? mostBoundaries.fours + mostBoundaries.sixes : -1;
     if (total > cur) mostBoundaries = b;
   }
 
@@ -913,10 +881,7 @@ export function computeInningsStatistics(
  * correct cache key.
  * ================================================================ */
 
-const memoCache = new WeakMap<
-  MCBallEvent[],
-  Map<string, InningsStatistics>
->();
+const memoCache = new WeakMap<MCBallEvent[], Map<string, InningsStatistics>>();
 
 export function computeInningsStatisticsMemo(
   events: MCBallEvent[],
@@ -986,10 +951,7 @@ export const calculateInningsStatisticsCached = computeInningsStatisticsMemo;
  * @param opts.preOver render the "Over N+1" pre-over label when the over
  *   has just been completed (legalBalls % 6 === 0 && legalBalls > 0).
  */
-export function formatLiveOver(
-  legalBalls: number,
-  opts?: { preOver?: boolean },
-): string {
+export function formatLiveOver(legalBalls: number, opts?: { preOver?: boolean }): string {
   const completedLegalBalls = Math.max(0, Math.trunc(legalBalls));
   if (completedLegalBalls === 0) return "Over 1";
   const completedOversBeforeCurrentBall = Math.floor((completedLegalBalls - 1) / 6);
@@ -1045,6 +1007,3 @@ export function formatOversCompact(legalBalls: number): string {
   if (balls === 0) return String(overs);
   return `${overs}.${balls}`;
 }
-
-
-

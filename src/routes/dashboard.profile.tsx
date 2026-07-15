@@ -28,10 +28,7 @@ import { tenantSiteUrl } from "@/lib/tenant";
 
 export const Route = createFileRoute("/dashboard/profile")({
   head: () => ({
-    meta: [
-      { title: "Profile · AcademyOS" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Profile · AcademyOS" }, { name: "robots", content: "noindex" }],
   }),
   component: ProfilePage,
 });
@@ -58,10 +55,30 @@ function ProfilePage() {
   sections.push({
     title: "My Account",
     rows: [
-      { to: "/dashboard/settings", label: "My Profile", hint: "Name and personal details", icon: UserCircle },
-      { to: "/dashboard/settings", label: "Password", hint: "Change your password", icon: KeyRound },
-      { to: "/dashboard/notifications", label: "Notifications", hint: "Delivery history & alerts", icon: BellRing },
-      { to: "/dashboard/settings", label: "Language & Theme", hint: "Interface preferences", icon: Palette },
+      {
+        to: "/dashboard/settings",
+        label: "My Profile",
+        hint: "Name and personal details",
+        icon: UserCircle,
+      },
+      {
+        to: "/dashboard/settings",
+        label: "Password",
+        hint: "Change your password",
+        icon: KeyRound,
+      },
+      {
+        to: "/dashboard/notifications",
+        label: "Notifications",
+        hint: "Delivery history & alerts",
+        icon: BellRing,
+      },
+      {
+        to: "/dashboard/settings",
+        label: "Language & Theme",
+        hint: "Interface preferences",
+        icon: Palette,
+      },
     ],
   });
 
@@ -70,17 +87,42 @@ function ProfilePage() {
     sections.push({
       title: "Academy Settings",
       rows: [
-        { to: "/dashboard/settings", label: "Academy Profile", hint: "Name, hours, contact, address", icon: Settings2 },
-        { to: "/dashboard/branding", label: "Branding", hint: "Logo, theme, colors", icon: Palette },
-        { to: "/dashboard/site", label: "Public Website", hint: "Edit pages, SEO, social, payments", icon: Globe },
-        { to: "/dashboard/subscription", label: "Subscription & Plan", hint: "Your AcademyOS plan", icon: CreditCard },
+        {
+          to: "/dashboard/settings",
+          label: "Academy Profile",
+          hint: "Name, hours, contact, address",
+          icon: Settings2,
+        },
+        {
+          to: "/dashboard/branding",
+          label: "Branding",
+          hint: "Logo, theme, colors",
+          icon: Palette,
+        },
+        {
+          to: "/dashboard/site",
+          label: "Public Website",
+          hint: "Edit pages, SEO, social, payments",
+          icon: Globe,
+        },
+        {
+          to: "/dashboard/subscription",
+          label: "Subscription & Plan",
+          hint: "Your AcademyOS plan",
+          icon: CreditCard,
+        },
       ],
     });
 
     sections.push({
       title: "Data",
       rows: [
-        { to: "/dashboard/students", label: "Import & Export Students", hint: "Bulk upload, downloads & backup", icon: Database },
+        {
+          to: "/dashboard/students",
+          label: "Import & Export Students",
+          hint: "Bulk upload, downloads & backup",
+          icon: Database,
+        },
       ],
     });
   }
@@ -88,14 +130,24 @@ function ProfilePage() {
   sections.push({
     title: "Security",
     rows: [
-      { to: "/dashboard/admins", label: "Roles & Permissions", hint: "Admins & staff access", icon: ShieldCheck },
+      {
+        to: "/dashboard/admins",
+        label: "Roles & Permissions",
+        hint: "Admins & staff access",
+        icon: ShieldCheck,
+      },
     ],
   });
 
   sections.push({
     title: "Support",
     rows: [
-      { to: "/dashboard/settings", label: "Help & Support", hint: "Contact us and get help", icon: LifeBuoy },
+      {
+        to: "/dashboard/settings",
+        label: "Help & Support",
+        hint: "Contact us and get help",
+        icon: LifeBuoy,
+      },
     ],
   });
 
@@ -103,7 +155,13 @@ function ProfilePage() {
     sections.push({
       title: "Danger Zone",
       rows: [
-        { to: "/dashboard/settings", label: "Delete or Transfer Academy", hint: "Destructive actions", icon: AlertTriangle, danger: true },
+        {
+          to: "/dashboard/settings",
+          label: "Delete or Transfer Academy",
+          hint: "Destructive actions",
+          icon: AlertTriangle,
+          danger: true,
+        },
       ],
     });
   }
@@ -143,23 +201,35 @@ function ProfilePage() {
 
         <div className="mt-5 space-y-2 text-sm">
           {tenant.phone ? (
-            <a href={`tel:${tenant.phone}`} className="flex items-center gap-2 text-foreground hover:opacity-80">
+            <a
+              href={`tel:${tenant.phone}`}
+              className="flex items-center gap-2 text-foreground hover:opacity-80"
+            >
               <Phone className="h-4 w-4" style={{ color: "var(--brand)" }} /> {tenant.phone}
             </a>
           ) : null}
           {wa ? (
-            <a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-foreground hover:opacity-80">
+            <a
+              href={`https://wa.me/${wa}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 text-foreground hover:opacity-80"
+            >
               <MessageCircle className="h-4 w-4" style={{ color: "var(--brand)" }} /> WhatsApp
             </a>
           ) : null}
           {tenant.email ? (
-            <a href={`mailto:${tenant.email}`} className="flex items-center gap-2 text-foreground hover:opacity-80">
+            <a
+              href={`mailto:${tenant.email}`}
+              className="flex items-center gap-2 text-foreground hover:opacity-80"
+            >
               <Mail className="h-4 w-4" style={{ color: "var(--brand)" }} /> {tenant.email}
             </a>
           ) : null}
           {tenant.address ? (
             <div className="flex items-start gap-2 text-foreground">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--brand)" }} /> {tenant.address}
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "var(--brand)" }} />{" "}
+              {tenant.address}
             </div>
           ) : null}
         </div>
@@ -202,7 +272,12 @@ function ProfilePage() {
                     <Icon className="size-4" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className={"text-[15px] font-medium leading-tight " + (row.danger ? "text-destructive" : "")}>
+                    <div
+                      className={
+                        "text-[15px] font-medium leading-tight " +
+                        (row.danger ? "text-destructive" : "")
+                      }
+                    >
                       {row.label}
                     </div>
                     <div className="text-xs text-muted-foreground truncate">{row.hint}</div>

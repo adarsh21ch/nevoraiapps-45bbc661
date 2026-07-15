@@ -46,22 +46,32 @@ function LocationPage() {
           {tenant.address && (
             <div className="rounded-2xl border border-border/60 bg-card p-6">
               <MapPin className="size-5" style={{ color: "var(--brand)" }} />
-              <div className="mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Address</div>
+              <div className="mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Address
+              </div>
               <div className="mt-1 text-sm">{tenant.address}</div>
             </div>
           )}
           {tenant.phone && (
             <div className="rounded-2xl border border-border/60 bg-card p-6">
               <Phone className="size-5" style={{ color: "var(--brand)" }} />
-              <div className="mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Phone</div>
-              <a href={`tel:${tenant.phone}`} className="mt-1 block text-sm hover:underline">{tenant.phone}</a>
+              <div className="mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Phone
+              </div>
+              <a href={`tel:${tenant.phone}`} className="mt-1 block text-sm hover:underline">
+                {tenant.phone}
+              </a>
             </div>
           )}
           {tenant.email && (
             <div className="rounded-2xl border border-border/60 bg-card p-6">
               <Mail className="size-5" style={{ color: "var(--brand)" }} />
-              <div className="mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Email</div>
-              <a href={`mailto:${tenant.email}`} className="mt-1 block text-sm hover:underline">{tenant.email}</a>
+              <div className="mt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Email
+              </div>
+              <a href={`mailto:${tenant.email}`} className="mt-1 block text-sm hover:underline">
+                {tenant.email}
+              </a>
             </div>
           )}
         </div>

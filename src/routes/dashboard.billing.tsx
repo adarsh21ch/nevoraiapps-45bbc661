@@ -48,7 +48,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Banknote, CheckCircle2, Coins, FileText, IndianRupee, Lock, Plus, Receipt, Users } from "lucide-react";
+import {
+  Banknote,
+  CheckCircle2,
+  Coins,
+  FileText,
+  IndianRupee,
+  Lock,
+  Plus,
+  Receipt,
+  Users,
+} from "lucide-react";
 import { format } from "date-fns";
 import { VirtualList } from "@/components/ds/VirtualList";
 
@@ -59,7 +69,11 @@ export const Route = createFileRoute("/dashboard/billing")({
       { name: "description", content: "Manage student fee plans, fee bills and fee collections." },
     ],
   }),
-  component: () => (<OwnerOnly><BillingPage /></OwnerOnly>),
+  component: () => (
+    <OwnerOnly>
+      <BillingPage />
+    </OwnerOnly>
+  ),
 });
 
 function BillingPage() {
@@ -77,8 +91,8 @@ function NotAllowed() {
         </div>
         <h1 className="text-lg font-semibold">Fees are Owner-only</h1>
         <p className="text-sm text-muted-foreground">
-          Fee records are visible only to the academy owner. Admins, coaches, students, and parents don't
-          have access.
+          Fee records are visible only to the academy owner. Admins, coaches, students, and parents
+          don't have access.
         </p>
       </div>
     </div>
@@ -90,10 +104,22 @@ function BillingWorkspace() {
   const tenantId = tenant.id;
   const qc = useQueryClient();
 
-  const kpisQ = useQuery({ queryKey: bqk.kpis(tenantId), queryFn: () => fetchBillingKpis(tenantId) });
-  const invoicesQ = useQuery({ queryKey: bqk.invoices(tenantId), queryFn: () => fetchInvoices(tenantId, { limit: 200 }) });
-  const paymentsQ = useQuery({ queryKey: bqk.payments(tenantId), queryFn: () => fetchRecentPayments(tenantId, 100) });
-  const subsQ = useQuery({ queryKey: bqk.subscriptions(tenantId), queryFn: () => fetchSubscriptions(tenantId) });
+  const kpisQ = useQuery({
+    queryKey: bqk.kpis(tenantId),
+    queryFn: () => fetchBillingKpis(tenantId),
+  });
+  const invoicesQ = useQuery({
+    queryKey: bqk.invoices(tenantId),
+    queryFn: () => fetchInvoices(tenantId, { limit: 200 }),
+  });
+  const paymentsQ = useQuery({
+    queryKey: bqk.payments(tenantId),
+    queryFn: () => fetchRecentPayments(tenantId, 100),
+  });
+  const subsQ = useQuery({
+    queryKey: bqk.subscriptions(tenantId),
+    queryFn: () => fetchSubscriptions(tenantId),
+  });
 
   const studentsQ = useQuery({
     queryKey: ["billing", "students-lite", tenantId],
@@ -260,7 +286,12 @@ function InvoicesTable({
 
   if (loading) return <SkeletonList />;
   if (invoices.length === 0)
-    return <EmptyState title="No fee bills created yet" hint="Generate your first fee bill to start tracking student fees." />;
+    return (
+      <EmptyState
+        title="No fee bills created yet"
+        hint="Generate your first fee bill to start tracking student fees."
+      />
+    );
 
   return (
     <>
@@ -286,13 +317,19 @@ function InvoicesTable({
                 onClick={() => setSelected(inv)}
                 className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b hover:bg-muted/40 text-left w-full"
               >
-                <div className="col-span-2 font-mono text-xs">{inv.number ?? <span className="text-muted-foreground">Draft</span>}</div>
+                <div className="col-span-2 font-mono text-xs">
+                  {inv.number ?? <span className="text-muted-foreground">Draft</span>}
+                </div>
                 <div className="col-span-3 truncate">{stu?.name ?? "—"}</div>
                 <div className="col-span-2 text-muted-foreground">{inv.due_date ?? "—"}</div>
-                <div className="col-span-2 text-right tabular-nums">{formatMoney(inv.total, inv.currency)}</div>
+                <div className="col-span-2 text-right tabular-nums">
+                  {formatMoney(inv.total, inv.currency)}
+                </div>
                 <div className="col-span-2 text-right tabular-nums">
                   {inv.balance > 0 ? (
-                    <span className="text-amber-600 dark:text-amber-400">{formatMoney(inv.balance, inv.currency)}</span>
+                    <span className="text-amber-600 dark:text-amber-400">
+                      {formatMoney(inv.balance, inv.currency)}
+                    </span>
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
@@ -304,7 +341,6 @@ function InvoicesTable({
             );
           }}
         />
-
       </div>
       <InvoiceDetailDialog
         tenantId={tenantId}
@@ -330,7 +366,9 @@ function StatusPill({ status }: { status: Invoice["status"] }) {
     uncollectible: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
   };
   return (
-    <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${tone[status]}`}>
+    <span
+      className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ${tone[status]}`}
+    >
       {invoiceStatusLabel[status]}
     </span>
   );
@@ -421,7 +459,9 @@ function InvoiceDetailDialog({
             </div>
 
             {invoice.notes && (
-              <div className="text-xs text-muted-foreground whitespace-pre-wrap">{invoice.notes}</div>
+              <div className="text-xs text-muted-foreground whitespace-pre-wrap">
+                {invoice.notes}
+              </div>
             )}
 
             <DialogFooter className="gap-2 flex-wrap">
@@ -430,11 +470,12 @@ function InvoiceDetailDialog({
                   Send fee bill
                 </Button>
               )}
-              {(invoice.status === "issued" || invoice.status === "partially_paid") && invoice.balance > 0 && (
-                <Button onClick={() => setPayOpen(true)}>
-                  <Banknote className="w-4 h-4 mr-1.5" /> Record fee collection
-                </Button>
-              )}
+              {(invoice.status === "issued" || invoice.status === "partially_paid") &&
+                invoice.balance > 0 && (
+                  <Button onClick={() => setPayOpen(true)}>
+                    <Banknote className="w-4 h-4 mr-1.5" /> Record fee collection
+                  </Button>
+                )}
               {(invoice.status === "draft" || invoice.status === "issued") && (
                 <Button
                   variant="outline"
@@ -530,7 +571,13 @@ function PaymentDialog({
         <div className="space-y-3">
           <div>
             <Label>Amount</Label>
-            <Input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
             <div className="text-xs text-muted-foreground mt-1">
               Pending: {formatMoney(invoice.balance, invoice.currency)}
             </div>
@@ -542,7 +589,17 @@ function PaymentDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(["cash", "upi", "qr", "bank_transfer", "cheque", "card", "other"] as PaymentMethod[]).map((m) => (
+                {(
+                  [
+                    "cash",
+                    "upi",
+                    "qr",
+                    "bank_transfer",
+                    "cheque",
+                    "card",
+                    "other",
+                  ] as PaymentMethod[]
+                ).map((m) => (
                   <SelectItem key={m} value={m}>
                     {paymentMethodLabel[m]}
                   </SelectItem>
@@ -552,7 +609,11 @@ function PaymentDialog({
           </div>
           <div>
             <Label>Reference (optional)</Label>
-            <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="UPI txn ID, cheque no." />
+            <Input
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              placeholder="UPI txn ID, cheque no."
+            />
           </div>
           <div>
             <Label>Remarks (optional)</Label>
@@ -584,7 +645,13 @@ function PaymentsTable({
 }) {
   const sMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   if (loading) return <SkeletonList />;
-  if (payments.length === 0) return <EmptyState title="No fee collections yet" hint="Record a collection against any sent fee bill." />;
+  if (payments.length === 0)
+    return (
+      <EmptyState
+        title="No fee collections yet"
+        hint="Record a collection against any sent fee bill."
+      />
+    );
   return (
     <div className="rounded-2xl border overflow-hidden bg-card">
       <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
@@ -608,11 +675,12 @@ function PaymentsTable({
             <div className="col-span-3 truncate">{sMap.get(p.student_id)?.name ?? "—"}</div>
             <div className="col-span-2">{paymentMethodLabel[p.method]}</div>
             <div className="col-span-2 text-xs font-mono truncate">{p.reference_number ?? "—"}</div>
-            <div className="col-span-2 text-right tabular-nums font-medium">{formatMoney(p.amount, p.currency)}</div>
+            <div className="col-span-2 text-right tabular-nums font-medium">
+              {formatMoney(p.amount, p.currency)}
+            </div>
           </div>
         )}
       />
-
     </div>
   );
 }
@@ -629,7 +697,13 @@ function SubscriptionsTable({
 }) {
   const sMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   if (loading) return <SkeletonList />;
-  if (subs.length === 0) return <EmptyState title="No fee plans assigned yet" hint="Assign a fee plan to a student to auto-track their monthly fees." />;
+  if (subs.length === 0)
+    return (
+      <EmptyState
+        title="No fee plans assigned yet"
+        hint="Assign a fee plan to a student to auto-track their monthly fees."
+      />
+    );
   return (
     <div className="rounded-2xl border overflow-hidden bg-card">
       <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
@@ -649,17 +723,21 @@ function SubscriptionsTable({
           <div className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b">
             <div className="col-span-4 truncate">{sMap.get(s.student_id)?.name ?? "—"}</div>
             <div className="col-span-2 capitalize">{s.billing_cycle.replace("_", " ")}</div>
-            <div className="col-span-2 text-right tabular-nums">{formatMoney(s.unit_amount, s.currency)}</div>
+            <div className="col-span-2 text-right tabular-nums">
+              {formatMoney(s.unit_amount, s.currency)}
+            </div>
             <div className="col-span-2 text-muted-foreground">{s.start_date}</div>
             <div className="col-span-2 text-right">
-              <Badge variant={s.status === "active" ? "default" : "secondary"} className="capitalize">
+              <Badge
+                variant={s.status === "active" ? "default" : "secondary"}
+                className="capitalize"
+              >
                 {s.status.replace("_", " ")}
               </Badge>
             </div>
           </div>
         )}
       />
-
     </div>
   );
 }
@@ -717,7 +795,13 @@ function NewSubscriptionButton({
           </div>
           <div>
             <Label>Fee amount</Label>
-            <Input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -737,7 +821,13 @@ function NewSubscriptionButton({
             </div>
             <div>
               <Label>Bill day of month (1–28)</Label>
-              <Input type="number" min="1" max="28" value={anchor} onChange={(e) => setAnchor(e.target.value)} />
+              <Input
+                type="number"
+                min="1"
+                max="28"
+                value={anchor}
+                onChange={(e) => setAnchor(e.target.value)}
+              />
             </div>
           </div>
         </div>
@@ -774,7 +864,9 @@ function NewInvoiceButton({
   const [dueDate, setDueDate] = useState<string>("");
   const [issue, setIssue] = useState(true);
 
-  const studentSubs = subscriptions.filter((s) => s.student_id === studentId && s.status === "active");
+  const studentSubs = subscriptions.filter(
+    (s) => s.student_id === studentId && s.status === "active",
+  );
   const suggestedSub = studentSubs[0];
 
   const m = useMutation({
@@ -786,7 +878,11 @@ function NewInvoiceButton({
         { line_type: "charge", description, unit_amount: amt },
       ];
       if (disc > 0)
-        lines.push({ line_type: "discount", description: "Discount", unit_amount: -Math.abs(disc) });
+        lines.push({
+          line_type: "discount",
+          description: "Discount",
+          unit_amount: -Math.abs(disc),
+        });
 
       const inv = await createDraftInvoice({
         tenant_id: tenantId,
@@ -849,7 +945,13 @@ function NewInvoiceButton({
             </div>
             <div>
               <Label>Discount (optional)</Label>
-              <Input type="number" step="0.01" min="0" value={discount} onChange={(e) => setDiscount(e.target.value)} />
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+              />
             </div>
           </div>
           <div>
@@ -889,13 +991,20 @@ function StudentPicker({
     const term = q.trim().toLowerCase();
     if (!term) return students.slice(0, 50);
     return students
-      .filter((s) => s.name.toLowerCase().includes(term) || (s.player_id ?? "").toLowerCase().includes(term))
+      .filter(
+        (s) =>
+          s.name.toLowerCase().includes(term) || (s.player_id ?? "").toLowerCase().includes(term),
+      )
       .slice(0, 50);
   }, [students, q]);
   const selected = students.find((s) => s.id === value);
   return (
     <div className="space-y-1.5">
-      <Input placeholder="Search by name or player ID…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <Input
+        placeholder="Search by name or player ID…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
       <div className="border rounded-md max-h-40 overflow-auto">
         {filtered.map((s) => (
           <button
@@ -909,7 +1018,9 @@ function StudentPicker({
             {s.name} <span className="text-muted-foreground text-xs">{s.player_id ?? ""}</span>
           </button>
         ))}
-        {filtered.length === 0 && <div className="px-3 py-2 text-xs text-muted-foreground">No matches</div>}
+        {filtered.length === 0 && (
+          <div className="px-3 py-2 text-xs text-muted-foreground">No matches</div>
+        )}
       </div>
       {selected && <div className="text-xs text-muted-foreground">Selected: {selected.name}</div>}
     </div>

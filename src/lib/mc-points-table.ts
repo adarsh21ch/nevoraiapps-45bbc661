@@ -17,10 +17,7 @@
  * ================================================================ */
 
 import type { MCTournament } from "@/lib/mc-tournaments";
-import {
-  computeQualification,
-  type QualificationState,
-} from "@/lib/mc-tournament-qualification";
+import { computeQualification, type QualificationState } from "@/lib/mc-tournament-qualification";
 
 export type FormResult = "W" | "L" | "T" | "N";
 export type PositionDelta = "up" | "down" | "same" | "new";
@@ -105,12 +102,7 @@ export interface PointsTableResult {
 
 /* --------------------------- Tiebreakers --------------------------- */
 
-export type TiebreakerKey =
-  | "points"
-  | "net_run_rate"
-  | "wins"
-  | "head_to_head"
-  | "run_difference";
+export type TiebreakerKey = "points" | "net_run_rate" | "wins" | "head_to_head" | "run_difference";
 
 export const DEFAULT_TIEBREAKERS: TiebreakerKey[] = [
   "points",
@@ -148,8 +140,7 @@ function h2hScore(
   for (const f of fixtures) {
     if (!f.match_locked) continue;
     const pair =
-      (f.team_a_id === a && f.team_b_id === b) ||
-      (f.team_a_id === b && f.team_b_id === a);
+      (f.team_a_id === a && f.team_b_id === b) || (f.team_a_id === b && f.team_b_id === a);
     if (!pair) continue;
     if (f.victory_type === "won" && f.winner_team) {
       if (f.winner_team === a) scoreA += pointsForWin;
@@ -320,9 +311,7 @@ export function computePointsTable(input: {
   // Fall back to a single "league" bucket when no groups exist.
   const effectiveGroups: GroupInput[] =
     groups.length > 0
-      ? [...groups].sort(
-          (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0),
-        )
+      ? [...groups].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
       : [{ id: null, name: "Standings", qualify_count: standings.length }];
 
   const groupById = new Map<string | null, GroupInput>();
@@ -377,14 +366,9 @@ export function computePointsTable(input: {
       row.position = idx + 1;
       posByTeam.set(row.team_id, idx + 1);
     });
-    const matchesTotal = fixtures.filter(
-      (f) => (f.group_id ?? null) === (g.id ?? null),
-    ).length;
+    const matchesTotal = fixtures.filter((f) => (f.group_id ?? null) === (g.id ?? null)).length;
     const matchesRemaining = fixtures.filter(
-      (f) =>
-        (f.group_id ?? null) === (g.id ?? null) &&
-        !f.match_locked &&
-        f.status !== "cancelled",
+      (f) => (f.group_id ?? null) === (g.id ?? null) && !f.match_locked && f.status !== "cancelled",
     ).length;
     groupsOut.push({
       id: g.id,
@@ -424,8 +408,7 @@ export function computePointsTable(input: {
       row.qualification = qual.byTeam[row.team_id] ?? "in_contention";
       row.isQualificationBoundary = row.position === group.qualifyCount;
       row.isEliminationBoundary =
-        group.rows.length > group.qualifyCount &&
-        row.position === group.qualifyCount + 1;
+        group.rows.length > group.qualifyCount && row.position === group.qualifyCount + 1;
       byTeam[row.team_id] = row;
     });
   }

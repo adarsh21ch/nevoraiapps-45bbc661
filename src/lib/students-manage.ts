@@ -142,10 +142,7 @@ export function exportStudents(
   const shaped = rows.map((r) => {
     const out: Record<string, string> = {};
     for (const [k, label] of EXPORT_COLUMNS) {
-      const v =
-        k === "batch_name"
-          ? batchNameById.get(r.batch_id) ?? ""
-          : r[k] ?? "";
+      const v = k === "batch_name" ? (batchNameById.get(r.batch_id) ?? "") : (r[k] ?? "");
       out[label] = v == null ? "" : String(v);
     }
     return out;
@@ -188,11 +185,7 @@ export async function reactivateStudent(id: string) {
   if (error) throw error;
 }
 
-export async function setStudentStatus(
-  id: string,
-  status: PlayerStatus,
-  reason?: string,
-) {
+export async function setStudentStatus(id: string, status: PlayerStatus, reason?: string) {
   const patch: Record<string, unknown> = { status };
   if (status === "left") {
     patch.archived_at = new Date().toISOString();

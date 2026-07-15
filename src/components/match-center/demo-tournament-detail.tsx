@@ -42,10 +42,7 @@ interface Props {
  * produce for the same events.
  */
 export function DemoTournamentDetail({ demo, tournament }: Props) {
-  const summary = useMemo(
-    () => deriveTournament(demo, tournament.id),
-    [demo, tournament.id],
-  );
+  const summary = useMemo(() => deriveTournament(demo, tournament.id), [demo, tournament.id]);
   const [tab, setTab] = useState<TabId>("overview");
 
   const subtitle = [
@@ -136,11 +133,7 @@ function Card({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function OverviewTab({
-  summary,
-}: {
-  summary: NonNullable<ReturnType<typeof deriveTournament>>;
-}) {
+function OverviewTab({ summary }: { summary: NonNullable<ReturnType<typeof deriveTournament>> }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card label="Teams" value={summary.teamsCount} />
@@ -359,11 +352,7 @@ function PurpleCapTab({
   );
 }
 
-function RecordsTab({
-  summary,
-}: {
-  summary: NonNullable<ReturnType<typeof deriveTournament>>;
-}) {
+function RecordsTab({ summary }: { summary: NonNullable<ReturnType<typeof deriveTournament>> }) {
   const item = (label: string, value: string) => (
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

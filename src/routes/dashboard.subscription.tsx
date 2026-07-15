@@ -7,8 +7,14 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { isOwner } from "@/lib/roles";
 
 export const Route = createFileRoute("/dashboard/subscription")({
-  head: () => ({ meta: [{ title: "AcademyOS Plan · Academy" }, { name: "robots", content: "noindex" }] }),
-  component: () => (<OwnerOnly><SubscriptionEntry /></OwnerOnly>),
+  head: () => ({
+    meta: [{ title: "AcademyOS Plan · Academy" }, { name: "robots", content: "noindex" }],
+  }),
+  component: () => (
+    <OwnerOnly>
+      <SubscriptionEntry />
+    </OwnerOnly>
+  ),
 });
 
 function SubscriptionEntry() {
@@ -31,12 +37,21 @@ function SubscriptionEntry() {
 
   return (
     <div className="space-y-4">
-      <Link to="/dashboard/academy" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        to="/dashboard/academy"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
         <ArrowLeft className="size-4" /> Academy
       </Link>
       <Card className="p-6">
         <div className="flex items-start gap-3">
-          <div className="size-11 rounded-xl grid place-items-center" style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)", color: "var(--brand)" }}>
+          <div
+            className="size-11 rounded-xl grid place-items-center"
+            style={{
+              backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)",
+              color: "var(--brand)",
+            }}
+          >
             <CreditCard className="size-5" />
           </div>
           <div className="flex-1">

@@ -3,7 +3,11 @@ import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { OfficialScorebook, type ScorebookInnings, type ScorebookTeam } from "@/components/match-center/official-scorebook";
+import {
+  OfficialScorebook,
+  type ScorebookInnings,
+  type ScorebookTeam,
+} from "@/components/match-center/official-scorebook";
 import { LoadingSkeleton } from "@/components/match-center/ui";
 import { Button } from "@/components/ui/button";
 import type { MCBallEvent } from "@/lib/mc-ball-events";
@@ -169,9 +173,11 @@ function ScorebookPage() {
   const teamA = teams.find((t) => t.id === m.team_a_id);
   const teamB = teams.find((t) => t.id === m.team_b_id);
   const tossWinnerName =
-    m.toss_winner === "team_a" ? teamA?.name ?? null
-    : m.toss_winner === "team_b" ? teamB?.name ?? null
-    : m.toss_winner ?? null;
+    m.toss_winner === "team_a"
+      ? (teamA?.name ?? null)
+      : m.toss_winner === "team_b"
+        ? (teamB?.name ?? null)
+        : (m.toss_winner ?? null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -227,7 +233,7 @@ function DemoScorebook({ matchId, tenantId }: { matchId: string; tenantId: strin
     short_name: t!.short_name ?? null,
   }));
   const pom = match.player_of_match_athlete_id
-    ? demo.players.find((p) => p.id === match.player_of_match_athlete_id)?.student?.name ?? null
+    ? (demo.players.find((p) => p.id === match.player_of_match_athlete_id)?.student?.name ?? null)
     : null;
   return (
     <div className="min-h-screen bg-background">

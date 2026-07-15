@@ -71,9 +71,7 @@ export function TournamentShareDialog({ open, onOpenChange, url, title, descript
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Share tournament</DialogTitle>
-          <DialogDescription>
-            Anyone with this link can view the public page.
-          </DialogDescription>
+          <DialogDescription>Anyone with this link can view the public page.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid place-items-center rounded-xl border border-border bg-muted/30 p-4">

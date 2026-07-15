@@ -91,24 +91,32 @@ export function PlayerSelector({
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <SelectPill value={ageBand} onChange={setAgeBand} label="Age" options={[
-            { value: "all", label: "All ages" },
-            { value: "U10", label: "U10" },
-            { value: "U12", label: "U12" },
-            { value: "U14", label: "U14" },
-            { value: "U16", label: "U16" },
-            { value: "U19", label: "U19" },
-            { value: "Senior", label: "Senior" },
-          ]} />
-          <SelectPill value={gender} onChange={setGender} label="Gender" options={[
-            { value: "all", label: "All" },
-            { value: "male", label: "Male" },
-            { value: "female", label: "Female" },
-          ]} />
+          <SelectPill
+            value={ageBand}
+            onChange={setAgeBand}
+            label="Age"
+            options={[
+              { value: "all", label: "All ages" },
+              { value: "U10", label: "U10" },
+              { value: "U12", label: "U12" },
+              { value: "U14", label: "U14" },
+              { value: "U16", label: "U16" },
+              { value: "U19", label: "U19" },
+              { value: "Senior", label: "Senior" },
+            ]}
+          />
+          <SelectPill
+            value={gender}
+            onChange={setGender}
+            label="Gender"
+            options={[
+              { value: "all", label: "All" },
+              { value: "male", label: "Male" },
+              { value: "female", label: "Female" },
+            ]}
+          />
           <div className="ml-auto flex items-center gap-1.5">
-            <span className="text-xs text-muted-foreground">
-              {selectedIds.length} selected
-            </span>
+            <span className="text-xs text-muted-foreground">{selectedIds.length} selected</span>
             <Button type="button" size="sm" variant="ghost" onClick={selectAllVisible}>
               Select all
             </Button>
@@ -142,7 +150,9 @@ export function PlayerSelector({
                 <div
                   className={cn(
                     "size-9 shrink-0 rounded-full grid place-items-center overflow-hidden text-xs font-semibold",
-                    selected ? "bg-primary text-primary-foreground" : "bg-accent/60 text-foreground/70",
+                    selected
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-accent/60 text-foreground/70",
                   )}
                 >
                   {selected ? (

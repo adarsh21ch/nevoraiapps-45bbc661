@@ -23,14 +23,7 @@ export function getFeatures(t: Tenant | null | undefined): TenantFeatures {
  * and which — when hit as a bare subdomain of a platform base domain —
  * should render the platform marketing site instead of a tenant.
  */
-export const RESERVED_HOSTS = new Set([
-  "academy",
-  "www",
-  "app",
-  "api",
-  "admin",
-  "flow",
-]);
+export const RESERVED_HOSTS = new Set(["academy", "www", "app", "api", "admin", "flow"]);
 
 /** Base domains we own. Anything ending in one of these is "our" host. */
 const DEFAULT_PLATFORM_HOSTS = [
@@ -47,11 +40,7 @@ function getPlatformHosts(extra?: string[]): string[] {
     typeof import.meta !== "undefined"
       ? (import.meta.env?.VITE_PLATFORM_BASE_DOMAIN as string | undefined)
       : undefined;
-  return [
-    ...(envBase ? [envBase] : []),
-    ...DEFAULT_PLATFORM_HOSTS,
-    ...(extra ?? []),
-  ];
+  return [...(envBase ? [envBase] : []), ...DEFAULT_PLATFORM_HOSTS, ...(extra ?? [])];
 }
 
 /**
@@ -132,18 +121,13 @@ export function tenantSiteUrl(
   currentHost?: string,
 ): string {
   if (tenant.custom_domain) return `https://${tenant.custom_domain}`;
-  const host =
-    currentHost ??
-    (typeof window !== "undefined" ? window.location.hostname : "");
+  const host = currentHost ?? (typeof window !== "undefined" ? window.location.hostname : "");
   // Prefer the true production base first, so admin/dashboard subdomains
   // (academy.nevorai.com) still send visitors to {slug}.nevorai.com.
   const productionBases = ["nevorai.com"];
   for (const b of productionBases) {
     if (host === b || host.endsWith("." + b)) return `https://${tenant.slug}.${b}`;
   }
-  const origin =
-    typeof window !== "undefined" ? window.location.origin : "";
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
   return `${origin}/?tenant=${tenant.slug}`;
 }
-
-

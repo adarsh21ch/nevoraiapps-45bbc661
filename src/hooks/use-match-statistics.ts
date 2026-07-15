@@ -1,9 +1,6 @@
 import { useMemo } from "react";
 import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
-import {
-  computeInningsStatistics,
-  type InningsStatistics,
-} from "@/lib/mc-statistics-engine";
+import { computeInningsStatistics, type InningsStatistics } from "@/lib/mc-statistics-engine";
 
 /* ================================================================
  * useMatchStatistics
@@ -31,8 +28,7 @@ export function useMatchStatistics(
   const target = opts.target ?? opts.activeInnings?.target ?? null;
   const totalOvers = opts.totalOvers ?? null;
   return useMemo(
-    () =>
-      computeInningsStatistics(events, { totalOvers, target }),
+    () => computeInningsStatistics(events, { totalOvers, target }),
     [events, totalOvers, target],
   );
 }

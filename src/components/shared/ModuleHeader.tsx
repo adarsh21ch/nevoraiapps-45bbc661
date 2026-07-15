@@ -39,8 +39,7 @@ export function ModuleHeader({
       typeof window !== "undefined" &&
       window.history.length > 1 &&
       // Ensure previous page is same-origin (in-app), otherwise fall back.
-      (document.referrer === "" ||
-        document.referrer.startsWith(window.location.origin));
+      (document.referrer === "" || document.referrer.startsWith(window.location.origin));
     if (canGoBack) {
       router.history.back();
     } else {
@@ -49,12 +48,7 @@ export function ModuleHeader({
   };
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-2 pt-1 pb-2 -mt-2",
-        className,
-      )}
-    >
+    <div className={cn("flex items-center gap-2 pt-1 pb-2 -mt-2", className)}>
       <button
         type="button"
         onClick={onBack}
@@ -69,13 +63,9 @@ export function ModuleHeader({
             {overline}
           </div>
         ) : null}
-        <div className="text-[15px] font-semibold leading-tight truncate">
-          {title}
-        </div>
+        <div className="text-[15px] font-semibold leading-tight truncate">{title}</div>
       </div>
-      {action ? (
-        <div className="flex shrink-0 items-center gap-1.5">{action}</div>
-      ) : null}
+      {action ? <div className="flex shrink-0 items-center gap-1.5">{action}</div> : null}
     </div>
   );
 }
@@ -104,10 +94,7 @@ export function ModuleTabs({
         className,
       )}
     >
-      <div
-        role="tablist"
-        className="flex items-center gap-1 overflow-x-auto no-scrollbar py-2"
-      >
+      <div role="tablist" className="flex items-center gap-1 overflow-x-auto no-scrollbar py-2">
         {items.map((tab) => {
           const Icon = tab.icon;
           return (

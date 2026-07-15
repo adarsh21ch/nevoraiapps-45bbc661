@@ -53,13 +53,11 @@ function acquire(matchId: string, listener: Listener): () => void {
     const listeners = new Set<Listener>();
     const channel = supabase.channel(`match-live:${matchId}`);
     for (const table of TABLES) {
-      const filter =
-        table === "mc_matches" ? `id=eq.${matchId}` : `match_id=eq.${matchId}`;
+      const filter = table === "mc_matches" ? `id=eq.${matchId}` : `match_id=eq.${matchId}`;
       channel.on(
         "postgres_changes" as never,
         { event: "*", schema: "public", table, filter },
         (payload: { eventType: MatchLiveEvent["eventType"] }) => {
-
           const evt: MatchLiveEvent = { table, eventType: payload.eventType };
           for (const cb of listeners) {
             try {
@@ -92,10 +90,7 @@ function acquire(matchId: string, listener: Listener): () => void {
   };
 }
 
-export function useMatchLive(
-  matchId: string | undefined | null,
-  listener: Listener,
-): void {
+export function useMatchLive(matchId: string | undefined | null, listener: Listener): void {
   useEffect(() => {
     if (!matchId) return;
     const dispose = acquire(matchId, listener);

@@ -5,11 +5,19 @@ import { PageHero } from "@/components/site/PageHero";
 import { useTenant } from "@/lib/tenant-context";
 import { POLICY_LABELS, publishedPoliciesQuery, type PolicyKind } from "@/lib/site-queries";
 
-const VALID_KINDS: PolicyKind[] = ["terms", "privacy", "refund", "fee", "conduct", "leave", "medical"];
+const VALID_KINDS: PolicyKind[] = [
+  "terms",
+  "privacy",
+  "refund",
+  "fee",
+  "conduct",
+  "leave",
+  "medical",
+];
 
 export const Route = createFileRoute("/policies/$kind")({
   head: ({ params }) => {
-    const label = POLICY_LABELS[(params.kind as PolicyKind)] ?? "Policies";
+    const label = POLICY_LABELS[params.kind as PolicyKind] ?? "Policies";
     return {
       meta: [
         { title: label },
@@ -39,7 +47,11 @@ function PolicyPage() {
 
   return (
     <>
-      <PageHero eyebrow="Policy" title={doc?.title ?? label} subtitle={`Effective policy for ${tenant.name}.`} />
+      <PageHero
+        eyebrow="Policy"
+        title={doc?.title ?? label}
+        subtitle={`Effective policy for ${tenant.name}.`}
+      />
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
         <nav className="mb-8 flex flex-wrap gap-2 text-xs">
           {VALID_KINDS.map((k) => (
@@ -64,9 +76,14 @@ function PolicyPage() {
         ) : (
           <article className="prose prose-neutral max-w-none dark:prose-invert">
             <div className="mb-6 text-xs text-muted-foreground">
-              Version {doc.version}{doc.published_at ? ` · Published ${new Date(doc.published_at).toLocaleDateString()}` : ""}
+              Version {doc.version}
+              {doc.published_at
+                ? ` · Published ${new Date(doc.published_at).toLocaleDateString()}`
+                : ""}
             </div>
-            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">{doc.body_md}</pre>
+            <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
+              {doc.body_md}
+            </pre>
           </article>
         )}
       </div>

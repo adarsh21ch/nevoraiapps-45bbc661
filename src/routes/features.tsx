@@ -23,7 +23,10 @@ export const Route = createFileRoute("/features")({
           "Attendance, billing, matches, parent app, website and communications — one platform for sports academies.",
       },
       { property: "og:title", content: "AcademyOS Features" },
-      { property: "og:description", content: "One Sports Operating System — every module you need to run an academy." },
+      {
+        property: "og:description",
+        content: "One Sports Operating System — every module you need to run an academy.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -32,16 +35,56 @@ export const Route = createFileRoute("/features")({
 });
 
 const MODULES = [
-  { icon: ClipboardCheck, name: "Attendance", desc: "Check-in/out, batch views, corrections, and coach visibility." },
-  { icon: Users, name: "Student Management", desc: "Player IDs, guardians, batches, status history, bulk import." },
-  { icon: Wallet, name: "Billing", desc: "Fee plans, invoices, payments, receipts, reminders, waivers." },
-  { icon: Swords, name: "Match Center", desc: "Ball-by-ball scoring, live sharing, tournaments, career records." },
-  { icon: Smartphone, name: "Student & Parent Apps", desc: "Progress reports, timelines, achievements — for families." },
-  { icon: Globe, name: "Public Website", desc: "Domain, hero, gallery, testimonials — no web team needed." },
-  { icon: BellRing, name: "Notifications", desc: "In-app, WhatsApp and email with categories and preferences." },
-  { icon: MessageSquare, name: "Communications", desc: "Campaigns, broadcasts, templates — send to any audience." },
-  { icon: BarChart3, name: "Reports & Analytics", desc: "Decision Center with revenue, admissions, attendance KPIs." },
-  { icon: Building2, name: "Platform Admin", desc: "For multi-tenant operators — tenants, flags, audit log." },
+  {
+    icon: ClipboardCheck,
+    name: "Attendance",
+    desc: "Check-in/out, batch views, corrections, and coach visibility.",
+  },
+  {
+    icon: Users,
+    name: "Student Management",
+    desc: "Player IDs, guardians, batches, status history, bulk import.",
+  },
+  {
+    icon: Wallet,
+    name: "Billing",
+    desc: "Fee plans, invoices, payments, receipts, reminders, waivers.",
+  },
+  {
+    icon: Swords,
+    name: "Match Center",
+    desc: "Ball-by-ball scoring, live sharing, tournaments, career records.",
+  },
+  {
+    icon: Smartphone,
+    name: "Student & Parent Apps",
+    desc: "Progress reports, timelines, achievements — for families.",
+  },
+  {
+    icon: Globe,
+    name: "Public Website",
+    desc: "Domain, hero, gallery, testimonials — no web team needed.",
+  },
+  {
+    icon: BellRing,
+    name: "Notifications",
+    desc: "In-app, WhatsApp and email with categories and preferences.",
+  },
+  {
+    icon: MessageSquare,
+    name: "Communications",
+    desc: "Campaigns, broadcasts, templates — send to any audience.",
+  },
+  {
+    icon: BarChart3,
+    name: "Reports & Analytics",
+    desc: "Decision Center with revenue, admissions, attendance KPIs.",
+  },
+  {
+    icon: Building2,
+    name: "Platform Admin",
+    desc: "For multi-tenant operators — tenants, flags, audit log.",
+  },
 ];
 
 function FeaturesPage() {
@@ -49,13 +92,26 @@ function FeaturesPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="font-semibold tracking-tight">AcademyOS</Link>
+          <Link to="/" className="font-semibold tracking-tight">
+            AcademyOS
+          </Link>
           <nav className="flex items-center gap-4 text-sm">
-            <Link to="/features" className="font-medium">Features</Link>
-            <Link to="/pricing" className="text-muted-foreground hover:text-foreground">Pricing</Link>
-            <Link to="/demo" className="text-muted-foreground hover:text-foreground">Book a demo</Link>
-            <Link to="/auth" className="rounded-lg px-3 py-1.5 text-sm font-medium"
-              style={{ background: "var(--brand)", color: "var(--brand-foreground, white)" }}>Sign in</Link>
+            <Link to="/features" className="font-medium">
+              Features
+            </Link>
+            <Link to="/pricing" className="text-muted-foreground hover:text-foreground">
+              Pricing
+            </Link>
+            <Link to="/demo" className="text-muted-foreground hover:text-foreground">
+              Book a demo
+            </Link>
+            <Link
+              to="/auth"
+              className="rounded-lg px-3 py-1.5 text-sm font-medium"
+              style={{ background: "var(--brand)", color: "var(--brand-foreground, white)" }}
+            >
+              Sign in
+            </Link>
           </nav>
         </div>
       </header>
@@ -65,7 +121,8 @@ function FeaturesPage() {
           Every module a sports academy needs. One platform.
         </h1>
         <p className="mt-4 text-lg text-muted-foreground max-w-2xl">
-          From the first enquiry to career records, AcademyOS handles the whole lifecycle. Pick a sport, we handle the rest.
+          From the first enquiry to career records, AcademyOS handles the whole lifecycle. Pick a
+          sport, we handle the rest.
         </p>
       </section>
 
@@ -90,12 +147,15 @@ function FeaturesPage() {
       <section className="max-w-6xl mx-auto px-4 py-16 border-t">
         <h2 className="text-2xl font-semibold">Built as a Sports Operating System</h2>
         <p className="mt-2 text-muted-foreground max-w-2xl">
-          Cricket is live today. Every other sport uses the same modules — attendance, billing, portals, website — and lights up sport-specific scoring as we ship it.
+          Cricket is live today. Every other sport uses the same modules — attendance, billing,
+          portals, website — and lights up sport-specific scoring as we ship it.
         </p>
         <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {sportsList.map((s) => (
             <div key={s.key} className="rounded-lg border p-3 flex items-center gap-2">
-              <span className="text-xl" aria-hidden>{s.emoji}</span>
+              <span className="text-xl" aria-hidden>
+                {s.emoji}
+              </span>
               <div className="flex-1">
                 <p className="text-sm font-medium">{s.label}</p>
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -111,9 +171,14 @@ function FeaturesPage() {
         <h2 className="text-2xl font-semibold">Ready to see it live?</h2>
         <p className="mt-2 text-muted-foreground">Book a 20-minute demo or start a free trial.</p>
         <div className="mt-6 flex gap-3 justify-center">
-          <Link to="/demo" className="rounded-lg px-4 py-2 text-sm font-medium border">Book a demo</Link>
-          <Link to="/auth" className="rounded-lg px-4 py-2 text-sm font-medium"
-            style={{ background: "var(--brand)", color: "var(--brand-foreground, white)" }}>
+          <Link to="/demo" className="rounded-lg px-4 py-2 text-sm font-medium border">
+            Book a demo
+          </Link>
+          <Link
+            to="/auth"
+            className="rounded-lg px-4 py-2 text-sm font-medium"
+            style={{ background: "var(--brand)", color: "var(--brand-foreground, white)" }}
+          >
             Start free trial
           </Link>
         </div>

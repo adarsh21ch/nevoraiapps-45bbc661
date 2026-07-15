@@ -22,10 +22,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className={cn(
-        "inline-grid w-full rounded-xl bg-muted p-0.5 gap-0.5",
-        className,
-      )}
+      className={cn("inline-grid w-full rounded-xl bg-muted p-0.5 gap-0.5", className)}
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
     >
       {options.map((opt) => {

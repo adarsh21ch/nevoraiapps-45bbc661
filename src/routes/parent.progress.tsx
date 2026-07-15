@@ -42,9 +42,7 @@ function ParentProgressPage() {
         </div>
         <div>
           <h1 className="text-xl font-semibold">Progress</h1>
-          <p className="text-xs text-muted-foreground">
-            How your child is doing at the academy.
-          </p>
+          <p className="text-xs text-muted-foreground">How your child is doing at the academy.</p>
         </div>
       </header>
 
@@ -58,22 +56,26 @@ function ParentProgressPage() {
               {p.attendancePct}
               <span className="text-lg text-muted-foreground">%</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              across all recorded sessions
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">across all recorded sessions</p>
           </div>
         </div>
       </Card>
 
       <div className="grid grid-cols-2 gap-3">
-        <Metric icon={<Clock className="size-4" />} label="Practice hours" value={p.practiceHours.toFixed(1)} />
-        <Metric icon={<Swords className="size-4" />} label="Matches played" value={String(p.matchesPlayed)} />
+        <Metric
+          icon={<Clock className="size-4" />}
+          label="Practice hours"
+          value={p.practiceHours.toFixed(1)}
+        />
+        <Metric
+          icon={<Swords className="size-4" />}
+          label="Matches played"
+          value={String(p.matchesPlayed)}
+        />
       </div>
 
       <section aria-label="Career">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-          Career
-        </p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">Career</p>
         <div className="grid grid-cols-3 gap-3">
           <MiniStat label="Runs" value={c?.runs ?? 0} />
           <MiniStat label="Wickets" value={c?.wickets ?? 0} />
@@ -89,16 +91,18 @@ function ParentProgressPage() {
           <p className="text-sm font-medium">Practice Trend</p>
           <Tabs value={view} onValueChange={(v) => setView(v as "weekly" | "monthly")}>
             <TabsList className="h-8">
-              <TabsTrigger value="weekly" className="text-xs h-6 px-2">Weekly</TabsTrigger>
-              <TabsTrigger value="monthly" className="text-xs h-6 px-2">Monthly</TabsTrigger>
+              <TabsTrigger value="weekly" className="text-xs h-6 px-2">
+                Weekly
+              </TabsTrigger>
+              <TabsTrigger value="monthly" className="text-xs h-6 px-2">
+                Monthly
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
         <div className="flex items-end gap-1.5 h-32">
           {bars.length === 0 && (
-            <p className="text-xs text-muted-foreground m-auto">
-              Not enough data yet.
-            </p>
+            <p className="text-xs text-muted-foreground m-auto">Not enough data yet.</p>
           )}
           {bars.map((b) => {
             const h = (b.hours / maxHours) * 100;
@@ -126,9 +130,7 @@ function ParentProgressPage() {
           Recent Form
         </p>
         {p.recentForm.length === 0 ? (
-          <Card className="p-4 text-sm text-muted-foreground">
-            No match appearances yet.
-          </Card>
+          <Card className="p-4 text-sm text-muted-foreground">No match appearances yet.</Card>
         ) : (
           <div className="space-y-2">
             {p.recentForm.slice(0, 5).map((m) => (
@@ -169,7 +171,16 @@ function AttendanceRing({ pct }: { pct: number }) {
     <div className="relative size-20 grid place-items-center">
       <svg width={80} height={80} className="-rotate-90">
         <circle cx={40} cy={40} r={r} strokeWidth={8} stroke="hsl(var(--muted))" fill="none" />
-        <circle cx={40} cy={40} r={r} strokeWidth={8} stroke="hsl(var(--primary))" fill="none" strokeLinecap="round" strokeDasharray={`${dash} ${c}`} />
+        <circle
+          cx={40}
+          cy={40}
+          r={r}
+          strokeWidth={8}
+          stroke="hsl(var(--primary))"
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${c}`}
+        />
       </svg>
     </div>
   );
@@ -191,9 +202,7 @@ function MiniStat({ label, value }: { label: string; value: string | number }) {
   return (
     <Card className="p-2.5 text-center">
       <p className="text-lg font-semibold leading-tight">{value}</p>
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
-        {label}
-      </p>
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">{label}</p>
     </Card>
   );
 }

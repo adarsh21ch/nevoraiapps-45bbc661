@@ -17,7 +17,11 @@ const LANGUAGES: { code: Lang; label: string; native: string }[] = [
   { code: "hi", label: "Hindi", native: "हिन्दी" },
 ];
 
-const THEMES: { value: ThemeMode; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+const THEMES: {
+  value: ThemeMode;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
   { value: "system", label: "System", icon: Monitor },
   { value: "light", label: "Light", icon: Sun },
   { value: "dark", label: "Dark", icon: Moon },
@@ -76,7 +80,10 @@ export function PreferencesCard() {
               active && "font-medium",
             )}
           >
-            <span>{l.native}{l.native !== l.label ? ` · ${l.label}` : ""}</span>
+            <span>
+              {l.native}
+              {l.native !== l.label ? ` · ${l.label}` : ""}
+            </span>
             {active ? <Check className="size-4 text-[color:var(--brand)]" /> : null}
           </button>
         );

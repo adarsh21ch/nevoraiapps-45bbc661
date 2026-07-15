@@ -5,7 +5,13 @@ import { auditKeys, fetchAuditLog } from "@/lib/platform-audit";
 import { fetchTenants, pqk } from "@/lib/platform-queries";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollText } from "lucide-react";
 
 export const Route = createFileRoute("/platform-admin/audit")({
@@ -19,7 +25,10 @@ function AuditPage() {
   });
   const { data: tenants = [] } = useQuery({ queryKey: pqk.tenants, queryFn: fetchTenants });
 
-  const tenantMap = useMemo(() => Object.fromEntries(tenants.map((t) => [t.id, t.name])), [tenants]);
+  const tenantMap = useMemo(
+    () => Object.fromEntries(tenants.map((t) => [t.id, t.name])),
+    [tenants],
+  );
   const [q, setQ] = useState("");
   const [action, setAction] = useState("all");
 
@@ -28,7 +37,8 @@ function AuditPage() {
       if (action !== "all" && r.action !== action) return false;
       if (q) {
         const needle = q.toLowerCase();
-        const hay = `${r.action} ${r.target_type} ${r.target_id ?? ""} ${tenantMap[r.tenant_id ?? ""] ?? ""}`.toLowerCase();
+        const hay =
+          `${r.action} ${r.target_type} ${r.target_id ?? ""} ${tenantMap[r.tenant_id ?? ""] ?? ""}`.toLowerCase();
         if (!hay.includes(needle)) return false;
       }
       return true;
@@ -47,13 +57,23 @@ function AuditPage() {
       </header>
 
       <Card className="p-3 bg-neutral-900 border-white/10 grid gap-2 md:grid-cols-[1fr_200px]">
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search action, target, tenant…"
-          className="bg-neutral-950 border-white/10 text-white" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search action, target, tenant…"
+          className="bg-neutral-950 border-white/10 text-white"
+        />
         <Select value={action} onValueChange={setAction}>
-          <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="bg-neutral-950 border-white/10 text-white">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All actions</SelectItem>
-            {actions.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+            {actions.map((a) => (
+              <SelectItem key={a} value={a}>
+                {a}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </Card>
@@ -65,12 +85,18 @@ function AuditPage() {
           <div className="p-6 text-center text-sm text-neutral-500">No audit events match.</div>
         ) : (
           rows.map((r) => (
-            <div key={r.id} className="p-3 grid grid-cols-1 md:grid-cols-[120px_1fr_140px_180px] gap-2 text-xs">
+            <div
+              key={r.id}
+              className="p-3 grid grid-cols-1 md:grid-cols-[120px_1fr_140px_180px] gap-2 text-xs"
+            >
               <span className="font-mono text-neutral-200">{r.action}</span>
               <span className="text-neutral-400 truncate">
-                {r.target_type}{r.target_id ? ` · ${r.target_id}` : ""}
+                {r.target_type}
+                {r.target_id ? ` · ${r.target_id}` : ""}
               </span>
-              <span className="text-neutral-400 truncate">{r.tenant_id ? tenantMap[r.tenant_id] ?? r.tenant_id.slice(0, 8) : "—"}</span>
+              <span className="text-neutral-400 truncate">
+                {r.tenant_id ? (tenantMap[r.tenant_id] ?? r.tenant_id.slice(0, 8)) : "—"}
+              </span>
               <span className="text-neutral-500">{new Date(r.created_at).toLocaleString()}</span>
             </div>
           ))

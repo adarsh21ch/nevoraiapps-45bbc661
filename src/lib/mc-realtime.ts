@@ -68,10 +68,7 @@ function acquire(matchId: string, listener: () => void): () => void {
  * `mc_ball_events` or `mc_innings` insert/update/delete for the match. Fires
  * lightly — debounce/throttle in the caller if needed.
  */
-export function useMatchRealtime(
-  matchId: string | null | undefined,
-  onEvent: () => void,
-) {
+export function useMatchRealtime(matchId: string | null | undefined, onEvent: () => void) {
   useEffect(() => {
     if (!matchId) return;
     return acquire(matchId, onEvent);

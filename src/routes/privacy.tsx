@@ -4,7 +4,10 @@ export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
       { title: "Privacy Policy · AcademyOS" },
-      { name: "description", content: "How AcademyOS handles data for sports academies and their students." },
+      {
+        name: "description",
+        content: "How AcademyOS handles data for sports academies and their students.",
+      },
       { name: "robots", content: "index,follow" },
     ],
   }),
@@ -16,28 +19,33 @@ function Privacy() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="font-semibold tracking-tight">AcademyOS</Link>
-          <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground">Terms</Link>
+          <Link to="/" className="font-semibold tracking-tight">
+            AcademyOS
+          </Link>
+          <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground">
+            Terms
+          </Link>
         </div>
       </header>
       <article className="max-w-3xl mx-auto px-4 py-12 prose prose-sm md:prose-base">
         <h1>Privacy Policy</h1>
         <p className="text-sm text-muted-foreground">
-          This page is maintained by AcademyOS to answer common privacy questions about the platform.
-          It is app-owned editable content, not an independent certification.
+          This page is maintained by AcademyOS to answer common privacy questions about the
+          platform. It is app-owned editable content, not an independent certification.
         </p>
 
         <h2>What we collect</h2>
         <p>
-          AcademyOS stores the information academies enter to run their operations: student profiles,
-          guardian contacts, attendance, fees, matches, and communications. Owners and admins choose
-          what to enter; parents and students see only what their academy shares with them.
+          AcademyOS stores the information academies enter to run their operations: student
+          profiles, guardian contacts, attendance, fees, matches, and communications. Owners and
+          admins choose what to enter; parents and students see only what their academy shares with
+          them.
         </p>
 
         <h2>How data is used</h2>
         <p>
-          Data is used solely to provide AcademyOS to the academy the data belongs to. We do not sell,
-          rent or use academy or student data to train third-party AI models.
+          Data is used solely to provide AcademyOS to the academy the data belongs to. We do not
+          sell, rent or use academy or student data to train third-party AI models.
         </p>
 
         <h2>Data isolation</h2>

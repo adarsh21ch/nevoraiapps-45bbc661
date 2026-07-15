@@ -176,9 +176,7 @@ export async function fetchHallOfFame(
   return (data ?? []) as HallOfFameEntry[];
 }
 
-export async function fetchAthleteAwards(
-  athleteProfileId: string | null,
-): Promise<AthleteAward[]> {
+export async function fetchAthleteAwards(athleteProfileId: string | null): Promise<AthleteAward[]> {
   if (!athleteProfileId) return [];
   const { data, error } = await supabase
     .from("mc_athlete_awards")
@@ -249,7 +247,10 @@ export function buildParentSummary(input: DeterministicSummaryInput): string {
     let phrase = `This month ${first} attended ${cur.percent}% of training sessions`;
     const diff = cur.percent - prev.percent;
     if (prev.total > 0 && Math.abs(diff) >= 5) {
-      phrase += diff > 0 ? ` — up ${diff} points from last month` : ` — down ${Math.abs(diff)} points from last month`;
+      phrase +=
+        diff > 0
+          ? ` — up ${diff} points from last month`
+          : ` — down ${Math.abs(diff)} points from last month`;
     }
     parts.push(phrase + ".");
   } else {
@@ -263,17 +264,27 @@ export function buildParentSummary(input: DeterministicSummaryInput): string {
     if ((career.wickets ?? 0) > 0) bits.push(`${career.wickets} wickets`);
     if ((career.catches ?? 0) > 0) bits.push(`${career.catches} catches`);
     if (bits.length) {
-      parts.push(`Across ${matches} match${matches === 1 ? "" : "es"}, ${first} has recorded ${bits.join(", ")}.`);
+      parts.push(
+        `Across ${matches} match${matches === 1 ? "" : "es"}, ${first} has recorded ${bits.join(", ")}.`,
+      );
     }
     if (career.average != null && career.average > 0) {
-      parts.push(`Batting average is ${Number(career.average).toFixed(1)} with a strike rate of ${Number(career.strike_rate ?? 0).toFixed(0)}.`);
+      parts.push(
+        `Batting average is ${Number(career.average).toFixed(1)} with a strike rate of ${Number(career.strike_rate ?? 0).toFixed(0)}.`,
+      );
     }
   }
 
   const rec = ai?.recommendations?.[0];
   if (rec) parts.push(`Coach's focus area: ${rec}`);
-  else if (cur.percent >= 90 && matches > 0) parts.push(`Keep encouraging consistent attendance — it is clearly translating into on-field performance.`);
-  else if (cur.percent < 70 && cur.total > 0) parts.push(`Improving attendance in the coming weeks will help ${first} develop match-readiness.`);
+  else if (cur.percent >= 90 && matches > 0)
+    parts.push(
+      `Keep encouraging consistent attendance — it is clearly translating into on-field performance.`,
+    );
+  else if (cur.percent < 70 && cur.total > 0)
+    parts.push(
+      `Improving attendance in the coming weeks will help ${first} develop match-readiness.`,
+    );
 
   return parts.join(" ");
 }

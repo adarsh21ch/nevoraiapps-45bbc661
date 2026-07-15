@@ -61,16 +61,12 @@ export function LiveMatchWidget({ liveMatchSlug }: Props) {
             <span className="text-primary">
               {(score?.runs as number) ?? 0}/{(score?.wickets as number) ?? 0}
             </span>{" "}
-            <span className="text-muted-foreground">
-              ({(score?.overs as string) ?? "0.0"})
-            </span>
+            <span className="text-muted-foreground">({(score?.overs as string) ?? "0.0"})</span>
           </p>
           <p className="text-xs text-muted-foreground">
             vs {(score?.bowling_team_name as string) ?? "—"}
           </p>
-          {score?.target ? (
-            <p className="text-xs">Target: {score.target as number}</p>
-          ) : null}
+          {score?.target ? <p className="text-xs">Target: {score.target as number}</p> : null}
         </div>
       ) : (
         <EmptyLine>Connecting to live feed…</EmptyLine>

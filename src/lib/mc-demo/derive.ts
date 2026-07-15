@@ -114,10 +114,7 @@ function oversDisplay(legalBalls: number): string {
 }
 
 /** Aggregate a player's entire demo career from ball events. */
-export function derivePlayerCareer(
-  demo: DemoData,
-  athleteId: string,
-): PlayerCareer {
+export function derivePlayerCareer(demo: DemoData, athleteId: string): PlayerCareer {
   const key = playerKey(athleteId, null);
   const history: PlayerMatchLine[] = [];
 
@@ -457,8 +454,7 @@ export function deriveRecords(demo: DemoData): RecordRow[] {
     runs: number;
     matchId: string;
   } | null = null;
-  let highestTeamTotal: { team: string; runs: number; matchId: string } | null =
-    null;
+  let highestTeamTotal: { team: string; runs: number; matchId: string } | null = null;
 
   const sixesMap = new Map<string, LeaderRow>();
 
@@ -658,18 +654,27 @@ export interface TournamentSummary {
   orangeCap: TournamentTopBatRow[];
   purpleCap: TournamentTopBowlRow[];
   highestTeamTotal: { teamName: string; runs: number; matchId: string } | null;
-  bestBowling: { name: string; athleteId: string | null; wickets: number; runs: number; matchId: string } | null;
-  highestIndividualScore: { name: string; athleteId: string | null; runs: number; balls: number; matchId: string } | null;
+  bestBowling: {
+    name: string;
+    athleteId: string | null;
+    wickets: number;
+    runs: number;
+    matchId: string;
+  } | null;
+  highestIndividualScore: {
+    name: string;
+    athleteId: string | null;
+    runs: number;
+    balls: number;
+    matchId: string;
+  } | null;
 }
 
 function pointsFor(pw: number, pt: number, won: number, tied: number): number {
   return won * pw + tied * pt;
 }
 
-export function deriveTournament(
-  demo: DemoData,
-  tournamentId: string,
-): TournamentSummary | null {
+export function deriveTournament(demo: DemoData, tournamentId: string): TournamentSummary | null {
   const t = demo.tournaments.find((x) => x.id === tournamentId);
   if (!t) return null;
 
@@ -737,7 +742,7 @@ export function deriveTournament(
     for (const teamId of teamsInMatch) {
       const own = totals.get(teamId) ?? { runs: 0, legal: 0 };
       const opp = teamsInMatch.find((x) => x !== teamId);
-      const oppT = opp ? totals.get(opp) ?? { runs: 0, legal: 0 } : { runs: 0, legal: 0 };
+      const oppT = opp ? (totals.get(opp) ?? { runs: 0, legal: 0 }) : { runs: 0, legal: 0 };
       const row = ensureTeam(teamId, teamNameById(demo, teamId));
       row.played += 1;
       row.runsFor += own.runs;
@@ -880,7 +885,7 @@ export function deriveTournament(
     .filter((r) => r.wickets > 0 || r.legalBalls > 0)
     .map((r) => ({
       ...r,
-      economy: r.legalBalls > 0 ? Math.round(((r.runsConceded / r.legalBalls) * 6) * 100) / 100 : 0,
+      economy: r.legalBalls > 0 ? Math.round((r.runsConceded / r.legalBalls) * 6 * 100) / 100 : 0,
       average: r.wickets > 0 ? Math.round((r.runsConceded / r.wickets) * 100) / 100 : 0,
     }))
     .sort((a, b) => b.wickets - a.wickets || a.economy - b.economy)
@@ -901,4 +906,3 @@ export function deriveTournament(
     highestIndividualScore: highIndividual,
   };
 }
-

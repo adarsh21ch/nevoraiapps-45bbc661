@@ -124,12 +124,7 @@ export async function duplicateTeam(tenantId: string, teamId: string) {
   const source = await getTeam(tenantId, teamId);
   if (!source) throw new Error("Team not found");
   const players = await listTeamPlayers(teamId);
-  const {
-    id: _id,
-    created_at: _c,
-    updated_at: _u,
-    ...rest
-  } = source;
+  const { id: _id, created_at: _c, updated_at: _u, ...rest } = source;
   const copy = await createTeam({
     ...rest,
     name: `${source.name} (Copy)`,
@@ -156,11 +151,7 @@ export async function duplicateTeam(tenantId: string, teamId: string) {
   return copy;
 }
 
-export async function addPlayersToTeam(
-  tenantId: string,
-  teamId: string,
-  studentIds: string[],
-) {
+export async function addPlayersToTeam(tenantId: string, teamId: string, studentIds: string[]) {
   if (!studentIds.length) return;
   const rows: MCTeamPlayerInsert[] = studentIds.map((sid) => ({
     tenant_id: tenantId,

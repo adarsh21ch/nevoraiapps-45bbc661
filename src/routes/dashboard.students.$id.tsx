@@ -57,7 +57,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 const StudentProfilePanel = lazy(() =>
-  import("@/components/dashboard/StudentProfilePanel").then((m) => ({ default: m.StudentProfilePanel })),
+  import("@/components/dashboard/StudentProfilePanel").then((m) => ({
+    default: m.StudentProfilePanel,
+  })),
 );
 
 export const Route = createFileRoute("/dashboard/students/$id")({
@@ -124,7 +126,11 @@ function PlayerProfileRoute() {
     return (
       <div className="max-w-md mx-auto pt-16 text-center">
         <p className="text-sm text-muted-foreground">Player not found.</p>
-        <Link to="/dashboard/students" className="text-sm mt-3 inline-block" style={{ color: "var(--brand)" }}>
+        <Link
+          to="/dashboard/students"
+          className="text-sm mt-3 inline-block"
+          style={{ color: "var(--brand)" }}
+        >
           Back to Players
         </Link>
       </div>
@@ -150,7 +156,8 @@ function PlayerProfileRoute() {
     (athlete?.dominant_hand as string | undefined) ??
     null;
 
-  const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/dashboard/students/${id}` : "";
+  const shareUrl =
+    typeof window !== "undefined" ? `${window.location.origin}/dashboard/students/${id}` : "";
   const handleShare = async () => {
     try {
       if (navigator.share) {
@@ -217,7 +224,8 @@ function PlayerProfileRoute() {
             </div>
             {student.joined_at ? (
               <div className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                <Calendar className="size-3" /> Joined {format(new Date(student.joined_at), "MMM d, yyyy")}
+                <Calendar className="size-3" /> Joined{" "}
+                {format(new Date(student.joined_at), "MMM d, yyyy")}
               </div>
             ) : null}
           </div>
@@ -226,14 +234,24 @@ function PlayerProfileRoute() {
         {/* Quick actions */}
         <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-2">
           <QuickAction icon={Pencil} label="Edit" onClick={() => setEditing(true)} />
-          <QuickAction icon={ClipboardCheck} label="Attendance" onClick={() => setTab("attendance")} />
+          <QuickAction
+            icon={ClipboardCheck}
+            label="Attendance"
+            onClick={() => setTab("attendance")}
+          />
           <QuickAction icon={Swords} label="Matches" onClick={() => setTab("matches")} />
           <QuickAction icon={StickyNote} label="Notes" onClick={() => setTab("overview")} />
           <QuickAction
             icon={Phone}
             label="Call"
             disabled={!student.guardian_phone && !student.phone}
-            href={student.guardian_phone ? `tel:${student.guardian_phone}` : student.phone ? `tel:${student.phone}` : undefined}
+            href={
+              student.guardian_phone
+                ? `tel:${student.guardian_phone}`
+                : student.phone
+                  ? `tel:${student.phone}`
+                  : undefined
+            }
           />
           <QuickAction icon={Share2} label="Share" onClick={handleShare} />
         </div>
@@ -281,7 +299,9 @@ function PlayerProfileRoute() {
         {tab === "performance" && (
           <PerformanceTab athleteId={(athlete?.id as string | undefined) ?? null} />
         )}
-        {tab === "attendance" && <AttendanceTab tenantId={tenant.id} studentId={id} joinedAt={student.joined_at} />}
+        {tab === "attendance" && (
+          <AttendanceTab tenantId={tenant.id} studentId={id} joinedAt={student.joined_at} />
+        )}
         {tab === "matches" && (
           <MatchesTab athleteId={(athlete?.id as string | undefined) ?? null} />
         )}
@@ -314,7 +334,14 @@ function PlayerProfileRoute() {
               </button>
             </div>
             <div className="p-4">
-              <Suspense fallback={<div className="p-8 text-center text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin inline mr-2" />Loading editor…</div>}>
+              <Suspense
+                fallback={
+                  <div className="p-8 text-center text-sm text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin inline mr-2" />
+                    Loading editor…
+                  </div>
+                }
+              >
                 <StudentProfilePanel studentId={id} />
               </Suspense>
             </div>
@@ -448,9 +475,18 @@ function PlayerQuickStats({
       <KpiTile label="Matches" value={career?.matches ?? 0} />
       <KpiTile label="Runs" value={career?.runs ?? 0} />
       <KpiTile label="Wickets" value={career?.wickets ?? 0} />
-      <KpiTile label="Strike Rate" value={career?.strike_rate != null ? Number(career.strike_rate).toFixed(1) : "—"} />
-      <KpiTile label="Bat Avg" value={career?.average != null ? Number(career.average).toFixed(1) : "—"} />
-      <KpiTile label="Bowl Avg" value={career?.bowling_average != null ? Number(career.bowling_average).toFixed(1) : "—"} />
+      <KpiTile
+        label="Strike Rate"
+        value={career?.strike_rate != null ? Number(career.strike_rate).toFixed(1) : "—"}
+      />
+      <KpiTile
+        label="Bat Avg"
+        value={career?.average != null ? Number(career.average).toFixed(1) : "—"}
+      />
+      <KpiTile
+        label="Bowl Avg"
+        value={career?.bowling_average != null ? Number(career.bowling_average).toFixed(1) : "—"}
+      />
       <KpiTile label="Career" value={span} />
     </div>
   );
@@ -505,7 +541,9 @@ function OverviewTab({
         ) : (
           <div className="text-sm">
             <div className="text-2xl font-semibold">{summaryQ.data?.presentDays ?? 0}</div>
-            <div className="text-xs text-muted-foreground">Present days · {formatDuration(summaryQ.data?.totalMinutes ?? 0)} trained</div>
+            <div className="text-xs text-muted-foreground">
+              Present days · {formatDuration(summaryQ.data?.totalMinutes ?? 0)} trained
+            </div>
             {lastVisit ? (
               <div className="text-[11px] text-muted-foreground mt-2">
                 Last seen{" "}
@@ -524,9 +562,7 @@ function OverviewTab({
           <Skel />
         ) : lastMatch?.match ? (
           <div className="text-sm">
-            <div className="font-medium truncate">
-              {lastMatch.match.ground_name ?? "Match"}
-            </div>
+            <div className="font-medium truncate">{lastMatch.match.ground_name ?? "Match"}</div>
             <div className="text-[11px] text-muted-foreground">
               {lastMatch.match.scheduled_date
                 ? format(new Date(lastMatch.match.scheduled_date), "MMM d, yyyy")
@@ -536,15 +572,18 @@ function OverviewTab({
             <div className="mt-1.5 flex flex-wrap gap-1">
               {lastMatch.is_captain ? <ChipPill>Captain</ChipPill> : null}
               {lastMatch.is_keeper ? <ChipPill>Keeper</ChipPill> : null}
-              {lastMatch.is_player_of_match ? <ChipPill tone="gold">Player of Match</ChipPill> : null}
-              {lastMatch.match.result ? <ChipPill tone="muted">{lastMatch.match.result}</ChipPill> : null}
+              {lastMatch.is_player_of_match ? (
+                <ChipPill tone="gold">Player of Match</ChipPill>
+              ) : null}
+              {lastMatch.match.result ? (
+                <ChipPill tone="muted">{lastMatch.match.result}</ChipPill>
+              ) : null}
             </div>
           </div>
         ) : (
           <EmptyLine text="No matches yet." />
         )}
       </Card>
-
 
       <Card className="p-4 sm:col-span-2">
         <div className="flex items-center justify-between">
@@ -578,7 +617,13 @@ function OverviewTab({
   );
 }
 
-function SectionHeader({ icon: Icon, title }: { icon: React.ComponentType<{ className?: string }>; title: string }) {
+function SectionHeader({
+  icon: Icon,
+  title,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+}) {
   return (
     <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
       <Icon className="size-3.5" />
@@ -621,7 +666,12 @@ function ChipPill({
     muted: "bg-muted text-muted-foreground",
   };
   return (
-    <span className={cn("inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium", cls[tone])}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium",
+        cls[tone],
+      )}
+    >
       {children}
     </span>
   );
@@ -645,13 +695,7 @@ function FormStrip({ athleteId }: { athleteId: string | null }) {
           : r.is_captain
             ? "bg-emerald-500/25 text-emerald-700 dark:text-emerald-300"
             : "bg-muted text-muted-foreground";
-        const label = r.is_player_of_match
-          ? "MoM"
-          : r.is_captain
-            ? "C"
-            : r.is_keeper
-              ? "K"
-              : "•";
+        const label = r.is_player_of_match ? "MoM" : r.is_captain ? "C" : r.is_keeper ? "K" : "•";
         return (
           <div
             key={r.id}
@@ -668,7 +712,6 @@ function FormStrip({ athleteId }: { athleteId: string | null }) {
     </div>
   );
 }
-
 
 /* ------------------------ Coach Notes ------------------------ */
 
@@ -740,7 +783,12 @@ function CoachNotes({
             onClick={() => add.mutate()}
             className="h-8"
           >
-            {add.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />} Add
+            {add.isPending ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Plus className="size-3.5" />
+            )}{" "}
+            Add
           </Button>
         </div>
       </div>
@@ -905,7 +953,8 @@ function TimelineTab({
     if (q.trim()) {
       const needle = q.toLowerCase();
       return out.filter(
-        (i) => i.title.toLowerCase().includes(needle) || (i.meta ?? "").toLowerCase().includes(needle),
+        (i) =>
+          i.title.toLowerCase().includes(needle) || (i.meta ?? "").toLowerCase().includes(needle),
       );
     }
     return out;
@@ -953,7 +1002,9 @@ function TimelineTab({
                     {formatDistanceToNow(new Date(it.at), { addSuffix: true })}
                   </div>
                 </div>
-                {it.meta ? <div className="text-[11.5px] text-muted-foreground mt-0.5">{it.meta}</div> : null}
+                {it.meta ? (
+                  <div className="text-[11.5px] text-muted-foreground mt-0.5">{it.meta}</div>
+                ) : null}
               </li>
             );
           })}
@@ -976,13 +1027,20 @@ function PerformanceTab({ athleteId }: { athleteId: string | null }) {
     return (
       <Card className="p-6 text-center">
         <Sparkles className="size-5 text-muted-foreground mx-auto mb-2" />
-        <p className="text-sm text-muted-foreground">Link this player to Match Center to see performance stats.</p>
+        <p className="text-sm text-muted-foreground">
+          Link this player to Match Center to see performance stats.
+        </p>
       </Card>
     );
   }
   if (q.isLoading) return <Skel />;
   const c = q.data;
-  if (!c) return <Card className="p-6 text-center text-sm text-muted-foreground">No performance data yet.</Card>;
+  if (!c)
+    return (
+      <Card className="p-6 text-center text-sm text-muted-foreground">
+        No performance data yet.
+      </Card>
+    );
 
   return (
     <div className="space-y-3">
@@ -992,7 +1050,10 @@ function PerformanceTab({ athleteId }: { athleteId: string | null }) {
           <KpiTile label="Innings" value={c.innings} />
           <KpiTile label="Runs" value={c.runs} />
           <KpiTile label="Avg" value={c.average != null ? Number(c.average).toFixed(1) : "—"} />
-          <KpiTile label="SR" value={c.strike_rate != null ? Number(c.strike_rate).toFixed(1) : "—"} />
+          <KpiTile
+            label="SR"
+            value={c.strike_rate != null ? Number(c.strike_rate).toFixed(1) : "—"}
+          />
           <KpiTile label="50s / 100s" value={`${c.fifties} / ${c.hundreds}`} />
           <KpiTile label="HS" value={c.highest_score ?? "—"} />
         </div>
@@ -1001,7 +1062,10 @@ function PerformanceTab({ athleteId }: { athleteId: string | null }) {
         <SectionHeader icon={ShieldAlert} title="Bowling" />
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           <KpiTile label="Wickets" value={c.wickets} />
-          <KpiTile label="Avg" value={c.bowling_average != null ? Number(c.bowling_average).toFixed(1) : "—"} />
+          <KpiTile
+            label="Avg"
+            value={c.bowling_average != null ? Number(c.bowling_average).toFixed(1) : "—"}
+          />
           <KpiTile label="Econ" value={c.economy != null ? Number(c.economy).toFixed(2) : "—"} />
           <KpiTile label="Best" value={c.best_bowling ?? "—"} />
         </div>
@@ -1056,9 +1120,20 @@ function AttendanceTab({
 
   if (q.isLoading) return <Skel />;
 
-  const attendancePct = joinedAt && q.data
-    ? Math.min(100, Math.round((q.data.presentDays / Math.max(1, Math.min(365, differenceInYears(new Date(), new Date(joinedAt)) * 365 + 30))) * 100))
-    : null;
+  const attendancePct =
+    joinedAt && q.data
+      ? Math.min(
+          100,
+          Math.round(
+            (q.data.presentDays /
+              Math.max(
+                1,
+                Math.min(365, differenceInYears(new Date(), new Date(joinedAt)) * 365 + 30),
+              )) *
+              100,
+          ),
+        )
+      : null;
 
   return (
     <div className="space-y-3">
@@ -1096,14 +1171,22 @@ function AttendanceTab({
           <ul className="divide-y divide-border">
             {q.data!.days.slice(0, 10).map((d) => (
               <li key={d.session_date} className="py-2 flex items-center gap-2">
-                <div className="text-xs font-medium w-24 shrink-0">{format(new Date(d.session_date), "MMM d, EEE")}</div>
+                <div className="text-xs font-medium w-24 shrink-0">
+                  {format(new Date(d.session_date), "MMM d, EEE")}
+                </div>
                 <div className="text-[11px] text-muted-foreground flex-1">
                   {d.first_check_in_at ? format(new Date(d.first_check_in_at), "h:mm a") : "—"}
                   {" → "}
-                  {d.last_check_out_at ? format(new Date(d.last_check_out_at), "h:mm a") : "In academy"}
-                  {d.visit_count > 1 ? <span className="ml-1">· {d.visit_count} visits</span> : null}
+                  {d.last_check_out_at
+                    ? format(new Date(d.last_check_out_at), "h:mm a")
+                    : "In academy"}
+                  {d.visit_count > 1 ? (
+                    <span className="ml-1">· {d.visit_count} visits</span>
+                  ) : null}
                 </div>
-                <div className="text-xs tabular-nums font-medium">{formatDuration(d.total_minutes)}</div>
+                <div className="text-xs tabular-nums font-medium">
+                  {formatDuration(d.total_minutes)}
+                </div>
               </li>
             ))}
           </ul>
@@ -1143,7 +1226,8 @@ function MatchesTab({ athleteId }: { athleteId: string | null }) {
   }
   if (q.isLoading) return <Skel />;
   const rows = q.data ?? [];
-  if (rows.length === 0) return <Card className="p-6 text-sm text-muted-foreground text-center">No matches yet.</Card>;
+  if (rows.length === 0)
+    return <Card className="p-6 text-sm text-muted-foreground text-center">No matches yet.</Card>;
 
   return (
     <Card className="p-0 overflow-hidden">
@@ -1181,7 +1265,9 @@ function MatchesTab({ athleteId }: { athleteId: string | null }) {
             </div>
             <div className="text-right shrink-0">
               <div className="text-[11px] text-muted-foreground">
-                {m.match?.status === "completed" ? m.match?.result ?? "Completed" : m.match?.status ?? ""}
+                {m.match?.status === "completed"
+                  ? (m.match?.result ?? "Completed")
+                  : (m.match?.status ?? "")}
               </div>
             </div>
           </li>
@@ -1190,7 +1276,6 @@ function MatchesTab({ athleteId }: { athleteId: string | null }) {
     </Card>
   );
 }
-
 
 /* ------------------------ More ------------------------ */
 
@@ -1216,11 +1301,22 @@ function MoreTab({
   const { isOwner } = usePermissions();
   const canRemove = isOwner;
 
-  const rows: { icon: React.ComponentType<{ className?: string }>; label: string; value: string; soon?: boolean }[] = [
+  const rows: {
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    value: string;
+    soon?: boolean;
+  }[] = [
     { icon: FileText, label: "Registration form", value: "View original registration", soon: true },
     { icon: BadgeCheck, label: "Certificates", value: "Awards & certificates", soon: true },
     { icon: ShieldAlert, label: "Medical", value: "Health & injury records", soon: true },
-    { icon: Phone, label: "Emergency contact", value: student.guardian_name ? `${student.guardian_name}${student.guardian_phone ? ` · ${student.guardian_phone}` : ""}` : "Not on file" },
+    {
+      icon: Phone,
+      label: "Emergency contact",
+      value: student.guardian_name
+        ? `${student.guardian_name}${student.guardian_phone ? ` · ${student.guardian_phone}` : ""}`
+        : "Not on file",
+    },
     { icon: MessageCircle, label: "Address", value: student.address ?? "Not on file" },
     { icon: Layers, label: "Documents", value: "ID card, report card", soon: true },
   ];
@@ -1233,7 +1329,10 @@ function MoreTab({
             <Card key={i} className="p-3.5 flex items-center gap-3">
               <div
                 className="grid place-items-center size-9 rounded-lg shrink-0"
-                style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)", color: "var(--brand)" }}
+                style={{
+                  backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)",
+                  color: "var(--brand)",
+                }}
               >
                 <Icon className="size-4" />
               </div>
@@ -1257,7 +1356,8 @@ function MoreTab({
         actions={[
           {
             label: "Remove player",
-            description: "Deletes attendance, fees, registrations, match records and the player profile.",
+            description:
+              "Deletes attendance, fees, registrations, match records and the player profile.",
             onClick: () => setConfirmOpen(true),
           },
         ]}

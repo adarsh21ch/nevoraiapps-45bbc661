@@ -126,7 +126,13 @@ export function TournamentDashboard({ tournament, onNavigate, onQuickAction, pub
     const groupSpecs =
       hasGroups && groups.length > 0
         ? groups.map((g) => ({ id: g.id, name: g.name, qualify_count: g.qualify_count }))
-        : [{ id: null, name: "Overall", qualify_count: Math.max(1, tournament.max_teams / 2 | 0) }];
+        : [
+            {
+              id: null,
+              name: "Overall",
+              qualify_count: Math.max(1, (tournament.max_teams / 2) | 0),
+            },
+          ];
     return computeQualification({
       standings: teamsReg.map((r) => ({
         team_id: r.team_id,
@@ -207,7 +213,12 @@ export function TournamentDashboard({ tournament, onNavigate, onQuickAction, pub
           value={buckets.live.length + buckets.startingSoon.length + buckets.completedToday.length}
           onClick={() => onNavigate("fixtures")}
         />
-        <Kpi icon={Users} label="Teams" value={teamsReg.length} onClick={() => onNavigate("teams")} />
+        <Kpi
+          icon={Users}
+          label="Teams"
+          value={teamsReg.length}
+          onClick={() => onNavigate("teams")}
+        />
         <Kpi
           icon={UserSquare2}
           label="Players"
@@ -220,7 +231,11 @@ export function TournamentDashboard({ tournament, onNavigate, onQuickAction, pub
       <div className="grid gap-3 lg:grid-cols-3">
         <HealthCard health={health} onFix={onNavigate} />
         <AlertsCard alerts={alerts} onNavigate={onNavigate} />
-        <QuickActionsCard onQuickAction={onQuickAction} onNavigate={onNavigate} publicUrl={publicUrl} />
+        <QuickActionsCard
+          onQuickAction={onQuickAction}
+          onNavigate={onNavigate}
+          publicUrl={publicUrl}
+        />
       </div>
 
       {/* ============ QUALIFICATION CENTER ============ */}
@@ -246,7 +261,9 @@ export function TournamentDashboard({ tournament, onNavigate, onQuickAction, pub
             const groupLabel = groupMeta?.name ?? (groupKey === "__league__" ? "Overall" : "Group");
             const groupProgress =
               info.matchesTotal > 0
-                ? Math.round(((info.matchesTotal - info.matchesRemaining) / info.matchesTotal) * 100)
+                ? Math.round(
+                    ((info.matchesTotal - info.matchesRemaining) / info.matchesTotal) * 100,
+                  )
                 : 0;
             return (
               <button
@@ -261,10 +278,7 @@ export function TournamentDashboard({ tournament, onNavigate, onQuickAction, pub
                   </span>
                 </div>
                 <div className="mb-2 h-1 w-full overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full bg-foreground"
-                    style={{ width: `${groupProgress}%` }}
-                  />
+                  <div className="h-full bg-foreground" style={{ width: `${groupProgress}%` }} />
                 </div>
                 <div className="space-y-0.5 text-xs">
                   <TeamLine rank={1} name={teamNameById.get(info.leader ?? "") ?? "—"} />
@@ -290,11 +304,37 @@ export function TournamentDashboard({ tournament, onNavigate, onQuickAction, pub
           </span>
         </header>
         <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-5">
-          <TodayPill icon={Radio} label="Live" value={buckets.live.length} tone="live" onClick={() => onNavigate("live")} />
-          <TodayPill icon={Play} label="Starting soon" value={buckets.startingSoon.length} onClick={() => onNavigate("fixtures")} />
-          <TodayPill icon={CheckCircle2} label="Completed" value={buckets.completedToday.length} onClick={() => onNavigate("fixtures")} />
-          <TodayPill icon={PauseCircle} label="Delayed" value={buckets.delayed.length} onClick={() => onNavigate("fixtures")} />
-          <TodayPill icon={XCircle} label="Cancelled" value={buckets.cancelled.length} onClick={() => onNavigate("fixtures")} />
+          <TodayPill
+            icon={Radio}
+            label="Live"
+            value={buckets.live.length}
+            tone="live"
+            onClick={() => onNavigate("live")}
+          />
+          <TodayPill
+            icon={Play}
+            label="Starting soon"
+            value={buckets.startingSoon.length}
+            onClick={() => onNavigate("fixtures")}
+          />
+          <TodayPill
+            icon={CheckCircle2}
+            label="Completed"
+            value={buckets.completedToday.length}
+            onClick={() => onNavigate("fixtures")}
+          />
+          <TodayPill
+            icon={PauseCircle}
+            label="Delayed"
+            value={buckets.delayed.length}
+            onClick={() => onNavigate("fixtures")}
+          />
+          <TodayPill
+            icon={XCircle}
+            label="Cancelled"
+            value={buckets.cancelled.length}
+            onClick={() => onNavigate("fixtures")}
+          />
         </div>
         {buckets.live.length > 0 ? (
           <div className="divide-y divide-border border-t border-border">
@@ -339,7 +379,9 @@ export function TournamentDashboard({ tournament, onNavigate, onQuickAction, pub
             </button>
           </header>
           {buckets.recent.length === 0 ? (
-            <div className="p-6 text-center text-sm text-muted-foreground">No completed matches yet.</div>
+            <div className="p-6 text-center text-sm text-muted-foreground">
+              No completed matches yet.
+            </div>
           ) : (
             <div className="divide-y divide-border">
               {buckets.recent.map((m) => (
@@ -494,9 +536,19 @@ function AlertsCard({
   alerts: ReturnType<typeof splitAlerts>;
   onNavigate: (section: string) => void;
 }) {
-  const sections: Array<{ key: keyof typeof alerts; label: string; icon: React.ComponentType<{ className?: string }>; tone: string }> = [
+  const sections: Array<{
+    key: keyof typeof alerts;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    tone: string;
+  }> = [
     { key: "critical", label: "Critical", icon: CircleAlert, tone: "text-destructive" },
-    { key: "warning", label: "Warnings", icon: AlertTriangle, tone: "text-amber-600 dark:text-amber-400" },
+    {
+      key: "warning",
+      label: "Warnings",
+      icon: AlertTriangle,
+      tone: "text-amber-600 dark:text-amber-400",
+    },
     { key: "info", label: "Info", icon: Info, tone: "text-muted-foreground" },
   ];
   const total = alerts.critical.length + alerts.warning.length + alerts.info.length;
@@ -519,7 +571,12 @@ function AlertsCard({
             if (list.length === 0) return null;
             return (
               <div key={key}>
-                <div className={cn("mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider", tone)}>
+                <div
+                  className={cn(
+                    "mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider",
+                    tone,
+                  )}
+                >
                   <Icon className="size-3" /> {label} · {list.length}
                 </div>
                 <ul className="space-y-0.5 text-xs">
@@ -554,7 +611,11 @@ function QuickActionsCard({
   onNavigate: (section: string) => void;
   publicUrl?: string | null;
 }) {
-  const actions: Array<{ label: string; icon: React.ComponentType<{ className?: string }>; onClick: () => void }> = [
+  const actions: Array<{
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    onClick: () => void;
+  }> = [
     { label: "Generate fixtures", icon: Zap, onClick: () => onQuickAction?.("generate") },
     { label: "Create match", icon: Play, onClick: () => onQuickAction?.("create") },
     { label: "Live scoring", icon: Radio, onClick: () => onNavigate("live") },
@@ -603,7 +664,15 @@ function QuickActionsCard({
   );
 }
 
-function QualStat({ label, value, tone }: { label: string; value: number; tone: "pos" | "warn" | "neg" }) {
+function QualStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "pos" | "warn" | "neg";
+}) {
   const toneCls =
     tone === "pos"
       ? "text-emerald-600 dark:text-emerald-400"
@@ -626,7 +695,9 @@ function TeamLine({ rank, name }: { rank: number; name: string }) {
       <span
         className={cn(
           "grid size-4 place-items-center rounded-full text-[9px] font-bold",
-          rank === 1 ? "bg-amber-500/20 text-amber-700 dark:text-amber-300" : "bg-muted text-muted-foreground",
+          rank === 1
+            ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+            : "bg-muted text-muted-foreground",
         )}
       >
         {rank}
@@ -643,7 +714,11 @@ function Chip({ tone, children }: { tone: "pos" | "warn" | "neg"; children: Reac
       : tone === "warn"
         ? "bg-amber-500/10 text-amber-700 dark:text-amber-300"
         : "bg-destructive/10 text-destructive";
-  return <span className={cn("rounded-full px-1.5 py-0.5 font-semibold uppercase tracking-wider", cls)}>{children}</span>;
+  return (
+    <span className={cn("rounded-full px-1.5 py-0.5 font-semibold uppercase tracking-wider", cls)}>
+      {children}
+    </span>
+  );
 }
 
 function TodayPill({

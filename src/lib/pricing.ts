@@ -98,12 +98,7 @@ export const PLANS: Plan[] = [
     currency: "INR",
     tagline: "White-label, custom sports, franchise networks, integrations.",
     studentsIncluded: null,
-    highlights: [
-      "White-label",
-      "Custom sport modules",
-      "API access",
-      "On-prem deployment options",
-    ],
+    highlights: ["White-label", "Custom sport modules", "API access", "On-prem deployment options"],
     features: [
       "Everything in Enterprise",
       "White-label branding",

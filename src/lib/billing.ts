@@ -36,12 +36,7 @@ export type PaymentMethod =
   | "gateway"
   | "cheque"
   | "other";
-export type PaymentStatus =
-  | "pending"
-  | "succeeded"
-  | "failed"
-  | "refunded"
-  | "partially_refunded";
+export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded" | "partially_refunded";
 export type LineType = "charge" | "discount" | "scholarship" | "tax" | "adjustment" | "one_time";
 export type AdjustmentKind = "credit_note" | "waiver" | "writeoff" | "refund_reversal";
 
@@ -130,7 +125,11 @@ export type Allocation = {
 export function formatMoney(amount: number | null | undefined, currency = "INR"): string {
   const v = Number(amount ?? 0);
   try {
-    return new Intl.NumberFormat("en-IN", { style: "currency", currency, maximumFractionDigits: 2 }).format(v);
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 2,
+    }).format(v);
   } catch {
     return `₹${v.toFixed(2)}`;
   }
@@ -203,7 +202,10 @@ export async function fetchBillingKpis(tenantId: string) {
   return { outstanding, collectedThisMonth, openInvoices, overdue };
 }
 
-export async function fetchInvoices(tenantId: string, opts?: { limit?: number; status?: InvoiceStatus[] }) {
+export async function fetchInvoices(
+  tenantId: string,
+  opts?: { limit?: number; status?: InvoiceStatus[] },
+) {
   let q = supabase
     .from("billing_invoices")
     .select("*")
@@ -313,7 +315,9 @@ export async function createDraftInvoice(input: {
 }) {
   // Compute totals
   const subtotal = input.lines
-    .filter((l) => l.line_type === "charge" || l.line_type === "one_time" || l.line_type === "adjustment")
+    .filter(
+      (l) => l.line_type === "charge" || l.line_type === "one_time" || l.line_type === "adjustment",
+    )
     .reduce((s, l) => s + (l.quantity ?? 1) * l.unit_amount, 0);
   const discountTotal = input.lines
     .filter((l) => l.line_type === "discount" || l.line_type === "scholarship")

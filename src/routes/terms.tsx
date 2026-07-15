@@ -16,8 +16,12 @@ function Terms() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="font-semibold tracking-tight">AcademyOS</Link>
-          <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground">Privacy</Link>
+          <Link to="/" className="font-semibold tracking-tight">
+            AcademyOS
+          </Link>
+          <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground">
+            Privacy
+          </Link>
         </div>
       </header>
       <article className="max-w-3xl mx-auto px-4 py-12 prose prose-sm md:prose-base">
@@ -34,14 +38,15 @@ function Terms() {
 
         <h2>Acceptable use</h2>
         <p>
-          Do not use AcademyOS to store data unrelated to running a sports academy, to send unsolicited
-          communications to non-consenting recipients, or to attempt to access another academy's data.
+          Do not use AcademyOS to store data unrelated to running a sports academy, to send
+          unsolicited communications to non-consenting recipients, or to attempt to access another
+          academy's data.
         </p>
 
         <h2>Payments and trial</h2>
         <p>
-          A free trial is offered on new academies. Paid plans are billed monthly and can be cancelled
-          at any time. Refunds are handled case-by-case.
+          A free trial is offered on new academies. Paid plans are billed monthly and can be
+          cancelled at any time. Refunds are handled case-by-case.
         </p>
 
         <h2>Availability</h2>

@@ -54,9 +54,7 @@ function InsightsPage() {
         <div className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">
           Insights
         </div>
-        <h1 className="mt-0.5 text-2xl font-black tracking-tight">
-          Records & performance
-        </h1>
+        <h1 className="mt-0.5 text-2xl font-black tracking-tight">Records & performance</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Live scores, career records, leaderboards and player insights across your academy.
         </p>
@@ -82,9 +80,7 @@ function InsightsPage() {
                     <Radio className="size-4" />
                   </span>
                   <span className="min-w-0">
-                    <span className="block truncate font-bold">
-                      {m.match_type || "Live match"}
-                    </span>
+                    <span className="block truncate font-bold">{m.match_type || "Live match"}</span>
                     <span className="block truncate text-xs text-muted-foreground">
                       {m.ground_name || "In progress"}
                     </span>
@@ -170,19 +166,14 @@ function InsightTile({
     <Link to={to} className="block">
       <Card className="grid h-full grid-rows-[auto_1fr_auto] gap-2 rounded-2xl border p-4 transition duration-100 active:scale-[0.98]">
         <span
-          className={cn(
-            "grid size-10 place-items-center rounded-xl",
-            toneClasses[tone],
-          )}
+          className={cn("grid size-10 place-items-center rounded-xl", toneClasses[tone])}
           aria-hidden
         >
           {icon}
         </span>
         <div>
           <div className="text-[14px] font-black leading-tight">{title}</div>
-          <div className="mt-0.5 text-[11.5px] leading-tight text-muted-foreground">
-            {desc}
-          </div>
+          <div className="mt-0.5 text-[11.5px] leading-tight text-muted-foreground">{desc}</div>
         </div>
         <div className="flex items-center gap-1 text-[11px] font-bold text-primary">
           Open <ChevronRight className="size-3" />

@@ -56,12 +56,8 @@ export function LineChartSVG({
       aria-label={ariaLabel ?? "Trend chart"}
       className="w-full"
     >
-      {fill && area && (
-        <path d={area} fill={color} opacity={0.12} />
-      )}
-      {path && (
-        <path d={path} stroke={color} strokeWidth={2} fill="none" strokeLinejoin="round" />
-      )}
+      {fill && area && <path d={area} fill={color} opacity={0.12} />}
+      {path && <path d={path} stroke={color} strokeWidth={2} fill="none" strokeLinejoin="round" />}
       {showDots &&
         dots.map((p, i) => (
           <g key={i}>
@@ -120,7 +116,7 @@ export function BarChartSVG({
       className="w-full"
     >
       {data.map((d, i) => {
-        const h = ((d.value / max) * (height - pad * 2)) || 0;
+        const h = (d.value / max) * (height - pad * 2) || 0;
         const x = pad + i * (barW + 4);
         const y = height - pad - h;
         return (
@@ -293,7 +289,9 @@ export function ProgressRing({
       </svg>
       <div className="-mt-[calc(50%+8px)] flex flex-col items-center text-center">
         <span className="text-xl font-black tabular-nums">{Math.round(value)}</span>
-        {hint && <span className="text-[9px] uppercase tracking-widest text-muted-foreground">{hint}</span>}
+        {hint && (
+          <span className="text-[9px] uppercase tracking-widest text-muted-foreground">{hint}</span>
+        )}
       </div>
       {label && (
         <div className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -355,9 +353,7 @@ export function StatPill({
         {label}
       </div>
       <div className="mt-0.5 text-2xl font-black tabular-nums">{value}</div>
-      {hint && (
-        <div className="mt-0.5 text-[10px] text-muted-foreground">{hint}</div>
-      )}
+      {hint && <div className="mt-0.5 text-[10px] text-muted-foreground">{hint}</div>}
     </div>
   );
 }

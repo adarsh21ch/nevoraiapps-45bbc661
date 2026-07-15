@@ -13,10 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/app-launch")({
   ssr: false,
   head: () => ({
-    meta: [
-      { title: "Academy OS" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Academy OS" }, { name: "robots", content: "noindex" }],
   }),
   component: AppLaunch,
 });

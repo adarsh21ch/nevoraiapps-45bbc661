@@ -112,21 +112,16 @@ function MatchCenterDashboard() {
     [matches],
   );
   const todaysMatches = useMemo(
-    () =>
-      matches.filter(
-        (m) => m.scheduled_date && isSameDay(new Date(m.scheduled_date), now),
-      ),
+    () => matches.filter((m) => m.scheduled_date && isSameDay(new Date(m.scheduled_date), now)),
     [matches],
   );
   const recentMatches = useMemo(
-    () =>
-      matches
-        .filter((m) => m.status === "completed")
-        .slice(0, 5),
+    () => matches.filter((m) => m.status === "completed").slice(0, 5),
     [matches],
   );
   const recentRecognitions = useMemo(
-    () => recognitions.filter((r) => r.status === "published" || r.status === "approved").slice(0, 5),
+    () =>
+      recognitions.filter((r) => r.status === "published" || r.status === "approved").slice(0, 5),
     [recognitions],
   );
   const activeTournament = tournaments.find((t) => t.status === "in_progress") ?? tournaments[0];
@@ -139,10 +134,7 @@ function MatchCenterDashboard() {
     recognitions.length > 0;
 
   const loading =
-    matchesQ.isLoading ||
-    teamsQ.isLoading ||
-    athletesQ.isLoading ||
-    tournamentsQ.isLoading;
+    matchesQ.isLoading || teamsQ.isLoading || athletesQ.isLoading || tournamentsQ.isLoading;
 
   const displayName =
     (profile as { name?: string } | null)?.name ??
@@ -295,11 +287,7 @@ function MatchCenterDashboard() {
                 </Link>
               }
             >
-              <FixturesTabs
-                live={liveMatches}
-                upcoming={upcomingMatches}
-                recent={recentMatches}
-              />
+              <FixturesTabs live={liveMatches} upcoming={upcomingMatches} recent={recentMatches} />
             </DashboardCard>
 
             <DashboardCard title="Recent activity" icon={Activity} tone="ai">
@@ -341,8 +329,6 @@ function MatchCenterDashboard() {
 
           {/* PERFORMERS -------------------------------------------------- */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-
-
             <DashboardCard title="Recent recognition" icon={Award} tone="award">
               {recentRecognitions.length === 0 ? (
                 <EmptyState
@@ -359,7 +345,8 @@ function MatchCenterDashboard() {
                       <div
                         className="mt-0.5 size-8 shrink-0 rounded-lg grid place-items-center"
                         style={{
-                          backgroundColor: "color-mix(in oklch, var(--accent-award) 14%, transparent)",
+                          backgroundColor:
+                            "color-mix(in oklch, var(--accent-award) 14%, transparent)",
                           color: "var(--accent-award)",
                         }}
                       >
@@ -469,18 +456,17 @@ function LiveHero({ match, extra }: { match: MatchWithTeams; extra: number }) {
         </div>
         <div className="flex shrink-0 items-center gap-2 md:flex-wrap">
           <Button asChild size="sm" className="flex-1 md:flex-initial md:h-11 md:px-6 md:text-base">
-            <Link
-              to="/scorer/$matchId"
-              params={{ matchId: match.id }}
-            >
+            <Link to="/scorer/$matchId" params={{ matchId: match.id }}>
               <Radio className="size-4 mr-1.5" /> Open scorer
             </Link>
           </Button>
-          <Button asChild size="sm" variant="outline" className="flex-1 md:flex-initial md:h-11 md:px-6 md:text-base">
-            <Link
-              to="/match-center/scorebook/$matchId"
-              params={{ matchId: match.id }}
-            >
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="flex-1 md:flex-initial md:h-11 md:px-6 md:text-base"
+          >
+            <Link to="/match-center/scorebook/$matchId" params={{ matchId: match.id }}>
               <BookOpen className="size-4 mr-1.5" /> Scorecard
             </Link>
           </Button>
@@ -588,7 +574,9 @@ function PrimaryStartMatchCard() {
         </div>
       </div>
       <div className="relative">
-        <div className="text-[11px] uppercase tracking-[0.14em] opacity-80 mb-1">Primary action</div>
+        <div className="text-[11px] uppercase tracking-[0.14em] opacity-80 mb-1">
+          Primary action
+        </div>
         <div className="text-2xl font-bold tracking-tight">Start a match</div>
         <div className="mt-1 text-sm opacity-85 max-w-sm">
           Launch live scoring with squads, toss and format in under a minute.
@@ -708,7 +696,8 @@ function OnboardingChecklist() {
                   </div>
                   <div className="text-xs text-muted-foreground">{s.description}</div>
                   <div className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-foreground/80 group-hover:text-foreground">
-                    {s.cta} <ChevronRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+                    {s.cta}{" "}
+                    <ChevronRight className="size-3 transition-transform group-hover:translate-x-0.5" />
                   </div>
                 </div>
               </Link>

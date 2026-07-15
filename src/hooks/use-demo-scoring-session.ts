@@ -16,7 +16,12 @@ import {
 } from "@/lib/mc-rules-engine";
 import { formatLiveOver } from "@/lib/mc-statistics-engine";
 import { updateDemoData, findDemoDatasetByMatchId, useDemoRevision } from "@/lib/mc-demo/store";
-import type { ScoringSession, CurrentBatterState, CurrentBowlerState, CurrentOverState } from "./use-scoring-session";
+import type {
+  ScoringSession,
+  CurrentBatterState,
+  CurrentBowlerState,
+  CurrentOverState,
+} from "./use-scoring-session";
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
@@ -105,16 +110,12 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
 
   const battingSquad = useMemo(
     () =>
-      activeInnings
-        ? playingXI.filter((p) => p.team_id === activeInnings.batting_team_id)
-        : [],
+      activeInnings ? playingXI.filter((p) => p.team_id === activeInnings.batting_team_id) : [],
     [playingXI, activeInnings],
   );
   const bowlingSquad = useMemo(
     () =>
-      activeInnings
-        ? playingXI.filter((p) => p.team_id === activeInnings.bowling_team_id)
-        : [],
+      activeInnings ? playingXI.filter((p) => p.team_id === activeInnings.bowling_team_id) : [],
     [playingXI, activeInnings],
   );
 
@@ -131,12 +132,14 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
   // Reconstruct current striker/non-striker/bowler from the event tail so
   // the panels stay in sync after page reload.
   const lastEvent = events[events.length - 1];
-  const inferredStriker = matchState.innings.striker.athleteId || matchState.innings.striker.name
-    ? { ...matchState.innings.striker, onStrike: true }
-    : { athleteId: null, name: null, onStrike: true };
-  const inferredNonStriker = matchState.innings.nonStriker.athleteId || matchState.innings.nonStriker.name
-    ? { ...matchState.innings.nonStriker, onStrike: false }
-    : { athleteId: null, name: null, onStrike: false };
+  const inferredStriker =
+    matchState.innings.striker.athleteId || matchState.innings.striker.name
+      ? { ...matchState.innings.striker, onStrike: true }
+      : { athleteId: null, name: null, onStrike: true };
+  const inferredNonStriker =
+    matchState.innings.nonStriker.athleteId || matchState.innings.nonStriker.name
+      ? { ...matchState.innings.nonStriker, onStrike: false }
+      : { athleteId: null, name: null, onStrike: false };
   const inferredBowler = lastEvent
     ? { athleteId: lastEvent.bowler_athlete_id, name: lastEvent.bowler_name }
     : { athleteId: null, name: null };
@@ -227,13 +230,18 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     selectedNonStriker: CurrentBatterState = nonStriker,
   ): MatchState => {
     if (!state.innings.awaitingNewBatter) return state;
-    const strikerReady = Boolean(selectedStriker.athleteId || selectedStriker.name) &&
+    const strikerReady =
+      Boolean(selectedStriker.athleteId || selectedStriker.name) &&
       !(selectedStriker.athleteId && state.innings.dismissedIds.has(selectedStriker.athleteId)) &&
       !(selectedStriker.name && state.innings.dismissedNames.has(selectedStriker.name));
-    const nonStrikerReady = Boolean(selectedNonStriker.athleteId || selectedNonStriker.name) &&
-      !(selectedNonStriker.athleteId && state.innings.dismissedIds.has(selectedNonStriker.athleteId)) &&
+    const nonStrikerReady =
+      Boolean(selectedNonStriker.athleteId || selectedNonStriker.name) &&
+      !(
+        selectedNonStriker.athleteId && state.innings.dismissedIds.has(selectedNonStriker.athleteId)
+      ) &&
       !(selectedNonStriker.name && state.innings.dismissedNames.has(selectedNonStriker.name));
-    if (!strikerReady || !nonStrikerReady || samePlayerRef(selectedStriker, selectedNonStriker)) return state;
+    if (!strikerReady || !nonStrikerReady || samePlayerRef(selectedStriker, selectedNonStriker))
+      return state;
     return {
       ...state,
       innings: {
@@ -247,14 +255,15 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     if (events.length === 0) return { overNumber: 0, ballsBowled: 0, events: [] };
     const lastOver = events[events.length - 1].over_number;
     const overEvents = events.filter((e) => e.over_number === lastOver);
-    const legal = overEvents.filter((e) => isLegalDelivery(e.extra_type as AppendBallInput["extraType"])).length;
+    const legal = overEvents.filter((e) =>
+      isLegalDelivery(e.extra_type as AppendBallInput["extraType"]),
+    ).length;
     return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
   }, [events]);
 
   const startInnings = useCallback<ScoringSession["startInnings"]>(
     async (input: Omit<CreateInningsInput, "tenantId" | "matchId">) => {
-      if (!tenantId || !demo)
-        throw new Error("Demo dataset unavailable.");
+      if (!tenantId || !demo) throw new Error("Demo dataset unavailable.");
       const created: MCInnings = {
         id: `demo-innings-${matchId}-${input.inningsNumber}-${Date.now()}`,
         tenant_id: tenantId,
@@ -293,16 +302,13 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     async (partial) => {
       if (!tenantId) throw new Error("Demo tenant missing.");
       if (!activeInnings) throw new Error("Start an innings first.");
-      if (activeInnings.status !== "in_progress")
-        throw new Error("Innings is not in progress.");
+      if (activeInnings.status !== "in_progress") throw new Error("Innings is not in progress.");
       const currentStriker = strikerRef.current;
       const currentNonStriker = nonStrikerRef.current;
       const currentBowler = bowlerRef.current;
 
-      if (!currentStriker.athleteId && !currentStriker.name)
-        throw new Error("Select the striker.");
-      if (!currentBowler.athleteId && !currentBowler.name)
-        throw new Error("Select the bowler.");
+      if (!currentStriker.athleteId && !currentStriker.name) throw new Error("Select the striker.");
+      if (!currentBowler.athleteId && !currentBowler.name) throw new Error("Select the bowler.");
 
       const priorEvents = eventsRef.current;
       const completedLegalBallsBefore = countCompletedLegalDeliveries(priorEvents);
@@ -363,10 +369,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
         created_by: null,
       } as unknown as MCBallEvent;
       eventsRef.current = [...priorEvents, created];
-      logScoringOverCheckpoint(
-        "after recording",
-        completedLegalBallsBefore + (legal ? 1 : 0),
-      );
+      logScoringOverCheckpoint("after recording", completedLegalBallsBefore + (legal ? 1 : 0));
 
       // Update innings aggregate cache too so list views agree at a glance.
       const total = (partial.runsOffBat ?? 0) + (partial.extraRuns ?? 0);
@@ -443,7 +446,16 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
 
       return created;
     },
-    [tenantId, matchId, activeInnings, matchState, match?.status, setStrikerImmediate, setNonStrikerImmediate, setBowlerImmediate],
+    [
+      tenantId,
+      matchId,
+      activeInnings,
+      matchState,
+      match?.status,
+      setStrikerImmediate,
+      setNonStrikerImmediate,
+      setBowlerImmediate,
+    ],
   );
 
   const undo = useCallback<ScoringSession["undo"]>(async () => {

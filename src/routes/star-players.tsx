@@ -8,7 +8,9 @@ import { useTenant } from "@/lib/tenant-context";
 import { sectionsBy, siteContentQuery } from "@/lib/site-queries";
 
 export const Route = createFileRoute("/star-players")({
-  head: () => ({ meta: [{ title: "Star Players" }, { name: "description", content: "Our champions" }] }),
+  head: () => ({
+    meta: [{ title: "Star Players" }, { name: "description", content: "Our champions" }],
+  }),
   component: () => (
     <TenantGate>
       <StarPlayersContent />
@@ -38,10 +40,15 @@ function StarPlayersContent() {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {players.map((p, i) => (
-              <div key={i} className="group overflow-hidden rounded-2xl border border-border/60 bg-card transition-shadow hover:shadow-xl">
+              <div
+                key={i}
+                className="group overflow-hidden rounded-2xl border border-border/60 bg-card transition-shadow hover:shadow-xl"
+              >
                 <div
                   className="relative flex h-56 items-center justify-center overflow-hidden"
-                  style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }}
+                  style={{
+                    background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                  }}
                 >
                   <div className="pointer-events-none absolute inset-0 opacity-15 [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:20px_20px]" />
                   <StoragedImage
@@ -58,7 +65,10 @@ function StarPlayersContent() {
                 <div className="p-6">
                   <div className="text-lg font-semibold text-foreground">{p.name}</div>
                   <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
-                    <Trophy className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: "var(--brand)" }} />
+                    <Trophy
+                      className="mt-0.5 h-4 w-4 flex-shrink-0"
+                      style={{ color: "var(--brand)" }}
+                    />
                     <span>{p.achievement}</span>
                   </div>
                 </div>
@@ -70,4 +80,3 @@ function StarPlayersContent() {
     </>
   );
 }
-

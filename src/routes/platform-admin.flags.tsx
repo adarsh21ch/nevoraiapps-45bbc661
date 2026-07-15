@@ -22,7 +22,10 @@ const FLAGS: { key: string; label: string }[] = [
 
 function Flags() {
   const qc = useQueryClient();
-  const { data: tenants = [], isLoading } = useQuery({ queryKey: pqk.tenants, queryFn: fetchTenants });
+  const { data: tenants = [], isLoading } = useQuery({
+    queryKey: pqk.tenants,
+    queryFn: fetchTenants,
+  });
 
   const toggle = useMutation({
     mutationFn: async (v: { tenantId: string; key: string; enabled: boolean }) =>
@@ -49,33 +52,42 @@ function Flags() {
             <tr>
               <th className="p-3 text-left">Academy</th>
               {FLAGS.map((f) => (
-                <th key={f.key} className="p-3 text-center">{f.label}</th>
+                <th key={f.key} className="p-3 text-center">
+                  {f.label}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {isLoading && (
-              <tr><td colSpan={FLAGS.length + 1} className="p-6 text-center text-neutral-500">Loading…</td></tr>
+              <tr>
+                <td colSpan={FLAGS.length + 1} className="p-6 text-center text-neutral-500">
+                  Loading…
+                </td>
+              </tr>
             )}
-            {!isLoading && tenants.map((t) => {
-              const feats = getFeatures(t as any) as Record<string, boolean>;
-              return (
-                <tr key={t.id}>
-                  <td className="p-3">
-                    <div className="font-medium truncate">{t.name}</div>
-                    <div className="text-xs text-neutral-500">/{t.slug}</div>
-                  </td>
-                  {FLAGS.map((f) => (
-                    <td key={f.key} className="p-3 text-center">
-                      <Switch
-                        checked={!!feats[f.key]}
-                        onCheckedChange={(enabled) => toggle.mutate({ tenantId: t.id, key: f.key, enabled })}
-                      />
+            {!isLoading &&
+              tenants.map((t) => {
+                const feats = getFeatures(t as any) as Record<string, boolean>;
+                return (
+                  <tr key={t.id}>
+                    <td className="p-3">
+                      <div className="font-medium truncate">{t.name}</div>
+                      <div className="text-xs text-neutral-500">/{t.slug}</div>
                     </td>
-                  ))}
-                </tr>
-              );
-            })}
+                    {FLAGS.map((f) => (
+                      <td key={f.key} className="p-3 text-center">
+                        <Switch
+                          checked={!!feats[f.key]}
+                          onCheckedChange={(enabled) =>
+                            toggle.mutate({ tenantId: t.id, key: f.key, enabled })
+                          }
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </Card>

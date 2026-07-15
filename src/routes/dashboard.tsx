@@ -7,10 +7,7 @@ import { isCoach } from "@/lib/roles";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
-    meta: [
-      { title: "Dashboard · Academy OS" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Dashboard · Academy OS" }, { name: "robots", content: "noindex" }],
   }),
   component: DashboardLayout,
 });

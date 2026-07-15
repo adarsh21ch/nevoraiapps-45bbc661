@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import {
   Swords,
   MapPin,
-  
   Calendar,
   MoreVertical,
   Play,
@@ -32,8 +31,7 @@ export function MatchStatusBadge({ status }: { status: string | null | undefined
   const map: Record<string, string> = {
     scheduled: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/20",
     live: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/20 animate-pulse",
-    completed:
-      "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
+    completed: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/20",
     abandoned: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/20",
     cancelled: "bg-muted text-muted-foreground border-border",
     archived: "bg-muted text-muted-foreground border-border",
@@ -55,7 +53,12 @@ export function MatchStatusBadge({ status }: { status: string | null | undefined
 /* -------- Team side inside a match card (compact) -------- */
 function TeamSide({ team, align }: { team: TeamLite | null; align: "left" | "right" }) {
   return (
-    <div className={cn("flex min-w-0 flex-1 items-center gap-2", align === "right" && "flex-row-reverse text-right")}>
+    <div
+      className={cn(
+        "flex min-w-0 flex-1 items-center gap-2",
+        align === "right" && "flex-row-reverse text-right",
+      )}
+    >
       <Avatar
         src={team?.logo_url ?? null}
         name={team?.name ?? "?"}
@@ -67,7 +70,7 @@ function TeamSide({ team, align }: { team: TeamLite | null; align: "left" | "rig
           {team?.name ?? "TBD"}
         </div>
         <div className="truncate text-[10.5px] text-muted-foreground leading-tight">
-          {team?.is_external ? "External" : team?.age_group ?? "Academy"}
+          {team?.is_external ? "External" : (team?.age_group ?? "Academy")}
         </div>
       </div>
     </div>
@@ -90,7 +93,8 @@ export function MatchCard({
   onArchive?: (m: MatchWithTeams) => void;
   onDuplicate?: (m: MatchWithTeams) => void;
 }) {
-  const typeLabel = MATCH_TYPES.find((t) => t.value === match.match_type)?.label ?? match.match_type;
+  const typeLabel =
+    MATCH_TYPES.find((t) => t.value === match.match_type)?.label ?? match.match_type;
   return (
     <div className="rounded-2xl border border-border/70 bg-card px-3.5 py-3 transition-colors active:bg-accent/30">
       {/* Top row: status + format + menu */}
@@ -105,7 +109,12 @@ export function MatchCard({
         <div className="ml-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" aria-label="More" className="-mr-1.5 size-8 shrink-0">
+              <Button
+                size="icon"
+                variant="ghost"
+                aria-label="More"
+                className="-mr-1.5 size-8 shrink-0"
+              >
                 <MoreVertical className="size-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -132,7 +141,10 @@ export function MatchCard({
               )}
               <DropdownMenuSeparator />
               {onDelete && (
-                <DropdownMenuItem onClick={() => onDelete(match)} className="text-destructive focus:text-destructive">
+                <DropdownMenuItem
+                  onClick={() => onDelete(match)}
+                  className="text-destructive focus:text-destructive"
+                >
                   <Trash2 className="size-4 mr-2" /> Delete
                 </DropdownMenuItem>
               )}
@@ -183,7 +195,6 @@ export function MatchCard({
   );
 }
 
-
 /* -------- Team option card for the wizard -------- */
 export function TeamOptionCard({
   team,
@@ -205,18 +216,13 @@ export function TeamOptionCard({
           : "border-border bg-card hover:border-foreground/20 hover:bg-accent/40",
       )}
     >
-      <Avatar
-        src={team.logo_url ?? null}
-        name={team.name}
-        size={44}
-        className="rounded-xl"
-      />
+      <Avatar src={team.logo_url ?? null} name={team.name} size={44} className="rounded-xl" />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold">{team.name}</div>
         <div className="truncate text-[11px] text-muted-foreground">
           {team.is_external
             ? `External${team.city ? ` · ${team.city}` : ""}`
-            : team.age_group ?? "Academy"}
+            : (team.age_group ?? "Academy")}
         </div>
       </div>
       {team.is_external && (

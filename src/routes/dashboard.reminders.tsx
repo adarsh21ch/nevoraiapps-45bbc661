@@ -37,7 +37,12 @@ function RemindersPage() {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
 
-  const { data = [], isLoading, refetch, isFetching } = useQuery({
+  const {
+    data = [],
+    isLoading,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: ["d", "reminders", tenant.id],
     queryFn: async (): Promise<Reminder[]> => {
       const { data, error } = await supabase
@@ -118,8 +123,8 @@ function RemindersPage() {
       {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
       {!isLoading && data.length === 0 && (
         <Card className="p-10 text-center text-sm text-muted-foreground">
-          No reminders yet. The daily cron will queue overdue students automatically —
-          or hit "Run now" to trigger it.
+          No reminders yet. The daily cron will queue overdue students automatically — or hit "Run
+          now" to trigger it.
         </Card>
       )}
 
@@ -152,19 +157,29 @@ function RemindersPage() {
                   href={r.whatsapp_url}
                   target="_blank"
                   rel="noreferrer"
-                  onClick={() => r.status === "queued" && setStatus.mutate({ id: r.id, status: "sent" })}
+                  onClick={() =>
+                    r.status === "queued" && setStatus.mutate({ id: r.id, status: "sent" })
+                  }
                   className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:brightness-110"
                 >
                   <MessageCircle className="size-3.5" fill="currentColor" /> Send on WhatsApp
                 </a>
               )}
               {r.status !== "sent" && (
-                <Button size="sm" variant="outline" onClick={() => setStatus.mutate({ id: r.id, status: "sent" })}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setStatus.mutate({ id: r.id, status: "sent" })}
+                >
                   <Check className="size-3.5 mr-1" /> Mark sent
                 </Button>
               )}
               {r.status !== "dismissed" && (
-                <Button size="sm" variant="ghost" onClick={() => setStatus.mutate({ id: r.id, status: "dismissed" })}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setStatus.mutate({ id: r.id, status: "dismissed" })}
+                >
                   Dismiss
                 </Button>
               )}
@@ -183,7 +198,9 @@ function StatusPill({ status }: { status: ReminderStatus }) {
     dismissed: "bg-slate-100 text-slate-600",
   };
   return (
-    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${styles[status]}`}>
+    <span
+      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${styles[status]}`}
+    >
       {status}
     </span>
   );

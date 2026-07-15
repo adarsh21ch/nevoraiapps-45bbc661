@@ -52,9 +52,7 @@ function ParentHomeInner({
     // rough month attendance %: presentDays / distinct dates in visits
     const dates = new Set(homeQ.data.visitsThisMonth.map((v) => v.session_date));
     const present = new Set(
-      homeQ.data.visitsThisMonth
-        .filter((v) => v.status === "present")
-        .map((v) => v.session_date),
+      homeQ.data.visitsThisMonth.filter((v) => v.status === "present").map((v) => v.session_date),
     );
     if (dates.size === 0) return 0;
     return Math.round((present.size / dates.size) * 100);
@@ -100,9 +98,7 @@ function ParentHomeInner({
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              How is
-            </p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">How is</p>
             <h1 className="text-xl font-semibold truncate">{childRow.student_name}</h1>
             <p
               className={`text-xs mt-0.5 inline-flex items-center gap-1.5 ${
@@ -226,15 +222,7 @@ function TimePill({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-function MiniCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+function MiniCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <Card className="p-3">
       <div className="flex items-center gap-2 text-muted-foreground">

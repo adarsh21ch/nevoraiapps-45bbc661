@@ -50,11 +50,7 @@ import {
 import { listTeams } from "@/lib/mc-teams";
 import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
 import { DemoTournamentDetail } from "@/components/match-center/demo-tournament-detail";
-import {
-  GroupsTab,
-  VenuesTab,
-  OfficialsTab,
-} from "@/components/match-center/tournament-setup";
+import { GroupsTab, VenuesTab, OfficialsTab } from "@/components/match-center/tournament-setup";
 import { FixtureGeneratorDialog } from "@/components/match-center/fixture-generator";
 import {
   TournamentWorkspaceShell,
@@ -71,13 +67,9 @@ import { TournamentShareDialog } from "@/components/match-center/tournament-shar
 import { downloadCSV, tournamentPublicUrl } from "@/lib/mc-tournament-export";
 import { supabase } from "@/integrations/supabase/client";
 
-
 export const Route = createFileRoute("/match-center/tournaments/$tournamentId")({
   head: () => ({
-    meta: [
-      { title: "Tournament · Match Center" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Tournament · Match Center" }, { name: "robots", content: "noindex" }],
   }),
   component: TournamentDetailPage,
 });
@@ -206,10 +198,14 @@ function TournamentDetailPage() {
         {section === "players" && <PlayersTab tournamentId={tournamentId} />}
         {section === "stats" && <TournamentStatistics tournamentId={tournamentId} />}
         {section === "records" && <RecordsTab tournamentId={tournamentId} />}
-        {section === "awards" && <TournamentAwardsPanel tournamentId={tournamentId} tournamentName={t.name} />}
+        {section === "awards" && (
+          <TournamentAwardsPanel tournamentId={tournamentId} tournamentName={t.name} />
+        )}
         {section === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "venues" && <VenuesTab tournamentId={tournamentId} tenantId={tenant.id} />}
-        {section === "officials" && <OfficialsTab tournamentId={tournamentId} tenantId={tenant.id} />}
+        {section === "officials" && (
+          <OfficialsTab tournamentId={tournamentId} tenantId={tenant.id} />
+        )}
         {section === "settings" && <SettingsTab tournament={t} />}
       </TournamentWorkspaceShell>
 
@@ -311,7 +307,10 @@ function PlayersTab({ tournamentId }: { tournamentId: string }) {
         </div>
         <ul className="divide-y divide-border">
           {bat.map((r, i) => (
-            <li key={r.athleteId ?? r.name ?? i} className="flex items-center justify-between px-3 py-2 text-sm">
+            <li
+              key={r.athleteId ?? r.name ?? i}
+              className="flex items-center justify-between px-3 py-2 text-sm"
+            >
               <span>
                 {i + 1}. {r.name ?? "—"}
               </span>
@@ -326,7 +325,10 @@ function PlayersTab({ tournamentId }: { tournamentId: string }) {
         </div>
         <ul className="divide-y divide-border">
           {bowl.map((r, i) => (
-            <li key={r.athleteId ?? r.name ?? i} className="flex items-center justify-between px-3 py-2 text-sm">
+            <li
+              key={r.athleteId ?? r.name ?? i}
+              className="flex items-center justify-between px-3 py-2 text-sm"
+            >
               <span>
                 {i + 1}. {r.name ?? "—"}
               </span>
@@ -358,7 +360,6 @@ function AwardsTab({ tournamentId }: { tournamentId: string }) {
     </div>
   );
 }
-
 
 /* OverviewTab replaced by TournamentDashboard */
 
@@ -478,10 +479,7 @@ function TeamsTab({ tournamentId, tenantId }: { tournamentId: string; tenantId: 
             <Button variant="ghost" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button
-              disabled={selected.size === 0 || add.isPending}
-              onClick={() => add.mutate()}
-            >
+            <Button disabled={selected.size === 0 || add.isPending} onClick={() => add.mutate()}>
               {add.isPending ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
               Register {selected.size}
             </Button>
@@ -645,10 +643,7 @@ function BracketView({ tournamentId }: { tournamentId: string }) {
             {stage.replace("_", " ")}
           </div>
           {list.map((r) => (
-            <div
-              key={r.id}
-              className="rounded-lg border border-border bg-card px-3 py-2 text-xs"
-            >
+            <div key={r.id} className="rounded-lg border border-border bg-card px-3 py-2 text-xs">
               <div className="font-medium">{r.name ?? "TBD"}</div>
               <div className="text-muted-foreground">
                 {r.team_a_id ? "Team A" : "TBD"} vs {r.team_b_id ? "Team B" : "TBD"}
@@ -660,7 +655,6 @@ function BracketView({ tournamentId }: { tournamentId: string }) {
     </div>
   );
 }
-
 
 /* ==================== STANDINGS ==================== */
 function StandingsTab({ tournamentId }: { tournamentId: string }) {
@@ -736,9 +730,7 @@ function StandingsTab({ tournamentId }: { tournamentId: string }) {
                   <td className="px-3 py-2 text-right">{r.tied}</td>
                   <td className="px-3 py-2 text-right">{r.no_result}</td>
                   <td className="px-3 py-2 text-right font-semibold">{r.points}</td>
-                  <td className="px-3 py-2 text-right">
-                    {Number(r.net_run_rate).toFixed(3)}
-                  </td>
+                  <td className="px-3 py-2 text-right">{Number(r.net_run_rate).toFixed(3)}</td>
                 </tr>
               ))}
             </tbody>
@@ -768,10 +760,7 @@ function ResultsTab({ tournamentId }: { tournamentId: string }) {
   return (
     <div className="space-y-2">
       {finalized.map((m) => (
-        <div
-          key={m.id}
-          className="rounded-xl border border-border bg-card p-3"
-        >
+        <div key={m.id} className="rounded-xl border border-border bg-card p-3">
           <div className="text-sm font-medium">
             {m.team_a?.name} vs {m.team_b?.name}
           </div>
@@ -791,7 +780,13 @@ function OrangeCapTab({ tournamentId }: { tournamentId: string }) {
   if (q.isLoading) return <LoadingSkeleton />;
   const list = q.data ?? [];
   if (list.length === 0)
-    return <EmptyState icon={Award} title="No runs recorded" description="Finalized matches will populate the Orange Cap." />;
+    return (
+      <EmptyState
+        icon={Award}
+        title="No runs recorded"
+        description="Finalized matches will populate the Orange Cap."
+      />
+    );
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card">
       <table className="w-full text-sm">
@@ -834,7 +829,13 @@ function PurpleCapTab({ tournamentId }: { tournamentId: string }) {
   if (q.isLoading) return <LoadingSkeleton />;
   const list = q.data ?? [];
   if (list.length === 0)
-    return <EmptyState icon={Medal} title="No wickets recorded" description="Finalized matches will populate the Purple Cap." />;
+    return (
+      <EmptyState
+        icon={Medal}
+        title="No wickets recorded"
+        description="Finalized matches will populate the Purple Cap."
+      />
+    );
   return (
     <div className="overflow-x-auto rounded-xl border border-border bg-card">
       <table className="w-full text-sm">
@@ -875,7 +876,11 @@ function RecordsTab({ tournamentId }: { tournamentId: string }) {
   const r = q.data;
   if (!r)
     return (
-      <EmptyState icon={BarChart3} title="No records yet" description="Records appear after finalized matches." />
+      <EmptyState
+        icon={BarChart3}
+        title="No records yet"
+        description="Records appear after finalized matches."
+      />
     );
   const item = (label: string, value: string) => (
     <div className="rounded-2xl border border-border bg-card p-5">
@@ -897,7 +902,9 @@ function RecordsTab({ tournamentId }: { tournamentId: string }) {
       )}
       {item(
         "Best Bowling",
-        r.bestBowling ? `${r.bestBowling.name ?? "—"} · ${r.bestBowling.wickets}/${r.bestBowling.runs}` : "—",
+        r.bestBowling
+          ? `${r.bestBowling.name ?? "—"} · ${r.bestBowling.wickets}/${r.bestBowling.runs}`
+          : "—",
       )}
       {item(
         "Highest Partnership",
@@ -905,24 +912,14 @@ function RecordsTab({ tournamentId }: { tournamentId: string }) {
           ? `${r.highestPartnership.runs} · ${r.highestPartnership.a ?? "—"} & ${r.highestPartnership.b ?? "—"}`
           : "—",
       )}
-      {item(
-        "Most Sixes",
-        r.mostSixes ? `${r.mostSixes.name ?? "—"} · ${r.mostSixes.sixes}` : "—",
-      )}
-      {item(
-        "Most Fours",
-        r.mostFours ? `${r.mostFours.name ?? "—"} · ${r.mostFours.fours}` : "—",
-      )}
+      {item("Most Sixes", r.mostSixes ? `${r.mostSixes.name ?? "—"} · ${r.mostSixes.sixes}` : "—")}
+      {item("Most Fours", r.mostFours ? `${r.mostFours.name ?? "—"} · ${r.mostFours.fours}` : "—")}
     </div>
   );
 }
 
 /* ==================== SETTINGS ==================== */
-function SettingsTab({
-  tournament,
-}: {
-  tournament: Awaited<ReturnType<typeof getTournament>>;
-}) {
+function SettingsTab({ tournament }: { tournament: Awaited<ReturnType<typeof getTournament>> }) {
   const qc = useQueryClient();
   const t = tournament!;
   const [name, setName] = useState(t.name);

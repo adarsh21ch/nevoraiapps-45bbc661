@@ -11,9 +11,15 @@ export const Route = createFileRoute("/fees")({
   head: () => ({
     meta: [
       { title: "Fees & plans" },
-      { name: "description", content: "Transparent monthly plans and one-time fees paid directly to the academy." },
+      {
+        name: "description",
+        content: "Transparent monthly plans and one-time fees paid directly to the academy.",
+      },
       { property: "og:title", content: "Fees & plans" },
-      { property: "og:description", content: "Transparent monthly plans and one-time fees paid directly to the academy." },
+      {
+        property: "og:description",
+        content: "Transparent monthly plans and one-time fees paid directly to the academy.",
+      },
     ],
   }),
   component: () => (
@@ -30,8 +36,7 @@ function FeesContent() {
   const { data: fees = [], isLoading } = useQuery(feePlansQuery(tenant.id));
   const { data: sections = [] } = useQuery(siteContentQuery(tenant.id));
   const pricing = sectionOne<{ mode?: FeesMode; visible?: string }>(sections, "pricing");
-  const mode: FeesMode =
-    pricing?.mode ?? (pricing?.visible === "false" ? "hide" : "show");
+  const mode: FeesMode = pricing?.mode ?? (pricing?.visible === "false" ? "hide" : "show");
 
   if (mode !== "show") return <FeesCtaOnly tenant={tenant} mode={mode} />;
 
@@ -39,9 +44,7 @@ function FeesContent() {
   const monthly = fees.filter((f) => f.type === "monthly");
   const sortedMonthly = [...monthly].sort((a, b) => a.amount - b.amount);
   const popularId =
-    sortedMonthly.length >= 2
-      ? sortedMonthly[Math.floor(sortedMonthly.length / 2)]?.id
-      : undefined;
+    sortedMonthly.length >= 2 ? sortedMonthly[Math.floor(sortedMonthly.length / 2)]?.id : undefined;
 
   return (
     <>
@@ -82,7 +85,13 @@ function FeesContent() {
                 <h2 className="text-lg font-semibold text-foreground">One-time</h2>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   {registration.map((p) => (
-                    <PlanCard key={p.id} name={p.name} amount={p.amount} period="one-time" desc={p.description} />
+                    <PlanCard
+                      key={p.id}
+                      name={p.name}
+                      amount={p.amount}
+                      period="one-time"
+                      desc={p.description}
+                    />
                   ))}
                 </div>
               </section>
@@ -96,9 +105,14 @@ function FeesContent() {
           </>
         )}
 
-        <div className="mt-16 overflow-hidden rounded-3xl p-8 text-white sm:p-10" style={{ backgroundColor: "var(--brand-ink)" }}>
+        <div
+          className="mt-16 overflow-hidden rounded-3xl p-8 text-white sm:p-10"
+          style={{ backgroundColor: "var(--brand-ink)" }}
+        >
           <div className="text-lg font-semibold">Ready to join?</div>
-          <p className="mt-2 text-sm text-white/70">Register online and pay directly to {tenant.name} via UPI.</p>
+          <p className="mt-2 text-sm text-white/70">
+            Register online and pay directly to {tenant.name} via UPI.
+          </p>
           <Link
             to="/register"
             className="mt-6 inline-flex rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-neutral-900 transition-transform hover:scale-[1.02]"
@@ -115,7 +129,11 @@ function FeesCtaOnly({ tenant, mode }: { tenant: ReturnType<typeof useTenant>; m
   if (mode === "hide") {
     return (
       <>
-        <PageHero eyebrow="Fees" title="Fees & plans" subtitle="Please register or contact us to know more about our plans." />
+        <PageHero
+          eyebrow="Fees"
+          title="Fees & plans"
+          subtitle="Please register or contact us to know more about our plans."
+        />
         <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 text-center">
           <Link
             to="/register"
@@ -129,7 +147,9 @@ function FeesCtaOnly({ tenant, mode }: { tenant: ReturnType<typeof useTenant>; m
     );
   }
   const wa = (tenant.whatsapp ?? tenant.phone ?? "").replace(/[^\d]/g, "");
-  const waMsg = encodeURIComponent(`Hi ${tenant.name}, I'd like to know more about your ${mode === "demo" ? "trial / demo session" : "fees & plans"}.`);
+  const waMsg = encodeURIComponent(
+    `Hi ${tenant.name}, I'd like to know more about your ${mode === "demo" ? "trial / demo session" : "fees & plans"}.`,
+  );
   const waHref = wa ? `https://wa.me/${wa}?text=${waMsg}` : null;
   const isDemo = mode === "demo";
   return (
@@ -145,8 +165,15 @@ function FeesCtaOnly({ tenant, mode }: { tenant: ReturnType<typeof useTenant>; m
       />
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
         <div className="rounded-3xl border border-border/60 bg-card p-8 text-center shadow-sm">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: "var(--brand)" }}>
-            {isDemo ? <CalendarClock className="h-7 w-7 text-white" /> : <MessageCircle className="h-7 w-7 text-white" />}
+          <div
+            className="mx-auto flex h-14 w-14 items-center justify-center rounded-full"
+            style={{ backgroundColor: "var(--brand)" }}
+          >
+            {isDemo ? (
+              <CalendarClock className="h-7 w-7 text-white" />
+            ) : (
+              <MessageCircle className="h-7 w-7 text-white" />
+            )}
           </div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             {waHref ? (
@@ -180,17 +207,25 @@ function FeesCtaOnly({ tenant, mode }: { tenant: ReturnType<typeof useTenant>; m
   );
 }
 
-
-
 function PlanCard({
-  name, amount, period, desc, popular,
+  name,
+  amount,
+  period,
+  desc,
+  popular,
 }: {
-  name: string; amount: number; period: string; desc: string | null; popular?: boolean;
+  name: string;
+  amount: number;
+  period: string;
+  desc: string | null;
+  popular?: boolean;
 }) {
   return (
     <div
       className={`relative rounded-2xl border bg-card p-6 transition-all ${
-        popular ? "border-transparent shadow-xl sm:scale-[1.03]" : "border-border/60 hover:shadow-md"
+        popular
+          ? "border-transparent shadow-xl sm:scale-[1.03]"
+          : "border-border/60 hover:shadow-md"
       }`}
       style={
         popular

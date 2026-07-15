@@ -96,22 +96,14 @@ function toOversDecimal(overs: number, balls: number): number {
  * credited with the full quota of overs on the runs-scored side (official ICC
  * rule). Reads innings + match quota.
  */
-function nrrOversForInnings(
-  inn: InningsRow,
-  quotaOvers: number,
-  isAllOut: boolean,
-): number {
+function nrrOversForInnings(inn: InningsRow, quotaOvers: number, isAllOut: boolean): number {
   return isAllOut ? quotaOvers : toOversDecimal(inn.overs, inn.balls);
 }
 
 export function computeStandings(
   tournament: Pick<
     MCTournament,
-    | "points_for_win"
-    | "points_for_tie"
-    | "points_for_loss"
-    | "points_for_no_result"
-    | "overs"
+    "points_for_win" | "points_for_tie" | "points_for_loss" | "points_for_no_result" | "overs"
   >,
   matches: MatchRow[],
   innings: InningsRow[],
@@ -190,9 +182,7 @@ export function netRunRate(agg: TeamAgg): number {
  * Rebuild standings cache
  * ================================================================ */
 
-export async function rebuildTournamentStandings(
-  tournamentId: string,
-): Promise<void> {
+export async function rebuildTournamentStandings(tournamentId: string): Promise<void> {
   const { data: t, error: tErr } = await supabase
     .from("mc_tournaments")
     .select("*")
@@ -226,12 +216,7 @@ export async function rebuildTournamentStandings(
   // sort: points desc, NRR desc, wins desc
   const enriched = aggs
     .map((a) => ({ ...a, net_run_rate: netRunRate(a) }))
-    .sort(
-      (x, y) =>
-        y.points - x.points ||
-        y.net_run_rate - x.net_run_rate ||
-        y.won - x.won,
-    );
+    .sort((x, y) => y.points - x.points || y.net_run_rate - x.net_run_rate || y.won - x.won);
 
   const now = new Date().toISOString();
   for (let i = 0; i < enriched.length; i++) {
@@ -326,9 +311,7 @@ export interface PurpleEntry {
  * competition-level leaderboard. The Statistics Engine owns the per-match
  * math; we only sum keyed rows across matches.
  */
-export async function computeOrangeCap(
-  tournamentId: string,
-): Promise<CapEntry[]> {
+export async function computeOrangeCap(tournamentId: string): Promise<CapEntry[]> {
   const perMatch = await loadFinalizedTournamentEvents(tournamentId);
   const acc = new Map<string, CapEntry & { dismissed: number }>();
   for (const { events } of perMatch) {
@@ -377,9 +360,7 @@ export async function computeOrangeCap(
     .sort((a, b) => b.runs - a.runs || b.strikeRate - a.strikeRate);
 }
 
-export async function computePurpleCap(
-  tournamentId: string,
-): Promise<PurpleEntry[]> {
+export async function computePurpleCap(tournamentId: string): Promise<PurpleEntry[]> {
   const perMatch = await loadFinalizedTournamentEvents(tournamentId);
   const acc = new Map<string, PurpleEntry>();
   for (const { events } of perMatch) {
@@ -425,15 +406,19 @@ export async function computePurpleCap(
 export interface TournamentRecords {
   highestTeamScore: { matchId: string; teamId: string; runs: number; wickets: number } | null;
   lowestTeamScore: { matchId: string; teamId: string; runs: number; wickets: number } | null;
-  bestBowling: { matchId: string; athleteId: string | null; name: string | null; wickets: number; runs: number } | null;
+  bestBowling: {
+    matchId: string;
+    athleteId: string | null;
+    name: string | null;
+    wickets: number;
+    runs: number;
+  } | null;
   highestPartnership: { matchId: string; runs: number; a: string | null; b: string | null } | null;
   mostSixes: { athleteId: string | null; name: string | null; sixes: number } | null;
   mostFours: { athleteId: string | null; name: string | null; fours: number } | null;
 }
 
-export async function computeTournamentRecords(
-  tournamentId: string,
-): Promise<TournamentRecords> {
+export async function computeTournamentRecords(tournamentId: string): Promise<TournamentRecords> {
   const perMatch = await loadFinalizedTournamentEvents(tournamentId);
 
   const rec: TournamentRecords = {
@@ -473,8 +458,14 @@ export async function computeTournamentRecords(
   }
 
   // Best bowling + boundaries via Statistics Engine
-  const sixesByKey = new Map<string, { name: string | null; athleteId: string | null; sixes: number }>();
-  const foursByKey = new Map<string, { name: string | null; athleteId: string | null; fours: number }>();
+  const sixesByKey = new Map<
+    string,
+    { name: string | null; athleteId: string | null; sixes: number }
+  >();
+  const foursByKey = new Map<
+    string,
+    { name: string | null; athleteId: string | null; fours: number }
+  >();
 
   for (const { matchId, events } of perMatch) {
     const bowling = computeBowling(events);

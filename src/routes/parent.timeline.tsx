@@ -27,7 +27,9 @@ function ParentTimelinePage() {
   const [q, setQ] = useState("");
 
   const tenantBillingQ = useQuery({
-    queryKey: child ? ["parent", "tenant-billing", child.tenant_id] : ["parent", "tenant-billing", "none"],
+    queryKey: child
+      ? ["parent", "tenant-billing", child.tenant_id]
+      : ["parent", "tenant-billing", "none"],
     queryFn: async () => {
       const { data } = await supabase
         .from("tenants")
@@ -55,8 +57,7 @@ function ParentTimelinePage() {
     const needle = q.trim().toLowerCase();
     return events.filter(
       (e) =>
-        e.title.toLowerCase().includes(needle) ||
-        (e.subtitle ?? "").toLowerCase().includes(needle),
+        e.title.toLowerCase().includes(needle) || (e.subtitle ?? "").toLowerCase().includes(needle),
     );
   }, [timelineQ.data, q]);
 
@@ -80,9 +81,7 @@ function ParentTimelinePage() {
         </div>
         <div>
           <h1 className="text-xl font-semibold">Timeline</h1>
-          <p className="text-xs text-muted-foreground">
-            Everything that happened, in one story.
-          </p>
+          <p className="text-xs text-muted-foreground">Everything that happened, in one story.</p>
         </div>
       </header>
 
@@ -97,9 +96,7 @@ function ParentTimelinePage() {
       </div>
 
       {grouped.length === 0 ? (
-        <Card className="p-6 text-center text-sm text-muted-foreground">
-          No events yet.
-        </Card>
+        <Card className="p-6 text-center text-sm text-muted-foreground">No events yet.</Card>
       ) : (
         <div className="space-y-6">
           {grouped.map(({ month, events }) => (

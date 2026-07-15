@@ -21,15 +21,11 @@ import {
  * ================================================================ */
 
 export type MCInnings = Database["public"]["Tables"]["mc_innings"]["Row"];
-export type MCInningsInsert =
-  Database["public"]["Tables"]["mc_innings"]["Insert"];
-export type MCInningsUpdate =
-  Database["public"]["Tables"]["mc_innings"]["Update"];
+export type MCInningsInsert = Database["public"]["Tables"]["mc_innings"]["Insert"];
+export type MCInningsUpdate = Database["public"]["Tables"]["mc_innings"]["Update"];
 
-export type MCBallEvent =
-  Database["public"]["Tables"]["mc_ball_events"]["Row"];
-export type MCBallEventInsert =
-  Database["public"]["Tables"]["mc_ball_events"]["Insert"];
+export type MCBallEvent = Database["public"]["Tables"]["mc_ball_events"]["Row"];
+export type MCBallEventInsert = Database["public"]["Tables"]["mc_ball_events"]["Insert"];
 
 export { BallEventError, ILLEGAL_EXTRAS, LEGAL_EXTRAS, isLegalDelivery };
 export type { DismissalType, ExtraType };
@@ -38,9 +34,7 @@ export type { DismissalType, ExtraType };
  * Innings
  * ================================================================ */
 
-export async function listInningsForMatch(
-  matchId: string,
-): Promise<MCInnings[]> {
+export async function listInningsForMatch(matchId: string): Promise<MCInnings[]> {
   const { data, error } = await supabase
     .from("mc_innings")
     .select("*")
@@ -51,11 +45,7 @@ export async function listInningsForMatch(
 }
 
 export async function getInnings(id: string): Promise<MCInnings | null> {
-  const { data, error } = await supabase
-    .from("mc_innings")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+  const { data, error } = await supabase.from("mc_innings").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -69,9 +59,7 @@ export interface CreateInningsInput {
   target?: number | null;
 }
 
-export async function createInnings(
-  input: CreateInningsInput,
-): Promise<MCInnings> {
+export async function createInnings(input: CreateInningsInput): Promise<MCInnings> {
   const payload: MCInningsInsert = {
     tenant_id: input.tenantId,
     match_id: input.matchId,
@@ -82,11 +70,7 @@ export async function createInnings(
     status: "in_progress",
     started_at: new Date().toISOString(),
   };
-  const { data, error } = await supabase
-    .from("mc_innings")
-    .insert(payload)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.from("mc_innings").insert(payload).select("*").single();
   if (error) throw error;
   return data;
 }
@@ -109,9 +93,7 @@ export async function completeInnings(id: string): Promise<MCInnings> {
  * Ball Events
  * ================================================================ */
 
-export async function listBallEvents(
-  inningsId: string,
-): Promise<MCBallEvent[]> {
+export async function listBallEvents(inningsId: string): Promise<MCBallEvent[]> {
   const { data, error } = await supabase
     .from("mc_ball_events")
     .select("*")
@@ -121,9 +103,7 @@ export async function listBallEvents(
   return data ?? [];
 }
 
-export async function listMatchBallEvents(
-  matchId: string,
-): Promise<MCBallEvent[]> {
+export async function listMatchBallEvents(matchId: string): Promise<MCBallEvent[]> {
   const { data, error } = await supabase
     .from("mc_ball_events")
     .select("*")
@@ -156,9 +136,7 @@ export function nextPosition(events: MCBallEvent[]): OverBallPosition {
   // extra_type — a stale `is_legal_delivery` flag must never influence the
   // position of the next ball.
   const legalInOver = events.filter(
-    (e) =>
-      e.over_number === last.over_number &&
-      isLegalDelivery(e.extra_type as ExtraType | null),
+    (e) => e.over_number === last.over_number && isLegalDelivery(e.extra_type as ExtraType | null),
   ).length;
 
   if (legalInOver >= 6) {
@@ -213,33 +191,23 @@ export interface AppendBallInput {
  * Append exactly ONE Ball Event to an innings.
  * Validation happens client-side (fast); RLS enforces authorization.
  */
-export async function appendBallEvent(
-  input: AppendBallInput,
-): Promise<MCBallEvent> {
+export async function appendBallEvent(input: AppendBallInput): Promise<MCBallEvent> {
   // ---- Validation ----
   if (!input.matchId) throw new BallEventError("INVALID_MATCH", "Missing match.");
-  if (!input.inningsId)
-    throw new BallEventError("INVALID_INNINGS", "Missing active innings.");
+  if (!input.inningsId) throw new BallEventError("INVALID_INNINGS", "Missing active innings.");
   if (!input.strikerAthleteId && !input.strikerName)
     throw new BallEventError("NO_STRIKER", "Striker is required.");
   if (!input.bowlerAthleteId && !input.bowlerName)
     throw new BallEventError("NO_BOWLER", "Bowler is required.");
-  if (
-    input.strikerAthleteId &&
-    input.strikerAthleteId === input.nonStrikerAthleteId
-  )
-    throw new BallEventError(
-      "DUPLICATE_STRIKER",
-      "Striker and non-striker must differ.",
-    );
+  if (input.strikerAthleteId && input.strikerAthleteId === input.nonStrikerAthleteId)
+    throw new BallEventError("DUPLICATE_STRIKER", "Striker and non-striker must differ.");
   if ((input.runsOffBat ?? 0) < 0)
     throw new BallEventError("INVALID_RUNS", "Runs cannot be negative.");
   if ((input.extraRuns ?? 0) < 0)
     throw new BallEventError("INVALID_EXTRAS", "Extras cannot be negative.");
 
   // ---- Position ----
-  const events =
-    input.priorEvents ?? (await listBallEvents(input.inningsId));
+  const events = input.priorEvents ?? (await listBallEvents(input.inningsId));
   const pos = nextPosition(events);
   const legal = isLegalDelivery(input.extraType ?? null);
 
@@ -285,9 +253,7 @@ export async function appendBallEvent(
 
 /* --------- Undo (remove the most recent event) --------- */
 
-export async function undoLastBallEvent(
-  inningsId: string,
-): Promise<MCBallEvent | null> {
+export async function undoLastBallEvent(inningsId: string): Promise<MCBallEvent | null> {
   const { data: lastRows, error: lastErr } = await supabase
     .from("mc_ball_events")
     .select("*")
@@ -297,10 +263,7 @@ export async function undoLastBallEvent(
   if (lastErr) throw lastErr;
   const last = lastRows?.[0];
   if (!last) return null;
-  const { error: delErr } = await supabase
-    .from("mc_ball_events")
-    .delete()
-    .eq("id", last.id);
+  const { error: delErr } = await supabase.from("mc_ball_events").delete().eq("id", last.id);
   if (delErr) throw delErr;
   return last;
 }

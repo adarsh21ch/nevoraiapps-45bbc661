@@ -9,12 +9,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { fetchPriceLog, fetchTenantById, pqk } from "@/lib/platform-queries";
 import { StatusChip, SubChip } from "@/components/platform/StatusChips";
 import { niche, nicheOptions, type NicheKey } from "@/lib/niche";
 import { getFeatures, tenantSiteUrl, type Tenant, type TenantFeatures } from "@/lib/tenant";
-import { ArrowLeft, ExternalLink, Globe, Info, Pause, Play, ShieldAlert, UserCog } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  Globe,
+  Info,
+  Pause,
+  Play,
+  ShieldAlert,
+  UserCog,
+} from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { SiteContentTabs } from "@/components/dashboard/SiteContentTabs";
 import { AuditFeed } from "@/components/platform/AuditFeed";
@@ -33,17 +48,35 @@ export const Route = createFileRoute("/platform-admin/tenants/$id")({
 type FeatureKey = keyof TenantFeatures;
 const FEATURE_LIST: { key: FeatureKey; label: string; help: string }[] = [
   { key: "online_registration", label: "Online registration", help: "Public /register form." },
-  { key: "fee_tracking", label: "Fee tracking", help: "Fee register, payment recording, monthly collection KPI." },
-  { key: "whatsapp_reminders", label: "WhatsApp reminders", help: "Enable the WhatsApp reminders module (add-on)." },
+  {
+    key: "fee_tracking",
+    label: "Fee tracking",
+    help: "Fee register, payment recording, monthly collection KPI.",
+  },
+  {
+    key: "whatsapp_reminders",
+    label: "WhatsApp reminders",
+    help: "Enable the WhatsApp reminders module (add-on).",
+  },
   { key: "attendance", label: "Attendance", help: "Roll-call and attendance history." },
-  { key: "powered_by_badge", label: "Powered-by badge", help: "Show 'Powered by Academy OS' on the public site footer." },
+  {
+    key: "powered_by_badge",
+    label: "Powered-by badge",
+    help: "Show 'Powered by Academy OS' on the public site footer.",
+  },
 ];
 
 function TenantDetail() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
-  const { data: tenant, isLoading } = useQuery({ queryKey: pqk.tenant(id), queryFn: () => fetchTenantById(id) });
-  const { data: priceLog = [] } = useQuery({ queryKey: pqk.priceLog(id), queryFn: () => fetchPriceLog(id) });
+  const { data: tenant, isLoading } = useQuery({
+    queryKey: pqk.tenant(id),
+    queryFn: () => fetchTenantById(id),
+  });
+  const { data: priceLog = [] } = useQuery({
+    queryKey: pqk.priceLog(id),
+    queryFn: () => fetchPriceLog(id),
+  });
 
   if (isLoading || !tenant) {
     return <div className="text-sm text-neutral-400">Loading tenant…</div>;
@@ -52,13 +85,23 @@ function TenantDetail() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to="/platform-admin" className="text-xs text-neutral-400 hover:text-white inline-flex items-center gap-1">
+        <Link
+          to="/platform-admin"
+          className="text-xs text-neutral-400 hover:text-white inline-flex items-center gap-1"
+        >
           <ArrowLeft className="size-3" /> All tenants
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <div className="size-10 rounded-md" style={{ background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})` }} />
+          <div
+            className="size-10 rounded-md"
+            style={{
+              background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+            }}
+          />
           <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight truncate">{tenant.name}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight truncate">
+              {tenant.name}
+            </h1>
             <div className="text-xs text-neutral-400">
               /{tenant.slug} · {niche(tenant.niche).label}
             </div>
@@ -66,28 +109,53 @@ function TenantDetail() {
           <div className="ml-auto flex flex-wrap gap-2 items-center">
             <StatusChip status={tenant.status} />
             <SubChip sub={tenant.subscription_status} />
-            <a href={tenantSiteUrl(tenant)} target="_blank" rel="noreferrer" className="text-xs text-neutral-300 hover:text-white inline-flex items-center gap-1">
+            <a
+              href={tenantSiteUrl(tenant)}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-neutral-300 hover:text-white inline-flex items-center gap-1"
+            >
               View site <ExternalLink className="size-3" />
             </a>
-
           </div>
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
-          <BasicsEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
-          <BrandingEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
+          <BasicsEditor
+            tenant={tenant}
+            onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
+          />
+          <BrandingEditor
+            tenant={tenant}
+            onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
+          />
           <Panel title="Site content — landing page">
-            <p className="text-xs text-neutral-400 mb-3">Hero background image/video, founder photo, coaches, gallery, star players, CTA banner, Google Map — everything that shows on the public site.</p>
+            <p className="text-xs text-neutral-400 mb-3">
+              Hero background image/video, founder photo, coaches, gallery, star players, CTA
+              banner, Google Map — everything that shows on the public site.
+            </p>
             <SiteContentTabs tenantId={tenant.id} />
           </Panel>
-          <FeaturesEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
-          <DomainEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
+          <FeaturesEditor
+            tenant={tenant}
+            onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
+          />
+          <DomainEditor
+            tenant={tenant}
+            onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
+          />
           <TenantDangerZone tenant={tenant} />
         </div>
         <div className="space-y-4">
-          <PlatformActions tenant={tenant} onSaved={() => { qc.invalidateQueries({ queryKey: pqk.tenant(id) }); qc.invalidateQueries({ queryKey: pqk.tenants }); }} />
+          <PlatformActions
+            tenant={tenant}
+            onSaved={() => {
+              qc.invalidateQueries({ queryKey: pqk.tenant(id) });
+              qc.invalidateQueries({ queryKey: pqk.tenants });
+            }}
+          />
           <SubscriptionCard
             tenant={tenant}
             priceLog={priceLog}
@@ -97,7 +165,13 @@ function TenantDetail() {
               qc.invalidateQueries({ queryKey: pqk.tenants });
             }}
           />
-          <SuspendCard tenant={tenant} onSaved={() => { qc.invalidateQueries({ queryKey: pqk.tenant(id) }); qc.invalidateQueries({ queryKey: pqk.tenants }); }} />
+          <SuspendCard
+            tenant={tenant}
+            onSaved={() => {
+              qc.invalidateQueries({ queryKey: pqk.tenant(id) });
+              qc.invalidateQueries({ queryKey: pqk.tenants });
+            }}
+          />
           <AuditFeed tenantId={tenant.id} limit={30} />
         </div>
       </div>
@@ -116,7 +190,8 @@ function TenantDangerZone({ tenant }: { tenant: Tenant }) {
         actions={[
           {
             label: "Remove tenant",
-            description: "Deletes the academy, its members, players, fees, attendance and match records.",
+            description:
+              "Deletes the academy, its members, players, fees, attendance and match records.",
             onClick: () => setOpen(true),
           },
         ]}
@@ -148,8 +223,12 @@ function PlatformActions({ tenant, onSaved }: { tenant: Tenant; onSaved: () => v
   const { session } = usePlatform();
   const [confirmName, setConfirmName] = useState("");
   const busy = useMutation({
-    mutationFn: async (status: "active" | "suspended" | "archived") => setTenantStatus(tenant.id, status),
-    onSuccess: () => { toast.success("Status updated"); onSaved(); },
+    mutationFn: async (status: "active" | "suspended" | "archived") =>
+      setTenantStatus(tenant.id, status),
+    onSuccess: () => {
+      toast.success("Status updated");
+      onSaved();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   async function impersonate() {
@@ -168,19 +247,31 @@ function PlatformActions({ tenant, onSaved }: { tenant: Tenant; onSaved: () => v
   return (
     <Panel title="Platform actions">
       <div className="grid grid-cols-3 gap-2">
-        <Button variant="outline" size="sm" disabled={busy.isPending || tenant.status === "active"}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={busy.isPending || tenant.status === "active"}
           onClick={() => busy.mutate("active")}
-          className="border-white/10 text-white hover:bg-white/10">
+          className="border-white/10 text-white hover:bg-white/10"
+        >
           <Play className="size-3 mr-1" /> Activate
         </Button>
-        <Button variant="outline" size="sm" disabled={busy.isPending || tenant.status === "suspended"}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={busy.isPending || tenant.status === "suspended"}
           onClick={() => busy.mutate("suspended")}
-          className="border-white/10 text-amber-300 hover:bg-white/10">
+          className="border-white/10 text-amber-300 hover:bg-white/10"
+        >
           <Pause className="size-3 mr-1" /> Suspend
         </Button>
-        <Button variant="outline" size="sm" disabled={busy.isPending || tenant.status === "archived"}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={busy.isPending || tenant.status === "archived"}
           onClick={() => busy.mutate("archived")}
-          className="border-white/10 text-rose-300 hover:bg-white/10">
+          className="border-white/10 text-rose-300 hover:bg-white/10"
+        >
           <ShieldAlert className="size-3 mr-1" /> Archive
         </Button>
       </div>
@@ -188,11 +279,19 @@ function PlatformActions({ tenant, onSaved }: { tenant: Tenant; onSaved: () => v
         <div className="flex items-center gap-2 text-xs text-rose-200">
           <UserCog className="size-3" /> Impersonate — every action is audited
         </div>
-        <Input value={confirmName} onChange={(e) => setConfirmName(e.target.value)}
+        <Input
+          value={confirmName}
+          onChange={(e) => setConfirmName(e.target.value)}
           placeholder={`Type "${tenant.name}" to confirm`}
-          className="bg-neutral-950 border-white/10 text-white" />
-        <Button size="sm" onClick={impersonate}
-          className="w-full bg-rose-500 hover:bg-rose-400 text-white">Start impersonation</Button>
+          className="bg-neutral-950 border-white/10 text-white"
+        />
+        <Button
+          size="sm"
+          onClick={impersonate}
+          className="w-full bg-rose-500 hover:bg-rose-400 text-white"
+        >
+          Start impersonation
+        </Button>
       </div>
     </Panel>
   );
@@ -217,7 +316,10 @@ function BasicsEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void
       const { error } = await supabase.from("tenants").update(f).eq("id", tenant.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Saved"); onSaved(); },
+    onSuccess: () => {
+      toast.success("Saved");
+      onSaved();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   return (
@@ -227,15 +329,25 @@ function BasicsEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void
         <div className="space-y-1.5">
           <Label className="text-neutral-300">Niche</Label>
           <Select value={f.niche} onValueChange={(v) => setF({ ...f, niche: v as NicheKey })}>
-            <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
-            <SelectContent>{nicheOptions.map((n) => <SelectItem key={n.value} value={n.value}>{n.label}</SelectItem>)}</SelectContent>
+            <SelectTrigger className="bg-neutral-950 border-white/10 text-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {nicheOptions.map((n) => (
+                <SelectItem key={n.value} value={n.value}>
+                  {n.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </div>
         <PField label="Tagline" value={f.tagline} onChange={(v) => setF({ ...f, tagline: v })} />
         <div className="space-y-1.5">
           <Label className="text-neutral-300">Fee cycle</Label>
           <Select value={f.fee_cycle} onValueChange={(v) => setF({ ...f, fee_cycle: v })}>
-            <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="bg-neutral-950 border-white/10 text-white">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="calendar_month">Calendar month</SelectItem>
               <SelectItem value="joining_date">Joining-date anniversary</SelectItem>
@@ -249,7 +361,12 @@ function BasicsEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void
       </div>
       <div className="space-y-1.5">
         <Label className="text-neutral-300">Address</Label>
-        <Textarea rows={2} value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} className="bg-neutral-950 border-white/10 text-white" />
+        <Textarea
+          rows={2}
+          value={f.address}
+          onChange={(e) => setF({ ...f, address: e.target.value })}
+          className="bg-neutral-950 border-white/10 text-white"
+        />
       </div>
       <SaveRow onClick={() => save.mutate()} busy={save.isPending} />
     </Panel>
@@ -267,19 +384,30 @@ function BrandingEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => vo
   });
   const [logoPreview, setLogoPreview] = useState("");
   const [qrPreview, setQrPreview] = useState("");
-  useEffect(() => { if (f.logo_url) signedUrl(f.logo_url).then(setLogoPreview); else setLogoPreview(""); }, [f.logo_url]);
-  useEffect(() => { if (f.upi_qr_url) signedUrl(f.upi_qr_url).then(setQrPreview); else setQrPreview(""); }, [f.upi_qr_url]);
+  useEffect(() => {
+    if (f.logo_url) signedUrl(f.logo_url).then(setLogoPreview);
+    else setLogoPreview("");
+  }, [f.logo_url]);
+  useEffect(() => {
+    if (f.upi_qr_url) signedUrl(f.upi_qr_url).then(setQrPreview);
+    else setQrPreview("");
+  }, [f.upi_qr_url]);
 
   async function upload(field: "logo_url" | "upi_qr_url", file: File) {
     try {
       const path = await uploadTenantFile(tenant.id, field, file);
       setF((current) => ({ ...current, [field]: path }));
       // Auto-persist immediately so the change survives reload.
-      const { error } = await supabase.from("tenants").update({ [field]: path } as any).eq("id", tenant.id);
+      const { error } = await supabase
+        .from("tenants")
+        .update({ [field]: path } as any)
+        .eq("id", tenant.id);
       if (error) throw error;
       toast.success(field === "logo_url" ? "Logo updated" : "QR updated");
       onSaved();
-    } catch (e: any) { toast.error(e.message); }
+    } catch (e: any) {
+      toast.error(e.message);
+    }
   }
 
   const save = useMutation({
@@ -287,7 +415,10 @@ function BrandingEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => vo
       const { error } = await supabase.from("tenants").update(f).eq("id", tenant.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Saved"); onSaved(); },
+    onSuccess: () => {
+      toast.success("Saved");
+      onSaved();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -297,34 +428,74 @@ function BrandingEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => vo
         <div className="space-y-1.5">
           <Label className="text-neutral-300">Primary colour</Label>
           <div className="flex gap-2 items-center">
-            <input type="color" value={f.primary_color} onChange={(e) => setF({ ...f, primary_color: e.target.value })} className="w-12 h-9 rounded" />
-            <Input value={f.primary_color} onChange={(e) => setF({ ...f, primary_color: e.target.value })} className="bg-neutral-950 border-white/10 text-white" />
+            <input
+              type="color"
+              value={f.primary_color}
+              onChange={(e) => setF({ ...f, primary_color: e.target.value })}
+              className="w-12 h-9 rounded"
+            />
+            <Input
+              value={f.primary_color}
+              onChange={(e) => setF({ ...f, primary_color: e.target.value })}
+              className="bg-neutral-950 border-white/10 text-white"
+            />
           </div>
         </div>
         <div className="space-y-1.5">
           <Label className="text-neutral-300">Secondary colour</Label>
           <div className="flex gap-2 items-center">
-            <input type="color" value={f.secondary_color} onChange={(e) => setF({ ...f, secondary_color: e.target.value })} className="w-12 h-9 rounded" />
-            <Input value={f.secondary_color} onChange={(e) => setF({ ...f, secondary_color: e.target.value })} className="bg-neutral-950 border-white/10 text-white" />
+            <input
+              type="color"
+              value={f.secondary_color}
+              onChange={(e) => setF({ ...f, secondary_color: e.target.value })}
+              className="w-12 h-9 rounded"
+            />
+            <Input
+              value={f.secondary_color}
+              onChange={(e) => setF({ ...f, secondary_color: e.target.value })}
+              className="bg-neutral-950 border-white/10 text-white"
+            />
           </div>
         </div>
         <div className="space-y-1.5">
           <Label className="text-neutral-300">Logo</Label>
           <div className="flex items-center gap-3">
-            {logoPreview && <img src={logoPreview} alt="" className="size-14 rounded-md object-cover border border-white/10" />}
+            {logoPreview && (
+              <img
+                src={logoPreview}
+                alt=""
+                className="size-14 rounded-md object-cover border border-white/10"
+              />
+            )}
             <label className="text-xs cursor-pointer inline-flex items-center gap-1 px-3 py-2 rounded-md border border-white/10 hover:bg-white/5">
               Upload logo
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && upload("logo_url", e.target.files[0])} />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && upload("logo_url", e.target.files[0])}
+              />
             </label>
           </div>
         </div>
         <div className="space-y-1.5">
           <Label className="text-neutral-300">UPI QR</Label>
           <div className="flex items-center gap-3">
-            {qrPreview && <img src={qrPreview} alt="" className="size-14 rounded-md object-cover border border-white/10" />}
+            {qrPreview && (
+              <img
+                src={qrPreview}
+                alt=""
+                className="size-14 rounded-md object-cover border border-white/10"
+              />
+            )}
             <label className="text-xs cursor-pointer inline-flex items-center gap-1 px-3 py-2 rounded-md border border-white/10 hover:bg-white/5">
               Upload QR
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && upload("upi_qr_url", e.target.files[0])} />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && upload("upi_qr_url", e.target.files[0])}
+              />
             </label>
           </div>
         </div>
@@ -340,17 +511,26 @@ function FeaturesEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => vo
   const [feats, setFeats] = useState<TenantFeatures>(getFeatures(tenant));
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("tenants").update({ features: feats }).eq("id", tenant.id);
+      const { error } = await supabase
+        .from("tenants")
+        .update({ features: feats })
+        .eq("id", tenant.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Features updated"); onSaved(); },
+    onSuccess: () => {
+      toast.success("Features updated");
+      onSaved();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   return (
     <Panel title="Features">
       <div className="space-y-2">
         {FEATURE_LIST.map((f) => (
-          <label key={f.key} className="flex items-start justify-between gap-3 rounded-md border border-white/10 p-3">
+          <label
+            key={f.key}
+            className="flex items-start justify-between gap-3 rounded-md border border-white/10 p-3"
+          >
             <div className="min-w-0">
               <div className="text-sm font-medium">{f.label}</div>
               <div className="text-xs text-neutral-400">{f.help}</div>
@@ -374,7 +554,10 @@ const LOVABLE_A_RECORD = "185.158.133.1";
 
 function copy(v: string) {
   if (typeof navigator === "undefined" || !navigator.clipboard) return;
-  navigator.clipboard.writeText(v).then(() => toast.success("Copied")).catch(() => {});
+  navigator.clipboard
+    .writeText(v)
+    .then(() => toast.success("Copied"))
+    .catch(() => {});
 }
 
 function DomainEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void }) {
@@ -383,56 +566,113 @@ function DomainEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void
   const save = useMutation({
     mutationFn: async () => {
       const value = domain.trim().toLowerCase() || null;
-      const { error } = await supabase.from("tenants").update({ custom_domain: value }).eq("id", tenant.id);
+      const { error } = await supabase
+        .from("tenants")
+        .update({ custom_domain: value })
+        .eq("id", tenant.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Domain saved"); onSaved(); },
+    onSuccess: () => {
+      toast.success("Domain saved");
+      onSaved();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const d = domain.trim().toLowerCase();
   const isPlatformSub = d.endsWith("." + PLATFORM_BASE);
   const host = d.replace("." + PLATFORM_BASE, "");
-  const clientHostForRoot = d ? (d.split(".").length <= 2 ? "@" : d.split(".").slice(0, -2).join(".")) : "@";
+  const clientHostForRoot = d
+    ? d.split(".").length <= 2
+      ? "@"
+      : d.split(".").slice(0, -2).join(".")
+    : "@";
 
   return (
-    <Panel title={<span className="flex items-center gap-2"><Globe className="size-4" /> Academy URL & DNS</span>}>
+    <Panel
+      title={
+        <span className="flex items-center gap-2">
+          <Globe className="size-4" /> Academy URL & DNS
+        </span>
+      }
+    >
       <div className="rounded-md border border-white/10 bg-neutral-950 p-3 text-xs space-y-2">
         <div className="text-neutral-400">Default academy URL (recommended)</div>
         <div className="flex items-center gap-2 flex-wrap">
-          <code className="bg-black/40 px-2 py-1 rounded text-emerald-300 font-mono">https://{platformSubdomain}</code>
-          <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={() => copy(`https://${platformSubdomain}`)}>Copy</Button>
-          <a href={`https://${platformSubdomain}`} target="_blank" rel="noreferrer" className="text-neutral-400 hover:text-white inline-flex items-center gap-1 text-xs">
+          <code className="bg-black/40 px-2 py-1 rounded text-emerald-300 font-mono">
+            https://{platformSubdomain}
+          </code>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-7 text-xs"
+            onClick={() => copy(`https://${platformSubdomain}`)}
+          >
+            Copy
+          </Button>
+          <a
+            href={`https://${platformSubdomain}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-neutral-400 hover:text-white inline-flex items-center gap-1 text-xs"
+          >
             Open <ExternalLink className="size-3" />
           </a>
         </div>
-        <p className="text-neutral-500">Share this URL with the academy — parents and students go here. It becomes live once the subdomain is connected in Lovable (steps below).</p>
+        <p className="text-neutral-500">
+          Share this URL with the academy — parents and students go here. It becomes live once the
+          subdomain is connected in Lovable (steps below).
+        </p>
       </div>
 
-      <PField label="Custom domain (edit only if academy has their own)" value={domain} onChange={setDomain} />
+      <PField
+        label="Custom domain (edit only if academy has their own)"
+        value={domain}
+        onChange={setDomain}
+      />
 
       {isPlatformSub ? (
         <div className="rounded-md border border-white/10 bg-neutral-950 p-3 text-xs text-neutral-300 space-y-2">
           <div className="font-semibold text-white flex items-center gap-1">
-            <Info className="size-3" /> One-time DNS + Lovable setup for <code className="text-emerald-300">{d}</code>
+            <Info className="size-3" /> One-time DNS + Lovable setup for{" "}
+            <code className="text-emerald-300">{d}</code>
           </div>
           <ol className="list-decimal pl-4 space-y-2 text-neutral-300">
             <li>
               At your DNS provider for <strong>{PLATFORM_BASE}</strong>, add an A record:
               <pre className="mt-1 bg-neutral-900 rounded p-2 overflow-x-auto text-[11px] leading-relaxed">
-                Type: A{"\n"}Name: {host}{"\n"}Value: {LOVABLE_A_RECORD}
+                Type: A{"\n"}Name: {host}
+                {"\n"}Value: {LOVABLE_A_RECORD}
               </pre>
-              <Button size="sm" variant="secondary" className="mt-1 h-6 text-[11px]" onClick={() => copy(LOVABLE_A_RECORD)}>Copy IP</Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="mt-1 h-6 text-[11px]"
+                onClick={() => copy(LOVABLE_A_RECORD)}
+              >
+                Copy IP
+              </Button>
             </li>
             <li>
-              In this Lovable project → <strong>Project Settings → Domains → Connect Domain</strong>, add:
+              In this Lovable project → <strong>Project Settings → Domains → Connect Domain</strong>
+              , add:
               <div className="mt-1 flex items-center gap-2">
                 <code className="bg-neutral-900 px-2 py-1 rounded text-[11px]">{d}</code>
-                <Button size="sm" variant="secondary" className="h-6 text-[11px]" onClick={() => copy(d)}>Copy</Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-6 text-[11px]"
+                  onClick={() => copy(d)}
+                >
+                  Copy
+                </Button>
               </div>
             </li>
             <li>Add the TXT verification record Lovable shows you. Wait a few minutes for SSL.</li>
-            <li>Come back and click <strong>Save</strong> below so the app knows this domain maps to this academy.</li>
+            <li>
+              Come back and click <strong>Save</strong> below so the app knows this domain maps to
+              this academy.
+            </li>
           </ol>
         </div>
       ) : (
@@ -442,9 +682,13 @@ function DomainEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void
           </div>
           <p>Ask them to add an A record at their DNS provider:</p>
           <pre className="bg-neutral-900 rounded p-2 overflow-x-auto text-[11px] leading-relaxed">
-            Type: A{"\n"}Name: {clientHostForRoot}{"\n"}Value: {LOVABLE_A_RECORD}
+            Type: A{"\n"}Name: {clientHostForRoot}
+            {"\n"}Value: {LOVABLE_A_RECORD}
           </pre>
-          <p className="text-neutral-400">Then add <code>{d}</code> in Lovable → Project Settings → Domains, verify the TXT, and click Save below.</p>
+          <p className="text-neutral-400">
+            Then add <code>{d}</code> in Lovable → Project Settings → Domains, verify the TXT, and
+            click Save below.
+          </p>
         </div>
       )}
 
@@ -453,12 +697,17 @@ function DomainEditor({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void
   );
 }
 
-
 /* ─── Subscription ───────────────────────────────────── */
 
 function SubscriptionCard({
-  tenant, priceLog, onSaved,
-}: { tenant: Tenant; priceLog: any[]; onSaved: () => void }) {
+  tenant,
+  priceLog,
+  onSaved,
+}: {
+  tenant: Tenant;
+  priceLog: any[];
+  onSaved: () => void;
+}) {
   const [f, setF] = useState({
     monthly_price: String(tenant.monthly_price ?? 0),
     setup_fee: String(tenant.setup_fee ?? 0),
@@ -497,7 +746,10 @@ function SubscriptionCard({
         setPriceNote("");
       }
     },
-    onSuccess: () => { toast.success("Subscription updated"); onSaved(); },
+    onSuccess: () => {
+      toast.success("Subscription updated");
+      onSaved();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -511,20 +763,40 @@ function SubscriptionCard({
       if (error) throw error;
       setF({ ...f, subscription_status: "paid", last_paid_date: today });
     },
-    onSuccess: () => { toast.success("Marked paid"); onSaved(); },
+    onSuccess: () => {
+      toast.success("Marked paid");
+      onSaved();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
     <Panel title="Your subscription">
       <div className="grid grid-cols-2 gap-3">
-        <PField label="Monthly ₹" value={f.monthly_price} onChange={(v) => setF({ ...f, monthly_price: v.replace(/[^\d]/g, "") })} />
-        <PField label="Setup ₹" value={f.setup_fee} onChange={(v) => setF({ ...f, setup_fee: v.replace(/[^\d]/g, "") })} />
-        <PField label="Billing day" value={f.billing_day} onChange={(v) => setF({ ...f, billing_day: v.replace(/[^\d]/g, "") })} />
+        <PField
+          label="Monthly ₹"
+          value={f.monthly_price}
+          onChange={(v) => setF({ ...f, monthly_price: v.replace(/[^\d]/g, "") })}
+        />
+        <PField
+          label="Setup ₹"
+          value={f.setup_fee}
+          onChange={(v) => setF({ ...f, setup_fee: v.replace(/[^\d]/g, "") })}
+        />
+        <PField
+          label="Billing day"
+          value={f.billing_day}
+          onChange={(v) => setF({ ...f, billing_day: v.replace(/[^\d]/g, "") })}
+        />
         <div className="space-y-1.5">
           <Label className="text-neutral-300">Status</Label>
-          <Select value={f.subscription_status} onValueChange={(v) => setF({ ...f, subscription_status: v })}>
-            <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
+          <Select
+            value={f.subscription_status}
+            onValueChange={(v) => setF({ ...f, subscription_status: v })}
+          >
+            <SelectTrigger className="bg-neutral-950 border-white/10 text-white">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="paid">Paid</SelectItem>
               <SelectItem value="due">Due</SelectItem>
@@ -534,37 +806,71 @@ function SubscriptionCard({
         </div>
         <div className="col-span-2 space-y-1.5">
           <Label className="text-neutral-300">Last paid date</Label>
-          <Input type="date" value={f.last_paid_date ?? ""} onChange={(e) => setF({ ...f, last_paid_date: e.target.value })} className="bg-neutral-950 border-white/10 text-white" />
+          <Input
+            type="date"
+            value={f.last_paid_date ?? ""}
+            onChange={(e) => setF({ ...f, last_paid_date: e.target.value })}
+            className="bg-neutral-950 border-white/10 text-white"
+          />
         </div>
       </div>
 
       <div className="space-y-1.5">
         <Label className="text-neutral-300">Price-change note (optional)</Label>
-        <Input placeholder="Why is the price changing?" value={priceNote} onChange={(e) => setPriceNote(e.target.value)} className="bg-neutral-950 border-white/10 text-white" />
+        <Input
+          placeholder="Why is the price changing?"
+          value={priceNote}
+          onChange={(e) => setPriceNote(e.target.value)}
+          className="bg-neutral-950 border-white/10 text-white"
+        />
       </div>
 
       <div className="space-y-1.5">
         <Label className="text-neutral-300">Notes</Label>
-        <Textarea rows={2} value={f.platform_notes} onChange={(e) => setF({ ...f, platform_notes: e.target.value })} className="bg-neutral-950 border-white/10 text-white" />
+        <Textarea
+          rows={2}
+          value={f.platform_notes}
+          onChange={(e) => setF({ ...f, platform_notes: e.target.value })}
+          className="bg-neutral-950 border-white/10 text-white"
+        />
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" className="bg-white text-neutral-900 hover:bg-neutral-100" onClick={() => save.mutate()} disabled={save.isPending}>Save</Button>
-        <Button size="sm" variant="ghost" className="text-emerald-300 hover:text-emerald-200 hover:bg-white/5" onClick={() => markPaid.mutate()} disabled={markPaid.isPending}>
+        <Button
+          size="sm"
+          className="bg-white text-neutral-900 hover:bg-neutral-100"
+          onClick={() => save.mutate()}
+          disabled={save.isPending}
+        >
+          Save
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-emerald-300 hover:text-emerald-200 hover:bg-white/5"
+          onClick={() => markPaid.mutate()}
+          disabled={markPaid.isPending}
+        >
           Mark this month paid
         </Button>
       </div>
 
       <div className="rounded-md border border-white/10 bg-neutral-950 p-3">
-        <div className="text-xs uppercase tracking-widest text-neutral-400 mb-2">Price change history</div>
+        <div className="text-xs uppercase tracking-widest text-neutral-400 mb-2">
+          Price change history
+        </div>
         {priceLog.length === 0 ? (
           <div className="text-xs text-neutral-500">No price changes yet.</div>
         ) : (
           <ul className="space-y-1.5">
             {priceLog.map((p) => (
               <li key={p.id} className="text-xs flex items-baseline gap-2">
-                <span className="text-neutral-500 w-24 shrink-0">{new Date(p.created_at).toLocaleDateString("en-IN")}</span>
-                <span>₹{p.old_price} → <strong>₹{p.new_price}</strong></span>
+                <span className="text-neutral-500 w-24 shrink-0">
+                  {new Date(p.created_at).toLocaleDateString("en-IN")}
+                </span>
+                <span>
+                  ₹{p.old_price} → <strong>₹{p.new_price}</strong>
+                </span>
                 {p.note && <span className="text-neutral-400">· {p.note}</span>}
               </li>
             ))}
@@ -581,25 +887,49 @@ function SuspendCard({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void 
   const suspended = tenant.status === "suspended";
   const toggle = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("tenants").update({ status: suspended ? "active" : "suspended" }).eq("id", tenant.id);
+      const { error } = await supabase
+        .from("tenants")
+        .update({ status: suspended ? "active" : "suspended" })
+        .eq("id", tenant.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success(suspended ? "Reactivated" : "Suspended"); onSaved(); },
+    onSuccess: () => {
+      toast.success(suspended ? "Reactivated" : "Suspended");
+      onSaved();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   return (
-    <Panel title={<span className="flex items-center gap-2"><ShieldAlert className="size-4" /> Access control</span>}>
+    <Panel
+      title={
+        <span className="flex items-center gap-2">
+          <ShieldAlert className="size-4" /> Access control
+        </span>
+      }
+    >
       <p className="text-xs text-neutral-400">
         {suspended
           ? "This tenant is currently SUSPENDED. Their public site shows a 'temporarily unavailable' page."
           : "Suspending stops the public site immediately. Data is preserved and can be reactivated any time."}
       </p>
       <Button
-        className={suspended ? "bg-emerald-500 text-white hover:bg-emerald-400 w-full" : "bg-rose-500 text-white hover:bg-rose-400 w-full"}
+        className={
+          suspended
+            ? "bg-emerald-500 text-white hover:bg-emerald-400 w-full"
+            : "bg-rose-500 text-white hover:bg-rose-400 w-full"
+        }
         onClick={() => toggle.mutate()}
         disabled={toggle.isPending}
       >
-        {suspended ? (<><Play className="size-4 mr-1" /> Reactivate tenant</>) : (<><Pause className="size-4 mr-1" /> Suspend tenant</>)}
+        {suspended ? (
+          <>
+            <Play className="size-4 mr-1" /> Reactivate tenant
+          </>
+        ) : (
+          <>
+            <Pause className="size-4 mr-1" /> Suspend tenant
+          </>
+        )}
       </Button>
     </Panel>
   );
@@ -616,11 +946,23 @@ function Panel({ title, children }: { title: React.ReactNode; children: React.Re
   );
 }
 
-function PField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function PField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <div className="space-y-1.5">
       <Label className="text-neutral-300">{label}</Label>
-      <Input value={value} onChange={(e) => onChange(e.target.value)} className="bg-neutral-950 border-white/10 text-white" />
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="bg-neutral-950 border-white/10 text-white"
+      />
     </div>
   );
 }
@@ -628,7 +970,12 @@ function PField({ label, value, onChange }: { label: string; value: string; onCh
 function SaveRow({ onClick, busy }: { onClick: () => void; busy: boolean }) {
   return (
     <div className="flex justify-end pt-2">
-      <Button size="sm" className="bg-white text-neutral-900 hover:bg-neutral-100" onClick={onClick} disabled={busy}>
+      <Button
+        size="sm"
+        className="bg-white text-neutral-900 hover:bg-neutral-100"
+        onClick={onClick}
+        disabled={busy}
+      >
         {busy ? "Saving…" : "Save"}
       </Button>
     </div>

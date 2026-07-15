@@ -47,9 +47,10 @@ import { toast } from "sonner";
 import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
 import { DemoTeamProfile } from "@/components/match-center/demo-team-profile";
 
-
 export const Route = createFileRoute("/match-center/teams/$teamId")({
-  head: () => ({ meta: [{ title: "Team · Match Center" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Team · Match Center" }, { name: "robots", content: "noindex" }],
+  }),
   component: TeamProfilePage,
 });
 
@@ -171,20 +172,12 @@ function TeamProfilePage() {
   if (demoEntity) {
     // Non-team demo entity landed on a team route — send them back.
     return (
-      <EmptyState
-        icon={Users2}
-        title="Not a team"
-        description="This demo entity is not a team."
-      />
+      <EmptyState icon={Users2} title="Not a team" description="This demo entity is not a team." />
     );
   }
 
-
-
   if (teamQ.isLoading) {
-    return (
-      <div className="text-sm text-muted-foreground">Loading team…</div>
-    );
+    return <div className="text-sm text-muted-foreground">Loading team…</div>;
   }
 
   if (!team) {
@@ -228,7 +221,10 @@ function TeamProfilePage() {
         }
       />
 
-      <TeamHeader team={{ ...team, player_count: rosterRows.length }} onEdit={() => setTab("settings")} />
+      <TeamHeader
+        team={{ ...team, player_count: rosterRows.length }}
+        onEdit={() => setTab("settings")}
+      />
 
       {/* Tabs */}
       <div className="mb-6 -mx-1 flex gap-1 overflow-x-auto border-b border-border">
@@ -367,7 +363,12 @@ function OverviewTab({
       <Info label="Coach" value={team.coach_name || "—"} />
       <Info label="Assistant coach" value={team.assistant_coach_name || "—"} />
       <Info label="Season" value={team.season || "—"} />
-      <Info label="Age group" value={team.age_group === "Custom" ? team.age_group_custom || "Custom" : team.age_group || "—"} />
+      <Info
+        label="Age group"
+        value={
+          team.age_group === "Custom" ? team.age_group_custom || "Custom" : team.age_group || "—"
+        }
+      />
       <Info label="Players" value={String(rosterCount)} />
       <Info label="Created" value={new Date(team.created_at).toLocaleDateString()} />
       <Info
@@ -389,15 +390,7 @@ function OverviewTab({
   );
 }
 
-function Info({
-  label,
-  value,
-  badge,
-}: {
-  label: string;
-  value: string;
-  badge?: React.ReactNode;
-}) {
+function Info({ label, value, badge }: { label: string; value: string; badge?: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center justify-between text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
@@ -579,10 +572,18 @@ function SettingsTab({
           <h3 className="text-sm font-semibold mb-4">Team details</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <SField label="Team name">
-              <Input value={form.name} onChange={(e) => set("name", e.target.value)} maxLength={80} />
+              <Input
+                value={form.name}
+                onChange={(e) => set("name", e.target.value)}
+                maxLength={80}
+              />
             </SField>
             <SField label="Short name">
-              <Input value={form.short_name} onChange={(e) => set("short_name", e.target.value)} maxLength={12} />
+              <Input
+                value={form.short_name}
+                onChange={(e) => set("short_name", e.target.value)}
+                maxLength={12}
+              />
             </SField>
             <SField label="Age group">
               <select
@@ -591,17 +592,27 @@ function SettingsTab({
                 className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
               >
                 {AGE_GROUPS.map((a) => (
-                  <option key={a} value={a}>{a}</option>
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
                 ))}
               </select>
             </SField>
             {form.age_group === "Custom" && (
               <SField label="Custom age group">
-                <Input value={form.age_group_custom} onChange={(e) => set("age_group_custom", e.target.value)} maxLength={40} />
+                <Input
+                  value={form.age_group_custom}
+                  onChange={(e) => set("age_group_custom", e.target.value)}
+                  maxLength={40}
+                />
               </SField>
             )}
             <SField label="Season">
-              <Input value={form.season} onChange={(e) => set("season", e.target.value)} maxLength={40} />
+              <Input
+                value={form.season}
+                onChange={(e) => set("season", e.target.value)}
+                maxLength={40}
+              />
             </SField>
             <SField label="Status">
               <select
@@ -610,15 +621,25 @@ function SettingsTab({
                 className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
               >
                 {TEAM_STATUSES.map((s) => (
-                  <option key={s} value={s}>{s[0].toUpperCase() + s.slice(1)}</option>
+                  <option key={s} value={s}>
+                    {s[0].toUpperCase() + s.slice(1)}
+                  </option>
                 ))}
               </select>
             </SField>
             <SField label="Coach">
-              <Input value={form.coach_name} onChange={(e) => set("coach_name", e.target.value)} maxLength={80} />
+              <Input
+                value={form.coach_name}
+                onChange={(e) => set("coach_name", e.target.value)}
+                maxLength={80}
+              />
             </SField>
             <SField label="Assistant coach">
-              <Input value={form.assistant_coach_name} onChange={(e) => set("assistant_coach_name", e.target.value)} maxLength={80} />
+              <Input
+                value={form.assistant_coach_name}
+                onChange={(e) => set("assistant_coach_name", e.target.value)}
+                maxLength={80}
+              />
             </SField>
             <SField label="Team color">
               <div className="flex items-center gap-2">
@@ -628,11 +649,21 @@ function SettingsTab({
                   onChange={(e) => set("team_color", e.target.value)}
                   className="h-10 w-14 rounded-md border border-border cursor-pointer"
                 />
-                <Input value={form.team_color} onChange={(e) => set("team_color", e.target.value)} className="flex-1" maxLength={20} />
+                <Input
+                  value={form.team_color}
+                  onChange={(e) => set("team_color", e.target.value)}
+                  className="flex-1"
+                  maxLength={20}
+                />
               </div>
             </SField>
             <SField label="Description" wide>
-              <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} maxLength={600} />
+              <Textarea
+                value={form.description}
+                onChange={(e) => set("description", e.target.value)}
+                rows={3}
+                maxLength={600}
+              />
             </SField>
           </div>
           <div className="mt-5 flex justify-end">
@@ -713,10 +744,7 @@ function AddPlayersDialogBody({
         />
       )}
       <DialogFooter className="mt-4">
-        <Button
-          onClick={() => onSubmit(selected)}
-          disabled={submitting || selected.length === 0}
-        >
+        <Button onClick={() => onSubmit(selected)} disabled={submitting || selected.length === 0}>
           {submitting
             ? "Adding…"
             : selected.length

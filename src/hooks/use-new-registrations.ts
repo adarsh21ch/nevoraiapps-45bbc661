@@ -43,7 +43,12 @@ export function useNewRegistrationsCount(tenantId: string): number {
       .channel(`reg-notify:${tenantId}:${subId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "registrations", filter: `tenant_id=eq.${tenantId}` },
+        {
+          event: "*",
+          schema: "public",
+          table: "registrations",
+          filter: `tenant_id=eq.${tenantId}`,
+        },
         () => {
           qc.invalidateQueries({ queryKey: newRegsQueryKey(tenantId) });
         },

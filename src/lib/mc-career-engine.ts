@@ -26,8 +26,7 @@ import {
 } from "@/lib/mc-statistics-engine";
 import { createTimelineEntry } from "@/lib/mc-athletes";
 
-export type MCPlayerCareer =
-  Database["public"]["Tables"]["mc_player_careers"]["Row"];
+export type MCPlayerCareer = Database["public"]["Tables"]["mc_player_careers"]["Row"];
 
 export interface CareerAggregate {
   matches: number;
@@ -170,10 +169,7 @@ export function aggregateCareer(contributions: MatchContribution[]): CareerAggre
       agg.maidens += bw.maidens;
       if (bw.wickets >= 5) agg.five_wicket_hauls += 1;
       if (bw.wickets >= 10) agg.ten_wicket_hauls += 1;
-      if (
-        bw.wickets > bestBW ||
-        (bw.wickets === bestBW && bw.runsConceded < bestBR)
-      ) {
+      if (bw.wickets > bestBW || (bw.wickets === bestBW && bw.runsConceded < bestBR)) {
         bestBW = bw.wickets;
         bestBR = bw.runsConceded;
       }
@@ -227,9 +223,7 @@ export async function extractMatchContributions(
 ): Promise<{ meta: MatchMeta; contributions: Map<string, MatchContribution> }> {
   const { data: match, error: mErr } = await supabase
     .from("mc_matches")
-    .select(
-      "id, tenant_id, winner_team, player_of_match_athlete_id, finalized_at, match_locked",
-    )
+    .select("id, tenant_id, winner_team, player_of_match_athlete_id, finalized_at, match_locked")
     .eq("id", matchId)
     .single();
   if (mErr || !match) throw mErr ?? new Error("Match not found");
@@ -469,17 +463,19 @@ async function detectAndRecordMilestones(
   match: MatchContribution,
 ): Promise<number> {
   const events: { title: string; description: string }[] = [];
-  const p = prev ?? {
-    matches: 0,
-    runs: 0,
-    wickets: 0,
-    hundreds: 0,
-    fifties: 0,
-    five_wicket_hauls: 0,
-    ten_wicket_hauls: 0,
-    captain_matches: 0,
-    player_of_match: 0,
-  } as unknown as MCPlayerCareer;
+  const p =
+    prev ??
+    ({
+      matches: 0,
+      runs: 0,
+      wickets: 0,
+      hundreds: 0,
+      fifties: 0,
+      five_wicket_hauls: 0,
+      ten_wicket_hauls: 0,
+      captain_matches: 0,
+      player_of_match: 0,
+    } as unknown as MCPlayerCareer);
 
   if (p.matches === 0 && next.matches >= 1) {
     events.push({ title: "Match Debut", description: "Made first career appearance" });
@@ -542,9 +538,7 @@ async function detectAndRecordMilestones(
  * Reads
  * ================================================================ */
 
-export async function getCareer(
-  athleteProfileId: string,
-): Promise<MCPlayerCareer | null> {
+export async function getCareer(athleteProfileId: string): Promise<MCPlayerCareer | null> {
   const { data, error } = await supabase
     .from("mc_player_careers")
     .select("*")
@@ -567,9 +561,7 @@ export interface CareerTimelinePoint {
  * Build a chronological performance timeline for an athlete across finalized
  * matches. Pure over cache-independent data — used by career graphs.
  */
-export async function getCareerTimeline(
-  athleteProfileId: string,
-): Promise<CareerTimelinePoint[]> {
+export async function getCareerTimeline(athleteProfileId: string): Promise<CareerTimelinePoint[]> {
   const { data: squadMatches } = await supabase
     .from("mc_match_squads")
     .select("match_id")
@@ -611,10 +603,8 @@ export async function getCareerTimeline(
       matchDate: m.finalized_at ?? m.scheduled_date ?? null,
       runs,
       wickets,
-      battingAverageToDate:
-        dismissals > 0 ? +(cumRuns / dismissals).toFixed(2) : cumRuns,
-      strikeRateToDate:
-        cumBalls > 0 ? +((cumRuns / cumBalls) * 100).toFixed(2) : 0,
+      battingAverageToDate: dismissals > 0 ? +(cumRuns / dismissals).toFixed(2) : cumRuns,
+      strikeRateToDate: cumBalls > 0 ? +((cumRuns / cumBalls) * 100).toFixed(2) : 0,
     });
   }
   return points;

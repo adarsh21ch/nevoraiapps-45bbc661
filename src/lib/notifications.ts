@@ -6,12 +6,7 @@
  * from `notifications`. One shared React Query cache keyed by user id.
  */
 import { useEffect, useMemo, useRef } from "react";
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export type NotificationCategory =
@@ -46,10 +41,8 @@ export type NotificationRow = {
 
 export const notificationKeys = {
   root: ["notifications"] as const,
-  list: (userId: string, filter: string) =>
-    ["notifications", userId, "list", filter] as const,
-  unreadCount: (userId: string) =>
-    ["notifications", userId, "unread-count"] as const,
+  list: (userId: string, filter: string) => ["notifications", userId, "list", filter] as const,
+  unreadCount: (userId: string) => ["notifications", userId, "unread-count"] as const,
 };
 
 const COLUMNS =
@@ -102,7 +95,9 @@ export function useUnreadCount(userId: string | null) {
     enabled: !!userId,
     staleTime: 10_000,
     queryFn: async () => {
-      const { data, error } = await (supabase.rpc as unknown as (...a: unknown[])=>Promise<{data:unknown;error:unknown}>)("unread_notification_count");
+      const { data, error } = await (
+        supabase.rpc as unknown as (...a: unknown[]) => Promise<{ data: unknown; error: unknown }>
+      )("unread_notification_count");
       if (error) throw error;
       return (data as number) ?? 0;
     },
@@ -113,7 +108,9 @@ export function useMarkRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase.rpc as unknown as (...a: unknown[])=>Promise<{data:unknown;error:unknown}>)("mark_notification_read", { _id: id });
+      const { error } = await (
+        supabase.rpc as unknown as (...a: unknown[]) => Promise<{ data: unknown; error: unknown }>
+      )("mark_notification_read", { _id: id });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -126,7 +123,9 @@ export function useMarkAllRead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      const { error } = await (supabase.rpc as unknown as (...a: unknown[])=>Promise<{data:unknown;error:unknown}>)("mark_all_notifications_read");
+      const { error } = await (
+        supabase.rpc as unknown as (...a: unknown[]) => Promise<{ data: unknown; error: unknown }>
+      )("mark_all_notifications_read");
       if (error) throw error;
     },
     onSuccess: () => {
@@ -139,7 +138,9 @@ export function useArchiveNotification() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase.rpc as unknown as (...a: unknown[])=>Promise<{data:unknown;error:unknown}>)("archive_notification", { _id: id });
+      const { error } = await (
+        supabase.rpc as unknown as (...a: unknown[]) => Promise<{ data: unknown; error: unknown }>
+      )("archive_notification", { _id: id });
       if (error) throw error;
     },
     onSuccess: () => {

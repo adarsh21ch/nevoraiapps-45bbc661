@@ -27,7 +27,6 @@ import {
 import { fetchStudentProgress, studentKeys } from "@/lib/student-app";
 import { ParentCtx } from "@/hooks/use-parent-child";
 
-
 export const Route = createFileRoute("/parent")({
   head: () => ({
     meta: [
@@ -38,7 +37,6 @@ export const Route = createFileRoute("/parent")({
   }),
   component: ParentLayout,
 });
-
 
 const TABS = [
   { to: "/parent", label: "Home", icon: Home, exact: true },
@@ -169,7 +167,6 @@ function ParentLayout() {
         <ParentCtx.Provider value={{ child: ctxQ.data, childRow: selectedChild }}>
           <Outlet />
         </ParentCtx.Provider>
-
       </div>
 
       <nav
@@ -226,9 +223,7 @@ function ChildSwitcher({
       <Card className="p-3 flex items-center gap-3">
         {avatar(selected)}
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-            Viewing
-          </p>
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Viewing</p>
           <p className="text-sm font-medium truncate">{selected.student_name}</p>
         </div>
       </Card>
@@ -243,9 +238,7 @@ function ChildSwitcher({
         >
           {avatar(selected)}
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              Viewing
-            </p>
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Viewing</p>
             <p className="text-sm font-medium truncate">{selected.student_name}</p>
           </div>
           <ChevronDown className="size-4 text-muted-foreground" />
@@ -263,9 +256,7 @@ function ChildSwitcher({
             {avatar(k)}
             <div className="min-w-0 flex-1">
               <p className="text-sm truncate">{k.student_name}</p>
-              {k.player_id && (
-                <p className="text-[10px] text-muted-foreground">{k.player_id}</p>
-              )}
+              {k.player_id && <p className="text-[10px] text-muted-foreground">{k.player_id}</p>}
             </div>
             {k.student_id === selected.student_id && (
               <span className="text-[10px] text-primary font-medium">Active</span>

@@ -19,8 +19,4 @@ export {
   listAcademyPerformance,
   generateCoachInsights,
 } from "@/lib/mc-performance-analytics";
-export type {
-  MatchLite,
-  PerfPoint,
-  SplitBucket,
-} from "@/lib/mc-performance-analytics";
+export type { MatchLite, PerfPoint, SplitBucket } from "@/lib/mc-performance-analytics";

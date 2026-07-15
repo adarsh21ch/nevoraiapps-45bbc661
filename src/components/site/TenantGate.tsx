@@ -31,7 +31,6 @@ export function TenantGate({ children }: { children: ReactNode }) {
     return isReservedPlatformHost(host) ? <TenantPlaceholder /> : <DomainNotConfigured />;
   }
 
-
   if (state.status === "suspended") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 text-center">
@@ -57,11 +56,25 @@ export function TenantGate({ children }: { children: ReactNode }) {
   );
 }
 
-function TenantJsonLd({ tenant }: { tenant: { id: string; name: string; slug: string; tagline: string | null; phone: string | null; email: string | null; address: string | null; logo_url: string | null; custom_domain: string | null } }) {
+function TenantJsonLd({
+  tenant,
+}: {
+  tenant: {
+    id: string;
+    name: string;
+    slug: string;
+    tagline: string | null;
+    phone: string | null;
+    email: string | null;
+    address: string | null;
+    logo_url: string | null;
+    custom_domain: string | null;
+  };
+}) {
   if (typeof window === "undefined") return null;
-  const url =
-    tenant.custom_domain ? `https://${tenant.custom_domain}` : window.location.origin;
-  const logoAbs = tenant.logo_url && tenant.logo_url.startsWith("http") ? tenant.logo_url : undefined;
+  const url = tenant.custom_domain ? `https://${tenant.custom_domain}` : window.location.origin;
+  const logoAbs =
+    tenant.logo_url && tenant.logo_url.startsWith("http") ? tenant.logo_url : undefined;
   const data = {
     "@context": "https://schema.org",
     "@type": "SportsClub",
@@ -70,7 +83,9 @@ function TenantJsonLd({ tenant }: { tenant: { id: string; name: string; slug: st
     url,
     telephone: tenant.phone ?? undefined,
     email: tenant.email ?? undefined,
-    address: tenant.address ? { "@type": "PostalAddress", streetAddress: tenant.address } : undefined,
+    address: tenant.address
+      ? { "@type": "PostalAddress", streetAddress: tenant.address }
+      : undefined,
     logo: logoAbs,
     sameAs: undefined,
   };
@@ -83,8 +98,14 @@ function TenantJsonLd({ tenant }: { tenant: { id: string; name: string; slug: st
   };
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(org) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(org) }}
+      />
     </>
   );
 }
