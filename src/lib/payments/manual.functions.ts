@@ -87,7 +87,7 @@ export const listMyManualPayments = createServerFn({ method: "POST" })
     const { data: rows, error } = await context.supabase
       .from("manual_payment_submissions")
       .select(
-        "id, invoice_id, method, amount, currency, utr, paid_at, screenshot_path, status, review_reason, created_at",
+        "id, invoice_id, method, amount, currency, utr, paid_at, screenshot_path, status, review_reason, created_at, viewed_at, reviewed_at, billing_payment_id",
       )
       .eq("student_id", data.studentId)
       .order("created_at", { ascending: false })
@@ -370,6 +370,33 @@ export const signManualPaymentScreenshot = createServerFn({ method: "POST" })
       .from("tenant-assets")
       .createSignedUrl(row.screenshot_path, 60 * 30);
     return { url: signed?.signedUrl ?? null };
+  });
+
+/** Owner opens a submission → emit `payment.viewed` once (best-effort). */
+export const markManualPaymentViewed = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: { submissionId: string }) => v)
+  .handler(async ({ data, context }) => {
+    const { data: row } = await context.supabase
+      .from("manual_payment_submissions")
+      .select("id, tenant_id, student_id, invoice_id, viewed_at")
+      .eq("id", data.submissionId)
+      .maybeSingle();
+    if (!row || row.viewed_at) return { ok: true, skipped: true };
+    const now = new Date().toISOString();
+    await context.supabase
+      .from("manual_payment_submissions")
+      .update({ viewed_at: now, viewed_by: context.userId })
+      .eq("id", row.id);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("automation_events").insert({
+      tenant_id: row.tenant_id,
+      event_type: "payment.viewed",
+      source_module: "manual-payments",
+      source_id: row.id,
+      payload: { student_id: row.student_id, invoice_id: row.invoice_id },
+    });
+    return { ok: true };
   });
 
 /** Public payment-setup projection for parents (safe fields only). */

@@ -1836,6 +1836,8 @@ export type Database = {
           tenant_id: string
           updated_at: string
           utr: string | null
+          viewed_at: string | null
+          viewed_by: string | null
         }
         Insert: {
           amount: number
@@ -1857,6 +1859,8 @@ export type Database = {
           tenant_id: string
           updated_at?: string
           utr?: string | null
+          viewed_at?: string | null
+          viewed_by?: string | null
         }
         Update: {
           amount?: number
@@ -1878,6 +1882,8 @@ export type Database = {
           tenant_id?: string
           updated_at?: string
           utr?: string | null
+          viewed_at?: string | null
+          viewed_by?: string | null
         }
         Relationships: [
           {
