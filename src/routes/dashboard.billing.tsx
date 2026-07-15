@@ -265,11 +265,11 @@ function InvoicesTable({
     <>
       <div className="rounded-2xl border overflow-hidden bg-card">
         <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
-          <div className="col-span-2">Number</div>
+          <div className="col-span-2">Bill #</div>
           <div className="col-span-3">Student</div>
           <div className="col-span-2">Due</div>
           <div className="col-span-2 text-right">Total</div>
-          <div className="col-span-2 text-right">Balance</div>
+          <div className="col-span-2 text-right">Pending</div>
           <div className="col-span-1 text-right">Status</div>
         </div>
         {invoices.map((inv) => {
