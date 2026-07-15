@@ -1012,6 +1012,7 @@ function StudentRow({
   batchName,
   row,
   canMark,
+  readOnly,
   tenantId,
   lateAfterMs,
   selectMode,
@@ -1025,6 +1026,7 @@ function StudentRow({
   batchName: string | null;
   row: TodayRow | undefined;
   canMark: boolean;
+  readOnly?: boolean;
   tenantId: string;
   lateAfterMs: number | null;
   selectMode: boolean;
