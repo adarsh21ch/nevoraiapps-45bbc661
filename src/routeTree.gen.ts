@@ -69,6 +69,7 @@ import { Route as PlatformAdminAuditRouteImport } from './routes/platform-admin.
 import { Route as ParentTimelineRouteImport } from './routes/parent.timeline'
 import { Route as ParentProgressRouteImport } from './routes/parent.progress'
 import { Route as ParentProfileRouteImport } from './routes/parent.profile'
+import { Route as ParentBillingRouteImport } from './routes/parent.billing'
 import { Route as MatchSlugRouteImport } from './routes/match.$slug'
 import { Route as MatchCenterWebsiteRouteImport } from './routes/match-center.website'
 import { Route as MatchCenterTournamentsRouteImport } from './routes/match-center.tournaments'
@@ -443,6 +444,11 @@ const ParentProgressRoute = ParentProgressRouteImport.update({
 const ParentProfileRoute = ParentProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => ParentRoute,
+} as any)
+const ParentBillingRoute = ParentBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => ParentRoute,
 } as any)
 const MatchSlugRoute = MatchSlugRouteImport.update({
@@ -905,6 +911,7 @@ export interface FileRoutesByFullPath {
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
+  '/parent/billing': typeof ParentBillingRoute
   '/parent/profile': typeof ParentProfileRoute
   '/parent/progress': typeof ParentProgressRoute
   '/parent/timeline': typeof ParentTimelineRoute
@@ -1034,6 +1041,7 @@ export interface FileRoutesByTo {
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
+  '/parent/billing': typeof ParentBillingRoute
   '/parent/profile': typeof ParentProfileRoute
   '/parent/progress': typeof ParentProgressRoute
   '/parent/timeline': typeof ParentTimelineRoute
@@ -1169,6 +1177,7 @@ export interface FileRoutesById {
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
+  '/parent/billing': typeof ParentBillingRoute
   '/parent/profile': typeof ParentProfileRoute
   '/parent/progress': typeof ParentProgressRoute
   '/parent/timeline': typeof ParentTimelineRoute
@@ -1305,6 +1314,7 @@ export interface FileRouteTypes {
     | '/match-center/tournaments'
     | '/match-center/website'
     | '/match/$slug'
+    | '/parent/billing'
     | '/parent/profile'
     | '/parent/progress'
     | '/parent/timeline'
@@ -1434,6 +1444,7 @@ export interface FileRouteTypes {
     | '/match-center/tournaments'
     | '/match-center/website'
     | '/match/$slug'
+    | '/parent/billing'
     | '/parent/profile'
     | '/parent/progress'
     | '/parent/timeline'
@@ -1568,6 +1579,7 @@ export interface FileRouteTypes {
     | '/match-center/tournaments'
     | '/match-center/website'
     | '/match/$slug'
+    | '/parent/billing'
     | '/parent/profile'
     | '/parent/progress'
     | '/parent/timeline'
@@ -2090,6 +2102,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/parent/profile'
       preLoaderRoute: typeof ParentProfileRouteImport
+      parentRoute: typeof ParentRoute
+    }
+    '/parent/billing': {
+      id: '/parent/billing'
+      path: '/billing'
+      fullPath: '/parent/billing'
+      preLoaderRoute: typeof ParentBillingRouteImport
       parentRoute: typeof ParentRoute
     }
     '/match/$slug': {
@@ -2782,6 +2801,7 @@ const MatchCenterRouteWithChildren = MatchCenterRoute._addFileChildren(
 )
 
 interface ParentRouteChildren {
+  ParentBillingRoute: typeof ParentBillingRoute
   ParentProfileRoute: typeof ParentProfileRoute
   ParentProgressRoute: typeof ParentProgressRoute
   ParentTimelineRoute: typeof ParentTimelineRoute
@@ -2789,6 +2809,7 @@ interface ParentRouteChildren {
 }
 
 const ParentRouteChildren: ParentRouteChildren = {
+  ParentBillingRoute: ParentBillingRoute,
   ParentProfileRoute: ParentProfileRoute,
   ParentProgressRoute: ParentProgressRoute,
   ParentTimelineRoute: ParentTimelineRoute,
