@@ -67,6 +67,17 @@ export const AUTOMATION_EVENTS = {
   PaymentRejected: "payment.rejected",
   PaymentResubmitted: "payment.resubmitted",
   PaymentReceiptGenerated: "payment.receipt_generated",
+  // Subscription lifecycle (Phase 10.1)
+  SubscriptionTrialStarted: "subscription.trial_started",
+  SubscriptionTrialExpiring: "subscription.trial_expiring",
+  SubscriptionUpgraded: "subscription.upgraded",
+  SubscriptionDowngraded: "subscription.downgraded",
+  SubscriptionSuspended: "subscription.suspended",
+  SubscriptionResumed: "subscription.resumed",
+  SubscriptionGracePeriod: "subscription.grace_period",
+  FeatureLimitReached: "feature.limit_reached",
+  FeatureEnabled: "feature.enabled",
+  FeatureDisabled: "feature.disabled",
 } as const;
 
 

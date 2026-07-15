@@ -25,7 +25,17 @@ export type FeatureId =
   | "founder_intelligence"
   | "campaigns"
   | "website_builder"
-  | "api_access";
+  | "api_access"
+  // Future AI Platform (registered, not implemented)
+  | "ai_chat"
+  | "ai_business_insights"
+  | "ai_student_analysis"
+  | "ai_attendance_summary"
+  | "ai_fee_analysis"
+  | "ai_coach_assistant"
+  | "ai_parent_summary"
+  | "ai_ocr"
+  | "ai_founder_brief";
 
 export type LimitId =
   | "students"
@@ -70,6 +80,15 @@ export const FEATURES: Record<FeatureId, FeatureMeta> = {
   custom_branding:       { id: "custom_branding",       name: "Custom Branding",       minPlan: "enterprise" },
   founder_intelligence:  { id: "founder_intelligence",  name: "Founder Intelligence",  minPlan: "enterprise" },
   api_access:            { id: "api_access",            name: "API Access",            minPlan: "enterprise" },
+  ai_chat:               { id: "ai_chat",               name: "AI Chat",               minPlan: "enterprise", experimental: true },
+  ai_business_insights:  { id: "ai_business_insights",  name: "AI Business Insights",  minPlan: "enterprise", experimental: true },
+  ai_student_analysis:   { id: "ai_student_analysis",   name: "AI Student Analysis",   minPlan: "enterprise", experimental: true },
+  ai_attendance_summary: { id: "ai_attendance_summary", name: "AI Attendance Summary", minPlan: "enterprise", experimental: true },
+  ai_fee_analysis:       { id: "ai_fee_analysis",       name: "AI Fee Analysis",       minPlan: "enterprise", experimental: true },
+  ai_coach_assistant:    { id: "ai_coach_assistant",    name: "AI Coach Assistant",    minPlan: "enterprise", experimental: true },
+  ai_parent_summary:     { id: "ai_parent_summary",     name: "AI Parent Summary",     minPlan: "enterprise", experimental: true },
+  ai_ocr:                { id: "ai_ocr",                name: "AI OCR",                minPlan: "enterprise", experimental: true },
+  ai_founder_brief:      { id: "ai_founder_brief",      name: "AI Founder Brief",      minPlan: "enterprise", experimental: true },
 };
 
 export const FEATURE_MIN_PLAN: Record<FeatureId, PlanTier> = Object.fromEntries(
