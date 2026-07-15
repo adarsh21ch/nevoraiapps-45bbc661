@@ -281,27 +281,19 @@ function DashboardHome() {
       {/* ─── Section 3b · Cricket today (Match Center integration) ────── */}
       {canScoreMatch && <CricketToday tenantId={tenant.id} />}
 
-      {/* ─── Section 4 · Today's insights ────────────────────────────── */}
-      <section aria-label="Today's insights">
-        <SectionLabel>Today's insights</SectionLabel>
-        <InsightsRow
-          attPct={attPct}
+      {/* ─── Section 4 · Next actions (actionable only, no duplicate KPIs) */}
+      <section aria-label="Next actions">
+        <SectionLabel>Next actions</SectionLabel>
+        <NextActions
           notArrived={notArrived}
-          pendingFees={canViewFees && feeEnabled ? pendingFees : null}
+          pendingFees={canViewFees && feeEnabled ? pendingFees : 0}
           newRegs={newRegs}
-          collectedMonth={canViewFees && feeEnabled ? collectedMonth : null}
-          birthdaysCount={insights?.birthdays.length ?? 0}
-          nextBirthday={insights?.birthdays[0] ?? null}
-          isLoading={insightsQ.isLoading || kpisQ.isLoading}
-        />
-      </section>
-
-      {/* ─── Section 5 · Live status footer ──────────────────────────── */}
-      <section aria-label="Live status" className="pt-1">
-        <LiveStatusStrip
-          inAcademy={inAcademy}
-          totalToday={attTotal}
-          isLoading={attendanceLoading}
+          birthdaysToday={
+            (insights?.birthdays ?? []).filter((b) => b.daysAway === 0).length
+          }
+          isLoading={
+            attendanceLoading || insightsQ.isLoading || kpisQ.isLoading
+          }
         />
       </section>
     </div>
