@@ -6,6 +6,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { fetchRegistrations, qk } from "@/lib/dashboard-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { bulkApproveRegistrations } from "@/lib/bulk-ops";
+import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
 import { markRegistrationsReviewed, newRegsQueryKey } from "@/hooks/use-new-registrations";
 
 import { PersonAvatar } from "@/components/site/PersonAvatar";
@@ -99,17 +100,20 @@ function RegistrationsInbox() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const del = useMutation({
+  // Phase 3 — optimistic delete with automatic rollback via useOptimisticMutation.
+  const del = useOptimisticMutation<void, string, any[]>({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("registrations").delete().eq("id", id);
       if (error) throw error;
     },
+    queryKey: qk.regs(tenant.id),
+    optimistic: (prev, id) => (prev ?? []).filter((r: any) => r.id !== id),
+    extraKeys: [newRegsQueryKey(tenant.id), qk.kpis(tenant.id)],
     onSuccess: () => {
       toast.success("Registration deleted");
-      invalidate();
       setOpenId(null);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e) => toast.error((e as Error).message),
   });
 
   const sorted = useMemo(

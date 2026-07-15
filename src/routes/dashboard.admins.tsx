@@ -5,7 +5,7 @@ import { ShieldCheck, ArrowLeft, Lock, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ds/Card";
 import { useDashboard } from "@/lib/dashboard-context";
-import { isOwner } from "@/lib/roles";
+import { usePermissions } from "@/hooks/use-permissions";
 import { supabase } from "@/integrations/supabase/client";
 import { DangerZone } from "@/components/shared/DangerZone";
 import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
@@ -19,9 +19,9 @@ export const Route = createFileRoute("/dashboard/admins")({
 type MemberRow = { id: string; user_id: string; role: string; created_at: string };
 
 function AdminsEntry() {
-  const { profile, tenant, session } = useDashboard();
+  const { tenant, session } = useDashboard();
   const navigate = useNavigate();
-  const owner = isOwner(profile);
+  const { isOwner: owner } = usePermissions();
 
   useEffect(() => {
     if (!owner) navigate({ to: "/dashboard/academy", replace: true });

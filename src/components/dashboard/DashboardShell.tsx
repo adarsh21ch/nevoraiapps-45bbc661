@@ -3,6 +3,7 @@ import { type ReactNode, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -69,6 +70,8 @@ const operationsNav: NavItem[] = [
 export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
   const { t } = useT();
+  // Phase 3 — role via has_role / current_role RPC (usePermissions).
+  const { isOwner } = usePermissions();
 
   // Single source of truth for the "new registration" badge — status='new'.
   const newRegCount = useNewRegistrationsCount(tenant.id);
@@ -89,7 +92,6 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   });
 
   const features = getFeatures(tenant);
-  const isOwner = profile?.role === "owner";
   const withBadges = (items: NavItem[]) =>
     items
       .filter((n) => !n.requiresFeature || features[n.requiresFeature] !== false)
