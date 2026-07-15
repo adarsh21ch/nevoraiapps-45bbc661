@@ -1,8 +1,13 @@
-// Reports aggregation layer.
-// Pure read-only aggregation over existing tables — no new business logic,
-// no materialization. Every function accepts a { tenantId, from, to } range
-// and returns a serializable summary shape. Owner-only queries are gated at
-// the route level (see dashboard.reports.tsx), not here.
+// Reports data layer — Phase 2 complete.
+//
+// This module is now a THIN client over server-side RPCs. Every report
+// aggregation (SUM/COUNT/GROUP BY/percentages/trends/top-N) runs inside
+// Postgres via SECURITY DEFINER functions that assert tenant membership.
+// The browser only receives compact pre-aggregated JSON and renders it.
+//
+// If you find yourself adding `.reduce`, `.filter`, or `.map` here to
+// compute a KPI, add it to the corresponding RPC instead. Keep this file
+// as pass-through mapping only.
 import { supabase } from "@/integrations/supabase/client";
 
 export type Range = { from: string; to: string }; // ISO
@@ -50,6 +55,18 @@ export const rqk = {
   website:    (t: string, r: Range) => ["r", "web", t, r.from, r.to] as const,
 };
 
+// -------- Shared RPC caller ------------------------------------------------
+async function callReportRpc<T>(name: string, tenantId: string, r: Range): Promise<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any).rpc(name, {
+    _tenant_id: tenantId,
+    _from: r.from,
+    _to: r.to,
+  });
+  if (error) throw error;
+  return data as T;
+}
+
 // ---------------- Attendance ---------------------------------------------
 export type AttendanceReport = {
   totalMarks: number;
@@ -63,85 +80,8 @@ export type AttendanceReport = {
   topStudents: { name: string; percent: number; present: number; total: number }[];
   lowStudents: { name: string; percent: number; present: number; total: number }[];
 };
-
-export async function fetchAttendanceReport(tenantId: string, r: Range): Promise<AttendanceReport> {
-  const fromDate = r.from.slice(0, 10);
-  const toDate = r.to.slice(0, 10);
-  const [sess, marks] = await Promise.all([
-    supabase.from("attendance_sessions")
-      .select("id, session_date, batch_id, batches(name)")
-      .eq("tenant_id", tenantId)
-      .gte("session_date", fromDate)
-      .lte("session_date", toDate),
-    supabase.from("attendance_marks")
-      .select("id, status, session_id, student_id, students(name)")
-      .eq("tenant_id", tenantId)
-      .is("superseded_by", null)
-      .gte("created_at", r.from)
-      .lte("created_at", r.to),
-  ]);
-
-  const sessions = sess.data ?? [];
-  const sessionMap = new Map(sessions.map((s: any) => [s.id, s]));
-  const mm = marks.data ?? [];
-
-  let present = 0, absent = 0, late = 0;
-  const perDay = new Map<string, { p: number; a: number }>();
-  const perBatchMap = new Map<string, { p: number; t: number }>();
-  const perStudent = new Map<string, { name: string; p: number; t: number }>();
-
-  for (const m of mm as any[]) {
-    const sess = sessionMap.get(m.session_id) as any;
-    const day = sess?.session_date ?? "";
-    const batch = sess?.batches?.name ?? "Unassigned";
-    const isPresent = m.status === "present" || m.status === "late";
-    if (m.status === "present") present++;
-    else if (m.status === "late") { present++; late++; }
-    else if (m.status === "absent") absent++;
-
-    const d = perDay.get(day) ?? { p: 0, a: 0 };
-    if (isPresent) d.p++; else if (m.status === "absent") d.a++;
-    perDay.set(day, d);
-
-    const b = perBatchMap.get(batch) ?? { p: 0, t: 0 };
-    if (isPresent || m.status === "absent") { b.t++; if (isPresent) b.p++; }
-    perBatchMap.set(batch, b);
-
-    const sname = m.students?.name ?? "—";
-    const st = perStudent.get(m.student_id) ?? { name: sname, p: 0, t: 0 };
-    if (isPresent || m.status === "absent") { st.t++; if (isPresent) st.p++; }
-    perStudent.set(m.student_id, st);
-  }
-
-  const total = present + absent;
-  const percent = total ? Math.round((present / total) * 100) : 0;
-
-  const daily = [...perDay.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, v]) => ({
-      date,
-      present: v.p,
-      absent: v.a,
-      percent: v.p + v.a ? Math.round((v.p / (v.p + v.a)) * 100) : 0,
-    }));
-
-  const perBatch = [...perBatchMap.entries()]
-    .map(([batch, v]) => ({ batch, present: v.p, total: v.t, percent: v.t ? Math.round((v.p / v.t) * 100) : 0 }))
-    .sort((a, b) => b.percent - a.percent);
-
-  const students = [...perStudent.values()]
-    .filter((s) => s.t >= 3)
-    .map((s) => ({ name: s.name, present: s.p, total: s.t, percent: Math.round((s.p / s.t) * 100) }));
-  const topStudents = [...students].sort((a, b) => b.percent - a.percent).slice(0, 10);
-  const lowStudents = [...students].sort((a, b) => a.percent - b.percent).slice(0, 10);
-
-  return {
-    totalMarks: mm.length,
-    present, absent, late, percent,
-    sessions: sessions.length,
-    daily, perBatch, topStudents, lowStudents,
-  };
-}
+export const fetchAttendanceReport = (tenantId: string, r: Range) =>
+  callReportRpc<AttendanceReport>("get_report_attendance", tenantId, r);
 
 // ---------------- Billing (owner) ----------------------------------------
 export type BillingReport = {
@@ -152,123 +92,25 @@ export type BillingReport = {
   byMethod: { label: string; amount: number }[];
   byType: { label: string; amount: number }[];
   pendingStudents: number;
-  pendingApprox: number; // best-effort using student fee_plan.amount for pending months
-  collectionRate: number; // paid / (paid + pending)
+  pendingApprox: number;
+  collectionRate: number;
 };
-
-export async function fetchBillingReport(tenantId: string, r: Range): Promise<BillingReport> {
-  const [pays, pendings] = await Promise.all([
-    supabase.from("payments")
-      .select("amount, type, method, created_at, period")
-      .eq("tenant_id", tenantId)
-      .gte("created_at", r.from)
-      .lte("created_at", r.to),
-    supabase.from("students")
-      .select("id, fee_plans(amount)")
-      .eq("tenant_id", tenantId)
-      .eq("status", "active"),
-  ]);
-  const rows = pays.data ?? [];
-  const revenue = rows.reduce((s, p: any) => s + Number(p.amount || 0), 0);
-  const paymentsCount = rows.length;
-  const avgPayment = paymentsCount ? Math.round(revenue / paymentsCount) : 0;
-
-  const byMonth = groupByMonth(rows.map((p: any) => ({ at: p.created_at, amount: Number(p.amount || 0) })));
-  const byMethod = groupSum(rows, (p: any) => (p.method || "other").toUpperCase());
-  const byType = groupSum(rows, (p: any) => prettyType(p.type));
-
-  // Rough pending: for each active student on a monthly plan without a payment
-  // covering the current month period key. Best-effort quick estimate; the
-  // authoritative source is the fee-register view.
-  const now = new Date();
-  const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const paidStudentIds = new Set(
-    (
-      await supabase
-        .from("payments")
-        .select("student_id")
-        .eq("tenant_id", tenantId)
-        .eq("period", period)
-    ).data?.map((p: any) => p.student_id) ?? [],
-  );
-  const pendingStudents = (pendings.data ?? []).filter((s: any) => !paidStudentIds.has(s.id)).length;
-  const pendingApprox = (pendings.data ?? [])
-    .filter((s: any) => !paidStudentIds.has(s.id))
-    .reduce((sum: number, s: any) => sum + Number(s.fee_plans?.amount || 0), 0);
-  const collectionRate = revenue + pendingApprox > 0
-    ? Math.round((revenue / (revenue + pendingApprox)) * 100)
-    : 100;
-
-  return { revenue, paymentsCount, avgPayment, byMonth, byMethod, byType, pendingStudents, pendingApprox, collectionRate };
-}
+export const fetchBillingReport = (tenantId: string, r: Range) =>
+  callReportRpc<BillingReport>("get_report_billing", tenantId, r);
 
 // ---------------- Admissions --------------------------------------------
 export type AdmissionsReport = {
   totalLeads: number;
   byStage: { stage: string; count: number }[];
   bySource: { label: string; count: number }[];
-  conversion: number; // converted / totalLeads
+  conversion: number;
   avgConversionDays: number | null;
   trials: number;
   converted: number;
   rejected: number;
 };
-
-export async function fetchAdmissionsReport(tenantId: string, r: Range): Promise<AdmissionsReport> {
-  const { data } = await supabase
-    .from("leads" as never)
-    .select("id, source, pipeline_stage, created_at, converted_student_id")
-    .eq("tenant_id", tenantId)
-    .gte("created_at", r.from)
-    .lte("created_at", r.to);
-  const leads = (data ?? []) as any[];
-
-  const totalLeads = leads.length;
-  const stageMap = new Map<string, number>();
-  const sourceMap = new Map<string, number>();
-  let trials = 0, converted = 0, rejected = 0;
-
-  for (const l of leads) {
-    const st = l.pipeline_stage ?? "new";
-    stageMap.set(st, (stageMap.get(st) ?? 0) + 1);
-    const src = l.source || "manual";
-    sourceMap.set(src, (sourceMap.get(src) ?? 0) + 1);
-    if (st === "trial" || st === "decision" || st === "approved" || st === "converted") trials++;
-    if (st === "converted") converted++;
-    if (st === "rejected") rejected++;
-  }
-
-  // Average conversion time from admission_timeline (created -> converted)
-  let avgConversionDays: number | null = null;
-  const convertedIds = leads.filter((l) => l.pipeline_stage === "converted").map((l) => l.id);
-  if (convertedIds.length) {
-    const { data: tl } = await supabase
-      .from("admission_timeline" as never)
-      .select("lead_id, created_at, to_stage")
-      .in("lead_id", convertedIds)
-      .eq("to_stage", "converted");
-    const byLead = new Map<string, string>();
-    for (const t of (tl ?? []) as any[]) byLead.set(t.lead_id, t.created_at);
-    let sum = 0, n = 0;
-    for (const l of leads) {
-      if (l.pipeline_stage !== "converted") continue;
-      const doneAt = byLead.get(l.id);
-      if (!doneAt) continue;
-      const days = (new Date(doneAt).getTime() - new Date(l.created_at).getTime()) / 86400000;
-      if (Number.isFinite(days) && days >= 0) { sum += days; n++; }
-    }
-    if (n) avgConversionDays = Math.round((sum / n) * 10) / 10;
-  }
-
-  return {
-    totalLeads,
-    byStage: [...stageMap.entries()].map(([stage, count]) => ({ stage, count })),
-    bySource: [...sourceMap.entries()].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
-    conversion: totalLeads ? Math.round((converted / totalLeads) * 100) : 0,
-    avgConversionDays,
-    trials, converted, rejected,
-  };
-}
+export const fetchAdmissionsReport = (tenantId: string, r: Range) =>
+  callReportRpc<AdmissionsReport>("get_report_admissions", tenantId, r);
 
 // ---------------- Players -----------------------------------------------
 export type PlayersReport = {
@@ -279,51 +121,10 @@ export type PlayersReport = {
   byBatch: { label: string; count: number }[];
   byAgeGroup: { label: string; count: number }[];
   byRole: { label: string; count: number }[];
-  retention: number; // active / (active + inactive + graduated)
+  retention: number;
 };
-
-export async function fetchPlayersReport(tenantId: string, r: Range): Promise<PlayersReport> {
-  const { data } = await supabase
-    .from("students")
-    .select("id, status, dob, playing_role, joined_at, created_at, batches(name)")
-    .eq("tenant_id", tenantId);
-  const rows = (data ?? []) as any[];
-
-  let active = 0, inactive = 0, graduated = 0, newInRange = 0;
-  const batchMap = new Map<string, number>();
-  const roleMap = new Map<string, number>();
-  const ageMap = new Map<string, number>();
-  const now = new Date();
-
-  for (const s of rows) {
-    if (s.status === "active") active++;
-    else if (s.status === "inactive") inactive++;
-    else if (s.status === "graduated") graduated++;
-
-    if (s.created_at && s.created_at >= r.from && s.created_at <= r.to) newInRange++;
-
-    const batch = s.batches?.name ?? "Unassigned";
-    batchMap.set(batch, (batchMap.get(batch) ?? 0) + 1);
-
-    const role = (s.playing_role ?? "unspecified").toString();
-    roleMap.set(role, (roleMap.get(role) ?? 0) + 1);
-
-    if (s.dob) {
-      const age = Math.floor((now.getTime() - new Date(s.dob).getTime()) / (365.25 * 86400000));
-      const bucket = age < 8 ? "Under 8" : age < 12 ? "8–11" : age < 15 ? "12–14" : age < 18 ? "15–17" : "18+";
-      ageMap.set(bucket, (ageMap.get(bucket) ?? 0) + 1);
-    }
-  }
-
-  const total = active + inactive + graduated;
-  return {
-    active, inactive, graduated, newInRange,
-    byBatch:    [...batchMap.entries()].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
-    byAgeGroup: [...ageMap.entries()].map(([label, count]) => ({ label, count })),
-    byRole:     [...roleMap.entries()].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
-    retention: total ? Math.round((active / total) * 100) : 0,
-  };
-}
+export const fetchPlayersReport = (tenantId: string, r: Range) =>
+  callReportRpc<PlayersReport>("get_report_players", tenantId, r);
 
 // ---------------- Matches -----------------------------------------------
 export type MatchesReport = {
@@ -332,37 +133,10 @@ export type MatchesReport = {
   upcoming: number;
   live: number;
   byResult: { label: string; count: number }[];
-  topScorers: { name: string; runs: number }[]; // best-effort empty if not accessible
+  topScorers: { name: string; runs: number }[];
 };
-
-export async function fetchMatchesReport(tenantId: string, r: Range): Promise<MatchesReport> {
-  // Phase 2: prefer server-side aggregation. This still keeps the small
-  // per-result breakdown as a light client roll-up because the summary RPC
-  // returns only status buckets; result labels come from a compact projection.
-  const { getTournamentSummary } = await import("./aggregations");
-  const summary = await getTournamentSummary(tenantId);
-  const fromDate = r.from.slice(0, 10);
-  const toDate = r.to.slice(0, 10);
-  const { data } = await supabase
-    .from("mc_matches")
-    .select("result, status")
-    .eq("tenant_id", tenantId)
-    .gte("scheduled_date", fromDate)
-    .lte("scheduled_date", toDate);
-  const resultMap = new Map<string, number>();
-  for (const m of (data ?? []) as { result: string | null; status: string | null }[]) {
-    const key = m.result ?? m.status ?? "unknown";
-    resultMap.set(key, (resultMap.get(key) ?? 0) + 1);
-  }
-  return {
-    total: summary.total,
-    completed: summary.completed,
-    upcoming: summary.upcoming,
-    live: summary.live,
-    byResult: [...resultMap.entries()].map(([label, count]) => ({ label, count })),
-    topScorers: [],
-  };
-}
+export const fetchMatchesReport = (tenantId: string, r: Range) =>
+  callReportRpc<MatchesReport>("get_report_matches", tenantId, r);
 
 // ---------------- Communications ----------------------------------------
 export type CommsReport = {
@@ -373,9 +147,9 @@ export type CommsReport = {
   byCategory: { label: string; count: number }[];
   byStatus: { label: string; count: number }[];
 };
-
 export async function fetchCommsReport(tenantId: string, r: Range): Promise<CommsReport> {
-  // Phase 2: fully server-aggregated. No per-row loop in the browser.
+  // Server-aggregated via get_communication_summary. The shape mapping below
+  // is a rename — no aggregation happens in the browser.
   const { getCommunicationSummary } = await import("./aggregations");
   const s = await getCommunicationSummary(tenantId, { from: r.from.slice(0, 10), to: r.to.slice(0, 10) });
   const byStatus: { label: string; count: number }[] = [
@@ -383,16 +157,16 @@ export async function fetchCommsReport(tenantId: string, r: Range): Promise<Comm
     { label: "failed", count: s.failed },
     { label: "draft", count: s.draft },
   ].filter((x) => x.count > 0);
+  const byCategory = Object.entries(s.by_category).map(([label, count]) => ({ label, count }));
   return {
     campaigns: s.total_campaigns,
-    sent: s.total_delivered, // treat delivered as "successfully sent" for report parity
+    sent: s.total_delivered,
     delivered: s.total_delivered,
     failed: s.total_failed,
-    byCategory: Object.entries(s.by_category).map(([label, count]) => ({ label, count })),
+    byCategory,
     byStatus,
   };
 }
-
 
 // ---------------- Website ----------------------------------------------
 export type WebsiteReport = {
@@ -400,64 +174,10 @@ export type WebsiteReport = {
   webLeads: number;
   bySource: { label: string; count: number }[];
 };
+export const fetchWebsiteReport = (tenantId: string, r: Range) =>
+  callReportRpc<WebsiteReport>("get_report_website", tenantId, r);
 
-export async function fetchWebsiteReport(tenantId: string, r: Range): Promise<WebsiteReport> {
-  const [regsR, leadsR] = await Promise.all([
-    supabase.from("registrations")
-      .select("id, created_at")
-      .eq("tenant_id", tenantId)
-      .gte("created_at", r.from)
-      .lte("created_at", r.to),
-    supabase.from("leads" as never)
-      .select("id, source")
-      .eq("tenant_id", tenantId)
-      .gte("created_at", r.from)
-      .lte("created_at", r.to),
-  ]);
-  const leads = (leadsR.data ?? []) as any[];
-  const src = new Map<string, number>();
-  for (const l of leads) src.set(l.source || "website", (src.get(l.source || "website") ?? 0) + 1);
-  return {
-    webRegistrations: (regsR.data ?? []).length,
-    webLeads: leads.length,
-    bySource: [...src.entries()].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count),
-  };
-}
-
-// ---------------- helpers ----------------------------------------------
-function groupByMonth(rows: { at: string; amount: number }[]) {
-  const m = new Map<string, number>();
-  for (const r of rows) {
-    if (!r.at) continue;
-    const d = new Date(r.at);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    m.set(key, (m.get(key) ?? 0) + r.amount);
-  }
-  const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  return [...m.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, amount]) => ({ label: monthLabels[Number(key.split("-")[1]) - 1] ?? key, amount }));
-}
-
-function groupSum<T>(rows: T[], keyFn: (t: T) => string) {
-  const m = new Map<string, number>();
-  for (const r of rows) {
-    const k = keyFn(r);
-    m.set(k, (m.get(k) ?? 0) + Number((r as any).amount || 0));
-  }
-  return [...m.entries()]
-    .map(([label, amount]) => ({ label, amount }))
-    .sort((a, b) => b.amount - a.amount);
-}
-
-function prettyType(t: string): string {
-  if (t === "monthly") return "Monthly fees";
-  if (t === "registration") return "Registration";
-  if (t === "personal_coaching") return "Personal coaching";
-  return "Other";
-}
-
-// ---------------- CSV export ------------------------------------------
+// ---------------- CSV export (presentation utility, not aggregation) ----
 export function toCsv(rows: Record<string, unknown>[], filename: string) {
   if (rows.length === 0) return;
   const headers = Object.keys(rows[0]);
