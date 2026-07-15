@@ -830,28 +830,36 @@ export function buildTournamentAnalytics(
 
 /* ================================================================
  * Helpers to figure out which team a player represented in a match
- * (approx — looks at first appearance in events).
+ * (via the innings the ball belongs to).
  * ================================================================ */
 
-function eventsPlayerTeam(events: MCBallEvent[], bstat: BattingStat): string | null {
+function eventsPlayerTeam(
+  events: MCBallEvent[],
+  bstat: BattingStat,
+  teamByInningsId: Map<string, { batting: string; bowling: string }>,
+): string | null {
   for (const e of events) {
     if (
       (bstat.player.athleteId && e.striker_athlete_id === bstat.player.athleteId) ||
       (!bstat.player.athleteId && e.striker_name === bstat.player.name)
     ) {
-      return e.batting_team_id ?? null;
+      return teamByInningsId.get(e.innings_id)?.batting ?? null;
     }
   }
   return null;
 }
 
-function eventsBowlerTeam(events: MCBallEvent[], bwstat: BowlingStat): string | null {
+function eventsBowlerTeam(
+  events: MCBallEvent[],
+  bwstat: BowlingStat,
+  teamByInningsId: Map<string, { batting: string; bowling: string }>,
+): string | null {
   for (const e of events) {
     if (
       (bwstat.player.athleteId && e.bowler_athlete_id === bwstat.player.athleteId) ||
       (!bwstat.player.athleteId && e.bowler_name === bwstat.player.name)
     ) {
-      return e.bowling_team_id ?? null;
+      return teamByInningsId.get(e.innings_id)?.bowling ?? null;
     }
   }
   return null;
