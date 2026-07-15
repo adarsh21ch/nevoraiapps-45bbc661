@@ -26,6 +26,8 @@ import type { AttendanceState, AttendanceStatus, AttendanceSource } from "./cons
 // ---------------------------------------------------------------------------
 export const attendanceKeys = {
   today: (tenantId: string) => ["attendance", "today", tenantId] as const,
+  byDate: (tenantId: string, date: string) =>
+    ["attendance", "by-date", tenantId, date] as const,
   session: (tenantId: string, batchId: string, date: string) =>
     ["attendance", "session", tenantId, batchId, date] as const,
   studentHistory: (tenantId: string, studentId: string) =>
