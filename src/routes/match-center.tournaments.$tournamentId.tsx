@@ -2,23 +2,22 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  ArrowLeft,
   Trophy,
   Users,
   Calendar,
   BarChart3,
   Award,
-  Settings as SettingsIcon,
   Loader2,
   PlusCircle,
   Trash2,
   Zap,
-  ClipboardList,
   Medal,
-  MapPin,
-  UserCog,
+  Share2,
+  ExternalLink,
+  Download,
+  Radio,
+  Play,
 } from "lucide-react";
-import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { EmptyState, LoadingSkeleton } from "@/components/match-center/ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,12 +51,18 @@ import { listTeams } from "@/lib/mc-teams";
 import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
 import { DemoTournamentDetail } from "@/components/match-center/demo-tournament-detail";
 import {
-  SetupProgress,
   GroupsTab,
   VenuesTab,
   OfficialsTab,
 } from "@/components/match-center/tournament-setup";
 import { FixtureGeneratorDialog } from "@/components/match-center/fixture-generator";
+import {
+  TournamentWorkspaceShell,
+  TournamentHeader,
+  QuickActionButton,
+  getWorkspaceSections,
+} from "@/components/match-center/tournament-workspace-shell";
+import { TournamentDashboard } from "@/components/match-center/tournament-dashboard";
 import { supabase } from "@/integrations/supabase/client";
 
 
