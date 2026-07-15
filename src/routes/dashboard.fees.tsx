@@ -184,12 +184,12 @@ function FeeRegister() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Compact header — heading + month selector on one line */}
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+    <div className="-mt-4 md:-mt-8 space-y-4">
+      {/* Header — uniform across dashboard tabs */}
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 pt-2 pb-1">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight truncate">Fees</h1>
-          <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">Fees</h1>
+          <p className="text-[11px] text-muted-foreground leading-tight truncate">
             Collect this month's fees and follow up on pending.
           </p>
         </div>
