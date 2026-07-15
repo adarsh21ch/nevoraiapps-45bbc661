@@ -328,41 +328,7 @@ function AwardsTab({ tournamentId }: { tournamentId: string }) {
 }
 
 
-/* ==================== OVERVIEW ==================== */
-function OverviewTab({ tournamentId, tenantId: _tenantId, hasGroups }: { tournamentId: string; tenantId: string; hasGroups: boolean }) {
-  const teamsQ = useQuery({
-    queryKey: ["mc-tournament-teams", tournamentId],
-    queryFn: () => listTournamentTeams(tournamentId),
-  });
-  const fixturesQ = useQuery({
-    queryKey: ["mc-tournament-fixtures", tournamentId],
-    queryFn: () => listFixtures(tournamentId),
-  });
-  const teamCount = teamsQ.data?.length ?? 0;
-  const total = fixturesQ.data?.length ?? 0;
-  const completed = fixturesQ.data?.filter((m) => m.match_locked).length ?? 0;
-
-  const card = (label: string, value: string | number) => (
-    <div className="rounded-2xl border border-border bg-card p-5">
-      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </div>
-      <div className="mt-2 text-3xl font-bold tracking-tight">{value}</div>
-    </div>
-  );
-
-  return (
-    <div className="space-y-4">
-      <SetupProgress tournamentId={tournamentId} hasGroups={hasGroups} />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {card("Teams", teamCount)}
-        {card("Fixtures", total)}
-        {card("Completed", completed)}
-        {card("Remaining", total - completed)}
-      </div>
-    </div>
-  );
-}
+/* OverviewTab replaced by TournamentDashboard */
 
 /* ==================== TEAMS ==================== */
 function TeamsTab({ tournamentId, tenantId }: { tournamentId: string; tenantId: string }) {
