@@ -1,15 +1,25 @@
 import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
-import { PlusCircle, Search, ArrowLeft, ChevronRight } from "lucide-react";
+import {
+  PlusCircle,
+  Search,
+  ArrowLeft,
+  ChevronRight,
+  Radio,
+  Swords,
+  Users,
+  LineChart,
+  UserCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-
+import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { DemoBadge } from "@/components/match-center/demo-badge";
-import { MatchCenterBottomNav } from "@/components/match-center/MatchCenterBottomNav";
-import { isOwner } from "@/lib/roles";
 
 /* -------------------------------------------------------------------------- */
-/* Shared page bits                                                           */
+/* Shared page bits — kept exported for existing pages that import them.      */
 /* -------------------------------------------------------------------------- */
 
 export type PageHeaderProps = {
@@ -20,9 +30,9 @@ export type PageHeaderProps = {
 };
 
 /**
- * Compact page header. On mobile it is intentionally minimal — the bottom-nav
- * label already tells the user which tab they are on. Breadcrumbs and long
- * descriptions only render from `sm:` upward.
+ * In-page header for individual Match Center screens. The AcademyOS shell
+ * (DashboardShell) provides the global top bar and bottom nav — this header
+ * sits inside the page content and carries the page title + actions.
  */
 export function PageHeader({ title, description, breadcrumbs, actions }: PageHeaderProps) {
   return (
@@ -45,7 +55,7 @@ export function PageHeader({ title, description, breadcrumbs, actions }: PageHea
       )}
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <div className="min-w-0">
-          <h1 className="truncate text-[22px] sm:text-2xl font-bold tracking-tight leading-tight">
+          <h1 className="truncate text-[20px] sm:text-2xl font-bold tracking-tight leading-tight">
             {title}
           </h1>
           {description && (
@@ -89,75 +99,169 @@ export function SearchBar({
 }
 
 /* -------------------------------------------------------------------------- */
-/* Layout                                                                     */
+/* Module sub-tabs (replaces the old MatchCenterBottomNav)                    */
+/* -------------------------------------------------------------------------- */
+
+type SubTab = {
+  to: string;
+  match: string[];
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+};
+
+const SUB_TABS: SubTab[] = [
+  {
+    to: "/match-center/live",
+    match: ["/match-center/live", "/match-center/create", "/match-center", "/match-center/dashboard", "/scorer"],
+    label: "Live",
+    icon: Radio,
+  },
+  {
+    to: "/match-center/matches",
+    match: ["/match-center/matches", "/match-center/scorebook", "/match-center/teams", "/match-center/tournaments"],
+    label: "Matches",
+    icon: Swords,
+  },
+  {
+    to: "/match-center/players",
+    match: ["/match-center/players"],
+    label: "Players",
+    icon: Users,
+  },
+  {
+    to: "/match-center/insights",
+    match: [
+      "/match-center/insights",
+      "/match-center/leaderboards",
+      "/match-center/records",
+      "/match-center/performance",
+      "/match-center/ai-insights",
+      "/match-center/recognition",
+      "/match-center/awards",
+    ],
+    label: "Insights",
+    icon: LineChart,
+  },
+  {
+    to: "/match-center/profile",
+    match: ["/match-center/profile", "/match-center/settings", "/match-center/scorers", "/match-center/website"],
+    label: "More",
+    icon: UserCircle,
+  },
+];
+
+function ModuleSubTabs() {
+  const { tenant } = useDashboard();
+  const location = useLocation();
+
+  const liveMatches = useQuery({
+    queryKey: ["mc-live-count", tenant.id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("mc_matches" as never)
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", tenant.id)
+        .eq("status", "live");
+      return count ?? 0;
+    },
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
+
+  return (
+    <div className="sticky top-[calc(env(safe-area-inset-top)+3.5rem)] z-30 -mx-4 md:-mx-8 px-4 md:px-8 bg-background/95 backdrop-blur border-b border-border/60">
+      <div
+        role="tablist"
+        aria-label="Match Center sections"
+        className="flex items-center gap-1 overflow-x-auto no-scrollbar py-2"
+      >
+        {SUB_TABS.map((tab) => {
+          const active = tab.match.some(
+            (p) => location.pathname === p || location.pathname.startsWith(p + "/"),
+          );
+          const Icon = tab.icon;
+          const showLiveDot = tab.label === "Live" && (liveMatches.data ?? 0) > 0;
+          return (
+            <Link
+              key={tab.to}
+              to={tab.to}
+              role="tab"
+              aria-selected={active}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "shrink-0 inline-flex items-center gap-1.5 h-9 px-3 rounded-full text-[13px] font-medium border transition-colors",
+                active
+                  ? "bg-foreground text-background border-foreground shadow-sm"
+                  : "bg-card text-muted-foreground hover:text-foreground border-border",
+              )}
+            >
+              <span className="relative inline-flex">
+                <Icon className="size-4" />
+                {showLiveDot && (
+                  <span className="absolute -top-0.5 -right-1 flex size-[7px]">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                    <span className="relative inline-flex size-[7px] rounded-full bg-red-500" />
+                  </span>
+                )}
+              </span>
+              {tab.label}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Match Center module header (Back · Title · Actions)                        */
+/* -------------------------------------------------------------------------- */
+
+function MatchCenterModuleHeader() {
+  const navigate = useNavigate();
+  return (
+    <div className="flex items-center gap-2 pt-1 pb-2 -mt-2">
+      <button
+        type="button"
+        onClick={() => navigate({ to: "/dashboard/academy" })}
+        className="-ml-2 grid size-9 shrink-0 place-items-center rounded-full active:bg-accent/60 no-tap-highlight"
+        aria-label="Back to Academy"
+      >
+        <ArrowLeft className="size-[18px]" />
+      </button>
+      <div className="min-w-0 flex-1">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground leading-tight">
+          Academy
+        </div>
+        <div className="text-[15px] font-semibold leading-tight truncate">
+          Match Center
+        </div>
+      </div>
+      <DemoBadge />
+      <button
+        type="button"
+        onClick={() => navigate({ to: "/match-center/create" })}
+        className="grid size-9 shrink-0 place-items-center rounded-full active:bg-accent/60 no-tap-highlight"
+        aria-label="New match"
+      >
+        <PlusCircle className="size-[20px]" />
+      </button>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Layout — mounts the AcademyOS shell so Match Center feels native to it.    */
 /* -------------------------------------------------------------------------- */
 
 export function MatchCenterLayout({ children }: { children?: ReactNode }) {
-  const { tenant, profile } = useDashboard();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const owner = isOwner(profile);
-
   return (
-    <div className="mc-shell min-h-screen w-full bg-background text-foreground">
-      {/* Safe-area top spacer */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-background"
-        style={{ height: "env(safe-area-inset-top)" }}
-      />
-      <div aria-hidden="true" className="bg-background" style={{ height: "env(safe-area-inset-top)" }} />
-
-      {/* Compact top bar — one row, ~56px */}
-      <header
-        className="sticky z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl"
-        style={{ top: "env(safe-area-inset-top)" }}
-      >
-        <div className="mx-auto flex h-14 w-full max-w-2xl items-center gap-1.5 px-3">
-          {owner && (
-            <button
-              onClick={() => navigate({ to: "/dashboard" })}
-              className="-ml-1.5 grid size-10 shrink-0 place-items-center rounded-full active:bg-accent/60 no-tap-highlight"
-              aria-label="Back to Academy"
-            >
-              <ArrowLeft className="size-[20px]" />
-            </button>
-          )}
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div
-              className="grid size-8 shrink-0 place-items-center rounded-lg text-white text-[15px]"
-              style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
-            >
-              🏏
-            </div>
-            <div className="min-w-0">
-              <div className="truncate text-[15px] font-semibold leading-tight">Match Center</div>
-              <div className="truncate text-[10.5px] uppercase tracking-wide text-muted-foreground leading-tight">
-                {tenant.name}
-              </div>
-            </div>
-          </div>
-
-          <DemoBadge />
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/match-center/create" })}
-            className="grid size-10 shrink-0 place-items-center rounded-full active:bg-accent/60 no-tap-highlight"
-            aria-label="New match"
-          >
-            <PlusCircle className="size-[22px]" />
-          </button>
-        </div>
-      </header>
-
-      <main
-        key={location.pathname}
-        className="mx-auto w-full max-w-2xl min-w-0 px-3 pt-4 pb-[calc(env(safe-area-inset-bottom)+76px)] no-tap-highlight page-enter"
-      >
-        {children ?? <Outlet />}
-      </main>
-
-      <MatchCenterBottomNav />
-    </div>
+    <DashboardShell>
+      <div className="mc-shell">
+        <MatchCenterModuleHeader />
+        <ModuleSubTabs />
+        <div className="pt-3">{children ?? <Outlet />}</div>
+      </div>
+    </DashboardShell>
   );
 }

@@ -156,36 +156,42 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function HubTile({ item, large }: { item: Item; large?: boolean }) {
   const Icon = item.icon;
   const content = (
-    <Card className={cn("group h-full", large ? "p-4" : "p-3.5")}>
-      <div className="flex items-start gap-3">
+    <Card className={cn("group h-full", large ? "p-3.5" : "p-3")}>
+      <div className="flex items-start gap-2.5">
         <div
           className={cn(
             "grid place-items-center rounded-xl shrink-0",
-            large ? "size-11" : "size-10",
+            large ? "size-10" : "size-9",
           )}
           style={{
             backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)",
             color: "var(--brand)",
           }}
         >
-          <Icon className={cn(large ? "size-5" : "size-[18px]")} />
+          <Icon className={cn(large ? "size-[18px]" : "size-4")} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <div className={cn("font-semibold truncate", large ? "text-[15px]" : "text-sm")}>
+          <div className="flex items-start gap-1.5">
+            <div
+              className={cn(
+                "font-semibold leading-tight break-words line-clamp-2",
+                large ? "text-[14px]" : "text-[13px]",
+              )}
+              title={item.label}
+            >
               {item.label}
             </div>
             {item.soon ? (
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted rounded px-1 py-0.5">
+              <span className="mt-0.5 shrink-0 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted rounded px-1 py-0.5">
                 Soon
               </span>
             ) : null}
           </div>
-          <p className="text-[12px] text-muted-foreground leading-snug mt-0.5 line-clamp-2">
+          <p className="text-[11.5px] text-muted-foreground leading-snug mt-0.5 truncate">
             {item.hint}
           </p>
         </div>
-        <ChevronRight className="size-4 text-muted-foreground/60 shrink-0 mt-1 transition-transform group-hover:translate-x-0.5" />
+        <ChevronRight className="size-3.5 text-muted-foreground/60 shrink-0 mt-1 transition-transform group-hover:translate-x-0.5" />
       </div>
     </Card>
   );
@@ -203,3 +209,4 @@ function HubTile({ item, large }: { item: Item; large?: boolean }) {
     </Link>
   );
 }
+
