@@ -120,6 +120,9 @@ function ScorerPage() {
     userId: userQ.data?.id ?? null,
   });
 
+  // Phase 3 — advisory lock. Only one active scorer per match at a time.
+  const lockStatus = useScoringLock(isDemo ? null : matchId, !isDemo);
+
   // Team names
   const teamsQ = useQuery({
     enabled: !!session.match,
