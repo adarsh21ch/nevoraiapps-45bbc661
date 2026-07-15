@@ -479,19 +479,28 @@ function StudentRow({
                 className="min-h-9"
                 aria-label={`Check out ${student.name}`}
               >
-                <LogOut className="size-4" /> Out
+                <LogOut className="size-4" /> Check Out
               </Button>
-            ) : (
-              // not_marked OR checked_out — both allow a fresh check-in (multiple visits/day).
+            ) : state === "checked_out" ? (
               <Button
                 size="sm"
-                variant={state === "checked_out" ? "outline" : "default"}
+                variant="ghost"
+                disabled
+                className="min-h-9 text-emerald-600 dark:text-emerald-400"
+                aria-label={`${student.name} completed`}
+              >
+                <CheckCircle2 className="size-4" /> Completed
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="default"
                 onClick={onCheckIn}
                 disabled={busy}
                 className="min-h-9"
                 aria-label={`Check in ${student.name}`}
               >
-                <LogIn className="size-4" /> {state === "checked_out" ? "In again" : "In"}
+                <LogIn className="size-4" /> Check In
               </Button>
             )}
           </div>
