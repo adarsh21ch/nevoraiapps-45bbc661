@@ -207,6 +207,13 @@ function CommunicationInfrastructurePage() {
           health={health.data as Awaited<ReturnType<typeof getGatewayHealth>> | undefined}
         />
       )}
+      {tab === "channels" && (
+        <ChannelsTab
+          channelRows={channelRows}
+          providers={providerList}
+          active={activeList}
+        />
+      )}
       {tab === "providers" && (
         <ProvidersTab
           channels={channels}
@@ -215,11 +222,30 @@ function CommunicationInfrastructurePage() {
           onChanged={invalidateAll}
         />
       )}
+      {tab === "priority" && (
+        <PriorityTab
+          channels={channels}
+          providers={providerList}
+          onChanged={() => qc.invalidateQueries({ queryKey: ["pc-providers"] })}
+        />
+      )}
       {tab === "accounts" && (
         <AccountsTab providers={providerList} accounts={accountList} onChanged={invalidateAll} />
       )}
       {tab === "templates" && (
         <TemplatesTab templates={templateList} onChanged={invalidateAll} />
+      )}
+      {tab === "preview" && <PreviewTab templates={templateList} />}
+      {tab === "sandbox" && (
+        <SandboxTab
+          templates={templateList}
+          onSent={() => qc.invalidateQueries({ queryKey: ["pc-deliveries"] })}
+        />
+      )}
+      {tab === "monitor" && (
+        <MonitorTab
+          monitor={monitor.data as Awaited<ReturnType<typeof getCommMonitor>> | undefined}
+        />
       )}
       {tab === "queue" && <QueueTab deliveries={deliveryList} />}
       {tab === "logs" && <LogsTab deliveries={deliveryList} />}
