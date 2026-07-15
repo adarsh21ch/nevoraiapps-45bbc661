@@ -115,12 +115,19 @@ async function resolveRoleUsers(
   }
 
   if (roles.includes("parent")) {
-    const { data } = await supabaseAdmin
+    const { data: studentUsers } = await supabaseAdmin
       .from("students")
-      .select("parent_user_id")
+      .select("user_id")
       .eq("tenant_id", tenantId)
+      .not("user_id", "is", null);
+    for (const row of (studentUsers ?? []) as Array<{ user_id: string | null }>) {
+      if (row.user_id) ids.add(row.user_id);
+    }
+    const { data: links } = await supabaseAdmin
+      .from("mc_parent_links")
+      .select("parent_user_id")
       .not("parent_user_id", "is", null);
-    for (const row of (data ?? []) as Array<{ parent_user_id: string | null }>) {
+    for (const row of (links ?? []) as Array<{ parent_user_id: string | null }>) {
       if (row.parent_user_id) ids.add(row.parent_user_id);
     }
   }
