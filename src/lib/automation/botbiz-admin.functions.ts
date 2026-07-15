@@ -26,8 +26,14 @@ export const getBotBizStatus = createServerFn({ method: "GET" })
     const { validateBotBizConfiguration, botbizHealthCheck } = await import(
       "@/lib/automation/providers/whatsapp/adapters/botbiz"
     );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const validation = validateBotBizConfiguration();
     if (!validation.ok) {
+      await supabaseAdmin
+        .from("platform_comm_providers")
+        .update({ ready: false })
+        .eq("channel", "whatsapp")
+        .eq("adapter_key", "botbiz");
       return {
         configured: false,
         reason: validation.reason ?? "Not configured",
@@ -36,6 +42,11 @@ export const getBotBizStatus = createServerFn({ method: "GET" })
       };
     }
     const health = await botbizHealthCheck();
+    await supabaseAdmin
+      .from("platform_comm_providers")
+      .update({ ready: true })
+      .eq("channel", "whatsapp")
+      .eq("adapter_key", "botbiz");
     return {
       configured: true,
       reason: null,
