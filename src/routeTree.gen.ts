@@ -121,6 +121,7 @@ import { Route as MatchCenterPerformanceCompareRouteImport } from './routes/matc
 import { Route as MatchCenterPerformanceAthleteIdRouteImport } from './routes/match-center.performance.$athleteId'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
+import { Route as ApiPublicHooksOwnerSummariesRouteImport } from './routes/api/public/hooks/owner-summaries'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 import { Route as ApiPublicHooksDispatchCampaignsRouteImport } from './routes/api/public/hooks/dispatch-campaigns'
 import { Route as ApiPublicHooksAutomationTickRouteImport } from './routes/api/public/hooks/automation-tick'
@@ -696,6 +697,12 @@ const ApiPublicManifestWebmanifestRoute =
     path: '/api/public/manifest/webmanifest',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksOwnerSummariesRoute =
+  ApiPublicHooksOwnerSummariesRouteImport.update({
+    id: '/api/public/hooks/owner-summaries',
+    path: '/api/public/hooks/owner-summaries',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksFeeRemindersRoute =
   ApiPublicHooksFeeRemindersRouteImport.update({
     id: '/api/public/hooks/fee-reminders',
@@ -837,6 +844,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
+  '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
 }
 export interface FileRoutesByTo {
@@ -950,6 +958,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
+  '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
 }
 export interface FileRoutesById {
@@ -1069,6 +1078,7 @@ export interface FileRoutesById {
   '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
+  '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
 }
 export interface FileRouteTypes {
@@ -1189,6 +1199,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
+    | '/api/public/hooks/owner-summaries'
     | '/api/public/manifest/webmanifest'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1302,6 +1313,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
+    | '/api/public/hooks/owner-summaries'
     | '/api/public/manifest/webmanifest'
   id:
     | '__root__'
@@ -1420,6 +1432,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
+    | '/api/public/hooks/owner-summaries'
     | '/api/public/manifest/webmanifest'
   fileRoutesById: FileRoutesById
 }
@@ -1464,6 +1477,7 @@ export interface RootRouteChildren {
   ApiPublicHooksAutomationTickRoute: typeof ApiPublicHooksAutomationTickRoute
   ApiPublicHooksDispatchCampaignsRoute: typeof ApiPublicHooksDispatchCampaignsRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
+  ApiPublicHooksOwnerSummariesRoute: typeof ApiPublicHooksOwnerSummariesRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
 }
 
@@ -2253,6 +2267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicManifestWebmanifestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/owner-summaries': {
+      id: '/api/public/hooks/owner-summaries'
+      path: '/api/public/hooks/owner-summaries'
+      fullPath: '/api/public/hooks/owner-summaries'
+      preLoaderRoute: typeof ApiPublicHooksOwnerSummariesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/fee-reminders': {
       id: '/api/public/hooks/fee-reminders'
       path: '/api/public/hooks/fee-reminders'
@@ -2558,6 +2579,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksAutomationTickRoute: ApiPublicHooksAutomationTickRoute,
   ApiPublicHooksDispatchCampaignsRoute: ApiPublicHooksDispatchCampaignsRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
+  ApiPublicHooksOwnerSummariesRoute: ApiPublicHooksOwnerSummariesRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
 }
 export const routeTree = rootRouteImport
