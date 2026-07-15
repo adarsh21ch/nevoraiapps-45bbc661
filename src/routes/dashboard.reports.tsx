@@ -114,7 +114,7 @@ function visibleTabs(owner: boolean) {
   const t = [
     { value: "attendance",    label: "Attendance" },
     { value: "admissions",    label: "Admissions" },
-    { value: "billing",       label: "Billing",   ownerOnly: true },
+    { value: "billing",       label: "Fees",   ownerOnly: true },
     { value: "players",       label: "Players" },
     { value: "matches",       label: "Matches" },
     { value: "communications", label: "Communications" },
