@@ -20,6 +20,8 @@ import {
   type Preset, type Range,
 } from "@/lib/reports";
 import { fetchKpis, qk } from "@/lib/dashboard-queries";
+import { ModuleHeader } from "@/components/shared/ModuleHeader";
+
 
 export const Route = createFileRoute("/dashboard/reports")({
   head: () => ({ meta: [{ title: "Reports · Decision Center" }, { name: "robots", content: "noindex" }] }),
