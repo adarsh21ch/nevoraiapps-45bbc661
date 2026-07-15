@@ -15,7 +15,7 @@ import type {
   PushRecipient,
   PushSendItemResult,
 } from "./types";
-import { DEFAULT_PUSH_ADAPTER, getPushAdapter } from "./registry";
+import { DEFAULT_PUSH_ADAPTER, DEFAULT_WEB_PUSH_ADAPTER, getPushAdapter } from "./registry";
 import { renderPushTemplate, type TemplateVars } from "./templates";
 
 interface PushActionParams {
