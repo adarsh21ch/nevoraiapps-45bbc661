@@ -1209,7 +1209,7 @@ function MoreTab({
   studentId: string;
   studentName: string;
 }) {
-  const { profile } = useDashboard();
+  useDashboard();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
