@@ -164,16 +164,15 @@ function StaffPage() {
         </div>
       </Card>
 
-      <Tabs defaultValue="directory">
+      <StaffTabs
+        membersCount={membersQ.data?.length ?? 0}
+        pendingInvites={(invitesQ.data ?? []).filter((i) => invitationStatus(i) === "pending").length}
+      >
         <TabsList className="hidden">
           <TabsTrigger value="directory" />
           <TabsTrigger value="invitations" />
           <TabsTrigger value="activity" />
         </TabsList>
-        <StaffTabsBar
-          membersCount={membersQ.data?.length ?? 0}
-          pendingInvites={(invitesQ.data ?? []).filter((i) => invitationStatus(i) === "pending").length}
-        />
 
         <TabsContent value="directory" className="mt-4">
           <Directory
