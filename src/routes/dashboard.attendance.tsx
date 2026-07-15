@@ -188,6 +188,12 @@ function AttendancePage() {
   const [selectMode, setSelectMode] = useState<boolean>(false);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [rosterTab, setRosterTab] = useState<RosterTab>("waiting");
+  const [selectedDate, setSelectedDate] = useState<Date>(() => startOfDay(new Date()));
+  const [dateOpen, setDateOpen] = useState(false);
+
+  const isTodayView = isToday(selectedDate);
+  const selectedISO = format(selectedDate, "yyyy-MM-dd");
+  const historyMode = !isTodayView;
 
   useEffect(() => {
     try {
