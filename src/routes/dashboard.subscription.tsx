@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useServerFn } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useEffect } from "react";
 import { CreditCard, ArrowLeft, Lock, CheckCircle2, XCircle, Sparkles } from "lucide-react";
 import { Card } from "@/components/ds/Card";
 import { useDashboard } from "@/lib/dashboard-context";
 import { isOwner } from "@/lib/roles";
-import { getSubscriptionOverview } from "@/lib/payments/subscription.functions";
+import { getSubscriptionOverview, type SubscriptionOverview } from "@/lib/payments/subscription.functions";
 import { PLAN_META, nextPlan, type PlanTier } from "@/lib/payments/plans";
 
 export const Route = createFileRoute("/dashboard/subscription")({
