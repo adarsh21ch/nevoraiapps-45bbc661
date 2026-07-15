@@ -104,6 +104,21 @@ function StudentsPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
 
+  // Coach "My batches only" toggle. Owners/admins default OFF; coaches default ON.
+  const perms = usePermissions();
+  const isAnyCoach = perms.isCoach || perms.isHeadCoach || perms.isAssistantCoach;
+  const [myBatchesOnly, setMyBatchesOnly] = useState<boolean>(isAnyCoach);
+  const myBatchesQ = useQuery({
+    enabled: isAnyCoach,
+    queryKey: ["coach", "my-batches", tenant.id],
+    queryFn: fetchMyBatches,
+    staleTime: 60_000,
+  });
+  const myBatchIds = useMemo(
+    () => new Set((myBatchesQ.data ?? []).map((b) => b.batch_id)),
+    [myBatchesQ.data],
+  );
+
   const students = useQuery({
     queryKey: qk.students(tenant.id),
     queryFn: () => fetchStudents(tenant.id),
@@ -112,6 +127,7 @@ function StudentsPage() {
     queryKey: qk.batches(tenant.id),
     queryFn: () => fetchBatches(tenant.id),
   });
+
 
   const pendingRegs = useQuery({
     queryKey: ["d", "regs-plus-leads-count", tenant.id],
