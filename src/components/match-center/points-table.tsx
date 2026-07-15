@@ -455,12 +455,9 @@ function PointsTableCard({
             {rows.map((row, idx) => {
               const t = teamNameMap.get(row.team_id);
               const showQualLine = row.position === qualifyCount && rows.length > qualifyCount;
-              const showElimLine =
-                eliminationBoundary != null && row.position === eliminationBoundary - 0; // no-op guard
               return (
-                <>
+                <Fragment key={row.team_id}>
                   <tr
-                    key={row.team_id}
                     onClick={() => onOpenTeam(row)}
                     className={cn(
                       "cursor-pointer border-t border-border transition-colors hover:bg-muted/40",
