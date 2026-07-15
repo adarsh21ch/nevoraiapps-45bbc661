@@ -715,15 +715,16 @@ function AttendancePage() {
 
       {/* Sticky filter + search — always accessible while scrolling. */}
       <div className="sticky top-14 z-20 -mx-4 md:-mx-8 mb-2 border-b border-border/60 bg-background/90 px-4 md:px-8 py-2 backdrop-blur">
-        <SegmentedControl
+        <FilterTabs
           value={session}
-          onChange={(v) => setSession(v as SessionFilter)}
-          options={[
-            { value: "all", label: "All" },
-            { value: "morning", label: "Morning" },
-            { value: "evening", label: "Evening" },
-            { value: "night", label: "Night" },
+          onChange={(v: string) => setSession(v as SessionFilter)}
+          items={[
+            { key: "all", label: "All" },
+            { key: "morning", label: "Morning" },
+            { key: "evening", label: "Evening" },
+            { key: "night", label: "Night" },
           ]}
+          ariaLabel="Session"
         />
         <SearchBar
           value={query}
