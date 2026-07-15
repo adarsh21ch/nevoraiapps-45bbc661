@@ -13,13 +13,8 @@ import { z } from "zod";
 
 const uuid = z.string().uuid();
 
-async function assertManager(
-  supabase: {
-    rpc: (name: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
-  },
-  userId: string,
-  tenantId: string,
-): Promise<void> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function assertManager(supabase: any, userId: string, tenantId: string): Promise<void> {
   const [{ data: isOwner }, { data: isAdmin }, { data: isPlatform }] = await Promise.all([
     supabase.rpc("has_role", { _user_id: userId, _tenant_id: tenantId, _role: "owner" }),
     supabase.rpc("has_role", { _user_id: userId, _tenant_id: tenantId, _role: "admin" }),
@@ -29,6 +24,7 @@ async function assertManager(
     throw new Error("Forbidden: staff management requires owner or admin");
   }
 }
+
 
 function randomToken(): string {
   const bytes = new Uint8Array(24);
