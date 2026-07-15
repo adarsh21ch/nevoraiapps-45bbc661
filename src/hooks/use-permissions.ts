@@ -1,92 +1,43 @@
 /**
- * AcademyOS V2 — Capability layer.
+ * Phase 3 — canonical permission hook.
  *
- * Navigation is role-based (stable, hardcoded per role — see nav-config.ts).
- * Actions inside modules are capability-based.
+ * Server-side truth: user_roles + has_role() RPC.
+ * Client-side: this hook reads the current role from user_roles for the
+ * active tenant (falling back to the legacy `profiles.role` bridge, which
+ * is now trigger-synced into user_roles). Use `canAccess` from
+ * `use-current-role.ts` to gate rendering of restricted features.
  *
- * Capabilities are derived from (role × tenant plan). They do NOT drive
- * menu visibility — that is `nav-config` + `getFeatures(tenant)`. They
- * gate buttons, forms, and mutations.
- *
- * Usage:
- *   const { can } = usePermissions();
- *   if (can("canManageFees")) { ... }
+ * IMPORTANT: this is a UI-only gate. Every mutation and RPC MUST also
+ * enforce the permission server-side via RLS or has_role().
  */
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-import { useMemo } from "react";
-import { useCurrentRole, type AppRole } from "@/hooks/use-current-role";
-import { useDashboardOptional } from "@/lib/dashboard-context";
-import { getFeatures } from "@/lib/tenant";
+export type AppRole = "owner" | "admin" | "platform_admin" | "student";
 
-export type Capability =
-  | "canManagePlayers"
-  | "canViewFees"
-  | "canManageFees"
-  | "canManageAdmins"
-  | "canManageWebsite"
-  | "canManageReports"
-  | "canViewReports"
-  | "canScoreMatch"
-  | "canManageAttendance"
-  | "canMarkAttendance"
-  | "canManageBatches"
-  | "canManageSettings"
-  | "canManageTenant";
+export function usePermissions(tenantId: string | null | undefined) {
+  const q = useQuery({
+    enabled: !!tenantId,
+    queryKey: ["perm", "role", tenantId],
+    queryFn: async (): Promise<AppRole> => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any).rpc("current_role", {
+        _tenant_id: tenantId,
+      });
+      if (error) throw error;
+      return (data as AppRole) ?? "student";
+    },
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+  });
 
-const roleCaps: Record<AppRole, ReadonlySet<Capability>> = {
-  owner: new Set<Capability>([
-    "canManagePlayers",
-    "canViewFees",
-    "canManageFees",
-    "canManageAdmins",
-    "canManageWebsite",
-    "canManageReports",
-    "canViewReports",
-    "canScoreMatch",
-    "canManageAttendance",
-    "canMarkAttendance",
-    "canManageBatches",
-    "canManageSettings",
-    "canManageTenant",
-  ]),
-  admin: new Set<Capability>([
-    "canManagePlayers",
-    "canViewReports",
-    "canScoreMatch",
-    "canManageAttendance",
-    "canMarkAttendance",
-    "canManageBatches",
-  ]),
-  student: new Set<Capability>([]),
-};
-
-export interface PermissionResult {
-  role: AppRole;
-  can: (cap: Capability) => boolean;
-  all: (...caps: Capability[]) => boolean;
-  any: (...caps: Capability[]) => boolean;
-}
-
-export function usePermissions(): PermissionResult {
-  const role = useCurrentRole();
-  const ctx = useDashboardOptional();
-  const features = ctx?.tenant ? getFeatures(ctx.tenant) : null;
-
-  return useMemo(() => {
-    const base = roleCaps[role];
-    const can = (cap: Capability): boolean => {
-      if (!base.has(cap)) return false;
-      // Tenant plan gates — action is only exposed when the module is enabled.
-      if ((cap === "canViewFees" || cap === "canManageFees") && features && features.fee_tracking === false) {
-        return false;
-      }
-      return true;
-    };
-    return {
-      role,
-      can,
-      all: (...caps: Capability[]) => caps.every(can),
-      any: (...caps: Capability[]) => caps.some(can),
-    };
-  }, [role, features]);
+  const role = q.data ?? "student";
+  return {
+    role,
+    isOwner: role === "owner",
+    isAdmin: role === "admin" || role === "owner",
+    isPlatformAdmin: role === "platform_admin",
+    isStudent: role === "student",
+    isLoading: q.isLoading,
+  };
 }
