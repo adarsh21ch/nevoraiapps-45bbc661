@@ -14,6 +14,7 @@ import {
   type PolicyKind,
 } from "@/lib/site-queries";
 import { supabase } from "@/integrations/supabase/client";
+import { checkRateLimit } from "@/lib/bulk-ops";
 import { generateBlankRegistrationPdf } from "@/lib/registration-pdf";
 
 // Policies that must be accepted before registration submits (if the academy
