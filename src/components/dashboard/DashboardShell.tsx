@@ -9,7 +9,6 @@ import {
   LayoutDashboard,
   Inbox,
   Users,
-  CalendarDays,
   LogOut,
   ExternalLink,
   IndianRupee,
@@ -17,12 +16,16 @@ import {
   ClipboardCheck,
   UserCircle,
   Swords,
-  Building2,
-  Globe,
   Megaphone,
-  Settings as SettingsIcon,
   ChevronDown,
-  TrendingUp,
+  Image as ImageIcon,
+  Trophy,
+  Radio,
+  ListOrdered,
+  GitBranch,
+  Award,
+  BarChart2,
+  ListChecks,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
@@ -42,11 +45,12 @@ type NavItem = {
   adminOnly?: boolean;
 };
 
-// Unified IA — matches mobile bottom nav.
-// Owner: Home · Attendance · Fees · Manage · Profile
-// Admin: Home · Attendance · Performance · Manage · Profile (no finance)
+// Simplified daily navigation — optimized for academy owners' daily workflow.
+// Low-frequency configuration (Batches, Settings, Billing, Staff, etc.) lives
+// under Profile — the single home for owner-level administration.
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   {
     to: "/dashboard/fees",
@@ -55,21 +59,24 @@ const primaryNav: NavItem[] = [
     requiresFeature: "fee_tracking",
     ownerOnly: true,
   },
-  { to: "/dashboard/insights", label: "Performance", icon: TrendingUp, adminOnly: true },
+];
+
+// Everything below Match Center in the daily sidebar list.
+const secondaryNav: NavItem[] = [
+  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
+  { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
+  { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+  { to: "/dashboard/site", label: "Gallery", icon: ImageIcon },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
-// Manage — expands to expose the full academy toolset. Single source of
-// truth: nothing here is repeated in `primaryNav`.
-const operationsNav: NavItem[] = [
-  { to: "/dashboard/students", label: "Players", icon: Users },
-  { to: "/match-center", label: "Match Center", icon: Swords },
-  { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
-  { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
-  { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-  { to: "/dashboard/site", label: "Website", icon: Globe },
-  { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
-  { to: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
+// Match Center sub-entries — surface Tournament Center prominently.
+const matchCenterNav: NavItem[] = [
+  { to: "/match-center/matches", label: "Matches", icon: Swords },
+  { to: "/match-center/tournaments", label: "Tournaments", icon: Trophy },
+  { to: "/match-center/live", label: "Live", icon: Radio },
+  { to: "/match-center/leaderboards", label: "Statistics", icon: BarChart2 },
+  { to: "/match-center/awards", label: "Awards", icon: Award },
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -113,7 +120,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       });
 
   const primary = withBadges(primaryNav);
-  const operations = withBadges(operationsNav);
+  const secondary = withBadges(secondaryNav);
+  const matchCenter = withBadges(matchCenterNav);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -174,7 +182,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <SidebarInner
             tenant={tenant}
             primary={primary}
-            operations={operations}
+            secondary={secondary}
+            matchCenter={matchCenter}
+            liveMatch={(liveMatchCount.data ?? 0) > 0}
             onSignOut={signOut}
             role={profile.role}
           />
@@ -226,13 +236,17 @@ function TenantMark({ tenant }: { tenant: { name: string; logo_url: string | nul
 function SidebarInner({
   tenant,
   primary,
-  operations,
+  secondary,
+  matchCenter,
+  liveMatch,
   onSignOut,
   role,
 }: {
   tenant: { name: string };
   primary: (NavItem & { badge?: number; live?: boolean })[];
-  operations: (NavItem & { badge?: number; live?: boolean })[];
+  secondary: (NavItem & { badge?: number; live?: boolean })[];
+  matchCenter: (NavItem & { badge?: number; live?: boolean })[];
+  liveMatch: boolean;
   onSignOut: () => void;
   role: string;
 }) {
@@ -244,11 +258,8 @@ function SidebarInner({
       ? location.pathname === "/dashboard"
       : location.pathname === to || location.pathname.startsWith(to + "/");
 
-  // Operations aggregate badge count (e.g. new registrations while collapsed).
-  const opsBadge = useMemo(() => operations.reduce((s, n) => s + (n.badge ?? 0), 0), [operations]);
-  const opsLive = operations.some((n) => n.live);
-  const opsActive = operations.some((n) => isItemActive(n.to));
-  const [opsOpen, setOpsOpen] = useState(opsActive);
+  const mcActive = location.pathname.startsWith("/match-center");
+  const [mcOpen, setMcOpen] = useState(mcActive);
 
   const renderItem = (n: NavItem & { badge?: number; live?: boolean }, indent = false) => {
     const active = isItemActive(n.to);
@@ -297,10 +308,6 @@ function SidebarInner({
     );
   };
 
-  // Insert Operations group after Attendance/Fees, before Profile.
-  const homeAttendanceFees = primary.filter((n) => n.to !== "/dashboard/profile");
-  const profile = primary.find((n) => n.to === "/dashboard/profile");
-
   return (
     <div className="flex h-full flex-col">
       <div className="p-4 border-b border-border">
@@ -308,43 +315,44 @@ function SidebarInner({
         <div className="text-xs text-muted-foreground capitalize">{role}</div>
       </div>
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-        {homeAttendanceFees.map((n) => renderItem(n))}
+        {primary.map((n) => renderItem(n))}
 
-        {/* Operations — expandable group */}
+        {/* Match Center — expandable group. Tournament Center is not
+            buried; sub-entries surface immediately when active or expanded. */}
         <button
           type="button"
-          onClick={() => setOpsOpen((v) => !v)}
-          aria-expanded={opsOpen}
+          onClick={() => setMcOpen((v) => !v)}
+          aria-expanded={mcOpen}
           className={cn(
             "w-full relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
             "outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brand)]",
-            opsActive
+            mcActive
               ? "font-semibold text-foreground bg-accent/40"
               : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
           )}
         >
           <span className="relative inline-flex">
-            <Building2 className="size-4" />
-            {opsLive ? (
+            <Swords className="size-4" />
+            {liveMatch ? (
               <span
                 aria-hidden
                 className="absolute -top-0.5 -right-1 size-1.5 rounded-full bg-rose-600 ring-2 ring-background animate-pulse"
               />
             ) : null}
           </span>
-          <span className="flex-1 text-left">{t("Manage")}</span>
-          {!opsOpen && opsBadge > 0 ? (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white bg-rose-600">
-              {opsBadge}
+          <span className="flex-1 text-left">{t("Match Center")}</span>
+          {liveMatch ? (
+            <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded-full text-white bg-rose-600">
+              LIVE
             </span>
           ) : null}
-          <ChevronDown className={cn("size-4 transition-transform", opsOpen && "rotate-180")} />
+          <ChevronDown className={cn("size-4 transition-transform", mcOpen && "rotate-180")} />
         </button>
-        {opsOpen ? (
-          <div className="space-y-1 pt-0.5">{operations.map((n) => renderItem(n, true))}</div>
+        {mcOpen ? (
+          <div className="space-y-1 pt-0.5">{matchCenter.map((n) => renderItem(n, true))}</div>
         ) : null}
 
-        {profile ? renderItem(profile) : null}
+        {secondary.map((n) => renderItem(n))}
       </nav>
       <div className="p-2 border-t border-border">
         <Button variant="ghost" size="sm" className="w-full justify-start" onClick={onSignOut}>
