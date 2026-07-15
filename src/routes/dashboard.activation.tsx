@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Copy, QrCode } from "lucide-react";
+import { Copy, QrCode, MessageCircle, Mail, Send, RefreshCw } from "lucide-react";
 import { LIFECYCLE_LABEL, LIFECYCLE_TONE, type LifecycleStatus } from "@/lib/admissions/lifecycle";
 
 export const Route = createFileRoute("/dashboard/activation")({
@@ -64,8 +64,19 @@ function ActivationCenter() {
     onError: (e: any) => toast.error(e?.message ?? "Rollback failed"),
   });
 
+  const isExpired = (s: any) => {
+    if (!s.activation_sent_at) return false;
+    if (["activated", "profile_completed"].includes(s.lifecycle_status)) return false;
+    const ageMs = Date.now() - new Date(s.activation_sent_at).getTime();
+    return ageMs > 30 * 24 * 60 * 60 * 1000;
+  };
+
   const filtered = students.filter((s: any) => {
-    if (statusFilter !== "all" && s.lifecycle_status !== statusFilter) return false;
+    if (statusFilter === "expired") {
+      if (!isExpired(s)) return false;
+    } else if (statusFilter !== "all" && s.lifecycle_status !== statusFilter) {
+      return false;
+    }
     if (!search) return true;
     const q = search.toLowerCase();
     return s.name?.toLowerCase().includes(q) || s.phone?.includes(q) || s.email?.toLowerCase().includes(q);
@@ -81,28 +92,55 @@ function ActivationCenter() {
     else setSelected(new Set(filtered.map((s: any) => s.id)));
   };
 
-  const copyLink = async (studentId: string) => {
+  const fetchToken = async (studentId: string) => {
     const { data } = await supabase
       .from("students")
-      .select("activation_token, name")
+      .select("activation_token, name, phone, email")
       .eq("id", studentId)
       .maybeSingle();
-    const token = (data as any)?.activation_token;
-    if (!token) { toast.error("No active token — send activation first"); return; }
-    const link = `${window.location.origin}/activate/${token}`;
-    await navigator.clipboard.writeText(link);
+    return data as { activation_token: string | null; name: string; phone: string | null; email: string | null } | null;
+  };
+
+  const linkFor = (token: string) => `${window.location.origin}/activate/${token}`;
+
+  const copyLink = async (studentId: string) => {
+    const s = await fetchToken(studentId);
+    if (!s?.activation_token) { toast.error("No active token — send activation first"); return; }
+    await navigator.clipboard.writeText(linkFor(s.activation_token));
     toast.success("Activation link copied");
   };
 
+  const shareWhatsApp = async (studentId: string) => {
+    const s = await fetchToken(studentId);
+    if (!s?.activation_token) { toast.error("No active token — send activation first"); return; }
+    const msg = `Hi ${s.name}, activate your academy account here: ${linkFor(s.activation_token)}`;
+    const phone = (s.phone ?? "").replace(/\D/g, "");
+    const url = phone
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+      : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank", "noopener");
+  };
+
+  const shareSMS = async (studentId: string) => {
+    const s = await fetchToken(studentId);
+    if (!s?.activation_token) { toast.error("No active token — send activation first"); return; }
+    const msg = `Activate your academy account: ${linkFor(s.activation_token)}`;
+    const phone = (s.phone ?? "").replace(/\s+/g, "");
+    window.location.href = `sms:${phone}?&body=${encodeURIComponent(msg)}`;
+  };
+
+  const shareEmail = async (studentId: string) => {
+    const s = await fetchToken(studentId);
+    if (!s?.activation_token) { toast.error("No active token — send activation first"); return; }
+    const subject = "Activate your academy account";
+    const body = `Hi ${s.name},\n\nActivate your account: ${linkFor(s.activation_token)}\n\nSee you on the field!`;
+    window.location.href = `mailto:${s.email ?? ""}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   const showQr = async (studentId: string) => {
-    const { data } = await supabase
-      .from("students")
-      .select("activation_token, name")
-      .eq("id", studentId)
-      .maybeSingle();
-    const token = (data as any)?.activation_token;
-    if (!token) { toast.error("No active token — send activation first"); return; }
-    setQrFor({ name: (data as any).name, token });
+    const s = await fetchToken(studentId);
+    if (!s?.activation_token) { toast.error("No active token — send activation first"); return; }
+    setQrFor({ name: s.name, token: s.activation_token });
   };
 
   const counts = {
