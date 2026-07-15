@@ -18,6 +18,7 @@ import {
   LifeBuoy,
   Search,
   Trophy,
+  Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatform } from "@/lib/platform-context";
@@ -27,6 +28,7 @@ const nav = [
   { to: "/platform-admin/tenants", label: "Tenants", icon: Building2 },
   { to: "/platform-admin/subscriptions", label: "Subscriptions", icon: Receipt },
   { to: "/platform-admin/sports", label: "Supported sports", icon: Trophy },
+  { to: "/platform-admin/communication", label: "Communication", icon: Radio },
   { to: "/platform-admin/flags", label: "Feature flags", icon: Sparkles },
   { to: "/platform-admin/usage", label: "Usage", icon: BarChart3 },
   { to: "/platform-admin/health", label: "System health", icon: Activity },
