@@ -1279,4 +1279,3 @@ function MoreTab({
     </div>
   );
 }
-}
