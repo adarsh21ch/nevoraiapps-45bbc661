@@ -65,6 +65,7 @@ import {
 import { TournamentDashboard } from "@/components/match-center/tournament-dashboard";
 import { PointsTable } from "@/components/match-center/points-table";
 import { TournamentBracket } from "@/components/match-center/tournament-bracket";
+import { TournamentStatistics } from "@/components/match-center/tournament-statistics";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -188,7 +189,7 @@ function TournamentDetailPage() {
         {section === "bracket" && <TournamentBracket tournamentId={tournamentId} />}
         {section === "teams" && <TeamsTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "players" && <PlayersTab tournamentId={tournamentId} />}
-        {section === "stats" && <RecordsTab tournamentId={tournamentId} />}
+        {section === "stats" && <TournamentStatistics tournamentId={tournamentId} />}
         {section === "records" && <RecordsTab tournamentId={tournamentId} />}
         {section === "awards" && <AwardsTab tournamentId={tournamentId} />}
         {section === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
