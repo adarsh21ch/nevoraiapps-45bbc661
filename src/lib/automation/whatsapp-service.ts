@@ -19,10 +19,8 @@
  */
 
 import { buildDefaultMessage, renderTemplate } from "./providers/whatsapp/templates";
-import type {
-  MetaTemplateComponent,
-  WhatsAppSendResult,
-} from "./providers/whatsapp/adapters/meta";
+import type { MetaTemplateComponent } from "./providers/whatsapp/adapters/meta";
+import type { WhatsAppSendResult } from "./providers/whatsapp/types";
 import { getWhatsAppAdapter, DEFAULT_WHATSAPP_ADAPTER } from "./providers/whatsapp/registry";
 import { resolveActiveProvider } from "./gateway";
 
