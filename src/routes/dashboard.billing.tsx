@@ -576,7 +576,7 @@ function PaymentsTable({
 }) {
   const sMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   if (loading) return <SkeletonList />;
-  if (payments.length === 0) return <EmptyState title="No payments yet" hint="Record a payment on any issued invoice." />;
+  if (payments.length === 0) return <EmptyState title="No fee collections yet" hint="Record a collection against any sent fee bill." />;
   return (
     <div className="rounded-2xl border overflow-hidden bg-card">
       <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
