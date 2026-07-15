@@ -1,30 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trophy, PlusCircle, Loader2, Search, Calendar } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Trophy, PlusCircle, Search, Calendar } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { EmptyState, LoadingSkeleton } from "@/components/match-center/ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { toast } from "sonner";
 import { useDashboard } from "@/lib/dashboard-context";
-import {
-  listTournaments,
-  createTournament,
-  TOURNAMENT_TYPES,
-  TOURNAMENT_FORMATS,
-  type MCTournament,
-} from "@/lib/mc-tournaments";
-import { AGE_GROUPS } from "@/lib/mc-teams";
+import { listTournaments, type MCTournament } from "@/lib/mc-tournaments";
+import { TournamentWizard } from "@/components/match-center/tournament-wizard";
 import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 
 export const Route = createFileRoute("/match-center/tournaments")({
