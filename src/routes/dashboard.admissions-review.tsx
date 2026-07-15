@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { AdmissionActionDialog } from "@/components/dashboard/AdmissionActionDialog";
 import { useDashboard } from "@/lib/dashboard-context";
 import { admissionsRegistrationsQuery } from "@/lib/admissions/queries";
@@ -14,15 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/admissions-review")({
   head: () => ({ meta: [{ title: "Admissions Review" }] }),
-  component: () => (
-    <DashboardShell>
-      <AdmissionsReviewPage />
-    </DashboardShell>
-  ),
+  component: AdmissionsReviewPage,
 });
 
 const FILTERS = [
