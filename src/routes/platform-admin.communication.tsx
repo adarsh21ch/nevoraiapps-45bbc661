@@ -633,7 +633,7 @@ function DeliveryTable({
                   {format(new Date(d.created_at), "MMM d, HH:mm:ss")}
                 </td>
                 <td className="p-3 font-mono text-xs">{d.tenant_id.slice(0, 8)}</td>
-                <td className="p-3">{d.recipient ?? "—"}</td>
+                <td className="p-3">{d.recipient_number ?? d.recipient_name ?? "—"}</td>
                 <td className="p-3 capitalize">{d.channel}</td>
                 <td className="p-3">{d.provider ?? "—"}</td>
                 <td className="p-3">
@@ -651,7 +651,7 @@ function DeliveryTable({
                   </Badge>
                 </td>
                 <td className="p-3">{d.duration_ms ? `${d.duration_ms} ms` : "—"}</td>
-                <td className="p-3">{d.attempt}</td>
+                <td className="p-3">{d.attempts}</td>
               </tr>
             ))}
           </tbody>
