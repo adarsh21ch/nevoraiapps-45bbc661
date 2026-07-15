@@ -204,6 +204,22 @@ function AttendancePage() {
       /* ignore */
     }
   }, []);
+
+  // Daily lifecycle: when the local calendar date rolls over (tab left open
+  // across midnight), advance `selectedDate` so the roster resets to today's
+  // fresh Waiting state instead of pinning yesterday as "history".
+  useEffect(() => {
+    if (!isTodayView) return;
+    const tick = () => {
+      const now = startOfDay(new Date());
+      if (now.getTime() !== startOfDay(selectedDate).getTime()) {
+        setSelectedDate(now);
+        qc.invalidateQueries({ queryKey: attendanceKeys.today(tenant.id) });
+      }
+    };
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, [isTodayView, selectedDate, qc, tenant.id]);
   const toggleQuick = useCallback(() => {
     setQuickMode((v) => {
       const next = !v;
