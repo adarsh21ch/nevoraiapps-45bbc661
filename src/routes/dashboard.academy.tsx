@@ -4,37 +4,22 @@ import {
   Users,
   Swords,
   Activity,
-  Inbox,
   BarChart3,
-  Sparkles,
-  BellRing,
   Globe,
   ShieldCheck,
-  Settings2,
-  CreditCard,
-  Palette,
   ChevronRight,
   Search,
-  ClipboardCheck,
   IndianRupee,
-  Wallet,
-  Trophy,
-  LineChart,
-  Award,
-  MessageCircle,
   Send,
-  Mail,
-  FileText,
-  Image as ImageIcon,
   UserCircle,
-  KeyRound,
+  LineChart,
+  ClipboardCheck,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { useCurrentRole } from "@/hooks/use-current-role";
 import { getFeatures } from "@/lib/tenant";
 import { Card } from "@/components/ds/Card";
 import { SearchBar } from "@/components/ds/SearchBar";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/academy")({
   head: () => ({
@@ -52,116 +37,94 @@ type Item = {
   hint: string;
   icon: React.ComponentType<{ className?: string }>;
   keywords?: string[];
-  /** Feature flag gate — same keys as getFeatures(tenant). */
   requiresFeature?: "fee_tracking";
 };
 
 type Group = { title: string; items: Item[] };
 
 /* ------------------------------------------------------------------ */
-/* Role-scoped section definitions. Every `to` targets an EXISTING    */
-/* route — nothing here is aspirational or a dead link.               */
+/* Manage = Daily operational workspaces only.                        */
+/* Each entry opens a full workspace with its own internal navigation.*/
+/* Settings/config lives in Profile.                                  */
 /* ------------------------------------------------------------------ */
 
-// Ordered by daily-work priority: Players → Attendance → Fees → Matches → Reports → Comms → Website → Team → Settings → Plan.
 const OWNER_GROUPS: Group[] = [
   {
     title: "Players",
     items: [
       { to: "/dashboard/students", label: "Players", hint: "Roster & profiles", icon: Users, keywords: ["students", "athletes", "roster"] },
-      { to: "/dashboard/registrations", label: "Registrations", hint: "New sign-ups from your site", icon: Inbox, keywords: ["signups", "trials", "admissions", "pipeline"] },
+      { to: "/dashboard/registrations", label: "Registrations", hint: "New sign-ups from your site", icon: UserCircle, keywords: ["signups", "trials", "admissions", "pipeline"] },
       { to: "/dashboard/attendance", label: "Attendance", hint: "Mark & track daily attendance", icon: ClipboardCheck },
       { to: "/dashboard/batches", label: "Batches", hint: "Timings & groups", icon: Activity, keywords: ["schedule", "sessions"] },
     ],
   },
   {
-    title: "Matches",
+    title: "Cricket",
     items: [
-      { to: "/match-center", label: "Match Center", hint: "The full cricket workspace", icon: Swords },
-      { to: "/match-center/live", label: "Live Scoring", hint: "Score in real time", icon: Activity, keywords: ["ball", "score"] },
-      { to: "/match-center/matches", label: "Fixtures", hint: "Upcoming & past matches", icon: Swords, keywords: ["schedule"] },
-      { to: "/match-center/teams", label: "Teams", hint: "Squads & line-ups", icon: Trophy },
-      { to: "/match-center/records", label: "Scorecards", hint: "Official scorebooks", icon: FileText },
-      { to: "/match-center/insights", label: "Statistics", hint: "Performance & records", icon: LineChart },
+      { to: "/match-center", label: "Tournament Center", hint: "Tournaments, fixtures, teams, stats", icon: Swords, keywords: ["fixtures", "teams", "scorecards", "statistics", "officials", "venues", "groups", "points", "bracket"] },
+      { to: "/match-center/live", label: "Live Scoring", hint: "Score matches in real time", icon: Activity, keywords: ["ball", "score"] },
     ],
   },
   {
-    title: "Fees",
+    title: "Finance",
     items: [
-      { to: "/dashboard/fees", label: "Student Fees", hint: "Collect & track dues", icon: IndianRupee, requiresFeature: "fee_tracking" },
-      { to: "/dashboard/fee-plans", label: "Fee Plans", hint: "Structures & pricing", icon: Wallet, requiresFeature: "fee_tracking" },
-      { to: "/dashboard/reminders", label: "Reminders", hint: "Nudge unpaid families", icon: BellRing, requiresFeature: "fee_tracking" },
-      { to: "/dashboard/reports", label: "Fee Reports", hint: "Collections & aging", icon: BarChart3, keywords: ["billing", "revenue"] },
+      { to: "/dashboard/fees", label: "Student Fees", hint: "Plans, collections, reminders, reports", icon: IndianRupee, requiresFeature: "fee_tracking", keywords: ["billing", "revenue", "fee plans", "reminders"] },
     ],
   },
   {
     title: "Communication",
     items: [
-      { to: "/dashboard/communications", label: "Broadcasts", hint: "Send announcements", icon: Send, keywords: ["whatsapp", "sms", "email", "notifications"] },
-      { to: "/dashboard/communications", label: "Templates", hint: "Reusable message templates", icon: FileText },
-      { to: "/dashboard/notifications", label: "Notifications", hint: "Delivery history", icon: BellRing },
+      { to: "/dashboard/communications", label: "Broadcasts", hint: "Templates, history, scheduled messages", icon: Send, keywords: ["whatsapp", "sms", "email", "announcements", "templates", "notifications"] },
     ],
   },
   {
     title: "Website",
     items: [
-      { to: "/dashboard/site", label: "Public Website", hint: "Edit your public site", icon: Globe, keywords: ["seo", "gallery", "coaches", "programs", "policies", "faq", "admissions"] },
+      { to: "/dashboard/site", label: "Public Website", hint: "Edit your public site", icon: Globe, keywords: ["seo", "gallery", "coaches", "programs", "policies", "faq"] },
     ],
   },
   {
     title: "Reports",
     items: [
-      { to: "/dashboard/reports", label: "Decision Center", hint: "Attendance, fees, admissions, matches", icon: BarChart3 },
-      { to: "/dashboard/insights", label: "Insights", hint: "Trends & AI signals", icon: Sparkles },
+      { to: "/dashboard/reports", label: "Reports", hint: "Decision center, insights & AI signals", icon: BarChart3, keywords: ["insights", "ai", "decision", "analytics"] },
     ],
   },
   {
-    title: "Team Management",
+    title: "Team",
     items: [
       { to: "/dashboard/admins", label: "Admins & Staff", hint: "Invite, suspend, reset access", icon: ShieldCheck },
     ],
   },
-  {
-    title: "Academy Settings",
-    items: [
-      { to: "/dashboard/settings", label: "Academy Profile", hint: "Name, hours, contact", icon: Settings2 },
-      { to: "/dashboard/branding", label: "Branding", hint: "Logo, theme, colors", icon: Palette },
-    ],
-  },
-  {
-    title: "AcademyOS",
-    items: [
-      { to: "/dashboard/subscription", label: "Subscription & Plan", hint: "Your AcademyOS plan", icon: CreditCard },
-    ],
-  },
 ];
 
-// Admin — hides finances, subscription, website settings, admin-management, branding.
-// Everything they see targets `canAccess(admin, ...)` features: attendance, players, match-center.
+// Admin — hides Finance. Everything else stays operational.
 const ADMIN_GROUPS: Group[] = [
   {
     title: "Players",
     items: [
       { to: "/dashboard/students", label: "Players", hint: "Roster & profiles", icon: Users },
-      { to: "/dashboard/registrations", label: "Registrations", hint: "New sign-ups", icon: Inbox },
+      { to: "/dashboard/registrations", label: "Registrations", hint: "New sign-ups", icon: UserCircle },
       { to: "/dashboard/attendance", label: "Attendance", hint: "Daily attendance", icon: ClipboardCheck },
       { to: "/dashboard/batches", label: "Batches", hint: "Timings & groups", icon: Activity },
     ],
   },
   {
-    title: "Matches",
+    title: "Cricket",
     items: [
-      { to: "/match-center", label: "Match Center", hint: "Cricket workspace", icon: Swords },
-      { to: "/match-center/matches", label: "Fixtures", hint: "Upcoming & past matches", icon: Swords },
-      { to: "/match-center/teams", label: "Teams", hint: "Squads & line-ups", icon: Trophy },
-      { to: "/match-center/records", label: "Scorecards", hint: "Official scorebooks", icon: FileText },
+      { to: "/match-center", label: "Tournament Center", hint: "Tournaments, fixtures, teams, stats", icon: Swords },
+      { to: "/match-center/live", label: "Live Scoring", hint: "Score matches in real time", icon: Activity },
     ],
   },
   {
     title: "Communication",
     items: [
-      { to: "/dashboard/communications", label: "Broadcasts", hint: "Send announcements", icon: Send },
-      { to: "/dashboard/notifications", label: "Notifications", hint: "Delivery history", icon: BellRing },
+      { to: "/dashboard/communications", label: "Broadcasts", hint: "Templates, history, scheduled", icon: Send },
+    ],
+  },
+  {
+    title: "Website",
+    items: [
+      { to: "/dashboard/site", label: "Public Website", hint: "Edit your public site", icon: Globe },
     ],
   },
   {
@@ -171,51 +134,38 @@ const ADMIN_GROUPS: Group[] = [
     ],
   },
   {
-    title: "Settings",
+    title: "Team",
     items: [
-      { to: "/dashboard/profile", label: "Personal Settings", hint: "Your account", icon: UserCircle },
+      { to: "/dashboard/admins", label: "Admins & Staff", hint: "Invite & manage staff", icon: ShieldCheck },
     ],
   },
 ];
 
-// Player / Parent — personal management area. Uses existing /student and
-// /parent routes. Everything else is intentionally omitted.
+// Player / Parent — personal workspaces only.
 const PLAYER_GROUPS: Group[] = [
   {
     title: "Profile",
     items: [
-      { to: "/student/profile", label: "My Profile", hint: "Personal details", icon: UserCircle, keywords: ["family", "emergency", "contact"] },
+      { to: "/student/profile", label: "My Profile", hint: "Personal details", icon: UserCircle },
     ],
   },
   {
     title: "Training",
     items: [
       { to: "/student", label: "My Attendance", hint: "Sessions & streaks", icon: ClipboardCheck },
-      { to: "/student/progress", label: "My Performance", hint: "Progress & milestones", icon: LineChart, keywords: ["stats"] },
+      { to: "/student/progress", label: "My Performance", hint: "Progress & milestones", icon: LineChart },
     ],
   },
   {
     title: "Matches",
     items: [
-      { to: "/student/matches", label: "My Matches", hint: "Fixtures & scorecards", icon: Swords, keywords: ["statistics", "awards"] },
+      { to: "/student/matches", label: "My Matches", hint: "Fixtures & scorecards", icon: Swords },
     ],
   },
   {
     title: "Fees",
     items: [
-      { to: "/fees", label: "My Fees", hint: "Payments & receipts", icon: IndianRupee, keywords: ["history"] },
-    ],
-  },
-  {
-    title: "Communication",
-    items: [
-      { to: "/dashboard/notifications", label: "Notifications", hint: "Announcements & alerts", icon: BellRing, keywords: ["messages"] },
-    ],
-  },
-  {
-    title: "Settings",
-    items: [
-      { to: "/student/profile", label: "Account", hint: "Password & language", icon: KeyRound, keywords: ["help", "support"] },
+      { to: "/fees", label: "My Fees", hint: "Payments & receipts", icon: IndianRupee },
     ],
   },
 ];
@@ -227,14 +177,13 @@ function groupsFor(role: "owner" | "admin" | "student"): Group[] {
 }
 
 function ManageHub() {
-  const { profile, tenant } = useDashboard();
+  const { tenant } = useDashboard();
   const role = useCurrentRole();
   const features = getFeatures(tenant);
   const [q, setQ] = useState("");
 
   const groups = useMemo<Group[]>(() => {
     const raw = groupsFor(role);
-    // Feature-gate items (hide fee_tracking if disabled).
     const gated = raw
       .map((g) => ({
         ...g,
@@ -265,23 +214,21 @@ function ManageHub() {
 
   return (
     <div className="-mt-4 md:-mt-8 space-y-4 pb-4">
-      {/* Header — uniform across dashboard tabs */}
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 pt-2 pb-1">
         <div className="min-w-0">
           <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">
             Manage
           </h1>
           <p className="text-[11px] text-muted-foreground leading-tight truncate">
-            {tenant.name} · {roleLabel}
+            {tenant.name} · {roleLabel} · Daily operations
           </p>
         </div>
       </header>
 
-      {/* Universal search */}
       <SearchBar
         value={q}
         onChange={setQ}
-        placeholder="Search anything — players, matches, reports, settings…"
+        placeholder="Search operations — players, matches, fees, reports…"
       />
 
       {groups.length === 0 ? (
