@@ -183,7 +183,7 @@ function TournamentDetailPage() {
         )}
         {section === "fixtures" && <FixturesTab tournament={t} tenantId={tenant.id} />}
         {section === "live" && <LiveMatchesTab tournamentId={tournamentId} />}
-        {section === "standings" && <StandingsTab tournamentId={tournamentId} />}
+        {section === "standings" && <PointsTable tournamentId={tournamentId} />}
         {section === "bracket" && <BracketView tournamentId={tournamentId} />}
         {section === "teams" && <TeamsTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "players" && <PlayersTab tournamentId={tournamentId} />}
