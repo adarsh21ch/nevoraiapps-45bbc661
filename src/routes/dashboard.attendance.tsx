@@ -825,8 +825,8 @@ function AttendancePage() {
             </div>
           </div>
 
-          {/* Bulk action bar. */}
-          {selectMode ? (
+          {/* Bulk action bar — writes disabled in History mode. */}
+          {isTodayView && selectMode ? (
             <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-lg border border-border/60 bg-background/95 p-2">
               <span className="text-xs text-muted-foreground">{selected.size} selected</span>
               <div className="ml-auto flex flex-wrap items-center gap-1.5">
@@ -848,7 +848,21 @@ function AttendancePage() {
             </div>
           ) : null}
 
-          {rosterStudents.length === 0 ? (
+          {historyMode && (attendanceQ.data?.length ?? 0) === 0 && !attendanceQ.isLoading ? (
+            <EmptyState
+              title="No attendance recorded"
+              description={`Nothing was marked on ${format(selectedDate, "d MMMM yyyy")}.`}
+              action={
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setSelectedDate(startOfDay(new Date()))}
+                >
+                  Back to Today
+                </Button>
+              }
+            />
+          ) : rosterStudents.length === 0 ? (
             <EmptyState
               title={query ? "No matches" : "No students in this session"}
               description={
@@ -875,11 +889,12 @@ function AttendancePage() {
                         batchName={s.batch_id ? (batchNameById.get(s.batch_id) ?? null) : null}
                         row={stateByStudent.get(s.id)}
                         canMark={canMark}
+                        readOnly={historyMode}
                         tenantId={tenant.id}
                         lateAfterMs={
                           s.batch_id ? (batchLateThresholdById.get(s.batch_id) ?? null) : null
                         }
-                        selectMode={selectMode}
+                        selectMode={selectMode && isTodayView}
                         isSelected={selected.has(s.id)}
                         onToggleSelected={toggleSelected}
                         onCheckedIn={focusNextWaiting}
@@ -897,6 +912,7 @@ function AttendancePage() {
     </div>
   );
 }
+
 
 function MiniKpi({
   label,
