@@ -132,11 +132,29 @@ export const setPlanTier = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertPlatformAdmin(context);
+    const { data: prev } = await context.supabase
+      .from("tenants")
+      .select("plan_tier")
+      .eq("id", data.tenantId)
+      .maybeSingle();
+    const prevTier = ((prev?.plan_tier as PlanTier | null) ?? "starter") as PlanTier;
     const { error } = await context.supabase
       .from("tenants")
       .update({ plan_tier: data.tier })
       .eq("id", data.tenantId);
     if (error) throw new Error(error.message);
+    if (prevTier !== data.tier) {
+      const upgraded = RANK[data.tier] > RANK[prevTier];
+      emitEvent({
+        tenantId: data.tenantId,
+        eventType: upgraded
+          ? AUTOMATION_EVENTS.SubscriptionUpgraded
+          : AUTOMATION_EVENTS.SubscriptionDowngraded,
+        sourceModule: "subscription",
+        sourceId: data.tenantId,
+        payload: { from: prevTier, to: data.tier },
+      });
+    }
     return { ok: true, tier: data.tier };
   });
 
