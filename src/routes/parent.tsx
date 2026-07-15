@@ -26,6 +26,7 @@ import {
 } from "@/lib/parent-app";
 import { fetchStudentProgress, studentKeys } from "@/lib/student-app";
 import { ParentCtx } from "@/hooks/use-parent-child";
+import { useRegisterPushDevice } from "@/hooks/useRegisterPushDevice";
 
 export const Route = createFileRoute("/parent")({
   head: () => ({
