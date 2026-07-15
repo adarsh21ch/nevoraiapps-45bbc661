@@ -1,6 +1,7 @@
 import type { ActionContext, ActionResult, ActionType } from "../types";
 import { mockProvider } from "./mock";
 import { notificationLogProvider } from "./notification-log";
+import { whatsappProvider } from "./whatsapp";
 
 export interface ActionProvider {
   /** Unique key, e.g. "whatsapp.meta", "notification.log". */
