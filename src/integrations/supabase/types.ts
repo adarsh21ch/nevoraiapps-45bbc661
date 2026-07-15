@@ -434,6 +434,54 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_rule_templates: {
+        Row: {
+          actions: Json
+          audience: string
+          category: string
+          conditions: Json
+          created_at: string
+          default_enabled: boolean
+          description: string | null
+          event_type: string
+          id: string
+          name: string
+          priority: number
+          template_key: string
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          audience?: string
+          category: string
+          conditions?: Json
+          created_at?: string
+          default_enabled?: boolean
+          description?: string | null
+          event_type: string
+          id?: string
+          name: string
+          priority?: number
+          template_key: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          audience?: string
+          category?: string
+          conditions?: Json
+          created_at?: string
+          default_enabled?: boolean
+          description?: string | null
+          event_type?: string
+          id?: string
+          name?: string
+          priority?: number
+          template_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       automation_rules: {
         Row: {
           actions: Json
