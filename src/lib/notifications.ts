@@ -134,6 +134,34 @@ export function useMarkAllRead() {
   });
 }
 
+export function useMarkManyRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      if (ids.length === 0) return;
+      // Reuse the single-notification RPC (SECURITY DEFINER, enforces ownership).
+      const rpc = supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ error: unknown }>;
+      const errors: unknown[] = [];
+      // Fire in parallel but bounded — 25 at a time is plenty for a UI action.
+      const chunks: string[][] = [];
+      for (let i = 0; i < ids.length; i += 25) chunks.push(ids.slice(i, i + 25));
+      for (const chunk of chunks) {
+        const results = await Promise.all(
+          chunk.map((id) => rpc("mark_notification_read", { _id: id })),
+        );
+        for (const r of results) if (r.error) errors.push(r.error);
+      }
+      if (errors.length) throw errors[0];
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: notificationKeys.root });
+    },
+  });
+}
+
 export function useArchiveNotification() {
   const qc = useQueryClient();
   return useMutation({
