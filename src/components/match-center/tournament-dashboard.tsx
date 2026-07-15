@@ -39,8 +39,8 @@ export function TournamentDashboard({ tournamentId, hasGroups, onNavigate }: Pro
     queryFn: () => listTournamentTeams(tournamentId),
   });
   const readyQ = useQuery({
-    queryKey: ["mc-tournament-readiness", tournamentId],
-    queryFn: () => evaluateReadiness(tournamentId),
+    queryKey: ["mc-tournament-readiness", tournamentId, hasGroups],
+    queryFn: () => evaluateReadiness({ tournamentId, hasGroups }),
   });
 
   const fixtures = fxQ.data ?? [];
@@ -57,17 +57,9 @@ export function TournamentDashboard({ tournamentId, hasGroups, onNavigate }: Pro
     return { live, todays, upcoming, completed, recent };
   }, [fixtures, today]);
 
-  const readiness = readyQ.data;
-  const alerts = readiness
-    ? [
-        !readiness.hasEnoughTeams &&
-          `Only ${readiness.teamCount} team${readiness.teamCount === 1 ? "" : "s"} registered`,
-        !readiness.hasVenues && "No venues configured",
-        !readiness.hasOfficials && "No officials assigned",
-        hasGroups && !readiness.hasGroups && "Groups enabled but none created",
-        readiness.conflictCount > 0 && `${readiness.conflictCount} scheduling conflict(s)`,
-      ].filter(Boolean) as string[]
-    : [];
+  const alerts = (readyQ.data?.checks ?? [])
+    .filter((c) => c.status !== "ok")
+    .map((c) => c.detail ?? c.label);
 
   if (fxQ.isLoading || teamsQ.isLoading) return <LoadingSkeleton />;
 
