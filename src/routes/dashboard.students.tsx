@@ -376,6 +376,26 @@ function StudentsPage() {
         </Button>
       </div>
 
+      {isAnyCoach && (
+        <div className="flex items-center justify-between rounded-full bg-card border border-border px-3 py-1.5 shadow-sm">
+          <span className="text-xs text-muted-foreground">
+            {myBatchesOnly
+              ? `Showing only your ${myBatchIds.size} assigned ${myBatchIds.size === 1 ? "batch" : "batches"}`
+              : "Showing all students in the academy"}
+          </span>
+          <label className="inline-flex items-center gap-2 text-xs font-medium cursor-pointer">
+            My batches only
+            <input
+              type="checkbox"
+              className="size-4 accent-foreground"
+              checked={myBatchesOnly}
+              onChange={(e) => setMyBatchesOnly(e.target.checked)}
+            />
+          </label>
+        </div>
+      )}
+
+
       {showFilters && (
         <div className="rounded-2xl bg-card border border-border shadow-sm p-3 grid grid-cols-2 md:grid-cols-3 gap-2">
           <FilterSelect
