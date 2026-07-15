@@ -15,7 +15,7 @@ import type {
   PushRecipient,
   PushSendItemResult,
 } from "./types";
-import { DEFAULT_PUSH_ADAPTER, getPushAdapter } from "./registry";
+import { DEFAULT_PUSH_ADAPTER, DEFAULT_WEB_PUSH_ADAPTER, getPushAdapter } from "./registry";
 import { renderPushTemplate, type TemplateVars } from "./templates";
 
 interface PushActionParams {
@@ -263,9 +263,12 @@ export const pushProvider: ActionProvider = {
         : { data: { student_id: studentId ?? null, event_id: ctx.event.id } }),
     });
 
-    // -- 4. Resolve adapter + tokens -------------------------------------
-    const adapterKey = params.adapter ?? (await resolveAdapterKey());
-    const adapter = getPushAdapter(adapterKey);
+    // -- 4. Resolve adapters + tokens ------------------------------------
+    // Native (ios/android) → Expo (or platform-configured); web → web-push.
+    // A single automation event may include recipients on both, so we
+    // dispatch through both adapters and merge the results.
+    const nativeAdapterKey = params.adapter ?? (await resolveAdapterKey());
+    const webAdapterKey = DEFAULT_WEB_PUSH_ADAPTER;
 
     const userIds = Array.from(recipientUserIds);
     if (userIds.length === 0) {
@@ -298,10 +301,8 @@ export const pushProvider: ActionProvider = {
       } as never);
     }
 
-    const recipients = await loadTokens(userIds);
-    if (recipients.length === 0) {
-      // No devices registered — record deliveries as "queued" so the UI shows the intent,
-      // but return ok=true since the in-app notification landed.
+    const allRecipients = await loadTokens(userIds);
+    if (allRecipients.length === 0) {
       await supabaseAdmin.from("automation_deliveries").insert({
         tenant_id: ctx.tenantId,
         rule_id: ctx.rule?.id ?? null,
@@ -309,7 +310,7 @@ export const pushProvider: ActionProvider = {
         student_id: studentId ?? null,
         channel: "push",
         provider: "push",
-        adapter: adapterKey,
+        adapter: nativeAdapterKey,
         recipient_name: null,
         recipient_number: null,
         message: `${message.title} — ${message.body}`,
@@ -319,9 +320,9 @@ export const pushProvider: ActionProvider = {
       } as never);
       return {
         ok: true,
-        provider: `push.${adapterKey}`,
+        provider: `push.${nativeAdapterKey}`,
         data: {
-          adapter: adapterKey,
+          adapter: nativeAdapterKey,
           recipients: 0,
           in_app_written: userIds.length,
           preview: `${message.title} — ${message.body}`.slice(0, 200),
@@ -330,92 +331,137 @@ export const pushProvider: ActionProvider = {
       };
     }
 
-    if (!adapter) {
-      return {
-        ok: false,
-        provider: "push",
-        error: `Unknown push adapter: ${adapterKey}`,
-        retryable: false,
+    const groups: Array<{ key: string; recipients: PushRecipient[] }> = [
+      {
+        key: nativeAdapterKey,
+        recipients: allRecipients.filter((r) => r.platform === "ios" || r.platform === "android"),
+      },
+      {
+        key: webAdapterKey,
+        recipients: allRecipients.filter((r) => r.platform === "web"),
+      },
+    ].filter((g) => g.recipients.length > 0);
+
+    const aggregate: {
+      items: PushSendItemResult[];
+      byAdapter: Record<string, { sent: number; failed: number }>;
+    } = { items: [], byAdapter: {} };
+    const disableTokens: string[] = [];
+    const nowIso = new Date().toISOString();
+
+    for (const group of groups) {
+      const adapter = getPushAdapter(group.key);
+      if (!adapter) {
+        // Record failed deliveries so the automation history shows the reason.
+        await supabaseAdmin.from("automation_deliveries").insert(
+          group.recipients.map((r) => ({
+            tenant_id: ctx.tenantId,
+            rule_id: ctx.rule?.id ?? null,
+            event_id: ctx.event.id,
+            student_id: studentId ?? null,
+            channel: "push",
+            provider: "push",
+            adapter: group.key,
+            recipient_name: null,
+            recipient_number: r.token.slice(0, 32),
+            message: `${message.title} — ${message.body}`,
+            status: "failed",
+            attempts: ctx.attempt,
+            error: `Unknown push adapter: ${group.key}`,
+          })) as never,
+        );
+        aggregate.byAdapter[group.key] = {
+          sent: 0,
+          failed: group.recipients.length,
+        };
+        continue;
+      }
+
+      const deliveryRows = await supabaseAdmin
+        .from("automation_deliveries")
+        .insert(
+          group.recipients.map((r) => ({
+            tenant_id: ctx.tenantId,
+            rule_id: ctx.rule?.id ?? null,
+            event_id: ctx.event.id,
+            student_id: studentId ?? null,
+            channel: "push",
+            provider: "push",
+            adapter: group.key,
+            recipient_name: null,
+            recipient_number: r.token.slice(0, 32),
+            message: `${message.title} — ${message.body}`,
+            status: "sending",
+            attempts: ctx.attempt,
+          })) as never,
+        )
+        .select("id, recipient_number");
+
+      const deliveryByToken = new Map<string, string>();
+      for (const row of ((deliveryRows.data ?? []) as Array<{
+        id: string;
+        recipient_number: string;
+      }>)) {
+        deliveryByToken.set(row.recipient_number, row.id);
+      }
+
+      const start = Date.now();
+      const result = await adapter.send(group.recipients, message);
+      const durationMs = Date.now() - start;
+
+      for (const item of result.items) {
+        const deliveryId = deliveryByToken.get(item.token.slice(0, 32));
+        if (deliveryId) {
+          await supabaseAdmin
+            .from("automation_deliveries")
+            .update({
+              status: item.status,
+              duration_ms: durationMs,
+              provider_message_id: item.providerMessageId ?? null,
+              error: item.error ?? null,
+              sent_at: item.ok ? nowIso : null,
+              delivered_at: item.status === "delivered" ? nowIso : null,
+            } as never)
+            .eq("id", deliveryId);
+        }
+        if (item.disableToken) disableTokens.push(item.token);
+      }
+
+      aggregate.items.push(...result.items);
+      aggregate.byAdapter[group.key] = {
+        sent: result.items.filter((i) => i.ok).length,
+        failed: result.items.filter((i) => !i.ok).length,
       };
     }
 
-    // -- 5. Insert queued delivery rows ----------------------------------
-    const deliveryRows = await supabaseAdmin
-      .from("automation_deliveries")
-      .insert(
-        recipients.map((r) => ({
-          tenant_id: ctx.tenantId,
-          rule_id: ctx.rule?.id ?? null,
-          event_id: ctx.event.id,
-          student_id: studentId ?? null,
-          channel: "push",
-          provider: "push",
-          adapter: adapterKey,
-          recipient_name: null,
-          recipient_number: r.token.slice(0, 32),
-          message: `${message.title} — ${message.body}`,
-          status: "sending",
-          attempts: ctx.attempt,
-        })) as never,
-      )
-      .select("id, recipient_number");
-
-    const deliveryByToken = new Map<string, string>();
-    for (const row of ((deliveryRows.data ?? []) as Array<{ id: string; recipient_number: string }>)) {
-      deliveryByToken.set(row.recipient_number, row.id);
-    }
-
-    // -- 6. Dispatch -----------------------------------------------------
-    const start = Date.now();
-    const result = await adapter.send(recipients, message);
-    const durationMs = Date.now() - start;
-    const nowIso = new Date().toISOString();
-
-    // -- 7. Update deliveries + disable bad tokens -----------------------
-    const disableTokens: string[] = [];
-    for (const item of result.items) {
-      const deliveryId = deliveryByToken.get(item.token.slice(0, 32));
-      if (deliveryId) {
-        await supabaseAdmin
-          .from("automation_deliveries")
-          .update({
-            status: item.status,
-            duration_ms: durationMs,
-            provider_message_id: item.providerMessageId ?? null,
-            error: item.error ?? null,
-            sent_at: item.ok ? nowIso : null,
-            delivered_at: item.status === "delivered" ? nowIso : null,
-          } as never)
-          .eq("id", deliveryId);
-      }
-      if (item.disableToken) disableTokens.push(item.token);
-    }
     if (disableTokens.length > 0) {
       await supabaseAdmin
         .from("push_devices")
         .update({
           enabled: false,
-          disabled_reason: "DeviceNotRegistered (auto-disabled by Expo)",
+          disabled_reason: "Auto-disabled (subscription no longer valid)",
         } as never)
         .in("expo_push_token", disableTokens);
     }
 
-    const okAll = result.items.every((i: PushSendItemResult) => i.ok);
-    const anyRetryable = result.items.some((i) => !i.ok && i.retryable);
+    const okAll = aggregate.items.length > 0 && aggregate.items.every((i) => i.ok);
+    const anyRetryable = aggregate.items.some((i) => !i.ok && i.retryable);
 
     return {
       ok: okAll,
-      provider: `push.${adapterKey}`,
+      provider: `push.multi`,
       data: {
-        adapter: adapterKey,
-        recipients: recipients.length,
+        adapters: aggregate.byAdapter,
+        recipients: allRecipients.length,
         in_app_written: userIds.length,
-        succeeded: result.items.filter((i) => i.ok).length,
-        failed: result.items.filter((i) => !i.ok).length,
+        succeeded: aggregate.items.filter((i) => i.ok).length,
+        failed: aggregate.items.filter((i) => !i.ok).length,
         disabled_tokens: disableTokens.length,
         preview: `${message.title} — ${message.body}`.slice(0, 200),
       },
-      error: okAll ? undefined : result.items.find((i) => !i.ok)?.error ?? "Push delivery failed",
+      error: okAll
+        ? undefined
+        : aggregate.items.find((i) => !i.ok)?.error ?? "Push delivery failed",
       retryable: !okAll && anyRetryable,
     };
   },

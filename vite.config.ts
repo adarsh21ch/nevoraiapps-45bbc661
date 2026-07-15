@@ -5,11 +5,34 @@
 //     error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    plugins: [
+      // Custom-SW strategy (injectManifest) — we own /sw.js so we can handle
+      // `push`/`notificationclick` for Web Push. `devOptions.enabled: false` +
+      // `injectRegister: null` keeps the SW out of Lovable preview and dev.
+      VitePWA({
+        strategies: "injectManifest",
+        srcDir: "src",
+        filename: "sw.ts",
+        registerType: "autoUpdate",
+        injectRegister: null,
+        // Manifest is served dynamically per tenant at
+        // /api/public/manifest/webmanifest — do not have the plugin emit one.
+        manifest: false,
+        devOptions: { enabled: false },
+        injectManifest: {
+          globPatterns: ["**/*.{js,css,html,ico,png,svg,webp}"],
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        },
+      }),
+    ],
   },
 });

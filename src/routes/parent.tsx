@@ -26,6 +26,7 @@ import {
 } from "@/lib/parent-app";
 import { fetchStudentProgress, studentKeys } from "@/lib/student-app";
 import { ParentCtx } from "@/hooks/use-parent-child";
+import { useRegisterPushDevice } from "@/hooks/useRegisterPushDevice";
 
 export const Route = createFileRoute("/parent")({
   head: () => ({
@@ -52,6 +53,10 @@ function ParentLayout() {
   const [signedIn, setSignedIn] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(() => getLastSelectedChildId());
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Register this browser for Web Push once the parent is signed in. No-ops
+  // in Lovable preview, dev, iframes, or when permission has been denied.
+  useRegisterPushDevice({ autoRegisterWhenGranted: true });
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {

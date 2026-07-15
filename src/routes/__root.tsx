@@ -207,6 +207,24 @@ function ThemeSystemListener() {
   return null;
 }
 
+function PwaBootstrap() {
+  // Registers the service worker (guarded — never runs in Lovable preview,
+  // dev, iframes, or when `?sw=off` is present) and captures the browser's
+  // install prompt so the parent portal can offer a "Install AcademyOS" CTA.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    void (async () => {
+      const [{ registerPwa }, { captureInstallPrompt }] = await Promise.all([
+        import("@/lib/pwa/register"),
+        import("@/lib/pwa/install-prompt"),
+      ]);
+      captureInstallPrompt();
+      await registerPwa();
+    })();
+  }, []);
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -214,6 +232,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <TenantProvider>
         <ThemeSystemListener />
+        <PwaBootstrap />
         <ImpersonationBanner />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
