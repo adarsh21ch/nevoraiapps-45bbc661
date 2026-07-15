@@ -9,14 +9,15 @@
  */
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { LogIn, LogOut, Clock, ChevronDown, CheckCircle2 } from "lucide-react";
+import { LogIn, LogOut, Clock, ChevronDown, CheckCircle2, Zap, CheckSquare } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { usePermissions } from "@/hooks/use-permissions";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AppShell,
   Section,
@@ -24,7 +25,6 @@ import {
   StatCard,
   ListItem,
   EmptyState,
-  LoadingState,
   ErrorState,
   Skeleton,
   SegmentedControl,
@@ -86,6 +86,31 @@ function normalize(s: string | null | undefined): string {
   return (s ?? "").toLowerCase().trim();
 }
 
+/**
+ * Best-effort late threshold. Parses the first `h[:mm] am/pm` clock time from
+ * the free-text `timing` field on the batch. If a batch says "6:00 AM – 8:00 AM"
+ * we treat 6:00 AM as the start; anything ≥ 10 min after that on the same date
+ * counts as "Late". No schema change — pure derivation. Returns null when we
+ * can't parse a start time (in which case we simply don't show the badge).
+ */
+function parseBatchStartMs(timing: string | null | undefined, dayISO: string): number | null {
+  if (!timing) return null;
+  const m = timing.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
+  if (!m) return null;
+  let h = parseInt(m[1]!, 10);
+  const min = m[2] ? parseInt(m[2], 10) : 0;
+  const mer = m[3]!.toLowerCase();
+  if (mer === "pm" && h !== 12) h += 12;
+  if (mer === "am" && h === 12) h = 0;
+  const [y, mo, d] = dayISO.split("-").map((x) => parseInt(x, 10));
+  const dt = new Date(y!, (mo ?? 1) - 1, d ?? 1, h, min, 0, 0);
+  return dt.getTime();
+}
+const LATE_GRACE_MS = 10 * 60 * 1000;
+
+// Owner/Admin preference — persisted per device.
+const QUICK_MODE_KEY = "academyos.attendance.quickMode";
+
 function AttendancePage() {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
@@ -94,6 +119,22 @@ function AttendancePage() {
 
   const [session, setSession] = useState<SessionFilter>("all");
   const [query, setQuery] = useState("");
+  const [quickMode, setQuickMode] = useState<boolean>(false);
+  const [selectMode, setSelectMode] = useState<boolean>(false);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    try {
+      setQuickMode(localStorage.getItem(QUICK_MODE_KEY) === "1");
+    } catch { /* ignore */ }
+  }, []);
+  const toggleQuick = useCallback(() => {
+    setQuickMode((v) => {
+      const next = !v;
+      try { localStorage.setItem(QUICK_MODE_KEY, next ? "1" : "0"); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
 
   const batchesQ = useQuery({ queryKey: qk.batches(tenant.id), queryFn: () => fetchBatches(tenant.id) });
   const studentsQ = useQuery({ queryKey: qk.students(tenant.id), queryFn: () => fetchStudents(tenant.id) });
@@ -121,6 +162,16 @@ function AttendancePage() {
   const batchNameById = useMemo(() => {
     const m = new Map<string, string>();
     for (const b of activeBatches) m.set(b.id, b.name);
+    return m;
+  }, [activeBatches]);
+  // Precomputed late thresholds per batch (in ms) — derived, not stored.
+  const batchLateThresholdById = useMemo(() => {
+    const today = format(new Date(), "yyyy-MM-dd");
+    const m = new Map<string, number | null>();
+    for (const b of activeBatches as Array<{ id: string; timing: string | null }>) {
+      const start = parseBatchStartMs(b.timing, today);
+      m.set(b.id, start == null ? null : start + LATE_GRACE_MS);
+    }
     return m;
   }, [activeBatches]);
 
@@ -164,12 +215,12 @@ function AttendancePage() {
       else if (state === "checked_out") { checkedOutToday++; present++; }
     }
     const notArrived = rosterStudents.length - present;
-    return { inAcademy, present, checkedOutToday, notArrived, total: rosterStudents.length };
+    const total = rosterStudents.length;
+    const pct = total > 0 ? Math.round((present / total) * 100) : 0;
+    return { inAcademy, present, checkedOutToday, notArrived, total, pct };
   }, [rosterStudents, stateByStudent]);
 
   // Grouped roster — Waiting / Present / Checked Out.
-  // Sorting: students with an upcoming action first (Present sorted by earliest
-  // check-in so those closest to leaving surface first), then alphabetical.
   const groups = useMemo(() => {
     const waiting: typeof rosterStudents = [];
     const present: typeof rosterStudents = [];
@@ -191,6 +242,86 @@ function AttendancePage() {
     return { waiting, present, done };
   }, [rosterStudents, stateByStudent]);
 
+  // Undo helpers — reuse existing schema. Undo check-in removes the row (only
+  // safe because we just created it and it's still the active row); undo
+  // check-out clears the check_out_at timestamp on the same row. No RPC/API
+  // additions, no realtime channel changes.
+  const undoCheckIn = useCallback(async (markId: string) => {
+    const { error } = await supabase.from("attendance_marks").delete().eq("id", markId);
+    if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: attendanceKeys.today(tenant.id) });
+  }, [qc, tenant.id]);
+  const undoCheckOut = useCallback(async (markId: string) => {
+    const { error } = await supabase.from("attendance_marks")
+      .update({ check_out_at: null, check_out_meta: {} })
+      .eq("id", markId);
+    if (error) { toast.error(error.message); return; }
+    qc.invalidateQueries({ queryKey: attendanceKeys.today(tenant.id) });
+  }, [qc, tenant.id]);
+
+  // Quick mode — after a successful check-in, scroll & flash the next waiting
+  // row so the coach can just keep tapping.
+  const rosterRef = useRef<HTMLDivElement>(null);
+  const focusNextWaiting = useCallback((afterStudentId: string) => {
+    if (!quickMode) return;
+    const container = rosterRef.current;
+    if (!container) return;
+    // Find the next data-waiting row after the current one, in DOM order.
+    const rows = Array.from(container.querySelectorAll<HTMLElement>('[data-waiting="1"]'));
+    const idx = rows.findIndex((el) => el.dataset.studentId === afterStudentId);
+    const next = rows[idx + 1] ?? rows.find((el) => el.dataset.studentId !== afterStudentId);
+    if (next) {
+      next.scrollIntoView({ behavior: "smooth", block: "center" });
+      next.classList.add("ring-2", "ring-primary/40");
+      window.setTimeout(() => next.classList.remove("ring-2", "ring-primary/40"), 900);
+    }
+  }, [quickMode]);
+
+  // Bulk actions. Reuses the plain `checkInStudent` / `checkOutStudent`
+  // mutations by kicking off requests in parallel, then a single invalidate.
+  const checkIn = useCheckIn();
+  const checkOut = useCheckOut(tenant.id);
+
+  const clearSelection = () => setSelected(new Set());
+  const toggleSelected = useCallback((id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const bulkCheckIn = async () => {
+    const items = groups.waiting.filter((s) => selected.has(s.id) && s.batch_id);
+    if (items.length === 0) { toast.error("Select waiting students first"); return; }
+    await Promise.allSettled(items.map((s) => checkIn.mutateAsync({
+      tenantId: tenant.id, batchId: s.batch_id!, studentId: s.id,
+    })));
+    toast.success(`Checked in ${items.length}`);
+    clearSelection();
+  };
+  const bulkCheckOut = async () => {
+    const items = groups.present.filter((s) => selected.has(s.id));
+    if (items.length === 0) { toast.error("Select present students first"); return; }
+    await Promise.allSettled(items.map((s) => {
+      const mark = stateByStudent.get(s.id);
+      return mark ? checkOut.mutateAsync({ markId: mark.mark_id }) : Promise.resolve();
+    }));
+    toast.success(`Checked out ${items.length}`);
+    clearSelection();
+  };
+  const markAllWaitingPresent = async () => {
+    if (groups.waiting.length === 0) { toast.error("Nobody is waiting"); return; }
+    // Single-confirm gate — the only guarded action per spec.
+    const ok = window.confirm(`Mark all ${groups.waiting.length} waiting students as present?`);
+    if (!ok) return;
+    await Promise.allSettled(groups.waiting.map((s) => s.batch_id ? checkIn.mutateAsync({
+      tenantId: tenant.id, batchId: s.batch_id, studentId: s.id,
+    }) : Promise.resolve()));
+    toast.success(`Marked ${groups.waiting.length} present`);
+    clearSelection();
+  };
+
   const isLoading = batchesQ.isLoading || studentsQ.isLoading || todayQ.isLoading;
   const isError = batchesQ.isError || studentsQ.isError || todayQ.isError;
 
@@ -202,7 +333,39 @@ function AttendancePage() {
           <h1 className="text-lg font-semibold tracking-tight leading-tight">Attendance</h1>
           <p className="text-[11px] text-muted-foreground leading-tight">{format(new Date(), "EEE, d MMM · h:mm a")}</p>
         </div>
-        <LiveBadge state="live" />
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={toggleQuick}
+            aria-pressed={quickMode}
+            aria-label="Toggle quick attendance mode"
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
+              quickMode
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-border/60 text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Zap className="size-3" /> Quick
+          </button>
+          {canMark ? (
+            <button
+              type="button"
+              onClick={() => { setSelectMode((v) => !v); clearSelection(); }}
+              aria-pressed={selectMode}
+              aria-label="Toggle bulk selection"
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
+                selectMode
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <CheckSquare className="size-3" /> Select
+            </button>
+          ) : null}
+          <LiveBadge state="live" />
+        </div>
       </div>
 
       {/* Sticky filter + search — always accessible while scrolling. */}
@@ -258,13 +421,52 @@ function AttendancePage() {
         />
       ) : (
         <>
-          {/* Compact KPI strip — 4-up so it fits above the fold. */}
-          <div className="grid grid-cols-4 gap-2">
+          {/* Progress summary — compact, derived, live via realtime. */}
+          <Card className="p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Today's attendance</p>
+                <p className="text-sm font-semibold tabular-nums">
+                  {kpis.present} / {kpis.total} Present
+                </p>
+              </div>
+              <p className="text-lg font-semibold tabular-nums">{kpis.pct}%</p>
+            </div>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted" aria-hidden>
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-[width] duration-300"
+                style={{ width: `${kpis.pct}%` }}
+              />
+            </div>
+          </Card>
+
+          {/* Compact KPI strip. */}
+          <div className="mt-2 grid grid-cols-4 gap-2">
             <StatCard label="Waiting" value={kpis.notArrived} tone="default" />
             <StatCard label="In Academy" value={kpis.inAcademy} tone="success" />
             <StatCard label="Checked Out" value={kpis.checkedOutToday} tone="default" />
             <StatCard label="Total" value={kpis.total} tone="default" />
           </div>
+
+          {/* Bulk action bar. */}
+          {selectMode ? (
+            <div className="sticky top-[7.25rem] z-10 mt-2 flex flex-wrap items-center gap-1.5 rounded-lg border border-border/60 bg-background/95 p-2 backdrop-blur">
+              <span className="text-xs text-muted-foreground">
+                {selected.size} selected
+              </span>
+              <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                <Button size="sm" variant="secondary" onClick={bulkCheckIn} className="min-h-9">
+                  Check In Selected
+                </Button>
+                <Button size="sm" variant="secondary" onClick={bulkCheckOut} className="min-h-9">
+                  Check Out Selected
+                </Button>
+                <Button size="sm" variant="outline" onClick={markAllWaitingPresent} className="min-h-9">
+                  Mark all present
+                </Button>
+              </div>
+            </div>
+          ) : null}
 
           {rosterStudents.length === 0 ? (
             <EmptyState
@@ -272,7 +474,7 @@ function AttendancePage() {
               description={query ? "Try a different name, player ID or number." : "Change the session filter or add students to a batch."}
             />
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3" ref={rosterRef}>
               <RosterGroup
                 title="Waiting"
                 dot="bg-muted-foreground/60"
@@ -284,6 +486,13 @@ function AttendancePage() {
                 stateByStudent={stateByStudent}
                 canMark={canMark}
                 tenantId={tenant.id}
+                lateThresholdByBatch={batchLateThresholdById}
+                selectMode={selectMode}
+                selected={selected}
+                onToggleSelected={toggleSelected}
+                onCheckedIn={focusNextWaiting}
+                onUndoCheckIn={undoCheckIn}
+                onUndoCheckOut={undoCheckOut}
               />
               <RosterGroup
                 title="Present"
@@ -296,18 +505,32 @@ function AttendancePage() {
                 stateByStudent={stateByStudent}
                 canMark={canMark}
                 tenantId={tenant.id}
+                lateThresholdByBatch={batchLateThresholdById}
+                selectMode={selectMode}
+                selected={selected}
+                onToggleSelected={toggleSelected}
+                onCheckedIn={focusNextWaiting}
+                onUndoCheckIn={undoCheckIn}
+                onUndoCheckOut={undoCheckOut}
               />
               <RosterGroup
                 title="Checked Out"
                 dot="bg-sky-500"
                 count={groups.done.length}
                 defaultOpen={false}
-                empty="No one has checked out yet."
+                empty="No players have checked out yet."
                 students={groups.done}
                 batchNameById={batchNameById}
                 stateByStudent={stateByStudent}
                 canMark={canMark}
                 tenantId={tenant.id}
+                lateThresholdByBatch={batchLateThresholdById}
+                selectMode={selectMode}
+                selected={selected}
+                onToggleSelected={toggleSelected}
+                onCheckedIn={focusNextWaiting}
+                onUndoCheckIn={undoCheckIn}
+                onUndoCheckOut={undoCheckOut}
               />
             </div>
           )}
@@ -321,42 +544,57 @@ function AttendancePage() {
 // Group
 // ---------------------------------------------------------------------------
 
-function RosterGroup({
-  title,
-  dot,
-  count,
-  defaultOpen,
-  empty,
-  students,
-  batchNameById,
-  stateByStudent,
-  canMark,
-  tenantId,
-}: {
+interface StudentLite {
+  id: string;
+  name: string;
+  photo_url: string | null;
+  player_id: string | null;
+  batch_id: string | null;
+}
+
+interface TodayRow {
+  mark_id: string;
+  batch_id: string;
+  current_state: AttendanceState;
+  check_in_at: string | null;
+  check_out_at: string | null;
+  duration_minutes: number | null;
+  visit_count?: number;
+}
+
+interface GroupProps {
   title: string;
   dot: string;
   count: number;
   defaultOpen: boolean;
   empty: string;
-  students: Array<{
-    id: string;
-    name: string;
-    photo_url: string | null;
-    player_id: string | null;
-    batch_id: string | null;
-  }>;
+  students: StudentLite[];
   batchNameById: Map<string, string>;
   stateByStudent: Map<string, TodayRow>;
   canMark: boolean;
   tenantId: string;
-}) {
+  lateThresholdByBatch: Map<string, number | null>;
+  selectMode: boolean;
+  selected: Set<string>;
+  onToggleSelected: (id: string) => void;
+  onCheckedIn: (studentId: string) => void;
+  onUndoCheckIn: (markId: string) => void;
+  onUndoCheckOut: (markId: string) => void;
+}
+
+function RosterGroup(props: GroupProps) {
+  const {
+    title, dot, count, defaultOpen, empty, students,
+    batchNameById, stateByStudent, canMark, tenantId, lateThresholdByBatch,
+    selectMode, selected, onToggleSelected, onCheckedIn, onUndoCheckIn, onUndoCheckOut,
+  } = props;
   const [open, setOpen] = useState(defaultOpen);
   return (
     <section>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 px-0.5 py-1.5"
+        className="flex w-full items-center justify-between gap-2 px-0.5 py-1.5 min-h-9"
         aria-expanded={open}
       >
         <span className="flex items-center gap-2">
@@ -381,6 +619,13 @@ function RosterGroup({
                 row={stateByStudent.get(s.id)}
                 canMark={canMark}
                 tenantId={tenantId}
+                lateAfterMs={s.batch_id ? lateThresholdByBatch.get(s.batch_id) ?? null : null}
+                selectMode={selectMode}
+                isSelected={selected.has(s.id)}
+                onToggleSelected={onToggleSelected}
+                onCheckedIn={onCheckedIn}
+                onUndoCheckIn={onUndoCheckIn}
+                onUndoCheckOut={onUndoCheckOut}
               />
             ))}
           </Card>
@@ -394,41 +639,42 @@ function RosterGroup({
 // Row
 // ---------------------------------------------------------------------------
 
-interface StudentLite {
-  id: string;
-  name: string;
-  photo_url: string | null;
-  player_id: string | null;
-  batch_id: string | null;
-}
-
-interface TodayRow {
-  mark_id: string;
-  batch_id: string;
-  current_state: AttendanceState;
-  check_in_at: string | null;
-  check_out_at: string | null;
-  duration_minutes: number | null;
-  visit_count?: number;
-}
-
 function StudentRow({
   student,
   batchName,
   row,
   canMark,
   tenantId,
+  lateAfterMs,
+  selectMode,
+  isSelected,
+  onToggleSelected,
+  onCheckedIn,
+  onUndoCheckIn,
+  onUndoCheckOut,
 }: {
   student: StudentLite;
   batchName: string | null;
   row: TodayRow | undefined;
   canMark: boolean;
   tenantId: string;
+  lateAfterMs: number | null;
+  selectMode: boolean;
+  isSelected: boolean;
+  onToggleSelected: (id: string) => void;
+  onCheckedIn: (studentId: string) => void;
+  onUndoCheckIn: (markId: string) => void;
+  onUndoCheckOut: (markId: string) => void;
 }) {
   const state: AttendanceState = row?.current_state ?? "not_marked";
   const checkIn = useCheckIn();
   const checkOut = useCheckOut(tenantId);
   const busy = checkIn.isPending || checkOut.isPending;
+
+  // Late = checked in after the batch's grace threshold. Derived, not stored.
+  const isLate = !!(
+    row?.check_in_at && lateAfterMs != null && new Date(row.check_in_at).getTime() > lateAfterMs
+  );
 
   const onCheckIn = () => {
     if (!student.batch_id) {
@@ -438,17 +684,37 @@ function StudentRow({
     checkIn.mutate(
       { tenantId, batchId: student.batch_id, studentId: student.id },
       {
-        onSuccess: () => toast.success(`${student.name} checked in`),
+        onSuccess: () => {
+          // Undo uses fresh mark id (from the invalidated `today` query).
+          toast.success(`${student.name} checked in`, {
+            duration: 5000,
+            action: {
+              label: "Undo",
+              onClick: () => {
+                const qc = window as unknown as { __qc?: unknown }; // no-op ref
+                void qc;
+                // Look up the freshly-created mark id from cache-invalidated data.
+                // The parent's invalidate has fired; we re-read via a callback.
+                deferredUndoCheckIn(student.id, onUndoCheckIn);
+              },
+            },
+          });
+          onCheckedIn(student.id);
+        },
         onError: (e: Error) => toast.error(e.message || "Check-in failed"),
       },
     );
   };
   const onCheckOut = () => {
     if (!row) return;
+    const markId = row.mark_id;
     checkOut.mutate(
-      { markId: row.mark_id },
+      { markId },
       {
-        onSuccess: () => toast.success(`${student.name} checked out`),
+        onSuccess: () => toast.success(`${student.name} checked out`, {
+          duration: 5000,
+          action: { label: "Undo", onClick: () => onUndoCheckOut(markId) },
+        }),
         onError: (e: Error) => toast.error(e.message || "Check-out failed"),
       },
     );
@@ -457,56 +723,108 @@ function StudentRow({
   const idLine = [student.player_id, batchName].filter(Boolean).join(" · ");
 
   return (
-    <ListItem
-      leading={<PersonAvatar name={student.name} src={student.photo_url} className="size-10" />}
-      title={student.name}
-      subtitle={
-        <div className="flex flex-col gap-0.5">
-          {idLine ? <span className="text-xs text-muted-foreground">{idLine}</span> : null}
-          <StateSummary state={state} row={row} />
-        </div>
-      }
-      trailing={
-        canMark ? (
-          <div className="flex items-center gap-1.5">
-            {state === "in_academy" ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={onCheckOut}
-                disabled={busy}
-                className="min-h-9"
-                aria-label={`Check out ${student.name}`}
-              >
-                <LogOut className="size-4" /> Check Out
-              </Button>
-            ) : state === "checked_out" ? (
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled
-                className="min-h-9 text-emerald-600 dark:text-emerald-400"
-                aria-label={`${student.name} completed`}
-              >
-                <CheckCircle2 className="size-4" /> Completed
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="default"
-                onClick={onCheckIn}
-                disabled={busy}
-                className="min-h-9"
-                aria-label={`Check in ${student.name}`}
-              >
-                <LogIn className="size-4" /> Check In
-              </Button>
-            )}
+    <div
+      data-student-id={student.id}
+      data-waiting={state === "not_marked" ? "1" : "0"}
+      className={cn(
+        "rounded-md transition-shadow",
+        selectMode && isSelected ? "bg-primary/5" : "",
+      )}
+    >
+      <ListItem
+        leading={
+          <div className="flex items-center gap-2">
+            {selectMode && canMark ? (
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => onToggleSelected(student.id)}
+                aria-label={`Select ${student.name}`}
+                className="size-4 rounded border-border"
+              />
+            ) : null}
+            <PersonAvatar name={student.name} src={student.photo_url} className="size-10" />
           </div>
-        ) : null
-      }
-    />
+        }
+        title={
+          <span className="inline-flex items-center gap-1.5">
+            {student.name}
+            {isLate ? (
+              <span
+                className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400"
+                aria-label="Arrived late"
+              >
+                Late
+              </span>
+            ) : null}
+          </span>
+        }
+        subtitle={
+          <div className="flex flex-col gap-0.5">
+            {idLine ? <span className="text-xs text-muted-foreground">{idLine}</span> : null}
+            <StateSummary state={state} row={row} />
+          </div>
+        }
+        trailing={
+          canMark ? (
+            <div className="flex items-center gap-1.5">
+              {state === "in_academy" ? (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={onCheckOut}
+                  disabled={busy}
+                  className="min-h-11 min-w-11"
+                  aria-label={`Check out ${student.name}`}
+                >
+                  <LogOut className="size-4" /> Check Out
+                </Button>
+              ) : state === "checked_out" ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled
+                  className="min-h-11 min-w-11 text-emerald-600 dark:text-emerald-400"
+                  aria-label={`${student.name} completed`}
+                >
+                  <CheckCircle2 className="size-4" /> Completed
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={onCheckIn}
+                  disabled={busy}
+                  className="min-h-11 min-w-11"
+                  aria-label={`Check in ${student.name}`}
+                >
+                  <LogIn className="size-4" /> Check In
+                </Button>
+              )}
+            </div>
+          ) : null
+        }
+      />
+    </div>
   );
+}
+
+/**
+ * Fetch the just-created mark id for a student via the shared attendance_today
+ * view and hand it to the undo helper. Runs slightly after the invalidate so
+ * we get the fresh row without adding a new query key.
+ */
+function deferredUndoCheckIn(studentId: string, undo: (markId: string) => void) {
+  setTimeout(async () => {
+    const { data } = await supabase
+      .from("attendance_today")
+      .select("mark_id, student_id, current_state")
+      .eq("student_id", studentId)
+      .eq("current_state", "in_academy")
+      .limit(1)
+      .maybeSingle();
+    if (data?.mark_id) undo(data.mark_id);
+  }, 250);
 }
 
 function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | undefined }) {
