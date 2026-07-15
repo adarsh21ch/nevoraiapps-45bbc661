@@ -362,6 +362,3 @@ function SidebarInner({
     </div>
   );
 }
-    </div>
-  );
-}
