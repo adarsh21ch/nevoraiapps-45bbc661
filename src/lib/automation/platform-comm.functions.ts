@@ -263,7 +263,9 @@ export const setProviderPriority = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertPlatformAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = { priority: data.priority };
+    const patch: { priority: number; role?: string; enabled?: boolean } = {
+      priority: data.priority,
+    };
     if (data.role) patch.role = data.role;
     if (typeof data.enabled === "boolean") patch.enabled = data.enabled;
     const { error } = await supabaseAdmin
