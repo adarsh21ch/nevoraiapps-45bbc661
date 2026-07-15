@@ -87,7 +87,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
   const { t } = useT();
   // Phase 3 — role via has_role / current_role RPC (usePermissions).
-  const { isOwner } = usePermissions();
+  const { isOwner, isCoach: isCoachRole, isHeadCoach, isAssistantCoach } = usePermissions();
+  const isAnyCoach = isCoachRole || isHeadCoach || isAssistantCoach;
 
   // Single source of truth for the "new registration" badge — status='new'.
   const newRegCount = useNewRegistrationsCount(tenant.id);
