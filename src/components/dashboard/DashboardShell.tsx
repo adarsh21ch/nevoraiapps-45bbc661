@@ -164,11 +164,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <SidebarInner
             tenant={tenant}
             primary={primary}
-            secondary={secondary}
+            operations={operations}
             onSignOut={signOut}
             role={profile.role}
           />
         </aside>
+
 
         <main className="flex-1 p-4 md:p-8 max-w-6xl mx-auto w-full pb-32 md:pb-8">
           <div className="mb-4"><TrialBanner /></div>
