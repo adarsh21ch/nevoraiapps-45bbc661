@@ -186,11 +186,15 @@ function CoachHome() {
 }
 
 function QuickActions() {
+  const { isHeadCoach, isOwner, isAdmin } = usePermissions();
+  const showApprovals = isHeadCoach || isOwner || isAdmin;
   const items = [
-    { to: "/dashboard/attendance", label: "Mark attendance", icon: ClipboardCheck },
+    { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
     { to: "/dashboard/students", label: "Students", icon: Users },
-    { to: "/match-center/live", label: "Live match", icon: Trophy },
-    { to: "/dashboard/communications", label: "Announce", icon: Megaphone },
+    { to: "/dashboard/coach/analytics", label: "Analytics", icon: BarChart3 },
+    showApprovals
+      ? { to: "/dashboard/coach/approvals", label: "Approvals", icon: ShieldCheck }
+      : { to: "/dashboard/communications", label: "Announce", icon: Megaphone },
   ] as const;
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
