@@ -93,7 +93,9 @@ type Template = {
   name: string;
   body: string;
   enabled: boolean;
+  category: string;
 };
+type Channel = { channel: string; display_name: string; description: string | null; enabled: boolean };
 type Delivery = {
   id: string;
   tenant_id: string;
@@ -109,13 +111,18 @@ type Delivery = {
 
 const TABS = [
   { key: "dashboard", label: "Dashboard", icon: BarChart3 },
+  { key: "channels", label: "Channels", icon: Radio },
   { key: "providers", label: "Providers", icon: Layers },
+  { key: "priority", label: "Priority", icon: SlidersHorizontal },
   { key: "accounts", label: "Accounts", icon: Server },
   { key: "templates", label: "Templates", icon: MessageSquare },
-  { key: "queue", label: "Delivery Queue", icon: Inbox },
-  { key: "logs", label: "Delivery Logs", icon: ScrollText },
+  { key: "preview", label: "Preview", icon: Eye },
+  { key: "sandbox", label: "Sandbox", icon: FlaskConical },
+  { key: "monitor", label: "Monitor", icon: Gauge },
+  { key: "queue", label: "Queue", icon: Inbox },
+  { key: "logs", label: "Logs", icon: ScrollText },
   { key: "health", label: "Health", icon: Activity },
-  { key: "costs", label: "Costs & Usage", icon: Coins },
+  { key: "costs", label: "Costs", icon: Coins },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -128,8 +135,10 @@ function CommunicationInfrastructurePage() {
   const accountsFn = useServerFn(listCommAccounts);
   const activeFn = useServerFn(listCommActive);
   const templatesFn = useServerFn(listCommTemplates);
+  const channelsFn = useServerFn(listCommChannels);
   const deliveriesFn = useServerFn(listRecentDeliveries);
   const healthFn = useServerFn(getGatewayHealth);
+  const monitorFn = useServerFn(getCommMonitor);
 
   const providers = useQuery({ queryKey: ["pc-providers"], queryFn: () => providersFn() });
   const accounts = useQuery({ queryKey: ["pc-accounts"], queryFn: () => accountsFn() });
