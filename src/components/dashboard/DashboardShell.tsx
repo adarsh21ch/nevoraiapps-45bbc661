@@ -21,6 +21,7 @@ import {
   Megaphone,
   Settings as SettingsIcon,
   ChevronDown,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
@@ -37,18 +38,22 @@ type NavItem = {
   label: string;
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   requiresFeature?: "fee_tracking";
+  ownerOnly?: boolean;
+  adminOnly?: boolean;
 };
 
-// Unified IA — matches mobile bottom nav (Home · Attendance · Fees · Operations · Profile).
-// Owner/Admin sidebar top-level:
+// Unified IA — matches mobile bottom nav.
+// Owner: Home · Attendance · Fees · Manage · Profile
+// Admin: Home · Attendance · Performance · Manage · Profile (no finance)
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-  { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking", ownerOnly: true },
+  { to: "/dashboard/insights", label: "Performance", icon: TrendingUp, adminOnly: true },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
-// Operations — expands to expose the full academy toolset. Single source of
+// Manage — expands to expose the full academy toolset. Single source of
 // truth: nothing here is repeated in `primaryNav`.
 const operationsNav: NavItem[] = [
   { to: "/dashboard/students", label: "Players", icon: Users },
@@ -84,9 +89,12 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   });
 
   const features = getFeatures(tenant);
+  const isOwner = profile?.role === "owner";
   const withBadges = (items: NavItem[]) =>
     items
       .filter((n) => !n.requiresFeature || features[n.requiresFeature] !== false)
+      .filter((n) => (n.ownerOnly ? isOwner : true))
+      .filter((n) => (n.adminOnly ? !isOwner : true))
       .map((n) => {
         const label = t(n.label);
         let badge: number | undefined;

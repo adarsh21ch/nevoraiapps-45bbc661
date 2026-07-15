@@ -48,6 +48,7 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as StudentProgressRouteImport } from './routes/student.progress'
 import { Route as StudentProfileRouteImport } from './routes/student.profile'
 import { Route as StudentMatchesRouteImport } from './routes/student.matches'
+import { Route as StudentManageRouteImport } from './routes/student.manage'
 import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
 import { Route as PoliciesKindRouteImport } from './routes/policies.$kind'
 import { Route as PlatformAdminUsageRouteImport } from './routes/platform-admin.usage'
@@ -311,6 +312,11 @@ const StudentProfileRoute = StudentProfileRouteImport.update({
 const StudentMatchesRoute = StudentMatchesRouteImport.update({
   id: '/matches',
   path: '/matches',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentManageRoute = StudentManageRouteImport.update({
+  id: '/manage',
+  path: '/manage',
   getParentRoute: () => StudentRoute,
 } as any)
 const ScorerMatchIdRoute = ScorerMatchIdRouteImport.update({
@@ -755,6 +761,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/progress': typeof StudentProgressRoute
@@ -860,6 +867,7 @@ export interface FileRoutesByTo {
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/progress': typeof StudentProgressRoute
@@ -971,6 +979,7 @@ export interface FileRoutesById {
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/progress': typeof StudentProgressRoute
@@ -1083,6 +1092,7 @@ export interface FileRouteTypes {
     | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
+    | '/student/manage'
     | '/student/matches'
     | '/student/profile'
     | '/student/progress'
@@ -1188,6 +1198,7 @@ export interface FileRouteTypes {
     | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
+    | '/student/manage'
     | '/student/matches'
     | '/student/profile'
     | '/student/progress'
@@ -1298,6 +1309,7 @@ export interface FileRouteTypes {
     | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
+    | '/student/manage'
     | '/student/matches'
     | '/student/profile'
     | '/student/progress'
@@ -1638,6 +1650,13 @@ declare module '@tanstack/react-router' {
       path: '/matches'
       fullPath: '/student/matches'
       preLoaderRoute: typeof StudentMatchesRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/manage': {
+      id: '/student/manage'
+      path: '/manage'
+      fullPath: '/student/manage'
+      preLoaderRoute: typeof StudentManageRouteImport
       parentRoute: typeof StudentRoute
     }
     '/scorer/$matchId': {
@@ -2330,6 +2349,7 @@ const PlatformAdminRouteWithChildren = PlatformAdminRoute._addFileChildren(
 )
 
 interface StudentRouteChildren {
+  StudentManageRoute: typeof StudentManageRoute
   StudentMatchesRoute: typeof StudentMatchesRoute
   StudentProfileRoute: typeof StudentProfileRoute
   StudentProgressRoute: typeof StudentProgressRoute
@@ -2337,6 +2357,7 @@ interface StudentRouteChildren {
 }
 
 const StudentRouteChildren: StudentRouteChildren = {
+  StudentManageRoute: StudentManageRoute,
   StudentMatchesRoute: StudentMatchesRoute,
   StudentProfileRoute: StudentProfileRoute,
   StudentProgressRoute: StudentProgressRoute,

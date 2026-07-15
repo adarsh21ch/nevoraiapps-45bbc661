@@ -2,10 +2,7 @@ import {
   LayoutDashboard,
   ClipboardCheck,
   IndianRupee,
-  Users,
   UserCircle,
-  Swords,
-  Activity,
   TrendingUp,
   Building2,
 } from "lucide-react";
@@ -21,7 +18,9 @@ export type NavItem = {
 };
 
 /**
- * Role-based bottom nav configs. Each role gets 5 tabs (one-hand thumb reach).
+ * Role-based bottom nav configs. Reflects the user's daily workflow —
+ * Owner: operations + finance. Admin: operations + performance (no finance).
+ * Player/Parent: personal progress.
  */
 export const navByRole: Record<AppRole, NavItem[]> = {
   owner: [
@@ -29,22 +28,19 @@ export const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
     { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
     { to: "/dashboard/academy", label: "Manage", icon: Building2 },
-
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],
   admin: [
     { to: "/dashboard", label: "Home", icon: LayoutDashboard },
     { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-    { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
+    { to: "/dashboard/insights", label: "Performance", icon: TrendingUp },
     { to: "/dashboard/academy", label: "Manage", icon: Building2 },
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],
-
   student: [
     { to: "/student", label: "Home", icon: LayoutDashboard },
-    { to: "/student/progress", label: "Progress", icon: TrendingUp },
-    { to: "/student/matches", label: "Matches", icon: Swords },
+    { to: "/student/progress", label: "Performance", icon: TrendingUp },
+    { to: "/student/manage", label: "Manage", icon: Building2 },
     { to: "/student/profile", label: "Profile", icon: UserCircle },
   ],
-
 };

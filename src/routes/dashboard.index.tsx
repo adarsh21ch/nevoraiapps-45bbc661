@@ -28,6 +28,16 @@ import {
   Activity,
   CheckCircle2,
   Cake,
+  QrCode,
+  Megaphone,
+  BarChart3,
+  Share2,
+  Search,
+  MessageSquareQuote,
+  CalendarDays,
+  FileText,
+  Mail,
+  CalendarCheck2,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -227,20 +237,10 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* ─── Section 2 · Quick actions ───────────────────────────────── */}
+      {/* ─── Section 2 · Quick actions (role-based, 4×2 grid) ─────────── */}
       <section aria-label="Quick actions">
         <SectionLabel>Quick actions</SectionLabel>
-        <div className="grid grid-cols-4 gap-2 md:grid-cols-5">
-          <QuickAction to="/dashboard/attendance" label="Attendance" icon={<ClipboardCheck className="size-5" />} />
-          <QuickAction to="/dashboard/registrations" label="Register" icon={<UserPlus className="size-5" />} />
-          {canScoreMatch ? (
-            <QuickAction to="/match-center" label="Match" icon={<Swords className="size-5" />} />
-          ) : null}
-          <QuickAction to="/dashboard/students" label="Players" icon={<Users className="size-5" />} />
-          {canViewFees && feeEnabled ? (
-            <QuickAction to="/dashboard/fees" label="Fees" icon={<Wallet className="size-5" />} />
-          ) : null}
-        </div>
+        <QuickActionsGrid role={role} canScoreMatch={canScoreMatch} />
       </section>
 
       {/* ─── Section 3 · Today's activity ────────────────────────────── */}
@@ -440,6 +440,58 @@ function QuickAction({
         {label}
       </span>
     </Link>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Role-based Quick Actions — fixed 4×2 grid, max 8, launch workflows.
+// Never duplicates items already available in the bottom navigation
+// (Attendance, Fees, Manage, Profile).
+// ---------------------------------------------------------------------------
+
+type QAItem = { to: string; label: string; icon: React.ReactNode };
+
+function QuickActionsGrid({
+  role,
+  canScoreMatch,
+}: {
+  role: "owner" | "admin" | "student";
+  canScoreMatch: boolean;
+}) {
+  const ownerActions: QAItem[] = [
+    { to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
+    { to: "/dashboard/registrations", label: "New Registration", icon: <Inbox className="size-5" /> },
+    { to: "/dashboard/batches", label: "Create Batch", icon: <CalendarDays className="size-5" /> },
+    ...(canScoreMatch
+      ? [{ to: "/match-center", label: "Start Match", icon: <Swords className="size-5" /> } as QAItem]
+      : []),
+    { to: "/dashboard/communications", label: "Send Announcement", icon: <Megaphone className="size-5" /> },
+    { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
+    { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> },
+    { to: "/dashboard/site", label: "Share Website", icon: <Share2 className="size-5" /> },
+  ];
+
+  const adminActions: QAItem[] = [
+    { to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
+    { to: "/dashboard/registrations", label: "New Registration", icon: <Inbox className="size-5" /> },
+    { to: "/dashboard/batches", label: "Create Batch", icon: <CalendarDays className="size-5" /> },
+    { to: "/dashboard/attendance", label: "QR Scanner", icon: <QrCode className="size-5" /> },
+    { to: "/dashboard/students", label: "Search Player", icon: <Search className="size-5" /> },
+    ...(canScoreMatch
+      ? [{ to: "/match-center", label: "Start Match", icon: <Swords className="size-5" /> } as QAItem]
+      : []),
+    { to: "/dashboard/communications", label: "Send Announcement", icon: <Megaphone className="size-5" /> },
+    { to: "/dashboard/insights", label: "Performance", icon: <TrendingUp className="size-5" /> },
+  ];
+
+  const items = (role === "owner" ? ownerActions : adminActions).slice(0, 8);
+
+  return (
+    <div className="grid grid-cols-4 grid-rows-2 gap-2">
+      {items.map((a) => (
+        <QuickAction key={`${a.to}-${a.label}`} to={a.to} label={a.label} icon={a.icon} />
+      ))}
+    </div>
   );
 }
 
