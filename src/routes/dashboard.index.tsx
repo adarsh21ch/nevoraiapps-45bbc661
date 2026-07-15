@@ -23,21 +23,14 @@ import {
   Sparkles,
   AlertCircle,
   TrendingUp,
-  TrendingDown,
-  Wallet,
   Activity,
-  CheckCircle2,
   Cake,
   QrCode,
   Megaphone,
   BarChart3,
   Share2,
-  Search,
-  MessageSquareQuote,
   CalendarDays,
-  FileText,
-  Mail,
-  CalendarCheck2,
+  CheckCircle2,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -288,27 +281,19 @@ function DashboardHome() {
       {/* ─── Section 3b · Cricket today (Match Center integration) ────── */}
       {canScoreMatch && <CricketToday tenantId={tenant.id} />}
 
-      {/* ─── Section 4 · Today's insights ────────────────────────────── */}
-      <section aria-label="Today's insights">
-        <SectionLabel>Today's insights</SectionLabel>
-        <InsightsRow
-          attPct={attPct}
+      {/* ─── Section 4 · Next actions (actionable only, no duplicate KPIs) */}
+      <section aria-label="Next actions">
+        <SectionLabel>Next actions</SectionLabel>
+        <NextActions
           notArrived={notArrived}
-          pendingFees={canViewFees && feeEnabled ? pendingFees : null}
+          pendingFees={canViewFees && feeEnabled ? pendingFees : 0}
           newRegs={newRegs}
-          collectedMonth={canViewFees && feeEnabled ? collectedMonth : null}
-          birthdaysCount={insights?.birthdays.length ?? 0}
-          nextBirthday={insights?.birthdays[0] ?? null}
-          isLoading={insightsQ.isLoading || kpisQ.isLoading}
-        />
-      </section>
-
-      {/* ─── Section 5 · Live status footer ──────────────────────────── */}
-      <section aria-label="Live status" className="pt-1">
-        <LiveStatusStrip
-          inAcademy={inAcademy}
-          totalToday={attTotal}
-          isLoading={attendanceLoading}
+          birthdaysToday={
+            (insights?.birthdays ?? []).filter((b) => b.daysAway === 0).length
+          }
+          isLoading={
+            attendanceLoading || insightsQ.isLoading || kpisQ.isLoading
+          }
         />
       </section>
     </div>
@@ -503,16 +488,16 @@ function QuickActionsGrid({
   ];
 
   const adminActions: QAItem[] = [
+    { to: "/dashboard/attendance", label: "Check Attendance", icon: <ClipboardCheck className="size-5" /> },
     { to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
     { to: "/dashboard/registrations", label: "New Registration", icon: <Inbox className="size-5" /> },
-    { to: "/dashboard/batches", label: "Create Batch", icon: <CalendarDays className="size-5" /> },
-    { to: "/dashboard/attendance", label: "QR Scanner", icon: <QrCode className="size-5" /> },
-    { to: "/dashboard/students", label: "Search Player", icon: <Search className="size-5" /> },
     ...(canScoreMatch
       ? [{ to: "/match-center", label: "Start Match", icon: <Swords className="size-5" /> } as QAItem]
       : []),
+    { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> },
+    { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     { to: "/dashboard/communications", label: "Send Announcement", icon: <Megaphone className="size-5" /> },
-    { to: "/dashboard/insights", label: "Performance", icon: <TrendingUp className="size-5" /> },
+    { to: "/dashboard/students", label: "Player List", icon: <Users className="size-5" /> },
   ];
 
   const items = (role === "owner" ? ownerActions : adminActions).slice(0, 8);
@@ -661,245 +646,135 @@ function activityMeta(kind: ActivityEvent["kind"]): {
 }
 
 // ---------------------------------------------------------------------------
-// Insight cards — small, opinionated, single number per card.
+// Next actions — actionable items only. Never duplicates a KPI above.
 // ---------------------------------------------------------------------------
 
-function InsightsRow({
-  attPct,
+type NextAction = {
+  key: string;
+  to: string;
+  search?: Record<string, string>;
+  title: string;
+  cta: string;
+  tone: Tone;
+  icon: React.ReactNode;
+};
+
+function NextActions({
   notArrived,
   pendingFees,
   newRegs,
-  collectedMonth,
-  birthdaysCount,
-  nextBirthday,
+  birthdaysToday,
   isLoading,
 }: {
-  attPct: number;
   notArrived: number;
-  pendingFees: number | null;
+  pendingFees: number;
   newRegs: number;
-  collectedMonth: number | null;
-  birthdaysCount: number;
-  nextBirthday: {
-    id: string;
-    name: string;
-    photoUrl: string | null;
-    daysAway: number;
-  } | null;
+  birthdaysToday: number;
   isLoading: boolean;
 }) {
-  const cards: React.ReactNode[] = [];
-
-  cards.push(
-    <InsightCard
-      key="att"
-      to="/dashboard/attendance"
-      title={
-        attPct >= 80 ? "Attendance is strong" : attPct >= 60 ? "Attendance is steady" : "Attendance is low"
-      }
-      value={`${attPct}%`}
-      hint="today"
-      trend={attPct >= 80 ? "up" : attPct >= 60 ? "flat" : "down"}
-      loading={isLoading}
-    />,
-  );
-
-  cards.push(
-    <InsightCard
-      key="arrive"
-      to="/dashboard/attendance"
-      title={notArrived > 0 ? "Yet to arrive" : "Everyone accounted for"}
-      value={notArrived > 0 ? String(notArrived) : "✓"}
-      hint={notArrived > 0 ? "not marked" : "all present"}
-      trend={notArrived > 0 ? "flat" : "up"}
-      loading={isLoading}
-    />,
-  );
-
-  if (pendingFees != null) {
-    cards.push(
-      <InsightCard
-        key="fees"
-        to="/dashboard/fees"
-        search={{ filter: "pending" }}
-        title={pendingFees > 0 ? "Fees overdue" : "Fees on track"}
-        value={pendingFees > 0 ? String(pendingFees) : "✓"}
-        hint={pendingFees > 0 ? "to collect" : "all paid"}
-        trend={pendingFees > 0 ? "down" : "up"}
-        loading={isLoading}
-      />,
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-3 space-y-2">
+        {[0, 1].map((i) => (
+          <div key={i} className="flex items-center gap-3 py-1.5">
+            <Skeleton className="size-8 rounded-full" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3 w-2/3" />
+              <Skeleton className="h-2.5 w-1/3" />
+            </div>
+          </div>
+        ))}
+      </div>
     );
   }
 
-  if (collectedMonth != null && collectedMonth > 0) {
-    cards.push(
-      <InsightCard
-        key="collected"
-        to="/dashboard/fees"
-        title="Collected this month"
-        value={money(collectedMonth)}
-        hint={format(new Date(), "MMMM")}
-        trend="up"
-        loading={isLoading}
-      />,
-    );
+  const items: NextAction[] = [];
+  if (notArrived > 0) {
+    items.push({
+      key: "attendance",
+      to: "/dashboard/attendance",
+      title: `${notArrived} ${notArrived === 1 ? "player" : "players"} still waiting for attendance`,
+      cta: "Open Attendance",
+      tone: "warn",
+      icon: <ClipboardCheck className="size-4" />,
+    });
   }
-
+  if (pendingFees > 0) {
+    items.push({
+      key: "fees",
+      to: "/dashboard/fees",
+      search: { filter: "pending" },
+      title: `${pendingFees} fee ${pendingFees === 1 ? "collection" : "collections"} pending`,
+      cta: "Open Fees",
+      tone: "warn",
+      icon: <IndianRupee className="size-4" />,
+    });
+  }
   if (newRegs > 0) {
-    cards.push(
-      <InsightCard
-        key="regs"
-        to="/dashboard/registrations"
-        title="New registrations"
-        value={String(newRegs)}
-        hint="review inbox"
-        trend="up"
-        loading={isLoading}
-      />,
-    );
+    items.push({
+      key: "regs",
+      to: "/dashboard/registrations",
+      title: `${newRegs} new ${newRegs === 1 ? "registration" : "registrations"} waiting`,
+      cta: "Open Registrations",
+      tone: "brand",
+      icon: <Inbox className="size-4" />,
+    });
+  }
+  if (birthdaysToday > 0) {
+    items.push({
+      key: "bday",
+      to: "/dashboard/students",
+      title: `${birthdaysToday} ${birthdaysToday === 1 ? "birthday" : "birthdays"} today`,
+      cta: "Wish them",
+      tone: "success",
+      icon: <Cake className="size-4" />,
+    });
   }
 
-  if (nextBirthday) {
-    cards.push(
-      <BirthdayInsight key="bday" birthday={nextBirthday} more={birthdaysCount - 1} />,
+  if (items.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card px-4 py-5 text-center">
+        <div className="mx-auto grid size-9 place-items-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+          <CheckCircle2 className="size-4" />
+        </div>
+        <div className="mt-2 text-sm font-semibold">Everything looks good today 🎉</div>
+        <div className="text-[11px] text-muted-foreground">
+          No pending actions. You're all caught up.
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
-      {cards}
+    <div className="rounded-2xl border border-border bg-card overflow-hidden">
+      <ul className="divide-y divide-border/60">
+        {items.map((a) => (
+          <li key={a.key}>
+            <Link
+              to={a.to}
+              search={a.search as never}
+              className="flex items-center gap-3 px-3 py-3 hover:bg-accent/40 active:scale-[0.99] transition-all"
+            >
+              <span
+                className="grid size-8 shrink-0 place-items-center rounded-full"
+                style={{
+                  backgroundColor: `color-mix(in oklab, ${toneColor(a.tone)} 15%, transparent)`,
+                  color: toneColor(a.tone),
+                }}
+                aria-hidden
+              >
+                {a.icon}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[13px] font-semibold truncate">{a.title}</div>
+                <div className="text-[11px] text-muted-foreground truncate">{a.cta}</div>
+              </div>
+              <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+            </Link>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-function InsightCard({
-  to,
-  search,
-  title,
-  value,
-  hint,
-  trend,
-  loading,
-}: {
-  to: string;
-  search?: Record<string, string>;
-  title: string;
-  value: string;
-  hint?: string;
-  trend?: "up" | "down" | "flat";
-  loading?: boolean;
-}) {
-  const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : CheckCircle2;
-  const trendColor =
-    trend === "up" ? "#10b981" : trend === "down" ? "#f43f5e" : "hsl(var(--muted-foreground))";
-  return (
-    <Link
-      to={to}
-      search={search as never}
-      className={cn(
-        "flex flex-col justify-between rounded-2xl border border-border bg-card p-3 min-h-[88px]",
-        "hover:border-[color:var(--brand)]/40 active:scale-[0.99] transition-all",
-      )}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="text-[11px] font-semibold text-muted-foreground leading-tight">
-          {title}
-        </div>
-        <TrendIcon className="size-3.5 shrink-0" style={{ color: trendColor }} />
-      </div>
-      <div>
-        <div className="text-[22px] font-bold tabular-nums leading-none">
-          {loading ? <Skeleton className="h-5 w-12" /> : value}
-        </div>
-        {hint ? (
-          <div className="text-[10.5px] text-muted-foreground mt-1">{hint}</div>
-        ) : null}
-      </div>
-    </Link>
-  );
-}
-
-function BirthdayInsight({
-  birthday,
-  more,
-}: {
-  birthday: { id: string; name: string; photoUrl: string | null; daysAway: number };
-  more: number;
-}) {
-  return (
-    <Link
-      to="/dashboard/students/$id"
-      params={{ id: birthday.id }}
-      className={cn(
-        "flex flex-col justify-between rounded-2xl border border-border bg-card p-3 min-h-[88px]",
-        "hover:border-[color:var(--brand)]/40 active:scale-[0.99] transition-all",
-      )}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="text-[11px] font-semibold text-muted-foreground leading-tight">
-          {birthday.daysAway === 0 ? "Birthday today" : "Birthday soon"}
-        </div>
-        <Cake className="size-3.5 shrink-0 text-pink-500" />
-      </div>
-      <div className="flex items-center gap-2">
-        <PersonAvatar name={birthday.name} src={birthday.photoUrl} className="size-8 text-[10px] shrink-0" />
-        <div className="min-w-0">
-          <div className="text-[13px] font-semibold truncate">{birthday.name}</div>
-          <div className="text-[10.5px] text-muted-foreground">
-            {birthday.daysAway === 0
-              ? "Today 🎂"
-              : birthday.daysAway === 1
-                ? "Tomorrow"
-                : `In ${birthday.daysAway} days`}
-            {more > 0 ? ` · +${more} more` : ""}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Live status strip — bottom-of-page reassurance that the app is live.
-// ---------------------------------------------------------------------------
-
-function LiveStatusStrip({
-  inAcademy,
-  totalToday,
-  isLoading,
-}: {
-  inAcademy: number;
-  totalToday: number;
-  isLoading: boolean;
-}) {
-  return (
-    <Link
-      to="/dashboard/attendance"
-      className={cn(
-        "flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3",
-        "hover:bg-accent/40 active:bg-accent/60 transition-colors",
-      )}
-    >
-      <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-        <ClipboardCheck className="size-5" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[10.5px] uppercase tracking-[0.18em] font-semibold text-muted-foreground">
-            Live · In Academy Now
-          </span>
-          <LiveBadge state="live" />
-        </div>
-        <div className="text-lg font-bold leading-tight tabular-nums">
-          {isLoading ? "—" : `${inAcademy}`}
-          {totalToday > 0 ? (
-            <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-              of {totalToday} tracked today
-            </span>
-          ) : null}
-        </div>
-      </div>
-      <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
-    </Link>
-  );
-}
