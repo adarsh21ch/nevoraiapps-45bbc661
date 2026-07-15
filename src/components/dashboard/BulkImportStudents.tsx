@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchFeePlans, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { detectDuplicates } from "@/lib/students-manage";
+import { bulkImportStudents } from "@/lib/admissions/admissions.functions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
