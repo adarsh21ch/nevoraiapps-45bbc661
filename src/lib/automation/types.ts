@@ -29,7 +29,15 @@ export const AUTOMATION_EVENTS = {
   Anniversary: "person.anniversary",
   CommunicationSent: "communication.sent",
   WebsiteLeadReceived: "website.lead_received",
+  StaffInvited: "staff.invited",
+  StaffAccepted: "staff.accepted",
+  StaffDisabled: "staff.disabled",
+  StaffRoleChanged: "staff.role_changed",
+  StaffAssignmentCreated: "staff.assignment.created",
+  StaffAssignmentUpdated: "staff.assignment.updated",
+  StaffAssignmentRemoved: "staff.assignment.removed",
 } as const;
+
 
 export type AutomationEventType =
   | (typeof AUTOMATION_EVENTS)[keyof typeof AUTOMATION_EVENTS]

@@ -84,8 +84,10 @@ import { Route as MatchCenterCreateRouteImport } from './routes/match-center.cre
 import { Route as MatchCenterAwardsRouteImport } from './routes/match-center.awards'
 import { Route as MatchCenterAiInsightsRouteImport } from './routes/match-center.ai-insights'
 import { Route as MSlugRouteImport } from './routes/m.$slug'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DashboardSubscriptionRouteImport } from './routes/dashboard.subscription'
 import { Route as DashboardStudentsRouteImport } from './routes/dashboard.students'
+import { Route as DashboardStaffRouteImport } from './routes/dashboard.staff'
 import { Route as DashboardSiteRouteImport } from './routes/dashboard.site'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
@@ -504,6 +506,11 @@ const MSlugRoute = MSlugRouteImport.update({
   path: '/m/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardSubscriptionRoute = DashboardSubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
@@ -512,6 +519,11 @@ const DashboardSubscriptionRoute = DashboardSubscriptionRouteImport.update({
 const DashboardStudentsRoute = DashboardStudentsRouteImport.update({
   id: '/students',
   path: '/students',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardStaffRoute = DashboardStaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardSiteRoute = DashboardSiteRouteImport.update({
@@ -782,8 +794,10 @@ export interface FileRoutesByFullPath {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
+  '/dashboard/staff': typeof DashboardStaffRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/dashboard/subscription': typeof DashboardSubscriptionRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
@@ -896,8 +910,10 @@ export interface FileRoutesByTo {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
+  '/dashboard/staff': typeof DashboardStaffRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/dashboard/subscription': typeof DashboardSubscriptionRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
@@ -1016,8 +1032,10 @@ export interface FileRoutesById {
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/site': typeof DashboardSiteRoute
+  '/dashboard/staff': typeof DashboardStaffRoute
   '/dashboard/students': typeof DashboardStudentsRouteWithChildren
   '/dashboard/subscription': typeof DashboardSubscriptionRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
   '/match-center/ai-insights': typeof MatchCenterAiInsightsRoute
   '/match-center/awards': typeof MatchCenterAwardsRoute
@@ -1137,8 +1155,10 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/site'
+    | '/dashboard/staff'
     | '/dashboard/students'
     | '/dashboard/subscription'
+    | '/invite/$token'
     | '/m/$slug'
     | '/match-center/ai-insights'
     | '/match-center/awards'
@@ -1251,8 +1271,10 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/site'
+    | '/dashboard/staff'
     | '/dashboard/students'
     | '/dashboard/subscription'
+    | '/invite/$token'
     | '/m/$slug'
     | '/match-center/ai-insights'
     | '/match-center/awards'
@@ -1370,8 +1392,10 @@ export interface FileRouteTypes {
     | '/dashboard/reports'
     | '/dashboard/settings'
     | '/dashboard/site'
+    | '/dashboard/staff'
     | '/dashboard/students'
     | '/dashboard/subscription'
+    | '/invite/$token'
     | '/m/$slug'
     | '/match-center/ai-insights'
     | '/match-center/awards'
@@ -1469,6 +1493,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   TestimonialsRoute: typeof TestimonialsRoute
   AcademySlugRoute: typeof AcademySlugRoute
+  InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
   PoliciesKindRoute: typeof PoliciesKindRoute
@@ -2008,6 +2033,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/subscription': {
       id: '/dashboard/subscription'
       path: '/subscription'
@@ -2020,6 +2052,13 @@ declare module '@tanstack/react-router' {
       path: '/students'
       fullPath: '/dashboard/students'
       preLoaderRoute: typeof DashboardStudentsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/staff': {
+      id: '/dashboard/staff'
+      path: '/staff'
+      fullPath: '/dashboard/staff'
+      preLoaderRoute: typeof DashboardStaffRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/site': {
@@ -2338,6 +2377,7 @@ interface DashboardRouteChildren {
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSiteRoute: typeof DashboardSiteRoute
+  DashboardStaffRoute: typeof DashboardStaffRoute
   DashboardStudentsRoute: typeof DashboardStudentsRouteWithChildren
   DashboardSubscriptionRoute: typeof DashboardSubscriptionRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -2365,6 +2405,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSiteRoute: DashboardSiteRoute,
+  DashboardStaffRoute: DashboardStaffRoute,
   DashboardStudentsRoute: DashboardStudentsRouteWithChildren,
   DashboardSubscriptionRoute: DashboardSubscriptionRoute,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -2570,6 +2611,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   TestimonialsRoute: TestimonialsRoute,
   AcademySlugRoute: AcademySlugRoute,
+  InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,
   PoliciesKindRoute: PoliciesKindRoute,

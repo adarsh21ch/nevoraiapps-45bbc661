@@ -17,8 +17,10 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { CoachAssignmentsDialog } from "@/components/staff/CoachAssignmentsDialog";
+
 
 export const Route = createFileRoute("/dashboard/batches")({
   component: BatchesPage,
@@ -35,6 +37,8 @@ function BatchesPage() {
   });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BatchForm | null>(null);
+  const [coachBatch, setCoachBatch] = useState<{ id: string; name: string } | null>(null);
+
 
   const del = useMutation({
     mutationFn: async (id: string) => {
@@ -99,6 +103,14 @@ function BatchesPage() {
                 <Button
                   size="icon"
                   variant="ghost"
+                  title="Manage coaches"
+                  onClick={() => setCoachBatch({ id: b.id, name: b.name })}
+                >
+                  <ShieldCheck className="size-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
                   onClick={() => {
                     setEditing({
                       id: b.id,
@@ -120,6 +132,7 @@ function BatchesPage() {
                   <Trash2 className="size-4" />
                 </Button>
               </div>
+
             </Card>
           );
         })}
@@ -129,9 +142,20 @@ function BatchesPage() {
           </Card>
         )}
       </div>
+
+      {coachBatch && (
+        <CoachAssignmentsDialog
+          open={!!coachBatch}
+          onOpenChange={(v) => !v && setCoachBatch(null)}
+          tenantId={tenant.id}
+          batchId={coachBatch.id}
+          batchName={coachBatch.name}
+        />
+      )}
     </div>
   );
 }
+
 
 function BatchDialog({ initial, onClose }: { initial: BatchForm; onClose: () => void }) {
   const { tenant } = useDashboard();
