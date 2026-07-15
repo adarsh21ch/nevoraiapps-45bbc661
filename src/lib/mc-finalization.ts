@@ -459,6 +459,23 @@ export async function finalizeMatch(input: FinalizeMatchInput) {
       victoryType,
     },
   });
+
+  // Automation: match.finished — parent match report, tournament summary, ...
+  emitEvent({
+    tenantId: input.tenantId,
+    eventType: "match.finished",
+    sourceModule: "match-center",
+    sourceId: input.matchId,
+    payload: {
+      match_id: input.matchId,
+      winner_team_id: winnerTeamId,
+      winning_margin: winningMargin,
+      winning_margin_type: winningMarginType,
+      victory_type: victoryType,
+      player_of_match_athlete_id: input.playerOfMatchAthleteId ?? null,
+      summary: input.result.summary,
+    },
+  });
 }
 
 /* ============================================================
