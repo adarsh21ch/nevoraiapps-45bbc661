@@ -73,7 +73,7 @@ function CoachHome() {
   if (!canBeHere) {
     return (
       <EmptyState
-        icon={ClipboardCheck}
+        icon={<ClipboardCheck className="size-5" />}
         title="Not a coach"
         description={`Your current role (${role}) doesn't have access to the coach surface.`}
       />
@@ -81,7 +81,8 @@ function CoachHome() {
   }
 
   const greeting = greetingFor(new Date());
-  const name = profile?.full_name?.split(" ")[0] ?? "Coach";
+  const name = "Coach";
+  void profile;
   const today = format(new Date(), "EEEE, d MMM");
   const totalPresent = (sessionsQ.data ?? []).reduce((a, s) => a + s.present, 0);
   const totalMarked = (sessionsQ.data ?? []).reduce((a, s) => a + s.total, 0);
