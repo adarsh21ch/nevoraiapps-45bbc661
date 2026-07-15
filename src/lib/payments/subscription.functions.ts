@@ -150,7 +150,7 @@ export const grantTrial = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertPlatformAdmin(context);
     const trialEndsAt = new Date(Date.now() + data.days * 86400_000).toISOString();
-    const patch: Record<string, unknown> = {
+    const patch: { trial_ends_at: string; subscription_status: string; plan_tier?: PlanTier } = {
       trial_ends_at: trialEndsAt,
       subscription_status: "trial",
     };
