@@ -22,6 +22,8 @@ import { toast } from "sonner";
 import { useParentChild } from "@/hooks/use-parent-child";
 import { fetchChildBillingSummary, parentKeys } from "@/lib/parent-app";
 import { createPaymentOrder, verifyClientPayment, listPaymentTransactions } from "@/lib/payments/service.functions";
+import { getTenantPaymentSetup, listMyManualPayments } from "@/lib/payments/manual.functions";
+import { ManualPaymentDialog, type PaymentSetup } from "@/components/payments/ManualPaymentDialog";
 import { formatMoney } from "@/lib/billing";
 
 export const Route = createFileRoute("/parent/billing")({
