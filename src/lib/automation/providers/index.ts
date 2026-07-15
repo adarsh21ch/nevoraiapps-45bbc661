@@ -39,6 +39,8 @@ function defaultProviderKeyFor(type: ActionType): string | null {
   switch (type) {
     case "notification.create":
       return "notification.log";
+    case "notification.whatsapp":
+      return "whatsapp";
     // future defaults land here when real providers are added
     default:
       return null;
@@ -48,5 +50,6 @@ function defaultProviderKeyFor(type: ActionType): string | null {
 // Register built-in providers
 registerProvider(mockProvider);
 registerProvider(notificationLogProvider);
+registerProvider(whatsappProvider);
 
-export { mockProvider, notificationLogProvider };
+export { mockProvider, notificationLogProvider, whatsappProvider };
