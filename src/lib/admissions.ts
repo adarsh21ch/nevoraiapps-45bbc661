@@ -130,7 +130,12 @@ export function admissionTimelineQuery(params: {
   };
 }
 
-export async function advanceLeadStage(leadId: string, newStage: PipelineStage, remark?: string) {
+export async function advanceLeadStage(
+  leadId: string,
+  newStage: PipelineStage,
+  remark?: string,
+  tenantId?: string,
+) {
   const { error } = await supabase.rpc(
     "advance_lead_stage" as never,
     {
@@ -140,6 +145,27 @@ export async function advanceLeadStage(leadId: string, newStage: PipelineStage, 
     } as never,
   );
   if (error) throw error;
+
+  // Automation: registration lifecycle events.
+  if (tenantId) {
+    const eventType =
+      newStage === "approved"
+        ? "admission.approved"
+        : newStage === "rejected"
+          ? "admission.rejected"
+          : newStage === "converted"
+            ? "admission.converted"
+            : null;
+    if (eventType) {
+      emitEvent({
+        tenantId,
+        eventType,
+        sourceModule: "admissions",
+        sourceId: leadId,
+        payload: { lead_id: leadId, stage: newStage, remark: remark ?? null },
+      });
+    }
+  }
 }
 
 export async function scheduleTrial(leadId: string, trialAt: string, assignedTo?: string | null) {
