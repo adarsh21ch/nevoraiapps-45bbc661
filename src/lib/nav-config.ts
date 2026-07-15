@@ -27,17 +27,18 @@ export const navByRole: Record<AppRole, NavItem[]> = {
   owner: [
     { to: "/dashboard", label: "Home", icon: LayoutDashboard },
     { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-    { to: "/dashboard/billing", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
-    { to: "/dashboard/academy", label: "Academy", icon: Building2 },
+    { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
+    { to: "/dashboard/academy", label: "Operations", icon: Building2 },
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],
   admin: [
     { to: "/dashboard", label: "Home", icon: LayoutDashboard },
     { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-    { to: "/dashboard/academy", label: "Academy", icon: Building2 },
-    { to: "/dashboard/students", label: "Players", icon: Users },
+    { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
+    { to: "/dashboard/academy", label: "Operations", icon: Building2 },
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],
+
   student: [
     { to: "/student", label: "Home", icon: LayoutDashboard },
     { to: "/student/progress", label: "Progress", icon: TrendingUp },
