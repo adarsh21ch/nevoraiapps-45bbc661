@@ -485,6 +485,6 @@ export const sendSandboxMessage = createServerFn({ method: "POST" })
         ready: resolution.ready,
         secondaryCount: resolution.secondaries.length,
       },
-      result: { status: result.status, error: result.error ?? null },
+      result: { ok: result.ok, provider: result.provider, error: result.error ?? null },
     };
   });
