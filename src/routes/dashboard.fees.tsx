@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { VirtualList } from "@/components/ds/VirtualList";
 
 
 export const Route = createFileRoute("/dashboard/fees")({
