@@ -51,11 +51,11 @@ interface StudentLite {
 async function resolveStudentParentUser(
   studentId: string,
   tenantId: string,
-): Promise<{ student: StudentLite | null; parentUserId: string | null }> {
+): Promise<{ student: StudentLite | null; parentUserIds: string[] }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("students")
-    .select("id, name, tenant_id, batch_id, coach_name, parent_user_id")
+    .select("id, name, tenant_id, batch_id, coach_name, user_id")
     .eq("id", studentId)
     .eq("tenant_id", tenantId)
     .maybeSingle();
@@ -66,10 +66,22 @@ async function resolveStudentParentUser(
         tenant_id: string;
         batch_id: string | null;
         coach_name: string | null;
-        parent_user_id?: string | null;
+        user_id?: string | null;
       }
     | null;
-  if (!s) return { student: null, parentUserId: null };
+  if (!s) return { student: null, parentUserIds: [] };
+
+  const parentIds = new Set<string>();
+  if (s.user_id) parentIds.add(s.user_id);
+
+  const { data: links } = await supabaseAdmin
+    .from("mc_parent_links")
+    .select("parent_user_id")
+    .eq("student_id", studentId);
+  for (const row of (links ?? []) as Array<{ parent_user_id: string | null }>) {
+    if (row.parent_user_id) parentIds.add(row.parent_user_id);
+  }
+
   return {
     student: {
       id: s.id,
@@ -77,9 +89,9 @@ async function resolveStudentParentUser(
       tenant_id: s.tenant_id,
       batch_id: s.batch_id,
       coach_name: s.coach_name,
-      parent_user_id: s.parent_user_id ?? null,
+      parent_user_id: s.user_id ?? null,
     },
-    parentUserId: s.parent_user_id ?? null,
+    parentUserIds: Array.from(parentIds),
   };
 }
 
