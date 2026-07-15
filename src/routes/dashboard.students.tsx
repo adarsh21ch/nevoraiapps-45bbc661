@@ -202,6 +202,7 @@ function StudentsPage() {
     return list.filter((s) => {
       if (status !== "all" && s.status !== status) return false;
       if (batch !== "all" && s.batch_id !== batch) return false;
+      if (isAnyCoach && myBatchesOnly && !myBatchIds.has(s.batch_id ?? "")) return false;
       if (gender !== "all" && (s.gender ?? "").toLowerCase() !== gender) return false;
       if (role !== "all" && (s.playing_role ?? "") !== role) return false;
       if (ageGroup !== "all" && !inAgeGroup(ageFromDob(s.dob), ageGroup)) return false;
@@ -224,7 +225,7 @@ function StudentsPage() {
       }
       return true;
     });
-  }, [students.data, q, status, batch, gender, role, ageGroup, joinYear]);
+  }, [students.data, q, status, batch, gender, role, ageGroup, joinYear, isAnyCoach, myBatchesOnly, myBatchIds]);
 
   const counts = useMemo(() => {
     const list = (students.data ?? []) as any[];
