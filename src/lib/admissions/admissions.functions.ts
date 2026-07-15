@@ -373,7 +373,7 @@ export const bulkUpdateStudents = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context, data.tenantId);
-    const patch: Record<string, unknown> = {};
+    const patch: Record<string, string | null> = {};
     if (data.batchId !== undefined) patch.batch_id = data.batchId;
     if (data.feePlanId !== undefined) patch.fee_plan_id = data.feePlanId;
     if (data.lifecycleStatus !== undefined && data.lifecycleStatus !== null)
@@ -382,7 +382,7 @@ export const bulkUpdateStudents = createServerFn({ method: "POST" })
     if (Object.keys(patch).length === 0) return { ok: true, count: 0 };
     const { data: updated, error } = await context.supabase
       .from("students")
-      .update(patch)
+      .update(patch as any)
       .in("id", data.studentIds)
       .eq("tenant_id", data.tenantId)
       .select("id");
