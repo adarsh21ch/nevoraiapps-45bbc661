@@ -54,8 +54,8 @@ import { format } from "date-fns";
 export const Route = createFileRoute("/dashboard/billing")({
   head: () => ({
     meta: [
-      { title: "Billing · AcademyOS" },
-      { name: "description", content: "Owner-only billing operations: subscriptions, invoices, and payments." },
+      { title: "Fees · AcademyOS" },
+      { name: "description", content: "Manage student fee plans, fee bills and fee collections." },
     ],
   }),
   component: () => (<OwnerOnly><BillingPage /></OwnerOnly>),
@@ -74,9 +74,9 @@ function NotAllowed() {
         <div className="mx-auto grid place-items-center w-12 h-12 rounded-full bg-muted">
           <Lock className="w-5 h-5 text-muted-foreground" />
         </div>
-        <h1 className="text-lg font-semibold">Billing is Owner-only</h1>
+        <h1 className="text-lg font-semibold">Fees are Owner-only</h1>
         <p className="text-sm text-muted-foreground">
-          Financial records are visible only to the academy owner. Admins, coaches, students, and parents don't
+          Fee records are visible only to the academy owner. Admins, coaches, students, and parents don't
           have access.
         </p>
       </div>
