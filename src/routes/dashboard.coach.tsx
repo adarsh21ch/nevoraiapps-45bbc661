@@ -29,6 +29,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { Card, EmptyState, Skeleton } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { onboardingKeys, fetchOnboardingStatus } from "@/lib/coach/onboarding";
 import {
   coachKeys,
   fetchMyBatches,
