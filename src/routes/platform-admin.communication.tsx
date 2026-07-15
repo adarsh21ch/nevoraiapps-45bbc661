@@ -144,13 +144,16 @@ function CommunicationInfrastructurePage() {
   const accounts = useQuery({ queryKey: ["pc-accounts"], queryFn: () => accountsFn() });
   const active = useQuery({ queryKey: ["pc-active"], queryFn: () => activeFn() });
   const templates = useQuery({ queryKey: ["pc-templates"], queryFn: () => templatesFn() });
+  const channelRegistry = useQuery({ queryKey: ["pc-channels"], queryFn: () => channelsFn() });
   const deliveries = useQuery({ queryKey: ["pc-deliveries"], queryFn: () => deliveriesFn() });
   const health = useQuery({ queryKey: ["pc-health"], queryFn: () => healthFn() });
+  const monitor = useQuery({ queryKey: ["pc-monitor"], queryFn: () => monitorFn() });
 
   const providerList = (providers.data ?? []) as Provider[];
   const accountList = (accounts.data ?? []) as Account[];
   const activeList = (active.data ?? []) as Active[];
   const templateList = (templates.data ?? []) as Template[];
+  const channelRows = (channelRegistry.data ?? []) as Channel[];
   const deliveryList = (deliveries.data ?? []) as Delivery[];
 
   const channels = useMemo(
