@@ -15,6 +15,8 @@ import {
   Zap,
   ClipboardList,
   Medal,
+  MapPin,
+  UserCog,
 } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { EmptyState, LoadingSkeleton } from "@/components/match-center/ui";
