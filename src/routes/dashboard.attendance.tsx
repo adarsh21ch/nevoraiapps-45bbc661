@@ -58,64 +58,26 @@ export const Route = createFileRoute("/dashboard/attendance")({
 type SessionFilter = "all" | "morning" | "evening" | "night";
 
 /**
- * Classify a batch by its `timing` string into the session buckets used by
- * coaches. `timing` can be:
- *   - a keyword ("Morning", "Evening", "Night", "Both", "Personal coaching")
- *   - a clock range ("6:00 AM – 10:00 AM", "4:00 PM - 8:00 PM", "20:00-22:00")
- *   - or empty
- *
- * Mapping (per product spec):
- *   Morning → morning + both        (keyword or start hour 4:00–11:59)
- *   Evening → evening + both        (keyword or start hour 12:00–19:59)
- *   Night   → night + personal      (keyword or start hour 20:00–3:59)
+ * Classify a batch by its free-text timing into the session buckets used by
+ * coaches. Mapping (per product spec):
+ *   Morning → morning + both
+ *   Evening → evening + both
+ *   Night   → night   + personal coaching
  *   All     → everyone
  */
-function parseStartHour24(timing: string): number | null {
-  // Matches the FIRST time in the string, e.g. "6:00 AM", "16:30", "4 pm".
-  const m = timing.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
-  if (!m) return null;
-  let hour = parseInt(m[1], 10);
-  const suffix = m[3]?.toLowerCase();
-  if (Number.isNaN(hour) || hour < 0 || hour > 23) return null;
-  if (suffix === "am") hour = hour === 12 ? 0 : hour;
-  else if (suffix === "pm") hour = hour === 12 ? 12 : hour + 12;
-  if (hour < 0 || hour > 23) return null;
-  return hour;
-}
-
-function batchSessionBuckets(
-  timing: string | null | undefined,
-): { morning: boolean; evening: boolean; night: boolean } {
-  const t = (timing ?? "").toLowerCase();
-  const kwMorning = /morn/.test(t);
-  const kwEvening = /even|afternoon/.test(t);
-  const kwNight = /night/.test(t);
-  const kwBoth = /both/.test(t);
-  const kwPersonal = /personal|coaching/.test(t);
-
-  let hourMorning = false;
-  let hourEvening = false;
-  let hourNight = false;
-  const hour = t ? parseStartHour24(t) : null;
-  if (hour != null) {
-    if (hour >= 4 && hour < 12) hourMorning = true;
-    else if (hour >= 12 && hour < 20) hourEvening = true;
-    else hourNight = true; // 20:00–03:59
-  }
-
-  return {
-    morning: kwMorning || kwBoth || hourMorning,
-    evening: kwEvening || kwBoth || hourEvening,
-    night: kwNight || kwPersonal || hourNight,
-  };
-}
-
 function batchMatchesSession(timing: string | null | undefined, session: SessionFilter): boolean {
   if (session === "all") return true;
-  const b = batchSessionBuckets(timing);
-  return b[session];
+  const t = (timing ?? "").toLowerCase();
+  const isMorning = /morn/.test(t);
+  const isEvening = /even/.test(t);
+  const isNight = /night/.test(t);
+  const isBoth = /both/.test(t);
+  const isPersonal = /personal|coaching/.test(t);
+  if (session === "morning") return isMorning || isBoth;
+  if (session === "evening") return isEvening || isBoth;
+  if (session === "night") return isNight || isPersonal;
+  return true;
 }
-
 
 function normalize(s: string | null | undefined): string {
   return (s ?? "").toLowerCase().trim();
