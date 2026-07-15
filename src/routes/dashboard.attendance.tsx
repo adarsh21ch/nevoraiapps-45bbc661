@@ -19,7 +19,7 @@ import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   AppShell,
-  TopBar,
+  Section,
   Section,
   Card,
   StatCard,
