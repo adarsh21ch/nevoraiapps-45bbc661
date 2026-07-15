@@ -1,4 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { DangerZone } from "@/components/shared/DangerZone";
+import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
+import { removeStudent, removeMember } from "@/lib/removal";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { admissionTimelineQuery } from "@/lib/admissions";
