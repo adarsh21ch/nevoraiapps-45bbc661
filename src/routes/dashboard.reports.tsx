@@ -260,26 +260,26 @@ function BillingTab({ tenantId, range }: { tenantId: string; range: Range }) {
   });
   const d = q.data;
   return (
-    <Section title="Billing & Collections" onExport={() => d && toCsv(d.byMonth.map((m) => ({ Month: m.label, Amount: m.amount })), "billing.csv")}>
+    <Section title="Fees & Collections" onExport={() => d && toCsv(d.byMonth.map((m) => ({ Month: m.label, Amount: m.amount })), "fees.csv")}>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Kpi label="Revenue" value={inr(d?.revenue ?? 0)} hint={`${d?.paymentsCount ?? 0} payments`} />
-        <Kpi label="Avg payment" value={inr(d?.avgPayment ?? 0)} />
-        <Kpi label="Pending" value={inr(d?.pendingApprox ?? 0)} hint={`${d?.pendingStudents ?? 0} students`} tone={d && d.pendingStudents > 0 ? "warn" : undefined} />
+        <Kpi label="Fees collected" value={inr(d?.revenue ?? 0)} hint={`${d?.paymentsCount ?? 0} collections`} />
+        <Kpi label="Avg collection" value={inr(d?.avgPayment ?? 0)} />
+        <Kpi label="Pending fees" value={inr(d?.pendingApprox ?? 0)} hint={`${d?.pendingStudents ?? 0} students`} tone={d && d.pendingStudents > 0 ? "warn" : undefined} />
         <Kpi label="Collection rate" value={`${d?.collectionRate ?? 100}%`} />
       </div>
-      <ChartCard title="Revenue by month">
+      <ChartCard title="Fees collected by month">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={d?.byMonth ?? []} margin={{ top: 4, right: 4, bottom: 0, left: -16 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="label" fontSize={11} tickLine={false} axisLine={false} />
             <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
-            <Tooltip formatter={(v: number) => [inr(Number(v)), "Revenue"]} />
+            <Tooltip formatter={(v: number) => [inr(Number(v)), "Fees collected"]} />
             <Bar dataKey="amount" fill="var(--brand, #1d4ed8)" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
       <div className="grid md:grid-cols-2 gap-3">
-        <BreakdownCard title="By payment mode" rows={(d?.byMethod ?? []).map((r) => ({ label: r.label, value: inr(r.amount) }))} />
+        <BreakdownCard title="By collection mode" rows={(d?.byMethod ?? []).map((r) => ({ label: r.label, value: inr(r.amount) }))} />
         <BreakdownCard title="By fee type"     rows={(d?.byType   ?? []).map((r) => ({ label: r.label, value: inr(r.amount) }))} />
       </div>
     </Section>
