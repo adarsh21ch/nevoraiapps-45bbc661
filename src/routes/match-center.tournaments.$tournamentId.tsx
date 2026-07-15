@@ -66,6 +66,9 @@ import { TournamentDashboard } from "@/components/match-center/tournament-dashbo
 import { PointsTable } from "@/components/match-center/points-table";
 import { TournamentBracket } from "@/components/match-center/tournament-bracket";
 import { TournamentStatistics } from "@/components/match-center/tournament-statistics";
+import { TournamentAwardsPanel } from "@/components/match-center/tournament-awards";
+import { TournamentShareDialog } from "@/components/match-center/tournament-share-dialog";
+import { downloadCSV, tournamentPublicUrl } from "@/lib/mc-tournament-export";
 import { supabase } from "@/integrations/supabase/client";
 
 
