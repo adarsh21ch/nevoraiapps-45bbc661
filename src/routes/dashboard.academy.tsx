@@ -60,7 +60,7 @@ const management: Item[] = [
 const administration: Item[] = [
   { to: "/dashboard/admins", label: "Admin Management", hint: "Create, suspend, reset", icon: ShieldCheck, ownerOnly: true },
   { to: "/dashboard/settings", label: "Academy Settings", hint: "Name, hours, contact", icon: Settings2, ownerOnly: true },
-  { to: "/dashboard/subscription", label: "Subscription", hint: "Plan & billing", icon: CreditCard, ownerOnly: true, soon: true },
+  { to: "/dashboard/subscription", label: "AcademyOS Plan", hint: "Your plan & billing", icon: CreditCard, ownerOnly: true, soon: true },
   { to: "/dashboard/branding", label: "Branding", hint: "Logo, theme, colors", icon: Palette, ownerOnly: true, soon: true },
 ];
 
