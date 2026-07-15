@@ -50,12 +50,9 @@ type Group = { title: string; items: Item[] };
 
 const OWNER_GROUPS: Group[] = [
   {
-    title: "Players",
+    title: "Students",
     items: [
-      { to: "/dashboard/students", label: "Players", hint: "Roster & profiles", icon: Users, keywords: ["students", "athletes", "roster"] },
-      { to: "/dashboard/registrations", label: "Registrations", hint: "New sign-ups from your site", icon: UserCircle, keywords: ["signups", "trials", "admissions", "pipeline"] },
-      { to: "/dashboard/attendance", label: "Attendance", hint: "Mark & track daily attendance", icon: ClipboardCheck },
-      { to: "/dashboard/batches", label: "Batches", hint: "Timings & groups", icon: Activity, keywords: ["schedule", "sessions"] },
+      { to: "/dashboard/students", label: "Students", hint: "Roster, registrations, batches, documents, medical, performance, ID cards", icon: Users, keywords: ["players", "athletes", "roster", "registrations", "signups", "batches", "documents", "medical", "performance", "id cards"] },
     ],
   },
   {
@@ -66,21 +63,9 @@ const OWNER_GROUPS: Group[] = [
     ],
   },
   {
-    title: "Finance",
-    items: [
-      { to: "/dashboard/fees", label: "Student Fees", hint: "Plans, collections, reminders, reports", icon: IndianRupee, requiresFeature: "fee_tracking", keywords: ["billing", "revenue", "fee plans", "reminders"] },
-    ],
-  },
-  {
     title: "Communication",
     items: [
       { to: "/dashboard/communications", label: "Broadcasts", hint: "Templates, history, scheduled messages", icon: Send, keywords: ["whatsapp", "sms", "email", "announcements", "templates", "notifications"] },
-    ],
-  },
-  {
-    title: "Website",
-    items: [
-      { to: "/dashboard/site", label: "Public Website", hint: "Edit your public site", icon: Globe, keywords: ["seo", "gallery", "coaches", "programs", "policies", "faq"] },
     ],
   },
   {
@@ -97,49 +82,8 @@ const OWNER_GROUPS: Group[] = [
   },
 ];
 
-// Admin — hides Finance. Everything else stays operational.
-const ADMIN_GROUPS: Group[] = [
-  {
-    title: "Players",
-    items: [
-      { to: "/dashboard/students", label: "Players", hint: "Roster & profiles", icon: Users },
-      { to: "/dashboard/registrations", label: "Registrations", hint: "New sign-ups", icon: UserCircle },
-      { to: "/dashboard/attendance", label: "Attendance", hint: "Daily attendance", icon: ClipboardCheck },
-      { to: "/dashboard/batches", label: "Batches", hint: "Timings & groups", icon: Activity },
-    ],
-  },
-  {
-    title: "Cricket",
-    items: [
-      { to: "/match-center", label: "Tournament Center", hint: "Tournaments, fixtures, teams, stats", icon: Swords },
-      { to: "/match-center/live", label: "Live Scoring", hint: "Score matches in real time", icon: Activity },
-    ],
-  },
-  {
-    title: "Communication",
-    items: [
-      { to: "/dashboard/communications", label: "Broadcasts", hint: "Templates, history, scheduled", icon: Send },
-    ],
-  },
-  {
-    title: "Website",
-    items: [
-      { to: "/dashboard/site", label: "Public Website", hint: "Edit your public site", icon: Globe },
-    ],
-  },
-  {
-    title: "Reports",
-    items: [
-      { to: "/dashboard/reports", label: "Reports", hint: "Attendance, players, matches", icon: BarChart3 },
-    ],
-  },
-  {
-    title: "Team",
-    items: [
-      { to: "/dashboard/admins", label: "Admins & Staff", hint: "Invite & manage staff", icon: ShieldCheck },
-    ],
-  },
-];
+// Admin — same workspaces as Owner (Fees lives in bottom nav for owner only).
+const ADMIN_GROUPS: Group[] = OWNER_GROUPS;
 
 // Player / Parent — personal workspaces only.
 const PLAYER_GROUPS: Group[] = [
