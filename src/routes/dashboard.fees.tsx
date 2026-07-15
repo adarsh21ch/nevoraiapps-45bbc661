@@ -160,6 +160,8 @@ function FeeRegister() {
           photoUrl: s.photo_url ?? null,
           batchName: s.batches?.name ?? null,
           planName: s.fee_plans?.name ?? null,
+          playerId: s.player_id ?? null,
+
           amount,
           planAmount,
           hasCustomFee: custom != null,
