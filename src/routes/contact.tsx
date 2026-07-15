@@ -93,6 +93,15 @@ function EnquiryForm({ tenantId, tenantName }: { tenantId: string; tenantName: s
       return;
     }
     setSaving(true);
+    // Phase 3 — client-side rate limit gate. Prevents accidental double-submits
+    // and drive-by spam on the public contact form.
+    const rlKey = `contact-form:${tenantId}:${phone.trim()}`;
+    const allowed = await checkRateLimit(rlKey, 3, 300);
+    if (!allowed) {
+      setSaving(false);
+      toast.error("Too many attempts. Please try again in a few minutes.");
+      return;
+    }
     const { error } = await supabase.rpc("submit_lead" as never, {
       _tenant_id: tenantId,
       _name: name.trim(),
