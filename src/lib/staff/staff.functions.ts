@@ -73,7 +73,7 @@ export const inviteStaff = createServerFn({ method: "POST" })
     return {
       ...row,
       displayName: data.displayName ?? null,
-      inviteUrl: `/auth?invite=${token}`,
+      inviteUrl: `/invite/${token}`,
     };
   });
 
@@ -113,7 +113,7 @@ export const resendInvitation = createServerFn({ method: "POST" })
       .select("id, tenant_id, email, phone, invited_role, token, expires_at")
       .single();
     if (error) throw new Error(error.message);
-    return { ...row, inviteUrl: `/auth?invite=${token}` };
+    return { ...row, inviteUrl: `/invite/${token}` };
   });
 
 /** Read a pending invitation by token — safe subset only. Called before sign-in. */
