@@ -8,12 +8,23 @@
  * parent portal and reports.
  */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, isToday, isYesterday, startOfDay, isAfter } from "date-fns";
 import { toast } from "sonner";
-import { LogIn, LogOut, Clock, CheckCircle2, Zap, CheckSquare } from "lucide-react";
+import {
+  LogIn,
+  LogOut,
+  Clock,
+  CheckCircle2,
+  Zap,
+  CheckSquare,
+  ChevronDown,
+  CalendarIcon,
+  MoreVertical,
+  ArrowLeft,
+} from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -29,10 +40,19 @@ import {
   LiveBadge,
 } from "@/components/ds";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import {
   attendanceKeys,
   fetchAttendanceToday,
+  fetchAttendanceByDate,
   useAttendanceRealtime,
   useCheckIn,
   useCheckOut,
