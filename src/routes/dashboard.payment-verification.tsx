@@ -11,7 +11,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   XCircle,
@@ -21,6 +21,9 @@ import {
   Loader2,
   Receipt,
   Banknote,
+  Eye,
+  User as UserIcon,
+  FileText,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +48,7 @@ import {
   approveManualPayment,
   reviewManualPayment,
   signManualPaymentScreenshot,
+  markManualPaymentViewed,
 } from "@/lib/payments/manual.functions";
 import { formatMoney } from "@/lib/billing";
 
