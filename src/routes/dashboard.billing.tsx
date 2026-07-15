@@ -775,7 +775,7 @@ function NewInvoiceButton({
       return inv;
     },
     onSuccess: () => {
-      toast.success(issue ? "Invoice issued" : "Draft saved");
+      toast.success(issue ? "Fee bill sent" : "Draft saved");
       setOpen(false);
       setStudentId("");
       setAmount("");
@@ -789,12 +789,12 @@ function NewInvoiceButton({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="w-4 h-4 mr-1.5" /> New invoice
+          <Plus className="w-4 h-4 mr-1.5" /> Generate fee bill
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>New invoice</DialogTitle>
+          <DialogTitle>Generate fee bill</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
@@ -802,7 +802,7 @@ function NewInvoiceButton({
             <StudentPicker students={students} value={studentId} onChange={setStudentId} />
             {suggestedSub && (
               <div className="text-xs text-muted-foreground mt-1">
-                Active subscription: {formatMoney(suggestedSub.unit_amount)} /{" "}
+                Active fee plan: {formatMoney(suggestedSub.unit_amount)} /{" "}
                 {suggestedSub.billing_cycle.replace("_", " ")}
               </div>
             )}
@@ -834,7 +834,7 @@ function NewInvoiceButton({
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={issue} onChange={(e) => setIssue(e.target.checked)} />
-            Issue immediately (locks the invoice)
+            Send immediately (locks the fee bill)
           </label>
         </div>
         <DialogFooter>
@@ -842,7 +842,7 @@ function NewInvoiceButton({
             Cancel
           </Button>
           <Button disabled={!studentId || !amount || m.isPending} onClick={() => m.mutate()}>
-            {issue ? "Create & issue" : "Save draft"}
+            {issue ? "Generate & send" : "Save draft"}
           </Button>
         </DialogFooter>
       </DialogContent>
