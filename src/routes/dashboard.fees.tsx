@@ -32,22 +32,34 @@ import {
   ChevronRight,
   Download,
   MessageCircle,
+  MoreHorizontal,
   PartyPopper,
+  Search,
   Smartphone,
+  UserPlus,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/dashboard/fees")({
   validateSearch: (search: Record<string, unknown>): { filter?: Filter } => {
     const f = search.filter;
-    return f === "pending" || f === "paid" || f === "all" ? { filter: f } : {};
+    return f === "pending" || f === "paid" || f === "all" || f === "overdue" ? { filter: f } : {};
   },
+
   component: () => (<OwnerOnly><FeeRegister /></OwnerOnly>),
 });
 
 
-type Filter = "pending" | "paid" | "all";
+type Filter = "all" | "pending" | "paid" | "overdue";
 
 type RegisterRow = {
   studentId: string;
@@ -55,6 +67,7 @@ type RegisterRow = {
   photoUrl: string | null;
   batchName: string | null;
   planName: string | null;
+  playerId: string | null;
   amount: number; // effective (custom_fee ?? plan amount)
   planAmount: number;
   hasCustomFee: boolean;
@@ -64,6 +77,7 @@ type RegisterRow = {
   due: DueStatus;
   paidPayment: PaidPayment | null;
 };
+
 
 type PaidPayment = {
   id: string;
@@ -91,9 +105,11 @@ function FeeRegister() {
 
   const initialFilter = Route.useSearch().filter ?? "pending";
   const [filter, setFilter] = useState<Filter>(initialFilter);
+  const [search, setSearch] = useState("");
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
   useEffect(() => { setFilter(initialFilter); }, [initialFilter]);
+
 
   const studentsQ = useQuery({
     queryKey: qk.students(tenant.id),
@@ -146,6 +162,8 @@ function FeeRegister() {
           photoUrl: s.photo_url ?? null,
           batchName: s.batches?.name ?? null,
           planName: s.fee_plans?.name ?? null,
+          playerId: s.player_id ?? null,
+
           amount,
           planAmount,
           hasCustomFee: custom != null,
@@ -169,14 +187,41 @@ function FeeRegister() {
 
   const pendingRows = rows.filter((r) => r.due.state === "pending");
   const paidRows = rows.filter((r) => r.due.state === "paid");
+  const overdueRows = pendingRows.filter(
+    (r) => r.due.state === "pending" && r.due.overdueDays > 0,
+  );
   const collectedAmount = paidRows.reduce(
     (s, r) => s + Number(r.paidPayment?.amount ?? r.amount),
     0,
   );
   const pendingAmount = pendingRows.reduce((s, r) => s + r.amount, 0);
+  const expectedAmount = collectedAmount + pendingAmount;
+  const collectionPct = expectedAmount > 0 ? Math.round((collectedAmount / expectedAmount) * 100) : 0;
 
-  const visible = filter === "pending" ? pendingRows : filter === "paid" ? paidRows : rows;
+  const byFilter =
+    filter === "pending"
+      ? pendingRows
+      : filter === "paid"
+        ? paidRows
+        : filter === "overdue"
+          ? overdueRows
+          : rows;
+
+  const q = search.trim().toLowerCase();
+  const visible = q
+    ? byFilter.filter((r) => {
+        const digits = q.replace(/\D/g, "");
+        return (
+          r.name.toLowerCase().includes(q) ||
+          (r.playerId ?? "").toLowerCase().includes(q) ||
+          (digits.length >= 3 &&
+            ((r.phone ?? "").replace(/\D/g, "").includes(digits) ||
+              (r.guardianPhone ?? "").replace(/\D/g, "").includes(digits)))
+        );
+      })
+    : byFilter;
   const loading = studentsQ.isLoading || paymentsQ.isLoading;
+
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["d", "fees"] });
@@ -184,62 +229,114 @@ function FeeRegister() {
   };
 
   return (
-    <div className="-mt-4 md:-mt-8 space-y-4">
+    <div className="-mt-4 md:-mt-8 space-y-3">
       {/* Header — uniform across dashboard tabs */}
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 pt-2 pb-1">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 pt-2 pb-1">
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">Fees</h1>
+          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">Student Fees</h1>
           <p className="text-[11px] text-muted-foreground leading-tight truncate">
-            Collect this month's fees and follow up on pending.
+            Who's paid, who's pending — collect in one tap.
           </p>
         </div>
-        {cycle === "calendar_month" && (
-          <div className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1 shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full h-8 w-8"
-              aria-label="Previous month"
-              onClick={() => setMonthOffset((m) => m - 1)}
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <div className="text-xs font-semibold w-24 text-center tabular-nums">
-              {format(selectedMonth, "MMM yyyy")}
+        <div className="flex items-center gap-1 shrink-0">
+          {cycle === "calendar_month" && (
+            <div className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-8 w-8"
+                aria-label="Previous month"
+                onClick={() => setMonthOffset((m) => m - 1)}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <div className="text-xs font-semibold w-20 text-center tabular-nums">
+                {format(selectedMonth, "MMM yyyy")}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-8 w-8"
+                aria-label="Next month"
+                disabled={monthOffset >= 0}
+                onClick={() => setMonthOffset((m) => Math.min(0, m + 1))}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-full h-8 w-8"
-              aria-label="Next month"
-              disabled={monthOffset >= 0}
-              onClick={() => setMonthOffset((m) => Math.min(0, m + 1))}
-            >
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
-        )}
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-9 w-9 bg-card border border-border shadow-sm"
+                aria-label="More actions"
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/fee-plans">Manage Fee Plans</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/students">Assign to Students</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/reminders">Send Reminders</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/reports">Reports &amp; Exports</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
-      <CollectionStrip
+      {/* Compact KPI strip */}
+      <KpiStrip
+        pending={pendingAmount}
         collected={collectedAmount}
-        expected={collectedAmount + pendingAmount}
-        paidCount={paidRows.length}
-        totalCount={rows.length}
+        overdueCount={overdueRows.length}
+        pct={collectionPct}
       />
 
-      <SegmentedToggle
-        value={filter}
-        onChange={setFilter}
-        counts={{ pending: pendingRows.length, paid: paidRows.length, all: rows.length }}
-      />
+      {/* Sticky search + chip filters */}
+      <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 space-y-2">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search name, player ID or mobile"
+            className="h-10 pl-9 rounded-full bg-card"
+          />
+        </div>
+        <ChipFilters
+          value={filter}
+          onChange={setFilter}
+          counts={{
+            all: rows.length,
+            pending: pendingRows.length,
+            paid: paidRows.length,
+            overdue: overdueRows.length,
+          }}
+        />
+      </div>
 
       <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
         {loading ? (
           <SkeletonList />
         ) : visible.length === 0 ? (
-          <EmptyState filter={filter} monthLabel={format(selectedMonth, "MMMM")} />
+          <EmptyState
+            filter={filter}
+            monthLabel={format(selectedMonth, "MMMM")}
+            searching={q.length > 0}
+            hasStudents={rows.length > 0}
+          />
         ) : (
+
           <ul className="divide-y divide-border">
             {visible.map((r) => (
               <FeeRow
@@ -319,32 +416,28 @@ function FeesProfileSheet({
 }
 
 
-/* ---------- Collection strip ---------- */
+/* ---------- Compact KPI strip ---------- */
 
-function CollectionStrip({
+function KpiStrip({
+  pending,
   collected,
-  expected,
-  paidCount,
-  totalCount,
+  overdueCount,
+  pct,
 }: {
+  pending: number;
   collected: number;
-  expected: number;
-  paidCount: number;
-  totalCount: number;
+  overdueCount: number;
+  pct: number;
 }) {
-  const pct = expected > 0 ? Math.round((collected / expected) * 100) : 0;
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
-      <div className="flex items-baseline justify-between gap-3 text-sm">
-        <div className="min-w-0 truncate">
-          <span className="font-semibold tabular-nums">{money(collected)}</span>
-          <span className="text-muted-foreground"> of {money(expected)} collected</span>
-        </div>
-        <div className="text-xs text-muted-foreground tabular-nums shrink-0">
-          {paidCount}/{totalCount} paid
-        </div>
+    <div className="rounded-xl border border-border bg-card shadow-sm px-3 py-2">
+      <div className="grid grid-cols-4 gap-2 text-center">
+        <KpiCell label="Pending" value={money(pending)} tone="danger" />
+        <KpiCell label="Collected" value={money(collected)} tone="success" />
+        <KpiCell label="Overdue" value={String(overdueCount)} tone="danger" />
+        <KpiCell label="Collection" value={`${pct}%`} tone="neutral" />
       </div>
-      <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+      <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
         <div
           className="h-full rounded-full bg-foreground transition-all"
           style={{ width: `${Math.min(100, pct)}%` }}
@@ -354,60 +447,50 @@ function CollectionStrip({
   );
 }
 
-/* ---------- Summary cards ---------- */
-
-
-
-function SummaryCard({
+function KpiCell({
   label,
-  amount,
-  hint,
+  value,
   tone,
-  emphasized,
 }: {
   label: string;
-  amount: number;
-  hint: string;
-  tone: "danger" | "success";
-  emphasized?: boolean;
+  value: string;
+  tone: "danger" | "success" | "neutral";
 }) {
-  const color = tone === "danger" ? "text-rose-600" : "text-emerald-600";
+  const color =
+    tone === "danger"
+      ? "text-rose-600"
+      : tone === "success"
+        ? "text-emerald-600"
+        : "text-foreground";
   return (
-    <div
-      className={cn(
-        "rounded-2xl bg-white border shadow-sm p-5",
-        emphasized ? "border-rose-100 ring-1 ring-rose-100/60" : "border-black/[0.06]",
-      )}
-    >
-      <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+    <div className="min-w-0">
+      <div className={cn("text-sm font-bold tabular-nums truncate", color)}>{value}</div>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground leading-tight">
         {label}
       </div>
-      <div className={cn("mt-1 font-bold tabular-nums", color, emphasized ? "text-4xl" : "text-3xl")}>
-        {money(amount)}
-      </div>
-      <div className="text-xs text-muted-foreground mt-1">{hint}</div>
     </div>
   );
 }
 
-/* ---------- Segmented toggle ---------- */
+/* ---------- Chip filters ---------- */
 
-function SegmentedToggle({
+function ChipFilters({
   value,
   onChange,
   counts,
 }: {
   value: Filter;
   onChange: (v: Filter) => void;
-  counts: { pending: number; paid: number; all: number };
+  counts: { all: number; pending: number; paid: number; overdue: number };
 }) {
   const items: { key: Filter; label: string; count: number }[] = [
-    { key: "pending", label: "Pending", count: counts.pending },
-    { key: "paid", label: "Collected", count: counts.paid },
     { key: "all", label: "All", count: counts.all },
+    { key: "pending", label: "Pending", count: counts.pending },
+    { key: "paid", label: "Paid", count: counts.paid },
+    { key: "overdue", label: "Overdue", count: counts.overdue },
   ];
   return (
-    <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1">
+    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1">
       {items.map((it) => {
         const active = value === it.key;
         return (
@@ -416,17 +499,17 @@ function SegmentedToggle({
             type="button"
             onClick={() => onChange(it.key)}
             className={cn(
-              "flex-1 sm:flex-none h-10 px-4 rounded-full text-sm font-medium transition-colors",
+              "shrink-0 h-8 px-3 rounded-full text-xs font-medium transition-colors border",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
               active
-                ? "bg-foreground text-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
+                ? "bg-foreground text-background border-foreground shadow-sm"
+                : "bg-card text-muted-foreground hover:text-foreground border-border",
             )}
           >
-            {it.label}{" "}
+            {it.label}
             <span
               className={cn(
-                "ml-1 text-xs tabular-nums",
+                "ml-1 tabular-nums",
                 active ? "opacity-70" : "text-muted-foreground/70",
               )}
             >
@@ -438,6 +521,7 @@ function SegmentedToggle({
     </div>
   );
 }
+
 
 /* ---------- Row ---------- */
 
@@ -461,8 +545,23 @@ function FeeRow({
   const isPending = due.state === "pending";
   const isOverdue = isPending && due.overdueDays > 0;
 
+  const statusLabel = isPending
+    ? isOverdue
+      ? `Overdue · ${due.overdueDays}d`
+      : "Pending"
+    : "Paid";
+  const statusClass = isPending
+    ? isOverdue
+      ? "bg-rose-100 text-rose-700 border-rose-200"
+      : "bg-amber-100 text-amber-700 border-amber-200"
+    : "bg-emerald-100 text-emerald-700 border-emerald-200";
+
+  const meta = [row.batchName, isPending ? periodLabel(due.period) : null]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <li className="p-3 md:px-5 md:py-3.5 hover:bg-accent/60 transition-colors">
+    <li className="p-3 md:px-5 md:py-3 hover:bg-accent/60 transition-colors">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -479,7 +578,24 @@ function FeeRow({
               />
             )}
           </div>
-          <span className="font-semibold text-[15px] truncate min-w-0">{row.name}</span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-semibold text-[15px] truncate">{row.name}</span>
+              <span
+                className={cn(
+                  "shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full border tabular-nums",
+                  statusClass,
+                )}
+              >
+                {statusLabel}
+              </span>
+            </div>
+            {meta && (
+              <div className="text-[11px] text-muted-foreground truncate leading-tight">
+                {meta}
+              </div>
+            )}
+          </div>
         </button>
 
         <div className="text-right shrink-0">
@@ -523,26 +639,22 @@ function FeeRow({
               </Button>
             </>
           ) : (
-            <>
-              <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-                <CheckCircle2 className="size-3.5" /> Paid
-              </span>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="rounded-full h-9 w-9"
-                aria-label="Download receipt"
-                onClick={onReceipt}
-              >
-                <Download className="size-4" />
-              </Button>
-            </>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="rounded-full h-9 w-9"
+              aria-label="Download receipt"
+              onClick={onReceipt}
+            >
+              <Download className="size-4" />
+            </Button>
           )}
         </div>
       </div>
     </li>
   );
 }
+
 
 
 /* ---------- Empty / loading ---------- */
@@ -568,8 +680,53 @@ function SkeletonList() {
   );
 }
 
-function EmptyState({ filter, monthLabel }: { filter: Filter; monthLabel: string }) {
-  if (filter === "pending") {
+function EmptyState({
+  filter,
+  monthLabel,
+  searching,
+  hasStudents,
+}: {
+  filter: Filter;
+  monthLabel: string;
+  searching: boolean;
+  hasStudents: boolean;
+}) {
+  if (searching) {
+    return (
+      <div className="p-10 text-center text-sm text-muted-foreground">
+        No students match your search.
+      </div>
+    );
+  }
+  if (!hasStudents) {
+    return (
+      <div className="p-10 text-center">
+        <div
+          className="mx-auto h-14 w-14 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, white)" }}
+        >
+          <UserPlus className="size-7" style={{ color: "var(--brand)" }} />
+        </div>
+        <div className="mt-3 font-semibold text-lg">No students with a monthly plan</div>
+        <div className="text-sm text-muted-foreground mt-1 mb-4">
+          Add students or assign a fee plan to start collecting.
+        </div>
+        <div className="flex items-center justify-center gap-2">
+          <Button asChild variant="outline" className="rounded-full">
+            <Link to="/dashboard/students">Add Student</Link>
+          </Button>
+          <Button
+            asChild
+            className="rounded-full"
+            style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
+          >
+            <Link to="/dashboard/fee-plans">Assign Fee Plan</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  if (filter === "pending" || filter === "overdue") {
     return (
       <div className="p-10 text-center">
         <div
@@ -578,9 +735,13 @@ function EmptyState({ filter, monthLabel }: { filter: Filter; monthLabel: string
         >
           <PartyPopper className="size-7" style={{ color: "var(--brand)" }} />
         </div>
-        <div className="mt-3 font-semibold text-lg">All fees collected for {monthLabel}</div>
+        <div className="mt-3 font-semibold text-lg">
+          {filter === "overdue"
+            ? "Nothing overdue"
+            : `All fees collected for ${monthLabel}`}
+        </div>
         <div className="text-sm text-muted-foreground mt-1">
-          Nothing pending. Enjoy the quiet 🎉
+          Nothing to chase right now 🎉
         </div>
       </div>
     );
@@ -591,6 +752,7 @@ function EmptyState({ filter, monthLabel }: { filter: Filter; monthLabel: string
     </div>
   );
 }
+
 
 /* ---------- Collect flow (responsive: bottom-sheet on mobile, modal on desktop) ---------- */
 
