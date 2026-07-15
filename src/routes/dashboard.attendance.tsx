@@ -236,11 +236,23 @@ function AttendancePage() {
     queryKey: attendanceKeys.today(tenant.id),
     queryFn: () => fetchAttendanceToday(tenant.id),
     staleTime: 15_000,
+    enabled: isTodayView,
   });
+  const historyQ = useQuery({
+    queryKey: attendanceKeys.byDate(tenant.id, selectedISO),
+    queryFn: () => fetchAttendanceByDate(tenant.id, selectedISO),
+    // Historical days are immutable — cache aggressively so re-selecting
+    // yesterday doesn't re-fetch.
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    enabled: historyMode,
+  });
+  const attendanceQ = isTodayView ? todayQ : historyQ;
 
   // Single realtime subscription — updates every card + list on this page,
   // and reuses the same channel that drives the dashboard KPIs.
-  useAttendanceRealtime(tenant.id, qc);
+  // Only subscribe when viewing Today; historical days are frozen.
+  useAttendanceRealtime(isTodayView ? tenant.id : null, qc);
 
   const activeBatches = useMemo(
     () => (batchesQ.data ?? []).filter((b: { active: boolean }) => b.active),
