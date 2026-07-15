@@ -46,6 +46,8 @@ import {
   fetchKpis,
   fetchDashboardInsights,
   fetchDashboardActivity,
+  fetchBatches,
+  fetchStudents,
   qk,
   type ActivityEvent,
 } from "@/lib/dashboard-queries";
