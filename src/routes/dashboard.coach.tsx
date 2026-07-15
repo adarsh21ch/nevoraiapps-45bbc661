@@ -21,6 +21,8 @@ import {
   Megaphone,
   Loader2,
   Save,
+  BarChart3,
+  ShieldCheck,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
