@@ -41,9 +41,6 @@ import {
   registerTeams,
   removeTeam,
   listFixtures,
-  generateRoundRobin,
-  generateKnockout,
-  persistFixtures,
 } from "@/lib/mc-tournaments";
 import {
   rebuildTournamentStandings,
@@ -60,6 +57,8 @@ import {
   VenuesTab,
   OfficialsTab,
 } from "@/components/match-center/tournament-setup";
+import { FixtureGeneratorDialog } from "@/components/match-center/fixture-generator";
+import { supabase } from "@/integrations/supabase/client";
 
 
 export const Route = createFileRoute("/match-center/tournaments/$tournamentId")({
@@ -166,7 +165,7 @@ function TournamentDetailPage() {
       {tab === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
       {tab === "venues" && <VenuesTab tournamentId={tournamentId} tenantId={tenant.id} />}
       {tab === "officials" && <OfficialsTab tournamentId={tournamentId} tenantId={tenant.id} />}
-      {tab === "fixtures" && <FixturesTab tournamentId={tournamentId} tenantId={tenant.id} overs={t.overs} format={t.format} />}
+      {tab === "fixtures" && <FixturesTab tournament={t} tenantId={tenant.id} />}
       {tab === "standings" && <StandingsTab tournamentId={tournamentId} />}
       {tab === "results" && <ResultsTab tournamentId={tournamentId} />}
       {tab === "stats" && <RecordsTab tournamentId={tournamentId} />}
@@ -345,105 +344,173 @@ function TeamsTab({ tournamentId, tenantId }: { tournamentId: string; tenantId: 
 
 /* ==================== FIXTURES ==================== */
 function FixturesTab({
-  tournamentId,
+  tournament,
   tenantId,
-  overs,
-  format,
 }: {
-  tournamentId: string;
+  tournament: import("@/lib/mc-tournaments").MCTournament;
   tenantId: string;
-  overs: number;
-  format: string;
 }) {
-  const qc = useQueryClient();
+  const tournamentId = tournament.id;
   const { session } = useDashboard();
-  const teamsQ = useQuery({
-    queryKey: ["mc-tournament-teams", tournamentId],
-    queryFn: () => listTournamentTeams(tournamentId),
-  });
+  const [genOpen, setGenOpen] = useState(false);
+  const [view, setView] = useState<"list" | "matchday" | "bracket">("matchday");
   const fxQ = useQuery({
     queryKey: ["mc-tournament-fixtures", tournamentId],
     queryFn: () => listFixtures(tournamentId),
   });
 
-  const generate = useMutation({
-    mutationFn: async (kind: "round_robin" | "knockout") => {
-      const teamIds = (teamsQ.data ?? []).map((r) => r.team_id);
-      if (teamIds.length < 2) throw new Error("Register at least 2 teams first");
-      const fixtures =
-        kind === "round_robin" ? generateRoundRobin(teamIds) : generateKnockout(teamIds);
-      await persistFixtures({
-        tenantId,
-        tournamentId,
-        overs,
-        matchFormat: format,
-        fixtures,
-        createdBy: session?.user?.id ?? null,
-      });
-    },
-    onSuccess: () => {
-      toast.success("Fixtures generated");
-      qc.invalidateQueries({ queryKey: ["mc-tournament-fixtures", tournamentId] });
-    },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
-  });
+  const fixtures = fxQ.data ?? [];
+  const byMatchday = useMemo(() => {
+    const buckets = new Map<string, typeof fixtures>();
+    for (const m of fixtures) {
+      const key = m.matchday_no ? `Matchday ${m.matchday_no}` : "Unscheduled";
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key)!.push(m);
+    }
+    return Array.from(buckets.entries());
+  }, [fixtures]);
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => generate.mutate("round_robin")}
-          disabled={generate.isPending}
-        >
-          <Zap className="size-4 mr-1.5" /> Generate round robin
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => generate.mutate("knockout")}
-          disabled={generate.isPending}
-        >
-          <Zap className="size-4 mr-1.5" /> Generate knockout
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="inline-flex rounded-lg border border-border bg-muted p-0.5 text-xs">
+          {(["matchday", "list", "bracket"] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={cn(
+                "rounded-md px-2.5 py-1 font-medium capitalize",
+                view === v ? "bg-background shadow-sm" : "text-muted-foreground",
+              )}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+        <Button size="sm" onClick={() => setGenOpen(true)}>
+          <Zap className="size-4 mr-1.5" /> Generate fixtures
         </Button>
       </div>
 
+      <FixtureGeneratorDialog
+        open={genOpen}
+        onOpenChange={setGenOpen}
+        tournament={tournament}
+        tenantId={tenantId}
+        createdBy={session?.user?.id ?? null}
+      />
+
       {fxQ.isLoading ? (
         <LoadingSkeleton />
-      ) : (fxQ.data?.length ?? 0) === 0 ? (
+      ) : fixtures.length === 0 ? (
         <EmptyState
           icon={Calendar}
           title="No fixtures yet"
-          description="Register teams and generate a fixture list, or create matches manually."
+          description="Complete tournament setup then generate fixtures."
         />
+      ) : view === "matchday" ? (
+        <div className="space-y-4">
+          {byMatchday.map(([label, list]) => (
+            <div key={label}>
+              <div className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {label}
+              </div>
+              <div className="space-y-2">
+                {list.map((m) => (
+                  <FixtureRow key={m.id} m={m} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : view === "bracket" ? (
+        <BracketView tournamentId={tournamentId} />
       ) : (
         <div className="space-y-2">
-          {(fxQ.data ?? []).map((m) => (
-            <Link
-              key={m.id}
-              to="/scorer/$matchId"
-              params={{ matchId: m.id }}
-              className="flex items-center justify-between rounded-xl border border-border bg-card p-3 transition-colors hover:border-foreground/30"
-            >
-              <div>
-                <div className="text-sm font-medium">
-                  {m.team_a?.name} vs {m.team_b?.name}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {m.scheduled_date ?? "TBD"} {m.scheduled_time ?? ""}
-                </div>
-              </div>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider">
-                {m.status}
-              </span>
-            </Link>
+          {fixtures.map((m) => (
+            <FixtureRow key={m.id} m={m} />
           ))}
         </div>
       )}
     </div>
   );
 }
+
+function FixtureRow({ m }: { m: Awaited<ReturnType<typeof listFixtures>>[number] }) {
+  return (
+    <Link
+      to="/scorer/$matchId"
+      params={{ matchId: m.id }}
+      className="flex items-center justify-between rounded-xl border border-border bg-card p-3 transition-colors hover:border-foreground/30"
+    >
+      <div>
+        <div className="text-sm font-medium">
+          {m.team_a?.name} vs {m.team_b?.name}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {m.scheduled_date ?? "TBD"} {m.scheduled_time ?? ""}
+        </div>
+      </div>
+      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider">
+        {m.status}
+      </span>
+    </Link>
+  );
+}
+
+function BracketView({ tournamentId }: { tournamentId: string }) {
+  const q = useQuery({
+    queryKey: ["mc-tournament-rounds", tournamentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mc_tournament_rounds")
+        .select("*")
+        .eq("tournament_id", tournamentId)
+        .order("stage_order", { ascending: true })
+        .order("slot_index", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const rounds = q.data ?? [];
+  if (rounds.length === 0) {
+    return (
+      <EmptyState
+        icon={Trophy}
+        title="No bracket"
+        description="Generate a knockout tournament to see the bracket."
+      />
+    );
+  }
+  const byStage = new Map<string, typeof rounds>();
+  for (const r of rounds) {
+    if (!byStage.has(r.stage)) byStage.set(r.stage, []);
+    byStage.get(r.stage)!.push(r);
+  }
+  return (
+    <div className="flex gap-4 overflow-x-auto pb-2">
+      {Array.from(byStage.entries()).map(([stage, list]) => (
+        <div key={stage} className="min-w-[220px] space-y-2">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {stage.replace("_", " ")}
+          </div>
+          {list.map((r) => (
+            <div
+              key={r.id}
+              className="rounded-lg border border-border bg-card px-3 py-2 text-xs"
+            >
+              <div className="font-medium">{r.name ?? "TBD"}</div>
+              <div className="text-muted-foreground">
+                {r.team_a_id ? "Team A" : "TBD"} vs {r.team_b_id ? "Team B" : "TBD"}
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 /* ==================== STANDINGS ==================== */
 function StandingsTab({ tournamentId }: { tournamentId: string }) {

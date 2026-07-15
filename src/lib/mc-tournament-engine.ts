@@ -270,6 +270,9 @@ export async function updateTournamentForMatch(matchId: string): Promise<void> {
     .maybeSingle();
   if (!data?.tournament_id) return;
   await rebuildTournamentStandings(data.tournament_id);
+  // Propagate knockout winners to the next bracket slot (no-op for league games).
+  const { advanceKnockoutWinner } = await import("@/lib/mc-fixture-engine");
+  await advanceKnockoutWinner(matchId);
 }
 
 /* ================================================================
