@@ -552,17 +552,17 @@ export function buildTournamentAnalytics(
       t.deathInnings += 1;
     }
 
-    // Team-level ball-based counters (attribute via innings_number → batting team)
-    const teamByInnings = new Map<number, { batting: string; bowling: string }>();
+    // Team-level ball-based counters (attribute via innings_id → batting team)
+    const teamByInningsId = new Map<string, { batting: string; bowling: string }>();
     for (const inn of innings) {
-      teamByInnings.set(inn.innings_number, {
+      teamByInningsId.set(inn.id, {
         batting: inn.batting_team_id,
         bowling: inn.bowling_team_id,
       });
     }
     for (const e of events) {
       const runsOff = e.runs_off_bat ?? 0;
-      const tm = teamByInnings.get(e.innings_number);
+      const tm = teamByInningsId.get(e.innings_id);
       if (!tm) continue;
       const bt = ensureTeam(tm.batting);
       if (e.extra_type !== "wide") bt.legalBallsFaced += 1;
