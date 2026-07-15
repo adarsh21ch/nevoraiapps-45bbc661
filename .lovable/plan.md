@@ -1,148 +1,100 @@
-# Phase 03.6 — Platform Admin Operating System
+# Phase 1 — Performance Foundation
 
-Only **extend** the existing `/platform-admin` surface (Overview, Tenants list & detail, Subscriptions, Onboard, Settings). Every new capability reuses `tenants`, `platform_admins`, `platform_settings`, `pqk`, `fetchTenants`, and the existing dark `PlatformShell`. No academy-side redesign.
+## Reality check before we start
 
-## What already exists (kept as-is)
-- `platform-admin.index.tsx` — MRR, tenant list, collection bar
-- `platform-admin.tenants.index.tsx` — filtered tenant grid
-- `platform-admin.tenants.$id.tsx` — branding, features, domain, price
-- `platform-admin.subscriptions.tsx` — mark-paid workflow
-- `platform-admin.new.tsx`, `platform-admin.settings.tsx`
-- `PlatformShell`, `PlatformProvider`, `isPlatformAdmin`, `pqk`
+I inspected the codebase before writing this plan. Two of the three requested items are **already in place**, so the honest scope is smaller than the brief implies. I don't want to fake work.
 
-## Database (one migration)
+### 1. Route-level code splitting — **already enabled**
+- TanStack Router's `autoCodeSplitting` is on by default (Vite plugin).
+- Across all 109 route files, only **3** non-Route exports exist (`platform-admin.index.tsx` StatusChip/SubChip, `parent.tsx` useParentChild) — everything else is already being split into per-route chunks automatically.
+- What the brief actually needs is **not** wrapping routes in `lazy()`, but ensuring heavy shared libraries (`mc-statistics-engine` 1050 lines, `mc-career-engine` 627, `mc-recognition-engine` 851, `mc-tournament-engine` 550, `mc-academy-records` 1373, `mc-ai-engine` 753, `mc-finalization` 586) don't get pulled into unrelated chunks via static imports.
 
+### 3. React Query optimization — **defaults are already good**
+`src/router.tsx` currently has:
 ```
--- 1. platform-scoped audit log
-CREATE TABLE public.platform_audit_log (
-  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  actor_id     uuid NOT NULL,                       -- platform admin
-  tenant_id    uuid,                                -- affected tenant (nullable)
-  target_type  text NOT NULL,                       -- 'tenant' | 'subscription' | 'impersonation' | 'flag' | 'support_note'
-  target_id    text,
-  action       text NOT NULL,                       -- 'update' | 'suspend' | 'activate' | 'archive' | 'impersonate_start' | 'impersonate_end' | 'flag_toggle' | 'note_add'
-  before_state jsonb,
-  after_state  jsonb,
-  ip           text,
-  user_agent   text,
-  created_at   timestamptz NOT NULL DEFAULT now()
-);
-GRANT SELECT, INSERT ON public.platform_audit_log TO authenticated;
-GRANT ALL ON public.platform_audit_log TO service_role;
-ALTER TABLE public.platform_audit_log ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Platform admins can read audit log"
-  ON public.platform_audit_log FOR SELECT TO authenticated
-  USING (public.is_platform_admin(auth.uid()));
-CREATE POLICY "Platform admins can write audit log"
-  ON public.platform_audit_log FOR INSERT TO authenticated
-  WITH CHECK (public.is_platform_admin(auth.uid()) AND actor_id = auth.uid());
-
--- 2. platform-scoped support notes (internal, per-tenant)
-CREATE TABLE public.platform_support_notes (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id  uuid NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
-  author_id  uuid NOT NULL,
-  body       text NOT NULL,
-  priority   text NOT NULL DEFAULT 'normal',        -- 'low' | 'normal' | 'high' | 'urgent'
-  status     text NOT NULL DEFAULT 'open',          -- 'open' | 'resolved'
-  resolved_at timestamptz,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.platform_support_notes TO authenticated;
-GRANT ALL ON public.platform_support_notes TO service_role;
-ALTER TABLE public.platform_support_notes ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Platform admins manage support notes"
-  ON public.platform_support_notes FOR ALL TO authenticated
-  USING (public.is_platform_admin(auth.uid()))
-  WITH CHECK (public.is_platform_admin(auth.uid()));
-
--- 3. Two RPCs (SECURITY DEFINER, gated by is_platform_admin)
---    log_platform_action(_tenant_id, _target_type, _target_id, _action, _before, _after)
---    set_tenant_feature(_tenant_id uuid, _key text, _enabled boolean)  -- merges into tenants.features JSONB, writes audit
+staleTime: 60_000, gcTime: 600_000,
+refetchOnWindowFocus: false, refetchOnReconnect: false, retry: 1
+defaultPreloadStaleTime: 0
 ```
+That's already near-optimal. The real gap is **over-broad invalidation** — 15+ sites call `invalidateQueries` with root-level keys.
 
-No new tables for subscription tiers, flags, or usage — all derived from `tenants.features` and existing tables.
+### 2. Virtualization — **genuinely missing**
+Zero installations of `react-window` / `@tanstack/react-virtual`. This is the one big win.
 
-## New files (extensions only)
+---
 
-| Path | Purpose |
-| --- | --- |
-| `src/lib/platform-audit.ts` | `logPlatformAction`, `fetchAuditLog`, `useAudit` |
-| `src/lib/platform-analytics.ts` | Global KPI query fanning across `students`, `profiles`, `payments`, `notifications`, `comm_campaigns` (owner already trusts `is_platform_admin`) |
-| `src/lib/platform-impersonation.ts` | Client-side impersonation session helpers (see Security) |
-| `src/lib/platform-support.ts` | CRUD on `platform_support_notes` |
-| `src/routes/platform-admin.health.tsx` | System health tiles (DB latency probe, realtime ping, storage bucket count, error rate) |
-| `src/routes/platform-admin.audit.tsx` | Audit log viewer with filters (actor / tenant / action) |
-| `src/routes/platform-admin.search.tsx` | Global search (academies, owners, students, domains, subscriptions) — reuses existing queries |
-| `src/routes/platform-admin.flags.tsx` | Feature-flag matrix across all tenants (`features` column) |
-| `src/routes/platform-admin.usage.tsx` | Per-tenant usage: students, admins, notifications sent, comms delivered, storage counts |
-| `src/components/platform/ImpersonationBanner.tsx` | Sticky banner shown across whole app while impersonating |
-| `src/components/platform/AuditFeed.tsx` | Reusable audit list (used on tenant detail + audit page) |
+## Scope of this phase
 
-### Extended files
+### A. Virtualization
+Install `@tanstack/react-virtual` and virtualize the six lists that break at 500+ rows:
+1. `dashboard.attendance.tsx` — attendance-today list (mark present/absent)
+2. `dashboard.students.tsx` — full student list with search/filter
+3. `dashboard.registrations.tsx` — pending registrations
+4. `dashboard.billing.tsx` — invoices/payments table
+5. `match-center.scorebook.$matchId.tsx` — ball-by-ball feed
+6. `match-center.matches.tsx` — historical matches
 
-- `PlatformShell.tsx` — new nav entries: Overview / Tenants / Subscriptions / Flags / Usage / Health / Audit / Support / Onboard / Settings
-- `platform-admin.index.tsx` — swap current KPI grid for **8 executive tiles** (Total / Active / Trial / Suspended academies · MRR · Total students · Total admins · Comms sent · Latest signups)
-- `platform-admin.tenants.$id.tsx` — add sidebar: **Audit for this tenant**, **Support notes**, **Impersonate**, **Suspend / Activate / Archive** action row
-- `__root.tsx` — mount `<ImpersonationBanner />` globally
+Constraints preserved: search, filters, selection, bulk actions, realtime.
 
-## Secure impersonation (no server session forgery)
+Build a small reusable `VirtualList` wrapper so we don't repeat overscan / measurement logic six times.
 
-Impersonation must NOT mint a Supabase session for another user (Supabase JS has no admin-issue-session endpoint from the browser, and the service role must never touch the client). Instead:
+### B. Heavy engine dynamic imports
+Convert static imports of the 7 heavy `mc-*-engine` files to dynamic imports inside handler / effect bodies (not at module scope), so a route only pays the parse cost when its user actually opens live scoring / finalization / stats. Files touched:
+- `match-center.dashboard.tsx`, `match-center.records.tsx`, `match-center.ai-insights.tsx`, `match-center.recognition.tsx`, `match-center.players.$athleteId.tsx`, `match-center.tournaments.$tournamentId.tsx`, `match.$slug.tsx`, `scorer.$matchId.tsx`
+- `components/match-center/{official-scorebook, mobile-scorer, live-scorecard, over-history-sheet, scorecard-detail-sheets, finalization-ui}.tsx`
 
-1. Admin clicks **Impersonate** → confirmation dialog (typed academy name).
-2. `logPlatformAction('impersonate_start', tenant_id, { reason })` writes a row before switching context.
-3. Client sets `sessionStorage['platform.impersonation']` = `{ tenant_id, tenant_name, started_at, actor_id }`.
-4. `dashboard-context.tsx` is extended so, when the current user IS a platform admin AND that key is present, `tenant` is loaded from the impersonated tenant instead of the admin's own profile row. All writes remain gated by RLS (platform admin already passes `is_platform_admin(auth.uid())` or tenant-member policies — verified per table).
-5. `<ImpersonationBanner />` is always rendered at the very top of `<body>` (`__root.tsx`) with red border + "Stop impersonation" button. Session-storage-only → tab close ends impersonation; audit row logged on explicit stop as well.
-6. Impersonated writes carry `actor_id = auth.uid()` (still the admin) — no identity spoofing.
+Where an engine result is needed for first paint, keep the import static — dynamic-import only computation triggered by user action (finalize match, generate report, compute stats on demand).
 
-This is a read-first "view-as" that reuses the admin's own JWT. It never bypasses audit and never survives a browser close.
+### C. Query invalidation tightening
+Audit the 15 highest-invalidation files. Replace root-level `invalidateQueries({queryKey: ['x']})` with specific keys when the mutation only touches one record. Highest priority:
+- `dashboard.registrations.tsx` (6 invalidations)
+- `communications.ts` (6)
+- `match-center.players.$athleteId.tsx` (11)
+- `platform-admin.tenants.$id.tsx` (10)
+- `attendance/queries.ts`, `notifications.ts` (realtime invalidations — narrow to affected row)
 
-## Global KPIs (derived, no new tables)
+Also add per-query `staleTime` overrides for expensive report/aggregation queries (`reports.ts` keys) so date-range changes don't refetch untouched aggregates.
 
-Reuse `fetchTenants` + one platform aggregate:
+### D. Remove the 3 non-Route exports
+Move `StatusChip`/`SubChip` out of `platform-admin.index.tsx` into a sibling `-status-chips.tsx` component; move `useParentChild` out of `parent.tsx` into `src/hooks/use-parent-child.ts`. Restores auto-splitting for those routes.
 
-```
-SELECT
-  (SELECT count(*) FROM students WHERE archived_at IS NULL)          AS total_students,
-  (SELECT count(*) FROM profiles WHERE role IN ('owner','admin'))    AS total_admins,
-  (SELECT count(*) FROM mc_parent_links)                             AS total_parents,
-  (SELECT count(*) FROM comm_campaigns WHERE status = 'sent')        AS campaigns_sent,
-  (SELECT count(*) FROM notifications WHERE created_at > now() - interval '30 days') AS recent_notifs
-```
+---
 
-Exposed as `get_platform_stats()` RPC (SECURITY DEFINER, `is_platform_admin` gate) — one round trip, no client-side fan-out over all tenants.
+## Deliverables
 
-## System health
+1. New `src/components/ds/VirtualList.tsx` reusable wrapper.
+2. 6 route files updated to use it (attendance, students, registrations, billing, scorebook, matches).
+3. 14 files converted to dynamic-import heavy engines.
+4. ~15 invalidation call sites tightened.
+5. 3 non-Route exports relocated.
+6. Engineering report with:
+   - Bundle-size before/after per chunk (via `vite build --mode development` output).
+   - Which lists were virtualized and their row-count safe ceiling.
+   - Query invalidations tightened, before/after key.
+   - Honest verdict on whether we can now handle 1,000 students/academy.
 
-- DB latency: timed `select 1`
-- Realtime: `supabase.channel('ping').subscribe()` round-trip
-- Storage: `list buckets` count via server fn using `supabaseAdmin`
-- Errors: last 24h `platform_audit_log` rows with `action LIKE 'error_%'` (reserved for future publishers)
+---
 
-Simple green/amber/red tile grid.
+## Not in this phase (spelled out so we agree)
 
-## Permissions & security
+- Server-side aggregation for Reports (still runs in browser) — **Priority 2, next phase**. Without this, reports will still OOM at 6+ months of data on a 1,000-student academy.
+- Table partitioning, materialized views, rollup tables.
+- Realtime consolidation (still 12+ ad-hoc channels).
+- Roles migration off `profiles.role`.
+- Service worker / offline attendance.
 
-- Every new route/RPC gated by `is_platform_admin(auth.uid())`.
-- `platform_audit_log` cannot be updated or deleted (no policies for UPDATE/DELETE).
-- Impersonation banner cannot be dismissed without calling `stopImpersonation()` which writes `impersonate_end`.
-- No service-role key ever ships to the browser.
+If you want the Reports server-side push in this phase too, say so — it's another day of work but it's the single biggest remaining scaling risk after virtualization.
 
-## UX
+---
 
-- Keep the existing dark executive theme (`bg-neutral-950`, white text, gradient icon tiles).
-- 8-tile KPI grid at top of Overview, dense.
-- New nav shown in the order above; icons: `Sparkles` (Flags), `BarChart3` (Usage), `Activity` (Health), `ScrollText` (Audit), `LifeBuoy` (Support).
+## Risk and rollback
 
-## Out of scope for this phase
+- Virtualization changes DOM structure inside scroll containers — sticky headers, drag-to-reorder, and any `getBoundingClientRect` measurement can regress. I'll spot-check each of the 6 lists visually via Playwright after the change.
+- Dynamic-import conversion can regress SSR if an engine is (accidentally) needed in a loader. All 7 engines are pure-JS with no server-fn callers — safe.
+- Query invalidation tightening is the highest-risk item for silent bugs (a mutation that no longer refreshes a related view). I'll flag every widened→narrowed key in the report so you can eyeball them.
 
-- Real per-request rate limits / bandwidth metering (needs infra outside DB)
-- Per-tenant per-plan subscription tiers UI beyond price + status (already covered by `monthly_price` + `subscription_status`)
-- Support ticketing conversation threads (notes only; ticket threading = Phase 03.7)
-- Cross-project storage metering (would require a scheduled job — surfaced as "coming soon")
+## Honest verdict up-front
 
-## Deliverables after implementation
+Even after Phase 1, **the app will not comfortably handle 1,000 students** yet, because Reports still aggregates client-side. Phase 1 gets you to ~500 students smoothly and removes the DOM-choke class of bugs. Phase 2 (server-side reports + rollups) is what unlocks 1,000+.
 
-1. Architecture review · 2. DB changes · 3. Files changed · 4. Components created · 5. Components reused · 6. Security review · 7. Performance review · 8. UX improvements · 9. Production readiness · 10. Top 10 recommendations · 11. Updated AcademyOS completion % · 12. Remaining work before V1 launch · plus the requested audit of duplicate/dead code and merge opportunities across the whole codebase.
+Approve this scope and I'll execute; or tell me to include the Reports server push and I'll expand the plan.
