@@ -120,7 +120,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       });
 
   const primary = withBadges(primaryNav);
-  const operations = withBadges(operationsNav);
+  const secondary = withBadges(secondaryNav);
+  const matchCenter = withBadges(matchCenterNav);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
