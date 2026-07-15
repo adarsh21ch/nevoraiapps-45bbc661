@@ -90,39 +90,17 @@ function cadenceWindow(cadence: SummaryCadence, now: Date): { start: Date; end: 
   return { start, end };
 }
 
-async function countRows(
-  admin: Awaited<
-    ReturnType<typeof import("@/integrations/supabase/client.server").then>
-  >["supabaseAdmin"],
-  table: string,
-  build: (q: ReturnType<typeof admin.from>) => unknown,
-): Promise<number> {
-  try {
-    const q = admin.from(table as never).select("*", { count: "exact", head: true });
-    const filtered = build(q) as unknown as {
-      then: (resolve: (v: { count: number | null; error: unknown }) => unknown) => Promise<{
-        count: number | null;
-        error: unknown;
-      }>;
-    };
-    const { count, error } = (await filtered) as { count: number | null; error: unknown };
-    if (error) return 0;
-    return count ?? 0;
-  } catch {
-    return 0;
-  }
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AdminClient = any;
 
 async function sumColumn(
-  admin: Awaited<
-    ReturnType<typeof import("@/integrations/supabase/client.server").then>
-  >["supabaseAdmin"],
+  admin: AdminClient,
   table: string,
   column: string,
-  build: (q: ReturnType<typeof admin.from>) => unknown,
+  build: (q: unknown) => unknown,
 ): Promise<number> {
   try {
-    const q = admin.from(table as never).select(column);
+    const q = admin.from(table).select(column);
     const rows = (await (build(q) as unknown as Promise<{ data: unknown; error: unknown }>)) as {
       data: unknown;
       error: unknown;
@@ -138,6 +116,9 @@ async function sumColumn(
     return total;
   } catch {
     return 0;
+  }
+}
+
   }
 }
 
