@@ -30,12 +30,12 @@ export const emitAutomationEvent = createServerFn({ method: "POST" })
     // Tenant isolation: the caller must belong to the tenant they're emitting for.
     // RLS enforces this on the INSERT, but check explicitly for a clearer error.
     const { data: member } = await context.supabase.rpc("is_tenant_member", {
-      _user_id: context.userId,
-      _tenant_id: data.tenantId,
+      _uid: context.userId,
+      _tenant: data.tenantId,
     });
     if (!member) {
       const { data: admin } = await context.supabase.rpc("is_platform_admin", {
-        _user_id: context.userId,
+        _uid: context.userId,
       });
       if (!admin) throw new Error("Forbidden: not a tenant member");
     }
@@ -47,7 +47,7 @@ export const emitAutomationEvent = createServerFn({ method: "POST" })
         event_type: data.eventType,
         source_module: data.sourceModule ?? null,
         source_id: data.sourceId ?? null,
-        payload: data.payload,
+        payload: data.payload as never,
       })
       .select("id, created_at")
       .maybeSingle();
