@@ -44,12 +44,10 @@ import {
   notifyFinalResult,
 } from "@/lib/mc-finalization";
 import type { MCBallEvent } from "@/lib/mc-ball-events";
-import {
-  updateCareersForMatch,
-  rebuildCareersAfterUnlock,
-} from "@/lib/mc-career-engine";
-import { updateTournamentForMatch } from "@/lib/mc-tournament-engine";
-import { updateAcademyRecordsForMatch } from "@/lib/mc-academy-records";
+// Heavy engines are dynamic-imported inside the finalize handler so they
+// only enter the chunk graph when the user actually finalizes / unlocks
+// a match (a rare, action-triggered operation).
+
 
 /* ============================================================
  * Finalization dialog
@@ -136,6 +134,11 @@ export function FinalizationDialog({
       toast.success("Match finalized and locked");
       // Career Engine: refresh every participant's cache from finalized matches.
       try {
+        const [{ updateCareersForMatch }, { updateTournamentForMatch }, { updateAcademyRecordsForMatch }] = await Promise.all([
+          import("@/lib/mc-career-engine"),
+          import("@/lib/mc-tournament-engine"),
+          import("@/lib/mc-academy-records"),
+        ]);
         await updateCareersForMatch(matchId);
         await updateTournamentForMatch(matchId);
         const rec = await updateAcademyRecordsForMatch(matchId);
@@ -454,10 +457,14 @@ export function UnlockMatchDialog({
       await unlockMatch({ matchId, tenantId, actorId, reason: reason.trim() });
       // Career Engine: rebuild affected athletes so unlocked match is excluded.
       try {
+        const [{ rebuildCareersAfterUnlock }, { updateTournamentForMatch }, { rebuildAcademyRecords }] = await Promise.all([
+          import("@/lib/mc-career-engine"),
+          import("@/lib/mc-tournament-engine"),
+          import("@/lib/mc-academy-records"),
+        ]);
         await rebuildCareersAfterUnlock(matchId);
         await updateTournamentForMatch(matchId);
         // Academy Records must be rebuilt (a broken record may need to revert).
-        const { rebuildAcademyRecords } = await import("@/lib/mc-academy-records");
         await rebuildAcademyRecords(tenantId);
       } catch (careerErr) {
         console.error("Career rebuild after unlock failed", careerErr);

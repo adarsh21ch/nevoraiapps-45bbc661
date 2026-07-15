@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { VirtualList } from "@/components/ds/VirtualList";
 
 
 export const Route = createFileRoute("/dashboard/fees")({
@@ -337,30 +338,37 @@ function FeeRegister() {
           />
         ) : (
 
-          <ul className="divide-y divide-border">
-            {visible.map((r) => (
-              <FeeRow
-                key={r.studentId}
-                row={r}
-                tenantName={tenant.name}
-                whatsappEnabled={features.whatsapp_reminders !== false}
-                onOpenProfile={() => openProfile(r.studentId)}
-                onCollect={() => setPayRow(r)}
-                onReceipt={() => {
-                  if (!r.paidPayment) return;
-                  generateReceiptPdf(tenant, {
-                    receiptNo: r.paidPayment.receipt_no,
-                    studentName: r.name,
-                    amount: Number(r.paidPayment.amount),
-                    type: r.paidPayment.type,
-                    period: r.paidPayment.period,
-                    method: r.paidPayment.method,
-                    paidAt: r.paidPayment.created_at,
-                  });
-                }}
-              />
-            ))}
-          </ul>
+          <VirtualList
+            items={visible}
+            estimateSize={84}
+            overscan={8}
+            className="max-h-[calc(100vh-260px)]"
+            getKey={(r) => r.studentId}
+            renderItem={(r) => (
+              <div className="border-b border-border">
+                <FeeRow
+                  row={r}
+                  tenantName={tenant.name}
+                  whatsappEnabled={features.whatsapp_reminders !== false}
+                  onOpenProfile={() => openProfile(r.studentId)}
+                  onCollect={() => setPayRow(r)}
+                  onReceipt={() => {
+                    if (!r.paidPayment) return;
+                    generateReceiptPdf(tenant, {
+                      receiptNo: r.paidPayment.receipt_no,
+                      studentName: r.name,
+                      amount: Number(r.paidPayment.amount),
+                      type: r.paidPayment.type,
+                      period: r.paidPayment.period,
+                      method: r.paidPayment.method,
+                      paidAt: r.paidPayment.created_at,
+                    });
+                  }}
+                />
+              </div>
+            )}
+          />
+
         )}
       </section>
 

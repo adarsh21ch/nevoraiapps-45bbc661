@@ -17,6 +17,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { toast } from "sonner";
 import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 import { cn } from "@/lib/utils";
+import { VirtualList } from "@/components/ds/VirtualList";
 
 export const Route = createFileRoute("/match-center/matches")({
   head: () => ({
@@ -119,10 +120,15 @@ function MatchesPage() {
             actionTo={hasMatches ? undefined : "/match-center/create"}
           />
         ) : (
-          <div className="grid gap-2.5">
-            {filtered.map((m) => (
+          <VirtualList
+            items={filtered}
+            estimateSize={140}
+            overscan={6}
+            className="max-h-[calc(100vh-220px)]"
+            containerClassName="pb-2.5 pr-0.5"
+            getKey={(m) => m.id}
+            renderItem={(m) => (
               <MatchCard
-                key={m.id}
                 match={m}
                 onArchive={onArchive}
                 onDelete={onDelete}
@@ -134,8 +140,9 @@ function MatchesPage() {
                   invalidate();
                 }}
               />
-            ))}
-          </div>
+            )}
+          />
+
         )}
       </div>
     </div>

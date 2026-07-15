@@ -50,6 +50,7 @@ import {
 import { toast } from "sonner";
 import { Banknote, CheckCircle2, Coins, FileText, IndianRupee, Lock, Plus, Receipt, Users } from "lucide-react";
 import { format } from "date-fns";
+import { VirtualList } from "@/components/ds/VirtualList";
 
 export const Route = createFileRoute("/dashboard/billing")({
   head: () => ({
@@ -272,31 +273,38 @@ function InvoicesTable({
           <div className="col-span-2 text-right">Pending</div>
           <div className="col-span-1 text-right">Status</div>
         </div>
-        {invoices.map((inv) => {
-          const stu = sMap.get(inv.student_id);
-          return (
-            <button
-              key={inv.id}
-              onClick={() => setSelected(inv)}
-              className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b last:border-b-0 hover:bg-muted/40 text-left w-full"
-            >
-              <div className="col-span-2 font-mono text-xs">{inv.number ?? <span className="text-muted-foreground">Draft</span>}</div>
-              <div className="col-span-3 truncate">{stu?.name ?? "—"}</div>
-              <div className="col-span-2 text-muted-foreground">{inv.due_date ?? "—"}</div>
-              <div className="col-span-2 text-right tabular-nums">{formatMoney(inv.total, inv.currency)}</div>
-              <div className="col-span-2 text-right tabular-nums">
-                {inv.balance > 0 ? (
-                  <span className="text-amber-600 dark:text-amber-400">{formatMoney(inv.balance, inv.currency)}</span>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </div>
-              <div className="col-span-1 text-right">
-                <StatusPill status={inv.status} />
-              </div>
-            </button>
-          );
-        })}
+        <VirtualList
+          items={invoices}
+          estimateSize={52}
+          overscan={10}
+          className="max-h-[70vh]"
+          getKey={(inv) => inv.id}
+          renderItem={(inv) => {
+            const stu = sMap.get(inv.student_id);
+            return (
+              <button
+                onClick={() => setSelected(inv)}
+                className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b hover:bg-muted/40 text-left w-full"
+              >
+                <div className="col-span-2 font-mono text-xs">{inv.number ?? <span className="text-muted-foreground">Draft</span>}</div>
+                <div className="col-span-3 truncate">{stu?.name ?? "—"}</div>
+                <div className="col-span-2 text-muted-foreground">{inv.due_date ?? "—"}</div>
+                <div className="col-span-2 text-right tabular-nums">{formatMoney(inv.total, inv.currency)}</div>
+                <div className="col-span-2 text-right tabular-nums">
+                  {inv.balance > 0 ? (
+                    <span className="text-amber-600 dark:text-amber-400">{formatMoney(inv.balance, inv.currency)}</span>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </div>
+                <div className="col-span-1 text-right">
+                  <StatusPill status={inv.status} />
+                </div>
+              </button>
+            );
+          }}
+        />
+
       </div>
       <InvoiceDetailDialog
         tenantId={tenantId}
@@ -586,17 +594,25 @@ function PaymentsTable({
         <div className="col-span-2">Reference</div>
         <div className="col-span-2 text-right">Amount</div>
       </div>
-      {payments.map((p) => (
-        <div key={p.id} className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b last:border-b-0">
-          <div className="col-span-3 text-muted-foreground">
-            {format(new Date(p.collected_at), "dd MMM yyyy, HH:mm")}
+      <VirtualList
+        items={payments}
+        estimateSize={52}
+        overscan={10}
+        className="max-h-[70vh]"
+        getKey={(p) => p.id}
+        renderItem={(p) => (
+          <div className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b">
+            <div className="col-span-3 text-muted-foreground">
+              {format(new Date(p.collected_at), "dd MMM yyyy, HH:mm")}
+            </div>
+            <div className="col-span-3 truncate">{sMap.get(p.student_id)?.name ?? "—"}</div>
+            <div className="col-span-2">{paymentMethodLabel[p.method]}</div>
+            <div className="col-span-2 text-xs font-mono truncate">{p.reference_number ?? "—"}</div>
+            <div className="col-span-2 text-right tabular-nums font-medium">{formatMoney(p.amount, p.currency)}</div>
           </div>
-          <div className="col-span-3 truncate">{sMap.get(p.student_id)?.name ?? "—"}</div>
-          <div className="col-span-2">{paymentMethodLabel[p.method]}</div>
-          <div className="col-span-2 text-xs font-mono truncate">{p.reference_number ?? "—"}</div>
-          <div className="col-span-2 text-right tabular-nums font-medium">{formatMoney(p.amount, p.currency)}</div>
-        </div>
-      ))}
+        )}
+      />
+
     </div>
   );
 }
@@ -623,19 +639,27 @@ function SubscriptionsTable({
         <div className="col-span-2">Since</div>
         <div className="col-span-2 text-right">Status</div>
       </div>
-      {subs.map((s) => (
-        <div key={s.id} className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b last:border-b-0">
-          <div className="col-span-4 truncate">{sMap.get(s.student_id)?.name ?? "—"}</div>
-          <div className="col-span-2 capitalize">{s.billing_cycle.replace("_", " ")}</div>
-          <div className="col-span-2 text-right tabular-nums">{formatMoney(s.unit_amount, s.currency)}</div>
-          <div className="col-span-2 text-muted-foreground">{s.start_date}</div>
-          <div className="col-span-2 text-right">
-            <Badge variant={s.status === "active" ? "default" : "secondary"} className="capitalize">
-              {s.status.replace("_", " ")}
-            </Badge>
+      <VirtualList
+        items={subs}
+        estimateSize={52}
+        overscan={10}
+        className="max-h-[70vh]"
+        getKey={(s) => s.id}
+        renderItem={(s) => (
+          <div className="grid grid-cols-12 px-4 py-3 items-center text-sm border-b">
+            <div className="col-span-4 truncate">{sMap.get(s.student_id)?.name ?? "—"}</div>
+            <div className="col-span-2 capitalize">{s.billing_cycle.replace("_", " ")}</div>
+            <div className="col-span-2 text-right tabular-nums">{formatMoney(s.unit_amount, s.currency)}</div>
+            <div className="col-span-2 text-muted-foreground">{s.start_date}</div>
+            <div className="col-span-2 text-right">
+              <Badge variant={s.status === "active" ? "default" : "secondary"} className="capitalize">
+                {s.status.replace("_", " ")}
+              </Badge>
+            </div>
           </div>
-        </div>
-      ))}
+        )}
+      />
+
     </div>
   );
 }
