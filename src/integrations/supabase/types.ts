@@ -5096,6 +5096,7 @@ export type Database = {
       }
     }
     Functions: {
+      _agg_assert_tenant: { Args: { _tenant_id: string }; Returns: undefined }
       advance_lead_stage: {
         Args: { _lead_id: string; _new_stage: string; _remark?: string }
         Returns: string
@@ -5150,6 +5151,33 @@ export type Database = {
         }
         Returns: string
       }
+      get_academy_health: { Args: { _tenant_id: string }; Returns: Json }
+      get_academy_records_summary: {
+        Args: { _tenant_id: string }
+        Returns: Json
+      }
+      get_ai_report_inputs: {
+        Args: { _from?: string; _tenant_id: string; _to?: string }
+        Returns: Json
+      }
+      get_attendance_summary: {
+        Args: {
+          _batch_id?: string
+          _from?: string
+          _tenant_id: string
+          _to?: string
+        }
+        Returns: Json
+      }
+      get_communication_summary: {
+        Args: { _from?: string; _tenant_id: string; _to?: string }
+        Returns: Json
+      }
+      get_dashboard_summary: { Args: { _tenant_id: string }; Returns: Json }
+      get_finance_summary: {
+        Args: { _from?: string; _tenant_id: string; _to?: string }
+        Returns: Json
+      }
       get_my_student_context: {
         Args: never
         Returns: {
@@ -5164,8 +5192,27 @@ export type Database = {
       }
       get_parent_child_summary: { Args: { _student_id: string }; Returns: Json }
       get_platform_stats: { Args: never; Returns: Json }
+      get_points_table: { Args: { _tournament_id: string }; Returns: Json }
       get_public_academy_bundle: { Args: { _slug: string }; Returns: Json }
       get_public_match_bundle: { Args: { _slug: string }; Returns: Json }
+      get_registration_summary: {
+        Args: { _from?: string; _tenant_id: string; _to?: string }
+        Returns: Json
+      }
+      get_students_summary: { Args: { _tenant_id: string }; Returns: Json }
+      get_top_performers: {
+        Args: {
+          _kind?: string
+          _limit?: number
+          _tenant_id: string
+          _tournament_id?: string
+        }
+        Returns: Json
+      }
+      get_tournament_summary: {
+        Args: { _tenant_id: string; _tournament_id?: string }
+        Returns: Json
+      }
       has_profile_role: {
         Args: { _role: string; _uid: string }
         Returns: boolean
