@@ -1,69 +1,112 @@
-# Phase 1 — Performance Foundation (Complete)
+# Phase 2 — Server-side Aggregation Layer
 
-## Virtualization coverage (final)
+**Goal**: eliminate client-side aggregation. The browser renders precomputed summaries returned by SQL RPCs, wrapped in reusable server functions. UI, workflows, RLS, and business logic stay identical.
 
-| Screen                              | Route/component                                | Status |
-| ----------------------------------- | ---------------------------------------------- | ------ |
-| Attendance today                    | `dashboard.attendance.tsx`                     | ✅     |
-| Student roster                      | `dashboard.students.tsx`                       | ✅     |
-| Registrations (mobile stack)        | `dashboard.registrations.tsx`                  | ✅     |
-| Registrations (desktop table)       | `dashboard.registrations.tsx`                  | ⏭ small — semantic `<table>` kept; capped at 200 rows via server-side `limit` |
-| Fees register (row list)            | `dashboard.fees.tsx`                           | ✅     |
-| Billing — Invoices                  | `dashboard.billing.tsx`                        | ✅     |
-| Billing — Payments                  | `dashboard.billing.tsx`                        | ✅     |
-| Billing — Subscriptions             | `dashboard.billing.tsx`                        | ✅     |
-| Match list                          | `match-center.matches.tsx`                     | ✅     |
-| Ball-by-ball scorebook              | `components/match-center/official-scorebook`   | ⏭ Deferred — bounded by max overs × 6 (≤ ~600 rows in a T20, ~300 typical); not a scaling risk. Real hot path is aggregation math, addressed in Phase 2. |
+**Non-goals**: partitioning, realtime consolidation, roles migration, UI redesign, business logic changes.
 
-## Heavy engines — dynamic import
+---
 
-Moved to inside handlers (only load on user action, not first paint):
-- `mc-career-engine` (updateCareersForMatch, rebuildCareersAfterUnlock)
-- `mc-tournament-engine` (updateTournamentForMatch)
-- `mc-academy-records` (updateAcademyRecordsForMatch, rebuildAcademyRecords)
+## Architecture
 
-Already dynamic-imported from previous pass: `mc-recognition-engine.processMatchRecognitions`, `mc-ai-engine.processMatchAI`.
+```
+Postgres RPC (SECURITY DEFINER + is_tenant_member gate)
+        ↓
+src/lib/aggregations/*.functions.ts  (createServerFn wrappers, one per domain)
+        ↓
+useQuery({ queryKey: ['agg', <domain>, tenantId, params] })
+        ↓
+React presentation components
+```
 
-Left static (intentional — needed for first paint of the owning route only):
-- `mc-statistics-engine.calculateInningsStatistics` in `official-scorebook.tsx` (needed for scorebook first render)
-- `mc-recognition-engine.listRecognitions/listAcademyTimeline` in `match-center.dashboard.tsx` (needed for KPI cards on route entry; route-splitting already isolates it)
-- `mc-finalization.detectMatchResult` in `scorer.$matchId.tsx` (needed on every scoring re-render)
+**Rules**
+- One RPC per domain summary (small, composable, not one mega-RPC).
+- Each RPC gates on `public.is_tenant_member(auth.uid(), _tenant_id) OR public.is_platform_admin(auth.uid())`.
+- Returns compact `jsonb` (KPIs, small arrays like top-10 / trend buckets).
+- Server functions live in `src/lib/aggregations/` as `*.functions.ts` (client-safe module path — required by the current template).
+- Existing queries stay for lists/details. Only *aggregations* move.
 
-All remaining `import type` references are type-only and erased by the compiler — zero runtime cost.
+---
 
-## Route code splitting
+## Phase 2A — RPCs (migration 1)
 
-TanStack Router auto-splitting is on. All non-Route exports have been relocated (previous pass). Nothing further to do at the route boundary — remaining bundle bloat lives in shared engine modules, which the dynamic-import pass above addresses.
+Create in `public`, all `SECURITY DEFINER`, `SET search_path = public`, `STABLE`:
 
-## Query optimizations (previous + this pass)
+1. `get_dashboard_summary(_tenant_id, _range daterange)` — total/active students, present today, waiting, pending fees ₹, collected ₹ (period), new registrations (period), live matches count, recent activity counts.
+2. `get_attendance_summary(_tenant_id, _from, _to, _batch_id?)` — overall %, present/absent/late counts, daily trend buckets, per-batch breakdown (top N), at-risk students (top N by absence).
+3. `get_finance_summary(_tenant_id, _from, _to)` — collected, outstanding, overdue count, invoice status breakdown, MoM trend buckets, top defaulters (top N).
+4. `get_registration_summary(_tenant_id, _from, _to)` — new/approved/rejected/pending counts, by source, by stage, weekly trend.
+5. `get_communication_summary(_tenant_id, _from, _to)` — campaigns sent, delivered, failed, category mix, recent campaigns (top N).
+6. `get_students_summary(_tenant_id)` — status mix, gender mix, age buckets, joined/archived trend, by batch.
+7. `get_academy_health(_tenant_id)` — composite score inputs: attendance %, collection %, retention %, admissions momentum, communication delivery %. Returns compact scored object.
+8. `get_tournament_summary(_tenant_id, _tournament_id?)` — matches played/upcoming/live, wins/losses per team.
+9. `get_points_table(_tournament_id)` — standings with played, W/L/T/NR, NRR, points (uses `mc_tournament_teams` + finalized matches).
+10. `get_top_performers(_tenant_id, _kind, _limit, _tournament_id?)` — top scorers/bowlers/all-rounders from finalized `mc_ball_events` + `mc_player_careers`.
+11. `get_academy_records_summary(_tenant_id)` — record counts + top records list (reads `mc_academy_records`).
+12. `get_ai_report_inputs(_tenant_id, _from, _to)` — compact aggregated bundle for AI prompts (attendance %, finance ratios, top-3 issues, top-3 wins). No raw rows.
 
-- Attendance realtime invalidation narrowed to tenant scope (previous pass).
-- Verified `staleTime: 60_000`, `gcTime: 600_000`, `refetchOnWindowFocus: false`, `refetchOnReconnect: false` at `router.tsx`.
-- `defaultPreloadStaleTime: 0` — Query owns freshness.
-- No new invalidation issues found in this pass.
+Grants: none needed beyond `EXECUTE ... TO authenticated` (RPCs already RLS-gate via SECURITY DEFINER + membership check).
 
-## Files changed this pass
+**Indexes**: audit slow queries after first run; only add narrow indexes if EXPLAIN shows seq scans on hot RPCs.
 
-- `src/routes/match-center.matches.tsx` — VirtualList for match cards
-- `src/routes/dashboard.fees.tsx` — VirtualList for FeeRow list
-- `src/routes/dashboard.billing.tsx` — VirtualList for Invoices / Payments / Subscriptions
-- `src/routes/dashboard.registrations.tsx` — VirtualList for mobile stack
-- `src/components/match-center/finalization-ui.tsx` — dynamic-import 3 engines
+---
 
-## Verification
+## Phase 2B — Server-function layer
 
-- `bunx tsgo --noEmit` → clean.
-- Existing VirtualList wrapper reused; row measurement + overscan unchanged.
-- No business logic, RLS, schema, or query shape changed.
+`src/lib/aggregations/index.ts` re-exports:
+- `getDashboardSummary`, `getAttendanceSummary`, `getFinanceSummary`, `getRegistrationSummary`, `getCommunicationSummary`, `getStudentsSummary`, `getAcademyHealth`, `getTournamentSummary`, `getPointsTable`, `getTopPerformers`, `getAcademyRecordsSummary`, `getAiReportInputs`.
 
-## Remaining risks / scalability concerns
+Each is a `createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth]).inputValidator(zod).handler(async ({ data, context }) => context.supabase.rpc(...))`. Zod-validate tenantId + date ranges. Return `.data` untouched.
 
-1. **Reports still aggregates client-side** — the single biggest blocker for 1,000+ students. Belongs in Phase 2 (RPCs + rollup tables).
-2. **Realtime channels** — ~12 ad-hoc channels; will hit Supabase limits at ~200 concurrent tenants. Phase 2.
-3. **Ball-by-ball scorebook** — currently unvirtualized because bounded by overs. If a T50 or unlimited-overs format is ever added, revisit.
-4. **`profiles.role`** — role escalation surface; migrate to `user_roles` table. Phase 2.
-5. **Large-table partitioning** for `attendance_marks` and `mc_ball_events` — Phase 3.
+Shared query-key helper `aggKey(domain, tenantId, params)` for consistent cache invalidation.
 
-## Phase 1 verdict
+---
 
-Yes — Phase 1 is now 100% complete against the agreed scope. The app comfortably handles ~500 active students per academy with no DOM-choke class of bugs left on the primary screens. 1,000+ students still requires Phase 2 (server-side Reports aggregation) before the browser stops being the bottleneck.
+## Phase 2C — Frontend migration (surgical, no UI change)
+
+Replace client-side reduce/filter/aggregation with a single `useQuery` per widget. Keep existing components; only swap data source.
+
+**Home Dashboard** (`src/routes/dashboard.index.tsx` + `src/lib/dashboard-queries.ts`):
+- Replace multi-query fan-out that pulls students/attendance/payments/registrations lists with 1× `getDashboardSummary` + 1× `getAcademyHealth`.
+- Remove `.reduce` / `.filter` for KPI cards.
+
+**Reports** (`src/routes/dashboard.reports.tsx`):
+- Overview tab → `getDashboardSummary` + `getAcademyHealth`.
+- Attendance tab → `getAttendanceSummary`.
+- Finance tab → `getFinanceSummary`.
+- Students tab → `getStudentsSummary`.
+- Admissions tab → `getRegistrationSummary`.
+- Communication tab → `getCommunicationSummary`.
+- Cricket tab → `getTournamentSummary` + `getTopPerformers`.
+- AI tab → `getAiReportInputs` (passed to existing AI flow; prompt shortened).
+- Delete all local aggregation helpers in `src/components/reports/*` that reduce raw rows.
+
+**Tournament Center**:
+- Points Table → `getPointsTable`.
+- Standings / rankings → `getTournamentSummary`.
+- Top scorers/bowlers → `getTopPerformers`.
+- Academy records widgets → `getAcademyRecordsSummary`.
+- Keep raw scoring / ball-by-ball entry paths untouched.
+
+**AI reports**: rewrite prompt-input builder to consume `getAiReportInputs` only. Delete row-pushing code paths.
+
+---
+
+## Phase 2D — Verification
+
+1. `bunx tsgo --noEmit` clean.
+2. Playwright smoke on `/dashboard`, `/dashboard/reports` (each tab), `/match-center/tournaments/:id`: no runtime errors, KPIs render.
+3. Compare 3 KPI values pre/post for one seeded tenant (spot check — dashboard, reports overview, points table) to prove parity.
+4. `supabase--slow_queries` after smoke to confirm no RPC is a top offender; add narrow indexes if needed.
+5. Network-payload check: dashboard first paint downloads only summary JSON (<20 KB), not full lists.
+
+---
+
+## Deliverables
+
+- 1 migration adding 12 RPCs.
+- `src/lib/aggregations/*.functions.ts` (one file per domain) + `index.ts`.
+- Edits to `dashboard.index.tsx`, `dashboard.reports.tsx`, tournament routes, and AI report builder.
+- Deletion of client-side aggregation helpers now unused.
+- Engineering report covering RPCs created, aggregations removed, payload reductions, remaining bottlenecks, updated readiness score.
+
+Awaiting approval before executing.
