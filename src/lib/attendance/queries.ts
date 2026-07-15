@@ -61,13 +61,26 @@ export interface AttendanceTodayRow {
   last_visit_type: string | null;
 }
 
+/**
+ * Today's attendance — derived from the CLIENT's local calendar date.
+ *
+ * We deliberately do NOT read the `attendance_today` DB view here because the
+ * view is anchored to Postgres `CURRENT_DATE` (UTC on hosted Supabase). In
+ * non-UTC timezones (e.g. IST +05:30) that drifts a full local day for the
+ * first few hours after local midnight, and yesterday's `checked_out` rows
+ * leak into today's roster. Deriving state from the local ISO date guarantees
+ * every new academy day starts fresh — students with no record today fall
+ * through to `not_marked` (Waiting).
+ *
+ * Reuses `fetchAttendanceByDate` (same lifecycle rules, same append-only
+ * source of truth) — no schema, RLS, or realtime changes.
+ */
 export async function fetchAttendanceToday(tenantId: string): Promise<AttendanceTodayRow[]> {
-  const { data, error } = await supabase
-    .from("attendance_today")
-    .select("*")
-    .eq("tenant_id", tenantId);
-  if (error) throw error;
-  return (data ?? []) as unknown as AttendanceTodayRow[];
+  const localToday = new Date();
+  const y = localToday.getFullYear();
+  const m = String(localToday.getMonth() + 1).padStart(2, "0");
+  const d = String(localToday.getDate()).padStart(2, "0");
+  return fetchAttendanceByDate(tenantId, `${y}-${m}-${d}`);
 }
 
 /**
