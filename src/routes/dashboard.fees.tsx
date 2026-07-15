@@ -187,14 +187,41 @@ function FeeRegister() {
 
   const pendingRows = rows.filter((r) => r.due.state === "pending");
   const paidRows = rows.filter((r) => r.due.state === "paid");
+  const overdueRows = pendingRows.filter(
+    (r) => r.due.state === "pending" && r.due.overdueDays > 0,
+  );
   const collectedAmount = paidRows.reduce(
     (s, r) => s + Number(r.paidPayment?.amount ?? r.amount),
     0,
   );
   const pendingAmount = pendingRows.reduce((s, r) => s + r.amount, 0);
+  const expectedAmount = collectedAmount + pendingAmount;
+  const collectionPct = expectedAmount > 0 ? Math.round((collectedAmount / expectedAmount) * 100) : 0;
 
-  const visible = filter === "pending" ? pendingRows : filter === "paid" ? paidRows : rows;
+  const byFilter =
+    filter === "pending"
+      ? pendingRows
+      : filter === "paid"
+        ? paidRows
+        : filter === "overdue"
+          ? overdueRows
+          : rows;
+
+  const q = search.trim().toLowerCase();
+  const visible = q
+    ? byFilter.filter((r) => {
+        const digits = q.replace(/\D/g, "");
+        return (
+          r.name.toLowerCase().includes(q) ||
+          (r.playerId ?? "").toLowerCase().includes(q) ||
+          (digits.length >= 3 &&
+            ((r.phone ?? "").replace(/\D/g, "").includes(digits) ||
+              (r.guardianPhone ?? "").replace(/\D/g, "").includes(digits)))
+        );
+      })
+    : byFilter;
   const loading = studentsQ.isLoading || paymentsQ.isLoading;
+
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["d", "fees"] });
