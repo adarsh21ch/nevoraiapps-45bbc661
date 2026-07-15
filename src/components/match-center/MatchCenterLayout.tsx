@@ -219,7 +219,7 @@ function ModuleSubTabs() {
 /* Match Center module header (Back · Title · Actions)                        */
 /* -------------------------------------------------------------------------- */
 
-import { ModuleHeader } from "@/components/shared/ModuleHeader";
+
 
 function MatchCenterModuleHeader() {
   const navigate = useNavigate();
