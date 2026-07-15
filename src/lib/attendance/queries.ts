@@ -252,12 +252,13 @@ export async function checkInStudent(input: CheckInInput): Promise<void> {
   // If an active row already exists (e.g. marked absent earlier), the partial
   // unique index (session_id, student_id) WHERE superseded_by IS NULL blocks
   // this insert. Client should detect that and offer a correction flow.
+  const now = new Date().toISOString();
   const { error } = await supabase.from("attendance_marks").insert({
     tenant_id: input.tenantId,
     session_id: sessionId,
     student_id: input.studentId,
     status: "present",
-    check_in_at: new Date().toISOString(),
+    check_in_at: now,
     source: input.source ?? "manual",
     marked_by: input.markedBy ?? null,
     check_in_meta: input.meta ?? {},
@@ -265,22 +266,57 @@ export async function checkInStudent(input: CheckInInput): Promise<void> {
     note: input.note ?? null,
   });
   if (error) throw error;
+
+  // Automation: emit attendance.marked for downstream rules (parent check-in
+  // notification, owner attendance summary, ...).
+  emitEvent({
+    tenantId: input.tenantId,
+    eventType: "attendance.marked",
+    sourceModule: "attendance",
+    sourceId: input.studentId,
+    payload: {
+      student_id: input.studentId,
+      batch_id: input.batchId,
+      session_id: sessionId,
+      status: "present",
+      check_in_at: now,
+      source: input.source ?? "manual",
+      visit_type: input.visitType ?? null,
+    },
+  });
 }
 
 export interface CheckOutInput {
   markId: string;
+  tenantId?: string;
+  studentId?: string;
   meta?: import("@/integrations/supabase/types").Json;
 }
 
 export async function checkOutStudent(input: CheckOutInput): Promise<void> {
+  const now = new Date().toISOString();
   const { error } = await supabase
     .from("attendance_marks")
     .update({
-      check_out_at: new Date().toISOString(),
+      check_out_at: now,
       check_out_meta: input.meta ?? {},
     })
     .eq("id", input.markId);
   if (error) throw error;
+
+  if (input.tenantId) {
+    emitEvent({
+      tenantId: input.tenantId,
+      eventType: "student.check_out",
+      sourceModule: "attendance",
+      sourceId: input.studentId ?? input.markId,
+      payload: {
+        mark_id: input.markId,
+        student_id: input.studentId ?? null,
+        check_out_at: now,
+      },
+    });
+  }
 }
 
 // NOTE: We intentionally do NOT expose a `markStudentAbsent` mutation.
