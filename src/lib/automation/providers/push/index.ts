@@ -83,27 +83,48 @@ async function resolveStudentParentUser(
   };
 }
 
+type AppRole = "owner" | "admin" | "platform_admin" | "student";
+
 async function resolveRoleUsers(
   tenantId: string,
   roles: Array<"parent" | "owner" | "coach" | "staff">,
 ): Promise<string[]> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const roleMap: Record<string, string> = {
-    owner: "tenant_admin",
-    coach: "tenant_coach",
-    staff: "tenant_staff",
-    parent: "tenant_parent",
-  };
-  const wanted = roles.map((r) => roleMap[r] ?? r);
-  const { data } = await supabaseAdmin
-    .from("user_roles")
-    .select("user_id, role")
-    .eq("tenant_id", tenantId)
-    .in("role", wanted);
   const ids = new Set<string>();
-  for (const row of (data ?? []) as Array<{ user_id: string }>) {
-    if (row.user_id) ids.add(row.user_id);
+
+  // Map high-level target roles to the actual app_role enum + auxiliary queries.
+  const appRoles: AppRole[] = [];
+  for (const r of roles) {
+    if (r === "owner" || r === "staff" || r === "coach") {
+      // Owners/staff/coach all fall under the tenant `owner`/`admin` roles today.
+      if (!appRoles.includes("owner")) appRoles.push("owner");
+      if (!appRoles.includes("admin")) appRoles.push("admin");
+    }
+    // "parent" is resolved through students.parent_user_id — handled below.
   }
+
+  if (appRoles.length > 0) {
+    const { data } = await supabaseAdmin
+      .from("user_roles")
+      .select("user_id, role")
+      .eq("tenant_id", tenantId)
+      .in("role", appRoles);
+    for (const row of (data ?? []) as Array<{ user_id: string | null }>) {
+      if (row.user_id) ids.add(row.user_id);
+    }
+  }
+
+  if (roles.includes("parent")) {
+    const { data } = await supabaseAdmin
+      .from("students")
+      .select("parent_user_id")
+      .eq("tenant_id", tenantId)
+      .not("parent_user_id", "is", null);
+    for (const row of (data ?? []) as Array<{ parent_user_id: string | null }>) {
+      if (row.parent_user_id) ids.add(row.parent_user_id);
+    }
+  }
+
   return Array.from(ids);
 }
 
