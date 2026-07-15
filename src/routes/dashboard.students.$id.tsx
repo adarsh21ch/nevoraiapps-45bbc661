@@ -281,7 +281,13 @@ function PlayerProfileRoute() {
         {tab === "matches" && (
           <MatchesTab athleteId={(athlete?.id as string | undefined) ?? null} />
         )}
-        {tab === "more" && <MoreTab student={student as unknown as Parameters<typeof MoreTab>[0]["student"]} />}
+        {tab === "more" && (
+          <MoreTab
+            student={student as unknown as Parameters<typeof MoreTab>[0]["student"]}
+            studentId={id}
+            studentName={student.name}
+          />
+        )}
       </div>
 
       {/* Edit sheet */}
