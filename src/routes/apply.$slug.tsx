@@ -70,7 +70,7 @@ function ApplyPage() {
       if (authErr) throw authErr;
       const userId = authData.user?.id ?? null;
       // 2) Insert registration under tenant
-      const { error: regErr } = await supabase.from("registrations").insert({
+      const { error: regErr } = await supabase.from("registrations" as any).insert({
         tenant_id: tenant!.id,
         name: parsed.name,
         phone: parsed.phone,
