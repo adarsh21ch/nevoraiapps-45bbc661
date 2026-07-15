@@ -34,6 +34,10 @@ export interface ActiveProviderResolution {
 /** Map an ActionType to its communication channel. */
 export function channelForAction(type: ActionType): CommChannel | null {
   if (type === "notification.whatsapp") return "whatsapp";
+  if (type === "notification.push") return "push";
+  if (type === "notification.sms") return "sms";
+  if (type === "notification.email") return "email";
+  if (type === "webhook.call") return "webhook";
   // notification.create is in-app only — no external channel
   return null;
 }

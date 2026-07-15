@@ -1,145 +1,139 @@
-# Phase 2 — Server-side Aggregation Layer
+# Push Notifications as the Primary Channel
 
-**Goal**: eliminate client-side aggregation. The browser renders precomputed summaries returned by SQL RPCs, wrapped in reusable server functions. UI, workflows, RLS, and business logic stay identical.
+Wire **Expo Push** into the existing Automation Engine + Communication Gateway so every business module reaches users through:
 
-**Non-goals**: partitioning, realtime consolidation, roles migration, UI redesign, business logic changes.
-
----
-
-## Architecture
-
-```
-Postgres RPC (SECURITY DEFINER + is_tenant_member gate)
-        ↓
-src/lib/aggregations/*.functions.ts  (createServerFn wrappers, one per domain)
-        ↓
-useQuery({ queryKey: ['agg', <domain>, tenantId, params] })
-        ↓
-React presentation components
+```text
+Module → emitAutomationEvent → Engine → Gateway → notification.push → Expo → Device
 ```
 
-**Rules**
-- One RPC per domain summary (small, composable, not one mega-RPC).
-- Each RPC gates on `public.is_tenant_member(auth.uid(), _tenant_id) OR public.is_platform_admin(auth.uid())`.
-- Returns compact `jsonb` (KPIs, small arrays like top-10 / trend buckets).
-- Server functions live in `src/lib/aggregations/` as `*.functions.ts` (client-safe module path — required by the current template).
-- Existing queries stay for lists/details. Only *aggregations* move.
+Nothing about the engine, rule storage, retries, history, delivery logs, or provider registry changes shape. We add one new provider, one device table, one PWA shell, two notification-center surfaces (parent + owner), and one admin dashboard.
+
+WhatsApp / SMS / Email stay in place as future / paid channels — the existing gateway already supports them and rules stay channel-agnostic.
 
 ---
 
-## Phase 2A — RPCs (migration 1)
+## Phase 1 — Data + Push Provider (foundation)
 
-Create in `public`, all `SECURITY DEFINER`, `SET search_path = public`, `STABLE`:
+**Migration (single file):**
 
-1. `get_dashboard_summary(_tenant_id, _range daterange)` — total/active students, present today, waiting, pending fees ₹, collected ₹ (period), new registrations (period), live matches count, recent activity counts.
-2. `get_attendance_summary(_tenant_id, _from, _to, _batch_id?)` — overall %, present/absent/late counts, daily trend buckets, per-batch breakdown (top N), at-risk students (top N by absence).
-3. `get_finance_summary(_tenant_id, _from, _to)` — collected, outstanding, overdue count, invoice status breakdown, MoM trend buckets, top defaulters (top N).
-4. `get_registration_summary(_tenant_id, _from, _to)` — new/approved/rejected/pending counts, by source, by stage, weekly trend.
-5. `get_communication_summary(_tenant_id, _from, _to)` — campaigns sent, delivered, failed, category mix, recent campaigns (top N).
-6. `get_students_summary(_tenant_id)` — status mix, gender mix, age buckets, joined/archived trend, by batch.
-7. `get_academy_health(_tenant_id)` — composite score inputs: attendance %, collection %, retention %, admissions momentum, communication delivery %. Returns compact scored object.
-8. `get_tournament_summary(_tenant_id, _tournament_id?)` — matches played/upcoming/live, wins/losses per team.
-9. `get_points_table(_tournament_id)` — standings with played, W/L/T/NR, NRR, points (uses `mc_tournament_teams` + finalized matches).
-10. `get_top_performers(_tenant_id, _kind, _limit, _tournament_id?)` — top scorers/bowlers/all-rounders from finalized `mc_ball_events` + `mc_player_careers`.
-11. `get_academy_records_summary(_tenant_id)` — record counts + top records list (reads `mc_academy_records`).
-12. `get_ai_report_inputs(_tenant_id, _from, _to)` — compact aggregated bundle for AI prompts (attendance %, finance ratios, top-3 issues, top-3 wins). No raw rows.
+- `push_devices` — `id, tenant_id, user_id, device_id UNIQUE, expo_push_token UNIQUE, platform (ios|android|web), app_version, locale, enabled, last_seen_at, disabled_reason, created_at, updated_at`.
+  Grants + RLS: owner reads/writes own rows; service_role full. Trigger for `updated_at`.
+- Extend `platform_comm_providers` with a `push` channel row (`adapter_key = 'expo'`, `priority = 0`, `ready = true`).
+- Extend `platform_comm_channels` with a `push` row.
+- Enum + type widen: add `"push"` to `CommChannel` (client + gateway) and add `notification.push` to `ActionType`.
 
-Grants: none needed beyond `EXECUTE ... TO authenticated` (RPCs already RLS-gate via SECURITY DEFINER + membership check).
+**Push provider — `src/lib/automation/providers/push/`:**
 
-**Indexes**: audit slow queries after first run; only add narrow indexes if EXPLAIN shows seq scans on hot RPCs.
+- `types.ts` — `PushAdapter`, `PushMessage` shape (title, body, subtitle, data, categoryId, priority, sound, badge, threadId, collapseId, ttl).
+- `adapters/expo.ts` — real Expo HTTP client (`https://exp.host/--/api/v2/push/send`) with **batch of 100**, chunk retry, ticket-receipts polling helper, `DeviceNotRegistered` detection → auto-disable token.
+- `adapters/mock.ts` — logs only (for dev without Expo access key).
+- `registry.ts` — `registerPushAdapter` + `DEFAULT_PUSH_ADAPTER = "expo"`.
+- `index.ts` — registers the ActionProvider `notification.push` in the engine. `send()` resolves recipients → live tokens from `push_devices` → hands them to the active adapter. Records one `automation_deliveries` row per device with `channel:"push"`, `provider:"push"`, `adapter:"expo"`, `provider_message_id` = Expo ticket id.
 
----
+**PushService (business-facing façade)** — `src/lib/automation/push-service.ts`:
 
-## Phase 2B — Server-function layer
-
-`src/lib/aggregations/index.ts` re-exports:
-- `getDashboardSummary`, `getAttendanceSummary`, `getFinanceSummary`, `getRegistrationSummary`, `getCommunicationSummary`, `getStudentsSummary`, `getAcademyHealth`, `getTournamentSummary`, `getPointsTable`, `getTopPerformers`, `getAcademyRecordsSummary`, `getAiReportInputs`.
-
-Each is a `createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth]).inputValidator(zod).handler(async ({ data, context }) => context.supabase.rpc(...))`. Zod-validate tenantId + date ranges. Return `.data` untouched.
-
-Shared query-key helper `aggKey(domain, tenantId, params)` for consistent cache invalidation.
+- `sendToUser(userId, payload, opts)`, `sendToTenant(...)`, `sendToRole('parent'|'owner'|'coach'|'staff', ...)`. All internally emit a `notification.push` action through the gateway; no direct Expo call anywhere else.
 
 ---
 
-## Phase 2C — Frontend migration (surgical, no UI change)
+## Phase 2 — Device Registration + Parent PWA
 
-Replace client-side reduce/filter/aggregation with a single `useQuery` per widget. Keep existing components; only swap data source.
+**Server functions** (`src/lib/notifications/push-devices.functions.ts`):
 
-**Home Dashboard** (`src/routes/dashboard.index.tsx` + `src/lib/dashboard-queries.ts`):
-- Replace multi-query fan-out that pulls students/attendance/payments/registrations lists with 1× `getDashboardSummary` + 1× `getAcademyHealth`.
-- Remove `.reduce` / `.filter` for KPI cards.
+- `registerPushDevice({ deviceId, token, platform, appVersion, locale })` — upsert (unique on `device_id`), `enabled=true`, refresh `last_seen_at`. If token was previously auto-disabled elsewhere, re-enable.
+- `unregisterPushDevice({ deviceId })` — soft-disable on logout.
+- `listMyDevices()` — for parent settings screen.
+- `pingDevice({ deviceId })` — updates `last_seen_at` on app open.
+- Server cron helper `disableStaleDevices()` — > 90 days inactive → `enabled=false`.
 
-**Reports** (`src/routes/dashboard.reports.tsx`):
-- Overview tab → `getDashboardSummary` + `getAcademyHealth`.
-- Attendance tab → `getAttendanceSummary`.
-- Finance tab → `getFinanceSummary`.
-- Students tab → `getStudentsSummary`.
-- Admissions tab → `getRegistrationSummary`.
-- Communication tab → `getCommunicationSummary`.
-- Cricket tab → `getTournamentSummary` + `getTopPerformers`.
-- AI tab → `getAiReportInputs` (passed to existing AI flow; prompt shortened).
-- Delete all local aggregation helpers in `src/components/reports/*` that reduce raw rows.
+**Parent PWA (per bundled `pwa` skill — offline path):**
 
-**Tournament Center**:
-- Points Table → `getPointsTable`.
-- Standings / rankings → `getTournamentSummary`.
-- Top scorers/bowlers → `getTopPerformers`.
-- Academy records widgets → `getAcademyRecordsSummary`.
-- Keep raw scoring / ball-by-ball entry paths untouched.
-
-**AI reports**: rewrite prompt-input builder to consume `getAiReportInputs` only. Delete row-pushing code paths.
+- `public/manifest.webmanifest`, icons, `theme-color`, `apple-touch-icon` links in `__root.tsx`.
+- `vite-plugin-pwa` with `generateSW`, `injectRegister: null`, `devOptions.enabled = false`.
+- Guarded registrar (`src/pwa/register.ts`) refusing preview/dev/iframe/`?sw=off`.
+- Web-push subscription flow: browser → Expo web push via VAPID (Expo supports web tokens); token stored via `registerPushDevice` with `platform:"web"`.
+- One-time onboarding prompt after login on `/parent`, dismissible; never re-nags (localStorage flag).
+- Native/webview permission handled by Expo SDK when the parent uses the mobile app.
 
 ---
 
-## Phase 2D — Verification
+## Phase 3 — Event Wiring (no new emitters)
 
-1. `bunx tsgo --noEmit` clean.
-2. Playwright smoke on `/dashboard`, `/dashboard/reports` (each tab), `/match-center/tournaments/:id`: no runtime errors, KPIs render.
-3. Compare 3 KPI values pre/post for one seeded tenant (spot check — dashboard, reports overview, points table) to prove parity.
-4. `supabase--slow_queries` after smoke to confirm no RPC is a top offender; add narrow indexes if needed.
-5. Network-payload check: dashboard first paint downloads only summary JSON (<20 KB), not full lists.
+Every event listed already emits somewhere in the codebase. We only add automation rules + payload adapters, not new emit sites:
+
+| Event | Recipient | Deep link | Title / body template |
+| --- | --- | --- | --- |
+| `attendance.marked` (check-in) | parent, owner | `/parent/timeline`, `/dashboard/attendance` | 🟢 `{StudentName}` Checked In / "at {Time}. {AcademyName}" |
+| `student.check_out` | parent | `/parent/timeline` | 🔴 Checked Out / "at {Time}" |
+| `fee.generated` / `fee.due` | parent | `/parent` fees tab | 💰 Fee Due / "{StudentName} ₹{Amount} due {DueDate}" |
+| `fee.overdue` | parent + owner | `/parent`, `/dashboard/fees` | 🔴 Fee Overdue |
+| `fee.paid` | parent + owner | `/parent` receipt | ✅ Payment Received |
+| `student.created` / `.archived` | owner | `/dashboard/students/$id` | 👤 |
+| `match.started` / `match.finished` | parent (if child in squad), owner | `/parent/progress`, `/match-center` | 🏏 |
+| `tournament.published` | parent, owner | `/match-center/tournaments/$id` | 🏆 |
+| `announcement.created` | tenant-wide | `/parent` | 📣 |
+| `lead.converted` | owner | `/dashboard/leads` | 🎯 |
+| `daily.summary` / `weekly.summary` / `monthly.summary` | owner | `/dashboard` | 📊 (built from existing aggregations, triggered by cron route below) |
+
+Templates land in `src/lib/automation/providers/push/templates.ts` — same shape as WhatsApp templates for consistency.
+
+**Owner summary cron** — extend the existing `src/routes/api/public/hooks/automation-tick.ts` (do NOT create a new hook route) with three new emit paths on a schedule, emitting `daily.summary` / `weekly.summary` / `monthly.summary` events per tenant. The engine picks them up like any other event.
 
 ---
 
-## Deliverables
+## Phase 4 — Notification Centers (parent + owner + realtime)
 
-- 1 migration adding 12 RPCs.
-- `src/lib/aggregations/*.functions.ts` (one file per domain) + `index.ts`.
-- Edits to `dashboard.index.tsx`, `dashboard.reports.tsx`, tournament routes, and AI report builder.
-- Deletion of client-side aggregation helpers now unused.
-- Engineering report covering RPCs created, aggregations removed, payload reductions, remaining bottlenecks, updated readiness score.
+Reuse existing `notifications` table. Add columns via migration only if missing: `category` (enum-ish text), `priority`, `deep_link`, `subtitle`, `archived_at`. Add index `(tenant_id, user_id, read_at nulls first, created_at desc)`.
 
-Awaiting approval before executing.
+- A tiny listener on `notification.push` writes one `notifications` row per recipient at delivery time — this powers the in-app center and lets deep-linking work when the OS notification is missed.
+- Parent center: `src/routes/parent.tsx` gets a **Notifications** tab (uses `NotificationCenter.tsx`, already present). Adds filter chips (Unread / Attendance / Fees / Matches / Tournament), swipe-to-archive, tap → route to `deep_link`.
+- Owner center: extend `src/routes/dashboard.notifications.tsx` with the same component, filters (Unread / Critical / Automation source).
+- Realtime: Supabase realtime channel on `notifications` scoped to `user_id`; subscribe inside `useEffect` (mandatory cleanup). Unread badge in `NotificationBell.tsx` reads a `useQuery({ ... refetchOnWindowFocus })` count and updates on realtime insert.
 
 ---
 
-# Performance Foundation — Status
+## Phase 5 — Platform Admin + Rules + Validation
 
-- ✅ **Phase 1 Complete** — Virtualization, code-splitting, dynamic imports, route-level lazy loading, DS primitives.
-- ✅ **Phase 2 Complete** — Server-side aggregation layer (18 RPCs total). All dashboards, reports, and Tournament Center consume compact summary payloads. Zero client-side aggregation remaining.
-- ✅ **Phase 3 Complete** — Realtime, security & concurrency foundation:
-  - Role architecture: `user_roles` + `has_role()` / `current_role()` RPCs; owner gates migrated (`DashboardShell`, `dashboard.admins`, `dashboard.students.$id`).
-  - Bulk RPCs adopted: `bulk_approve_registrations` (registrations inbox).
-  - Advisory locking: `/scorer/$matchId` acquires `acquire_match_scoring_lock` on mount, releases on unmount + pagehide.
-  - Rate limiting: `checkRateLimit` on `/register` and `/contact`.
-  - Optimistic mutations: `useOptimisticMutation` adopted for registration delete.
-  - `bulk_enqueue_notification_recipients`: primitive available; no client-side recipient loop exists — `send_campaign` RPC already performs recipient expansion server-side.
-  - **`bulk_mark_attendance`: Not applicable to the current attendance model.** The `/dashboard/attendance` UX is intentionally timestamped Check-In / Check-Out, not session-based roll call. This primitive is reserved for a future roll-call workflow and will only be adopted if AcademyOS introduces one.
+**Platform Admin — new "Push" tab** in `src/routes/platform-admin.communication.tsx`:
 
-Ready for Phase 4.
+- Registered devices (count by platform, active in last 24h/7d/30d).
+- Delivery stats (last 24h: queued / sending / delivered / failed) from `automation_deliveries` filtered on `channel='push'`.
+- Failures table with error grouping (`DeviceNotRegistered`, `MessageRateExceeded`, …).
+- Token cleanup — buttons for "Disable stale (>90d)" and "Purge disabled (>180d)".
+- Retry queue view (existing) filtered to push.
+- Provider health — pings `https://exp.host/--/api/v2/push/send` HEAD to confirm reachability + shows the last successful send timestamp.
+- Rate monitoring — sends-per-minute chart.
 
-- ✅ **Phase 4 Complete** — Database scaling foundation:
-  - Added 5 targeted indexes (`registrations` × 2, `attendance_marks`, `students` partial, `platform_audit_log`) — all justified by `pg_stat_statements`.
-  - Dropped 15 redundant indexes across `mc_ball_events`, `mc_innings`, `mc_matches`, `mc_match_squads`, `mc_recognitions`, `students`. Reduces write amplification on the two highest-throughput tables by ~15 index writes per row.
-  - Partitioning, rollups, storage tiering, and observability instrumentation intentionally **deferred** with explicit trigger conditions and playbooks documented in `.lovable/phase-4-enterprise-readiness.md`.
-  - Production readiness: **8.5/10**. Enterprise readiness: **8.0/10**.
+**Rules UI** — the existing rule editor now treats **Push** as the default channel and shows recipient toggles (parent / owner / coach / staff). WhatsApp/SMS/Email remain selectable but greyed as "requires paid channel".
 
-All four foundational phases complete. AcademyOS is production-ready and architecturally prepared for 10k+ academies without further rewrites.
+**Secret**: `EXPO_ACCESS_TOKEN` (optional — Expo works without it; token is only needed for higher rate limits & receipts). Added via `add_secret` as an optional configuration.
 
-- ✅ **Phase 5 Complete** — Production infrastructure, reliability & operations:
-  - Centralized client observability helper (`src/lib/observability.ts`) exposing `reportError`, `withOps`, `logEvent` — wraps Lovable capture + structured console output. New critical failure paths must route through it.
-  - Full operational runbook in `.lovable/phase-5-operations.md`: observability matrix, error-tracking policy, backup & PITR strategy (RTO 4 h / RPO 24 h), deployment & rollback rules, load-testing targets, security audit checklist, cron & background-job inventory, documentation index, and a 10k-academy stress review confirming no rewrites are required to reach that scale.
-  - Third-party APM, formal restore drills, and storage lifecycle policies **deferred** with documented trigger conditions.
-  - Production readiness: **9.0/10**. Enterprise readiness: **8.5/10**. Final architecture: **9.0/10**.
+**Validation checklist run at end:**
 
-AcademyOS is production-ready. Foundational engineering phases are closed; subsequent work is feature-focused.
+1. `bun run typecheck`
+2. `bun run build`
+3. Playwright: mark attendance from `/dashboard/attendance` → assert new row in `automation_deliveries` (channel=push, status=delivered/failed) and a `notifications` row for the parent, then log in as parent and see the entry in the notification center with the correct deep-link.
+4. Simulate `DeviceNotRegistered` (bad token) → the device auto-disables and doesn't retry indefinitely.
+5. Multi-device: two tokens for one parent → both entries in delivery log.
+6. PWA: install prompt only shows once (localStorage flag), no SW registration in preview.
+
+---
+
+## Technical Details
+
+- **Files created:** `src/lib/automation/providers/push/{types,registry,index,templates}.ts`, `src/lib/automation/providers/push/adapters/{expo,mock}.ts`, `src/lib/automation/push-service.ts`, `src/lib/notifications/push-devices.functions.ts`, `src/lib/automation/push-admin.functions.ts`, `src/pwa/register.ts`, `public/manifest.webmanifest`, PWA icons.
+- **Files edited:** `src/lib/automation/gateway.ts` (add `"push"` to `CommChannel` + action map), `src/lib/automation/types.ts` (add `notification.push` ActionType + summary event names), `src/lib/automation/engine.server.ts` (auto-register push provider), `src/routes/__root.tsx` (manifest links, one-time PWA install prompt after login), `src/routes/parent.tsx` (notifications tab), `src/routes/dashboard.notifications.tsx` (filters + realtime), `src/routes/platform-admin.communication.tsx` (Push tab), `src/routes/api/public/hooks/automation-tick.ts` (owner summary emits), `src/components/notifications/NotificationBell.tsx` (realtime badge), `vite.config.ts` (pwa plugin), `src/start.ts` (unchanged — bearer already attached).
+- **Migrations (one file):** create `push_devices` (with grants, RLS, trigger), add push rows to `platform_comm_providers` + `platform_comm_channels`, add missing columns on `notifications` if absent, index `(tenant_id, user_id, read_at, created_at desc)`, `ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications` (if not already published).
+- **Secrets:** `EXPO_ACCESS_TOKEN` (optional).
+- **No architecture is replaced:** business modules keep calling `emitAutomationEvent`; the engine keeps resolving rules; the gateway keeps dispatching; the only new adapter is `expo`.
+- **Rollback:** disabling the `push` provider row in `platform_comm_active` reverts everything to the current channel behavior with zero code changes.
+
+---
+
+## Open Questions Before I Start
+
+1. **Expo project setup** — do you already have an Expo project (accessKey / EAS project) whose `EXPO_ACCESS_TOKEN` I should add now, or should I ship with the mock adapter first and add the real token later? Everything else works either way.
+2. **Owner summary schedule** — do you want daily / weekly / monthly, or just daily to start? I'll pick daily-only if you don't say.
+3. **Web push** — Expo web push requires the parent's device to run inside your Expo React Native app to obtain tokens. For **PWA-only** parents (installed from browser, no native app), do you want me to (a) use the browser's native Web Push API + VAPID via a separate registration path and record the subscription in `push_devices` with `platform='web'`, or (b) restrict push to native devices for now and keep the PWA as the in-app notification center only?
+
+Once you confirm those three, I'll ship Phase 1 first (migration + provider + service) and validate before moving to Phase 2.

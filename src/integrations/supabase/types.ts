@@ -4600,6 +4600,7 @@ export type Database = {
           priority: Database["public"]["Enums"]["notification_priority"]
           read_at: string | null
           recipient_user_id: string
+          subtitle: string | null
           tenant_id: string | null
           title: string
           type: string
@@ -4620,6 +4621,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["notification_priority"]
           read_at?: string | null
           recipient_user_id: string
+          subtitle?: string | null
           tenant_id?: string | null
           title: string
           type: string
@@ -4640,6 +4642,7 @@ export type Database = {
           priority?: Database["public"]["Enums"]["notification_priority"]
           read_at?: string | null
           recipient_user_id?: string
+          subtitle?: string | null
           tenant_id?: string | null
           title?: string
           type?: string
@@ -5187,6 +5190,69 @@ export type Database = {
           },
           {
             foreignKeyName: "profiles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_devices: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          device_id: string
+          disabled_reason: string | null
+          enabled: boolean
+          expo_push_token: string
+          id: string
+          last_seen_at: string
+          locale: string | null
+          platform: string
+          tenant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          device_id: string
+          disabled_reason?: string | null
+          enabled?: boolean
+          expo_push_token: string
+          id?: string
+          last_seen_at?: string
+          locale?: string | null
+          platform: string
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          device_id?: string
+          disabled_reason?: string | null
+          enabled?: boolean
+          expo_push_token?: string
+          id?: string
+          last_seen_at?: string
+          locale?: string | null
+          platform?: string
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_devices_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_devices_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants_public_directory"
