@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Home, TrendingUp, Building2, UserCircle, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyStudentContext, studentKeys } from "@/lib/student-app";
-import { isPendingApproval } from "@/lib/admissions/lifecycle";
+import { isPendingApproval, needsActivation, isBlocked, LIFECYCLE_LABEL, type LifecycleStatus } from "@/lib/admissions/lifecycle";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -91,11 +91,13 @@ function StudentLayout() {
     const lifecycle = gateQ.data.lifecycle;
     const shouldGate =
       gateQ.data.pendingReg ||
-      (lifecycle && isPendingApproval(lifecycle));
+      (lifecycle && (isPendingApproval(lifecycle) || needsActivation(lifecycle)));
     if (shouldGate && !onPendingRoute) {
       navigate({ to: "/student/pending" });
     }
   }, [gateQ.data, onPendingRoute, navigate]);
+
+  const blockedLifecycle = gateQ.data?.lifecycle && isBlocked(gateQ.data.lifecycle) ? gateQ.data.lifecycle : null;
 
   if (!ready) return <PageSkeleton />;
   if (!signedIn) {
@@ -118,6 +120,29 @@ function StudentLayout() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
         <Outlet />
+      </div>
+    );
+  }
+
+  if (blockedLifecycle) {
+    const label = LIFECYCLE_LABEL[blockedLifecycle as LifecycleStatus] ?? blockedLifecycle;
+    return (
+      <div className="min-h-screen grid place-items-center p-6 bg-background">
+        <Card className="p-6 max-w-md text-center space-y-3">
+          <h1 className="text-xl font-semibold">Account {label}</h1>
+          <p className="text-sm text-muted-foreground">
+            Your player account is currently marked as <b>{label.toLowerCase()}</b>. Please contact your academy for assistance.
+          </p>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate({ to: "/auth" });
+            }}
+          >
+            <LogOut className="size-4 mr-1" /> Sign out
+          </Button>
+        </Card>
       </div>
     );
   }
