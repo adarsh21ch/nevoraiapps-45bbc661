@@ -5366,61 +5366,91 @@ export type Database = {
       registrations: {
         Row: {
           address: string | null
+          applicant_user_id: string | null
           batch_id: string | null
           created_at: string
           dob: string | null
+          documents: Json
+          email: string | null
           fee_plan_id: string | null
           gender: string | null
           guardian_name: string | null
           guardian_phone: string | null
           id: string
+          medical_notes: string | null
           name: string
           payment_ref: string | null
           payment_status: string
           phone: string
           photo_url: string | null
           policy_acceptances: Json
+          review_notes: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sport: string | null
           status: string
+          student_id: string | null
           tenant_id: string
           whatsapp: string | null
         }
         Insert: {
           address?: string | null
+          applicant_user_id?: string | null
           batch_id?: string | null
           created_at?: string
           dob?: string | null
+          documents?: Json
+          email?: string | null
           fee_plan_id?: string | null
           gender?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
+          medical_notes?: string | null
           name: string
           payment_ref?: string | null
           payment_status?: string
           phone: string
           photo_url?: string | null
           policy_acceptances?: Json
+          review_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sport?: string | null
           status?: string
+          student_id?: string | null
           tenant_id: string
           whatsapp?: string | null
         }
         Update: {
           address?: string | null
+          applicant_user_id?: string | null
           batch_id?: string | null
           created_at?: string
           dob?: string | null
+          documents?: Json
+          email?: string | null
           fee_plan_id?: string | null
           gender?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
+          medical_notes?: string | null
           name?: string
           payment_ref?: string | null
           payment_status?: string
           phone?: string
           photo_url?: string | null
           policy_acceptances?: Json
+          review_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sport?: string | null
           status?: string
+          student_id?: string | null
           tenant_id?: string
           whatsapp?: string | null
         }
@@ -5643,6 +5673,51 @@ export type Database = {
           },
         ]
       }
+      student_import_batches: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          error_count: number
+          errors: Json
+          file_name: string | null
+          id: string
+          rolled_back_at: string | null
+          row_count: number
+          source: string
+          status: string
+          success_count: number
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          error_count?: number
+          errors?: Json
+          file_name?: string | null
+          id?: string
+          rolled_back_at?: string | null
+          row_count?: number
+          source?: string
+          status?: string
+          success_count?: number
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          error_count?: number
+          errors?: Json
+          file_name?: string | null
+          id?: string
+          rolled_back_at?: string | null
+          row_count?: number
+          source?: string
+          status?: string
+          success_count?: number
+          tenant_id?: string
+        }
+        Relationships: []
+      }
       student_status_history: {
         Row: {
           changed_at: string
@@ -5693,7 +5768,12 @@ export type Database = {
       }
       students: {
         Row: {
+          activated_at: string | null
+          activation_sent_at: string | null
+          activation_token: string | null
           address: string | null
+          approved_at: string | null
+          approved_by: string | null
           archive_reason: string | null
           archived_at: string | null
           batch_id: string | null
@@ -5715,7 +5795,9 @@ export type Database = {
           guardian_phone: string | null
           guardian_whatsapp: string | null
           id: string
+          import_batch_id: string | null
           joined_at: string
+          lifecycle_status: string
           medical_notes: string | null
           name: string
           notes: string | null
@@ -5728,7 +5810,10 @@ export type Database = {
           player_id: string | null
           playing_role: string | null
           preferred_notification_channel: string
+          profile_completed_at: string | null
           public_slug: string | null
+          rejection_reason: string | null
+          roll_number: string | null
           school_college: string | null
           state: string | null
           status: string
@@ -5736,7 +5821,12 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          activated_at?: string | null
+          activation_sent_at?: string | null
+          activation_token?: string | null
           address?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           batch_id?: string | null
@@ -5758,7 +5848,9 @@ export type Database = {
           guardian_phone?: string | null
           guardian_whatsapp?: string | null
           id?: string
+          import_batch_id?: string | null
           joined_at?: string
+          lifecycle_status?: string
           medical_notes?: string | null
           name: string
           notes?: string | null
@@ -5771,7 +5863,10 @@ export type Database = {
           player_id?: string | null
           playing_role?: string | null
           preferred_notification_channel?: string
+          profile_completed_at?: string | null
           public_slug?: string | null
+          rejection_reason?: string | null
+          roll_number?: string | null
           school_college?: string | null
           state?: string | null
           status?: string
@@ -5779,7 +5874,12 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          activated_at?: string | null
+          activation_sent_at?: string | null
+          activation_token?: string | null
           address?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           archive_reason?: string | null
           archived_at?: string | null
           batch_id?: string | null
@@ -5801,7 +5901,9 @@ export type Database = {
           guardian_phone?: string | null
           guardian_whatsapp?: string | null
           id?: string
+          import_batch_id?: string | null
           joined_at?: string
+          lifecycle_status?: string
           medical_notes?: string | null
           name?: string
           notes?: string | null
@@ -5814,7 +5916,10 @@ export type Database = {
           player_id?: string | null
           playing_role?: string | null
           preferred_notification_channel?: string
+          profile_completed_at?: string | null
           public_slug?: string | null
+          rejection_reason?: string | null
+          roll_number?: string | null
           school_college?: string | null
           state?: string | null
           status?: string
