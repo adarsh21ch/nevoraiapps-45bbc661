@@ -8,12 +8,23 @@
  * parent portal and reports.
  */
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, isToday, isYesterday, startOfDay, isAfter } from "date-fns";
 import { toast } from "sonner";
-import { LogIn, LogOut, Clock, CheckCircle2, Zap, CheckSquare } from "lucide-react";
+import {
+  LogIn,
+  LogOut,
+  Clock,
+  CheckCircle2,
+  Zap,
+  CheckSquare,
+  ChevronDown,
+  CalendarIcon,
+  MoreVertical,
+  ArrowLeft,
+} from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -29,10 +40,19 @@ import {
   LiveBadge,
 } from "@/components/ds";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import {
   attendanceKeys,
   fetchAttendanceToday,
+  fetchAttendanceByDate,
   useAttendanceRealtime,
   useCheckIn,
   useCheckOut,
@@ -168,6 +188,12 @@ function AttendancePage() {
   const [selectMode, setSelectMode] = useState<boolean>(false);
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [rosterTab, setRosterTab] = useState<RosterTab>("waiting");
+  const [selectedDate, setSelectedDate] = useState<Date>(() => startOfDay(new Date()));
+  const [dateOpen, setDateOpen] = useState(false);
+
+  const isTodayView = isToday(selectedDate);
+  const selectedISO = format(selectedDate, "yyyy-MM-dd");
+  const historyMode = !isTodayView;
 
   useEffect(() => {
     try {
@@ -210,11 +236,23 @@ function AttendancePage() {
     queryKey: attendanceKeys.today(tenant.id),
     queryFn: () => fetchAttendanceToday(tenant.id),
     staleTime: 15_000,
+    enabled: isTodayView,
   });
+  const historyQ = useQuery({
+    queryKey: attendanceKeys.byDate(tenant.id, selectedISO),
+    queryFn: () => fetchAttendanceByDate(tenant.id, selectedISO),
+    // Historical days are immutable — cache aggressively so re-selecting
+    // yesterday doesn't re-fetch.
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    enabled: historyMode,
+  });
+  const attendanceQ = isTodayView ? todayQ : historyQ;
 
   // Single realtime subscription — updates every card + list on this page,
   // and reuses the same channel that drives the dashboard KPIs.
-  useAttendanceRealtime(tenant.id, qc);
+  // Only subscribe when viewing Today; historical days are frozen.
+  useAttendanceRealtime(isTodayView ? tenant.id : null, qc);
 
   const activeBatches = useMemo(
     () => (batchesQ.data ?? []).filter((b: { active: boolean }) => b.active),
@@ -270,15 +308,15 @@ function AttendancePage() {
     );
   }, [studentsQ.data, sessionBatchIds, query]);
 
-  // Map: student_id → today's derived state row (from attendance_today view).
+  // Map: student_id → derived attendance row for the SELECTED date.
   const stateByStudent = useMemo(() => {
     const m = new Map<string, TodayRow>();
-    for (const row of todayQ.data ?? []) {
+    for (const row of attendanceQ.data ?? []) {
       if (row.batch_id && sessionBatchIds.has(row.batch_id))
         m.set(row.student_id, row as unknown as TodayRow);
     }
     return m;
-  }, [todayQ.data, sessionBatchIds]);
+  }, [attendanceQ.data, sessionBatchIds]);
 
   // KPIs. Everything derived — never stored.
   const kpis = useMemo(() => {
@@ -447,40 +485,43 @@ function AttendancePage() {
   };
 
   // Loading only when we have NO cached data yet — avoids a skeleton flash
-  // on background refetches (e.g. after realtime invalidation).
+  // on background refetches (e.g. after realtime invalidation) and when
+  // switching to a previously-viewed date.
   const isLoading =
     (batchesQ.isLoading && !batchesQ.data) ||
     (studentsQ.isLoading && !studentsQ.data) ||
-    (todayQ.isLoading && !todayQ.data);
+    (attendanceQ.isLoading && !attendanceQ.data);
 
   // Per-query error signals. We surface a blocking banner ONLY when a query
   // has errored AND has no cached data to fall back on. Partial failures are
   // logged and shown as a subtle inline retry chip so the rest of the page
-  // (stats, roster, check-in) keeps working. Fixes: banner appearing while
-  // attendance data was actually rendering successfully.
+  // (stats, roster, check-in) keeps working.
   const failedQueries = useMemo(() => {
     const items: Array<{ key: string; label: string; refetch: () => void }> = [];
     if (batchesQ.isError && !batchesQ.data)
       items.push({ key: "batches", label: "batches", refetch: () => batchesQ.refetch() });
     if (studentsQ.isError && !studentsQ.data)
       items.push({ key: "students", label: "students", refetch: () => studentsQ.refetch() });
-    if (todayQ.isError && !todayQ.data)
-      items.push({ key: "today", label: "today's attendance", refetch: () => todayQ.refetch() });
+    if (attendanceQ.isError && !attendanceQ.data)
+      items.push({
+        key: "attendance",
+        label: isTodayView ? "today's attendance" : "attendance",
+        refetch: () => attendanceQ.refetch(),
+      });
     return items;
   }, [
     batchesQ.isError, batchesQ.data, studentsQ.isError, studentsQ.data,
-    todayQ.isError, todayQ.data, batchesQ, studentsQ, todayQ,
+    attendanceQ.isError, attendanceQ.data, batchesQ, studentsQ, attendanceQ, isTodayView,
   ]);
-  const hardFailure = failedQueries.length > 0 && !batchesQ.data && !studentsQ.data && !todayQ.data;
+  const hardFailure =
+    failedQueries.length > 0 && !batchesQ.data && !studentsQ.data && !attendanceQ.data;
   const partialFailure = failedQueries.length > 0 && !hardFailure;
 
-  // Diagnostic: log the actual error(s) so root cause is visible in devtools
-  // instead of a generic "Couldn't load attendance" toast.
   useEffect(() => {
     if (batchesQ.error) console.error("[attendance] batchesQ failed:", batchesQ.error);
     if (studentsQ.error) console.error("[attendance] studentsQ failed:", studentsQ.error);
-    if (todayQ.error) console.error("[attendance] todayQ failed:", todayQ.error);
-  }, [batchesQ.error, studentsQ.error, todayQ.error]);
+    if (attendanceQ.error) console.error("[attendance] attendanceQ failed:", attendanceQ.error);
+  }, [batchesQ.error, studentsQ.error, attendanceQ.error]);
 
   const activeStudents =
     rosterTab === "waiting"
@@ -499,49 +540,162 @@ function AttendancePage() {
     <div className="-mt-4 md:-mt-8">
       {/* Compact header — flush against DashboardShell top bar. */}
       <div className="flex items-center justify-between gap-2 pt-2 pb-1">
-        <div className="min-w-0">
+        <div className="min-w-0 flex items-center gap-2">
           <h1 className="text-lg font-semibold tracking-tight leading-tight">Attendance</h1>
-          <p className="text-[11px] text-muted-foreground leading-tight">
-            {format(new Date(), "EEE, d MMM · h:mm a")}
-          </p>
+          <Popover open={dateOpen} onOpenChange={setDateOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="Change date"
+                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-1 text-xs font-medium hover:bg-muted min-h-8"
+              >
+                {isTodayView
+                  ? "Today"
+                  : isYesterday(selectedDate)
+                    ? "Yesterday"
+                    : format(selectedDate, "d MMM yyyy")}
+                <ChevronDown className="size-3" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-auto p-2">
+              <div className="flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDate(startOfDay(new Date()));
+                    setDateOpen(false);
+                  }}
+                  className={cn(
+                    "flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted",
+                    isTodayView && "font-semibold",
+                  )}
+                >
+                  <span>Today</span>
+                  {isTodayView ? <CheckCircle2 className="size-4 text-primary" /> : null}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const y = new Date();
+                    y.setDate(y.getDate() - 1);
+                    setSelectedDate(startOfDay(y));
+                    setDateOpen(false);
+                  }}
+                  className={cn(
+                    "flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted",
+                    isYesterday(selectedDate) && "font-semibold",
+                  )}
+                >
+                  <span>Yesterday</span>
+                  {isYesterday(selectedDate) ? <CheckCircle2 className="size-4 text-primary" /> : null}
+                </button>
+                <div className="my-1 h-px bg-border" />
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => {
+                    if (!d) return;
+                    // Future dates cannot be selected
+                    if (isAfter(startOfDay(d), startOfDay(new Date()))) return;
+                    setSelectedDate(startOfDay(d));
+                    setDateOpen(false);
+                  }}
+                  disabled={(d) => isAfter(startOfDay(d), startOfDay(new Date()))}
+                  initialFocus
+                  className={cn("p-0 pointer-events-auto")}
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={toggleQuick}
-            aria-pressed={quickMode}
-            aria-label="Toggle quick attendance mode"
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
-              quickMode
-                ? "border-primary/40 bg-primary/10 text-primary"
-                : "border-border/60 text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Zap className="size-3" /> Quick
-          </button>
-          {canMark ? (
-            <button
-              type="button"
-              onClick={() => {
-                setSelectMode((v) => !v);
-                clearSelection();
-              }}
-              aria-pressed={selectMode}
-              aria-label="Toggle bulk selection"
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
-                selectMode
-                  ? "border-primary/40 bg-primary/10 text-primary"
-                  : "border-border/60 text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <CheckSquare className="size-3" /> Select
-            </button>
-          ) : null}
-          <LiveBadge state="live" />
+          {isTodayView ? (
+            <>
+              <button
+                type="button"
+                onClick={toggleQuick}
+                aria-pressed={quickMode}
+                aria-label="Toggle quick attendance mode"
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
+                  quickMode
+                    ? "border-primary/40 bg-primary/10 text-primary"
+                    : "border-border/60 text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Zap className="size-3" /> Quick
+              </button>
+              {canMark ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectMode((v) => !v);
+                    clearSelection();
+                  }}
+                  aria-pressed={selectMode}
+                  aria-label="Toggle bulk selection"
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
+                    selectMode
+                      ? "border-primary/40 bg-primary/10 text-primary"
+                      : "border-border/60 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <CheckSquare className="size-3" /> Select
+                </button>
+              ) : null}
+              <LiveBadge state="live" />
+            </>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="History options"
+                  className="inline-flex items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground min-h-8 min-w-8"
+                >
+                  <MoreVertical className="size-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/dashboard/reports"
+                    search={{ tab: "attendance", date: selectedISO } as never}
+                  >
+                    Open full report
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    window.print();
+                  }}
+                >
+                  Export PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
+
+      {historyMode ? (
+        <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
+          <span>
+            Viewing attendance for{" "}
+            <span className="font-medium text-foreground">
+              {format(selectedDate, "d MMMM yyyy")}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setSelectedDate(startOfDay(new Date()))}
+            className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-0.5 font-medium hover:bg-muted"
+          >
+            <ArrowLeft className="size-3" /> Today
+          </button>
+        </div>
+      ) : null}
 
       {/* Sticky filter + search — always accessible while scrolling. */}
       <div className="sticky top-14 z-20 -mx-4 md:-mx-8 mb-2 border-b border-border/60 bg-background/90 px-4 md:px-8 py-2 backdrop-blur">
@@ -574,7 +728,7 @@ function AttendancePage() {
           onRetry={() => {
             batchesQ.refetch();
             studentsQ.refetch();
-            todayQ.refetch();
+            attendanceQ.refetch();
           }}
         />
       ) : partialFailure ? (
@@ -617,7 +771,7 @@ function AttendancePage() {
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground leading-none">
-                  Today
+                  {isTodayView ? "Today" : format(selectedDate, "d MMM yyyy")}
                 </p>
                 <p className="mt-0.5 text-sm font-semibold tabular-nums leading-tight">
                   {kpis.present} / {kpis.total}{" "}
@@ -671,8 +825,8 @@ function AttendancePage() {
             </div>
           </div>
 
-          {/* Bulk action bar. */}
-          {selectMode ? (
+          {/* Bulk action bar — writes disabled in History mode. */}
+          {isTodayView && selectMode ? (
             <div className="mt-2 flex flex-wrap items-center gap-1.5 rounded-lg border border-border/60 bg-background/95 p-2">
               <span className="text-xs text-muted-foreground">{selected.size} selected</span>
               <div className="ml-auto flex flex-wrap items-center gap-1.5">
@@ -694,7 +848,21 @@ function AttendancePage() {
             </div>
           ) : null}
 
-          {rosterStudents.length === 0 ? (
+          {historyMode && (attendanceQ.data?.length ?? 0) === 0 && !attendanceQ.isLoading ? (
+            <EmptyState
+              title="No attendance recorded"
+              description={`Nothing was marked on ${format(selectedDate, "d MMMM yyyy")}.`}
+              action={
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setSelectedDate(startOfDay(new Date()))}
+                >
+                  Back to Today
+                </Button>
+              }
+            />
+          ) : rosterStudents.length === 0 ? (
             <EmptyState
               title={query ? "No matches" : "No students in this session"}
               description={
@@ -721,11 +889,12 @@ function AttendancePage() {
                         batchName={s.batch_id ? (batchNameById.get(s.batch_id) ?? null) : null}
                         row={stateByStudent.get(s.id)}
                         canMark={canMark}
+                        readOnly={historyMode}
                         tenantId={tenant.id}
                         lateAfterMs={
                           s.batch_id ? (batchLateThresholdById.get(s.batch_id) ?? null) : null
                         }
-                        selectMode={selectMode}
+                        selectMode={selectMode && isTodayView}
                         isSelected={selected.has(s.id)}
                         onToggleSelected={toggleSelected}
                         onCheckedIn={focusNextWaiting}
@@ -743,6 +912,7 @@ function AttendancePage() {
     </div>
   );
 }
+
 
 function MiniKpi({
   label,
@@ -842,6 +1012,7 @@ function StudentRow({
   batchName,
   row,
   canMark,
+  readOnly,
   tenantId,
   lateAfterMs,
   selectMode,
@@ -855,6 +1026,7 @@ function StudentRow({
   batchName: string | null;
   row: TodayRow | undefined;
   canMark: boolean;
+  readOnly?: boolean;
   tenantId: string;
   lateAfterMs: number | null;
   selectMode: boolean;
@@ -964,7 +1136,9 @@ function StudentRow({
           </div>
         }
         trailing={
-          canMark ? (
+          readOnly ? (
+            <HistoryStatusChip state={state} />
+          ) : canMark ? (
             <div className="flex items-center gap-1.5">
               {state === "in_academy" ? (
                 <Button
@@ -1056,4 +1230,34 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
     );
   }
   return <span className={cn("text-sm", toneClass)}>{attendanceStateLabels[state]}</span>;
+}
+
+function HistoryStatusChip({ state }: { state: AttendanceState }) {
+  const tone = attendanceStateTone[state];
+  const toneClass =
+    tone === "success"
+      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+      : tone === "info"
+        ? "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20"
+        : tone === "danger"
+          ? "bg-destructive/10 text-destructive border-destructive/20"
+          : "bg-muted text-muted-foreground border-border/60";
+  const label =
+    state === "in_academy"
+      ? "Present"
+      : state === "checked_out"
+        ? "Checked Out"
+        : state === "absent"
+          ? "Absent"
+          : "Waiting";
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium",
+        toneClass,
+      )}
+    >
+      {label}
+    </span>
+  );
 }

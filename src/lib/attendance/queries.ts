@@ -26,6 +26,8 @@ import type { AttendanceState, AttendanceStatus, AttendanceSource } from "./cons
 // ---------------------------------------------------------------------------
 export const attendanceKeys = {
   today: (tenantId: string) => ["attendance", "today", tenantId] as const,
+  byDate: (tenantId: string, date: string) =>
+    ["attendance", "by-date", tenantId, date] as const,
   session: (tenantId: string, batchId: string, date: string) =>
     ["attendance", "session", tenantId, batchId, date] as const,
   studentHistory: (tenantId: string, studentId: string) =>
@@ -66,6 +68,101 @@ export async function fetchAttendanceToday(tenantId: string): Promise<Attendance
     .eq("tenant_id", tenantId);
   if (error) throw error;
   return (data ?? []) as unknown as AttendanceTodayRow[];
+}
+
+/**
+ * Historical attendance for any past date. Mirrors the shape of the
+ * `attendance_today` view but derives per-student state from `attendance_marks`
+ * on the client — no new tables, no view changes. Used by the Attendance
+ * page's History mode. For the current date, always use `fetchAttendanceToday`
+ * (it powers realtime + writes).
+ */
+export async function fetchAttendanceByDate(
+  tenantId: string,
+  dateISO: string,
+): Promise<AttendanceTodayRow[]> {
+  const { data, error } = await supabase
+    .from("attendance_marks")
+    .select(
+      "id, tenant_id, session_id, student_id, status, check_in_at, check_out_at, duration_minutes, source, marked_by, visit_type, superseded_by, created_at, attendance_sessions!inner(id, batch_id, session_date, tenant_id)",
+    )
+    .eq("tenant_id", tenantId)
+    .is("superseded_by", null)
+    .eq("attendance_sessions.session_date", dateISO);
+  if (error) throw error;
+
+  type Row = {
+    id: string;
+    tenant_id: string;
+    session_id: string;
+    student_id: string;
+    status: AttendanceStatus;
+    check_in_at: string | null;
+    check_out_at: string | null;
+    duration_minutes: number | null;
+    source: AttendanceSource | null;
+    marked_by: string | null;
+    visit_type: string | null;
+    created_at: string;
+    attendance_sessions: { batch_id: string | null; session_date: string } | null;
+  };
+  const rows = (data ?? []) as unknown as Row[];
+
+  const byKey = new Map<string, Row[]>();
+  for (const r of rows) {
+    const key = `${r.session_id}::${r.student_id}`;
+    const arr = byKey.get(key) ?? [];
+    arr.push(r);
+    byKey.set(key, arr);
+  }
+  const out: AttendanceTodayRow[] = [];
+  for (const arr of byKey.values()) {
+    // Sort desc by check_in_at || created_at → latest first
+    arr.sort((a, b) =>
+      (b.check_in_at ?? b.created_at).localeCompare(a.check_in_at ?? a.created_at),
+    );
+    const latest = arr[0]!;
+    const presentVisits = arr.filter(
+      (m) => m.status === "present" && m.check_in_at != null,
+    );
+    const hasOpen = presentVisits.some((m) => m.check_out_at == null);
+    const hasAny = presentVisits.length > 0;
+    const hasAbsent = arr.some((m) => m.status === "absent");
+    const firstIn = presentVisits
+      .map((m) => m.check_in_at!)
+      .sort()[0] ?? null;
+    const lastOut = presentVisits
+      .filter((m) => m.check_out_at)
+      .map((m) => m.check_out_at!)
+      .sort()
+      .slice(-1)[0] ?? null;
+    const totalMinutes = arr.reduce((s, m) => s + (m.duration_minutes ?? 0), 0);
+    const currentState: AttendanceState = hasOpen
+      ? "in_academy"
+      : hasAny
+        ? "checked_out"
+        : hasAbsent
+          ? "absent"
+          : "not_marked";
+    out.push({
+      mark_id: latest.id,
+      tenant_id: latest.tenant_id,
+      student_id: latest.student_id,
+      session_id: latest.session_id,
+      batch_id: latest.attendance_sessions?.batch_id ?? null,
+      session_date: latest.attendance_sessions?.session_date ?? dateISO,
+      status: hasAbsent && !hasAny ? ("absent" as AttendanceStatus) : ("present" as AttendanceStatus),
+      check_in_at: firstIn,
+      check_out_at: lastOut,
+      duration_minutes: totalMinutes,
+      visit_count: presentVisits.length,
+      source: latest.source,
+      marked_by: latest.marked_by,
+      current_state: currentState,
+      last_visit_type: latest.visit_type,
+    });
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
