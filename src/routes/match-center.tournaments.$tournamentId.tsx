@@ -64,6 +64,7 @@ import {
 } from "@/components/match-center/tournament-workspace-shell";
 import { TournamentDashboard } from "@/components/match-center/tournament-dashboard";
 import { PointsTable } from "@/components/match-center/points-table";
+import { TournamentBracket } from "@/components/match-center/tournament-bracket";
 import { supabase } from "@/integrations/supabase/client";
 
 
