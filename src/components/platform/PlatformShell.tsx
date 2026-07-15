@@ -20,6 +20,8 @@ import {
   Trophy,
   Radio,
   BellRing,
+  CreditCard,
+
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatform } from "@/lib/platform-context";
@@ -39,7 +41,9 @@ const nav = [
   { to: "/platform-admin/support", label: "Support", icon: LifeBuoy },
   { to: "/platform-admin/search", label: "Search", icon: Search },
   { to: "/platform-admin/new", label: "Onboard client", icon: Plus },
+  { to: "/platform-admin/payment-settings", label: "Payments", icon: CreditCard },
   { to: "/platform-admin/settings", label: "Contact settings", icon: Settings },
+
 ];
 
 export function PlatformShell({ children }: { children: ReactNode }) {
