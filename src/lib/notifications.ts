@@ -225,22 +225,42 @@ export function useNotificationsRealtime(userId: string | null) {
   }, [userId, qc]);
 }
 
-/** Group notifications by Today / Yesterday / Earlier. */
+/**
+ * Group notifications into fine-grained time buckets similar to Slack /
+ * Facebook: Today, Yesterday, Earlier This Week, Earlier This Month, Older.
+ */
 export function useGroupedNotifications(rows: NotificationRow[] | undefined) {
   return useMemo(() => {
     const today: NotificationRow[] = [];
     const yesterday: NotificationRow[] = [];
+    const thisWeek: NotificationRow[] = [];
+    const thisMonth: NotificationRow[] = [];
+    const older: NotificationRow[] = [];
+    // Back-compat: `earlier` = thisWeek + thisMonth + older combined.
     const earlier: NotificationRow[] = [];
-    if (!rows) return { today, yesterday, earlier };
+    if (!rows) return { today, yesterday, earlier, thisWeek, thisMonth, older };
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const startOfYesterday = startOfToday - 24 * 3600 * 1000;
+    const startOfWeek = startOfToday - 7 * 24 * 3600 * 1000;
+    const startOfMonth = startOfToday - 30 * 24 * 3600 * 1000;
     for (const r of rows) {
       const t = new Date(r.created_at).getTime();
       if (t >= startOfToday) today.push(r);
-      else if (t >= startOfYesterday) yesterday.push(r);
-      else earlier.push(r);
+      else if (t >= startOfYesterday) {
+        yesterday.push(r);
+        earlier.push(r);
+      } else if (t >= startOfWeek) {
+        thisWeek.push(r);
+        earlier.push(r);
+      } else if (t >= startOfMonth) {
+        thisMonth.push(r);
+        earlier.push(r);
+      } else {
+        older.push(r);
+        earlier.push(r);
+      }
     }
-    return { today, yesterday, earlier };
+    return { today, yesterday, earlier, thisWeek, thisMonth, older };
   }, [rows]);
 }
