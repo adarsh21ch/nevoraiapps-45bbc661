@@ -371,3 +371,39 @@ export const signManualPaymentScreenshot = createServerFn({ method: "POST" })
       .createSignedUrl(row.screenshot_path, 60 * 30);
     return { url: signed?.signedUrl ?? null };
   });
+
+/** Public payment-setup projection for parents (safe fields only). */
+export const getTenantPaymentSetup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: { tenantId: string }) => v)
+  .handler(async ({ data, context }) => {
+    // Any linked parent / tenant member can read this
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: t, error } = await supabaseAdmin
+      .from("tenants")
+      .select(
+        "online_payments_enabled, upi_id, upi_qr_url, bank_account_name, bank_account_number, bank_ifsc, payment_instructions",
+      )
+      .eq("id", data.tenantId)
+      .maybeSingle();
+    if (error) throw error;
+    // Also probe if any enabled online provider config exists
+    const { data: cfg } = await supabaseAdmin
+      .from("payment_provider_configs")
+      .select("provider")
+      .eq("scope", "tenant")
+      .eq("tenant_id", data.tenantId)
+      .eq("enabled", true)
+      .limit(1)
+      .maybeSingle();
+    void context;
+    return {
+      online_payments_enabled: !!t?.online_payments_enabled && !!cfg,
+      upi_id: t?.upi_id ?? null,
+      upi_qr_url: t?.upi_qr_url ?? null,
+      bank_account_name: t?.bank_account_name ?? null,
+      bank_account_number: t?.bank_account_number ?? null,
+      bank_ifsc: t?.bank_ifsc ?? null,
+      payment_instructions: t?.payment_instructions ?? null,
+    };
+  });
