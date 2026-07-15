@@ -135,14 +135,7 @@ export async function computeOwnerSummary(
 
   // ---------- Attendance ----------
   const [present, absent, lateIn, lateOut, newAdmissions, newLeads] = await Promise.all([
-    countRows(supabaseAdmin, "attendance_marks", (q) =>
-      (q as never as {
-        eq: (c: string, v: unknown) => unknown;
-      })
-        .eq("tenant_id", tenantId) as never as {
-          eq: (c: string, v: unknown) => unknown;
-        },
-    ).then(async () => {
+    (async () => {
       const { count } = await supabaseAdmin
         .from("attendance_marks")
         .select("*", { count: "exact", head: true })
@@ -151,7 +144,8 @@ export async function computeOwnerSummary(
         .gte("check_in_at", startIso)
         .lte("check_in_at", endIso);
       return count ?? 0;
-    }),
+    })(),
+
     (async () => {
       const { count } = await supabaseAdmin
         .from("attendance_marks")
