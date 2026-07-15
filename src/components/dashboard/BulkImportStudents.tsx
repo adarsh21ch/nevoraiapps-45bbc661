@@ -111,6 +111,9 @@ export function BulkImportStudents() {
   const [rows, setRows] = useState<Row[]>([]);
   const [fileName, setFileName] = useState("");
   const [skipDupes, setSkipDupes] = useState(true);
+  const [markImported, setMarkImported] = useState(true);
+  const bulkImport = useServerFn(bulkImportStudents);
+
 
   const batches = useQuery({
     queryKey: qk.batches(tenant.id),
