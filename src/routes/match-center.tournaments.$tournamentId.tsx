@@ -169,9 +169,15 @@ function TournamentDetailPage() {
       >
         {section === "overview" && (
           <TournamentDashboard
-            tournamentId={tournamentId}
-            hasGroups={t.has_groups}
+            tournament={t}
             onNavigate={setSection}
+            onQuickAction={(id) => {
+              if (id === "generate") setGenOpen(true);
+              else if (id === "create") setSection("fixtures");
+              else if (id === "share") onShare();
+              else if (id === "export") toast.info("Export coming soon");
+            }}
+            publicUrl={publicUrl}
           />
         )}
         {section === "fixtures" && <FixturesTab tournament={t} tenantId={tenant.id} />}
