@@ -680,8 +680,53 @@ function SkeletonList() {
   );
 }
 
-function EmptyState({ filter, monthLabel }: { filter: Filter; monthLabel: string }) {
-  if (filter === "pending") {
+function EmptyState({
+  filter,
+  monthLabel,
+  searching,
+  hasStudents,
+}: {
+  filter: Filter;
+  monthLabel: string;
+  searching: boolean;
+  hasStudents: boolean;
+}) {
+  if (searching) {
+    return (
+      <div className="p-10 text-center text-sm text-muted-foreground">
+        No students match your search.
+      </div>
+    );
+  }
+  if (!hasStudents) {
+    return (
+      <div className="p-10 text-center">
+        <div
+          className="mx-auto h-14 w-14 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, white)" }}
+        >
+          <UserPlus className="size-7" style={{ color: "var(--brand)" }} />
+        </div>
+        <div className="mt-3 font-semibold text-lg">No students with a monthly plan</div>
+        <div className="text-sm text-muted-foreground mt-1 mb-4">
+          Add students or assign a fee plan to start collecting.
+        </div>
+        <div className="flex items-center justify-center gap-2">
+          <Button asChild variant="outline" className="rounded-full">
+            <Link to="/dashboard/students">Add Student</Link>
+          </Button>
+          <Button
+            asChild
+            className="rounded-full"
+            style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
+          >
+            <Link to="/dashboard/fee-plans">Assign Fee Plan</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  if (filter === "pending" || filter === "overdue") {
     return (
       <div className="p-10 text-center">
         <div
@@ -690,9 +735,13 @@ function EmptyState({ filter, monthLabel }: { filter: Filter; monthLabel: string
         >
           <PartyPopper className="size-7" style={{ color: "var(--brand)" }} />
         </div>
-        <div className="mt-3 font-semibold text-lg">All fees collected for {monthLabel}</div>
+        <div className="mt-3 font-semibold text-lg">
+          {filter === "overdue"
+            ? "Nothing overdue"
+            : `All fees collected for ${monthLabel}`}
+        </div>
         <div className="text-sm text-muted-foreground mt-1">
-          Nothing pending. Enjoy the quiet 🎉
+          Nothing to chase right now 🎉
         </div>
       </div>
     );
@@ -703,6 +752,7 @@ function EmptyState({ filter, monthLabel }: { filter: Filter; monthLabel: string
     </div>
   );
 }
+
 
 /* ---------- Collect flow (responsive: bottom-sheet on mobile, modal on desktop) ---------- */
 
