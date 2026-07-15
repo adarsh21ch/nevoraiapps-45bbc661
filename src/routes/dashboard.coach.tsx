@@ -17,7 +17,6 @@ import {
   Users,
   StickyNote,
   ArrowRight,
-  Trophy,
   Megaphone,
   Loader2,
   Save,
