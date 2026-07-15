@@ -1815,6 +1815,115 @@ export type Database = {
           },
         ]
       }
+      manual_payment_submissions: {
+        Row: {
+          amount: number
+          billing_payment_id: string | null
+          created_at: string
+          currency: string
+          id: string
+          invoice_id: string | null
+          method: string
+          notes: string | null
+          paid_at: string | null
+          review_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          screenshot_path: string | null
+          status: string
+          student_id: string
+          submitted_by: string | null
+          tenant_id: string
+          updated_at: string
+          utr: string | null
+        }
+        Insert: {
+          amount: number
+          billing_payment_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_id?: string | null
+          method?: string
+          notes?: string | null
+          paid_at?: string | null
+          review_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          screenshot_path?: string | null
+          status?: string
+          student_id: string
+          submitted_by?: string | null
+          tenant_id: string
+          updated_at?: string
+          utr?: string | null
+        }
+        Update: {
+          amount?: number
+          billing_payment_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_id?: string | null
+          method?: string
+          notes?: string | null
+          paid_at?: string | null
+          review_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          screenshot_path?: string | null
+          status?: string
+          student_id?: string
+          submitted_by?: string | null
+          tenant_id?: string
+          updated_at?: string
+          utr?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_payment_submissions_billing_payment_id_fkey"
+            columns: ["billing_payment_id"]
+            isOneToOne: false
+            referencedRelation: "billing_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_payment_submissions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "billing_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_payment_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_payment_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_payment_submissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_payment_submissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mc_academy_records: {
         Row: {
           athlete_profile_id: string | null
