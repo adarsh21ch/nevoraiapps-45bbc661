@@ -53,6 +53,50 @@ function StudentLayout() {
     enabled: signedIn,
   });
 
+  // Lifecycle gate: fetch student's lifecycle_status and pending registration status.
+  const gateQ = useQuery({
+    queryKey: ["student", "gate", ctxQ.data?.student_id ?? "none"],
+    enabled: signedIn && ctxQ.data !== undefined,
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      let lifecycle: string | null = null;
+      if (ctxQ.data?.student_id) {
+        const { data } = await supabase
+          .from("students")
+          .select("lifecycle_status")
+          .eq("id", ctxQ.data.student_id)
+          .maybeSingle();
+        lifecycle = (data as any)?.lifecycle_status ?? null;
+      }
+      let pendingReg = false;
+      if (!ctxQ.data && uid) {
+        const { data: reg } = await supabase
+          .from("registrations")
+          .select("id, review_status")
+          .eq("applicant_user_id", uid)
+          .in("review_status", ["pending", "waitlisted", "rejected", "changes_requested"])
+          .limit(1)
+          .maybeSingle();
+        pendingReg = Boolean(reg);
+      }
+      return { lifecycle, pendingReg };
+    },
+  });
+
+  const onPendingRoute = pathname === "/student/pending";
+
+  useEffect(() => {
+    if (!gateQ.data) return;
+    const lifecycle = gateQ.data.lifecycle;
+    const shouldGate =
+      gateQ.data.pendingReg ||
+      (lifecycle && isPendingApproval(lifecycle));
+    if (shouldGate && !onPendingRoute) {
+      navigate({ to: "/student/pending" });
+    }
+  }, [gateQ.data, onPendingRoute, navigate]);
+
   if (!ready) return <PageSkeleton />;
   if (!signedIn) {
     return (
@@ -67,8 +111,19 @@ function StudentLayout() {
       </div>
     );
   }
-  if (ctxQ.isLoading) return <PageSkeleton />;
+  if (ctxQ.isLoading || gateQ.isLoading) return <PageSkeleton />;
+
+  // Allow /student/pending to render even without a student record.
+  if (onPendingRoute) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+        <Outlet />
+      </div>
+    );
+  }
+
   if (!ctxQ.data) {
+    // No student record and no pending registration → guidance card.
     return (
       <div className="min-h-screen grid place-items-center p-6 bg-background">
         <Card className="p-6 max-w-md text-center space-y-3">
