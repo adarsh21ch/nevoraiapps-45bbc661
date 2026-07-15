@@ -36,6 +36,16 @@ export const AUTOMATION_EVENTS = {
   StaffAssignmentCreated: "staff.assignment.created",
   StaffAssignmentUpdated: "staff.assignment.updated",
   StaffAssignmentRemoved: "staff.assignment.removed",
+  CoachBatchAssigned: "coach.batch_assigned",
+  CoachAttendanceReminder: "coach.attendance_reminder",
+  CoachSessionReminder: "coach.session_reminder",
+  CoachStudentAssigned: "coach.student_assigned",
+  CoachParentMessage: "coach.parent_message",
+  CoachAnnouncement: "coach.announcement",
+  CoachApprovalRequired: "coach.approval_required",
+  CoachRemarkApproved: "coach.remark_approved",
+  CoachRemarkRejected: "coach.remark_rejected",
+  CoachScheduleUpdated: "coach.schedule_updated",
 } as const;
 
 

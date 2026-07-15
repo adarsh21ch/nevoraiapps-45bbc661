@@ -7,8 +7,8 @@
  * shared design-system components. No new tables.
  */
 
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -17,16 +17,18 @@ import {
   Users,
   StickyNote,
   ArrowRight,
-  Trophy,
   Megaphone,
   Loader2,
   Save,
+  BarChart3,
+  ShieldCheck,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Card, EmptyState, Skeleton } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { onboardingKeys, fetchOnboardingStatus } from "@/lib/coach/onboarding";
 import {
   coachKeys,
   fetchMyBatches,
@@ -69,6 +71,22 @@ function CoachHome() {
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
+
+  // First-login onboarding redirect (coaches only; owners/admins skip).
+  const uid = profile?.user_id ?? "";
+  const onboardingQ = useQuery({
+    enabled: canBeHere && !!uid && (isCoach || isHeadCoach) && !isAdmin,
+    queryKey: onboardingKeys.status(uid),
+    queryFn: () => fetchOnboardingStatus(uid),
+    staleTime: 5 * 60_000,
+  });
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (onboardingQ.isSuccess && onboardingQ.data === null) {
+      navigate({ to: "/dashboard/coach/onboarding" });
+    }
+  }, [onboardingQ.isSuccess, onboardingQ.data, navigate]);
+
 
   if (!canBeHere) {
     return (
@@ -186,11 +204,15 @@ function CoachHome() {
 }
 
 function QuickActions() {
+  const { isHeadCoach, isOwner, isAdmin } = usePermissions();
+  const showApprovals = isHeadCoach || isOwner || isAdmin;
   const items = [
-    { to: "/dashboard/attendance", label: "Mark attendance", icon: ClipboardCheck },
+    { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
     { to: "/dashboard/students", label: "Students", icon: Users },
-    { to: "/match-center/live", label: "Live match", icon: Trophy },
-    { to: "/dashboard/communications", label: "Announce", icon: Megaphone },
+    { to: "/dashboard/coach/analytics", label: "Analytics", icon: BarChart3 },
+    showApprovals
+      ? { to: "/dashboard/coach/approvals", label: "Approvals", icon: ShieldCheck }
+      : { to: "/dashboard/communications", label: "Announce", icon: Megaphone },
   ] as const;
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">

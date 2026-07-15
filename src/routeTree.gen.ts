@@ -123,6 +123,9 @@ import { Route as MatchCenterPlayersAthleteIdRouteImport } from './routes/match-
 import { Route as MatchCenterPerformanceCompareRouteImport } from './routes/match-center.performance.compare'
 import { Route as MatchCenterPerformanceAthleteIdRouteImport } from './routes/match-center.performance.$athleteId'
 import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.students.$id'
+import { Route as DashboardCoachOnboardingRouteImport } from './routes/dashboard.coach.onboarding'
+import { Route as DashboardCoachApprovalsRouteImport } from './routes/dashboard.coach.approvals'
+import { Route as DashboardCoachAnalyticsRouteImport } from './routes/dashboard.coach.analytics'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksOwnerSummariesRouteImport } from './routes/api/public/hooks/owner-summaries'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
@@ -709,6 +712,22 @@ const DashboardStudentsIdRoute = DashboardStudentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => DashboardStudentsRoute,
 } as any)
+const DashboardCoachOnboardingRoute =
+  DashboardCoachOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => DashboardCoachRoute,
+  } as any)
+const DashboardCoachApprovalsRoute = DashboardCoachApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
+  getParentRoute: () => DashboardCoachRoute,
+} as any)
+const DashboardCoachAnalyticsRoute = DashboardCoachAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => DashboardCoachRoute,
+} as any)
 const ApiPublicManifestWebmanifestRoute =
   ApiPublicManifestWebmanifestRouteImport.update({
     id: '/api/public/manifest/webmanifest',
@@ -788,7 +807,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
-  '/dashboard/coach': typeof DashboardCoachRoute
+  '/dashboard/coach': typeof DashboardCoachRouteWithChildren
   '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -849,6 +868,9 @@ export interface FileRoutesByFullPath {
   '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/dashboard/coach/analytics': typeof DashboardCoachAnalyticsRoute
+  '/dashboard/coach/approvals': typeof DashboardCoachApprovalsRoute
+  '/dashboard/coach/onboarding': typeof DashboardCoachOnboardingRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
   '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
@@ -905,7 +927,7 @@ export interface FileRoutesByTo {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
-  '/dashboard/coach': typeof DashboardCoachRoute
+  '/dashboard/coach': typeof DashboardCoachRouteWithChildren
   '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -966,6 +988,9 @@ export interface FileRoutesByTo {
   '/parent': typeof ParentIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/student': typeof StudentIndexRoute
+  '/dashboard/coach/analytics': typeof DashboardCoachAnalyticsRoute
+  '/dashboard/coach/approvals': typeof DashboardCoachApprovalsRoute
+  '/dashboard/coach/onboarding': typeof DashboardCoachOnboardingRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
   '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
@@ -1028,7 +1053,7 @@ export interface FileRoutesById {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
-  '/dashboard/coach': typeof DashboardCoachRoute
+  '/dashboard/coach': typeof DashboardCoachRouteWithChildren
   '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -1089,6 +1114,9 @@ export interface FileRoutesById {
   '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/dashboard/coach/analytics': typeof DashboardCoachAnalyticsRoute
+  '/dashboard/coach/approvals': typeof DashboardCoachApprovalsRoute
+  '/dashboard/coach/onboarding': typeof DashboardCoachOnboardingRoute
   '/dashboard/students/$id': typeof DashboardStudentsIdRoute
   '/match-center/performance/$athleteId': typeof MatchCenterPerformanceAthleteIdRoute
   '/match-center/performance/compare': typeof MatchCenterPerformanceCompareRoute
@@ -1213,6 +1241,9 @@ export interface FileRouteTypes {
     | '/parent/'
     | '/platform-admin/'
     | '/student/'
+    | '/dashboard/coach/analytics'
+    | '/dashboard/coach/approvals'
+    | '/dashboard/coach/onboarding'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
     | '/match-center/performance/compare'
@@ -1330,6 +1361,9 @@ export interface FileRouteTypes {
     | '/parent'
     | '/platform-admin'
     | '/student'
+    | '/dashboard/coach/analytics'
+    | '/dashboard/coach/approvals'
+    | '/dashboard/coach/onboarding'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
     | '/match-center/performance/compare'
@@ -1452,6 +1486,9 @@ export interface FileRouteTypes {
     | '/parent/'
     | '/platform-admin/'
     | '/student/'
+    | '/dashboard/coach/analytics'
+    | '/dashboard/coach/approvals'
+    | '/dashboard/coach/onboarding'
     | '/dashboard/students/$id'
     | '/match-center/performance/$athleteId'
     | '/match-center/performance/compare'
@@ -2318,6 +2355,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardStudentsIdRouteImport
       parentRoute: typeof DashboardStudentsRoute
     }
+    '/dashboard/coach/onboarding': {
+      id: '/dashboard/coach/onboarding'
+      path: '/onboarding'
+      fullPath: '/dashboard/coach/onboarding'
+      preLoaderRoute: typeof DashboardCoachOnboardingRouteImport
+      parentRoute: typeof DashboardCoachRoute
+    }
+    '/dashboard/coach/approvals': {
+      id: '/dashboard/coach/approvals'
+      path: '/approvals'
+      fullPath: '/dashboard/coach/approvals'
+      preLoaderRoute: typeof DashboardCoachApprovalsRouteImport
+      parentRoute: typeof DashboardCoachRoute
+    }
+    '/dashboard/coach/analytics': {
+      id: '/dashboard/coach/analytics'
+      path: '/analytics'
+      fullPath: '/dashboard/coach/analytics'
+      preLoaderRoute: typeof DashboardCoachAnalyticsRouteImport
+      parentRoute: typeof DashboardCoachRoute
+    }
     '/api/public/manifest/webmanifest': {
       id: '/api/public/manifest/webmanifest'
       path: '/api/public/manifest/webmanifest'
@@ -2363,6 +2421,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardCoachRouteChildren {
+  DashboardCoachAnalyticsRoute: typeof DashboardCoachAnalyticsRoute
+  DashboardCoachApprovalsRoute: typeof DashboardCoachApprovalsRoute
+  DashboardCoachOnboardingRoute: typeof DashboardCoachOnboardingRoute
+}
+
+const DashboardCoachRouteChildren: DashboardCoachRouteChildren = {
+  DashboardCoachAnalyticsRoute: DashboardCoachAnalyticsRoute,
+  DashboardCoachApprovalsRoute: DashboardCoachApprovalsRoute,
+  DashboardCoachOnboardingRoute: DashboardCoachOnboardingRoute,
+}
+
+const DashboardCoachRouteWithChildren = DashboardCoachRoute._addFileChildren(
+  DashboardCoachRouteChildren,
+)
+
 interface DashboardStudentsRouteChildren {
   DashboardStudentsIdRoute: typeof DashboardStudentsIdRoute
 }
@@ -2384,7 +2458,7 @@ interface DashboardRouteChildren {
   DashboardBatchesRoute: typeof DashboardBatchesRoute
   DashboardBillingRoute: typeof DashboardBillingRoute
   DashboardBrandingRoute: typeof DashboardBrandingRoute
-  DashboardCoachRoute: typeof DashboardCoachRoute
+  DashboardCoachRoute: typeof DashboardCoachRouteWithChildren
   DashboardCommunicationsRoute: typeof DashboardCommunicationsRoute
   DashboardFeePlansRoute: typeof DashboardFeePlansRoute
   DashboardFeesRoute: typeof DashboardFeesRoute
@@ -2413,7 +2487,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBatchesRoute: DashboardBatchesRoute,
   DashboardBillingRoute: DashboardBillingRoute,
   DashboardBrandingRoute: DashboardBrandingRoute,
-  DashboardCoachRoute: DashboardCoachRoute,
+  DashboardCoachRoute: DashboardCoachRouteWithChildren,
   DashboardCommunicationsRoute: DashboardCommunicationsRoute,
   DashboardFeePlansRoute: DashboardFeePlansRoute,
   DashboardFeesRoute: DashboardFeesRoute,

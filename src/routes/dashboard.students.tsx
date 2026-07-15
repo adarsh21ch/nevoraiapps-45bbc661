@@ -66,6 +66,8 @@ import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { VirtualList } from "@/components/ds/VirtualList";
+import { usePermissions } from "@/hooks/use-permissions";
+import { fetchMyBatches, type MyBatch } from "@/lib/coach/queries";
 
 export const Route = createFileRoute("/dashboard/students")({
   validateSearch: (search: Record<string, unknown>): { status?: string } => {
@@ -104,6 +106,21 @@ function StudentsPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
 
+  // Coach "My batches only" toggle. Owners/admins default OFF; coaches default ON.
+  const perms = usePermissions();
+  const isAnyCoach = perms.isCoach || perms.isHeadCoach || perms.isAssistantCoach;
+  const [myBatchesOnly, setMyBatchesOnly] = useState<boolean>(isAnyCoach);
+  const myBatchesQ = useQuery({
+    enabled: isAnyCoach,
+    queryKey: ["coach", "my-batches", tenant.id],
+    queryFn: fetchMyBatches,
+    staleTime: 60_000,
+  });
+  const myBatchIds = useMemo(
+    () => new Set(((myBatchesQ.data ?? []) as MyBatch[]).map((b) => b.batch_id)),
+    [myBatchesQ.data],
+  );
+
   const students = useQuery({
     queryKey: qk.students(tenant.id),
     queryFn: () => fetchStudents(tenant.id),
@@ -112,6 +129,7 @@ function StudentsPage() {
     queryKey: qk.batches(tenant.id),
     queryFn: () => fetchBatches(tenant.id),
   });
+
 
   const pendingRegs = useQuery({
     queryKey: ["d", "regs-plus-leads-count", tenant.id],
@@ -184,6 +202,7 @@ function StudentsPage() {
     return list.filter((s) => {
       if (status !== "all" && s.status !== status) return false;
       if (batch !== "all" && s.batch_id !== batch) return false;
+      if (isAnyCoach && myBatchesOnly && !myBatchIds.has(s.batch_id ?? "")) return false;
       if (gender !== "all" && (s.gender ?? "").toLowerCase() !== gender) return false;
       if (role !== "all" && (s.playing_role ?? "") !== role) return false;
       if (ageGroup !== "all" && !inAgeGroup(ageFromDob(s.dob), ageGroup)) return false;
@@ -206,7 +225,7 @@ function StudentsPage() {
       }
       return true;
     });
-  }, [students.data, q, status, batch, gender, role, ageGroup, joinYear]);
+  }, [students.data, q, status, batch, gender, role, ageGroup, joinYear, isAnyCoach, myBatchesOnly, myBatchIds]);
 
   const counts = useMemo(() => {
     const list = (students.data ?? []) as any[];
@@ -356,6 +375,26 @@ function StudentsPage() {
           )}
         </Button>
       </div>
+
+      {isAnyCoach && (
+        <div className="flex items-center justify-between rounded-full bg-card border border-border px-3 py-1.5 shadow-sm">
+          <span className="text-xs text-muted-foreground">
+            {myBatchesOnly
+              ? `Showing only your ${myBatchIds.size} assigned ${myBatchIds.size === 1 ? "batch" : "batches"}`
+              : "Showing all students in the academy"}
+          </span>
+          <label className="inline-flex items-center gap-2 text-xs font-medium cursor-pointer">
+            My batches only
+            <input
+              type="checkbox"
+              className="size-4 accent-foreground"
+              checked={myBatchesOnly}
+              onChange={(e) => setMyBatchesOnly(e.target.checked)}
+            />
+          </label>
+        </div>
+      )}
+
 
       {showFilters && (
         <div className="rounded-2xl bg-card border border-border shadow-sm p-3 grid grid-cols-2 md:grid-cols-3 gap-2">
