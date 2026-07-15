@@ -364,9 +364,29 @@ function makeSquadRow(
   };
 }
 
-export async function updateMatchStatus(id: string, status: string) {
+export async function updateMatchStatus(id: string, status: string, tenantId?: string) {
   const { error } = await supabase.from("mc_matches").update({ status }).eq("id", id);
   if (error) throw error;
+
+  if (tenantId) {
+    const eventType =
+      status === "live"
+        ? "match.started"
+        : status === "completed"
+          ? "match.finished"
+          : status === "scheduled"
+            ? "match.scheduled"
+            : null;
+    if (eventType) {
+      emitEvent({
+        tenantId,
+        eventType,
+        sourceModule: "match-center",
+        sourceId: id,
+        payload: { match_id: id, status },
+      });
+    }
+  }
 }
 
 export async function deleteMatch(id: string) {
