@@ -202,9 +202,9 @@ function TournamentDetailPage() {
 
 function deriveCurrentStage(fixtures: Awaited<ReturnType<typeof listFixtures>>): string | null {
   const live = fixtures.find((m) => m.status === "in_progress");
-  if (live?.stage) return String(live.stage);
+  if (live?.matchday_no) return `Matchday ${live.matchday_no}`;
   const nextUp = fixtures.find((m) => !m.match_locked);
-  if (nextUp?.stage) return String(nextUp.stage);
+  if (nextUp?.matchday_no) return `Matchday ${nextUp.matchday_no}`;
   return null;
 }
 
