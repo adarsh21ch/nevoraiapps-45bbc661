@@ -161,21 +161,24 @@ function TournamentDetailPage() {
         })}
       </div>
 
-      {tab === "overview" && <OverviewTab tournamentId={tournamentId} tenantId={tenant.id} />}
+      {tab === "overview" && <OverviewTab tournamentId={tournamentId} tenantId={tenant.id} hasGroups={t.has_groups} />}
+      {tab === "teams" && <TeamsTab tournamentId={tournamentId} tenantId={tenant.id} />}
+      {tab === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
+      {tab === "venues" && <VenuesTab tournamentId={tournamentId} tenantId={tenant.id} />}
+      {tab === "officials" && <OfficialsTab tournamentId={tournamentId} tenantId={tenant.id} />}
       {tab === "fixtures" && <FixturesTab tournamentId={tournamentId} tenantId={tenant.id} overs={t.overs} format={t.format} />}
       {tab === "standings" && <StandingsTab tournamentId={tournamentId} />}
       {tab === "results" && <ResultsTab tournamentId={tournamentId} />}
       {tab === "stats" && <RecordsTab tournamentId={tournamentId} />}
       {tab === "orange" && <OrangeCapTab tournamentId={tournamentId} />}
       {tab === "purple" && <PurpleCapTab tournamentId={tournamentId} />}
-      {tab === "teams" && <TeamsTab tournamentId={tournamentId} tenantId={tenant.id} />}
       {tab === "settings" && <SettingsTab tournament={t} />}
     </div>
   );
 }
 
 /* ==================== OVERVIEW ==================== */
-function OverviewTab({ tournamentId, tenantId: _tenantId }: { tournamentId: string; tenantId: string }) {
+function OverviewTab({ tournamentId, tenantId: _tenantId, hasGroups }: { tournamentId: string; tenantId: string; hasGroups: boolean }) {
   const teamsQ = useQuery({
     queryKey: ["mc-tournament-teams", tournamentId],
     queryFn: () => listTournamentTeams(tournamentId),
