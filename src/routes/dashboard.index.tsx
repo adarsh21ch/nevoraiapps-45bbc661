@@ -182,14 +182,9 @@ function DashboardHome() {
     (profile as { display_name?: string })?.display_name ?? tenant.name;
   const greeting = greetingFor(now);
 
-  // Pending actions for admins = new regs + not-yet-arrived count (heuristic)
-  const notArrived = useMemo(() => {
-    const total = attendanceRows.length;
-    const arrived = attendanceRows.filter(
-      (r) => r.current_state === "in_academy" || r.current_state === "checked_out",
-    ).length;
-    return Math.max(0, total - arrived);
-  }, [attendanceRows]);
+  // Pending actions for admins = new regs + not-yet-arrived count.
+  // Derived from the same roster as the Attendance page — never a separate calc.
+  const notArrived = Math.max(0, attTotal - attPresent);
   const pendingActions = newRegs + (notArrived > 0 ? 1 : 0);
 
   return (
