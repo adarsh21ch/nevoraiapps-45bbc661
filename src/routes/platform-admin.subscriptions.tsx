@@ -189,3 +189,122 @@ function Row({ t, onMarkPaid, busy }: { t: TenantRow; onMarkPaid: () => void; bu
     </div>
   );
 }
+
+function PlanChip({ tier }: { tier: string }) {
+  const t = (tier === "professional" || tier === "enterprise" ? tier : "starter") as PlanTier;
+  const colors: Record<PlanTier, string> = {
+    starter: "bg-neutral-500/10 text-neutral-300",
+    professional: "bg-sky-500/10 text-sky-300",
+    enterprise: "bg-amber-500/10 text-amber-300",
+  };
+  return (
+    <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded ${colors[t]}`}>
+      {PLAN_META[t].name}
+    </span>
+  );
+}
+
+function PlanActions({
+  tenantId,
+  currentTier,
+  suspended,
+}: {
+  tenantId: string;
+  currentTier: string;
+  suspended: boolean;
+}) {
+  const qc = useQueryClient();
+  const invalidate = () => qc.invalidateQueries({ queryKey: pqk.tenants });
+  const grant = useServerFn(grantTrial);
+  const extend = useServerFn(extendPeriod);
+  const setTier = useServerFn(setPlanTier);
+  const suspend = useServerFn(suspendTenant);
+  const resume = useServerFn(resumeTenant);
+  const cur = (currentTier === "professional" || currentTier === "enterprise"
+    ? currentTier
+    : "starter") as PlanTier;
+
+  const run = async (label: string, fn: () => Promise<unknown>) => {
+    try {
+      await fn();
+      toast.success(label);
+      invalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      <Button
+        size="sm"
+        variant="ghost"
+        className="text-neutral-300 hover:bg-white/5"
+        onClick={() => run("Trial granted", () => grant({ data: { tenantId, days: 14 } }))}
+        title="Grant 14-day trial"
+      >
+        <Gift className="size-4 mr-1" /> Trial
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        className="text-neutral-300 hover:bg-white/5"
+        onClick={() => run("Extended 30 days", () => extend({ data: { tenantId, days: 30 } }))}
+        title="Extend period 30 days"
+      >
+        <CalendarPlus className="size-4 mr-1" /> +30d
+      </Button>
+      {cur !== "enterprise" && (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-sky-300 hover:bg-white/5"
+          onClick={() =>
+            run("Upgraded", () =>
+              setTier({
+                data: { tenantId, tier: cur === "starter" ? "professional" : "enterprise" },
+              }),
+            )
+          }
+        >
+          <ArrowUp className="size-4 mr-1" /> Upgrade
+        </Button>
+      )}
+      {cur !== "starter" && (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-neutral-300 hover:bg-white/5"
+          onClick={() =>
+            run("Downgraded", () =>
+              setTier({
+                data: { tenantId, tier: cur === "enterprise" ? "professional" : "starter" },
+              }),
+            )
+          }
+        >
+          <ArrowDown className="size-4 mr-1" /> Downgrade
+        </Button>
+      )}
+      {suspended ? (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-emerald-300 hover:bg-white/5"
+          onClick={() => run("Resumed", () => resume({ data: { tenantId } }))}
+        >
+          <PlayCircle className="size-4 mr-1" /> Resume
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-rose-300 hover:bg-white/5"
+          onClick={() => run("Suspended", () => suspend({ data: { tenantId } }))}
+        >
+          <PauseCircle className="size-4 mr-1" /> Suspend
+        </Button>
+      )}
+    </div>
+  );
+}
