@@ -550,7 +550,7 @@ function FixturesTab({
           ))}
         </div>
       ) : view === "bracket" ? (
-        <BracketView tournamentId={tournamentId} />
+        <TournamentBracket tournamentId={tournamentId} />
       ) : (
         <div className="space-y-2">
           {fixtures.map((m) => (
