@@ -692,12 +692,12 @@ function NewSubscriptionButton({
             <StudentPicker students={students} value={studentId} onChange={setStudentId} />
           </div>
           <div>
-            <Label>Unit amount</Label>
+            <Label>Fee amount</Label>
             <Input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Cycle</Label>
+              <Label>Frequency</Label>
               <Select value={cycle} onValueChange={(v) => setCycle(v as BillingCycle)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -712,7 +712,7 @@ function NewSubscriptionButton({
               </Select>
             </div>
             <div>
-              <Label>Anchor day (1–28)</Label>
+              <Label>Bill day of month (1–28)</Label>
               <Input type="number" min="1" max="28" value={anchor} onChange={(e) => setAnchor(e.target.value)} />
             </div>
           </div>
@@ -722,7 +722,7 @@ function NewSubscriptionButton({
             Cancel
           </Button>
           <Button disabled={!studentId || !amount || m.isPending} onClick={() => m.mutate()}>
-            Create
+            Assign
           </Button>
         </DialogFooter>
       </DialogContent>
