@@ -52,8 +52,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/dashboard/fees")({
   validateSearch: (search: Record<string, unknown>): { filter?: Filter } => {
     const f = search.filter;
-    return f === "pending" || f === "paid" || f === "all" ? { filter: f } : {};
+    return f === "pending" || f === "paid" || f === "all" || f === "overdue" ? { filter: f } : {};
   },
+
   component: () => (<OwnerOnly><FeeRegister /></OwnerOnly>),
 });
 
