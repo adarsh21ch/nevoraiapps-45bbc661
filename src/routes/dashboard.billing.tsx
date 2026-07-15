@@ -353,7 +353,7 @@ function InvoiceDetailDialog({
   const issueM = useMutation({
     mutationFn: () => issueInvoice(invoice!.id),
     onSuccess: () => {
-      toast.success("Invoice issued");
+      toast.success("Fee bill sent");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -361,7 +361,7 @@ function InvoiceDetailDialog({
   const voidM = useMutation({
     mutationFn: (reason: string) => voidInvoice(invoice!.id, reason),
     onSuccess: () => {
-      toast.success("Invoice voided");
+      toast.success("Fee bill cancelled");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
