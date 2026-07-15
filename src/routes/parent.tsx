@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Home, TrendingUp, CalendarDays, UserCircle, LogOut, ChevronDown } from "lucide-react";
+import { Home, TrendingUp, CalendarDays, UserCircle, LogOut, ChevronDown, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
