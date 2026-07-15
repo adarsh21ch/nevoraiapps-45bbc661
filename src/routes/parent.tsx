@@ -54,6 +54,10 @@ function ParentLayout() {
   const [selectedId, setSelectedId] = useState<string | null>(() => getLastSelectedChildId());
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  // Register this browser for Web Push once the parent is signed in. No-ops
+  // in Lovable preview, dev, iframes, or when permission has been denied.
+  useRegisterPushDevice({ autoRegisterWhenGranted: true });
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setSignedIn(Boolean(data.user));
