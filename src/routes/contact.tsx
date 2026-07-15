@@ -6,6 +6,7 @@ import { TenantGate } from "@/components/site/TenantGate";
 import { PageHero } from "@/components/site/PageHero";
 import { useTenant } from "@/lib/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
+import { checkRateLimit } from "@/lib/bulk-ops";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({ meta: [{ title: "Contact" }, { name: "description", content: "Get in touch" }] }),
