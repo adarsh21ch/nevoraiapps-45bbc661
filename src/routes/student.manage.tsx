@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  UserCircle,
   ClipboardCheck,
   Swords,
-  History,
+  LineChart,
   Megaphone,
   ChevronRight,
   IndianRupee,
@@ -16,7 +15,7 @@ export const Route = createFileRoute("/student/manage")({
   head: () => ({
     meta: [
       { title: "Manage — My Academy" },
-      { name: "description", content: "Your personal information, attendance, matches and documents." },
+      { name: "description", content: "Your training, matches and payments." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -24,41 +23,40 @@ export const Route = createFileRoute("/student/manage")({
 });
 
 type Tile = {
-  to: "/student/profile" | "/student/progress" | "/student/matches";
+  to: "/student" | "/student/progress" | "/student/matches" | "/fees";
   label: string;
   hint: string;
   icon: React.ComponentType<{ className?: string }>;
 };
 
 const TILES: Tile[] = [
-  { to: "/student/profile", label: "My Profile", hint: "Personal details & documents", icon: UserCircle },
-  { to: "/student/progress", label: "My Attendance", hint: "Check-ins and history", icon: ClipboardCheck },
-  { to: "/student/matches", label: "My Matches", hint: "Fixtures & performance", icon: Swords },
-  { to: "/student/progress", label: "Practice History", hint: "Sessions this month", icon: History },
+  { to: "/student", label: "My Attendance", hint: "Check-ins & streaks", icon: ClipboardCheck },
+  { to: "/student/progress", label: "My Performance", hint: "Progress & milestones", icon: LineChart },
+  { to: "/student/matches", label: "My Matches", hint: "Fixtures & scorecards", icon: Swords },
+  { to: "/fees", label: "My Fees", hint: "Payments & receipts", icon: IndianRupee },
 ];
 
 function StudentManagePage() {
   const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyStudentContext });
-  const feesEnabled = false; // Reuse existing gating — no route exists yet; hidden by default.
 
   return (
     <div className="space-y-5">
       <header>
         <h1 className="text-2xl font-semibold leading-tight">Manage</h1>
         <p className="text-sm text-muted-foreground">
-          Your personal information, attendance and activity.
+          Your training, matches and payments.
         </p>
       </header>
 
-      <section aria-label="Personal">
+      <section aria-label="Training">
         <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-          Personal
+          Training
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {TILES.map((t) => {
             const Icon = t.icon;
             return (
-              <Link key={`${t.to}-${t.label}`} to={t.to}>
+              <Link key={t.label} to={t.to}>
                 <Card className="p-4 flex items-center gap-3 hover:bg-muted/40 transition-colors">
                   <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
                     <Icon className="size-5" />
@@ -74,21 +72,6 @@ function StudentManagePage() {
           })}
         </div>
       </section>
-
-      {feesEnabled && (
-        <section aria-label="Fees">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-            Fees
-          </p>
-          <Card className="p-4 flex items-center gap-3 opacity-60">
-            <IndianRupee className="size-5" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">My Fees</p>
-              <p className="text-xs text-muted-foreground">Contact your academy for details.</p>
-            </div>
-          </Card>
-        </section>
-      )}
 
       <section aria-label="Updates">
         <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
