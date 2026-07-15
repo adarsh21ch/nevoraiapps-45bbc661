@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Trash2, Copy, Check, ArrowRight, ArrowLeft, ExternalLink } from "lucide-react";
 import { nicheOptions, niche, type NicheKey } from "@/lib/niche";
-import { sportsList, type SportKey } from "@/lib/sports";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { useServerFn } from "@tanstack/react-start";
 import { createTenantOwner } from "@/lib/tenant-owner.functions";
