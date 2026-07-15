@@ -308,15 +308,15 @@ function AttendancePage() {
     );
   }, [studentsQ.data, sessionBatchIds, query]);
 
-  // Map: student_id → today's derived state row (from attendance_today view).
+  // Map: student_id → derived attendance row for the SELECTED date.
   const stateByStudent = useMemo(() => {
     const m = new Map<string, TodayRow>();
-    for (const row of todayQ.data ?? []) {
+    for (const row of attendanceQ.data ?? []) {
       if (row.batch_id && sessionBatchIds.has(row.batch_id))
         m.set(row.student_id, row as unknown as TodayRow);
     }
     return m;
-  }, [todayQ.data, sessionBatchIds]);
+  }, [attendanceQ.data, sessionBatchIds]);
 
   // KPIs. Everything derived — never stored.
   const kpis = useMemo(() => {
