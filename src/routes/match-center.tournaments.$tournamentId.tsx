@@ -166,7 +166,7 @@ function TournamentDetailPage() {
       {tab === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
       {tab === "venues" && <VenuesTab tournamentId={tournamentId} tenantId={tenant.id} />}
       {tab === "officials" && <OfficialsTab tournamentId={tournamentId} tenantId={tenant.id} />}
-      {tab === "fixtures" && <FixturesTab tournamentId={tournamentId} tenantId={tenant.id} overs={t.overs} format={t.format} />}
+      {tab === "fixtures" && <FixturesTab tournament={t} tenantId={tenant.id} />}
       {tab === "standings" && <StandingsTab tournamentId={tournamentId} />}
       {tab === "results" && <ResultsTab tournamentId={tournamentId} />}
       {tab === "stats" && <RecordsTab tournamentId={tournamentId} />}
