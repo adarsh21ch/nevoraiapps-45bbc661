@@ -376,17 +376,17 @@ function InvoiceDetailDialog({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <span>Invoice {invoice.number ?? "(Draft)"}</span>
+                <span>Fee bill {invoice.number ?? "(Draft)"}</span>
                 <StatusPill status={invoice.status} />
               </DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <Row label="Student" value={student?.name ?? "—"} />
               <Row label="Player ID" value={student?.player_id ?? "—"} />
-              <Row label="Issue date" value={invoice.issue_date ?? "—"} />
+              <Row label="Bill date" value={invoice.issue_date ?? "—"} />
               <Row label="Due date" value={invoice.due_date ?? "—"} />
               <Row label="Total" value={formatMoney(invoice.total, invoice.currency)} />
-              <Row label="Balance" value={formatMoney(invoice.balance, invoice.currency)} />
+              <Row label="Pending" value={formatMoney(invoice.balance, invoice.currency)} />
             </div>
 
             <div className="border rounded-xl overflow-hidden">
@@ -419,24 +419,24 @@ function InvoiceDetailDialog({
             <DialogFooter className="gap-2 flex-wrap">
               {invoice.status === "draft" && (
                 <Button onClick={() => issueM.mutate()} disabled={issueM.isPending}>
-                  Issue invoice
+                  Send fee bill
                 </Button>
               )}
               {(invoice.status === "issued" || invoice.status === "partially_paid") && invoice.balance > 0 && (
                 <Button onClick={() => setPayOpen(true)}>
-                  <Banknote className="w-4 h-4 mr-1.5" /> Record payment
+                  <Banknote className="w-4 h-4 mr-1.5" /> Record fee collection
                 </Button>
               )}
               {(invoice.status === "draft" || invoice.status === "issued") && (
                 <Button
                   variant="outline"
                   onClick={() => {
-                    const r = window.prompt("Reason for voiding this invoice?");
+                    const r = window.prompt("Reason for cancelling this fee bill?");
                     if (r && r.trim()) voidM.mutate(r.trim());
                   }}
                   disabled={voidM.isPending}
                 >
-                  Void
+                  Cancel bill
                 </Button>
               )}
               <Button variant="ghost" onClick={onClose}>
