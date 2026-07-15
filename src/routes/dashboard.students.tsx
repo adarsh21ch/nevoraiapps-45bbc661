@@ -445,6 +445,18 @@ function StudentsPage() {
               ...joinYears.map((y) => ({ value: y, label: y })),
             ]}
           />
+          <FilterSelect
+            label="Advanced status"
+            value={ADVANCED_STATUSES.includes(status as PlayerStatus) ? status : "all"}
+            onChange={(v) => setStatus(v === "all" ? "active" : v)}
+            options={[
+              { value: "all", label: "None" },
+              ...ADVANCED_STATUSES.map((k) => ({
+                value: k,
+                label: PLAYER_STATUSES.find((p) => p.value === k)?.label ?? k,
+              })),
+            ]}
+          />
           {activeFilterCount > 0 && (
             <button
               type="button"
