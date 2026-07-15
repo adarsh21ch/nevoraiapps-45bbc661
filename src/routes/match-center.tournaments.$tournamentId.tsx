@@ -15,6 +15,8 @@ import {
   Zap,
   ClipboardList,
   Medal,
+  MapPin,
+  UserCog,
 } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { EmptyState, LoadingSkeleton } from "@/components/match-center/ui";
@@ -52,6 +54,12 @@ import {
 import { listTeams } from "@/lib/mc-teams";
 import { useDemoData, useDemoEntity } from "@/lib/mc-demo/store";
 import { DemoTournamentDetail } from "@/components/match-center/demo-tournament-detail";
+import {
+  SetupProgress,
+  GroupsTab,
+  VenuesTab,
+  OfficialsTab,
+} from "@/components/match-center/tournament-setup";
 
 
 export const Route = createFileRoute("/match-center/tournaments/$tournamentId")({
@@ -66,13 +74,16 @@ export const Route = createFileRoute("/match-center/tournaments/$tournamentId")(
 
 const TABS = [
   { id: "overview", label: "Overview", icon: ClipboardList },
+  { id: "teams", label: "Teams", icon: Users },
+  { id: "groups", label: "Groups", icon: Users },
+  { id: "venues", label: "Venues", icon: MapPin },
+  { id: "officials", label: "Officials", icon: UserCog },
   { id: "fixtures", label: "Fixtures", icon: Calendar },
   { id: "standings", label: "Points Table", icon: BarChart3 },
   { id: "results", label: "Results", icon: Trophy },
   { id: "stats", label: "Statistics", icon: BarChart3 },
   { id: "orange", label: "Orange Cap", icon: Award },
   { id: "purple", label: "Purple Cap", icon: Medal },
-  { id: "teams", label: "Teams", icon: Users },
   { id: "settings", label: "Settings", icon: SettingsIcon },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
@@ -150,21 +161,24 @@ function TournamentDetailPage() {
         })}
       </div>
 
-      {tab === "overview" && <OverviewTab tournamentId={tournamentId} tenantId={tenant.id} />}
+      {tab === "overview" && <OverviewTab tournamentId={tournamentId} tenantId={tenant.id} hasGroups={t.has_groups} />}
+      {tab === "teams" && <TeamsTab tournamentId={tournamentId} tenantId={tenant.id} />}
+      {tab === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
+      {tab === "venues" && <VenuesTab tournamentId={tournamentId} tenantId={tenant.id} />}
+      {tab === "officials" && <OfficialsTab tournamentId={tournamentId} tenantId={tenant.id} />}
       {tab === "fixtures" && <FixturesTab tournamentId={tournamentId} tenantId={tenant.id} overs={t.overs} format={t.format} />}
       {tab === "standings" && <StandingsTab tournamentId={tournamentId} />}
       {tab === "results" && <ResultsTab tournamentId={tournamentId} />}
       {tab === "stats" && <RecordsTab tournamentId={tournamentId} />}
       {tab === "orange" && <OrangeCapTab tournamentId={tournamentId} />}
       {tab === "purple" && <PurpleCapTab tournamentId={tournamentId} />}
-      {tab === "teams" && <TeamsTab tournamentId={tournamentId} tenantId={tenant.id} />}
       {tab === "settings" && <SettingsTab tournament={t} />}
     </div>
   );
 }
 
 /* ==================== OVERVIEW ==================== */
-function OverviewTab({ tournamentId, tenantId: _tenantId }: { tournamentId: string; tenantId: string }) {
+function OverviewTab({ tournamentId, tenantId: _tenantId, hasGroups }: { tournamentId: string; tenantId: string; hasGroups: boolean }) {
   const teamsQ = useQuery({
     queryKey: ["mc-tournament-teams", tournamentId],
     queryFn: () => listTournamentTeams(tournamentId),
@@ -187,11 +201,14 @@ function OverviewTab({ tournamentId, tenantId: _tenantId }: { tournamentId: stri
   );
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {card("Teams", teamCount)}
-      {card("Fixtures", total)}
-      {card("Completed", completed)}
-      {card("Remaining", total - completed)}
+    <div className="space-y-4">
+      <SetupProgress tournamentId={tournamentId} hasGroups={hasGroups} />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {card("Teams", teamCount)}
+        {card("Fixtures", total)}
+        {card("Completed", completed)}
+        {card("Remaining", total - completed)}
+      </div>
     </div>
   );
 }
