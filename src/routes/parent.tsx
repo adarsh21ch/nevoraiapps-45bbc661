@@ -42,6 +42,7 @@ export const Route = createFileRoute("/parent")({
 const TABS = [
   { to: "/parent", label: "Home", icon: Home, exact: true },
   { to: "/parent/progress", label: "Progress", icon: TrendingUp, exact: false },
+  { to: "/parent/billing", label: "Pay", icon: CreditCard, exact: false },
   { to: "/parent/timeline", label: "Timeline", icon: CalendarDays, exact: false },
   { to: "/parent/profile", label: "Profile", icon: UserCircle, exact: false },
 ] as const;
