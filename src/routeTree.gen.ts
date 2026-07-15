@@ -59,6 +59,7 @@ import { Route as PlatformAdminSportsRouteImport } from './routes/platform-admin
 import { Route as PlatformAdminSettingsRouteImport } from './routes/platform-admin.settings'
 import { Route as PlatformAdminSearchRouteImport } from './routes/platform-admin.search'
 import { Route as PlatformAdminPushRouteImport } from './routes/platform-admin.push'
+import { Route as PlatformAdminPaymentSettingsRouteImport } from './routes/platform-admin.payment-settings'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
 import { Route as PlatformAdminHealthRouteImport } from './routes/platform-admin.health'
 import { Route as PlatformAdminFounderRouteImport } from './routes/platform-admin.founder'
@@ -96,6 +97,7 @@ import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports
 import { Route as DashboardRemindersRouteImport } from './routes/dashboard.reminders'
 import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
+import { Route as DashboardPaymentSettingsRouteImport } from './routes/dashboard.payment-settings'
 import { Route as DashboardNotificationsRouteImport } from './routes/dashboard.notifications'
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
 import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
@@ -138,6 +140,7 @@ import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/pub
 import { Route as ApiPublicHooksDispatchCampaignsRouteImport } from './routes/api/public/hooks/dispatch-campaigns'
 import { Route as ApiPublicHooksAutomationTickRouteImport } from './routes/api/public/hooks/automation-tick'
 import { Route as AcademyAcademySlugTournamentsTournamentSlugRouteImport } from './routes/academy.$academySlug.tournaments.$tournamentSlug'
+import { Route as ApiPublicPaymentsProviderWebhookRouteImport } from './routes/api/public/payments/$provider/webhook'
 
 const TestimonialsRoute = TestimonialsRouteImport.update({
   id: '/testimonials',
@@ -390,6 +393,12 @@ const PlatformAdminPushRoute = PlatformAdminPushRouteImport.update({
   path: '/push',
   getParentRoute: () => PlatformAdminRoute,
 } as any)
+const PlatformAdminPaymentSettingsRoute =
+  PlatformAdminPaymentSettingsRouteImport.update({
+    id: '/payment-settings',
+    path: '/payment-settings',
+    getParentRoute: () => PlatformAdminRoute,
+  } as any)
 const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -576,6 +585,12 @@ const DashboardProfileRoute = DashboardProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardPaymentSettingsRoute =
+  DashboardPaymentSettingsRouteImport.update({
+    id: '/payment-settings',
+    path: '/payment-settings',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardNotificationsRoute = DashboardNotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -801,6 +816,12 @@ const AcademyAcademySlugTournamentsTournamentSlugRoute =
     path: '/academy/$academySlug/tournaments/$tournamentSlug',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPaymentsProviderWebhookRoute =
+  ApiPublicPaymentsProviderWebhookRouteImport.update({
+    id: '/api/public/payments/$provider/webhook',
+    path: '/api/public/payments/$provider/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -855,6 +876,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
+  '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
@@ -892,6 +914,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/founder': typeof PlatformAdminFounderRoute
   '/platform-admin/health': typeof PlatformAdminHealthRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/payment-settings': typeof PlatformAdminPaymentSettingsRoute
   '/platform-admin/push': typeof PlatformAdminPushRoute
   '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
@@ -932,6 +955,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
+  '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -981,6 +1005,7 @@ export interface FileRoutesByTo {
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
+  '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
@@ -1018,6 +1043,7 @@ export interface FileRoutesByTo {
   '/platform-admin/founder': typeof PlatformAdminFounderRoute
   '/platform-admin/health': typeof PlatformAdminHealthRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/payment-settings': typeof PlatformAdminPaymentSettingsRoute
   '/platform-admin/push': typeof PlatformAdminPushRoute
   '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
@@ -1058,6 +1084,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
+  '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1113,6 +1140,7 @@ export interface FileRoutesById {
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
+  '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
@@ -1150,6 +1178,7 @@ export interface FileRoutesById {
   '/platform-admin/founder': typeof PlatformAdminFounderRoute
   '/platform-admin/health': typeof PlatformAdminHealthRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
+  '/platform-admin/payment-settings': typeof PlatformAdminPaymentSettingsRoute
   '/platform-admin/push': typeof PlatformAdminPushRoute
   '/platform-admin/search': typeof PlatformAdminSearchRoute
   '/platform-admin/settings': typeof PlatformAdminSettingsRoute
@@ -1190,6 +1219,7 @@ export interface FileRoutesById {
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
+  '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1246,6 +1276,7 @@ export interface FileRouteTypes {
     | '/dashboard/insights'
     | '/dashboard/leads'
     | '/dashboard/notifications'
+    | '/dashboard/payment-settings'
     | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
@@ -1283,6 +1314,7 @@ export interface FileRouteTypes {
     | '/platform-admin/founder'
     | '/platform-admin/health'
     | '/platform-admin/new'
+    | '/platform-admin/payment-settings'
     | '/platform-admin/push'
     | '/platform-admin/search'
     | '/platform-admin/settings'
@@ -1323,6 +1355,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/fee-reminders'
     | '/api/public/hooks/owner-summaries'
     | '/api/public/manifest/webmanifest'
+    | '/api/public/payments/$provider/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1372,6 +1405,7 @@ export interface FileRouteTypes {
     | '/dashboard/insights'
     | '/dashboard/leads'
     | '/dashboard/notifications'
+    | '/dashboard/payment-settings'
     | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
@@ -1409,6 +1443,7 @@ export interface FileRouteTypes {
     | '/platform-admin/founder'
     | '/platform-admin/health'
     | '/platform-admin/new'
+    | '/platform-admin/payment-settings'
     | '/platform-admin/push'
     | '/platform-admin/search'
     | '/platform-admin/settings'
@@ -1449,6 +1484,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/fee-reminders'
     | '/api/public/hooks/owner-summaries'
     | '/api/public/manifest/webmanifest'
+    | '/api/public/payments/$provider/webhook'
   id:
     | '__root__'
     | '/'
@@ -1503,6 +1539,7 @@ export interface FileRouteTypes {
     | '/dashboard/insights'
     | '/dashboard/leads'
     | '/dashboard/notifications'
+    | '/dashboard/payment-settings'
     | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
@@ -1540,6 +1577,7 @@ export interface FileRouteTypes {
     | '/platform-admin/founder'
     | '/platform-admin/health'
     | '/platform-admin/new'
+    | '/platform-admin/payment-settings'
     | '/platform-admin/push'
     | '/platform-admin/search'
     | '/platform-admin/settings'
@@ -1580,6 +1618,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/fee-reminders'
     | '/api/public/hooks/owner-summaries'
     | '/api/public/manifest/webmanifest'
+    | '/api/public/payments/$provider/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1628,6 +1667,7 @@ export interface RootRouteChildren {
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
   ApiPublicHooksOwnerSummariesRoute: typeof ApiPublicHooksOwnerSummariesRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
+  ApiPublicPaymentsProviderWebhookRoute: typeof ApiPublicPaymentsProviderWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1982,6 +2022,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlatformAdminPushRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
+    '/platform-admin/payment-settings': {
+      id: '/platform-admin/payment-settings'
+      path: '/payment-settings'
+      fullPath: '/platform-admin/payment-settings'
+      preLoaderRoute: typeof PlatformAdminPaymentSettingsRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
     '/platform-admin/new': {
       id: '/platform-admin/new'
       path: '/new'
@@ -2239,6 +2286,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/dashboard/profile'
       preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/payment-settings': {
+      id: '/dashboard/payment-settings'
+      path: '/payment-settings'
+      fullPath: '/dashboard/payment-settings'
+      preLoaderRoute: typeof DashboardPaymentSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/notifications': {
@@ -2535,6 +2589,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/$provider/webhook': {
+      id: '/api/public/payments/$provider/webhook'
+      path: '/api/public/payments/$provider/webhook'
+      fullPath: '/api/public/payments/$provider/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsProviderWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -2584,6 +2645,7 @@ interface DashboardRouteChildren {
   DashboardInsightsRoute: typeof DashboardInsightsRoute
   DashboardLeadsRoute: typeof DashboardLeadsRoute
   DashboardNotificationsRoute: typeof DashboardNotificationsRoute
+  DashboardPaymentSettingsRoute: typeof DashboardPaymentSettingsRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardRegistrationsRoute: typeof DashboardRegistrationsRoute
   DashboardRemindersRoute: typeof DashboardRemindersRoute
@@ -2615,6 +2677,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardInsightsRoute: DashboardInsightsRoute,
   DashboardLeadsRoute: DashboardLeadsRoute,
   DashboardNotificationsRoute: DashboardNotificationsRoute,
+  DashboardPaymentSettingsRoute: DashboardPaymentSettingsRoute,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardRegistrationsRoute: DashboardRegistrationsRoute,
   DashboardRemindersRoute: DashboardRemindersRoute,
@@ -2742,6 +2805,7 @@ interface PlatformAdminRouteChildren {
   PlatformAdminFounderRoute: typeof PlatformAdminFounderRoute
   PlatformAdminHealthRoute: typeof PlatformAdminHealthRoute
   PlatformAdminNewRoute: typeof PlatformAdminNewRoute
+  PlatformAdminPaymentSettingsRoute: typeof PlatformAdminPaymentSettingsRoute
   PlatformAdminPushRoute: typeof PlatformAdminPushRoute
   PlatformAdminSearchRoute: typeof PlatformAdminSearchRoute
   PlatformAdminSettingsRoute: typeof PlatformAdminSettingsRoute
@@ -2761,6 +2825,7 @@ const PlatformAdminRouteChildren: PlatformAdminRouteChildren = {
   PlatformAdminFounderRoute: PlatformAdminFounderRoute,
   PlatformAdminHealthRoute: PlatformAdminHealthRoute,
   PlatformAdminNewRoute: PlatformAdminNewRoute,
+  PlatformAdminPaymentSettingsRoute: PlatformAdminPaymentSettingsRoute,
   PlatformAdminPushRoute: PlatformAdminPushRoute,
   PlatformAdminSearchRoute: PlatformAdminSearchRoute,
   PlatformAdminSettingsRoute: PlatformAdminSettingsRoute,
@@ -2845,17 +2910,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
   ApiPublicHooksOwnerSummariesRoute: ApiPublicHooksOwnerSummariesRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
+  ApiPublicPaymentsProviderWebhookRoute: ApiPublicPaymentsProviderWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

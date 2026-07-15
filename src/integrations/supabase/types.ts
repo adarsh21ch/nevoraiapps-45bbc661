@@ -4732,6 +4732,213 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_provider_configs: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          id: string
+          key_id: string | null
+          key_secret_ciphertext: string | null
+          last_test_error: string | null
+          last_test_status: string | null
+          last_tested_at: string | null
+          last_webhook_at: string | null
+          provider: string
+          scope: string
+          tenant_id: string | null
+          test_mode: boolean
+          updated_at: string
+          webhook_secret_ciphertext: string | null
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          key_id?: string | null
+          key_secret_ciphertext?: string | null
+          last_test_error?: string | null
+          last_test_status?: string | null
+          last_tested_at?: string | null
+          last_webhook_at?: string | null
+          provider: string
+          scope: string
+          tenant_id?: string | null
+          test_mode?: boolean
+          updated_at?: string
+          webhook_secret_ciphertext?: string | null
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          key_id?: string | null
+          key_secret_ciphertext?: string | null
+          last_test_error?: string | null
+          last_test_status?: string | null
+          last_tested_at?: string | null
+          last_webhook_at?: string | null
+          provider?: string
+          scope?: string
+          tenant_id?: string | null
+          test_mode?: boolean
+          updated_at?: string
+          webhook_secret_ciphertext?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_provider_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_provider_configs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_transactions: {
+        Row: {
+          amount_paise: number
+          created_at: string
+          currency: string
+          error_code: string | null
+          error_message: string | null
+          id: string
+          idempotency_key: string | null
+          metadata: Json
+          provider: string
+          provider_order_id: string | null
+          provider_payment_id: string | null
+          purpose: string
+          ref_id: string | null
+          ref_type: string | null
+          scope: string
+          status: string
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_paise: number
+          created_at?: string
+          currency?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          idempotency_key?: string | null
+          metadata?: Json
+          provider: string
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          purpose: string
+          ref_id?: string | null
+          ref_type?: string | null
+          scope: string
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_paise?: number
+          created_at?: string
+          currency?: string
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          idempotency_key?: string | null
+          metadata?: Json
+          provider?: string
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
+          purpose?: string
+          ref_id?: string | null
+          ref_type?: string | null
+          scope?: string
+          status?: string
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_transactions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_webhooks: {
+        Row: {
+          error: string | null
+          event_id: string
+          event_type: string | null
+          id: string
+          payload: Json
+          processed: boolean
+          processed_at: string | null
+          provider: string
+          received_at: string
+          scope: string
+          signature: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          error?: string | null
+          event_id: string
+          event_type?: string | null
+          id?: string
+          payload: Json
+          processed?: boolean
+          processed_at?: string | null
+          provider: string
+          received_at?: string
+          scope: string
+          signature?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          error?: string | null
+          event_id?: string
+          event_type?: string | null
+          id?: string
+          payload?: Json
+          processed?: boolean
+          processed_at?: string | null
+          provider?: string
+          received_at?: string
+          scope?: string
+          signature?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_webhooks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_webhooks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -6005,6 +6212,9 @@ export type Database = {
       tenants: {
         Row: {
           address: string | null
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_ifsc: string | null
           billing_day: number
           created_at: string
           custom_domain: string | null
@@ -6017,6 +6227,8 @@ export type Database = {
           monthly_price: number
           name: string
           niche: string
+          online_payments_enabled: boolean
+          payment_instructions: string | null
           phone: string | null
           platform_notes: string | null
           player_prefix: string | null
@@ -6036,6 +6248,9 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
           billing_day?: number
           created_at?: string
           custom_domain?: string | null
@@ -6048,6 +6263,8 @@ export type Database = {
           monthly_price?: number
           name: string
           niche?: string
+          online_payments_enabled?: boolean
+          payment_instructions?: string | null
           phone?: string | null
           platform_notes?: string | null
           player_prefix?: string | null
@@ -6067,6 +6284,9 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_ifsc?: string | null
           billing_day?: number
           created_at?: string
           custom_domain?: string | null
@@ -6079,6 +6299,8 @@ export type Database = {
           monthly_price?: number
           name?: string
           niche?: string
+          online_payments_enabled?: boolean
+          payment_instructions?: string | null
           phone?: string | null
           platform_notes?: string | null
           player_prefix?: string | null
