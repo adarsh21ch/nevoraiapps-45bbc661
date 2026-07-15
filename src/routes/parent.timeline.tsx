@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchChildTimeline, parentKeys, type TimelineEvent } from "@/lib/parent-app";
 import { supabase } from "@/integrations/supabase/client";
-import { useParentChild } from "./parent";
+import { useParentChild } from "@/hooks/use-parent-child";
 
 export const Route = createFileRoute("/parent/timeline")({
   component: ParentTimelinePage,
