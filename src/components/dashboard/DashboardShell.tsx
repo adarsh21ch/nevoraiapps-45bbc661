@@ -51,6 +51,7 @@ type NavItem = {
 // under Profile — the single home for owner-level administration.
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/dashboard/coach", label: "My Coaching", icon: ClipboardCheck, coachOnly: true },
   { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   {
