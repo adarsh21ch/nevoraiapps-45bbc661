@@ -666,7 +666,7 @@ function NewSubscriptionButton({
         cycle_anchor_day: Number(anchor) || 1,
       }),
     onSuccess: () => {
-      toast.success("Subscription created");
+      toast.success("Fee plan assigned");
       setOpen(false);
       setStudentId("");
       setAmount("");
@@ -679,12 +679,12 @@ function NewSubscriptionButton({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <Users className="w-4 h-4 mr-1.5" /> New subscription
+          <Users className="w-4 h-4 mr-1.5" /> Assign fee plan
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>New subscription</DialogTitle>
+          <DialogTitle>Assign fee plan</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
