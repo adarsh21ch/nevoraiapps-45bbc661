@@ -1231,3 +1231,33 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
   }
   return <span className={cn("text-sm", toneClass)}>{attendanceStateLabels[state]}</span>;
 }
+
+function HistoryStatusChip({ state }: { state: AttendanceState }) {
+  const tone = attendanceStateTone[state];
+  const toneClass =
+    tone === "success"
+      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+      : tone === "info"
+        ? "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20"
+        : tone === "danger"
+          ? "bg-destructive/10 text-destructive border-destructive/20"
+          : "bg-muted text-muted-foreground border-border/60";
+  const label =
+    state === "in_academy"
+      ? "Present"
+      : state === "checked_out"
+        ? "Checked Out"
+        : state === "absent"
+          ? "Absent"
+          : "Waiting";
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium",
+        toneClass,
+      )}
+    >
+      {label}
+    </span>
+  );
+}
