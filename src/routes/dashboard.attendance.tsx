@@ -105,8 +105,11 @@ function parseBatchStartMs(timing: string | null | undefined, dayISO: string): n
 }
 const LATE_GRACE_MS = 10 * 60 * 1000;
 
-// Owner/Admin preference — persisted per device.
+// Owner/Admin preferences — persisted per device.
 const QUICK_MODE_KEY = "academyos.attendance.quickMode";
+const ROSTER_TAB_KEY = "academyos.attendance.rosterTab";
+
+type RosterTab = "waiting" | "present" | "done";
 
 function AttendancePage() {
   const { tenant } = useDashboard();
