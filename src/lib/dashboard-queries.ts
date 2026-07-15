@@ -370,6 +370,7 @@ export async function fetchDashboardActivity(
 
   for (const m of att.data ?? []) {
     const name = (m as any).students?.name ?? "Player";
+    const studentHref = m.student_id ? `/dashboard/students/${m.student_id}` : "/dashboard/attendance";
     if (m.check_out_at) {
       events.push({
         id: `${m.id}-out`,
@@ -377,6 +378,7 @@ export async function fetchDashboardActivity(
         kind: "check_out",
         actorName: name,
         detail: "Checked out",
+        href: studentHref,
       });
     }
     if (m.check_in_at) {
@@ -386,6 +388,7 @@ export async function fetchDashboardActivity(
         kind: "check_in",
         actorName: name,
         detail: "Checked in",
+        href: studentHref,
       });
     }
   }
