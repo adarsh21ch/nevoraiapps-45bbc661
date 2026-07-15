@@ -4301,6 +4301,24 @@ export type Database = {
           },
         ]
       }
+      rate_limit_hits: {
+        Row: {
+          bucket_key: string
+          hits: number
+          window_start: string
+        }
+        Insert: {
+          bucket_key: string
+          hits?: number
+          window_start: string
+        }
+        Update: {
+          bucket_key?: string
+          hits?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       registrations: {
         Row: {
           address: string | null
@@ -4858,6 +4876,45 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          tenant_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       attendance_today: {
@@ -5097,6 +5154,10 @@ export type Database = {
     }
     Functions: {
       _agg_assert_tenant: { Args: { _tenant_id: string }; Returns: undefined }
+      acquire_match_scoring_lock: {
+        Args: { _match_id: string }
+        Returns: boolean
+      }
       advance_lead_stage: {
         Args: { _lead_id: string; _new_stage: string; _remark?: string }
         Returns: string
@@ -5110,7 +5171,23 @@ export type Database = {
         Args: { _payment_ref: string; _registration_id: string }
         Returns: undefined
       }
+      bulk_approve_registrations: {
+        Args: { _ids: string[]; _tenant_id: string }
+        Returns: number
+      }
+      bulk_enqueue_notification_recipients: {
+        Args: { _campaign_id: string; _recipient_ids: string[] }
+        Returns: number
+      }
+      bulk_mark_attendance: {
+        Args: { _marks: Json; _session_id: string }
+        Returns: number
+      }
       cancel_campaign: { Args: { _campaign_id: string }; Returns: undefined }
+      check_rate_limit: {
+        Args: { _key: string; _max_hits: number; _window_seconds: number }
+        Returns: boolean
+      }
       claim_registration_payment: {
         Args: { p_payment_ref: string; p_registration_id: string }
         Returns: boolean
@@ -5150,6 +5227,10 @@ export type Database = {
           _reason: string
         }
         Returns: string
+      }
+      current_role: {
+        Args: { _tenant_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
       }
       get_academy_health: { Args: { _tenant_id: string }; Returns: Json }
       get_academy_records_summary: {
@@ -5239,6 +5320,14 @@ export type Database = {
       }
       has_profile_role: {
         Args: { _role: string; _uid: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _tenant_id: string
+          _user_id: string
+        }
         Returns: boolean
       }
       is_match_scorer: {
@@ -5345,6 +5434,10 @@ export type Database = {
         }
         Returns: string
       }
+      release_match_scoring_lock: {
+        Args: { _match_id: string }
+        Returns: boolean
+      }
       render_template_preview: {
         Args: { _body: string; _title: string; _vars: Json }
         Returns: Json
@@ -5401,6 +5494,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "owner" | "admin" | "platform_admin" | "student"
       attendance_source:
         | "manual"
         | "qr"
@@ -5562,6 +5656,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["owner", "admin", "platform_admin", "student"],
       attendance_source: [
         "manual",
         "qr",
