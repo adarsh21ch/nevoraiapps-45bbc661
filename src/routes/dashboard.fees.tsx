@@ -105,9 +105,11 @@ function FeeRegister() {
 
   const initialFilter = Route.useSearch().filter ?? "pending";
   const [filter, setFilter] = useState<Filter>(initialFilter);
+  const [search, setSearch] = useState("");
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
   useEffect(() => { setFilter(initialFilter); }, [initialFilter]);
+
 
   const studentsQ = useQuery({
     queryKey: qk.students(tenant.id),
