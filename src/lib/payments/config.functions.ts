@@ -66,16 +66,16 @@ export const savePaymentConfig = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await authorize(context, data.scope, data.tenantId);
     const { encryptSecret } = await import("./crypto.server");
-    const patch: Record<string, unknown> = {
+    const patch = {
       scope: data.scope,
-      tenant_id: data.scope === "tenant" ? data.tenantId : null,
+      tenant_id: data.scope === "tenant" ? data.tenantId! : null,
       provider: data.provider,
       enabled: data.enabled,
       test_mode: data.test_mode,
       key_id: data.key_id ?? null,
+      ...(data.key_secret ? { key_secret_ciphertext: encryptSecret(data.key_secret) } : {}),
+      ...(data.webhook_secret ? { webhook_secret_ciphertext: encryptSecret(data.webhook_secret) } : {}),
     };
-    if (data.key_secret) patch.key_secret_ciphertext = encryptSecret(data.key_secret);
-    if (data.webhook_secret) patch.webhook_secret_ciphertext = encryptSecret(data.webhook_secret);
 
     const filter = context.supabase
       .from("payment_provider_configs")
@@ -100,6 +100,7 @@ export const savePaymentConfig = createServerFn({ method: "POST" })
       .single();
     if (error) throw error;
     return { ok: true, id: inserted.id };
+
   });
 
 /** Run testConnection against the stored (decrypted) credentials. */
