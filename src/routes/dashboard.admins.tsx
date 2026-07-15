@@ -19,9 +19,9 @@ export const Route = createFileRoute("/dashboard/admins")({
 type MemberRow = { id: string; user_id: string; role: string; created_at: string };
 
 function AdminsEntry() {
-  const { profile, tenant, session } = useDashboard();
+  const { tenant, session } = useDashboard();
   const navigate = useNavigate();
-  const owner = isOwner(profile);
+  const { isOwner: owner } = usePermissions();
 
   useEffect(() => {
     if (!owner) navigate({ to: "/dashboard/academy", replace: true });
