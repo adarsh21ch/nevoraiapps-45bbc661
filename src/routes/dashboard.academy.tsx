@@ -91,22 +91,18 @@ function AcademyHub() {
   }, [q, owner]);
 
   return (
-    <div className="space-y-6 pb-4">
-      {/* Header */}
-      <header className="flex items-start justify-between gap-3">
+    <div className="-mt-4 md:-mt-8 space-y-4 pb-4">
+      {/* Header — uniform across dashboard tabs */}
+      <div className="flex items-center justify-between gap-2 pt-2 pb-1">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground">
-            <Building2 className="size-3.5" />
-            Operations Hub
-          </div>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight truncate">
+          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">
             {tenant.name}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Everything you need to run the academy.
+          <p className="text-[11px] text-muted-foreground leading-tight truncate">
+            Operations Hub · Everything to run the academy
           </p>
         </div>
-      </header>
+      </div>
 
       {/* Search */}
       <SearchBar
