@@ -16,6 +16,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { emitEvent } from "@/lib/automation/emit-client";
 import type { MCBallEvent } from "@/lib/mc-ball-events";
 import {
   computeInningsStatistics,
