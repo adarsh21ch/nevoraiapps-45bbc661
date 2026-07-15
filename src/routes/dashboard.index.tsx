@@ -23,21 +23,14 @@ import {
   Sparkles,
   AlertCircle,
   TrendingUp,
-  TrendingDown,
-  Wallet,
   Activity,
-  CheckCircle2,
   Cake,
   QrCode,
   Megaphone,
   BarChart3,
   Share2,
-  Search,
-  MessageSquareQuote,
   CalendarDays,
-  FileText,
-  Mail,
-  CalendarCheck2,
+  CheckCircle2,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
