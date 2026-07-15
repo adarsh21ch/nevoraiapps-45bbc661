@@ -178,8 +178,16 @@ export function useAttendanceRealtime(
 ) {
   useRealtimeChannel(
     tenantId ? `attendance:${tenantId}` : null,
-    (channel) =>
-      channel
+    (channel) => {
+      // Narrow-scope invalidator: refresh only THIS tenant's today feed +
+      // in-academy count. Historical/per-student histories are stable and
+      // do not need to refetch on every check-in.
+      const bump = () => {
+        if (!tenantId) return;
+        qc.invalidateQueries({ queryKey: attendanceKeys.today(tenantId) });
+        qc.invalidateQueries({ queryKey: attendanceKeys.inAcademyCount(tenantId) });
+      };
+      return channel
         .on(
           "postgres_changes",
           {
@@ -188,9 +196,7 @@ export function useAttendanceRealtime(
             table: "attendance_marks",
             filter: `tenant_id=eq.${tenantId}`,
           },
-          () => {
-            qc.invalidateQueries({ queryKey: ["attendance"] });
-          },
+          bump,
         )
         .on(
           "postgres_changes",
@@ -200,13 +206,14 @@ export function useAttendanceRealtime(
             table: "attendance_sessions",
             filter: `tenant_id=eq.${tenantId}`,
           },
-          () => {
-            qc.invalidateQueries({ queryKey: ["attendance"] });
-          },
-        ),
+          bump,
+        );
+    },
     [tenantId],
   );
 }
+
+
 
 // ---------------------------------------------------------------------------
 // Writes
