@@ -614,6 +614,7 @@ interface TodayRow {
 // ---------------------------------------------------------------------------
 
 function StudentRow({
+  index,
   student,
   batchName,
   row,
@@ -627,6 +628,7 @@ function StudentRow({
   onUndoCheckIn,
   onUndoCheckOut,
 }: {
+  index: number;
   student: StudentLite;
   batchName: string | null;
   row: TodayRow | undefined;
