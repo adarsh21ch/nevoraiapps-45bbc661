@@ -117,7 +117,7 @@ function StudentsPage() {
     staleTime: 60_000,
   });
   const myBatchIds = useMemo(
-    () => new Set((myBatchesQ.data ?? []).map((b) => b.batch_id)),
+    () => new Set(((myBatchesQ.data ?? []) as MyBatch[]).map((b) => b.batch_id)),
     [myBatchesQ.data],
   );
 
