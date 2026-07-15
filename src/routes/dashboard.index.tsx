@@ -148,26 +148,19 @@ function DashboardHome() {
   const pendingActions = newRegs + (notArrived > 0 ? 1 : 0);
 
   return (
-    <div className="space-y-5 md:space-y-6 pb-2">
-      {/* ─── Hero ─────────────────────────────────────────────────────── */}
-      <header className="pt-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <div className="min-w-0">
-            <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-muted-foreground">
-              {format(now, "EEEE · d MMM")}
-            </div>
-            <h1 className="mt-1 text-[26px] md:text-3xl font-bold tracking-tight leading-tight">
-              {greeting}
-            </h1>
-            <p className="text-sm text-muted-foreground truncate">
-              {displayName}
-            </p>
-          </div>
-          <div className="shrink-0 flex items-center gap-2">
-            <LiveBadge state="live" />
-          </div>
+    <div className="-mt-4 md:-mt-8 space-y-4 pb-2">
+      {/* ─── Header — uniform across dashboard tabs ────────────────────── */}
+      <div className="flex items-center justify-between gap-2 pt-2 pb-1">
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">
+            {greeting}
+          </h1>
+          <p className="text-[11px] text-muted-foreground leading-tight truncate">
+            {format(now, "EEE, d MMM")} · {displayName}
+          </p>
         </div>
-      </header>
+        <LiveBadge state="live" />
+      </div>
 
       {/* ─── Section 1 · Primary KPIs ─────────────────────────────────── */}
       <section aria-label="Today at a glance">
