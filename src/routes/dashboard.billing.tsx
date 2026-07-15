@@ -613,7 +613,7 @@ function SubscriptionsTable({
 }) {
   const sMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   if (loading) return <SkeletonList />;
-  if (subs.length === 0) return <EmptyState title="No subscriptions yet" hint="Create a subscription to auto-track billing periods." />;
+  if (subs.length === 0) return <EmptyState title="No fee plans assigned yet" hint="Assign a fee plan to a student to auto-track their monthly fees." />;
   return (
     <div className="rounded-2xl border overflow-hidden bg-card">
       <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
