@@ -147,7 +147,16 @@ function ActivationCenter() {
     imported: students.filter((s: any) => s.lifecycle_status === "imported").length,
     invitation_sent: students.filter((s: any) => s.lifecycle_status === "invitation_sent").length,
     activated: students.filter((s: any) => s.lifecycle_status === "activated" || s.lifecycle_status === "profile_completed").length,
+    expired: students.filter(isExpired).length,
   };
+
+  const filterChips = [
+    { key: "all", label: `All (${students.length})` },
+    { key: "imported", label: `Pending (${counts.imported})` },
+    { key: "invitation_sent", label: `Invited (${counts.invitation_sent})` },
+    { key: "expired", label: `Expired (${counts.expired})` },
+    { key: "activated", label: `Activated (${counts.activated})` },
+  ];
 
   return (
     <div className="space-y-6">
@@ -164,10 +173,19 @@ function ActivationCenter() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
-          <CardTitle className="text-base">
-            Students {statusFilter !== "all" && <Badge variant="outline">{statusFilter}</Badge>}
-          </CardTitle>
+        <CardHeader className="flex flex-col gap-3 space-y-0 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            {filterChips.map((f) => (
+              <Button
+                key={f.key}
+                size="sm"
+                variant={statusFilter === f.key ? "default" : "outline"}
+                onClick={() => setStatusFilter(f.key)}
+              >
+                {f.label}
+              </Button>
+            ))}
+          </div>
           <div className="flex items-center gap-2">
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="w-56" />
             <Button
@@ -175,7 +193,8 @@ function ActivationCenter() {
               disabled={selected.size === 0 || sendMut.isPending}
               onClick={() => sendMut.mutate([...selected])}
             >
-              {sendMut.isPending ? "Sending…" : `Send Activation (${selected.size})`}
+              <Send className="size-3.5 mr-1" />
+              {sendMut.isPending ? "Sending…" : `Send/Resend (${selected.size})`}
             </Button>
           </div>
         </CardHeader>
