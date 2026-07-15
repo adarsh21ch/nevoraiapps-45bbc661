@@ -237,8 +237,20 @@ function ActivationCenter() {
                           <Button size="icon" variant="ghost" title="Copy link" onClick={() => copyLink(s.id)}>
                             <Copy className="size-3.5" />
                           </Button>
+                          <Button size="icon" variant="ghost" title="WhatsApp" onClick={() => shareWhatsApp(s.id)}>
+                            <MessageCircle className="size-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" title="Email" onClick={() => shareEmail(s.id)}>
+                            <Mail className="size-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" title="SMS" onClick={() => shareSMS(s.id)}>
+                            <Send className="size-3.5" />
+                          </Button>
                           <Button size="icon" variant="ghost" title="QR" onClick={() => showQr(s.id)}>
                             <QrCode className="size-3.5" />
+                          </Button>
+                          <Button size="icon" variant="ghost" title="Resend invitation" onClick={() => sendMut.mutate([s.id])} disabled={sendMut.isPending}>
+                            <RefreshCw className="size-3.5" />
                           </Button>
                         </div>
                       </td>
