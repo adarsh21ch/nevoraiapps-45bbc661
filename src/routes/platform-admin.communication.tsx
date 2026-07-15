@@ -54,12 +54,12 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import {
-  getBotBizStatus,
-  runBotBizHealthCheck,
-  sendBotBizTest,
-  sendBotBizTestAttendance,
-  getBotBizRecentDeliveries,
-} from "@/lib/automation/botbiz-admin.functions";
+  getMetaWhatsAppStatus,
+  runMetaHealthCheck,
+  sendMetaTest,
+  sendMetaTestAttendance,
+  getMetaRecentDeliveries,
+} from "@/lib/automation/meta-admin.functions";
 
 export const Route = createFileRoute("/platform-admin/communication")({
   head: () => ({
@@ -126,7 +126,7 @@ const TABS = [
   { key: "templates", label: "Templates", icon: MessageSquare },
   { key: "preview", label: "Preview", icon: Eye },
   { key: "sandbox", label: "Sandbox", icon: FlaskConical },
-  { key: "botbiz", label: "BotBiz", icon: Send },
+  { key: "meta", label: "Meta WhatsApp", icon: Send },
   { key: "monitor", label: "Monitor", icon: Gauge },
   { key: "queue", label: "Queue", icon: Inbox },
   { key: "logs", label: "Logs", icon: ScrollText },
@@ -261,7 +261,7 @@ function CommunicationInfrastructurePage() {
       {tab === "health" && (
         <HealthTab health={health.data as Awaited<ReturnType<typeof getGatewayHealth>> | undefined} />
       )}
-      {tab === "botbiz" && <BotBizTab />}
+      {tab === "meta" && <MetaWhatsAppTab />}
       {tab === "costs" && <CostsTab />}
     </div>
   );
@@ -1241,23 +1241,34 @@ function BreakdownCard({
   );
 }
 
-function BotBizTab() {
-  const qc = useQueryClient();
-  const statusFn = useServerFn(getBotBizStatus);
-  const healthFn = useServerFn(runBotBizHealthCheck);
-  const testFn = useServerFn(sendBotBizTest);
-  const attFn = useServerFn(sendBotBizTestAttendance);
-  const listFn = useServerFn(getBotBizRecentDeliveries);
+type MetaSendResp = {
+  requestId: string;
+  result: {
+    ok: boolean;
+    adapter: string;
+    status: string;
+    error: string | null;
+    providerMessageId: string | null;
+  };
+};
 
-  const status = useQuery({ queryKey: ["botbiz-status"], queryFn: () => statusFn() });
+function MetaWhatsAppTab() {
+  const qc = useQueryClient();
+  const statusFn = useServerFn(getMetaWhatsAppStatus);
+  const healthFn = useServerFn(runMetaHealthCheck);
+  const testFn = useServerFn(sendMetaTest);
+  const attFn = useServerFn(sendMetaTestAttendance);
+  const listFn = useServerFn(getMetaRecentDeliveries);
+
+  const status = useQuery({ queryKey: ["meta-wa-status"], queryFn: () => statusFn() });
   const deliveries = useQuery({
-    queryKey: ["botbiz-deliveries"],
+    queryKey: ["meta-wa-deliveries"],
     queryFn: () => listFn(),
     refetchInterval: 5000,
   });
 
   const [to, setTo] = useState("");
-  const [msg, setMsg] = useState("Hello from BotBiz sandbox ✅");
+  const [msg, setMsg] = useState("Hello from the Meta WhatsApp Cloud API sandbox ✅");
   const [studentName, setStudentName] = useState("Test Student");
   const [parentName, setParentName] = useState("Test Parent");
 
@@ -1265,16 +1276,16 @@ function BotBizTab() {
     mutationFn: () => healthFn(),
     onSuccess: () => {
       toast.success("Health check complete");
-      qc.invalidateQueries({ queryKey: ["botbiz-status"] });
+      qc.invalidateQueries({ queryKey: ["meta-wa-status"] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Health check failed"),
   });
   const sendTest = useMutation({
     mutationFn: () => testFn({ data: { to, message: msg } }),
-    onSuccess: (r) => {
-      if (r.result.ok) toast.success(`Sent via ${r.result.provider} (${r.requestId})`);
+    onSuccess: (r: MetaSendResp) => {
+      if (r.result.ok) toast.success(`Sent via ${r.result.adapter} (${r.requestId})`);
       else toast.error(r.result.error ?? "Send failed");
-      qc.invalidateQueries({ queryKey: ["botbiz-deliveries"] });
+      qc.invalidateQueries({ queryKey: ["meta-wa-deliveries"] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Send failed"),
   });
@@ -1290,10 +1301,10 @@ function BotBizTab() {
           eventType,
         },
       }),
-    onSuccess: (r) => {
+    onSuccess: (r: MetaSendResp) => {
       if (r.result.ok) toast.success(`Attendance test sent (${r.requestId})`);
       else toast.error(r.result.error ?? "Send failed");
-      qc.invalidateQueries({ queryKey: ["botbiz-deliveries"] });
+      qc.invalidateQueries({ queryKey: ["meta-wa-deliveries"] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Send failed"),
   });
@@ -1306,23 +1317,36 @@ function BotBizTab() {
     <div className="grid gap-6 lg:grid-cols-2">
       <Card className="p-4 bg-neutral-900 border-white/10 space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-white font-semibold">BotBiz Account</h3>
+          <h3 className="text-white font-semibold">Meta Cloud API Account</h3>
           <Badge variant={s?.configured ? "default" : "destructive"}>
-            {s?.configured ? "Connected" : "Not Configured"}
+            {s?.configured ? "Configured" : "Not Configured"}
           </Badge>
         </div>
         {!s?.configured && (
           <p className="text-sm text-neutral-400">
-            {s?.reason ?? "Add the BOTBIZ_WEBHOOK_URL secret to activate this adapter."}
+            {s?.reason ??
+              "Add META_WA_ACCESS_TOKEN and META_WA_PHONE_NUMBER_ID secrets to activate."}
           </p>
         )}
         {s?.configured && cfg && (
           <div className="text-sm text-neutral-300 space-y-1">
-            <div>Webhook Host: <span className="text-neutral-400">{cfg.webhookHost}</span></div>
-            <div>Webhook Path: <span className="text-neutral-400">{cfg.webhookPath}</span></div>
-            <div>Bot ID: <span className="text-neutral-400">{cfg.botId ?? "—"}</span></div>
-            <div>Timeout: <span className="text-neutral-400">{cfg.timeoutMs} ms</span></div>
-            <div>Shared Secret: <span className="text-neutral-400">{cfg.hasSecret ? "••• configured" : "not set"}</span></div>
+            <div>
+              Phone number ID:{" "}
+              <span className="text-neutral-400 font-mono">{cfg.phoneNumberId}</span>
+            </div>
+            <div>
+              WABA ID:{" "}
+              <span className="text-neutral-400 font-mono">{cfg.businessAccountId ?? "—"}</span>
+            </div>
+            <div>
+              API version: <span className="text-neutral-400">{cfg.apiVersion}</span>
+            </div>
+            <div>
+              Access token: <span className="text-neutral-400 font-mono">{cfg.tokenPreview}</span>
+            </div>
+            <div>
+              Timeout: <span className="text-neutral-400">{cfg.timeoutMs} ms</span>
+            </div>
           </div>
         )}
         <div className="pt-2 border-t border-white/10 space-y-1 text-sm">
@@ -1332,19 +1356,19 @@ function BotBizTab() {
             ) : (
               <Clock className="h-4 w-4 text-yellow-500" />
             )}
-            <span className="text-white">
-              {health ? health.message : "Health check not yet run"}
-            </span>
+            <span className="text-white">{health ? health.message : "Health check not yet run"}</span>
           </div>
           {health?.latencyMs != null && (
             <div className="text-neutral-500">Latency: {health.latencyMs} ms</div>
           )}
+          {health?.displayPhoneNumber && (
+            <div className="text-neutral-500">Sender: {health.displayPhoneNumber}</div>
+          )}
+          {health?.verifiedName && (
+            <div className="text-neutral-500">Verified name: {health.verifiedName}</div>
+          )}
         </div>
-        <Button
-          size="sm"
-          onClick={() => runHealth.mutate()}
-          disabled={runHealth.isPending}
-        >
+        <Button size="sm" onClick={() => runHealth.mutate()} disabled={runHealth.isPending}>
           {runHealth.isPending ? "Checking…" : "Run Health Check"}
         </Button>
       </Card>
@@ -1360,7 +1384,7 @@ function BotBizTab() {
             onClick={() => sendTest.mutate()}
             disabled={!to || !msg || sendTest.isPending}
           >
-            {sendTest.isPending ? "Sending…" : "Send via Gateway"}
+            {sendTest.isPending ? "Sending…" : "Send via WhatsAppService"}
           </Button>
         </div>
         <div className="pt-3 border-t border-white/10 space-y-2">
@@ -1396,18 +1420,18 @@ function BotBizTab() {
             </Button>
           </div>
           <p className="text-xs text-neutral-500">
-            Routes through Automation Engine → Gateway → BotBiz.
+            Routes through WhatsAppService → Meta Cloud Graph API.
           </p>
         </div>
       </Card>
 
       <Card className="p-4 bg-neutral-900 border-white/10 lg:col-span-2">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-white font-semibold">Recent BotBiz Deliveries</h3>
+          <h3 className="text-white font-semibold">Recent Meta WhatsApp Deliveries</h3>
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => qc.invalidateQueries({ queryKey: ["botbiz-deliveries"] })}
+            onClick={() => qc.invalidateQueries({ queryKey: ["meta-wa-deliveries"] })}
           >
             Refresh
           </Button>
@@ -1465,7 +1489,7 @@ function BotBizTab() {
               {!(deliveries.data ?? []).length && (
                 <tr>
                   <td colSpan={7} className="text-center py-6 text-neutral-500">
-                    No BotBiz deliveries yet.
+                    No Meta WhatsApp deliveries yet.
                   </td>
                 </tr>
               )}
