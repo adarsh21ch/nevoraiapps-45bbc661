@@ -168,7 +168,7 @@ export const verifyClientPayment = createServerFn({ method: "POST" })
     const verified = await provider.verifyPayment(
       {
         keyId: config.key_id ?? "",
-        keySecret: decryptSecret(config.key_secret_ciphertext),
+        keySecret: decryptSecret(config.key_secret_ciphertext ?? ""),
         webhookSecret: null,
         testMode: !!config.test_mode,
       },
