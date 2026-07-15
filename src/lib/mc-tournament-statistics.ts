@@ -160,7 +160,7 @@ export async function loadTournamentAnalyticsData(
     const { data } = await supabase
       .from("mc_innings")
       .select(
-        "match_id, batting_team_id, bowling_team_id, runs, wickets, overs, balls, innings_number",
+        "id, match_id, batting_team_id, bowling_team_id, runs, wickets, overs, balls, innings_number",
       )
       .in("match_id", matchIds);
     inningsRows = (data ?? []) as InningsRow[];
