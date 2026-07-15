@@ -493,42 +493,18 @@ function ChipFilters({
   onChange: (v: Filter) => void;
   counts: { all: number; pending: number; paid: number; overdue: number };
 }) {
-  const items: { key: Filter; label: string; count: number }[] = [
-    { key: "all", label: "All", count: counts.all },
-    { key: "pending", label: "Pending", count: counts.pending },
-    { key: "paid", label: "Paid", count: counts.paid },
-    { key: "overdue", label: "Overdue", count: counts.overdue },
-  ];
   return (
-    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1">
-      {items.map((it) => {
-        const active = value === it.key;
-        return (
-          <button
-            key={it.key}
-            type="button"
-            onClick={() => onChange(it.key)}
-            className={cn(
-              "shrink-0 h-8 px-3 rounded-full text-xs font-medium transition-colors border",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
-              active
-                ? "bg-foreground text-background border-foreground shadow-sm"
-                : "bg-card text-muted-foreground hover:text-foreground border-border",
-            )}
-          >
-            {it.label}
-            <span
-              className={cn(
-                "ml-1 tabular-nums",
-                active ? "opacity-70" : "text-muted-foreground/70",
-              )}
-            >
-              {it.count}
-            </span>
-          </button>
-        );
-      })}
-    </div>
+    <FilterTabs<Filter>
+      value={value}
+      onChange={onChange}
+      items={[
+        { key: "all", label: "All", count: counts.all },
+        { key: "pending", label: "Pending", count: counts.pending },
+        { key: "paid", label: "Paid", count: counts.paid },
+        { key: "overdue", label: "Overdue", count: counts.overdue },
+      ]}
+      ariaLabel="Fee status"
+    />
   );
 }
 
