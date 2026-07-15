@@ -66,6 +66,8 @@ import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { VirtualList } from "@/components/ds/VirtualList";
+import { usePermissions } from "@/hooks/use-permissions";
+import { fetchMyBatches, type MyBatch } from "@/lib/coach/queries";
 
 export const Route = createFileRoute("/dashboard/students")({
   validateSearch: (search: Record<string, unknown>): { status?: string } => {
