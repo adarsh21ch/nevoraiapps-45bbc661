@@ -220,7 +220,7 @@ function UpgradePromo({ current, next }: { current: PlanTier; next: PlanTier }) 
           </a>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
