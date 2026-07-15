@@ -150,7 +150,8 @@ function Wizard() {
           setup_fee: parseInt(pricing.setup_fee || "0", 10),
           billing_day: Math.max(1, Math.min(28, parseInt(pricing.billing_day || "1", 10))),
           status: "active",
-          features: { online_registration: true, fee_tracking: true, powered_by_badge: true, sport: biz.sport },
+          sport_id: biz.sport_id,
+          features: { online_registration: true, fee_tracking: true, powered_by_badge: true, sport: biz.sport_id },
         })
         .select("id, slug")
         .single();
@@ -302,17 +303,19 @@ function Wizard() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-neutral-300">Sport *</Label>
-                <Select value={biz.sport} onValueChange={(v) => setBiz({ ...biz, sport: v as SportKey })}>
-                  <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue /></SelectTrigger>
+                <Select value={biz.sport_id} onValueChange={(v) => setBiz({ ...biz, sport_id: v })}>
+                  <SelectTrigger className="bg-neutral-950 border-white/10 text-white"><SelectValue placeholder="Select a sport" /></SelectTrigger>
                   <SelectContent>
-                    {sportsList.map((s) => (
+                    {enabledSports.length === 0 ? (
+                      <div className="px-2 py-1.5 text-xs text-neutral-500">No sports enabled. Add one in Supported sports.</div>
+                    ) : enabledSports.map((s) => (
                       <SelectItem key={s.key} value={s.key}>
-                        {s.emoji} {s.label}{s.status !== "live" ? " — coming soon" : ""}
+                        {s.icon} {s.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-neutral-500">Cricket is fully live. Other sports enable shared modules today; sport-specific scoring ships as we go.</p>
+                <p className="text-xs text-neutral-500">Only sports enabled in Platform Admin → Supported sports appear here.</p>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-neutral-300">Wording style</Label>
