@@ -524,7 +524,7 @@ function PointsTableCard({
                       </td>
                     </tr>
                   ) : null}
-                </>
+                </Fragment>
               );
             })}
           </tbody>
