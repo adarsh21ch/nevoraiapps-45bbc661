@@ -307,6 +307,9 @@ function PendingSubmissions({
     status: string;
     review_reason: string | null;
     created_at: string;
+    viewed_at?: string | null;
+    reviewed_at?: string | null;
+    billing_payment_id?: string | null;
   }>;
 }) {
   if (!rows.length) return null;
@@ -319,27 +322,72 @@ function PendingSubmissions({
   };
   const variant = (s: string): "secondary" | "destructive" | "outline" =>
     s === "approved" ? "secondary" : s === "rejected" || s === "duplicate" ? "destructive" : "outline";
+
+  const fmt = (t?: string | null) =>
+    t ? new Date(t).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : null;
+
   return (
     <div>
       <h2 className="text-sm font-semibold mb-2 mt-6">Your submissions</h2>
       <div className="space-y-2">
-        {rows.map((r) => (
-          <Card key={r.id} className="p-3 space-y-1">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-medium">
-                {formatMoney(Number(r.amount), r.currency)} · {r.method}
-              </p>
-              <Badge variant={variant(r.status)}>{label[r.status] ?? r.status}</Badge>
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              {new Date(r.created_at).toLocaleString()}
-              {r.utr ? ` · UTR ${r.utr}` : ""}
-            </p>
-            {r.review_reason && (
-              <p className="text-xs text-destructive/80">{r.review_reason}</p>
-            )}
-          </Card>
-        ))}
+        {rows.map((r) => {
+          const events: Array<{ label: string; at: string | null; done: boolean }> = [
+            { label: "Submitted", at: fmt(r.created_at), done: true },
+            { label: "Viewed by owner", at: fmt(r.viewed_at), done: !!r.viewed_at },
+            {
+              label:
+                r.status === "approved"
+                  ? "Approved"
+                  : r.status === "rejected"
+                    ? "Rejected"
+                    : r.status === "duplicate"
+                      ? "Marked duplicate"
+                      : r.status === "needs_reupload"
+                        ? "Re-upload requested"
+                        : "Awaiting review",
+              at: fmt(r.reviewed_at),
+              done: r.status !== "pending",
+            },
+          ];
+          if (r.billing_payment_id) {
+            events.push({ label: "Receipt generated", at: fmt(r.reviewed_at), done: true });
+          }
+          return (
+            <Card key={r.id} className="p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium">
+                  {formatMoney(Number(r.amount), r.currency)} · {r.method.replace("_", " ")}
+                </p>
+                <Badge variant={variant(r.status)}>{label[r.status] ?? r.status}</Badge>
+              </div>
+              {r.utr && (
+                <p className="text-[10px] text-muted-foreground font-mono">UTR {r.utr}</p>
+              )}
+              {r.review_reason && (
+                <p className="text-xs text-destructive/80 bg-destructive/5 rounded p-2">
+                  {r.review_reason}
+                </p>
+              )}
+              <ul className="space-y-1 pt-1 border-t">
+                {events.map((e, i) => (
+                  <li key={i} className="flex items-center gap-2 text-[11px]">
+                    <span
+                      className={
+                        e.done
+                          ? "size-1.5 rounded-full bg-primary"
+                          : "size-1.5 rounded-full bg-muted-foreground/30"
+                      }
+                    />
+                    <span className={e.done ? "font-medium" : "text-muted-foreground"}>
+                      {e.label}
+                    </span>
+                    {e.at && <span className="text-muted-foreground ml-auto">{e.at}</span>}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
