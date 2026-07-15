@@ -5,7 +5,7 @@ import {
   Swords,
   Activity,
   BarChart3,
-  Globe,
+  ShieldCheck,
   ShieldCheck,
   ChevronRight,
   Search,
