@@ -74,6 +74,7 @@ async function loadDelivery(
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("automation_deliveries")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert({
         tenant_id: tenantId,
         channel: "whatsapp",
@@ -84,7 +85,7 @@ async function loadDelivery(
         message,
         status,
         attempts: 0,
-      })
+      } as any)
       .select("id")
       .maybeSingle();
     return (data as { id?: string } | null)?.id ?? null;
