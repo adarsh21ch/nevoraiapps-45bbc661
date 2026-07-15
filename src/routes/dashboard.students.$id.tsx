@@ -1212,7 +1212,8 @@ function MoreTab({
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const canRemove = profile?.role === "owner";
+  const { isOwner } = usePermissions();
+  const canRemove = isOwner;
 
   const rows: { icon: React.ComponentType<{ className?: string }>; label: string; value: string; soon?: boolean }[] = [
     { icon: FileText, label: "Registration form", value: "View original registration", soon: true },
