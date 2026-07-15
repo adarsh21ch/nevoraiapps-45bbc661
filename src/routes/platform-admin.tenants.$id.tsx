@@ -21,6 +21,10 @@ import { AuditFeed } from "@/components/platform/AuditFeed";
 import { startImpersonation } from "@/lib/platform-impersonation";
 import { setTenantStatus } from "@/lib/platform-support";
 import { usePlatform } from "@/lib/platform-context";
+import { DangerZone } from "@/components/shared/DangerZone";
+import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
+import { removeTenant } from "@/lib/removal";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/platform-admin/tenants/$id")({
   component: TenantDetail,
