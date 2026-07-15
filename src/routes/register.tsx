@@ -116,6 +116,14 @@ function RegisterContent() {
     }));
 
     setSaving(true);
+    // Phase 3 — rate-limit public registrations to prevent duplicate/bot submits.
+    const rlKey = `public-registration:${tenant.id}:${form.phone.trim()}`;
+    const allowed = await checkRateLimit(rlKey, 3, 600);
+    if (!allowed) {
+      setSaving(false);
+      toast.error("Too many submissions. Please try again in a few minutes.");
+      return;
+    }
     const { data, error } = await supabase.rpc("submit_registration" as never, {
       _tenant_id: tenant.id,
       _name: form.name.trim(),
