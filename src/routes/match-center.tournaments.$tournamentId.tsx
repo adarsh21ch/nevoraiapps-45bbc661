@@ -63,6 +63,7 @@ import {
   getWorkspaceSections,
 } from "@/components/match-center/tournament-workspace-shell";
 import { TournamentDashboard } from "@/components/match-center/tournament-dashboard";
+import { PointsTable } from "@/components/match-center/points-table";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -182,7 +183,7 @@ function TournamentDetailPage() {
         )}
         {section === "fixtures" && <FixturesTab tournament={t} tenantId={tenant.id} />}
         {section === "live" && <LiveMatchesTab tournamentId={tournamentId} />}
-        {section === "standings" && <StandingsTab tournamentId={tournamentId} />}
+        {section === "standings" && <PointsTable tournamentId={tournamentId} />}
         {section === "bracket" && <BracketView tournamentId={tournamentId} />}
         {section === "teams" && <TeamsTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "players" && <PlayersTab tournamentId={tournamentId} />}
