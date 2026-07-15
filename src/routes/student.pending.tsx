@@ -34,7 +34,12 @@ function PendingPage() {
 
   const status = reg.review_status ?? "pending";
   const label =
-    status === "pending" ? "Under Review" : status === "waitlisted" ? "Waitlisted" : status === "rejected" ? "Rejected" : status;
+    status === "pending" ? "Under Review"
+    : status === "waitlisted" ? "Waitlisted"
+    : status === "rejected" ? "Rejected"
+    : status === "changes_requested" ? "Changes Requested"
+    : status === "approved" ? "Approved"
+    : status;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-10">
@@ -46,13 +51,25 @@ function PendingPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle>Status</CardTitle>
-          <Badge variant={status === "rejected" ? "destructive" : "outline"}>{label}</Badge>
+          <Badge variant={status === "rejected" ? "destructive" : status === "changes_requested" ? "secondary" : "outline"}>{label}</Badge>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           {status === "pending" && (
             <p className="text-muted-foreground">
               Your application is being reviewed by the academy. We'll notify you as soon as there's an update.
             </p>
+          )}
+          {status === "changes_requested" && (
+            <>
+              <p className="text-amber-700 dark:text-amber-300 font-medium">The academy has requested changes to your application.</p>
+              {reg.review_notes && (
+                <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/20 p-3 text-sm">
+                  <div className="text-xs font-medium text-muted-foreground mb-1">What needs to change</div>
+                  {reg.review_notes}
+                </div>
+              )}
+              <Button asChild size="sm"><Link to="/register">Update my application</Link></Button>
+            </>
           )}
           {status === "waitlisted" && (
             <p className="text-muted-foreground">
