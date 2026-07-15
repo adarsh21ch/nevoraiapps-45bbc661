@@ -52,6 +52,20 @@ function ParentBillingPage() {
     enabled: !!child,
   });
 
+  const getSetup = useServerFn(getTenantPaymentSetup);
+  const setupQ = useQuery({
+    queryKey: ["parent", "payment-setup", child?.tenant_id ?? "none"],
+    queryFn: () => getSetup({ data: { tenantId: child!.tenant_id } }),
+    enabled: !!child,
+  });
+
+  const listMine = useServerFn(listMyManualPayments);
+  const submissionsQ = useQuery({
+    queryKey: ["parent", "manual-payments", child?.student_id ?? "none"],
+    queryFn: () => listMine({ data: { studentId: child!.student_id, limit: 20 } }),
+    enabled: !!child,
+  });
+
   if (!child) return <p className="text-sm text-muted-foreground">Select a child to view billing.</p>;
   if (billQ.isLoading) return <Skeleton className="h-40 w-full" />;
 
