@@ -51,6 +51,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
