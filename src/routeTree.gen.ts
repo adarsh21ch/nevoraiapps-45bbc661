@@ -118,6 +118,7 @@ import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.stud
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 import { Route as ApiPublicHooksDispatchCampaignsRouteImport } from './routes/api/public/hooks/dispatch-campaigns'
+import { Route as ApiPublicHooksAutomationTickRouteImport } from './routes/api/public/hooks/automation-tick'
 import { Route as AcademyAcademySlugTournamentsTournamentSlugRouteImport } from './routes/academy.$academySlug.tournaments.$tournamentSlug'
 
 const TestimonialsRoute = TestimonialsRouteImport.update({
@@ -675,6 +676,12 @@ const ApiPublicHooksDispatchCampaignsRoute =
     path: '/api/public/hooks/dispatch-campaigns',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksAutomationTickRoute =
+  ApiPublicHooksAutomationTickRouteImport.update({
+    id: '/api/public/hooks/automation-tick',
+    path: '/api/public/hooks/automation-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AcademyAcademySlugTournamentsTournamentSlugRoute =
   AcademyAcademySlugTournamentsTournamentSlugRouteImport.update({
     id: '/academy/$academySlug/tournaments/$tournamentSlug',
@@ -790,6 +797,7 @@ export interface FileRoutesByFullPath {
   '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
   '/academy/$academySlug/tournaments/$tournamentSlug': typeof AcademyAcademySlugTournamentsTournamentSlugRoute
+  '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -897,6 +905,7 @@ export interface FileRoutesByTo {
   '/match-center/teams': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants': typeof PlatformAdminTenantsIndexRoute
   '/academy/$academySlug/tournaments/$tournamentSlug': typeof AcademyAcademySlugTournamentsTournamentSlugRoute
+  '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -1010,6 +1019,7 @@ export interface FileRoutesById {
   '/match-center/teams/': typeof MatchCenterTeamsIndexRoute
   '/platform-admin/tenants/': typeof PlatformAdminTenantsIndexRoute
   '/academy/$academySlug/tournaments/$tournamentSlug': typeof AcademyAcademySlugTournamentsTournamentSlugRoute
+  '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -1124,6 +1134,7 @@ export interface FileRouteTypes {
     | '/match-center/teams/'
     | '/platform-admin/tenants/'
     | '/academy/$academySlug/tournaments/$tournamentSlug'
+    | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
@@ -1231,6 +1242,7 @@ export interface FileRouteTypes {
     | '/match-center/teams'
     | '/platform-admin/tenants'
     | '/academy/$academySlug/tournaments/$tournamentSlug'
+    | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
@@ -1343,6 +1355,7 @@ export interface FileRouteTypes {
     | '/match-center/teams/'
     | '/platform-admin/tenants/'
     | '/academy/$academySlug/tournaments/$tournamentSlug'
+    | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
     | '/api/public/manifest/webmanifest'
@@ -1386,6 +1399,7 @@ export interface RootRouteChildren {
   PoliciesKindRoute: typeof PoliciesKindRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
   AcademyAcademySlugTournamentsTournamentSlugRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRoute
+  ApiPublicHooksAutomationTickRoute: typeof ApiPublicHooksAutomationTickRoute
   ApiPublicHooksDispatchCampaignsRoute: typeof ApiPublicHooksDispatchCampaignsRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
@@ -2156,6 +2170,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDispatchCampaignsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/automation-tick': {
+      id: '/api/public/hooks/automation-tick'
+      path: '/api/public/hooks/automation-tick'
+      fullPath: '/api/public/hooks/automation-tick'
+      preLoaderRoute: typeof ApiPublicHooksAutomationTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/academy/$academySlug/tournaments/$tournamentSlug': {
       id: '/academy/$academySlug/tournaments/$tournamentSlug'
       path: '/academy/$academySlug/tournaments/$tournamentSlug'
@@ -2427,6 +2448,7 @@ const rootRouteChildren: RootRouteChildren = {
   ScorerMatchIdRoute: ScorerMatchIdRoute,
   AcademyAcademySlugTournamentsTournamentSlugRoute:
     AcademyAcademySlugTournamentsTournamentSlugRoute,
+  ApiPublicHooksAutomationTickRoute: ApiPublicHooksAutomationTickRoute,
   ApiPublicHooksDispatchCampaignsRoute: ApiPublicHooksDispatchCampaignsRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
