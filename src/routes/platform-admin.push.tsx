@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Clock,
   Filter,
+  Inbox,
   Loader2,
   Monitor,
   RefreshCw,
@@ -563,7 +564,7 @@ function DevicesTable() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
-  const rows = (data?.rows ?? []) as DeviceRow[];
+  const rows = (data?.rows ?? []) as unknown as DeviceRow[];
 
   return (
     <Card className="p-4">
@@ -776,7 +777,7 @@ function FailedDeliveries() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed"),
   });
 
-  const rows = (data?.rows ?? []) as DeliveryRow[];
+  const rows = (data?.rows ?? []) as unknown as DeliveryRow[];
 
   return (
     <Card className="p-4">
