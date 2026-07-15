@@ -76,26 +76,10 @@ export const Route = createFileRoute("/match-center/tournaments/$tournamentId")(
   component: TournamentDetailPage,
 });
 
-const TABS = [
-  { id: "overview", label: "Overview", icon: ClipboardList },
-  { id: "teams", label: "Teams", icon: Users },
-  { id: "groups", label: "Groups", icon: Users },
-  { id: "venues", label: "Venues", icon: MapPin },
-  { id: "officials", label: "Officials", icon: UserCog },
-  { id: "fixtures", label: "Fixtures", icon: Calendar },
-  { id: "standings", label: "Points Table", icon: BarChart3 },
-  { id: "results", label: "Results", icon: Trophy },
-  { id: "stats", label: "Statistics", icon: BarChart3 },
-  { id: "orange", label: "Orange Cap", icon: Award },
-  { id: "purple", label: "Purple Cap", icon: Medal },
-  { id: "settings", label: "Settings", icon: SettingsIcon },
-] as const;
-type TabId = (typeof TABS)[number]["id"];
-
 function TournamentDetailPage() {
   const { tournamentId } = Route.useParams();
   const { tenant } = useDashboard();
-  const [tab, setTab] = useState<TabId>("overview");
+  const [section, setSection] = useState<string>("overview");
   const demoEntity = useDemoEntity(tenant.id, tournamentId);
   const demoData = useDemoData(tenant.id);
 
@@ -103,6 +87,16 @@ function TournamentDetailPage() {
     enabled: !demoEntity,
     queryKey: ["mc-tournament", tournamentId],
     queryFn: () => getTournament(tournamentId),
+  });
+  const teamsQ = useQuery({
+    enabled: !demoEntity,
+    queryKey: ["mc-tournament-teams", tournamentId],
+    queryFn: () => listTournamentTeams(tournamentId),
+  });
+  const fxQ = useQuery({
+    enabled: !demoEntity,
+    queryKey: ["mc-tournament-fixtures", tournamentId],
+    queryFn: () => listFixtures(tournamentId),
   });
 
   if (demoEntity && demoEntity.kind === "tournament" && demoData) {
@@ -119,67 +113,220 @@ function TournamentDetailPage() {
       />
     );
   const t = tQ.data;
+  const matchTotal = fxQ.data?.length ?? 0;
+  const matchCompleted = fxQ.data?.filter((m) => m.match_locked).length ?? 0;
+  const teamCount = teamsQ.data?.length ?? 0;
+  const publicUrl =
+    t.published && t.slug
+      ? `${typeof window !== "undefined" ? window.location.origin : ""}/academy/${tenant.slug ?? tenant.id}/tournaments/${t.slug}`
+      : null;
+
+  const currentStage = deriveCurrentStage(fxQ.data ?? []);
+
+  const [genOpen, setGenOpen] = useState(false);
+
+  const onShare = () => {
+    const url = publicUrl ?? (typeof window !== "undefined" ? window.location.href : "");
+    if (!url) return;
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    }
+  };
+
+  const quickActions = (
+    <>
+      <QuickActionButton icon={Zap} label="Generate fixtures" onClick={() => setGenOpen(true)} />
+      <QuickActionButton icon={Play} label="Manage teams" onClick={() => setSection("teams")} />
+      <QuickActionButton icon={Share2} label="Share tournament" onClick={onShare} />
+      {publicUrl ? (
+        <QuickActionButton icon={ExternalLink} label="Open public site" href={publicUrl} />
+      ) : null}
+      <QuickActionButton icon={Download} label="Export" onClick={() => toast.info("Export coming soon")} />
+    </>
+  );
+
+  const header = (
+    <TournamentHeader
+      tournament={t}
+      teamCount={teamCount}
+      matchTotal={matchTotal}
+      matchCompleted={matchCompleted}
+      currentStage={currentStage}
+      onShare={onShare}
+      publicUrl={publicUrl}
+    />
+  );
 
   return (
-    <div>
-      <PageHeader
-        title={t.name}
-        description={
-          [t.season, t.age_group, t.format, `${t.overs} overs`]
-            .filter(Boolean)
-            .join(" · ")
-        }
-        breadcrumbs={[
-          { label: "Match Center", to: "/match-center/dashboard" },
-          { label: "Tournaments", to: "/match-center/tournaments" },
-          { label: t.name },
-        ]}
-        actions={
-          <Link to="/match-center/tournaments">
-            <Button variant="ghost">
-              <ArrowLeft className="size-4 mr-1.5" /> Back
-            </Button>
-          </Link>
-        }
+    <>
+      <TournamentWorkspaceShell
+        header={header}
+        activeSection={section}
+        onSectionChange={setSection}
+        sections={getWorkspaceSections()}
+        quickActions={quickActions}
+      >
+        {section === "overview" && (
+          <TournamentDashboard
+            tournamentId={tournamentId}
+            hasGroups={t.has_groups}
+            onNavigate={setSection}
+          />
+        )}
+        {section === "fixtures" && <FixturesTab tournament={t} tenantId={tenant.id} />}
+        {section === "live" && <LiveMatchesTab tournamentId={tournamentId} />}
+        {section === "standings" && <StandingsTab tournamentId={tournamentId} />}
+        {section === "bracket" && <BracketView tournamentId={tournamentId} />}
+        {section === "teams" && <TeamsTab tournamentId={tournamentId} tenantId={tenant.id} />}
+        {section === "players" && <PlayersTab tournamentId={tournamentId} />}
+        {section === "stats" && <RecordsTab tournamentId={tournamentId} />}
+        {section === "records" && <RecordsTab tournamentId={tournamentId} />}
+        {section === "awards" && <AwardsTab tournamentId={tournamentId} />}
+        {section === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
+        {section === "venues" && <VenuesTab tournamentId={tournamentId} tenantId={tenant.id} />}
+        {section === "officials" && <OfficialsTab tournamentId={tournamentId} tenantId={tenant.id} />}
+        {section === "settings" && <SettingsTab tournament={t} />}
+      </TournamentWorkspaceShell>
+
+      <FixtureGeneratorDialog
+        open={genOpen}
+        onOpenChange={setGenOpen}
+        tournament={t}
+        tenantId={tenant.id}
+        createdBy={null}
       />
+    </>
+  );
+}
 
-      <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl border border-border bg-card p-1">
-        {TABS.map((x) => {
-          const Icon = x.icon;
-          const active = tab === x.id;
-          return (
-            <button
-              key={x.id}
-              onClick={() => setTab(x.id)}
-              className={cn(
-                "shrink-0 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
-                active
-                  ? "bg-foreground text-background"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon className="size-4" />
-              {x.label}
-            </button>
-          );
-        })}
-      </div>
+function deriveCurrentStage(fixtures: Awaited<ReturnType<typeof listFixtures>>): string | null {
+  const live = fixtures.find((m) => m.status === "in_progress");
+  if (live?.stage) return String(live.stage);
+  const nextUp = fixtures.find((m) => !m.match_locked);
+  if (nextUp?.stage) return String(nextUp.stage);
+  return null;
+}
 
-      {tab === "overview" && <OverviewTab tournamentId={tournamentId} tenantId={tenant.id} hasGroups={t.has_groups} />}
-      {tab === "teams" && <TeamsTab tournamentId={tournamentId} tenantId={tenant.id} />}
-      {tab === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
-      {tab === "venues" && <VenuesTab tournamentId={tournamentId} tenantId={tenant.id} />}
-      {tab === "officials" && <OfficialsTab tournamentId={tournamentId} tenantId={tenant.id} />}
-      {tab === "fixtures" && <FixturesTab tournament={t} tenantId={tenant.id} />}
-      {tab === "standings" && <StandingsTab tournamentId={tournamentId} />}
-      {tab === "results" && <ResultsTab tournamentId={tournamentId} />}
-      {tab === "stats" && <RecordsTab tournamentId={tournamentId} />}
-      {tab === "orange" && <OrangeCapTab tournamentId={tournamentId} />}
-      {tab === "purple" && <PurpleCapTab tournamentId={tournamentId} />}
-      {tab === "settings" && <SettingsTab tournament={t} />}
+/* ==================== LIVE MATCHES ==================== */
+function LiveMatchesTab({ tournamentId }: { tournamentId: string }) {
+  const q = useQuery({
+    queryKey: ["mc-tournament-fixtures", tournamentId],
+    queryFn: () => listFixtures(tournamentId),
+  });
+  if (q.isLoading) return <LoadingSkeleton />;
+  const live = (q.data ?? []).filter((m) => m.status === "in_progress");
+  if (live.length === 0)
+    return (
+      <EmptyState
+        icon={Radio}
+        title="No live matches"
+        description="Matches show here once they go live."
+      />
+    );
+  return (
+    <div className="space-y-2">
+      {live.map((m) => (
+        <Link
+          key={m.id}
+          to="/scorer/$matchId"
+          params={{ matchId: m.id }}
+          className="flex items-center justify-between rounded-xl border border-border bg-card p-3 hover:border-foreground/30"
+        >
+          <div>
+            <div className="text-sm font-medium">
+              {m.team_a?.name} vs {m.team_b?.name}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {m.scheduled_date ?? "TBD"} {m.scheduled_time ?? ""}
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-red-600">
+            <span className="size-1.5 animate-pulse rounded-full bg-red-500" /> Live
+          </span>
+        </Link>
+      ))}
     </div>
   );
 }
+
+/* ==================== PLAYERS (placeholder linking to awards) ==================== */
+function PlayersTab({ tournamentId }: { tournamentId: string }) {
+  const orangeQ = useQuery({
+    queryKey: ["mc-tournament-orange", tournamentId],
+    queryFn: () => computeOrangeCap(tournamentId),
+  });
+  const purpleQ = useQuery({
+    queryKey: ["mc-tournament-purple", tournamentId],
+    queryFn: () => computePurpleCap(tournamentId),
+  });
+  if (orangeQ.isLoading || purpleQ.isLoading) return <LoadingSkeleton />;
+  const bat = (orangeQ.data ?? []).slice(0, 10);
+  const bowl = (purpleQ.data ?? []).slice(0, 10);
+  if (bat.length === 0 && bowl.length === 0)
+    return (
+      <EmptyState
+        icon={Users}
+        title="No player data yet"
+        description="Player leaderboards populate as matches finalize."
+      />
+    );
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <div className="rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Top batters
+        </div>
+        <ul className="divide-y divide-border">
+          {bat.map((r, i) => (
+            <li key={r.athleteId ?? r.name ?? i} className="flex items-center justify-between px-3 py-2 text-sm">
+              <span>
+                {i + 1}. {r.name ?? "—"}
+              </span>
+              <span className="font-semibold">{r.runs} runs</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="rounded-xl border border-border bg-card">
+        <div className="border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Top bowlers
+        </div>
+        <ul className="divide-y divide-border">
+          {bowl.map((r, i) => (
+            <li key={r.athleteId ?? r.name ?? i} className="flex items-center justify-between px-3 py-2 text-sm">
+              <span>
+                {i + 1}. {r.name ?? "—"}
+              </span>
+              <span className="font-semibold">{r.wickets} wkts</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/* ==================== AWARDS ==================== */
+function AwardsTab({ tournamentId }: { tournamentId: string }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+          <Award className="size-4 text-orange-500" /> Orange Cap · Most Runs
+        </h3>
+        <OrangeCapTab tournamentId={tournamentId} />
+      </div>
+      <div>
+        <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+          <Medal className="size-4 text-purple-500" /> Purple Cap · Most Wickets
+        </h3>
+        <PurpleCapTab tournamentId={tournamentId} />
+      </div>
+    </div>
+  );
+}
+
 
 /* ==================== OVERVIEW ==================== */
 function OverviewTab({ tournamentId, tenantId: _tenantId, hasGroups }: { tournamentId: string; tenantId: string; hasGroups: boolean }) {
