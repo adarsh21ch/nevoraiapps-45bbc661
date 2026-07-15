@@ -10,11 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestimonialsRouteImport } from './routes/testimonials'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StudentRouteImport } from './routes/student'
 import { Route as StarPlayersRouteImport } from './routes/star-players'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProgramsRouteImport } from './routes/programs'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
 import { Route as ParentPortalRouteImport } from './routes/parent-portal'
 import { Route as ParentRouteImport } from './routes/parent'
@@ -24,8 +27,10 @@ import { Route as MatchCenterRouteImport } from './routes/match-center'
 import { Route as LocationRouteImport } from './routes/location'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as FeesRouteImport } from './routes/fees'
+import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as FacilitiesRouteImport } from './routes/facilities'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CoachesRouteImport } from './routes/coaches'
@@ -117,6 +122,11 @@ const TestimonialsRoute = TestimonialsRouteImport.update({
   path: '/testimonials',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudentRoute = StudentRouteImport.update({
   id: '/student',
   path: '/student',
@@ -140,6 +150,16 @@ const RegisterRoute = RegisterRouteImport.update({
 const ProgramsRoute = ProgramsRouteImport.update({
   id: '/programs',
   path: '/programs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlatformAdminRoute = PlatformAdminRouteImport.update({
@@ -187,6 +207,11 @@ const FeesRoute = FeesRouteImport.update({
   path: '/fees',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -195,6 +220,11 @@ const FaqRoute = FaqRouteImport.update({
 const FacilitiesRoute = FacilitiesRouteImport.update({
   id: '/facilities',
   path: '/facilities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -643,8 +673,10 @@ export interface FileRoutesByFullPath {
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/demo': typeof DemoRoute
   '/facilities': typeof FacilitiesRoute
   '/faq': typeof FaqRoute
+  '/features': typeof FeaturesRoute
   '/fees': typeof FeesRoute
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
@@ -654,11 +686,14 @@ export interface FileRoutesByFullPath {
   '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/star-players': typeof StarPlayersRoute
   '/student': typeof StudentRouteWithChildren
+  '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
@@ -746,18 +781,23 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
+  '/demo': typeof DemoRoute
   '/facilities': typeof FacilitiesRoute
   '/faq': typeof FaqRoute
+  '/features': typeof FeaturesRoute
   '/fees': typeof FeesRoute
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
   '/matches': typeof MatchesRoute
   '/notifications': typeof NotificationsRoute
   '/parent-portal': typeof ParentPortalRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/star-players': typeof StarPlayersRoute
+  '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
@@ -847,8 +887,10 @@ export interface FileRoutesById {
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/demo': typeof DemoRoute
   '/facilities': typeof FacilitiesRoute
   '/faq': typeof FaqRoute
+  '/features': typeof FeaturesRoute
   '/fees': typeof FeesRoute
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
@@ -858,11 +900,14 @@ export interface FileRoutesById {
   '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
   '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/star-players': typeof StarPlayersRoute
   '/student': typeof StudentRouteWithChildren
+  '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
@@ -953,8 +998,10 @@ export interface FileRouteTypes {
     | '/coaches'
     | '/contact'
     | '/dashboard'
+    | '/demo'
     | '/facilities'
     | '/faq'
+    | '/features'
     | '/fees'
     | '/gallery'
     | '/location'
@@ -964,11 +1011,14 @@ export interface FileRouteTypes {
     | '/parent'
     | '/parent-portal'
     | '/platform-admin'
+    | '/pricing'
+    | '/privacy'
     | '/programs'
     | '/register'
     | '/sitemap.xml'
     | '/star-players'
     | '/student'
+    | '/terms'
     | '/testimonials'
     | '/academy/$slug'
     | '/dashboard/academy'
@@ -1056,18 +1106,23 @@ export interface FileRouteTypes {
     | '/auth'
     | '/coaches'
     | '/contact'
+    | '/demo'
     | '/facilities'
     | '/faq'
+    | '/features'
     | '/fees'
     | '/gallery'
     | '/location'
     | '/matches'
     | '/notifications'
     | '/parent-portal'
+    | '/pricing'
+    | '/privacy'
     | '/programs'
     | '/register'
     | '/sitemap.xml'
     | '/star-players'
+    | '/terms'
     | '/testimonials'
     | '/academy/$slug'
     | '/dashboard/academy'
@@ -1156,8 +1211,10 @@ export interface FileRouteTypes {
     | '/coaches'
     | '/contact'
     | '/dashboard'
+    | '/demo'
     | '/facilities'
     | '/faq'
+    | '/features'
     | '/fees'
     | '/gallery'
     | '/location'
@@ -1167,11 +1224,14 @@ export interface FileRouteTypes {
     | '/parent'
     | '/parent-portal'
     | '/platform-admin'
+    | '/pricing'
+    | '/privacy'
     | '/programs'
     | '/register'
     | '/sitemap.xml'
     | '/star-players'
     | '/student'
+    | '/terms'
     | '/testimonials'
     | '/academy/$slug'
     | '/dashboard/academy'
@@ -1261,8 +1321,10 @@ export interface RootRouteChildren {
   CoachesRoute: typeof CoachesRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  DemoRoute: typeof DemoRoute
   FacilitiesRoute: typeof FacilitiesRoute
   FaqRoute: typeof FaqRoute
+  FeaturesRoute: typeof FeaturesRoute
   FeesRoute: typeof FeesRoute
   GalleryRoute: typeof GalleryRoute
   LocationRoute: typeof LocationRoute
@@ -1272,11 +1334,14 @@ export interface RootRouteChildren {
   ParentRoute: typeof ParentRouteWithChildren
   ParentPortalRoute: typeof ParentPortalRoute
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
+  PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProgramsRoute: typeof ProgramsRoute
   RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StarPlayersRoute: typeof StarPlayersRoute
   StudentRoute: typeof StudentRouteWithChildren
+  TermsRoute: typeof TermsRoute
   TestimonialsRoute: typeof TestimonialsRoute
   AcademySlugRoute: typeof AcademySlugRoute
   MSlugRoute: typeof MSlugRoute
@@ -1295,6 +1360,13 @@ declare module '@tanstack/react-router' {
       path: '/testimonials'
       fullPath: '/testimonials'
       preLoaderRoute: typeof TestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/student': {
@@ -1330,6 +1402,20 @@ declare module '@tanstack/react-router' {
       path: '/programs'
       fullPath: '/programs'
       preLoaderRoute: typeof ProgramsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/platform-admin': {
@@ -1395,6 +1481,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faq': {
       id: '/faq'
       path: '/faq'
@@ -1407,6 +1500,13 @@ declare module '@tanstack/react-router' {
       path: '/facilities'
       fullPath: '/facilities'
       preLoaderRoute: typeof FacilitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -2235,8 +2335,10 @@ const rootRouteChildren: RootRouteChildren = {
   CoachesRoute: CoachesRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  DemoRoute: DemoRoute,
   FacilitiesRoute: FacilitiesRoute,
   FaqRoute: FaqRoute,
+  FeaturesRoute: FeaturesRoute,
   FeesRoute: FeesRoute,
   GalleryRoute: GalleryRoute,
   LocationRoute: LocationRoute,
@@ -2246,11 +2348,14 @@ const rootRouteChildren: RootRouteChildren = {
   ParentRoute: ParentRouteWithChildren,
   ParentPortalRoute: ParentPortalRoute,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
+  PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   ProgramsRoute: ProgramsRoute,
   RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StarPlayersRoute: StarPlayersRoute,
   StudentRoute: StudentRouteWithChildren,
+  TermsRoute: TermsRoute,
   TestimonialsRoute: TestimonialsRoute,
   AcademySlugRoute: AcademySlugRoute,
   MSlugRoute: MSlugRoute,
