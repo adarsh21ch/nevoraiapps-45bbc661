@@ -56,28 +56,71 @@ export const Route = createFileRoute("/dashboard/attendance")({
 });
 
 type SessionFilter = "all" | "morning" | "evening" | "night";
+type SessionBucket = "morning" | "evening" | "night";
 
 /**
- * Classify a batch by its free-text timing into the session buckets used by
- * coaches. Mapping (per product spec):
- *   Morning → morning + both
- *   Evening → evening + both
- *   Night   → night   + personal coaching
- *   All     → everyone
+ * Parse a free-text batch `timing` into the set of session buckets it belongs
+ * to. Handles both keyword-tagged timings ("Morning batch", "Both", "Personal
+ * coaching") and pure clock ranges ("6:00 AM – 10:00 AM", "4:00 PM – 8:00 PM",
+ * "9 PM – 11 PM"). A batch may belong to multiple buckets — e.g. an explicit
+ * "Both" tag or a range that spans morning and evening.
+ *
+ * Time-based rules (24h start hour):
+ *   4  ≤ h < 12  → morning
+ *   12 ≤ h < 16  → afternoon  (bucketed with evening for filter UX)
+ *   16 ≤ h < 20  → evening
+ *   otherwise    → night
+ * If the range crosses noon and dinnertime it hits both morning and evening.
  */
+function batchSessionBuckets(timing: string | null | undefined): Set<SessionBucket> {
+  const buckets = new Set<SessionBucket>();
+  const t = (timing ?? "").toLowerCase();
+
+  // 1) Explicit keyword tags.
+  const kwMorning = /morn/.test(t);
+  const kwEvening = /even/.test(t);
+  const kwNight = /night/.test(t);
+  const kwBoth = /both/.test(t);
+  const kwPersonal = /personal|coaching/.test(t);
+
+  if (kwMorning || kwBoth) buckets.add("morning");
+  if (kwEvening || kwBoth) buckets.add("evening");
+  if (kwNight || kwPersonal) buckets.add("night");
+
+  // 2) Time-of-day fallback / augmentation from the first & last clock times.
+  const times = Array.from(
+    t.matchAll(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/gi),
+  ).map((m) => {
+    let h = parseInt(m[1]!, 10);
+    const mer = m[3]!.toLowerCase();
+    if (mer === "pm" && h !== 12) h += 12;
+    if (mer === "am" && h === 12) h = 0;
+    return h;
+  });
+  if (times.length > 0) {
+    const start = times[0]!;
+    const end = times[times.length - 1] ?? start;
+    const hourToBucket = (h: number): SessionBucket => {
+      if (h >= 4 && h < 12) return "morning";
+      if (h >= 12 && h < 20) return "evening"; // afternoon rolls into evening
+      return "night";
+    };
+    buckets.add(hourToBucket(start));
+    if (end !== start) buckets.add(hourToBucket(end));
+  }
+
+  // 3) If nothing matched (no keyword, no parseable time), don't hide the
+  //    batch — assign it to morning so it still appears somewhere.
+  if (buckets.size === 0) buckets.add("morning");
+
+  return buckets;
+}
+
 function batchMatchesSession(timing: string | null | undefined, session: SessionFilter): boolean {
   if (session === "all") return true;
-  const t = (timing ?? "").toLowerCase();
-  const isMorning = /morn/.test(t);
-  const isEvening = /even/.test(t);
-  const isNight = /night/.test(t);
-  const isBoth = /both/.test(t);
-  const isPersonal = /personal|coaching/.test(t);
-  if (session === "morning") return isMorning || isBoth;
-  if (session === "evening") return isEvening || isBoth;
-  if (session === "night") return isNight || isPersonal;
-  return true;
+  return batchSessionBuckets(timing).has(session);
 }
+
 
 function normalize(s: string | null | undefined): string {
   return (s ?? "").toLowerCase().trim();
