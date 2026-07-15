@@ -1313,16 +1313,16 @@ function BotBizTab() {
         </div>
         {!s?.configured && (
           <p className="text-sm text-neutral-400">
-            {s?.reason ?? "Add the BOTBIZ_API_KEY secret to activate this adapter."}
+            {s?.reason ?? "Add the BOTBIZ_WEBHOOK_URL secret to activate this adapter."}
           </p>
         )}
         {s?.configured && cfg && (
           <div className="text-sm text-neutral-300 space-y-1">
-            <div>Base URL: <span className="text-neutral-400">{cfg.baseUrl}</span></div>
-            <div>Send Path: <span className="text-neutral-400">{cfg.sendPath}</span></div>
+            <div>Webhook Host: <span className="text-neutral-400">{cfg.webhookHost}</span></div>
+            <div>Webhook Path: <span className="text-neutral-400">{cfg.webhookPath}</span></div>
             <div>Bot ID: <span className="text-neutral-400">{cfg.botId ?? "—"}</span></div>
             <div>Timeout: <span className="text-neutral-400">{cfg.timeoutMs} ms</span></div>
-            <div>API Key: <span className="text-neutral-400">••• stored securely</span></div>
+            <div>Shared Secret: <span className="text-neutral-400">{cfg.hasSecret ? "••• configured" : "not set"}</span></div>
           </div>
         )}
         <div className="pt-2 border-t border-white/10 space-y-1 text-sm">
