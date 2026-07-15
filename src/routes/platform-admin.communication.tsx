@@ -50,8 +50,16 @@ import {
   ScrollText,
   Server,
   SlidersHorizontal,
+  Send,
 } from "lucide-react";
 import { format } from "date-fns";
+import {
+  getBotBizStatus,
+  runBotBizHealthCheck,
+  sendBotBizTest,
+  sendBotBizTestAttendance,
+  getBotBizRecentDeliveries,
+} from "@/lib/automation/botbiz-admin.functions";
 
 export const Route = createFileRoute("/platform-admin/communication")({
   head: () => ({
@@ -118,6 +126,7 @@ const TABS = [
   { key: "templates", label: "Templates", icon: MessageSquare },
   { key: "preview", label: "Preview", icon: Eye },
   { key: "sandbox", label: "Sandbox", icon: FlaskConical },
+  { key: "botbiz", label: "BotBiz", icon: Send },
   { key: "monitor", label: "Monitor", icon: Gauge },
   { key: "queue", label: "Queue", icon: Inbox },
   { key: "logs", label: "Logs", icon: ScrollText },
@@ -252,6 +261,7 @@ function CommunicationInfrastructurePage() {
       {tab === "health" && (
         <HealthTab health={health.data as Awaited<ReturnType<typeof getGatewayHealth>> | undefined} />
       )}
+      {tab === "botbiz" && <BotBizTab />}
       {tab === "costs" && <CostsTab />}
     </div>
   );
