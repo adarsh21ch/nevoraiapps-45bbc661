@@ -179,6 +179,29 @@ export function BulkImportStudents() {
         if (skipDupes && p.dupe) return false;
         return true;
       });
+      if (eligible.length === 0) throw new Error("Nothing to import after filtering");
+
+      // Route through server fn when marking as imported (creates rollback batch + emits events).
+      if (markImported) {
+        const rowsPayload = eligible.map(({ row: r }) => ({
+          name: r.name,
+          phone: r.phone,
+          email: r.email || null,
+          guardian_name: r.guardian_name || null,
+          guardian_phone: r.guardian_phone || null,
+          dob: r.dob || null,
+          address: null,
+          batch_id: r.batch ? (batchByName.get(r.batch.toLowerCase()) ?? null) : null,
+          fee_plan_id: r.fee_plan ? (planByName.get(r.fee_plan.toLowerCase()) ?? null) : null,
+          roll_number: null,
+        }));
+        const res: any = await bulkImport({
+          data: { tenantId: tenant.id, fileName, rows: rowsPayload },
+        });
+        return res.success ?? rowsPayload.length;
+      }
+
+      // Legacy direct insert path (active students).
       const payload = eligible.map(({ row: r }) => ({
         tenant_id: tenant.id,
         name: r.name,
@@ -202,7 +225,6 @@ export function BulkImportStudents() {
         fee_plan_id: r.fee_plan ? (planByName.get(r.fee_plan.toLowerCase()) ?? null) : null,
         status: (r.status || "active").toLowerCase(),
       }));
-      if (payload.length === 0) throw new Error("Nothing to import after filtering");
       const { error } = await supabase.from("students").insert(payload);
       if (error) throw error;
       return payload.length;
