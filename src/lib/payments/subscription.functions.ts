@@ -10,6 +10,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { emitEvent } from "@/lib/automation/emit-client";
+import { AUTOMATION_EVENTS } from "@/lib/automation/types";
 import {
   FEATURES,
   PLAN_LIMITS,
@@ -21,6 +23,8 @@ import {
   type LimitId,
   type PlanTier,
 } from "./plans";
+
+const RANK: Record<PlanTier, number> = { starter: 0, professional: 1, enterprise: 2 };
 
 const TIERS = ["starter", "professional", "enterprise"] as const;
 
