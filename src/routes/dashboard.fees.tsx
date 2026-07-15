@@ -25,6 +25,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import {
   Banknote,
   CheckCircle2,
