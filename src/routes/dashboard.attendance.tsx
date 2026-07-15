@@ -485,40 +485,43 @@ function AttendancePage() {
   };
 
   // Loading only when we have NO cached data yet — avoids a skeleton flash
-  // on background refetches (e.g. after realtime invalidation).
+  // on background refetches (e.g. after realtime invalidation) and when
+  // switching to a previously-viewed date.
   const isLoading =
     (batchesQ.isLoading && !batchesQ.data) ||
     (studentsQ.isLoading && !studentsQ.data) ||
-    (todayQ.isLoading && !todayQ.data);
+    (attendanceQ.isLoading && !attendanceQ.data);
 
   // Per-query error signals. We surface a blocking banner ONLY when a query
   // has errored AND has no cached data to fall back on. Partial failures are
   // logged and shown as a subtle inline retry chip so the rest of the page
-  // (stats, roster, check-in) keeps working. Fixes: banner appearing while
-  // attendance data was actually rendering successfully.
+  // (stats, roster, check-in) keeps working.
   const failedQueries = useMemo(() => {
     const items: Array<{ key: string; label: string; refetch: () => void }> = [];
     if (batchesQ.isError && !batchesQ.data)
       items.push({ key: "batches", label: "batches", refetch: () => batchesQ.refetch() });
     if (studentsQ.isError && !studentsQ.data)
       items.push({ key: "students", label: "students", refetch: () => studentsQ.refetch() });
-    if (todayQ.isError && !todayQ.data)
-      items.push({ key: "today", label: "today's attendance", refetch: () => todayQ.refetch() });
+    if (attendanceQ.isError && !attendanceQ.data)
+      items.push({
+        key: "attendance",
+        label: isTodayView ? "today's attendance" : "attendance",
+        refetch: () => attendanceQ.refetch(),
+      });
     return items;
   }, [
     batchesQ.isError, batchesQ.data, studentsQ.isError, studentsQ.data,
-    todayQ.isError, todayQ.data, batchesQ, studentsQ, todayQ,
+    attendanceQ.isError, attendanceQ.data, batchesQ, studentsQ, attendanceQ, isTodayView,
   ]);
-  const hardFailure = failedQueries.length > 0 && !batchesQ.data && !studentsQ.data && !todayQ.data;
+  const hardFailure =
+    failedQueries.length > 0 && !batchesQ.data && !studentsQ.data && !attendanceQ.data;
   const partialFailure = failedQueries.length > 0 && !hardFailure;
 
-  // Diagnostic: log the actual error(s) so root cause is visible in devtools
-  // instead of a generic "Couldn't load attendance" toast.
   useEffect(() => {
     if (batchesQ.error) console.error("[attendance] batchesQ failed:", batchesQ.error);
     if (studentsQ.error) console.error("[attendance] studentsQ failed:", studentsQ.error);
-    if (todayQ.error) console.error("[attendance] todayQ failed:", todayQ.error);
-  }, [batchesQ.error, studentsQ.error, todayQ.error]);
+    if (attendanceQ.error) console.error("[attendance] attendanceQ failed:", attendanceQ.error);
+  }, [batchesQ.error, studentsQ.error, attendanceQ.error]);
 
   const activeStudents =
     rosterTab === "waiting"
