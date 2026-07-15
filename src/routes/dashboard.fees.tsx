@@ -416,32 +416,28 @@ function FeesProfileSheet({
 }
 
 
-/* ---------- Collection strip ---------- */
+/* ---------- Compact KPI strip ---------- */
 
-function CollectionStrip({
+function KpiStrip({
+  pending,
   collected,
-  expected,
-  paidCount,
-  totalCount,
+  overdueCount,
+  pct,
 }: {
+  pending: number;
   collected: number;
-  expected: number;
-  paidCount: number;
-  totalCount: number;
+  overdueCount: number;
+  pct: number;
 }) {
-  const pct = expected > 0 ? Math.round((collected / expected) * 100) : 0;
   return (
-    <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-sm">
-      <div className="flex items-baseline justify-between gap-3 text-sm">
-        <div className="min-w-0 truncate">
-          <span className="font-semibold tabular-nums">{money(collected)}</span>
-          <span className="text-muted-foreground"> of {money(expected)} collected</span>
-        </div>
-        <div className="text-xs text-muted-foreground tabular-nums shrink-0">
-          {paidCount}/{totalCount} paid
-        </div>
+    <div className="rounded-xl border border-border bg-card shadow-sm px-3 py-2">
+      <div className="grid grid-cols-4 gap-2 text-center">
+        <KpiCell label="Pending" value={money(pending)} tone="danger" />
+        <KpiCell label="Collected" value={money(collected)} tone="success" />
+        <KpiCell label="Overdue" value={String(overdueCount)} tone="danger" />
+        <KpiCell label="Collection" value={`${pct}%`} tone="neutral" />
       </div>
-      <div className="mt-2 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+      <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
         <div
           className="h-full rounded-full bg-foreground transition-all"
           style={{ width: `${Math.min(100, pct)}%` }}
@@ -451,60 +447,50 @@ function CollectionStrip({
   );
 }
 
-/* ---------- Summary cards ---------- */
-
-
-
-function SummaryCard({
+function KpiCell({
   label,
-  amount,
-  hint,
+  value,
   tone,
-  emphasized,
 }: {
   label: string;
-  amount: number;
-  hint: string;
-  tone: "danger" | "success";
-  emphasized?: boolean;
+  value: string;
+  tone: "danger" | "success" | "neutral";
 }) {
-  const color = tone === "danger" ? "text-rose-600" : "text-emerald-600";
+  const color =
+    tone === "danger"
+      ? "text-rose-600"
+      : tone === "success"
+        ? "text-emerald-600"
+        : "text-foreground";
   return (
-    <div
-      className={cn(
-        "rounded-2xl bg-white border shadow-sm p-5",
-        emphasized ? "border-rose-100 ring-1 ring-rose-100/60" : "border-black/[0.06]",
-      )}
-    >
-      <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+    <div className="min-w-0">
+      <div className={cn("text-sm font-bold tabular-nums truncate", color)}>{value}</div>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground leading-tight">
         {label}
       </div>
-      <div className={cn("mt-1 font-bold tabular-nums", color, emphasized ? "text-4xl" : "text-3xl")}>
-        {money(amount)}
-      </div>
-      <div className="text-xs text-muted-foreground mt-1">{hint}</div>
     </div>
   );
 }
 
-/* ---------- Segmented toggle ---------- */
+/* ---------- Chip filters ---------- */
 
-function SegmentedToggle({
+function ChipFilters({
   value,
   onChange,
   counts,
 }: {
   value: Filter;
   onChange: (v: Filter) => void;
-  counts: { pending: number; paid: number; all: number };
+  counts: { all: number; pending: number; paid: number; overdue: number };
 }) {
   const items: { key: Filter; label: string; count: number }[] = [
-    { key: "pending", label: "Pending", count: counts.pending },
-    { key: "paid", label: "Collected", count: counts.paid },
     { key: "all", label: "All", count: counts.all },
+    { key: "pending", label: "Pending", count: counts.pending },
+    { key: "paid", label: "Paid", count: counts.paid },
+    { key: "overdue", label: "Overdue", count: counts.overdue },
   ];
   return (
-    <div className="inline-flex w-full sm:w-auto items-center gap-1 rounded-full bg-card border border-border shadow-sm p-1">
+    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1">
       {items.map((it) => {
         const active = value === it.key;
         return (
@@ -513,17 +499,17 @@ function SegmentedToggle({
             type="button"
             onClick={() => onChange(it.key)}
             className={cn(
-              "flex-1 sm:flex-none h-10 px-4 rounded-full text-sm font-medium transition-colors",
+              "shrink-0 h-8 px-3 rounded-full text-xs font-medium transition-colors border",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
               active
-                ? "bg-foreground text-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
+                ? "bg-foreground text-background border-foreground shadow-sm"
+                : "bg-card text-muted-foreground hover:text-foreground border-border",
             )}
           >
-            {it.label}{" "}
+            {it.label}
             <span
               className={cn(
-                "ml-1 text-xs tabular-nums",
+                "ml-1 tabular-nums",
                 active ? "opacity-70" : "text-muted-foreground/70",
               )}
             >
@@ -535,6 +521,7 @@ function SegmentedToggle({
     </div>
   );
 }
+
 
 /* ---------- Row ---------- */
 
