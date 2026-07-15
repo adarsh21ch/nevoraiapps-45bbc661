@@ -514,8 +514,8 @@ export function assignOfficials(
   fixtures: FixturePlan[],
   officials: TournamentOfficial[],
 ): AssignedOfficialsMap {
-  const umpires = officials.filter((o) => o.role === "umpire" && o.is_active !== false);
-  const scorers = officials.filter((o) => o.role === "scorer" && o.is_active !== false);
+  const umpires = officials.filter((o) => o.role === "umpire");
+  const scorers = officials.filter((o) => o.role === "scorer");
   const out: AssignedOfficialsMap = {};
   fixtures.forEach((f, i) => {
     const u = umpires.length > 0 ? umpires[i % umpires.length] : null;
