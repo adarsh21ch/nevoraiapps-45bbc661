@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Home, TrendingUp, Swords, UserCircle, LogOut } from "lucide-react";
+import { Home, TrendingUp, Building2, UserCircle, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyStudentContext, studentKeys } from "@/lib/student-app";
 import { Card } from "@/components/ui/card";
@@ -20,10 +20,12 @@ export const Route = createFileRoute("/student")({
   component: StudentLayout,
 });
 
+// Player nav: Home · Performance · Manage · Profile.
+// Attendance/Fees live inside Manage (personal information hub).
 const TABS = [
   { to: "/student", label: "Home", icon: Home, exact: true },
-  { to: "/student/progress", label: "Progress", icon: TrendingUp, exact: false },
-  { to: "/student/matches", label: "Matches", icon: Swords, exact: false },
+  { to: "/student/progress", label: "Performance", icon: TrendingUp, exact: false },
+  { to: "/student/manage", label: "Manage", icon: Building2, exact: false },
   { to: "/student/profile", label: "Profile", icon: UserCircle, exact: false },
 ] as const;
 
