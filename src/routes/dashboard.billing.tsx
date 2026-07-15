@@ -117,9 +117,9 @@ function BillingWorkspace() {
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 pb-24 space-y-6">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Billing</h1>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Student Fees</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Subscriptions, invoices, payments · Owner-only
+            Manage student fee plans, fee bills and fee collections · Owner-only
           </p>
         </div>
         <div className="flex gap-2">
@@ -141,25 +141,25 @@ function BillingWorkspace() {
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KpiCard
           icon={<IndianRupee className="w-4 h-4" />}
-          label="Outstanding"
+          label="Pending fees"
           value={formatMoney(kpisQ.data?.outstanding ?? 0)}
           loading={kpisQ.isLoading}
         />
         <KpiCard
           icon={<Coins className="w-4 h-4" />}
-          label="Collected this month"
+          label="Fees collected"
           value={formatMoney(kpisQ.data?.collectedThisMonth ?? 0)}
           loading={kpisQ.isLoading}
         />
         <KpiCard
           icon={<FileText className="w-4 h-4" />}
-          label="Open invoices"
+          label="Pending bills"
           value={String(kpisQ.data?.openInvoices ?? 0)}
           loading={kpisQ.isLoading}
         />
         <KpiCard
           icon={<Receipt className="w-4 h-4" />}
-          label="Overdue"
+          label="Overdue fees"
           value={String(kpisQ.data?.overdue ?? 0)}
           loading={kpisQ.isLoading}
           tone={kpisQ.data && kpisQ.data.overdue > 0 ? "warn" : undefined}
