@@ -208,7 +208,7 @@ function DashboardHome() {
           <KpiTile
             to="/dashboard/attendance"
             label="In Academy Now"
-            value={attendanceQ.isLoading ? null : inAcademy}
+            value={attendanceLoading ? null : inAcademy}
             hint="Live"
             icon={<ClipboardCheck className="size-4" />}
             tone="live"
@@ -229,8 +229,8 @@ function DashboardHome() {
             <KpiTile
               to="/dashboard/attendance"
               label="Players Present"
-              value={attendanceQ.isLoading ? null : playersPresent}
-              hint={`of ${attendanceRows.length}`}
+              value={attendanceLoading ? null : playersPresent}
+              hint={`of ${attTotal}`}
               icon={<Users className="size-4" />}
               tone="brand"
             />
@@ -238,11 +238,12 @@ function DashboardHome() {
           <KpiTile
             to="/dashboard/attendance"
             label="Attendance"
-            value={insightsQ.isLoading ? null : `${attPct}%`}
+            value={attendanceLoading ? null : `${attPct}%`}
             hint={attTotal > 0 ? `${attPresent}/${attTotal} today` : "No marks yet"}
             icon={<Sparkles className="size-4" />}
             tone={attPct >= 80 ? "success" : attPct >= 60 ? "warn" : "muted"}
           />
+
           {role === "owner" ? (
             <KpiTile
               to="/dashboard/registrations"
