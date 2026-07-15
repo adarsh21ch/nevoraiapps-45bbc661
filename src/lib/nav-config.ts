@@ -28,14 +28,15 @@ export const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/dashboard", label: "Home", icon: LayoutDashboard },
     { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
     { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
-    { to: "/dashboard/academy", label: "Operations", icon: Building2 },
+    { to: "/dashboard/academy", label: "Manage", icon: Building2 },
+
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],
   admin: [
     { to: "/dashboard", label: "Home", icon: LayoutDashboard },
     { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
     { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
-    { to: "/dashboard/academy", label: "Operations", icon: Building2 },
+    { to: "/dashboard/academy", label: "Manage", icon: Building2 },
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],
 
