@@ -718,7 +718,14 @@ function StudentRow({
                 aria-label={`Select ${student.name}`}
                 className="size-4 rounded border-border"
               />
-            ) : null}
+            ) : (
+              <span
+                aria-hidden
+                className="w-6 shrink-0 text-right text-[11px] font-semibold tabular-nums text-muted-foreground"
+              >
+                {index}
+              </span>
+            )}
             <PersonAvatar name={student.name} src={student.photo_url} className="size-10" />
           </div>
         }
