@@ -1,4 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { DangerZone } from "@/components/shared/DangerZone";
+import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
+import { removeStudent } from "@/lib/removal";
 import { lazy, Suspense, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { admissionTimelineQuery } from "@/lib/admissions";
@@ -281,7 +284,13 @@ function PlayerProfileRoute() {
         {tab === "matches" && (
           <MatchesTab athleteId={(athlete?.id as string | undefined) ?? null} />
         )}
-        {tab === "more" && <MoreTab student={student as unknown as Parameters<typeof MoreTab>[0]["student"]} />}
+        {tab === "more" && (
+          <MoreTab
+            student={student as unknown as Parameters<typeof MoreTab>[0]["student"]}
+            studentId={id}
+            studentName={student.name}
+          />
+        )}
       </div>
 
       {/* Edit sheet */}
@@ -1186,6 +1195,8 @@ function MatchesTab({ athleteId }: { athleteId: string | null }) {
 
 function MoreTab({
   student,
+  studentId,
+  studentName,
 }: {
   student: {
     guardian_name: string | null;
@@ -1194,7 +1205,15 @@ function MoreTab({
     address: string | null;
     notes: string | null;
   } & Record<string, unknown>;
+  studentId: string;
+  studentName: string;
 }) {
+  const { profile } = useDashboard();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const canRemove = profile?.role === "owner";
+
   const rows: { icon: React.ComponentType<{ className?: string }>; label: string; value: string; soon?: boolean }[] = [
     { icon: FileText, label: "Registration form", value: "View original registration", soon: true },
     { icon: BadgeCheck, label: "Certificates", value: "Awards & certificates", soon: true },
@@ -1204,29 +1223,62 @@ function MoreTab({
     { icon: Layers, label: "Documents", value: "ID card, report card", soon: true },
   ];
   return (
-    <div className="space-y-2">
-      {rows.map((r, i) => {
-        const Icon = r.icon;
-        return (
-          <Card key={i} className="p-3.5 flex items-center gap-3">
-            <div
-              className="grid place-items-center size-9 rounded-lg shrink-0"
-              style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)", color: "var(--brand)" }}
-            >
-              <Icon className="size-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium">{r.label}</div>
-              <div className="text-[11px] text-muted-foreground truncate">{r.value}</div>
-            </div>
-            {r.soon ? (
-              <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                Soon
-              </span>
-            ) : null}
-          </Card>
-        );
-      })}
+    <div className="space-y-4">
+      <div className="space-y-2">
+        {rows.map((r, i) => {
+          const Icon = r.icon;
+          return (
+            <Card key={i} className="p-3.5 flex items-center gap-3">
+              <div
+                className="grid place-items-center size-9 rounded-lg shrink-0"
+                style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)", color: "var(--brand)" }}
+              >
+                <Icon className="size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium">{r.label}</div>
+                <div className="text-[11px] text-muted-foreground truncate">{r.value}</div>
+              </div>
+              {r.soon ? (
+                <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                  Soon
+                </span>
+              ) : null}
+            </Card>
+          );
+        })}
+      </div>
+
+      <DangerZone
+        visible={canRemove}
+        description="Permanently remove this player from the academy. This cannot be undone."
+        actions={[
+          {
+            label: "Remove player",
+            description: "Deletes attendance, fees, registrations, match records and the player profile.",
+            onClick: () => setConfirmOpen(true),
+          },
+        ]}
+      />
+      <ConfirmDeleteDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Remove player permanently"
+        description="This permanently removes this player and all academy data — attendance, fees, registrations and match history."
+        confirmText={studentName}
+        confirmLabel="Remove player"
+        onConfirm={async () => {
+          try {
+            await removeStudent(studentId, studentName);
+            toast.success("Player removed");
+            await qc.invalidateQueries();
+            navigate({ to: "/dashboard/students" });
+          } catch (e: any) {
+            toast.error(e.message ?? "Failed to remove player");
+            throw e;
+          }
+        }}
+      />
     </div>
   );
 }

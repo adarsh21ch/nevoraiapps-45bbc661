@@ -21,6 +21,10 @@ import { AuditFeed } from "@/components/platform/AuditFeed";
 import { startImpersonation } from "@/lib/platform-impersonation";
 import { setTenantStatus } from "@/lib/platform-support";
 import { usePlatform } from "@/lib/platform-context";
+import { DangerZone } from "@/components/shared/DangerZone";
+import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
+import { removeTenant } from "@/lib/removal";
+import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/platform-admin/tenants/$id")({
   component: TenantDetail,
@@ -80,6 +84,7 @@ function TenantDetail() {
           </Panel>
           <FeaturesEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
           <DomainEditor tenant={tenant} onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })} />
+          <TenantDangerZone tenant={tenant} />
         </div>
         <div className="space-y-4">
           <PlatformActions tenant={tenant} onSaved={() => { qc.invalidateQueries({ queryKey: pqk.tenant(id) }); qc.invalidateQueries({ queryKey: pqk.tenants }); }} />
@@ -97,6 +102,45 @@ function TenantDetail() {
         </div>
       </div>
     </div>
+  );
+}
+
+function TenantDangerZone({ tenant }: { tenant: Tenant }) {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <DangerZone
+        description="Permanently remove this academy and all of its data. This cannot be undone."
+        actions={[
+          {
+            label: "Remove tenant",
+            description: "Deletes the academy, its members, players, fees, attendance and match records.",
+            onClick: () => setOpen(true),
+          },
+        ]}
+      />
+      <ConfirmDeleteDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Remove tenant permanently"
+        description={`This permanently removes "${tenant.name}" and every academy record — members, players, attendance, fees, matches and site content. This cannot be undone.`}
+        confirmText={tenant.name}
+        confirmLabel="Remove tenant"
+        onConfirm={async () => {
+          try {
+            await removeTenant(tenant.id, tenant.name);
+            toast.success("Tenant removed");
+            qc.invalidateQueries({ queryKey: pqk.tenants });
+            navigate({ to: "/platform-admin" });
+          } catch (e: any) {
+            toast.error(e.message ?? "Failed to remove tenant");
+            throw e;
+          }
+        }}
+      />
+    </>
   );
 }
 
