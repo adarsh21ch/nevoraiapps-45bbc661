@@ -540,49 +540,162 @@ function AttendancePage() {
     <div className="-mt-4 md:-mt-8">
       {/* Compact header — flush against DashboardShell top bar. */}
       <div className="flex items-center justify-between gap-2 pt-2 pb-1">
-        <div className="min-w-0">
+        <div className="min-w-0 flex items-center gap-2">
           <h1 className="text-lg font-semibold tracking-tight leading-tight">Attendance</h1>
-          <p className="text-[11px] text-muted-foreground leading-tight">
-            {format(new Date(), "EEE, d MMM · h:mm a")}
-          </p>
+          <Popover open={dateOpen} onOpenChange={setDateOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="Change date"
+                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-1 text-xs font-medium hover:bg-muted min-h-8"
+              >
+                {isTodayView
+                  ? "Today"
+                  : isYesterday(selectedDate)
+                    ? "Yesterday"
+                    : format(selectedDate, "d MMM yyyy")}
+                <ChevronDown className="size-3" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-auto p-2">
+              <div className="flex flex-col gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDate(startOfDay(new Date()));
+                    setDateOpen(false);
+                  }}
+                  className={cn(
+                    "flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted",
+                    isTodayView && "font-semibold",
+                  )}
+                >
+                  <span>Today</span>
+                  {isTodayView ? <CheckCircle2 className="size-4 text-primary" /> : null}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const y = new Date();
+                    y.setDate(y.getDate() - 1);
+                    setSelectedDate(startOfDay(y));
+                    setDateOpen(false);
+                  }}
+                  className={cn(
+                    "flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-muted",
+                    isYesterday(selectedDate) && "font-semibold",
+                  )}
+                >
+                  <span>Yesterday</span>
+                  {isYesterday(selectedDate) ? <CheckCircle2 className="size-4 text-primary" /> : null}
+                </button>
+                <div className="my-1 h-px bg-border" />
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => {
+                    if (!d) return;
+                    // Future dates cannot be selected
+                    if (isAfter(startOfDay(d), startOfDay(new Date()))) return;
+                    setSelectedDate(startOfDay(d));
+                    setDateOpen(false);
+                  }}
+                  disabled={(d) => isAfter(startOfDay(d), startOfDay(new Date()))}
+                  initialFocus
+                  className={cn("p-0 pointer-events-auto")}
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={toggleQuick}
-            aria-pressed={quickMode}
-            aria-label="Toggle quick attendance mode"
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
-              quickMode
-                ? "border-primary/40 bg-primary/10 text-primary"
-                : "border-border/60 text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Zap className="size-3" /> Quick
-          </button>
-          {canMark ? (
-            <button
-              type="button"
-              onClick={() => {
-                setSelectMode((v) => !v);
-                clearSelection();
-              }}
-              aria-pressed={selectMode}
-              aria-label="Toggle bulk selection"
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
-                selectMode
-                  ? "border-primary/40 bg-primary/10 text-primary"
-                  : "border-border/60 text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <CheckSquare className="size-3" /> Select
-            </button>
-          ) : null}
-          <LiveBadge state="live" />
+          {isTodayView ? (
+            <>
+              <button
+                type="button"
+                onClick={toggleQuick}
+                aria-pressed={quickMode}
+                aria-label="Toggle quick attendance mode"
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
+                  quickMode
+                    ? "border-primary/40 bg-primary/10 text-primary"
+                    : "border-border/60 text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <Zap className="size-3" /> Quick
+              </button>
+              {canMark ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectMode((v) => !v);
+                    clearSelection();
+                  }}
+                  aria-pressed={selectMode}
+                  aria-label="Toggle bulk selection"
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
+                    selectMode
+                      ? "border-primary/40 bg-primary/10 text-primary"
+                      : "border-border/60 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <CheckSquare className="size-3" /> Select
+                </button>
+              ) : null}
+              <LiveBadge state="live" />
+            </>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="History options"
+                  className="inline-flex items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground min-h-8 min-w-8"
+                >
+                  <MoreVertical className="size-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/dashboard/reports"
+                    search={{ tab: "attendance", date: selectedISO } as never}
+                  >
+                    Open full report
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    window.print();
+                  }}
+                >
+                  Export PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
+
+      {historyMode ? (
+        <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
+          <span>
+            Viewing attendance for{" "}
+            <span className="font-medium text-foreground">
+              {format(selectedDate, "d MMMM yyyy")}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setSelectedDate(startOfDay(new Date()))}
+            className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-0.5 font-medium hover:bg-muted"
+          >
+            <ArrowLeft className="size-3" /> Today
+          </button>
+        </div>
+      ) : null}
 
       {/* Sticky filter + search — always accessible while scrolling. */}
       <div className="sticky top-14 z-20 -mx-4 md:-mx-8 mb-2 border-b border-border/60 bg-background/90 px-4 md:px-8 py-2 backdrop-blur">
@@ -615,7 +728,7 @@ function AttendancePage() {
           onRetry={() => {
             batchesQ.refetch();
             studentsQ.refetch();
-            todayQ.refetch();
+            attendanceQ.refetch();
           }}
         />
       ) : partialFailure ? (
