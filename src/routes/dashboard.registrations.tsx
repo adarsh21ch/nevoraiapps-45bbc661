@@ -90,6 +90,15 @@ function RegistrationsInbox() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const bulkApprove = useMutation({
+    mutationFn: async (ids: string[]) => bulkApproveRegistrations(tenant.id, ids),
+    onSuccess: (count) => {
+      toast.success(`Approved ${count} registration${count === 1 ? "" : "s"}`);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const del = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("registrations").delete().eq("id", id);
