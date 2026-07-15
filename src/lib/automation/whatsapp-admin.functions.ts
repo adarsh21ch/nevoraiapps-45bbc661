@@ -9,17 +9,25 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
+type AuthContext = {
+  supabase: import("@supabase/supabase-js").SupabaseClient<
+    import("@/integrations/supabase/types").Database
+  >;
+  userId: string;
+};
+
 async function assertTenantOwner(
-  ctx: { supabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }> } },
-  userId: string,
+  ctx: AuthContext,
   tenantId: string,
 ): Promise<void> {
   const { data: owner } = await ctx.supabase.rpc("is_tenant_owner", {
-    _uid: userId,
+    _uid: ctx.userId,
     _tenant: tenantId,
   });
   if (owner) return;
-  const { data: admin } = await ctx.supabase.rpc("is_platform_admin", { _uid: userId });
+  const { data: admin } = await ctx.supabase.rpc("is_platform_admin", {
+    _uid: ctx.userId,
+  });
   if (admin) return;
   throw new Error("Forbidden: owner role required");
 }
