@@ -189,7 +189,7 @@ function TournamentDetailPage() {
         {section === "bracket" && <TournamentBracket tournamentId={tournamentId} />}
         {section === "teams" && <TeamsTab tournamentId={tournamentId} tenantId={tenant.id} />}
         {section === "players" && <PlayersTab tournamentId={tournamentId} />}
-        {section === "stats" && <RecordsTab tournamentId={tournamentId} />}
+        {section === "stats" && <TournamentStatistics tournamentId={tournamentId} />}
         {section === "records" && <RecordsTab tournamentId={tournamentId} />}
         {section === "awards" && <AwardsTab tournamentId={tournamentId} />}
         {section === "groups" && <GroupsTab tournamentId={tournamentId} tenantId={tenant.id} />}
