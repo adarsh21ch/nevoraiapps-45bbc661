@@ -43,6 +43,7 @@ type NavItem = {
   requiresFeature?: "fee_tracking";
   ownerOnly?: boolean;
   adminOnly?: boolean;
+  coachOnly?: boolean;
 };
 
 // Simplified daily navigation — optimized for academy owners' daily workflow.
@@ -50,6 +51,7 @@ type NavItem = {
 // under Profile — the single home for owner-level administration.
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { to: "/dashboard/coach", label: "My Coaching", icon: ClipboardCheck, coachOnly: true },
   { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   {
@@ -85,7 +87,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { tenant, profile, signOut } = useDashboard();
   const { t } = useT();
   // Phase 3 — role via has_role / current_role RPC (usePermissions).
-  const { isOwner } = usePermissions();
+  const { isOwner, isCoach: isCoachRole, isHeadCoach, isAssistantCoach } = usePermissions();
+  const isAnyCoach = isCoachRole || isHeadCoach || isAssistantCoach;
 
   // Single source of truth for the "new registration" badge — status='new'.
   const newRegCount = useNewRegistrationsCount(tenant.id);
@@ -111,6 +114,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       .filter((n) => !n.requiresFeature || features[n.requiresFeature] !== false)
       .filter((n) => (n.ownerOnly ? isOwner : true))
       .filter((n) => (n.adminOnly ? !isOwner : true))
+      .filter((n) => (n.coachOnly ? isAnyCoach : true))
       .map((n) => {
         const label = t(n.label);
         let badge: number | undefined;

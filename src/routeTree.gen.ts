@@ -100,6 +100,7 @@ import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insigh
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
 import { Route as DashboardFeePlansRouteImport } from './routes/dashboard.fee-plans'
 import { Route as DashboardCommunicationsRouteImport } from './routes/dashboard.communications'
+import { Route as DashboardCoachRouteImport } from './routes/dashboard.coach'
 import { Route as DashboardBrandingRouteImport } from './routes/dashboard.branding'
 import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
 import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches'
@@ -586,6 +587,11 @@ const DashboardCommunicationsRoute = DashboardCommunicationsRouteImport.update({
   path: '/communications',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardCoachRoute = DashboardCoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardBrandingRoute = DashboardBrandingRouteImport.update({
   id: '/branding',
   path: '/branding',
@@ -782,6 +788,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
+  '/dashboard/coach': typeof DashboardCoachRoute
   '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -898,6 +905,7 @@ export interface FileRoutesByTo {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
+  '/dashboard/coach': typeof DashboardCoachRoute
   '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -1020,6 +1028,7 @@ export interface FileRoutesById {
   '/dashboard/batches': typeof DashboardBatchesRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/branding': typeof DashboardBrandingRoute
+  '/dashboard/coach': typeof DashboardCoachRoute
   '/dashboard/communications': typeof DashboardCommunicationsRoute
   '/dashboard/fee-plans': typeof DashboardFeePlansRoute
   '/dashboard/fees': typeof DashboardFeesRoute
@@ -1143,6 +1152,7 @@ export interface FileRouteTypes {
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
+    | '/dashboard/coach'
     | '/dashboard/communications'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
@@ -1259,6 +1269,7 @@ export interface FileRouteTypes {
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
+    | '/dashboard/coach'
     | '/dashboard/communications'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
@@ -1380,6 +1391,7 @@ export interface FileRouteTypes {
     | '/dashboard/batches'
     | '/dashboard/billing'
     | '/dashboard/branding'
+    | '/dashboard/coach'
     | '/dashboard/communications'
     | '/dashboard/fee-plans'
     | '/dashboard/fees'
@@ -2145,6 +2157,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCommunicationsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/coach': {
+      id: '/dashboard/coach'
+      path: '/coach'
+      fullPath: '/dashboard/coach'
+      preLoaderRoute: typeof DashboardCoachRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/branding': {
       id: '/dashboard/branding'
       path: '/branding'
@@ -2365,6 +2384,7 @@ interface DashboardRouteChildren {
   DashboardBatchesRoute: typeof DashboardBatchesRoute
   DashboardBillingRoute: typeof DashboardBillingRoute
   DashboardBrandingRoute: typeof DashboardBrandingRoute
+  DashboardCoachRoute: typeof DashboardCoachRoute
   DashboardCommunicationsRoute: typeof DashboardCommunicationsRoute
   DashboardFeePlansRoute: typeof DashboardFeePlansRoute
   DashboardFeesRoute: typeof DashboardFeesRoute
@@ -2393,6 +2413,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBatchesRoute: DashboardBatchesRoute,
   DashboardBillingRoute: DashboardBillingRoute,
   DashboardBrandingRoute: DashboardBrandingRoute,
+  DashboardCoachRoute: DashboardCoachRoute,
   DashboardCommunicationsRoute: DashboardCommunicationsRoute,
   DashboardFeePlansRoute: DashboardFeePlansRoute,
   DashboardFeesRoute: DashboardFeesRoute,

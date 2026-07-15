@@ -1,4 +1,9 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  useNavigate,
+  useLocation,
+} from "@tanstack/react-router";
 import { useEffect } from "react";
 import { DashboardProvider, useDashboard } from "@/lib/dashboard-context";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -12,18 +17,26 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardLayout,
 });
 
-function CoachRedirect({ children }: { children: React.ReactNode }) {
+/**
+ * Phase 6 — coaches (legacy profiles.role='coach' + user_roles coach family)
+ * land on the dedicated Coach Home surface when they open /dashboard.
+ * They can navigate freely to any dashboard route their RLS allows.
+ */
+function CoachIndexRedirect({ children }: { children: React.ReactNode }) {
   const { profile } = useDashboard();
   const navigate = useNavigate();
+  const location = useLocation();
+  const shouldRedirect =
+    isCoach(profile) && location.pathname === "/dashboard";
   useEffect(() => {
-    if (isCoach(profile)) {
-      navigate({ to: "/match-center/live", replace: true });
+    if (shouldRedirect) {
+      navigate({ to: "/dashboard/coach", replace: true });
     }
-  }, [profile, navigate]);
-  if (isCoach(profile)) {
+  }, [shouldRedirect, navigate]);
+  if (shouldRedirect) {
     return (
       <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">
-        Redirecting to Match Center…
+        Loading coach dashboard…
       </div>
     );
   }
@@ -34,12 +47,13 @@ function DashboardLayout() {
   return (
     <LanguageProvider>
       <DashboardProvider>
-        <CoachRedirect>
+        <CoachIndexRedirect>
           <DashboardShell>
             <Outlet />
           </DashboardShell>
-        </CoachRedirect>
+        </CoachIndexRedirect>
       </DashboardProvider>
     </LanguageProvider>
   );
 }
+
