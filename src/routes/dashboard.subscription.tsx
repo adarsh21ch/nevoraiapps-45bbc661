@@ -7,7 +7,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { isOwner } from "@/lib/roles";
 
 export const Route = createFileRoute("/dashboard/subscription")({
-  head: () => ({ meta: [{ title: "Subscription · Academy" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "AcademyOS Plan · Academy" }, { name: "robots", content: "noindex" }] }),
   component: () => (<OwnerOnly><SubscriptionEntry /></OwnerOnly>),
 });
 
@@ -40,9 +40,9 @@ function SubscriptionEntry() {
             <CreditCard className="size-5" />
           </div>
           <div className="flex-1">
-            <h1 className="text-lg font-semibold">Subscription</h1>
+            <h1 className="text-lg font-semibold">AcademyOS Plan</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Manage your AcademyOS plan, billing details, and invoices for {tenant.name}. Coming soon.
+              Manage your AcademyOS plan and billing details for {tenant.name}. Coming soon.
             </p>
           </div>
         </div>

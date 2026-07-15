@@ -54,8 +54,8 @@ import { format } from "date-fns";
 export const Route = createFileRoute("/dashboard/billing")({
   head: () => ({
     meta: [
-      { title: "Billing · AcademyOS" },
-      { name: "description", content: "Owner-only billing operations: subscriptions, invoices, and payments." },
+      { title: "Fees · AcademyOS" },
+      { name: "description", content: "Manage student fee plans, fee bills and fee collections." },
     ],
   }),
   component: () => (<OwnerOnly><BillingPage /></OwnerOnly>),
@@ -74,9 +74,9 @@ function NotAllowed() {
         <div className="mx-auto grid place-items-center w-12 h-12 rounded-full bg-muted">
           <Lock className="w-5 h-5 text-muted-foreground" />
         </div>
-        <h1 className="text-lg font-semibold">Billing is Owner-only</h1>
+        <h1 className="text-lg font-semibold">Fees are Owner-only</h1>
         <p className="text-sm text-muted-foreground">
-          Financial records are visible only to the academy owner. Admins, coaches, students, and parents don't
+          Fee records are visible only to the academy owner. Admins, coaches, students, and parents don't
           have access.
         </p>
       </div>
@@ -117,9 +117,9 @@ function BillingWorkspace() {
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 pb-24 space-y-6">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Billing</h1>
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Student Fees</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Subscriptions, invoices, payments · Owner-only
+            Manage student fee plans, fee bills and fee collections · Owner-only
           </p>
         </div>
         <div className="flex gap-2">
@@ -141,25 +141,25 @@ function BillingWorkspace() {
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KpiCard
           icon={<IndianRupee className="w-4 h-4" />}
-          label="Outstanding"
+          label="Pending fees"
           value={formatMoney(kpisQ.data?.outstanding ?? 0)}
           loading={kpisQ.isLoading}
         />
         <KpiCard
           icon={<Coins className="w-4 h-4" />}
-          label="Collected this month"
+          label="Fees collected"
           value={formatMoney(kpisQ.data?.collectedThisMonth ?? 0)}
           loading={kpisQ.isLoading}
         />
         <KpiCard
           icon={<FileText className="w-4 h-4" />}
-          label="Open invoices"
+          label="Pending bills"
           value={String(kpisQ.data?.openInvoices ?? 0)}
           loading={kpisQ.isLoading}
         />
         <KpiCard
           icon={<Receipt className="w-4 h-4" />}
-          label="Overdue"
+          label="Overdue fees"
           value={String(kpisQ.data?.overdue ?? 0)}
           loading={kpisQ.isLoading}
           tone={kpisQ.data && kpisQ.data.overdue > 0 ? "warn" : undefined}
@@ -169,13 +169,13 @@ function BillingWorkspace() {
       <Tabs defaultValue="invoices">
         <TabsList>
           <TabsTrigger value="invoices">
-            <FileText className="w-4 h-4 mr-1.5" /> Invoices
+            <FileText className="w-4 h-4 mr-1.5" /> Bills
           </TabsTrigger>
           <TabsTrigger value="payments">
-            <Banknote className="w-4 h-4 mr-1.5" /> Payments
+            <Banknote className="w-4 h-4 mr-1.5" /> Collections
           </TabsTrigger>
           <TabsTrigger value="subs">
-            <Users className="w-4 h-4 mr-1.5" /> Subscriptions
+            <Users className="w-4 h-4 mr-1.5" /> Fee plans
           </TabsTrigger>
         </TabsList>
 
@@ -259,17 +259,17 @@ function InvoicesTable({
 
   if (loading) return <SkeletonList />;
   if (invoices.length === 0)
-    return <EmptyState title="No invoices yet" hint="Create your first invoice to get started." />;
+    return <EmptyState title="No fee bills created yet" hint="Generate your first fee bill to start tracking student fees." />;
 
   return (
     <>
       <div className="rounded-2xl border overflow-hidden bg-card">
         <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
-          <div className="col-span-2">Number</div>
+          <div className="col-span-2">Bill #</div>
           <div className="col-span-3">Student</div>
           <div className="col-span-2">Due</div>
           <div className="col-span-2 text-right">Total</div>
-          <div className="col-span-2 text-right">Balance</div>
+          <div className="col-span-2 text-right">Pending</div>
           <div className="col-span-1 text-right">Status</div>
         </div>
         {invoices.map((inv) => {
@@ -353,7 +353,7 @@ function InvoiceDetailDialog({
   const issueM = useMutation({
     mutationFn: () => issueInvoice(invoice!.id),
     onSuccess: () => {
-      toast.success("Invoice issued");
+      toast.success("Fee bill sent");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -361,7 +361,7 @@ function InvoiceDetailDialog({
   const voidM = useMutation({
     mutationFn: (reason: string) => voidInvoice(invoice!.id, reason),
     onSuccess: () => {
-      toast.success("Invoice voided");
+      toast.success("Fee bill cancelled");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -376,17 +376,17 @@ function InvoiceDetailDialog({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <span>Invoice {invoice.number ?? "(Draft)"}</span>
+                <span>Fee bill {invoice.number ?? "(Draft)"}</span>
                 <StatusPill status={invoice.status} />
               </DialogTitle>
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <Row label="Student" value={student?.name ?? "—"} />
               <Row label="Player ID" value={student?.player_id ?? "—"} />
-              <Row label="Issue date" value={invoice.issue_date ?? "—"} />
+              <Row label="Bill date" value={invoice.issue_date ?? "—"} />
               <Row label="Due date" value={invoice.due_date ?? "—"} />
               <Row label="Total" value={formatMoney(invoice.total, invoice.currency)} />
-              <Row label="Balance" value={formatMoney(invoice.balance, invoice.currency)} />
+              <Row label="Pending" value={formatMoney(invoice.balance, invoice.currency)} />
             </div>
 
             <div className="border rounded-xl overflow-hidden">
@@ -419,24 +419,24 @@ function InvoiceDetailDialog({
             <DialogFooter className="gap-2 flex-wrap">
               {invoice.status === "draft" && (
                 <Button onClick={() => issueM.mutate()} disabled={issueM.isPending}>
-                  Issue invoice
+                  Send fee bill
                 </Button>
               )}
               {(invoice.status === "issued" || invoice.status === "partially_paid") && invoice.balance > 0 && (
                 <Button onClick={() => setPayOpen(true)}>
-                  <Banknote className="w-4 h-4 mr-1.5" /> Record payment
+                  <Banknote className="w-4 h-4 mr-1.5" /> Record fee collection
                 </Button>
               )}
               {(invoice.status === "draft" || invoice.status === "issued") && (
                 <Button
                   variant="outline"
                   onClick={() => {
-                    const r = window.prompt("Reason for voiding this invoice?");
+                    const r = window.prompt("Reason for cancelling this fee bill?");
                     if (r && r.trim()) voidM.mutate(r.trim());
                   }}
                   disabled={voidM.isPending}
                 >
-                  Void
+                  Cancel bill
                 </Button>
               )}
               <Button variant="ghost" onClick={onClose}>
@@ -494,7 +494,7 @@ function PaymentDialog({
     mutationFn: async () => {
       const amt = Number(amount);
       if (!(amt > 0)) throw new Error("Amount must be positive");
-      if (amt > invoice.balance + 0.005) throw new Error("Amount exceeds outstanding balance");
+      if (amt > invoice.balance + 0.005) throw new Error("Amount exceeds pending balance");
       return recordPayment({
         tenant_id: tenantId,
         student_id: invoice.student_id,
@@ -507,7 +507,7 @@ function PaymentDialog({
       });
     },
     onSuccess: () => {
-      toast.success("Payment recorded");
+      toast.success("Fee collection recorded");
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -517,14 +517,14 @@ function PaymentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Record payment</DialogTitle>
+          <DialogTitle>Record fee collection</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
             <Label>Amount</Label>
             <Input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
             <div className="text-xs text-muted-foreground mt-1">
-              Outstanding: {formatMoney(invoice.balance, invoice.currency)}
+              Pending: {formatMoney(invoice.balance, invoice.currency)}
             </div>
           </div>
           <div>
@@ -576,7 +576,7 @@ function PaymentsTable({
 }) {
   const sMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   if (loading) return <SkeletonList />;
-  if (payments.length === 0) return <EmptyState title="No payments yet" hint="Record a payment on any issued invoice." />;
+  if (payments.length === 0) return <EmptyState title="No fee collections yet" hint="Record a collection against any sent fee bill." />;
   return (
     <div className="rounded-2xl border overflow-hidden bg-card">
       <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
@@ -613,7 +613,7 @@ function SubscriptionsTable({
 }) {
   const sMap = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
   if (loading) return <SkeletonList />;
-  if (subs.length === 0) return <EmptyState title="No subscriptions yet" hint="Create a subscription to auto-track billing periods." />;
+  if (subs.length === 0) return <EmptyState title="No fee plans assigned yet" hint="Assign a fee plan to a student to auto-track their monthly fees." />;
   return (
     <div className="rounded-2xl border overflow-hidden bg-card">
       <div className="grid grid-cols-12 px-4 py-2.5 text-xs font-medium text-muted-foreground border-b bg-muted/30">
@@ -666,7 +666,7 @@ function NewSubscriptionButton({
         cycle_anchor_day: Number(anchor) || 1,
       }),
     onSuccess: () => {
-      toast.success("Subscription created");
+      toast.success("Fee plan assigned");
       setOpen(false);
       setStudentId("");
       setAmount("");
@@ -679,12 +679,12 @@ function NewSubscriptionButton({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <Users className="w-4 h-4 mr-1.5" /> New subscription
+          <Users className="w-4 h-4 mr-1.5" /> Assign fee plan
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>New subscription</DialogTitle>
+          <DialogTitle>Assign fee plan</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
@@ -692,12 +692,12 @@ function NewSubscriptionButton({
             <StudentPicker students={students} value={studentId} onChange={setStudentId} />
           </div>
           <div>
-            <Label>Unit amount</Label>
+            <Label>Fee amount</Label>
             <Input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Cycle</Label>
+              <Label>Frequency</Label>
               <Select value={cycle} onValueChange={(v) => setCycle(v as BillingCycle)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -712,7 +712,7 @@ function NewSubscriptionButton({
               </Select>
             </div>
             <div>
-              <Label>Anchor day (1–28)</Label>
+              <Label>Bill day of month (1–28)</Label>
               <Input type="number" min="1" max="28" value={anchor} onChange={(e) => setAnchor(e.target.value)} />
             </div>
           </div>
@@ -722,7 +722,7 @@ function NewSubscriptionButton({
             Cancel
           </Button>
           <Button disabled={!studentId || !amount || m.isPending} onClick={() => m.mutate()}>
-            Create
+            Assign
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -775,7 +775,7 @@ function NewInvoiceButton({
       return inv;
     },
     onSuccess: () => {
-      toast.success(issue ? "Invoice issued" : "Draft saved");
+      toast.success(issue ? "Fee bill sent" : "Draft saved");
       setOpen(false);
       setStudentId("");
       setAmount("");
@@ -789,12 +789,12 @@ function NewInvoiceButton({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="w-4 h-4 mr-1.5" /> New invoice
+          <Plus className="w-4 h-4 mr-1.5" /> Generate fee bill
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>New invoice</DialogTitle>
+          <DialogTitle>Generate fee bill</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div>
@@ -802,7 +802,7 @@ function NewInvoiceButton({
             <StudentPicker students={students} value={studentId} onChange={setStudentId} />
             {suggestedSub && (
               <div className="text-xs text-muted-foreground mt-1">
-                Active subscription: {formatMoney(suggestedSub.unit_amount)} /{" "}
+                Active fee plan: {formatMoney(suggestedSub.unit_amount)} /{" "}
                 {suggestedSub.billing_cycle.replace("_", " ")}
               </div>
             )}
@@ -834,7 +834,7 @@ function NewInvoiceButton({
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={issue} onChange={(e) => setIssue(e.target.checked)} />
-            Issue immediately (locks the invoice)
+            Send immediately (locks the fee bill)
           </label>
         </div>
         <DialogFooter>
@@ -842,7 +842,7 @@ function NewInvoiceButton({
             Cancel
           </Button>
           <Button disabled={!studentId || !amount || m.isPending} onClick={() => m.mutate()}>
-            {issue ? "Create & issue" : "Save draft"}
+            {issue ? "Generate & send" : "Save draft"}
           </Button>
         </DialogFooter>
       </DialogContent>

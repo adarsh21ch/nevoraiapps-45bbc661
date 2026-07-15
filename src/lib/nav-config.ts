@@ -27,7 +27,7 @@ export const navByRole: Record<AppRole, NavItem[]> = {
   owner: [
     { to: "/dashboard", label: "Home", icon: LayoutDashboard },
     { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-    { to: "/dashboard/billing", label: "Billing", icon: IndianRupee, requiresFeature: "fee_tracking" },
+    { to: "/dashboard/billing", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
     { to: "/dashboard/academy", label: "Academy", icon: Building2 },
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],
