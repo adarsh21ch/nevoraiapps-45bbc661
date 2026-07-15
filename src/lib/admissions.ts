@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { emitEvent } from "@/lib/automation/emit-client";
 
 export type PipelineStage =
   | "new"
