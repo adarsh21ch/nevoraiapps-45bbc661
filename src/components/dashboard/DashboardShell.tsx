@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
@@ -9,15 +9,18 @@ import {
   Inbox,
   Users,
   CalendarDays,
-  Wallet,
   LogOut,
   ExternalLink,
   IndianRupee,
   BarChart3,
   ClipboardCheck,
-  BellRing,
   UserCircle,
   Swords,
+  Building2,
+  Globe,
+  Megaphone,
+  Settings as SettingsIcon,
+  ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
@@ -36,26 +39,26 @@ type NavItem = {
   requiresFeature?: "fee_tracking";
 };
 
-// Primary nav — 5 tabs: Home, Students (incl. Registrations), Match Center, Fees, Profile.
+// Unified IA — matches mobile bottom nav (Home · Attendance · Fees · Operations · Profile).
+// Owner/Admin sidebar top-level:
 const primaryNav: NavItem[] = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/dashboard/students", label: "Students", icon: Users },
-  { to: "/match-center", label: "Match Center", icon: Swords },
+  { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
   { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
-// Mobile bottom tabs mirror the primary nav (5 tabs, one-hand friendly).
-const mobilePrimary: NavItem[] = primaryNav;
-
-// Secondary — reached from Profile page or desktop sidebar Settings section.
-const secondaryNav: NavItem[] = [
+// Operations — expands to expose the full academy toolset. Single source of
+// truth: nothing here is repeated in `primaryNav`.
+const operationsNav: NavItem[] = [
+  { to: "/dashboard/students", label: "Players", icon: Users },
+  { to: "/match-center", label: "Match Center", icon: Swords },
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
-  { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-  { to: "/dashboard/reminders", label: "Reminders", icon: BellRing, requiresFeature: "fee_tracking" },
   { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
-  { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet, requiresFeature: "fee_tracking" },
-  { to: "/dashboard/reports", label: "Reports", icon: BarChart3, requiresFeature: "fee_tracking" },
+  { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+  { to: "/dashboard/site", label: "Website", icon: Globe },
+  { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
+  { to: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
 ];
 
 export function DashboardShell({ children }: { children: ReactNode }) {
@@ -96,7 +99,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
 
   const primary = withBadges(primaryNav);
-  const secondary = withBadges(secondaryNav);
+  const operations = withBadges(operationsNav);
+
 
 
 
