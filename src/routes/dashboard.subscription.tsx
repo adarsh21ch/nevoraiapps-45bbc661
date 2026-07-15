@@ -177,8 +177,8 @@ function UpgradePromo({ current, next }: { current: PlanTier; next: PlanTier }) 
   const cur = PLAN_META[current];
   const nxt = PLAN_META[next];
   return (
-    <Card
-      className="p-5"
+    <div
+      className="rounded-2xl border p-5"
       style={{
         background: `linear-gradient(135deg, color-mix(in oklab, var(--brand) 8%, transparent), transparent)`,
       }}
