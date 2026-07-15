@@ -65,10 +65,12 @@ const primaryNav: NavItem[] = [
 const secondaryNav: NavItem[] = [
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox },
   { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
+  { to: "/dashboard/staff", label: "Staff", icon: Users, adminOnly: false, ownerOnly: false },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { to: "/dashboard/site", label: "Gallery", icon: ImageIcon },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
+
 
 // Match Center sub-entries — surface Tournament Center prominently.
 const matchCenterNav: NavItem[] = [
