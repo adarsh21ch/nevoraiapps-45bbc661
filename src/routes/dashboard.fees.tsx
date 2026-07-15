@@ -58,7 +58,7 @@ export const Route = createFileRoute("/dashboard/fees")({
 });
 
 
-type Filter = "pending" | "paid" | "all";
+type Filter = "all" | "pending" | "paid" | "overdue";
 
 type RegisterRow = {
   studentId: string;
