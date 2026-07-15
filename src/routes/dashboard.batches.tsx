@@ -37,6 +37,8 @@ function BatchesPage() {
   });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BatchForm | null>(null);
+  const [coachBatch, setCoachBatch] = useState<{ id: string; name: string } | null>(null);
+
 
   const del = useMutation({
     mutationFn: async (id: string) => {
