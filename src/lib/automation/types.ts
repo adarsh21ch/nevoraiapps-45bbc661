@@ -46,6 +46,19 @@ export const AUTOMATION_EVENTS = {
   CoachRemarkApproved: "coach.remark_approved",
   CoachRemarkRejected: "coach.remark_rejected",
   CoachScheduleUpdated: "coach.schedule_updated",
+  // Payments & billing (Phase 9)
+  PaymentCreated: "payment.created",
+  PaymentSuccess: "payment.success",
+  PaymentFailed: "payment.failed",
+  PaymentRefunded: "payment.refunded",
+  InvoiceGenerated: "invoice.generated",
+  ReceiptGenerated: "receipt.generated",
+  SubscriptionStarted: "subscription.started",
+  SubscriptionRenewed: "subscription.renewed",
+  SubscriptionExpired: "subscription.expired",
+  SubscriptionCancelled: "subscription.cancelled",
+  FeePaymentReceived: "fee.payment_received",
+  RegistrationPaymentReceived: "registration.payment_received",
 } as const;
 
 

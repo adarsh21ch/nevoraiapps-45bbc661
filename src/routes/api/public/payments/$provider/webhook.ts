@@ -71,8 +71,95 @@ export const Route = createFileRoute("/api/public/payments/$provider/webhook")({
           return new Response("Store failed", { status: 500 });
         }
         if (insErr) {
-          // duplicate → already processed
           return new Response("Duplicate ignored", { status: 200 });
+        }
+
+        // Process the event: find the linked payment_transaction and settle it.
+        try {
+          const payload = verified.payload as any;
+          const entity = payload?.payment?.entity ?? payload?.order?.entity ?? payload;
+          const providerOrderId: string | undefined = entity?.order_id ?? entity?.id;
+          const providerPaymentId: string | undefined = entity?.id ?? entity?.payment_id;
+          if (providerOrderId) {
+            const { data: tx } = await supabaseAdmin
+              .from("payment_transactions")
+              .select("*")
+              .eq("provider", providerId)
+              .eq("provider_order_id", providerOrderId)
+              .maybeSingle();
+            if (tx && tx.status !== "success") {
+              const isSuccess = /paid|captured|success/i.test(verified.eventType);
+              const isFailed = /failed/i.test(verified.eventType);
+              const isRefund = /refund/i.test(verified.eventType);
+              const nextStatus = isRefund
+                ? "refunded"
+                : isSuccess
+                  ? "success"
+                  : isFailed
+                    ? "failed"
+                    : tx.status;
+              await supabaseAdmin
+                .from("payment_transactions")
+                .update({ status: nextStatus, provider_payment_id: providerPaymentId ?? null })
+                .eq("id", tx.id);
+
+              if (isSuccess && tx.ref_type === "invoice" && tx.ref_id && tx.tenant_id) {
+                const amountMajor = Number(tx.amount_paise) / 100;
+                const { data: inv } = await supabaseAdmin
+                  .from("billing_invoices")
+                  .select("student_id, tenant_id")
+                  .eq("id", tx.ref_id)
+                  .maybeSingle();
+                if (inv) {
+                  await supabaseAdmin.rpc("record_billing_payment", {
+                    _tenant_id: inv.tenant_id,
+                    _student_id: inv.student_id,
+                    _amount: amountMajor,
+                    _method: "gateway",
+                    _allocations: [{ invoice_id: tx.ref_id, amount: amountMajor }],
+                    _reference_number: providerPaymentId ?? tx.idempotency_key,
+                    _gateway: providerId,
+                    _gateway_reference: providerPaymentId ?? undefined,
+                    _idempotency_key: tx.idempotency_key ?? tx.id,
+                    _collected_at: new Date().toISOString(),
+                    _status: "succeeded",
+                  } as any);
+                }
+              }
+
+              if (tx.tenant_id) {
+                const evType = isRefund
+                  ? "payment.refunded"
+                  : isSuccess
+                    ? "payment.success"
+                    : "payment.failed";
+                await supabaseAdmin.from("automation_events").insert({
+                  tenant_id: tx.tenant_id,
+                  event_type: evType,
+                  source_module: "payments",
+                  source_id: tx.id,
+                  payload: {
+                    amount: Number(tx.amount_paise) / 100,
+                    currency: tx.currency,
+                    provider: providerId,
+                    ref_id: tx.ref_id,
+                  },
+                });
+              }
+            }
+          }
+
+          await supabaseAdmin
+            .from("payment_webhooks")
+            .update({ processed: true, processed_at: new Date().toISOString() })
+            .eq("provider", providerId)
+            .eq("event_id", verified.eventId);
+        } catch (e) {
+          await supabaseAdmin
+            .from("payment_webhooks")
+            .update({ error: e instanceof Error ? e.message : String(e) })
+            .eq("provider", providerId)
+            .eq("event_id", verified.eventId);
         }
 
         await supabaseAdmin

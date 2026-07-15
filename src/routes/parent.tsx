@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Home, TrendingUp, CalendarDays, UserCircle, LogOut, ChevronDown } from "lucide-react";
+import { Home, TrendingUp, CalendarDays, UserCircle, LogOut, ChevronDown, CreditCard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export const Route = createFileRoute("/parent")({
 const TABS = [
   { to: "/parent", label: "Home", icon: Home, exact: true },
   { to: "/parent/progress", label: "Progress", icon: TrendingUp, exact: false },
+  { to: "/parent/billing", label: "Pay", icon: CreditCard, exact: false },
   { to: "/parent/timeline", label: "Timeline", icon: CalendarDays, exact: false },
   { to: "/parent/profile", label: "Profile", icon: UserCircle, exact: false },
 ] as const;
@@ -178,7 +179,7 @@ function ParentLayout() {
         aria-label="Primary"
         className="fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70"
       >
-        <div className="max-w-3xl mx-auto grid grid-cols-4">
+        <div className="max-w-3xl mx-auto grid grid-cols-5">
           {TABS.map((t) => {
             const active = t.exact ? pathname === t.to : pathname.startsWith(t.to);
             const Icon = t.icon;
