@@ -77,6 +77,7 @@ interface MatchMeta {
 }
 
 interface InningsRow {
+  id: string;
   match_id: string;
   batting_team_id: string;
   bowling_team_id: string;
