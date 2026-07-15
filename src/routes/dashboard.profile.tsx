@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDashboard } from "@/lib/dashboard-context";
+import { useCurrentRole } from "@/hooks/use-current-role";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,35 +10,112 @@ import {
   Phone,
   Mail,
   MapPin,
-  CalendarDays,
-  Wallet,
-  ClipboardCheck,
+  UserCircle,
   BellRing,
-  BarChart3,
-  Settings,
+  Palette,
+  Settings2,
+  CreditCard,
+  Globe,
+  ShieldCheck,
+  LifeBuoy,
+  AlertTriangle,
+  Database,
   ChevronRight,
-  Swords,
-  Users as UsersIcon,
+  KeyRound,
 } from "lucide-react";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { tenantSiteUrl } from "@/lib/tenant";
 
-
 export const Route = createFileRoute("/dashboard/profile")({
+  head: () => ({
+    meta: [
+      { title: "Profile · AcademyOS" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ProfilePage,
 });
 
+type Row = {
+  to: string;
+  label: string;
+  hint: string;
+  icon: React.ComponentType<{ className?: string }>;
+  external?: boolean;
+  danger?: boolean;
+};
+type Section = { title: string; rows: Row[] };
+
 function ProfilePage() {
   const { tenant, session, profile, signOut } = useDashboard();
+  const role = useCurrentRole();
   const wa = tenant.whatsapp?.replace(/[^\d]/g, "");
+  const isOwner = role === "owner";
+
+  const sections: Section[] = [];
+
+  // My Account — everyone
+  sections.push({
+    title: "My Account",
+    rows: [
+      { to: "/dashboard/settings", label: "My Profile", hint: "Name and personal details", icon: UserCircle },
+      { to: "/dashboard/settings", label: "Password", hint: "Change your password", icon: KeyRound },
+      { to: "/dashboard/notifications", label: "Notifications", hint: "Delivery history & alerts", icon: BellRing },
+      { to: "/dashboard/settings", label: "Language & Theme", hint: "Interface preferences", icon: Palette },
+    ],
+  });
+
+  // Academy Settings — owner only
+  if (isOwner) {
+    sections.push({
+      title: "Academy Settings",
+      rows: [
+        { to: "/dashboard/settings", label: "Academy Profile", hint: "Name, hours, contact, address", icon: Settings2 },
+        { to: "/dashboard/branding", label: "Branding", hint: "Logo, theme, colors", icon: Palette },
+        { to: "/dashboard/subscription", label: "Subscription & Plan", hint: "Your AcademyOS plan", icon: CreditCard },
+        { to: "/dashboard/site", label: "Website Settings", hint: "SEO, contact, social, payments", icon: Globe },
+      ],
+    });
+
+    sections.push({
+      title: "Data",
+      rows: [
+        { to: "/dashboard/students", label: "Import & Export Players", hint: "Bulk upload and downloads", icon: Database },
+      ],
+    });
+  }
+
+  sections.push({
+    title: "Security",
+    rows: [
+      { to: "/dashboard/admins", label: "Roles & Permissions", hint: "Admins & staff access", icon: ShieldCheck },
+    ],
+  });
+
+  sections.push({
+    title: "Support",
+    rows: [
+      { to: "/dashboard/settings", label: "Help & Support", hint: "Contact us and get help", icon: LifeBuoy },
+    ],
+  });
+
+  if (isOwner) {
+    sections.push({
+      title: "Danger Zone",
+      rows: [
+        { to: "/dashboard/settings", label: "Delete or Transfer Academy", hint: "Destructive actions", icon: AlertTriangle, danger: true },
+      ],
+    });
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-6">
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
-        <p className="text-sm text-muted-foreground">Your account and academy details.</p>
+        <p className="text-sm text-muted-foreground">Your account and academy configuration.</p>
       </header>
 
+      {/* Identity card */}
       <Card className="p-5">
         <div className="flex items-center gap-4">
           <div
@@ -92,63 +170,50 @@ function ProfilePage() {
               View public site <ExternalLink className="size-3 ml-1" />
             </a>
           </Button>
-
           <Button variant="outline" size="sm" onClick={signOut}>
             <LogOut className="size-4 mr-1" /> Sign out
           </Button>
         </div>
       </Card>
 
-      <Card className="overflow-hidden p-0">
-        <Link
-          to="/dashboard/settings"
-          className="flex items-center gap-3 px-4 py-4 hover:bg-muted/60 active:bg-muted/80 transition-colors"
-        >
-          <span className="inline-flex size-9 items-center justify-center rounded-lg bg-muted text-foreground">
-            <Settings className="size-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-medium leading-tight">Settings</div>
-            <div className="text-xs text-muted-foreground">Language, theme and preferences</div>
-          </div>
-          <ChevronRight className="size-4 text-muted-foreground" />
-        </Link>
-      </Card>
-
-      <Card className="p-5">
-        <h2 className="font-semibold mb-3">Manage</h2>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {[
-            { to: "/match-center", label: "Match Center", icon: Swords },
-            { to: "/match-center/scorers", label: "Scorers", icon: UsersIcon },
-            { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-            { to: "/dashboard/reminders", label: "Reminders", icon: BellRing },
-            { to: "/dashboard/batches", label: "Batches", icon: CalendarDays },
-            { to: "/dashboard/fee-plans", label: "Fee plans", icon: Wallet },
-            { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-          ].map((l) => {
-
-            const Icon = l.icon;
-            return (
-              <Link
-                key={l.to}
-                to={l.to}
-                className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 text-xs font-medium text-foreground hover:bg-muted"
-              >
-                <Icon className="size-5" style={{ color: "var(--brand)" }} />
-                {l.label}
-              </Link>
-            );
-          })}
-        </div>
-      </Card>
-
-      <Card className="p-5 text-sm">
-        <h2 className="font-semibold mb-1">Need help?</h2>
-        <p className="text-muted-foreground">
-          Message us on WhatsApp and we'll help you set up anything — from adding students to sending fee reminders.
-        </p>
-      </Card>
+      {/* Grouped settings sections */}
+      {sections.map((section) => (
+        <section key={section.title} className="space-y-2">
+          <h2 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
+            {section.title}
+          </h2>
+          <Card className="overflow-hidden p-0 divide-y divide-border">
+            {section.rows.map((row) => {
+              const Icon = row.icon;
+              return (
+                <Link
+                  key={section.title + row.label}
+                  to={row.to}
+                  className="flex items-center gap-3 px-4 py-3.5 hover:bg-muted/60 active:bg-muted/80 transition-colors"
+                >
+                  <span
+                    className={
+                      "inline-flex size-9 items-center justify-center rounded-lg " +
+                      (row.danger
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-muted text-foreground")
+                    }
+                  >
+                    <Icon className="size-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className={"text-[15px] font-medium leading-tight " + (row.danger ? "text-destructive" : "")}>
+                      {row.label}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">{row.hint}</div>
+                  </div>
+                  <ChevronRight className="size-4 text-muted-foreground" />
+                </Link>
+              );
+            })}
+          </Card>
+        </section>
+      ))}
     </div>
   );
 }
