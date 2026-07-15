@@ -336,26 +336,29 @@ export type MatchesReport = {
 };
 
 export async function fetchMatchesReport(tenantId: string, r: Range): Promise<MatchesReport> {
+  // Phase 2: prefer server-side aggregation. This still keeps the small
+  // per-result breakdown as a light client roll-up because the summary RPC
+  // returns only status buckets; result labels come from a compact projection.
+  const { getTournamentSummary } = await import("./aggregations");
+  const summary = await getTournamentSummary(tenantId);
+  const fromDate = r.from.slice(0, 10);
+  const toDate = r.to.slice(0, 10);
   const { data } = await supabase
     .from("mc_matches")
-    .select("id, status, result, winner_team, scheduled_date, created_at")
+    .select("result, status")
     .eq("tenant_id", tenantId)
-    .gte("created_at", r.from)
-    .lte("created_at", r.to);
-  const rows = (data ?? []) as any[];
-
-  let completed = 0, upcoming = 0, live = 0;
+    .gte("scheduled_date", fromDate)
+    .lte("scheduled_date", toDate);
   const resultMap = new Map<string, number>();
-  for (const m of rows) {
-    if (m.status === "completed") completed++;
-    else if (m.status === "live" || m.status === "in_progress") live++;
-    else upcoming++;
+  for (const m of (data ?? []) as { result: string | null; status: string | null }[]) {
     const key = m.result ?? m.status ?? "unknown";
     resultMap.set(key, (resultMap.get(key) ?? 0) + 1);
   }
   return {
-    total: rows.length,
-    completed, upcoming, live,
+    total: summary.total,
+    completed: summary.completed,
+    upcoming: summary.upcoming,
+    live: summary.live,
     byResult: [...resultMap.entries()].map(([label, count]) => ({ label, count })),
     topScorers: [],
   };
@@ -372,30 +375,24 @@ export type CommsReport = {
 };
 
 export async function fetchCommsReport(tenantId: string, r: Range): Promise<CommsReport> {
-  const { data } = await supabase
-    .from("comm_campaigns")
-    .select("id, category, status, sent_count, delivered_count, failed_count, created_at")
-    .eq("tenant_id", tenantId)
-    .gte("created_at", r.from)
-    .lte("created_at", r.to);
-  const rows = (data ?? []) as any[];
-  let sent = 0, delivered = 0, failed = 0;
-  const cat = new Map<string, number>();
-  const st = new Map<string, number>();
-  for (const c of rows) {
-    sent      += Number(c.sent_count      || 0);
-    delivered += Number(c.delivered_count || 0);
-    failed    += Number(c.failed_count    || 0);
-    cat.set(c.category ?? "general", (cat.get(c.category ?? "general") ?? 0) + 1);
-    st.set(c.status ?? "draft", (st.get(c.status ?? "draft") ?? 0) + 1);
-  }
+  // Phase 2: fully server-aggregated. No per-row loop in the browser.
+  const { getCommunicationSummary } = await import("./aggregations");
+  const s = await getCommunicationSummary(tenantId, { from: r.from.slice(0, 10), to: r.to.slice(0, 10) });
+  const byStatus: { label: string; count: number }[] = [
+    { label: "sent", count: s.sent },
+    { label: "failed", count: s.failed },
+    { label: "draft", count: s.draft },
+  ].filter((x) => x.count > 0);
   return {
-    campaigns: rows.length,
-    sent, delivered, failed,
-    byCategory: [...cat.entries()].map(([label, count]) => ({ label, count })),
-    byStatus:   [...st.entries()].map(([label, count]) => ({ label, count })),
+    campaigns: s.total_campaigns,
+    sent: s.total_delivered, // treat delivered as "successfully sent" for report parity
+    delivered: s.total_delivered,
+    failed: s.total_failed,
+    byCategory: Object.entries(s.by_category).map(([label, count]) => ({ label, count })),
+    byStatus,
   };
 }
+
 
 // ---------------- Website ----------------------------------------------
 export type WebsiteReport = {
