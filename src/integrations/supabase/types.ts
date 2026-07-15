@@ -1397,6 +1397,73 @@ export type Database = {
           },
         ]
       }
+      coach_assignments: {
+        Row: {
+          active: boolean
+          assigned_at: string
+          assigned_by: string | null
+          batch_id: string
+          coach_role: Database["public"]["Enums"]["app_role"]
+          coach_user_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          notes: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          assigned_at?: string
+          assigned_by?: string | null
+          batch_id: string
+          coach_role?: Database["public"]["Enums"]["app_role"]
+          coach_user_id: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          assigned_at?: string
+          assigned_by?: string | null
+          batch_id?: string
+          coach_role?: Database["public"]["Enums"]["app_role"]
+          coach_user_id?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_assignments_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comm_campaign_recipients: {
         Row: {
           campaign_id: string
@@ -5492,6 +5559,72 @@ export type Database = {
           },
         ]
       }
+      staff_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string | null
+          expires_at: string
+          id: string
+          invited_by: string | null
+          invited_role: Database["public"]["Enums"]["app_role"]
+          phone: string | null
+          revoked_at: string | null
+          temp_password_hash: string | null
+          tenant_id: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          invited_role?: Database["public"]["Enums"]["app_role"]
+          phone?: string | null
+          revoked_at?: string | null
+          temp_password_hash?: string | null
+          tenant_id: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          invited_role?: Database["public"]["Enums"]["app_role"]
+          phone?: string | null
+          revoked_at?: string | null
+          temp_password_hash?: string | null
+          tenant_id?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_invitations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_invitations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_status_history: {
         Row: {
           changed_at: string
@@ -6304,6 +6437,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_coach_for_batch: { Args: { _batch_id: string }; Returns: boolean }
       is_match_scorer: {
         Args: { _tenant: string; _uid: string }
         Returns: boolean
@@ -6320,6 +6454,16 @@ export type Database = {
         Returns: boolean
       }
       issue_billing_invoice: { Args: { _invoice_id: string }; Returns: string }
+      list_my_coach_batches: {
+        Args: never
+        Returns: {
+          batch_id: string
+          coach_role: Database["public"]["Enums"]["app_role"]
+          name: string
+          tenant_id: string
+          timing: string
+        }[]
+      }
       list_parent_children: {
         Args: never
         Returns: {
