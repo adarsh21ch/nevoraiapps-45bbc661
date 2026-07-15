@@ -107,15 +107,19 @@ function ParentBillingPage() {
               key={inv.id}
               invoice={inv}
               tenantId={child.tenant_id}
+              studentId={child.student_id}
+              setup={setupQ.data ?? null}
               onPaid={() => {
                 billQ.refetch();
                 txQ.refetch();
+                submissionsQ.refetch();
               }}
             />
           ))}
         </div>
       )}
 
+      <PendingSubmissions rows={submissionsQ.data ?? []} />
       <PaymentHistory rows={txQ.data ?? []} loading={txQ.isLoading} />
     </div>
   );
