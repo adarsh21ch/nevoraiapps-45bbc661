@@ -342,7 +342,17 @@ export function BulkImportStudents() {
                 <SummaryTile label="Invalid rows" value={invalidCount} tone="rose" />
               </div>
 
-              {dupeCount > 0 && (
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={markImported}
+                  onChange={(e) => setMarkImported(e.target.checked)}
+                  className="size-4 accent-current"
+                />
+                Mark as imported (creates activation tokens, allows rollback, sends via Activation Center)
+              </label>
+
+
                 <label className="flex items-center gap-2 text-xs cursor-pointer">
                   <input
                     type="checkbox"
