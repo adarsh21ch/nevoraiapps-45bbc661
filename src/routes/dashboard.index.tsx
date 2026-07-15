@@ -308,7 +308,7 @@ function DashboardHome() {
         <LiveStatusStrip
           inAcademy={inAcademy}
           totalToday={attTotal}
-          isLoading={attendanceQ.isLoading}
+          isLoading={attendanceLoading}
         />
       </section>
     </div>
