@@ -642,7 +642,7 @@ function PlayerRow({
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-    </li>
+    </div>
   );
 }
 
