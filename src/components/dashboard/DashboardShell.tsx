@@ -182,7 +182,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           <SidebarInner
             tenant={tenant}
             primary={primary}
-            operations={operations}
+            secondary={secondary}
+            matchCenter={matchCenter}
+            liveMatch={(liveMatchCount.data ?? 0) > 0}
             onSignOut={signOut}
             role={profile.role}
           />
