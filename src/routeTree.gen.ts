@@ -98,6 +98,7 @@ import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports
 import { Route as DashboardRemindersRouteImport } from './routes/dashboard.reminders'
 import { Route as DashboardRegistrationsRouteImport } from './routes/dashboard.registrations'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
+import { Route as DashboardPaymentVerificationRouteImport } from './routes/dashboard.payment-verification'
 import { Route as DashboardPaymentSettingsRouteImport } from './routes/dashboard.payment-settings'
 import { Route as DashboardNotificationsRouteImport } from './routes/dashboard.notifications'
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
@@ -591,6 +592,12 @@ const DashboardProfileRoute = DashboardProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardPaymentVerificationRoute =
+  DashboardPaymentVerificationRouteImport.update({
+    id: '/payment-verification',
+    path: '/payment-verification',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardPaymentSettingsRoute =
   DashboardPaymentSettingsRouteImport.update({
     id: '/payment-settings',
@@ -883,6 +890,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
+  '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
@@ -1013,6 +1021,7 @@ export interface FileRoutesByTo {
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
+  '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
@@ -1149,6 +1158,7 @@ export interface FileRoutesById {
   '/dashboard/leads': typeof DashboardLeadsRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
+  '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/registrations': typeof DashboardRegistrationsRoute
   '/dashboard/reminders': typeof DashboardRemindersRoute
@@ -1286,6 +1296,7 @@ export interface FileRouteTypes {
     | '/dashboard/leads'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
+    | '/dashboard/payment-verification'
     | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
@@ -1416,6 +1427,7 @@ export interface FileRouteTypes {
     | '/dashboard/leads'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
+    | '/dashboard/payment-verification'
     | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
@@ -1551,6 +1563,7 @@ export interface FileRouteTypes {
     | '/dashboard/leads'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
+    | '/dashboard/payment-verification'
     | '/dashboard/profile'
     | '/dashboard/registrations'
     | '/dashboard/reminders'
@@ -2307,6 +2320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardProfileRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/payment-verification': {
+      id: '/dashboard/payment-verification'
+      path: '/payment-verification'
+      fullPath: '/dashboard/payment-verification'
+      preLoaderRoute: typeof DashboardPaymentVerificationRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/payment-settings': {
       id: '/dashboard/payment-settings'
       path: '/payment-settings'
@@ -2665,6 +2685,7 @@ interface DashboardRouteChildren {
   DashboardLeadsRoute: typeof DashboardLeadsRoute
   DashboardNotificationsRoute: typeof DashboardNotificationsRoute
   DashboardPaymentSettingsRoute: typeof DashboardPaymentSettingsRoute
+  DashboardPaymentVerificationRoute: typeof DashboardPaymentVerificationRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardRegistrationsRoute: typeof DashboardRegistrationsRoute
   DashboardRemindersRoute: typeof DashboardRemindersRoute
@@ -2697,6 +2718,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardLeadsRoute: DashboardLeadsRoute,
   DashboardNotificationsRoute: DashboardNotificationsRoute,
   DashboardPaymentSettingsRoute: DashboardPaymentSettingsRoute,
+  DashboardPaymentVerificationRoute: DashboardPaymentVerificationRoute,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardRegistrationsRoute: DashboardRegistrationsRoute,
   DashboardRemindersRoute: DashboardRemindersRoute,

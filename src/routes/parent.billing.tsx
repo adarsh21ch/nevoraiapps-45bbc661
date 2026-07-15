@@ -22,6 +22,8 @@ import { toast } from "sonner";
 import { useParentChild } from "@/hooks/use-parent-child";
 import { fetchChildBillingSummary, parentKeys } from "@/lib/parent-app";
 import { createPaymentOrder, verifyClientPayment, listPaymentTransactions } from "@/lib/payments/service.functions";
+import { getTenantPaymentSetup, listMyManualPayments } from "@/lib/payments/manual.functions";
+import { ManualPaymentDialog, type PaymentSetup } from "@/components/payments/ManualPaymentDialog";
 import { formatMoney } from "@/lib/billing";
 
 export const Route = createFileRoute("/parent/billing")({
@@ -47,6 +49,20 @@ function ParentBillingPage() {
   const txQ = useQuery({
     queryKey: ["parent", "payment-tx", child?.tenant_id ?? "none"],
     queryFn: () => listTx({ data: { scope: "tenant", tenantId: child!.tenant_id, limit: 20 } }),
+    enabled: !!child,
+  });
+
+  const getSetup = useServerFn(getTenantPaymentSetup);
+  const setupQ = useQuery({
+    queryKey: ["parent", "payment-setup", child?.tenant_id ?? "none"],
+    queryFn: () => getSetup({ data: { tenantId: child!.tenant_id } }),
+    enabled: !!child,
+  });
+
+  const listMine = useServerFn(listMyManualPayments);
+  const submissionsQ = useQuery({
+    queryKey: ["parent", "manual-payments", child?.student_id ?? "none"],
+    queryFn: () => listMine({ data: { studentId: child!.student_id, limit: 20 } }),
     enabled: !!child,
   });
 
@@ -91,15 +107,19 @@ function ParentBillingPage() {
               key={inv.id}
               invoice={inv}
               tenantId={child.tenant_id}
+              studentId={child.student_id}
+              setup={setupQ.data ?? null}
               onPaid={() => {
                 billQ.refetch();
                 txQ.refetch();
+                submissionsQ.refetch();
               }}
             />
           ))}
         </div>
       )}
 
+      <PendingSubmissions rows={submissionsQ.data ?? []} />
       <PaymentHistory rows={txQ.data ?? []} loading={txQ.isLoading} />
     </div>
   );
@@ -108,6 +128,8 @@ function ParentBillingPage() {
 function InvoiceCard({
   invoice,
   tenantId,
+  studentId,
+  setup,
   onPaid,
 }: {
   invoice: {
@@ -120,9 +142,12 @@ function InvoiceCard({
     currency: string;
   };
   tenantId: string;
+  studentId: string;
+  setup: PaymentSetup | null;
   onPaid: () => void;
 }) {
   const [paying, setPaying] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
   const createOrder = useServerFn(createPaymentOrder);
   const verifyPayment = useServerFn(verifyClientPayment);
 
@@ -130,6 +155,14 @@ function InvoiceCard({
     if (!invoice.due_date) return false;
     return new Date(invoice.due_date) < new Date();
   }, [invoice.due_date]);
+
+  const onlineAvailable = !!setup?.online_payments_enabled;
+  const manualAvailable = !!(
+    setup?.upi_id ||
+    setup?.upi_qr_url ||
+    setup?.bank_account_number ||
+    setup?.payment_instructions
+  );
 
   async function loadRazorpay(): Promise<boolean> {
     if (typeof window === "undefined") return false;
@@ -143,7 +176,7 @@ function InvoiceCard({
     });
   }
 
-  async function handlePay() {
+  async function handleOnlinePay() {
     setPaying(true);
     try {
       const order = await createOrder({
@@ -206,9 +239,7 @@ function InvoiceCard({
     <Card className="p-4 space-y-3">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm font-medium truncate">
-            {invoice.number ?? "Invoice"}
-          </p>
+          <p className="text-sm font-medium truncate">{invoice.number ?? "Invoice"}</p>
           <p className="text-xs text-muted-foreground">
             Due {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : "—"}
           </p>
@@ -217,21 +248,103 @@ function InvoiceCard({
           {overdue ? "Overdue" : invoice.status}
         </Badge>
       </div>
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between gap-2">
         <div>
           <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Balance</p>
-          <p className="text-2xl font-bold">
-            {formatMoney(invoice.balance, invoice.currency)}
-          </p>
+          <p className="text-2xl font-bold">{formatMoney(invoice.balance, invoice.currency)}</p>
         </div>
-        <Button onClick={handlePay} disabled={paying || invoice.balance <= 0}>
-          {paying ? <Loader2 className="size-4 animate-spin" /> : <CreditCard className="size-4 mr-1" />}
-          {paying ? "Processing…" : "Pay Now"}
-        </Button>
+        <div className="flex flex-col gap-1.5 sm:flex-row">
+          {onlineAvailable && (
+            <Button onClick={handleOnlinePay} disabled={paying || invoice.balance <= 0}>
+              {paying ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <CreditCard className="size-4 mr-1" />
+              )}
+              {paying ? "Processing…" : "Pay Online"}
+            </Button>
+          )}
+          {manualAvailable && (
+            <Button
+              variant={onlineAvailable ? "outline" : "default"}
+              onClick={() => setManualOpen(true)}
+              disabled={invoice.balance <= 0}
+            >
+              Submit Proof
+            </Button>
+          )}
+        </div>
       </div>
+      {setup && manualAvailable && (
+        <ManualPaymentDialog
+          open={manualOpen}
+          onOpenChange={setManualOpen}
+          tenantId={tenantId}
+          studentId={studentId}
+          invoice={{
+            id: invoice.id,
+            number: invoice.number,
+            balance: invoice.balance,
+            currency: invoice.currency,
+          }}
+          setup={setup}
+          onSubmitted={onPaid}
+        />
+      )}
     </Card>
   );
 }
+
+function PendingSubmissions({
+  rows,
+}: {
+  rows: Array<{
+    id: string;
+    method: string;
+    amount: number;
+    currency: string;
+    utr: string | null;
+    status: string;
+    review_reason: string | null;
+    created_at: string;
+  }>;
+}) {
+  if (!rows.length) return null;
+  const label: Record<string, string> = {
+    pending: "Pending review",
+    approved: "Approved",
+    rejected: "Rejected",
+    duplicate: "Duplicate",
+    needs_reupload: "Needs new screenshot",
+  };
+  const variant = (s: string): "secondary" | "destructive" | "outline" =>
+    s === "approved" ? "secondary" : s === "rejected" || s === "duplicate" ? "destructive" : "outline";
+  return (
+    <div>
+      <h2 className="text-sm font-semibold mb-2 mt-6">Your submissions</h2>
+      <div className="space-y-2">
+        {rows.map((r) => (
+          <Card key={r.id} className="p-3 space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium">
+                {formatMoney(Number(r.amount), r.currency)} · {r.method}
+              </p>
+              <Badge variant={variant(r.status)}>{label[r.status] ?? r.status}</Badge>
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              {new Date(r.created_at).toLocaleString()}
+              {r.utr ? ` · UTR ${r.utr}` : ""}
+            </p>
+            {r.review_reason && (
+              <p className="text-xs text-destructive/80">{r.review_reason}</p>
+            )}
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 function PaymentHistory({
   rows,
