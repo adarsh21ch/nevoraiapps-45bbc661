@@ -284,6 +284,201 @@ export type Database = {
           },
         ]
       }
+      automation_events: {
+        Row: {
+          created_at: string
+          error: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+          source_id: string | null
+          source_module: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          source_id?: string | null
+          source_module?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          source_id?: string | null
+          source_module?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: []
+      }
+      automation_executions: {
+        Row: {
+          action_type: string
+          attempt: number
+          created_at: string
+          dedupe_key: string | null
+          duration_ms: number | null
+          error: string | null
+          event_id: string | null
+          event_type: string
+          finished_at: string | null
+          id: string
+          max_attempts: number
+          next_retry_at: string | null
+          provider: string | null
+          result: Json | null
+          rule_id: string | null
+          started_at: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          action_type: string
+          attempt?: number
+          created_at?: string
+          dedupe_key?: string | null
+          duration_ms?: number | null
+          error?: string | null
+          event_id?: string | null
+          event_type: string
+          finished_at?: string | null
+          id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          provider?: string | null
+          result?: Json | null
+          rule_id?: string | null
+          started_at?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          action_type?: string
+          attempt?: number
+          created_at?: string
+          dedupe_key?: string | null
+          duration_ms?: number | null
+          error?: string | null
+          event_id?: string | null
+          event_type?: string
+          finished_at?: string | null
+          id?: string
+          max_attempts?: number
+          next_retry_at?: string | null
+          provider?: string | null
+          result?: Json | null
+          rule_id?: string | null
+          started_at?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_executions_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "automation_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_executions_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "automation_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_provider_configs: {
+        Row: {
+          config: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          provider_key: string
+          secret_ref: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          provider_key: string
+          secret_ref?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          provider_key?: string
+          secret_ref?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      automation_rules: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          enabled: boolean
+          event_type: string
+          id: string
+          name: string
+          priority: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          event_type: string
+          id?: string
+          name: string
+          priority?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          event_type?: string
+          id?: string
+          name?: string
+          priority?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       batches: {
         Row: {
           active: boolean
