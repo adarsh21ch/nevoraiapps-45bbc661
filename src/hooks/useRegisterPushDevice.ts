@@ -65,11 +65,12 @@ export function useRegisterPushDevice(opts: Options = {}) {
   const [status, setStatus] = useState<PushRegistrationStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const inFlight = useRef(false);
+  const autoTried = useRef(false);
   const getKey = useServerFn(getVapidPublicKey);
   const register = useServerFn(registerPushDevice);
 
   const doRegister = useCallback(async (): Promise<PushRegistrationStatus> => {
-    if (inFlight.current) return status;
+    if (inFlight.current) return "registering";
     if (!isSupported()) {
       setStatus("unsupported");
       return "unsupported";
@@ -124,7 +125,7 @@ export function useRegisterPushDevice(opts: Options = {}) {
     } finally {
       inFlight.current = false;
     }
-  }, [getKey, register, status]);
+  }, [getKey, register]);
 
   useEffect(() => {
     if (!isSupported()) {
@@ -135,7 +136,8 @@ export function useRegisterPushDevice(opts: Options = {}) {
       setStatus("denied");
       return;
     }
-    if (Notification.permission === "granted" && autoRegisterWhenGranted) {
+    if (Notification.permission === "granted" && autoRegisterWhenGranted && !autoTried.current) {
+      autoTried.current = true;
       void doRegister();
     } else if (Notification.permission === "default") {
       setStatus("prompt-needed");

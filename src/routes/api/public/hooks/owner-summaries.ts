@@ -16,6 +16,7 @@ import {
   computeOwnerSummary,
   type SummaryCadence,
 } from "@/lib/automation/summaries/owner-summary.server";
+import { requireCronAuth } from "@/lib/cron-auth.server";
 
 const VALID: readonly SummaryCadence[] = ["daily", "weekly", "monthly"] as const;
 
@@ -23,12 +24,8 @@ export const Route = createFileRoute("/api/public/hooks/owner-summaries")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apikey = request.headers.get("apikey");
-        const expected =
-          process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY;
-        if (!expected || apikey !== expected) {
-          return new Response("Unauthorized", { status: 401 });
-        }
+        const unauthorized = requireCronAuth(request);
+        if (unauthorized) return unauthorized;
 
         let cadence: SummaryCadence = "daily";
         try {

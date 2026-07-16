@@ -15,11 +15,14 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { AUTOMATION_EVENTS } from "@/lib/automation/types";
+import { requireCronAuth } from "@/lib/cron-auth.server";
 
 export const Route = createFileRoute("/api/public/hooks/subscription-check")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const unauthorized = requireCronAuth(request);
+        if (unauthorized) return unauthorized;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const now = Date.now();
         const DAY = 86400_000;

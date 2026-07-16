@@ -38,20 +38,18 @@ function GalleryPage() {
             Photos and videos coming soon.
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="columns-2 gap-3 sm:columns-3 lg:columns-4">
             {items.map((it, i) => (
               <figure
                 key={i}
-                className="group overflow-hidden rounded-xl border border-border/60 bg-muted"
+                className="group mb-3 break-inside-avoid overflow-hidden rounded-xl border border-border/60 bg-muted"
               >
                 {it.url && (
-                  <div className="aspect-square overflow-hidden">
-                    <StoragedImage
-                      path={it.url}
-                      alt={it.caption ?? ""}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
+                  <StoragedImage
+                    path={it.url}
+                    alt={it.caption ?? ""}
+                    className="h-auto w-full rounded-lg object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                 )}
                 {it.caption && (
                   <figcaption className="px-3 py-2 text-xs text-muted-foreground">
