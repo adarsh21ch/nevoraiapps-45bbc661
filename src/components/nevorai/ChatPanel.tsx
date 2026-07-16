@@ -302,11 +302,11 @@ export function ChatPanel({
               );
             })
           )}
-          {isGenerating && messages.length > 0 && (
+          {isGenerating && progressLabel ? (
             <div className="px-2 py-1 text-xs">
-              <Shimmer>NevorAI is thinking…</Shimmer>
+              <Shimmer>{progressLabel}</Shimmer>
             </div>
-          )}
+          ) : null}
           {chatError && !isGenerating ? (
             <div className="mx-2 my-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
               <div className="font-medium text-destructive">
