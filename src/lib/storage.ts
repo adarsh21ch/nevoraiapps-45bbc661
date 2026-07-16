@@ -50,6 +50,10 @@ async function maybeCompressImage(
   return original;
 }
 
+// NOTE: any NEW public-website section must upload under the 'public/' prefix
+// (e.g. folder = "public/testimonials"). The tenant-assets storage RLS anon-read
+// allowlist only permits: public, gallery, hero, logo_url, founder, cta,
+// star_players, upi_qr_url. A new root folder outside this list is anon-invisible.
 export async function uploadTenantFile(
   tenantId: string,
   folder: string,
