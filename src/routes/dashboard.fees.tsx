@@ -832,7 +832,7 @@ function CollectForm({
   });
 
   const numeric = Number(amount);
-  const disabled = save.isPending || !numeric || numeric <= 0 || !method;
+  void save.isPending;
 
   return (
     <div className="space-y-5 pt-2">
