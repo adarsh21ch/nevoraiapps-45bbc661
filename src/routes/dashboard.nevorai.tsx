@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { UIMessage } from "ai";
 import { PanelLeft, PanelRight, Plus, Sparkles } from "lucide-react";
@@ -11,7 +11,12 @@ import { TodaysPriorities } from "@/components/nevorai/TodaysPriorities";
 import { ActionQueue } from "@/components/nevorai/ActionQueue";
 import { QuickInsights } from "@/components/nevorai/QuickInsights";
 import { SmartInsights } from "@/components/nevorai/SmartInsights";
-import { listConversations, listTurns } from "@/lib/nevorai/conversations.functions";
+import {
+  listConversations,
+  listTurns,
+  createConversation,
+} from "@/lib/nevorai/conversations.functions";
+import { useNevorAIPageContext } from "@/lib/nevorai/page-context";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +70,9 @@ function NevorAIPage() {
   const [rightOpen, setRightOpen] = useState(false); // < xl drawer
   const fetchTurns = useServerFn(listTurns);
   const fetchConversations = useServerFn(listConversations);
+  const createConv = useServerFn(createConversation);
+  const qc = useQueryClient();
+  const pageContext = useNevorAIPageContext();
 
   // Persist the active conversation across route changes so returning to
   // NevorAI restores the same chat instead of a blank draft.
@@ -95,6 +103,21 @@ function NevorAIPage() {
     queryKey: ["nevorai", "turns", conversationId],
     queryFn: () => fetchTurns({ data: { conversationId: conversationId! } }),
   });
+
+  // Lazily create a conversation row when the user submits their first
+  // message in a draft chat. This prevents the server from silently minting
+  // a fresh row every turn while the client still thinks it's a draft.
+  const ensureConversationId = useCallback(async (): Promise<string | null> => {
+    if (conversationId) return conversationId;
+    try {
+      const row = await createConv({ data: {} });
+      setConversationId(row.id);
+      qc.invalidateQueries({ queryKey: ["nevorai", "conversations"] });
+      return row.id;
+    } catch {
+      return null;
+    }
+  }, [conversationId, createConv, qc]);
 
   const initialMessages = useMemo<UIMessage[]>(() => {
     if (!conversationId || !turnsQ.data) return [];
@@ -181,8 +204,10 @@ function NevorAIPage() {
               key={conversationId ?? "draft"}
               conversationId={conversationId}
               initialMessages={initialMessages}
+              pageContext={pageContext}
+              ensureConversationId={ensureConversationId}
               onConversationStarted={() => {
-                /* server creates row; sidebar re-queries. */
+                qc.invalidateQueries({ queryKey: ["nevorai", "conversations"] });
               }}
               suggestions={SUGGESTIONS}
             />

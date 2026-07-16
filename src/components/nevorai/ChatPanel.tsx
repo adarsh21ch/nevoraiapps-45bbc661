@@ -38,6 +38,13 @@ type Props = {
   /** Optional pending prompt to auto-send once the panel opens. */
   pendingPrompt?: string | null;
   onPendingPromptConsumed?: () => void;
+  /**
+   * Lazily create a conversation the first time the user submits from a draft
+   * chat. Returning the persisted ID prevents the server from silently
+   * creating a new row on every subsequent turn (which would fragment
+   * history into many "New conversation" entries).
+   */
+  ensureConversationId?: () => Promise<string | null>;
 };
 
 export function ChatPanel({
@@ -49,6 +56,7 @@ export function ChatPanel({
   pageContext,
   pendingPrompt,
   onPendingPromptConsumed,
+  ensureConversationId,
 }: Props) {
   const [token, setToken] = useState<string | null>(null);
 
@@ -67,6 +75,14 @@ export function ChatPanel({
 
   const [chatError, setChatError] = useState<{ code?: string; message: string } | null>(null);
 
+  // Ref mirrors the currently-persisted conversation id. Read at send-time
+  // so we don't recreate the transport when a fresh conversation is minted
+  // during the first submit of a draft chat.
+  const conversationIdRef = useRef<string | null>(conversationId);
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
+
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -74,7 +90,10 @@ export function ChatPanel({
         headers: () => ({
           Authorization: token ? `Bearer ${token}` : "",
         }),
-        body: () => ({ conversationId, pageContext: pageContextRef.current ?? null }),
+        body: () => ({
+          conversationId: conversationIdRef.current,
+          pageContext: pageContextRef.current ?? null,
+        }),
         // Intercept non-SSE responses (JSON error / HTML crash page) so the AI SDK
         // never renders a raw HTML document inside the conversation.
         fetch: async (input, init) => {
@@ -136,14 +155,24 @@ export function ChatPanel({
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || status === "streaming" || status === "submitted") return;
-      const wasEmpty = messages.length === 0;
+      const wasEmpty = messages.length === 0 && !conversationIdRef.current;
       setChatError(null);
+      // Mint a real conversation row BEFORE the first send so the server
+      // does not silently create a new "New conversation" every turn.
+      if (!conversationIdRef.current && ensureConversationId) {
+        try {
+          const id = await ensureConversationId();
+          if (id) conversationIdRef.current = id;
+        } catch {
+          /* Fall through — chat.ts will create one server-side as a fallback. */
+        }
+      }
       await sendMessage({ text: trimmed });
       setInput("");
       if (wasEmpty) onConversationStarted?.();
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
-    [messages.length, onConversationStarted, sendMessage, status],
+    [messages.length, onConversationStarted, sendMessage, status, ensureConversationId],
   );
 
   const isGenerating = status === "submitted" || status === "streaming";
