@@ -37,7 +37,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { uploadTenantFile } from "@/lib/storage";
+import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { submitManualPayment } from "@/lib/payments/manual.functions";
 import { formatMoney } from "@/lib/billing";
 
