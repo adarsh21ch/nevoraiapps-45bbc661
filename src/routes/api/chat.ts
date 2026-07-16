@@ -127,6 +127,13 @@ export const Route = createFileRoute("/api/chat")({
           | "student"
           | "platform_admin") ?? "owner";
 
+        // ------------------ payload (parse first so we can enrich context) ------------------
+        const body = (await request.json()) as ChatRequestBody;
+        if (!Array.isArray(body.messages)) {
+          return new Response("Messages required", { status: 400 });
+        }
+        const pageCtx: PageContext = body.pageContext ?? {};
+
         const ctx = buildContext({
           tenantId: profile.tenant_id,
           tenantSlug: tenant?.slug ?? null,
@@ -137,13 +144,14 @@ export const Route = createFileRoute("/api/chat")({
             ? { plan: tenant.subscription_status ?? "trial", status: tenant.status ?? "active" }
             : undefined,
           features: (tenant?.features as Record<string, boolean> | null) ?? undefined,
+          currentScreen: pageCtx.currentScreen,
+          selectedStudentId: pageCtx.selectedStudentId,
+          selectedBatchId: pageCtx.selectedBatchId,
+          selectedInvoiceId: pageCtx.selectedInvoiceId,
+          selectedChildId: pageCtx.selectedChildId,
+          selectedDate: pageCtx.selectedDate,
+          currentFilters: pageCtx.currentFilters,
         });
-
-        // ------------------ payload ------------------
-        const body = (await request.json()) as ChatRequestBody;
-        if (!Array.isArray(body.messages)) {
-          return new Response("Messages required", { status: 400 });
-        }
 
         // Ensure the conversation row exists / belongs to this user.
         let conversationId = body.conversationId ?? null;
