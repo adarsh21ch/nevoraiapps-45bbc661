@@ -79,7 +79,7 @@ export const dashboardSummaryTool: AnyToolDef = {
     return {
       ok: true,
       title: "Academy snapshot",
-      summary: `${kpis.activeStudents ?? 0} active students · ${kpis.paidThisMonth ?? 0} paid this month`,
+      summary: `${kpis.activeStudents ?? 0} active students`,
       data: kpis,
       structured_data: kpis,
       citations: ["src/lib/dashboard-queries.ts#fetchKpis"],
@@ -107,7 +107,7 @@ export const financeSummaryTool: AnyToolDef = {
     return {
       ok: true,
       title: "Billing snapshot",
-      summary: `Collected ${data.collected ?? 0}, outstanding ${data.outstanding ?? 0}`,
+      summary: `Collected ${data.collectedThisMonth ?? 0} · outstanding ${data.outstanding ?? 0}`,
       data,
       structured_data: data,
       citations: ["src/lib/billing.ts#fetchBillingKpis"],
@@ -138,18 +138,31 @@ export const feeSummaryTool: AnyToolDef = {
       return { ok: false, reason: "not_found", code: "STUDENT_NOT_FOUND", message: "Student not found for this tenant." };
     }
     const payments = await fetchStudentPayments(studentId);
-    const { studentDue, tenantFeeCycle } = await import("@/lib/fees");
-    const due = tenant
-      ? studentDue({
-          student: student as never,
-          payments: (payments ?? []) as never,
-          cycle: tenantFeeCycle(tenant as never),
-        })
-      : null;
+    const { studentDue, tenantFeeCycle, periodKey, candidatePeriods } = await import("@/lib/fees");
+    let due: unknown = null;
+    if (tenant) {
+      const cycle = tenantFeeCycle(tenant as never);
+      const now = new Date();
+      const paidPeriods = new Set<string>();
+      for (const p of (payments ?? []) as Array<{ period: string | null }>) {
+        if (p.period) paidPeriods.add(p.period);
+      }
+      const joinedAt = (student as { joined_at?: string }).joined_at;
+      if (joinedAt) {
+        // For calendar_month: check current month. For joining_date: engine uses joiningCycleDue internally.
+        const selectedMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        due = studentDue({ cycle, joinedAt, selectedMonth, paidPeriods });
+        void candidatePeriods; // silence unused import warnings
+        void periodKey;
+      }
+    }
+    const dueState = due && typeof due === "object" && "state" in due
+      ? (due as { state: string }).state
+      : "unknown";
     return {
       ok: true,
       title: "Fee status",
-      summary: due ? `Status: ${due.status}` : "No fee status available",
+      summary: `Status: ${dueState}`,
       data: { student, payments, due },
       structured_data: { due, paymentCount: payments?.length ?? 0 },
       citations: [
@@ -313,7 +326,8 @@ export const communicationsSummaryTool: AnyToolDef = {
   async execute(_input, ctx): Promise<ToolResult> {
     const { campaignsQueryOptions } = await import("@/lib/communications");
     const opts = campaignsQueryOptions(ctx.tenantId);
-    const campaigns = (await opts.queryFn()) as Array<{ status?: string; created_at?: string }>;
+    const runFn = opts.queryFn as unknown as () => Promise<Array<{ status?: string; created_at?: string }>>;
+    const campaigns = (await runFn()) as Array<{ status?: string; created_at?: string }>;
     const byStatus: Record<string, number> = {};
     for (const c of campaigns) {
       const s = c.status ?? "unknown";
