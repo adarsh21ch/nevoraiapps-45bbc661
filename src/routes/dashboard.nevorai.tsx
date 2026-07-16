@@ -204,8 +204,10 @@ function NevorAIPage() {
               key={conversationId ?? "draft"}
               conversationId={conversationId}
               initialMessages={initialMessages}
+              pageContext={pageContext}
+              ensureConversationId={ensureConversationId}
               onConversationStarted={() => {
-                /* server creates row; sidebar re-queries. */
+                qc.invalidateQueries({ queryKey: ["nevorai", "conversations"] });
               }}
               suggestions={SUGGESTIONS}
             />
