@@ -64,12 +64,12 @@ export const Route = createFileRoute("/api/chat")({
 
         const SUPABASE_URL = process.env.SUPABASE_URL;
         const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
-        const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+        const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
         if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
           return new Response("Missing Supabase env", { status: 500 });
         }
-        if (!LOVABLE_API_KEY) {
-          return new Response("Missing LOVABLE_API_KEY", { status: 500 });
+        if (!GOOGLE_API_KEY) {
+          return new Response("Missing GOOGLE_API_KEY", { status: 500 });
         }
 
         const authed = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
