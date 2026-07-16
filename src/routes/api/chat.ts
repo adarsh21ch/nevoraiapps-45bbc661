@@ -304,19 +304,19 @@ export const Route = createFileRoute("/api/chat")({
           onFinish: async ({ responseMessage, isAborted }) => {
             if (isAborted) return;
             if (!responseMessage?.parts || responseMessage.parts.length === 0) return;
-            if (!supabaseAdmin || !conversationId) return;
+            if (!conversationId) return;
             try {
               const textPart = responseMessage.parts.find((p) => p.type === "text") as
                 | { text?: string }
                 | undefined;
-              await supabaseAdmin.from("ai_conversation_turns").insert({
+              await authed.from("ai_conversation_turns").insert({
                 conversation_id: conversationId,
                 tenant_id: profile.tenant_id,
                 role: "assistant",
                 content: textPart?.text ?? "",
                 parts: responseMessage.parts as never,
               });
-              await supabaseAdmin
+              await authed
                 .from("ai_conversations")
                 .update({ updated_at: new Date().toISOString() })
                 .eq("id", conversationId);
