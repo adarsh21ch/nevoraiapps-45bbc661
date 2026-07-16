@@ -89,7 +89,7 @@ export const Route = createFileRoute("/api/chat")({
         // ------------------ auth ------------------
         const authHeader = request.headers.get("authorization");
         if (!authHeader?.startsWith("Bearer ")) {
-          return new Response("Unauthorized", { status: 401 });
+          return jsonError("UNAUTHENTICATED", "Please sign in to chat with NevorAI.", 401);
         }
         const token = authHeader.slice("Bearer ".length);
 
@@ -97,10 +97,13 @@ export const Route = createFileRoute("/api/chat")({
         const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
         const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
         if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-          return new Response("Missing Supabase env", { status: 500 });
+          return jsonError("SERVER_MISCONFIGURED", "The server is missing required configuration.");
         }
         if (!GOOGLE_API_KEY) {
-          return new Response("Missing GOOGLE_API_KEY", { status: 500 });
+          return jsonError(
+            "AI_PROVIDER_UNCONFIGURED",
+            "NevorAI is not connected to an AI provider. Please add GOOGLE_API_KEY.",
+          );
         }
 
         const authed = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -112,7 +115,8 @@ export const Route = createFileRoute("/api/chat")({
         });
 
         const { data: userRes, error: userErr } = await authed.auth.getUser(token);
-        if (userErr || !userRes?.user) return new Response("Unauthorized", { status: 401 });
+        if (userErr || !userRes?.user)
+          return jsonError("UNAUTHENTICATED", "Your session has expired. Please sign in again.", 401);
         const userId = userRes.user.id;
 
         const { data: profile } = await authed
@@ -120,7 +124,8 @@ export const Route = createFileRoute("/api/chat")({
           .select("tenant_id, role")
           .eq("user_id", userId)
           .maybeSingle();
-        if (!profile?.tenant_id) return new Response("No tenant", { status: 403 });
+        if (!profile?.tenant_id)
+          return jsonError("NO_TENANT", "No academy is linked to this account.", 403);
 
         // ------------------ context ------------------
         const { data: tenant } = await authed
