@@ -70,6 +70,9 @@ function NevorAIPage() {
   const [rightOpen, setRightOpen] = useState(false); // < xl drawer
   const fetchTurns = useServerFn(listTurns);
   const fetchConversations = useServerFn(listConversations);
+  const createConv = useServerFn(createConversation);
+  const qc = useQueryClient();
+  const pageContext = useNevorAIPageContext();
 
   // Persist the active conversation across route changes so returning to
   // NevorAI restores the same chat instead of a blank draft.
@@ -100,6 +103,21 @@ function NevorAIPage() {
     queryKey: ["nevorai", "turns", conversationId],
     queryFn: () => fetchTurns({ data: { conversationId: conversationId! } }),
   });
+
+  // Lazily create a conversation row when the user submits their first
+  // message in a draft chat. This prevents the server from silently minting
+  // a fresh row every turn while the client still thinks it's a draft.
+  const ensureConversationId = useCallback(async (): Promise<string | null> => {
+    if (conversationId) return conversationId;
+    try {
+      const row = await createConv({ data: {} });
+      setConversationId(row.id);
+      qc.invalidateQueries({ queryKey: ["nevorai", "conversations"] });
+      return row.id;
+    } catch {
+      return null;
+    }
+  }, [conversationId, createConv, qc]);
 
   const initialMessages = useMemo<UIMessage[]>(() => {
     if (!conversationId || !turnsQ.data) return [];
