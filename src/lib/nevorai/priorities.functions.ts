@@ -15,27 +15,15 @@ export type Priority = {
   score: number;
 };
 
-async function loadTenantId(ctxSupabase: {
-  from: (t: string) => {
-    select: (s: string) => {
-      eq: (c: string, v: string) => {
-        maybeSingle: () => Promise<{ data: { tenant_id: string | null } | null }>;
-      };
-    };
-  };
-}, userId: string): Promise<string | null> {
-  const { data } = await ctxSupabase
-    .from("profiles")
-    .select("tenant_id")
-    .eq("user_id", userId)
-    .maybeSingle();
-  return data?.tenant_id ?? null;
-}
-
 export const getPriorities = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<Priority[]> => {
-    const tenantId = await loadTenantId(context.supabase, context.userId);
+    const { data: profile } = await context.supabase
+      .from("profiles")
+      .select("tenant_id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    const tenantId = profile?.tenant_id ?? null;
     if (!tenantId) return [];
 
     const now = new Date();
