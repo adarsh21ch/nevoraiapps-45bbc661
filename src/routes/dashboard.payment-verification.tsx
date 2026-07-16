@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import { toast } from "sonner";
 import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useDashboard } from "@/lib/dashboard-context";
