@@ -22,6 +22,8 @@ import {
   Database,
   ChevronRight,
   KeyRound,
+  Zap,
+  HeartPulse,
 } from "lucide-react";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { tenantSiteUrl } from "@/lib/tenant";
@@ -106,6 +108,18 @@ function ProfilePage() {
           icon: Globe,
         },
         {
+          to: "/dashboard/payment-settings",
+          label: "Payment Settings",
+          hint: "Providers, offline payments & receipts",
+          icon: CreditCard,
+        },
+        {
+          to: "/dashboard/automation-settings",
+          label: "Automation",
+          hint: "Rules, triggers & scheduled workflows",
+          icon: Zap,
+        },
+        {
           to: "/dashboard/subscription",
           label: "Subscription & Plan",
           hint: "Your AcademyOS plan",
@@ -148,6 +162,16 @@ function ProfilePage() {
         hint: "Contact us and get help",
         icon: LifeBuoy,
       },
+      ...(isOwner
+        ? [
+            {
+              to: "/dashboard/nevorai-health",
+              label: "NevorAI Health",
+              hint: "AI service status & diagnostics",
+              icon: HeartPulse,
+            } as Row,
+          ]
+        : []),
     ],
   });
 
