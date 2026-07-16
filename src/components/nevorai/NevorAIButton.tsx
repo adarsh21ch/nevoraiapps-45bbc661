@@ -15,7 +15,7 @@ import { useNevorAI } from "@/components/nevorai/NevorAIProvider";
 import { useT } from "@/lib/i18n";
 
 export function NevorAIButton({ className }: { className?: string }) {
-  const { open } = useNevorAI();
+  const { open, close, isOpen } = useNevorAI();
   const { t } = useT();
   const fetchPriorities = useServerFn(getPriorities);
   const q = useQuery({
@@ -32,8 +32,9 @@ export function NevorAIButton({ className }: { className?: string }) {
   return (
     <button
       type="button"
-      onClick={() => open()}
-      aria-label={t("Open NevorAI")}
+      onClick={() => (isOpen ? close() : open())}
+      aria-pressed={isOpen}
+      aria-label={isOpen ? t("Close NevorAI") : t("Open NevorAI")}
       className={cn(
         "relative inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-xs font-medium text-foreground/90 shadow-sm transition",
         "hover:border-primary/40 hover:bg-primary/5 hover:text-foreground",
