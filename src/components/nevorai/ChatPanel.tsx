@@ -255,21 +255,30 @@ export function ChatPanel({
               return (
                 <Message key={m.id} from={m.role as "user" | "assistant" | "system"}>
                   <MessageContent
-                    className={cn(m.role === "assistant" && "bg-transparent px-0")}
+                    className={cn(
+                      "animate-fade-in",
+                      m.role === "assistant" && "bg-transparent px-0",
+                    )}
                   >
-                    {m.parts.map((part, idx) => {
-                      if (part.type === "text") {
-                        return (
-                          <div key={idx} className="whitespace-pre-wrap text-sm leading-relaxed">
+                    {m.role === "assistant" ? (
+                      assistantText ? (
+                        <ResponseRenderer
+                          text={assistantText}
+                          onAction={(label) => void submit(label)}
+                        />
+                      ) : null
+                    ) : (
+                      m.parts.map((part, idx) =>
+                        part.type === "text" ? (
+                          <div
+                            key={idx}
+                            className="whitespace-pre-wrap text-sm leading-relaxed"
+                          >
                             {part.text}
                           </div>
-                        );
-                      }
-                      // Reasoning and tool parts are internal implementation
-                      // details — never render them in the owner-facing chat.
-                      // The assistant text part is the final human answer.
-                      return null;
-                    })}
+                        ) : null,
+                      )
+                    )}
 
                     {m.role === "assistant" && !isGenerating && assistantText ? (
                       <div className="mt-2 flex items-center gap-1 opacity-60 transition hover:opacity-100">
@@ -302,11 +311,7 @@ export function ChatPanel({
               );
             })
           )}
-          {isGenerating && progressLabel ? (
-            <div className="px-2 py-1 text-xs">
-              <Shimmer>{progressLabel}</Shimmer>
-            </div>
-          ) : null}
+          {isGenerating ? <ThinkingDots className="ml-1 mt-1" /> : null}
           {chatError && !isGenerating ? (
             <div className="mx-2 my-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
               <div className="font-medium text-destructive">
