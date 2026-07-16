@@ -182,7 +182,7 @@ function ActivationCenter() {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="w-56" />
+            <DashboardSearch value={search} onChange={setSearch} placeholder="Search…" className="w-56 flex-none" />
             <Button
               size="sm"
               disabled={selected.size === 0 || sendMut.isPending}
