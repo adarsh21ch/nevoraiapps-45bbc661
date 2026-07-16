@@ -49,7 +49,6 @@ function GalleryPage() {
                     path={it.url}
                     alt={it.caption ?? ""}
                     className="h-auto w-full rounded-lg object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
                   />
                 )}
                 {it.caption && (
