@@ -132,14 +132,18 @@ export type Kpis = {
   openInvoices: number;
 };
 
+/**
+ * Canonical KPIs. Every finance number here comes from `fetchBillingKpis`
+ * (`billing_invoices` + `billing_payments`). Legacy `payments` +
+ * `studentDue()` reads were removed in Phase 13.3 — Dashboard, Fees,
+ * Billing, Reports, NevorAI, Daily Brief and Analytics now share one
+ * calculation.
+ */
 export async function fetchKpis(tenant: Tenant): Promise<Kpis> {
   const tenantId = tenant.id;
-  const cycle = tenantFeeCycle(tenant);
-  const now = new Date();
   const weekAgo = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
-  const periods = cycle === "joining_date" ? candidatePeriods(now) : [periodKey(now)];
 
-  const [active, regs, studentsMonthly, paidRows, billingKpis] = await Promise.all([
+  const [active, regs, billingKpis] = await Promise.all([
     supabase
       .from("students")
       .select("id", { count: "exact", head: true })
@@ -150,72 +154,68 @@ export async function fetchKpis(tenant: Tenant): Promise<Kpis> {
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
       .gte("created_at", weekAgo),
-    supabase
-      .from("students")
-      .select("id, joined_at, fee_plan_id, fee_plans!inner(type)")
-      .eq("tenant_id", tenantId)
-      .eq("status", "active")
-      .eq("fee_plans.type", "monthly"),
-    supabase
-      .from("payments")
-      .select("student_id, period")
-      .eq("tenant_id", tenantId)
-      .in("period", periods),
-    // Canonical billing service — same numbers as NevorAI/Reports/Brief.
+    // Canonical billing service — same numbers as NevorAI/Reports/Brief/Billing.
     fetchBillingKpis(tenantId).catch(() => null),
   ]);
-
-  const paidByStudent = new Map<string, Set<string>>();
-  for (const p of paidRows.data ?? []) {
-    if (!p.student_id || !p.period) continue;
-    const set = paidByStudent.get(p.student_id) ?? new Set<string>();
-    set.add(p.period);
-    paidByStudent.set(p.student_id, set);
-  }
-  const pending = (studentsMonthly.data ?? []).filter((s) => {
-    const due = studentDue({
-      cycle,
-      joinedAt: s.joined_at,
-      selectedMonth: now,
-      paidPeriods: paidByStudent.get(s.id) ?? new Set(),
-      today: now,
-    });
-    return due.state === "pending";
-  }).length;
 
   return {
     activeStudents: active.count ?? 0,
     newRegsThisWeek: regs.count ?? 0,
     collectionThisMonth: Number(billingKpis?.collectedThisMonth ?? 0),
-    pendingFeeCount: pending,
+    // `pendingFeeCount` is deprecated. Use `overdueInvoices` — the canonical
+    // count of past-due `billing_invoices` (matches NevorAI/Reports).
+    pendingFeeCount: Number(billingKpis?.overdue ?? 0),
     overdueInvoices: Number(billingKpis?.overdue ?? 0),
     outstandingAmount: Number(billingKpis?.outstanding ?? 0),
     openInvoices: Number(billingKpis?.openInvoices ?? 0),
   };
 }
 
-/** Payments carrying any of the given period keys (fee register paid-lookup). */
-export async function fetchPaymentsForPeriods(tenantId: string, periods: string[]) {
-  const { data, error } = await supabase
-    .from("payments")
-    .select("id, student_id, period, amount, method, type, receipt_no, created_at")
-    .eq("tenant_id", tenantId)
-    .in("period", periods);
-  if (error) throw error;
-  return data ?? [];
+/**
+ * @deprecated Legacy fee-register paid-lookup (period-keyed `payments`).
+ * Retained only for backward-compat with tests/scripts; the fee register
+ * route now redirects to `/dashboard/billing`. Returns an empty list so
+ * callers get a safe no-op instead of contradictory data.
+ */
+export async function fetchPaymentsForPeriods(_tenantId: string, _periods: string[]) {
+  return [] as Array<{
+    id: string;
+    student_id: string | null;
+    period: string | null;
+    amount: number;
+    method: string | null;
+    type: string | null;
+    receipt_no: number | null;
+    created_at: string;
+  }>;
 }
 
-/** All payments since a date, with student names (reports + CSV export). */
+/**
+ * Canonical: succeeded `billing_payments` since a timestamp, with student
+ * names for reports/CSV export. Replaces the legacy `payments` read.
+ */
 export async function fetchPaymentsSince(tenantId: string, sinceISO: string) {
   const { data, error } = await supabase
-    .from("payments")
-    .select("id, amount, type, period, method, receipt_no, note, created_at, students(name)")
+    .from("billing_payments")
+    .select("id, amount, method, reference_number, remarks, collected_at, students(name)")
     .eq("tenant_id", tenantId)
-    .gte("created_at", sinceISO)
-    .order("created_at", { ascending: false });
+    .eq("status", "succeeded")
+    .gte("collected_at", sinceISO)
+    .order("collected_at", { ascending: false });
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    amount: Number(r.amount ?? 0),
+    type: null as string | null,
+    period: null as string | null,
+    method: r.method,
+    receipt_no: r.reference_number,
+    note: r.remarks,
+    created_at: r.collected_at,
+    students: r.students,
+  }));
 }
+
 
 // -----------------------------------------------------------------------------
 // Dashboard insights: revenue trend (last 6 months), today's attendance %,
