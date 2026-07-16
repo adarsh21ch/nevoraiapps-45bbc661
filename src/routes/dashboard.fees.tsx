@@ -6,6 +6,17 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchPaymentsForPeriods, fetchStudents, qk } from "@/lib/dashboard-queries";
+import { recordPayment } from "@/lib/billing";
+
+// M2a bridge helpers — route-local, no lib changes.
+function buildQuickCollectRemarks(period: string, existingRemarks: string | null | undefined) {
+  const prefix = `[period:${period}]`;
+  const rest = (existingRemarks ?? "").trim();
+  return rest ? `${prefix} ${rest}` : prefix;
+}
+function quickCollectIdempotencyKey(studentId: string, period: string, amount: number) {
+  return `fees:quick:${studentId}:${period}:${amount}`;
+}
 import {
   candidatePeriods,
   periodKey,
