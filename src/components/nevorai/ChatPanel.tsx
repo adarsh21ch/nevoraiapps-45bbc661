@@ -273,6 +273,11 @@ export function ChatPanel({
       }
       await sendMessage({ text: trimmed });
       setInput("");
+      try {
+        window.localStorage.removeItem(draftKey);
+      } catch {
+        /* ignore */
+      }
       if (wasEmpty) onConversationStarted?.();
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
