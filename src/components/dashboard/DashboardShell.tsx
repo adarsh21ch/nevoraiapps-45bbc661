@@ -75,7 +75,7 @@ const secondaryNav: NavItem[] = [
   { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
   { to: "/dashboard/staff", label: "Staff", icon: Users, adminOnly: false, ownerOnly: false },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-  { to: "/dashboard/site", label: "Gallery", icon: ImageIcon },
+  { to: "/dashboard/site", label: "Website", icon: ImageIcon },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
