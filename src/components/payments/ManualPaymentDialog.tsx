@@ -7,7 +7,7 @@
  *
  * Reuses uploadTenantFile (R2) and submitManualPayment server function.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -37,7 +37,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { uploadTenantFile } from "@/lib/storage";
+import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { submitManualPayment } from "@/lib/payments/manual.functions";
 import { formatMoney } from "@/lib/billing";
 
@@ -80,6 +80,26 @@ export function ManualPaymentDialog({
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [qrSrc, setQrSrc] = useState<string>("");
+
+  useEffect(() => {
+    let cancelled = false;
+    const v = setup.upi_qr_url;
+    if (!v) {
+      setQrSrc("");
+      return;
+    }
+    if (v.startsWith("http") || v.startsWith("data:")) {
+      setQrSrc(v);
+      return;
+    }
+    signedUrl(v).then((u) => {
+      if (!cancelled) setQrSrc(u);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [setup.upi_qr_url]);
 
   const submitFn = useServerFn(submitManualPayment);
   const qc = useQueryClient();
@@ -227,11 +247,15 @@ export function ManualPaymentDialog({
             {method === "qr" && setup.upi_qr_url && (
               <div className="rounded-lg border p-3 space-y-2 bg-muted/30 text-center">
                 <p className="text-xs font-semibold">Scan this QR</p>
-                <img
-                  src={setup.upi_qr_url}
-                  alt="UPI QR"
-                  className="mx-auto rounded-md max-h-56"
-                />
+                {qrSrc ? (
+                  <img
+                    src={qrSrc}
+                    alt="UPI QR"
+                    className="mx-auto rounded-md max-h-56 bg-white"
+                  />
+                ) : (
+                  <div className="mx-auto h-40 w-40 rounded-md bg-muted animate-pulse" />
+                )}
                 <p className="text-[11px] text-muted-foreground">
                   Open any UPI app and scan
                 </p>
