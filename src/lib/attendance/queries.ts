@@ -458,3 +458,95 @@ export function useCheckOut(tenantId: string) {
     },
   });
 }
+
+// ---------------------------------------------------------------------------
+// Canonical aggregations (Phase 13.4)
+// ---------------------------------------------------------------------------
+// Every attendance count/percentage/summary across AcademyOS — Dashboard,
+// Reports, Analytics, NevorAI, Owner Summary, Notifications — MUST go
+// through these helpers. Do not add new `.from("attendance_marks")`
+// count queries in feature code; extend this module instead.
+
+export type AttendanceTotals = {
+  present: number;
+  absent: number;
+  inAcademy: number;
+  checkedOut: number;
+  total: number;
+  percent: number; // present / (present + absent), rounded
+  sessions: number;
+};
+
+/** Derive present/absent/percent totals from `AttendanceTodayRow[]`. */
+export function summarizeAttendance(
+  rows: AttendanceTodayRow[],
+  opts: { sessions?: number } = {},
+): AttendanceTotals {
+  let present = 0;
+  let absent = 0;
+  let inAcademy = 0;
+  let checkedOut = 0;
+  for (const r of rows) {
+    if (r.current_state === "in_academy") inAcademy++;
+    else if (r.current_state === "checked_out") checkedOut++;
+    if (r.status === "present") present++;
+    else if (r.status === "absent") absent++;
+  }
+  const total = present + absent;
+  const percent = total > 0 ? Math.round((present / total) * 100) : 0;
+  return {
+    present,
+    absent,
+    inAcademy,
+    checkedOut,
+    total,
+    percent,
+    sessions: opts.sessions ?? 0,
+  };
+}
+
+type AnyClient = {
+  from: (t: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    select: (...args: any[]) => any;
+  };
+};
+
+/**
+ * Canonical range count for a single attendance status (present/absent/late).
+ * Used by NevorAI trends/priorities and the owner summary so every
+ * "attendance in the last N days" number comes from one place.
+ *
+ * `field` picks which timestamp anchors the range — `check_in_at` for
+ * present/late (only set when a student actually checked in) or
+ * `created_at` for absent (no check-in exists).
+ */
+export async function countAttendanceByStatus(
+  client: AnyClient,
+  tenantId: string,
+  status: AttendanceStatus,
+  sinceISO: string,
+  untilISO?: string,
+  field: "check_in_at" | "created_at" = status === "absent" ? "created_at" : "check_in_at",
+): Promise<number> {
+  let q = client
+    .from("attendance_marks")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", tenantId)
+    .eq("status", status)
+    .gte(field, sinceISO);
+  if (untilISO) q = q.lte(field, untilISO);
+  const { count } = await q;
+  return (count as number | null) ?? 0;
+}
+
+/** Absentees today — canonical helper for priorities / notifications. */
+export async function countAbsentToday(
+  client: AnyClient,
+  tenantId: string,
+  now: Date = new Date(),
+): Promise<number> {
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  return countAttendanceByStatus(client, tenantId, "absent", startOfDay);
+}
+
