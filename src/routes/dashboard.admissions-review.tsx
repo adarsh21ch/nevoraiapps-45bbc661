@@ -116,6 +116,18 @@ function AdmissionsReviewPage() {
         </Link>
       </div>
 
+      <div className="-mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <span className="uppercase tracking-wide">Admissions</span>
+        <span aria-hidden>·</span>
+        <Link to="/dashboard/registrations" className="hover:text-foreground underline underline-offset-2">
+          Registrations
+        </Link>
+        <Link to="/dashboard/leads" className="hover:text-foreground underline underline-offset-2">
+          Leads pipeline
+        </Link>
+      </div>
+
+
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex-1 min-w-[240px]">
           <FilterTabs

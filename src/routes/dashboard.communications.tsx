@@ -299,15 +299,21 @@ function TemplateList({
     return <div className="text-sm text-muted-foreground p-6 text-center">Loading templates…</div>;
   if (!items.length) {
     return (
-      <Card className="p-10 text-center space-y-2">
+      <Card className="p-10 text-center space-y-3">
         <FileText className="size-6 mx-auto text-muted-foreground" />
         <div className="text-sm font-semibold">No templates yet</div>
         <p className="text-xs text-muted-foreground">
           Save reusable messages with <code>{"{{student_name}}"}</code> variables.
         </p>
+        <div className="pt-1">
+          <Button size="sm" onClick={() => onEdit({} as CommTemplate)} className="rounded-full">
+            <Plus className="size-4 mr-1.5" /> Create template
+          </Button>
+        </div>
       </Card>
     );
   }
+
   return (
     <div className="grid gap-2.5 sm:grid-cols-2">
       {items.map((t) => (
