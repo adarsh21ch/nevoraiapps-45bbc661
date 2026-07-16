@@ -536,16 +536,16 @@ export const founderIntelligenceTool: AnyToolDef = {
   category: "founder",
   parameters: emptySchema,
   allowedRoles: ["platform_admin"],
-  async execute(): Promise<ToolResult> {
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { data: tenants, error } = await supabase.from("tenants").select("*");
+  async execute(_input, ctx): Promise<ToolResult> {
+    const db = await dbFor(ctx);
+    const { data: tenants, error } = await db.from("tenants").select("*");
     if (error) {
       return { ok: false, reason: "internal", code: "TENANTS_READ_FAILED", message: error.message };
     }
     const { fetchIntelligenceSnapshot, computeExecutiveKpis, computePlatformAnalytics } = await import(
       "@/lib/founder-intelligence"
     );
-    const snapshot = await fetchIntelligenceSnapshot((tenants ?? []) as never);
+    const snapshot = await fetchIntelligenceSnapshot((tenants ?? []) as never, db);
     const kpis = computeExecutiveKpis(snapshot);
     const analytics = computePlatformAnalytics(snapshot);
     return {
