@@ -25,7 +25,7 @@ import {
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { createLovableAiGatewayProvider, NEVORAI_DEFAULT_MODEL } from "@/lib/ai-gateway.server";
-import { buildContext, defaultPromptFor, getAgent } from "@/lib/ai-os";
+import { buildContext, defaultPromptFor } from "@/lib/ai-os";
 import { buildToolBag } from "@/lib/nevorai/tools-adapter.server";
 import { bootstrapNevorAI } from "@/lib/ai-os/bootstrap.server";
 
@@ -176,10 +176,7 @@ export const Route = createFileRoute("/api/chat")({
         const model = gateway(NEVORAI_DEFAULT_MODEL);
         const tools = buildToolBag(ctx);
 
-        const agent = getAgent("owner_ai");
-        const systemPrompt = agent
-          ? defaultPromptFor(agent.defaultPromptId ?? "owner_summary")
-          : defaultPromptFor("owner_summary");
+        const systemPrompt = defaultPromptFor(ctx);
 
         const enrichedSystem = [
           systemPrompt,
