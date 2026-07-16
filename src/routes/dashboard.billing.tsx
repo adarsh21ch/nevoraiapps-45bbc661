@@ -195,14 +195,41 @@ function BillingWorkspace() {
         />
       </section>
 
-      <BillingTabsBlock
-        tenantId={tenantId}
-        invoicesQ={invoicesQ}
-        studentsQ={studentsQ}
-        paymentsQ={paymentsQ}
-        subsQ={subsQ}
-        invalidateAll={invalidateAll}
+      <FilterTabs<"invoices" | "payments" | "subs">
+        value={tab}
+        onChange={setTab}
+        items={[
+          { key: "invoices", label: "Bills", icon: FileText },
+          { key: "payments", label: "Collections", icon: Banknote },
+          { key: "subs", label: "Fee plans", icon: Users },
+        ]}
       />
+
+      <div className="mt-4">
+        {tab === "invoices" && (
+          <InvoicesTable
+            tenantId={tenantId}
+            invoices={invoicesQ.data ?? []}
+            students={studentsQ.data ?? []}
+            loading={invoicesQ.isLoading}
+            onDone={invalidateAll}
+          />
+        )}
+        {tab === "payments" && (
+          <PaymentsTable
+            payments={paymentsQ.data ?? []}
+            students={studentsQ.data ?? []}
+            loading={paymentsQ.isLoading}
+          />
+        )}
+        {tab === "subs" && (
+          <SubscriptionsTable
+            subs={subsQ.data ?? []}
+            students={studentsQ.data ?? []}
+            loading={subsQ.isLoading}
+          />
+        )}
+      </div>
     </div>
   );
 }
