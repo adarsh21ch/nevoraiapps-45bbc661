@@ -103,8 +103,9 @@ export function getTool(name: string): AnyToolDef | undefined {
 export type InvokeOptions = {
   /** Set by the orchestrator once the user has approved a write call. */
   confirmed?: boolean;
-  /** Correlation id for observability (agent run id, request id, …). */
-  correlationId?: string;
+  /** Correlation ids for observability (from the orchestrator run). */
+  agentId?: string;
+  conversationId?: string;
 };
 
 export async function invokeTool(
@@ -114,13 +115,18 @@ export async function invokeTool(
   opts: InvokeOptions = {},
 ): Promise<ToolResult> {
   const started = Date.now();
+  const base = {
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    agentId: opts.agentId ?? "tool_registry",
+    conversationId: opts.conversationId ?? "adhoc",
+  };
   const emit = (result: ToolResult) => {
     const durationMs = Date.now() - started;
     void emitAIEvent(
-      makeEvent(result.ok ? "ai.tool.succeeded" : "ai.tool.failed", ctx, {
+      makeEvent(result.ok ? "ai.tool_called" : "ai.tool_failed", base, {
         tool: name,
         durationMs,
-        correlationId: opts.correlationId,
         reason: result.ok ? undefined : result.reason,
         code: result.ok ? undefined : result.code,
       }),
@@ -157,12 +163,6 @@ export async function invokeTool(
     });
   }
   try {
-    void emitAIEvent(
-      makeEvent("ai.tool.started", ctx, {
-        tool: name,
-        correlationId: opts.correlationId,
-      }),
-    );
     const result = await tool.execute(input, ctx);
     return emit(result);
   } catch (e) {
