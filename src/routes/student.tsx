@@ -184,7 +184,7 @@ function StudentLayout() {
         aria-label="Primary"
         className="fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 pb-[env(safe-area-inset-bottom)]"
       >
-        <div className="max-w-3xl mx-auto grid grid-cols-4">
+        <div className="max-w-3xl mx-auto grid grid-cols-6">
           {TABS.map((t) => {
             const active = t.exact ? pathname === t.to : pathname.startsWith(t.to);
             const Icon = t.icon;
@@ -193,7 +193,7 @@ function StudentLayout() {
                 key={t.to}
                 to={t.to}
                 className={cn(
-                  "flex flex-col items-center justify-center py-3 gap-1 text-xs transition-colors",
+                  "flex flex-col items-center justify-center py-3 gap-1 text-[10px] transition-colors",
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
