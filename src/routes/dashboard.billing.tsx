@@ -199,9 +199,9 @@ function BillingWorkspace() {
         value={tab}
         onChange={setTab}
         items={[
-          { key: "invoices", label: "Bills", icon: FileText },
-          { key: "payments", label: "Collections", icon: Banknote },
-          { key: "subs", label: "Fee plans", icon: Users },
+          { key: "invoices", label: "Bills", icon: <FileText className="w-4 h-4" /> },
+          { key: "payments", label: "Collections", icon: <Banknote className="w-4 h-4" /> },
+          { key: "subs", label: "Fee plans", icon: <Users className="w-4 h-4" /> },
         ]}
       />
 
