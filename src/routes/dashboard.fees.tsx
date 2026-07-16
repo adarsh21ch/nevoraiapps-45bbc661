@@ -259,7 +259,7 @@ function FeesPage() {
         <DashboardKPICard
           label="Pending"
           value={String(totals.pendingStudents)}
-          hint={`${formatMoney(totals.pendingAmount, "INR")} due`}
+          delta={`${formatMoney(totals.pendingAmount, "INR")} due`}
         />
         <DashboardKPICard
           label="Collected this month"
@@ -333,8 +333,8 @@ function PendingList({
   error: unknown;
   onCollect: (s: PendingStudent) => void;
 }) {
-  if (isLoading) return <DashboardLoadingState label="Loading pending fees" />;
-  if (error) return <DashboardErrorState message="Could not load pending fees." />;
+  if (isLoading) return <DashboardLoadingState />;
+  if (error) return <DashboardErrorState title="Could not load pending fees." />;
   if (data.length === 0) {
     return (
       <DashboardEmptyState
@@ -362,7 +362,7 @@ function PendingList({
           status={
             <div className="flex items-center gap-2">
               <span className="font-semibold">{formatMoney(row.balance, "INR")}</span>
-              {row.overdue ? <DashboardBadge tone="rose">Overdue</DashboardBadge> : null}
+              {row.overdue ? <DashboardBadge tone="danger">Overdue</DashboardBadge> : null}
             </div>
           }
           action={
@@ -385,8 +385,8 @@ function PaidList({
   isLoading: boolean;
   error: unknown;
 }) {
-  if (isLoading) return <DashboardLoadingState label="Loading payments" />;
-  if (error) return <DashboardErrorState message="Could not load payments." />;
+  if (isLoading) return <DashboardLoadingState />;
+  if (error) return <DashboardErrorState title="Could not load payments." />;
   if (data.length === 0) {
     return (
       <DashboardEmptyState
