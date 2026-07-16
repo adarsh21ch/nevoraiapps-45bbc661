@@ -298,8 +298,9 @@ export const playerProfileTool: AnyToolDef = {
     if (!studentId) {
       return { ok: false, reason: "forbidden", code: "STUDENT_SCOPE_DENIED", message: "No accessible student for this caller." };
     }
+    const db = await dbFor(ctx);
     const { fetchStudent } = await import("@/lib/dashboard-queries");
-    const student = await fetchStudent(studentId);
+    const student = await fetchStudent(studentId, db);
     if (!student || (student as { tenant_id?: string }).tenant_id !== ctx.tenantId) {
       return { ok: false, reason: "not_found", code: "STUDENT_NOT_FOUND", message: "Student not found." };
     }
