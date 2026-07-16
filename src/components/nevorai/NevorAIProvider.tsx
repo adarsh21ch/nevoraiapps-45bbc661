@@ -11,8 +11,8 @@
  * pre-fill a prompt, or read whether it is open.
  */
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
