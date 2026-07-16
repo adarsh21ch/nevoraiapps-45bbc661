@@ -6,6 +6,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DashboardSearch } from "@/components/dashboard-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ModuleHeader } from "@/components/shared/ModuleHeader";
