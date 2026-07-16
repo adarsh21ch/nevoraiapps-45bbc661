@@ -138,6 +138,7 @@ export function ChatPanel({
       const trimmed = text.trim();
       if (!trimmed || status === "streaming" || status === "submitted") return;
       const wasEmpty = messages.length === 0;
+      setChatError(null);
       await sendMessage({ text: trimmed });
       setInput("");
       if (wasEmpty) onConversationStarted?.();
