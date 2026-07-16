@@ -124,7 +124,9 @@ export function buildToolBag(ctx: AIContext): NevorAIToolBag {
       description: t.description,
       inputSchema: jsonSchema(t.parameters as never),
       execute: async (input: unknown) => {
-        if (!cacheable) return invokeTool(t.name, input, ctx);
+        // Write tools (or confirmation-required) go straight through with a
+        // single retry on transient failure — never cached.
+        if (!cacheable) return invokeWithRetry(t.name, input, ctx);
 
         const key = `${scope}:${t.name}:${safeKey(input)}`;
 
@@ -136,7 +138,7 @@ export function buildToolBag(ctx: AIContext): NevorAIToolBag {
         const inflight = perRequest.get(key);
         if (inflight) return inflight;
 
-        const p = invokeTool(t.name, input, ctx);
+        const p = invokeWithRetry(t.name, input, ctx);
         perRequest.set(key, p);
         try {
           const result = await p;
