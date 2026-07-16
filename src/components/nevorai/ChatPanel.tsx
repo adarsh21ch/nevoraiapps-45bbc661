@@ -233,6 +233,8 @@ export function ChatPanel({
       if (!trimmed || status === "streaming" || status === "submitted") return;
       const wasEmpty = messages.length === 0 && !conversationIdRef.current;
       setChatError(null);
+      autoRetryRef.current = 0;
+      lastPromptRef.current = trimmed;
       // Mint a real conversation row BEFORE the first send so the server
       // does not silently create a new "New conversation" every turn.
       if (!conversationIdRef.current && ensureConversationId) {
@@ -250,6 +252,19 @@ export function ChatPanel({
     },
     [messages.length, onConversationStarted, sendMessage, status, ensureConversationId],
   );
+
+  // Safe retry: preserves conversation id + last prompt so nothing is lost,
+  // even when the first turn failed before any assistant reply.
+  const retry = useCallback(() => {
+    setChatError(null);
+    autoRetryRef.current = 0;
+    const hasAssistant = messages.some((m) => m.role === "assistant");
+    if (hasAssistant) {
+      void regenerate();
+    } else if (lastPromptRef.current) {
+      void sendMessage({ text: lastPromptRef.current });
+    }
+  }, [messages, regenerate, sendMessage]);
 
   const isGenerating = status === "submitted" || status === "streaming";
 
