@@ -54,7 +54,7 @@ function FounderAIPage() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={<Zap className="size-4" />} label="AI requests" value={d.totalRequests.toLocaleString("en-IN")} sub={`${d.totalTokens.toLocaleString("en-IN")} tokens`} />
         <Kpi icon={<Timer className="size-4" />} label="Avg response time" value={`${d.avgLatencyMs} ms`} />
-        <Kpi icon={<Wallet className="size-4" />} label="Avg cost" value={`${(d.totalCostCredits / Math.max(d.totalRequests, 1)).toFixed(3)} credits`} sub={`${d.totalCostCredits} total`} />
+        <Kpi icon={<Wallet className="size-4" />} label="Avg cost" value={`$${(d.totalCostUsd / Math.max(d.totalRequests, 1)).toFixed(4)}`} sub={`$${d.totalCostUsd.toFixed(2)} total`} />
         <Kpi icon={<Building2 className="size-4" />} label="Active academies" value={`${d.activeAcademies}`} sub={`${d.adoptionPct}% adoption`} />
         <Kpi icon={<Users className="size-4" />} label="Active users" value={`${d.activeUsers}`} />
         <Kpi icon={<Sparkles className="size-4" />} label="Adoption" value={`${d.adoptionPct}%`} sub="Of active tenants" />
