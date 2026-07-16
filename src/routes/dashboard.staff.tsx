@@ -566,7 +566,7 @@ function MemberRow({ member, tenantId }: { member: StaffMember; tenantId: string
       {!isOwner && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" aria-label="More actions">
               <MoreVertical className="size-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -702,7 +702,7 @@ function InvitationRow({ inv, tenantId }: { inv: StaffInvitation; tenantId: stri
       {status === "pending" && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" aria-label="More actions">
               <MoreVertical className="size-4" />
             </Button>
           </DropdownMenuTrigger>
