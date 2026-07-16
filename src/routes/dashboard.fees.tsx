@@ -26,6 +26,7 @@ import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FilterTabs } from "@/components/shared/FilterTabs";
+import { DashboardSearch } from "@/components/dashboard-ui";
 import {
   Banknote,
   CheckCircle2,
