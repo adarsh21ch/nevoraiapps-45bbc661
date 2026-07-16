@@ -108,6 +108,7 @@ export type Kpis = {
   newRegsThisWeek: number;
   collectionThisMonth: number;
   pendingFeeCount: number;
+  pendingFeeAmount: number;
 };
 
 export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis> {
@@ -136,7 +137,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .gte("created_at", startOfMonth),
     db
       .from("students")
-      .select("id, joined_at, fee_plan_id, fee_plans!inner(type)")
+      .select("id, joined_at, fee_plan_id, fee_plans!inner(type, amount)")
       .eq("tenant_id", tenantId)
       .eq("status", "active")
       .eq("fee_plans.type", "monthly"),
@@ -156,7 +157,14 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     set.add(p.period);
     paidByStudent.set(p.student_id, set);
   }
-  const pending = (studentsMonthly.data ?? []).filter((s) => {
+  let pending = 0;
+  let pendingAmount = 0;
+  for (const s of (studentsMonthly.data ?? []) as Array<{
+    id: string;
+    joined_at: string | null;
+    fee_plans: { amount: number | null } | Array<{ amount: number | null }> | null;
+  }>) {
+    if (!s.joined_at) continue;
     const due = studentDue({
       cycle,
       joinedAt: s.joined_at,
@@ -164,16 +172,21 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       paidPeriods: paidByStudent.get(s.id) ?? new Set(),
       today: now,
     });
-    return due.state === "pending";
-  }).length;
+    if (due.state !== "pending") continue;
+    pending++;
+    const plan = Array.isArray(s.fee_plans) ? s.fee_plans[0] : s.fee_plans;
+    pendingAmount += Number(plan?.amount ?? 0);
+  }
 
   return {
     activeStudents: active.count ?? 0,
     newRegsThisWeek: regs.count ?? 0,
     collectionThisMonth: collection,
     pendingFeeCount: pending,
+    pendingFeeAmount: pendingAmount,
   };
 }
+
 
 /** Payments carrying any of the given period keys (fee register paid-lookup). */
 export async function fetchPaymentsForPeriods(tenantId: string, periods: string[]) {

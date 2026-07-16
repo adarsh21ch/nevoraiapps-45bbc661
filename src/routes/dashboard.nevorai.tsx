@@ -144,9 +144,14 @@ function NevorAIPage() {
       className={cn(
         "-mx-4 md:-mx-8 -mt-4 md:-mt-8 -mb-32 md:-mb-8",
         "flex bg-background text-foreground",
-        "h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]",
+        // Mobile: subtract the fixed bottom nav (~56px min-height) + its
+        // safe-area padding so the chat input stays above the home indicator
+        // AND above the bottom nav. Desktop: only the top header (3.5rem).
+        "h-[calc(100dvh-env(safe-area-inset-top)-3.5rem-env(safe-area-inset-bottom)-56px)]",
+        "md:h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]",
       )}
     >
+
       {/* Conversations rail — persistent on lg+ (compact) */}
       <aside className="hidden lg:flex w-[240px] xl:w-[260px] shrink-0 flex-col border-r border-border/60 bg-card/40">
         <ConversationList activeId={conversationId} onSelect={setConversationId} />
