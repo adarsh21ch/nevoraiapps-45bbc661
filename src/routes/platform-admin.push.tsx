@@ -119,7 +119,7 @@ function PushDashboardPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6 p-4 sm:p-6">
+    <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
@@ -205,13 +205,14 @@ function StatCard({
 
 function OverviewCards() {
   const fn = useServerFn(getPushDashboard);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["push-admin", "dashboard"],
     queryFn: () => fn(),
     refetchInterval: 30_000,
+    retry: 1,
   });
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         {Array.from({ length: 12 }).map((_, i) => (
@@ -220,6 +221,26 @@ function OverviewCards() {
       </div>
     );
   }
+
+  if (isError || !data) {
+    return (
+      <Card className="p-6">
+        <div className="flex flex-col items-start gap-3 text-sm">
+          <div className="flex items-center gap-2 text-rose-500">
+            <AlertTriangle className="h-4 w-4" />
+            <span className="font-medium">Failed to load push metrics</span>
+          </div>
+          <p className="text-muted-foreground">
+            {error instanceof Error ? error.message : "The dashboard could not be loaded."}
+          </p>
+          <Button size="sm" variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={cn("mr-1 h-3 w-3", isFetching && "animate-spin")} /> Retry
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
 
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
@@ -263,10 +284,11 @@ function HealthBadge({ health }: { health: "healthy" | "warning" | "offline" }) 
 
 function ProviderHealth() {
   const fn = useServerFn(getPushProvidersHealth);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["push-admin", "providers"],
     queryFn: () => fn(),
     refetchInterval: 30_000,
+    retry: 1,
   });
 
   return (
@@ -275,9 +297,22 @@ function ProviderHealth() {
         <Zap className="h-4 w-4 text-primary" />
         <h2 className="text-sm font-semibold text-foreground">Provider health</h2>
       </div>
-      {isLoading || !data ? (
+      {isLoading ? (
         <Skeleton className="h-24 w-full" />
+      ) : isError || !data ? (
+        <div className="flex flex-col items-start gap-2 text-sm">
+          <div className="flex items-center gap-2 text-rose-500">
+            <AlertTriangle className="h-4 w-4" />
+            <span>{error instanceof Error ? error.message : "Failed to load provider health"}</span>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={cn("mr-1 h-3 w-3", isFetching && "animate-spin")} /> Retry
+          </Button>
+        </div>
+      ) : data.providers.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No push providers configured yet.</p>
       ) : (
+
         <div className="grid gap-3 md:grid-cols-2">
           {data.providers.map((p) => (
             <div
