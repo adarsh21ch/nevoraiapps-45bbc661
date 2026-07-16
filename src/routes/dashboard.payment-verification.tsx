@@ -139,36 +139,38 @@ function PaymentVerificationPage() {
         </Link>
       </header>
 
-      <Tabs value={status} onValueChange={(v) => setStatus(v as "pending" | "reviewed")}>
-        <TabsList>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="reviewed">History</TabsTrigger>
-        </TabsList>
-        <TabsContent value={status} className="mt-4">
-          {q.isLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-32" />
-              <Skeleton className="h-32" />
-            </div>
-          ) : filtered.length === 0 ? (
-            <Card className="p-8 text-center space-y-2">
-              <Receipt className="size-8 mx-auto text-muted-foreground" />
-              <p className="text-sm font-medium">
-                {status === "pending" ? "No pending submissions" : "No history yet"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Parents' payment proofs will appear here for review.
-              </p>
-            </Card>
-          ) : (
-            <div className="grid gap-3 md:grid-cols-2">
-              {filtered.map((r) => (
-                <SubmissionCard key={r.id} row={r} onChange={() => q.refetch()} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+      <FilterTabs<"pending" | "reviewed">
+        value={status}
+        onChange={setStatus}
+        items={[
+          { key: "pending", label: "Pending" },
+          { key: "reviewed", label: "History" },
+        ]}
+      />
+      <div className="mt-4">
+        {q.isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <Card className="p-8 text-center space-y-2">
+            <Receipt className="size-8 mx-auto text-muted-foreground" />
+            <p className="text-sm font-medium">
+              {status === "pending" ? "No pending submissions" : "No history yet"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Parents' payment proofs will appear here for review.
+            </p>
+          </Card>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {filtered.map((r) => (
+              <SubmissionCard key={r.id} row={r} onChange={() => q.refetch()} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
