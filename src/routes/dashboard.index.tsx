@@ -297,7 +297,7 @@ function DashboardHome() {
         <SectionLabel>Next actions</SectionLabel>
         <NextActions
           notArrived={notArrived}
-          pendingFees={canViewFees && feeEnabled ? pendingFees : 0}
+          pendingFees={canViewFees && feeEnabled ? overdueInvoices : 0}
           newRegs={newRegs}
           birthdaysToday={(insights?.birthdays ?? []).filter((b) => b.daysAway === 0).length}
           isLoading={attendanceLoading || insightsQ.isLoading || kpisQ.isLoading}
