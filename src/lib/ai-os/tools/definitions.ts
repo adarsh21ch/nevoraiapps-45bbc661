@@ -325,8 +325,9 @@ export const admissionsSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
   async execute(_input, ctx): Promise<ToolResult> {
+    const db = await dbFor(ctx);
     const { leadsPipelineQuery } = await import("@/lib/admissions");
-    const q = leadsPipelineQuery(ctx.tenantId);
+    const q = leadsPipelineQuery(ctx.tenantId, db);
     const leads = await q.queryFn();
     const byStage: Record<string, number> = {};
     for (const l of leads) {
