@@ -111,6 +111,7 @@ function BatchesPage() {
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={`Edit batch ${b.name}`}
                   onClick={() => {
                     setEditing({
                       id: b.id,
