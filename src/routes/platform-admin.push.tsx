@@ -119,7 +119,7 @@ function PushDashboardPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6 p-4 sm:p-6">
+    <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
