@@ -119,6 +119,7 @@ import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
 import { Route as DashboardActivationRouteImport } from './routes/dashboard.activation'
 import { Route as DashboardAcademyRouteImport } from './routes/dashboard.academy'
 import { Route as ApplySlugRouteImport } from './routes/apply.$slug'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ActivateTokenRouteImport } from './routes/activate.$token'
 import { Route as AcademySlugRouteImport } from './routes/academy.$slug'
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
@@ -702,6 +703,11 @@ const ApplySlugRoute = ApplySlugRouteImport.update({
   path: '/apply/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ActivateTokenRoute = ActivateTokenRouteImport.update({
   id: '/activate/$token',
   path: '/activate/$token',
@@ -877,6 +883,7 @@ export interface FileRoutesByFullPath {
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/activate/$token': typeof ActivateTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
@@ -1009,6 +1016,7 @@ export interface FileRoutesByTo {
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/activate/$token': typeof ActivateTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
@@ -1147,6 +1155,7 @@ export interface FileRoutesById {
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/activate/$token': typeof ActivateTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
@@ -1286,6 +1295,7 @@ export interface FileRouteTypes {
     | '/testimonials'
     | '/academy/$slug'
     | '/activate/$token'
+    | '/api/chat'
     | '/apply/$slug'
     | '/dashboard/academy'
     | '/dashboard/activation'
@@ -1418,6 +1428,7 @@ export interface FileRouteTypes {
     | '/testimonials'
     | '/academy/$slug'
     | '/activate/$token'
+    | '/api/chat'
     | '/apply/$slug'
     | '/dashboard/academy'
     | '/dashboard/activation'
@@ -1555,6 +1566,7 @@ export interface FileRouteTypes {
     | '/testimonials'
     | '/academy/$slug'
     | '/activate/$token'
+    | '/api/chat'
     | '/apply/$slug'
     | '/dashboard/academy'
     | '/dashboard/activation'
@@ -1693,6 +1705,7 @@ export interface RootRouteChildren {
   TestimonialsRoute: typeof TestimonialsRoute
   AcademySlugRoute: typeof AcademySlugRoute
   ActivateTokenRoute: typeof ActivateTokenRoute
+  ApiChatRoute: typeof ApiChatRoute
   ApplySlugRoute: typeof ApplySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
@@ -2481,6 +2494,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApplySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/activate/$token': {
       id: '/activate/$token'
       path: '/activate/$token'
@@ -2961,6 +2981,7 @@ const rootRouteChildren: RootRouteChildren = {
   TestimonialsRoute: TestimonialsRoute,
   AcademySlugRoute: AcademySlugRoute,
   ActivateTokenRoute: ActivateTokenRoute,
+  ApiChatRoute: ApiChatRoute,
   ApplySlugRoute: ApplySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,
