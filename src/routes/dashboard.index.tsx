@@ -216,12 +216,23 @@ function DashboardHome() {
               to="/dashboard/fees"
               search={{ filter: "pending" }}
               label="Pending Fees"
-              value={kpisQ.isLoading ? null : pendingFees}
-              hint={pendingFees > 0 ? "Follow up" : "All caught up"}
+              value={
+                kpisQ.isLoading
+                  ? null
+                  : pendingFees > 0
+                    ? money(kpis?.pendingFeeAmount ?? 0)
+                    : "₹0"
+              }
+              hint={
+                pendingFees > 0
+                  ? `${pendingFees} student${pendingFees === 1 ? "" : "s"}`
+                  : "All caught up"
+              }
               icon={<IndianRupee className="size-4" />}
               tone={pendingFees > 0 ? "warn" : "muted"}
               emphasize={pendingFees > 0}
             />
+
           ) : (
             <KpiTile
               to="/dashboard/attendance"
