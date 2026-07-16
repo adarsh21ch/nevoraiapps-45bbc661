@@ -1,9 +1,10 @@
 /**
  * NevorAI conversation server functions.
  *
- * Reuses the existing `ai_conversations` / `ai_conversation_turns` tables
- * (created in Phase 11.2). All writes go through `supabaseAdmin` after
- * the caller has been authenticated by `requireSupabaseAuth`.
+ * Reuses the existing `ai_conversations` / `ai_conversation_turns` tables.
+ * All reads and writes go through the caller-scoped Supabase client
+ * (`context.supabase` from `requireSupabaseAuth`), which enforces RLS as the
+ * signed-in user. Owner-scoped INSERT/UPDATE/DELETE policies cover writes.
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -42,15 +43,13 @@ export const createConversation = createServerFn({ method: "POST" })
     z.object({ title: z.string().max(200).optional() }).parse(input),
   )
   .handler(async ({ context, data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // Look up tenant for this user.
     const { data: profile } = await context.supabase
       .from("profiles")
       .select("tenant_id")
       .eq("user_id", context.userId)
       .maybeSingle();
     if (!profile?.tenant_id) throw new Error("No tenant for user");
-    const { data: row, error } = await supabaseAdmin
+    const { data: row, error } = await context.supabase
       .from("ai_conversations")
       .insert({
         tenant_id: profile.tenant_id,
@@ -70,8 +69,7 @@ export const renameConversation = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid(), title: z.string().min(1).max(200) }).parse(input),
   )
   .handler(async ({ context, data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+    const { error } = await context.supabase
       .from("ai_conversations")
       .update({ title: data.title, updated_at: new Date().toISOString() })
       .eq("id", data.id)
@@ -86,8 +84,7 @@ export const pinConversation = createServerFn({ method: "POST" })
     z.object({ id: z.string().uuid(), pinned: z.boolean() }).parse(input),
   )
   .handler(async ({ context, data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+    const { error } = await context.supabase
       .from("ai_conversations")
       .update({ pinned: data.pinned })
       .eq("id", data.id)
@@ -100,8 +97,7 @@ export const deleteConversation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ context, data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+    const { error } = await context.supabase
       .from("ai_conversations")
       .update({ deleted_at: new Date().toISOString() })
       .eq("id", data.id)
