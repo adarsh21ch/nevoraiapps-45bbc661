@@ -140,6 +140,8 @@ function BillingWorkspace() {
     qc.invalidateQueries({ queryKey: ["billing"] });
   };
 
+  const [tab, setTab] = useState<"invoices" | "payments" | "subs">("invoices");
+
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 pb-24 space-y-6">
       <header className="flex items-start justify-between gap-4 flex-wrap">
