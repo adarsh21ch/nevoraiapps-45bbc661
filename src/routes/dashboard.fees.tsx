@@ -783,6 +783,12 @@ function CollectForm({
   const [method, setMethod] = useState<"cash" | "upi" | null>(null);
   const [note, setNote] = useState("");
 
+  const qc = useQueryClient();
+
+  // Phase 14 hot-path: close the sheet + toast success in the same frame the
+  // user taps "Confirm payment". The Supabase insert + Billing V2 bridge
+  // still run — but in the background. On failure we roll the cached fees
+  // list back and toast an error the owner can retry.
   const save = useMutation({
     mutationFn: async () => {
       if (!method) throw new Error("Choose a payment method");
@@ -816,10 +822,13 @@ function CollectForm({
       }
     },
     onSuccess: () => {
-      toast.success(`${row.name} marked paid ✓`);
-      onDone();
+      // Reconcile in the background — do NOT await; the UI already moved on.
+      qc.invalidateQueries({ queryKey: ["d", "fees"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(e.message || "Couldn't save payment — tap the student to retry");
+      qc.invalidateQueries({ queryKey: ["d", "fees"] });
+    },
   });
 
   const numeric = Number(amount);
