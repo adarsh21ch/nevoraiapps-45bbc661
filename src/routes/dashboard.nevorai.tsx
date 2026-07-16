@@ -90,17 +90,14 @@ function NevorAIPage() {
         "h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]",
       )}
     >
-      {/* Conversations rail — persistent on lg+ (~22%) */}
-      <aside className="hidden lg:flex w-[22%] min-w-[220px] max-w-[300px] shrink-0 flex-col border-r border-border/60 bg-card/40">
-        <LeftHeader onNew={() => setConversationId(null)} />
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <ConversationList activeId={conversationId} onSelect={setConversationId} />
-        </div>
+      {/* Conversations rail — persistent on lg+ (compact) */}
+      <aside className="hidden lg:flex w-[240px] xl:w-[260px] shrink-0 flex-col border-r border-border/60 bg-card/40">
+        <ConversationList activeId={conversationId} onSelect={setConversationId} />
       </aside>
 
-      {/* Center — chat (~56% on xl, more on lg, full on <lg) */}
+      {/* Center — chat */}
       <main className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between gap-2 border-b border-border/50 px-3 py-2 lg:px-5">
+        <header className="flex items-center justify-between gap-2 border-b border-border/50 px-3 py-2.5 lg:px-6">
           <button
             type="button"
             onClick={() => setConvOpen(true)}
@@ -110,10 +107,15 @@ function NevorAIPage() {
             <PanelLeft className="size-4" />
           </button>
           <div className="flex min-w-0 items-center gap-2">
-            <Sparkles
-              className="size-4 shrink-0"
-              style={{ color: "var(--tenant-brand, var(--brand, #E8873C))" }}
-            />
+            <span
+              className="grid size-7 shrink-0 place-items-center rounded-lg"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--tenant-brand, var(--brand, #E8873C)) 0%, color-mix(in oklab, var(--tenant-brand, var(--brand, #E8873C)) 60%, #6366f1) 100%)",
+              }}
+            >
+              <Sparkles className="size-4 text-white" />
+            </span>
             <span className="truncate text-sm font-semibold">NevorAI</span>
             <span className="hidden truncate text-xs text-muted-foreground sm:inline">
               · AI Academy Manager
@@ -123,9 +125,9 @@ function NevorAIPage() {
             <button
               type="button"
               onClick={() => setConversationId(null)}
-              className="hidden sm:inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors"
             >
-              <Plus className="size-3.5" /> New
+              <Plus className="size-3.5" /> New chat
             </button>
             <button
               type="button"
@@ -138,9 +140,9 @@ function NevorAIPage() {
           </div>
         </header>
 
-        {/* Chat: centered, max-w ~800px like ChatGPT */}
+        {/* Chat: comfortable centered column that breathes at every width */}
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col px-2 sm:px-4">
+          <div className="mx-auto flex w-full max-w-[880px] flex-1 flex-col px-4 sm:px-6 lg:px-8">
             <ChatPanel
               key={conversationId ?? "draft"}
               conversationId={conversationId}
@@ -154,62 +156,40 @@ function NevorAIPage() {
         </div>
       </main>
 
-      {/* Intelligence rail — persistent on xl+ (~22%) */}
-      <aside className="hidden xl:flex w-[22%] min-w-[280px] max-w-[360px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-border/60 bg-card/30 p-4">
+      {/* Intelligence rail — persistent on xl+ */}
+      <aside className="hidden xl:flex w-[340px] 2xl:w-[380px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/60 bg-card/30 p-5">
+        <div className="flex items-center justify-between">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Today at your academy
+          </div>
+        </div>
         <RightRail />
       </aside>
 
       {/* < lg: conversations drawer */}
       <Sheet open={convOpen} onOpenChange={setConvOpen}>
         <SheetContent side="left" className="w-[300px] max-w-[85vw] p-0">
-          <div className="flex h-full flex-col">
-            <LeftHeader
-              onNew={() => {
-                setConversationId(null);
-                setConvOpen(false);
-              }}
-            />
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              <ConversationList
-                activeId={conversationId}
-                onSelect={(id) => {
-                  setConversationId(id);
-                  setConvOpen(false);
-                }}
-              />
-            </div>
-          </div>
+          <ConversationList
+            activeId={conversationId}
+            onSelect={(id) => {
+              setConversationId(id);
+              setConvOpen(false);
+            }}
+          />
         </SheetContent>
       </Sheet>
 
       {/* < xl: intelligence drawer */}
       <Sheet open={rightOpen} onOpenChange={setRightOpen}>
         <SheetContent side="right" className="w-[380px] max-w-[92vw] overflow-y-auto p-4">
-          <div className="mb-3 text-sm font-semibold">Today at your academy</div>
-          <div className="flex flex-col gap-3">
+          <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Today at your academy
+          </div>
+          <div className="flex flex-col gap-4">
             <RightRail />
           </div>
         </SheetContent>
       </Sheet>
-    </div>
-  );
-}
-
-function LeftHeader({ onNew }: { onNew: () => void }) {
-  return (
-    <div className="flex items-center justify-between border-b border-border/60 px-3 py-2.5">
-      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        Conversations
-      </div>
-      <button
-        type="button"
-        onClick={onNew}
-        className={cn(
-          "inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium hover:bg-accent",
-        )}
-      >
-        <Plus className="size-3.5" /> New
-      </button>
     </div>
   );
 }
