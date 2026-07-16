@@ -181,38 +181,55 @@ export const Route = createFileRoute("/api/chat")({
           if (!conv) conversationId = null;
         }
 
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        // Optional service-role client: used for persistence (conversations
+        // and turns). If the service role key is missing, chat still streams
+        // — persistence just becomes a no-op with a single warning.
+        const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { logNevorAIEnvReportOnce } = await import("@/lib/nevorai/env-report.server");
+        logNevorAIEnvReportOnce();
+        const supabaseAdmin = getSupabaseAdmin();
+
         if (!conversationId) {
           const firstText = body.messages
             .find((m) => m.role === "user")
             ?.parts.find((p) => p.type === "text") as { text?: string } | undefined;
           const title = firstText?.text?.slice(0, 80) ?? "New conversation";
-          const { data: created, error: createErr } = await supabaseAdmin
-            .from("ai_conversations")
-            .insert({
-              tenant_id: profile.tenant_id,
-              user_id: userId,
-              agent_id: "owner_ai",
-              title,
-            })
-            .select("id")
-            .single();
-          if (createErr) return jsonError("DB_ERROR", "Could not start a new conversation.");
-          conversationId = created.id;
+          if (supabaseAdmin) {
+            const { data: created, error: createErr } = await supabaseAdmin
+              .from("ai_conversations")
+              .insert({
+                tenant_id: profile.tenant_id,
+                user_id: userId,
+                agent_id: "owner_ai",
+                title,
+              })
+              .select("id")
+              .single();
+            if (createErr) {
+              console.warn("[nevorai] could not create conversation, continuing without persistence", createErr);
+            } else {
+              conversationId = created.id;
+            }
+          }
         }
 
-        // Persist the latest user message.
+        // Persist the latest user message (best-effort).
         const lastMessage = body.messages[body.messages.length - 1];
-        if (lastMessage?.role === "user") {
-          await supabaseAdmin.from("ai_conversation_turns").insert({
-            conversation_id: conversationId,
-            tenant_id: profile.tenant_id,
-            role: "user",
-            content: (lastMessage.parts.find((p) => p.type === "text") as { text?: string } | undefined)
-              ?.text ?? "",
-            parts: lastMessage.parts as never,
-          });
+        if (supabaseAdmin && conversationId && lastMessage?.role === "user") {
+          try {
+            await supabaseAdmin.from("ai_conversation_turns").insert({
+              conversation_id: conversationId,
+              tenant_id: profile.tenant_id,
+              role: "user",
+              content: (lastMessage.parts.find((p) => p.type === "text") as { text?: string } | undefined)
+                ?.text ?? "",
+              parts: lastMessage.parts as never,
+            });
+          } catch (e) {
+            console.warn("[nevorai] persist user turn failed", e);
+          }
         }
+
 
         // ------------------ streaming ------------------
         bootstrapNevorAI();
