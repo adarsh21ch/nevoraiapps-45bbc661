@@ -101,6 +101,7 @@ import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile
 import { Route as DashboardPaymentVerificationRouteImport } from './routes/dashboard.payment-verification'
 import { Route as DashboardPaymentSettingsRouteImport } from './routes/dashboard.payment-settings'
 import { Route as DashboardNotificationsRouteImport } from './routes/dashboard.notifications'
+import { Route as DashboardNevoraiRouteImport } from './routes/dashboard.nevorai'
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
 import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
@@ -119,6 +120,7 @@ import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
 import { Route as DashboardActivationRouteImport } from './routes/dashboard.activation'
 import { Route as DashboardAcademyRouteImport } from './routes/dashboard.academy'
 import { Route as ApplySlugRouteImport } from './routes/apply.$slug'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ActivateTokenRouteImport } from './routes/activate.$token'
 import { Route as AcademySlugRouteImport } from './routes/academy.$slug'
 import { Route as PlatformAdminTenantsIndexRouteImport } from './routes/platform-admin.tenants.index'
@@ -610,6 +612,11 @@ const DashboardNotificationsRoute = DashboardNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardNevoraiRoute = DashboardNevoraiRouteImport.update({
+  id: '/nevorai',
+  path: '/nevorai',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardLeadsRoute = DashboardLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -700,6 +707,11 @@ const DashboardAcademyRoute = DashboardAcademyRouteImport.update({
 const ApplySlugRoute = ApplySlugRouteImport.update({
   id: '/apply/$slug',
   path: '/apply/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActivateTokenRoute = ActivateTokenRouteImport.update({
@@ -877,6 +889,7 @@ export interface FileRoutesByFullPath {
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/activate/$token': typeof ActivateTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
@@ -895,6 +908,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/nevorai': typeof DashboardNevoraiRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
@@ -1009,6 +1023,7 @@ export interface FileRoutesByTo {
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/activate/$token': typeof ActivateTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
@@ -1027,6 +1042,7 @@ export interface FileRoutesByTo {
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/nevorai': typeof DashboardNevoraiRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
@@ -1147,6 +1163,7 @@ export interface FileRoutesById {
   '/testimonials': typeof TestimonialsRoute
   '/academy/$slug': typeof AcademySlugRoute
   '/activate/$token': typeof ActivateTokenRoute
+  '/api/chat': typeof ApiChatRoute
   '/apply/$slug': typeof ApplySlugRoute
   '/dashboard/academy': typeof DashboardAcademyRoute
   '/dashboard/activation': typeof DashboardActivationRoute
@@ -1165,6 +1182,7 @@ export interface FileRoutesById {
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/nevorai': typeof DashboardNevoraiRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
@@ -1286,6 +1304,7 @@ export interface FileRouteTypes {
     | '/testimonials'
     | '/academy/$slug'
     | '/activate/$token'
+    | '/api/chat'
     | '/apply/$slug'
     | '/dashboard/academy'
     | '/dashboard/activation'
@@ -1304,6 +1323,7 @@ export interface FileRouteTypes {
     | '/dashboard/fees'
     | '/dashboard/insights'
     | '/dashboard/leads'
+    | '/dashboard/nevorai'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
     | '/dashboard/payment-verification'
@@ -1418,6 +1438,7 @@ export interface FileRouteTypes {
     | '/testimonials'
     | '/academy/$slug'
     | '/activate/$token'
+    | '/api/chat'
     | '/apply/$slug'
     | '/dashboard/academy'
     | '/dashboard/activation'
@@ -1436,6 +1457,7 @@ export interface FileRouteTypes {
     | '/dashboard/fees'
     | '/dashboard/insights'
     | '/dashboard/leads'
+    | '/dashboard/nevorai'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
     | '/dashboard/payment-verification'
@@ -1555,6 +1577,7 @@ export interface FileRouteTypes {
     | '/testimonials'
     | '/academy/$slug'
     | '/activate/$token'
+    | '/api/chat'
     | '/apply/$slug'
     | '/dashboard/academy'
     | '/dashboard/activation'
@@ -1573,6 +1596,7 @@ export interface FileRouteTypes {
     | '/dashboard/fees'
     | '/dashboard/insights'
     | '/dashboard/leads'
+    | '/dashboard/nevorai'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
     | '/dashboard/payment-verification'
@@ -1693,6 +1717,7 @@ export interface RootRouteChildren {
   TestimonialsRoute: typeof TestimonialsRoute
   AcademySlugRoute: typeof AcademySlugRoute
   ActivateTokenRoute: typeof ActivateTokenRoute
+  ApiChatRoute: typeof ApiChatRoute
   ApplySlugRoute: typeof ApplySlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
@@ -2355,6 +2380,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardNotificationsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/nevorai': {
+      id: '/dashboard/nevorai'
+      path: '/nevorai'
+      fullPath: '/dashboard/nevorai'
+      preLoaderRoute: typeof DashboardNevoraiRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/leads': {
       id: '/dashboard/leads'
       path: '/leads'
@@ -2479,6 +2511,13 @@ declare module '@tanstack/react-router' {
       path: '/apply/$slug'
       fullPath: '/apply/$slug'
       preLoaderRoute: typeof ApplySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/activate/$token': {
@@ -2704,6 +2743,7 @@ interface DashboardRouteChildren {
   DashboardFeesRoute: typeof DashboardFeesRoute
   DashboardInsightsRoute: typeof DashboardInsightsRoute
   DashboardLeadsRoute: typeof DashboardLeadsRoute
+  DashboardNevoraiRoute: typeof DashboardNevoraiRoute
   DashboardNotificationsRoute: typeof DashboardNotificationsRoute
   DashboardPaymentSettingsRoute: typeof DashboardPaymentSettingsRoute
   DashboardPaymentVerificationRoute: typeof DashboardPaymentVerificationRoute
@@ -2737,6 +2777,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardFeesRoute: DashboardFeesRoute,
   DashboardInsightsRoute: DashboardInsightsRoute,
   DashboardLeadsRoute: DashboardLeadsRoute,
+  DashboardNevoraiRoute: DashboardNevoraiRoute,
   DashboardNotificationsRoute: DashboardNotificationsRoute,
   DashboardPaymentSettingsRoute: DashboardPaymentSettingsRoute,
   DashboardPaymentVerificationRoute: DashboardPaymentVerificationRoute,
@@ -2961,6 +3002,7 @@ const rootRouteChildren: RootRouteChildren = {
   TestimonialsRoute: TestimonialsRoute,
   AcademySlugRoute: AcademySlugRoute,
   ActivateTokenRoute: ActivateTokenRoute,
+  ApiChatRoute: ApiChatRoute,
   ApplySlugRoute: ApplySlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,
