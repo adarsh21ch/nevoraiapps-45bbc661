@@ -4,6 +4,13 @@ import { Trophy } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { PageHero } from "@/components/site/PageHero";
 import { StoragedImage } from "@/components/site/StoragedImage";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { useTenant } from "@/lib/tenant-context";
 import { sectionsBy, siteContentQuery } from "@/lib/site-queries";
 
@@ -38,43 +45,46 @@ function StarPlayersContent() {
             No star players featured yet.
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {players.map((p, i) => (
-              <div
-                key={i}
-                className="group overflow-hidden rounded-2xl border border-border/60 bg-card transition-shadow hover:shadow-xl"
-              >
-                <div
-                  className="relative flex h-56 items-center justify-center overflow-hidden"
-                  style={{
-                    background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
-                  }}
-                >
-                  <div className="pointer-events-none absolute inset-0 opacity-15 [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:20px_20px]" />
-                  <StoragedImage
-                    path={p.photo_url}
-                    alt={p.name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                    fallback={
-                      <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white/15 text-4xl font-bold text-white backdrop-blur ring-1 ring-white/30">
-                        {p.name.charAt(0)}
+          <Carousel opts={{ align: "start", loop: players.length > 1 }} className="w-full">
+            <CarouselContent className="-ml-4">
+              {players.map((p, i) => (
+                <CarouselItem key={i} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+                  <div className="group h-full overflow-hidden rounded-2xl border border-border/60 bg-card transition-shadow hover:shadow-xl">
+                    <div
+                      className="relative flex h-56 items-center justify-center overflow-hidden"
+                      style={{
+                        background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
+                      }}
+                    >
+                      <div className="pointer-events-none absolute inset-0 opacity-15 [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:20px_20px]" />
+                      <StoragedImage
+                        path={p.photo_url}
+                        alt={p.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        fallback={
+                          <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white/15 text-4xl font-bold text-white backdrop-blur ring-1 ring-white/30">
+                            {p.name.charAt(0)}
+                          </div>
+                        }
+                      />
+                    </div>
+                    <div className="p-6">
+                      <div className="text-lg font-semibold text-foreground">{p.name}</div>
+                      <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
+                        <Trophy
+                          className="mt-0.5 h-4 w-4 flex-shrink-0"
+                          style={{ color: "var(--brand)" }}
+                        />
+                        <span>{p.achievement}</span>
                       </div>
-                    }
-                  />
-                </div>
-                <div className="p-6">
-                  <div className="text-lg font-semibold text-foreground">{p.name}</div>
-                  <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
-                    <Trophy
-                      className="mt-0.5 h-4 w-4 flex-shrink-0"
-                      style={{ color: "var(--brand)" }}
-                    />
-                    <span>{p.achievement}</span>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden sm:flex" />
+            <CarouselNext className="hidden sm:flex" />
+          </Carousel>
         )}
       </div>
     </>
