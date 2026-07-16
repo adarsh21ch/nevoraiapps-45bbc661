@@ -313,6 +313,11 @@ export const Route = createFileRoute("/api/chat")({
             return err instanceof Error ? err.message : "stream failed";
           },
         });
+        } catch (e) {
+          console.error("[nevorai] handler crashed", e);
+          const msg = e instanceof Error ? e.message : "Unknown error";
+          return jsonError("AI_HANDLER_FAILED", `NevorAI hit an error: ${msg}`);
+        }
       },
     },
   },
