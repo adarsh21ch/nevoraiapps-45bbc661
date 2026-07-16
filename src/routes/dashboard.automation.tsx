@@ -175,15 +175,11 @@ function AutomationHistoryPage() {
 
       <Card className="p-3">
         <div className="grid gap-2 md:grid-cols-[1fr_180px_220px]">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search event, action, provider or error…"
-              className="h-9 pl-9"
-            />
-          </div>
+          <DashboardSearch
+            value={search}
+            onChange={setSearch}
+            placeholder="Search event, action, provider or error…"
+          />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="h-9">
               <SelectValue />
