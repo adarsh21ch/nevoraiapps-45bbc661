@@ -205,7 +205,7 @@ export function ChatPanel({
         return;
       }
       autoRetryRef.current = 0;
-      setChatError({ code: info.code, message: `${info.title} — ${info.message}` });
+      setChatError({ code: info.code, title: info.title, message: info.message });
       // Friendly toast only; never raw error text.
       toast.error(info.title);
     },
