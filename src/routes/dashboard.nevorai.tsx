@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { UIMessage } from "ai";
@@ -11,9 +11,11 @@ import { TodaysPriorities } from "@/components/nevorai/TodaysPriorities";
 import { ActionQueue } from "@/components/nevorai/ActionQueue";
 import { QuickInsights } from "@/components/nevorai/QuickInsights";
 import { SmartInsights } from "@/components/nevorai/SmartInsights";
-import { listTurns } from "@/lib/nevorai/conversations.functions";
+import { listConversations, listTurns } from "@/lib/nevorai/conversations.functions";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+
+const LAST_CONV_KEY = "nevorai:lastConversationId";
 
 export const Route = createFileRoute("/dashboard/nevorai")({
   head: () => ({
@@ -51,10 +53,42 @@ const SUGGESTIONS = [
  * intelligence rails are secondary.
  */
 function NevorAIPage() {
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      return window.localStorage.getItem(LAST_CONV_KEY);
+    } catch {
+      return null;
+    }
+  });
   const [convOpen, setConvOpen] = useState(false); // < lg drawer
   const [rightOpen, setRightOpen] = useState(false); // < xl drawer
   const fetchTurns = useServerFn(listTurns);
+  const fetchConversations = useServerFn(listConversations);
+
+  // Persist the active conversation across route changes so returning to
+  // NevorAI restores the same chat instead of a blank draft.
+  useEffect(() => {
+    try {
+      if (conversationId) window.localStorage.setItem(LAST_CONV_KEY, conversationId);
+      else window.localStorage.removeItem(LAST_CONV_KEY);
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }, [conversationId]);
+
+  // If we don't have a stored conversation, quietly select the most-recent one
+  // (pinned first, then latest updated) so users see their history immediately.
+  const conversationsQ = useQuery({
+    queryKey: ["nevorai", "conversations"],
+    queryFn: () => fetchConversations(),
+    staleTime: 30_000,
+  });
+  useEffect(() => {
+    if (conversationId) return;
+    const rows = conversationsQ.data ?? [];
+    if (rows.length > 0) setConversationId(rows[0].id);
+  }, [conversationId, conversationsQ.data]);
 
   const turnsQ = useQuery({
     enabled: !!conversationId,
