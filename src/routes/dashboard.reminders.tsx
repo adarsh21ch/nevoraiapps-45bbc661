@@ -112,13 +112,15 @@ function RemindersPage() {
         </div>
       </header>
 
-      <Tabs defaultValue="queued">
-        <TabsList>
-          <TabsTrigger value="queued">Queue ({grouped.queued.length})</TabsTrigger>
-          <TabsTrigger value="sent">Sent ({grouped.sent.length})</TabsTrigger>
-          <TabsTrigger value="dismissed">Dismissed ({grouped.dismissed.length})</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <FilterTabs
+        value={tab}
+        onChange={setTab}
+        items={[
+          { key: "queued", label: "Queue", count: grouped.queued.length },
+          { key: "sent", label: "Sent", count: grouped.sent.length },
+          { key: "dismissed", label: "Dismissed", count: grouped.dismissed.length },
+        ]}
+      />
 
       {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
       {!isLoading && data.length === 0 && (
