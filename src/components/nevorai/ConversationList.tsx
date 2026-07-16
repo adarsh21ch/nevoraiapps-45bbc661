@@ -124,25 +124,26 @@ export function ConversationList({ activeId, onSelect }: Props) {
                   <button
                     type="button"
                     onClick={() => onSelect(c.id)}
-                    className="min-w-0 flex-1 truncate text-left"
+                    className="min-w-0 flex-1 text-left"
                     title={c.title ?? "Untitled"}
                   >
-                    {c.pinned && <Pin className="mr-1 inline h-3 w-3 text-primary" />}
-                    {editingId === c.id ? (
-                      <input
-                        autoFocus
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={() => {
-                          if (editValue.trim() && editValue !== c.title) {
-                            rename.mutate({ id: c.id, title: editValue.trim() });
-                          }
-                          setEditingId(null);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") e.currentTarget.blur();
-                          if (e.key === "Escape") setEditingId(null);
-                        }}
+                    <div className="truncate">
+                      {c.pinned && <Pin className="mr-1 inline h-3 w-3 text-primary" />}
+                      {editingId === c.id ? (
+                        <input
+                          autoFocus
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={() => {
+                            if (editValue.trim() && editValue !== c.title) {
+                              rename.mutate({ id: c.id, title: editValue.trim() });
+                            }
+                            setEditingId(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") e.currentTarget.blur();
+                            if (e.key === "Escape") setEditingId(null);
+                          }}
                         className="w-full rounded border border-border bg-background px-1 py-0.5 text-xs"
                       />
                     ) : (
