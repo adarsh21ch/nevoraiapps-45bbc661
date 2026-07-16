@@ -359,8 +359,9 @@ export const communicationsSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
   async execute(_input, ctx): Promise<ToolResult> {
+    const db = await dbFor(ctx);
     const { campaignsQueryOptions } = await import("@/lib/communications");
-    const opts = campaignsQueryOptions(ctx.tenantId);
+    const opts = campaignsQueryOptions(ctx.tenantId, db);
     const runFn = opts.queryFn as unknown as () => Promise<Array<{ status?: string; created_at?: string }>>;
     const campaigns = (await runFn()) as Array<{ status?: string; created_at?: string }>;
     const byStatus: Record<string, number> = {};
