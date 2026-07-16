@@ -43,10 +43,17 @@ const SUGGESTIONS = [
   "Any automation failures?",
 ];
 
+/**
+ * NevorAI is a normal dashboard module. It lives INSIDE the DashboardShell
+ * (sidebar + header + bottom nav remain visible at all times). The workspace
+ * fills the available content area with a 3-column layout on xl+, collapsing
+ * to drawers on smaller viewports. Chat dominates; conversations and
+ * intelligence rails are secondary.
+ */
 function NevorAIPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [convOpen, setConvOpen] = useState(false); // mobile drawer
-  const [rightOpen, setRightOpen] = useState(false); // mobile drawer
+  const [convOpen, setConvOpen] = useState(false); // < lg drawer
+  const [rightOpen, setRightOpen] = useState(false); // < xl drawer
   const fetchTurns = useServerFn(listTurns);
 
   const turnsQ = useQuery({
@@ -71,34 +78,44 @@ function NevorAIPage() {
       });
   }, [conversationId, turnsQ.data]);
 
+  // Negate the dashboard <main>'s padding so the workspace is flush inside the
+  // shell content area, while keeping the shell's sidebar/header/bottom-nav
+  // visible. Height fills viewport minus the shell header (3.5rem) and safe
+  // areas; bottom padding respects mobile bottom nav via env(safe-area).
   return (
-    <div className="fixed inset-0 top-[calc(env(safe-area-inset-top)+3.5rem)] flex bg-background text-foreground">
-      {/* Left rail — conversations (desktop) */}
-      <aside className="hidden lg:flex w-[260px] shrink-0 flex-col border-r border-border/60 bg-card/40">
+    <div
+      className={cn(
+        "-mx-4 md:-mx-8 -mt-4 md:-mt-8 -mb-32 md:-mb-8",
+        "flex bg-background text-foreground",
+        "h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]",
+      )}
+    >
+      {/* Conversations rail — persistent on lg+ (~22%) */}
+      <aside className="hidden lg:flex w-[22%] min-w-[220px] max-w-[300px] shrink-0 flex-col border-r border-border/60 bg-card/40">
         <LeftHeader onNew={() => setConversationId(null)} />
-        <div className="min-h-0 flex-1">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <ConversationList activeId={conversationId} onSelect={setConversationId} />
         </div>
       </aside>
 
-      {/* Center — chat */}
+      {/* Center — chat (~56% on xl, more on lg, full on <lg) */}
       <main className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border/50 px-3 py-2 lg:px-6">
+        <header className="flex items-center justify-between gap-2 border-b border-border/50 px-3 py-2 lg:px-5">
           <button
             type="button"
             onClick={() => setConvOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-md p-1.5 text-muted-foreground hover:bg-accent lg:hidden"
+            className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent lg:hidden"
             aria-label="Open conversations"
           >
             <PanelLeft className="size-4" />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <Sparkles
-              className="size-4"
+              className="size-4 shrink-0"
               style={{ color: "var(--tenant-brand, var(--brand, #E8873C))" }}
             />
-            <span className="text-sm font-medium">NevorAI</span>
-            <span className="hidden text-xs text-muted-foreground sm:inline">
+            <span className="truncate text-sm font-semibold">NevorAI</span>
+            <span className="hidden truncate text-xs text-muted-foreground sm:inline">
               · AI Academy Manager
             </span>
           </div>
@@ -106,25 +123,24 @@ function NevorAIPage() {
             <button
               type="button"
               onClick={() => setConversationId(null)}
-              className="hidden sm:inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium hover:bg-accent"
+              className="hidden sm:inline-flex items-center gap-1 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
             >
               <Plus className="size-3.5" /> New
             </button>
             <button
               type="button"
               onClick={() => setRightOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-md p-1.5 text-muted-foreground hover:bg-accent xl:hidden"
-              aria-label="Open panel"
+              className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent xl:hidden"
+              aria-label="Open intelligence panel"
             >
               <PanelRight className="size-4" />
             </button>
           </div>
         </header>
 
-        {/* Empty state overlays inside ChatPanel via its own empty message, but we
-            layer an academy-branded intro just above it when idle. */}
+        {/* Chat: centered, max-w ~800px like ChatGPT */}
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col">
+          <div className="mx-auto flex w-full max-w-[800px] flex-1 flex-col px-2 sm:px-4">
             <ChatPanel
               key={conversationId ?? "draft"}
               conversationId={conversationId}
@@ -138,14 +154,14 @@ function NevorAIPage() {
         </div>
       </main>
 
-      {/* Right rail — priorities/queue/insights (xl+) */}
-      <aside className="hidden xl:flex w-[340px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-border/60 bg-card/30 p-4">
+      {/* Intelligence rail — persistent on xl+ (~22%) */}
+      <aside className="hidden xl:flex w-[22%] min-w-[280px] max-w-[360px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-border/60 bg-card/30 p-4">
         <RightRail />
       </aside>
 
-      {/* Mobile: conversations drawer */}
+      {/* < lg: conversations drawer */}
       <Sheet open={convOpen} onOpenChange={setConvOpen}>
-        <SheetContent side="left" className="w-[280px] p-0">
+        <SheetContent side="left" className="w-[300px] max-w-[85vw] p-0">
           <div className="flex h-full flex-col">
             <LeftHeader
               onNew={() => {
@@ -153,7 +169,7 @@ function NevorAIPage() {
                 setConvOpen(false);
               }}
             />
-            <div className="min-h-0 flex-1">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               <ConversationList
                 activeId={conversationId}
                 onSelect={(id) => {
@@ -166,9 +182,9 @@ function NevorAIPage() {
         </SheetContent>
       </Sheet>
 
-      {/* Tablet/mobile: right rail drawer */}
+      {/* < xl: intelligence drawer */}
       <Sheet open={rightOpen} onOpenChange={setRightOpen}>
-        <SheetContent side="right" className="w-[360px] max-w-full p-4">
+        <SheetContent side="right" className="w-[380px] max-w-[92vw] overflow-y-auto p-4">
           <div className="mb-3 text-sm font-semibold">Today at your academy</div>
           <div className="flex flex-col gap-3">
             <RightRail />
