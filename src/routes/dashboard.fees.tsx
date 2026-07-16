@@ -501,7 +501,6 @@ function ChipFilters({
         { key: "all", label: "All", count: counts.all },
         { key: "pending", label: "Pending", count: counts.pending },
         { key: "paid", label: "Paid", count: counts.paid },
-        { key: "overdue", label: "Overdue", count: counts.overdue },
       ]}
       ariaLabel="Fee status"
     />
