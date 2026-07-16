@@ -29,6 +29,7 @@ import { usePlatform } from "@/lib/platform-context";
 const nav = [
   { to: "/platform-admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { to: "/platform-admin/founder", label: "Founder Intelligence", icon: Sparkles },
+  { to: "/platform-admin/nevorai", label: "NevorAI Intelligence", icon: Sparkles },
   { to: "/platform-admin/tenants", label: "Tenants", icon: Building2 },
   { to: "/platform-admin/subscriptions", label: "Subscriptions", icon: Receipt },
   { to: "/platform-admin/sports", label: "Supported sports", icon: Trophy },
