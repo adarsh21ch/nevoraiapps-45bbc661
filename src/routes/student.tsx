@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Home, TrendingUp, Building2, UserCircle, LogOut } from "lucide-react";
+import { Home, TrendingUp, Trophy, ClipboardList, Building2, UserCircle, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyStudentContext, studentKeys } from "@/lib/student-app";
 import { isPendingApproval, needsActivation, isBlocked, LIFECYCLE_LABEL, type LifecycleStatus } from "@/lib/admissions/lifecycle";
@@ -26,6 +26,8 @@ export const Route = createFileRoute("/student")({
 const TABS = [
   { to: "/student", label: "Home", icon: Home, exact: true },
   { to: "/student/progress", label: "Performance", icon: TrendingUp, exact: false },
+  { to: "/student/matches", label: "Matches", icon: Trophy, exact: false },
+  { to: "/student/pending", label: "Pending", icon: ClipboardList, exact: false },
   { to: "/student/manage", label: "Manage", icon: Building2, exact: false },
   { to: "/student/profile", label: "Profile", icon: UserCircle, exact: false },
 ] as const;
@@ -182,7 +184,7 @@ function StudentLayout() {
         aria-label="Primary"
         className="fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 pb-[env(safe-area-inset-bottom)]"
       >
-        <div className="max-w-3xl mx-auto grid grid-cols-4">
+        <div className="max-w-3xl mx-auto grid grid-cols-6">
           {TABS.map((t) => {
             const active = t.exact ? pathname === t.to : pathname.startsWith(t.to);
             const Icon = t.icon;
@@ -191,7 +193,7 @@ function StudentLayout() {
                 key={t.to}
                 to={t.to}
                 className={cn(
-                  "flex flex-col items-center justify-center py-3 gap-1 text-xs transition-colors",
+                  "flex flex-col items-center justify-center py-3 gap-1 text-[10px] transition-colors",
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
