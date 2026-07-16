@@ -12,6 +12,7 @@ import { setRuntime } from "./orchestrator/runtime";
 import { bootstrapTools } from "./tools/bootstrap";
 import { bootstrapAgents } from "./agents/bootstrap";
 import { bootstrapAutomationBridge } from "./automation-bridge.server";
+import { hasSupabaseAdmin } from "@/integrations/supabase/client.server";
 import { SupabaseMemoryStore } from "./memory/supabase-store.server";
 import { SupabaseActionQueue } from "./queue/supabase-queue.server";
 import { SupabaseAnalyticsSink } from "./observability/supabase-sink.server";
