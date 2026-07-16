@@ -205,13 +205,14 @@ function StatCard({
 
 function OverviewCards() {
   const fn = useServerFn(getPushDashboard);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["push-admin", "dashboard"],
     queryFn: () => fn(),
     refetchInterval: 30_000,
+    retry: 1,
   });
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         {Array.from({ length: 12 }).map((_, i) => (
@@ -220,6 +221,26 @@ function OverviewCards() {
       </div>
     );
   }
+
+  if (isError || !data) {
+    return (
+      <Card className="p-6">
+        <div className="flex flex-col items-start gap-3 text-sm">
+          <div className="flex items-center gap-2 text-rose-500">
+            <AlertTriangle className="h-4 w-4" />
+            <span className="font-medium">Failed to load push metrics</span>
+          </div>
+          <p className="text-muted-foreground">
+            {error instanceof Error ? error.message : "The dashboard could not be loaded."}
+          </p>
+          <Button size="sm" variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={cn("mr-1 h-3 w-3", isFetching && "animate-spin")} /> Retry
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
 
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
