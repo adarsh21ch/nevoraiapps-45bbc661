@@ -73,7 +73,7 @@ export function ChatPanel({
     pageContextRef.current = pageContext;
   }, [pageContext]);
 
-  const [chatError, setChatError] = useState<{ code?: string; message: string } | null>(null);
+  const [chatError, setChatError] = useState<{ code?: string; title: string; message: string } | null>(null);
 
   // Ref mirrors the currently-persisted conversation id. Read at send-time
   // so we don't recreate the transport when a fresh conversation is minted
