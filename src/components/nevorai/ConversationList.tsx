@@ -144,11 +144,15 @@ export function ConversationList({ activeId, onSelect }: Props) {
                             if (e.key === "Enter") e.currentTarget.blur();
                             if (e.key === "Escape") setEditingId(null);
                           }}
-                        className="w-full rounded border border-border bg-background px-1 py-0.5 text-xs"
-                      />
-                    ) : (
-                      c.title || "Untitled"
-                    )}
+                          className="w-full rounded border border-border bg-background px-1 py-0.5 text-xs"
+                        />
+                      ) : (
+                        c.title || "Untitled"
+                      )}
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-muted-foreground">
+                      {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true })}
+                    </div>
                   </button>
                   <button
                     type="button"
