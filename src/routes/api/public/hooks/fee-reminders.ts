@@ -45,12 +45,13 @@ export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
             .not("fee_plan_id", "is", null);
           if (!students?.length) continue;
 
-          // Payments in this period
+          // Canonical: read succeeded `billing_payments` for this month.
           const { data: payments } = await supabaseAdmin
-            .from("payments")
+            .from("billing_payments")
             .select("student_id")
             .eq("tenant_id", t.id)
-            .eq("period", period);
+            .eq("status", "succeeded")
+            .gte("collected_at", periodStart.toISOString());
           const paid = new Set((payments ?? []).map((p) => p.student_id));
 
           for (const s of students) {

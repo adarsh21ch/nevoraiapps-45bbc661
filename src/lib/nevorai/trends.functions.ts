@@ -42,8 +42,9 @@ export const getSmartInsights = createServerFn({ method: "GET" })
     const d14 = new Date(now.getTime() - 14 * 86400_000).toISOString();
 
     const [payThis, payPrev, regThis, regPrev, attThis, attPrev] = await Promise.all([
-      context.supabase.from("payments").select("amount").eq("tenant_id", tenantId).gte("created_at", d7),
-      context.supabase.from("payments").select("amount").eq("tenant_id", tenantId).gte("created_at", d14).lt("created_at", d7),
+      // Canonical revenue trend — succeeded `billing_payments` only.
+      context.supabase.from("billing_payments").select("amount").eq("tenant_id", tenantId).eq("status", "succeeded").gte("collected_at", d7),
+      context.supabase.from("billing_payments").select("amount").eq("tenant_id", tenantId).eq("status", "succeeded").gte("collected_at", d14).lt("collected_at", d7),
       context.supabase.from("registrations").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", d7),
       context.supabase.from("registrations").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).gte("created_at", d14).lt("created_at", d7),
       context.supabase.from("attendance_marks").select("id", { count: "exact", head: true }).eq("tenant_id", tenantId).eq("status", "present").gte("created_at", d7),
