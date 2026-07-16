@@ -61,6 +61,7 @@ import {
 import { fetchKpis, qk } from "@/lib/dashboard-queries";
 import { ModuleHeader } from "@/components/shared/ModuleHeader";
 import { FilterTabs } from "@/components/shared/FilterTabs";
+import { DashboardSearch } from "@/components/dashboard-ui";
 import { cn } from "@/lib/utils";
 
 // Recharts is heavy — lazy load so KPIs paint first.
