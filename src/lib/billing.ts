@@ -174,20 +174,20 @@ export const bqk = {
 };
 
 // ---------- Query fns ------------------------------------------------------
-export async function fetchBillingKpis(tenantId: string) {
+export async function fetchBillingKpis(tenantId: string, db: Db = supabase) {
   const [outRes, monthRes, overdueRes] = await Promise.all([
-    supabase
+    db
       .from("billing_invoices")
       .select("balance, status")
       .eq("tenant_id", tenantId)
       .in("status", ["issued", "partially_paid"]),
-    supabase
+    db
       .from("billing_payments")
       .select("amount, collected_at")
       .eq("tenant_id", tenantId)
       .eq("status", "succeeded")
       .gte("collected_at", startOfMonthIso()),
-    supabase
+    db
       .from("billing_invoices")
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
