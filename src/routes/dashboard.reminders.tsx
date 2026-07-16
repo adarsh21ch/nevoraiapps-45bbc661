@@ -93,6 +93,8 @@ function RemindersPage() {
     return g;
   }, [data]);
 
+  const [tab, setTab] = useState<ReminderStatus>("queued");
+
   return (
     <div className="space-y-5">
       <header className="flex items-start justify-between gap-3">
