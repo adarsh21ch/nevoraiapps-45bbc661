@@ -275,10 +275,11 @@ function FeesPage() {
         value={tab}
         onChange={(v) => setTab(v as Tab)}
         items={[
-          { value: "pending", label: `Pending${totals.pendingStudents ? ` · ${totals.pendingStudents}` : ""}` },
-          { value: "paid", label: "Paid" },
-          { value: "all", label: "All" },
+          { key: "pending", label: "Pending", count: totals.pendingStudents || undefined },
+          { key: "paid", label: "Paid" },
+          { key: "all", label: "All" },
         ]}
+
       />
 
       <DashboardSearch
