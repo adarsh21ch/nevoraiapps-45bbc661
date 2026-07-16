@@ -281,7 +281,7 @@ export function ChatPanel({
       if (wasEmpty) onConversationStarted?.();
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
-    [messages.length, onConversationStarted, sendMessage, status, ensureConversationId],
+    [messages.length, onConversationStarted, sendMessage, status, ensureConversationId, draftKey],
   );
 
   // Safe retry: preserves conversation id + last prompt so nothing is lost,
