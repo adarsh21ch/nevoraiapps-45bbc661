@@ -597,6 +597,7 @@ function Wizard() {
                   <Button
                     variant="ghost"
                     size="icon"
+                    aria-label="Remove fee plan"
                     className="text-rose-400 hover:text-rose-300 hover:bg-white/5"
                     onClick={() =>
                       setFeesForm({ ...feesForm, plans: feesForm.plans.filter((_, j) => j !== i) })
