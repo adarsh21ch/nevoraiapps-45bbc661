@@ -27,6 +27,7 @@ import {
   BarChart2,
   ListChecks,
   Sparkles,
+  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
@@ -76,6 +77,7 @@ const secondaryNav: NavItem[] = [
   { to: "/dashboard/staff", label: "Staff", icon: Users, adminOnly: false, ownerOnly: false },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { to: "/dashboard/site", label: "Website", icon: ImageIcon },
+  { to: "/dashboard/academy", label: "Manage", icon: LayoutGrid, ownerOnly: true },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
 
