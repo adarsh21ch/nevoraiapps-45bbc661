@@ -52,7 +52,7 @@ function AuthPage() {
 
   return (
     <div
-      className="grid min-h-screen w-full lg:grid-cols-2"
+      className="grid min-h-dvh w-full lg:grid-cols-2"
       style={{ fontFamily: "Inter, ui-sans-serif, system-ui" }}
     >
       {/* Left — Stadium visual */}

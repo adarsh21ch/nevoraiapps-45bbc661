@@ -51,7 +51,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
+    <div className="min-h-dvh bg-neutral-950 text-neutral-100">
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-neutral-950"

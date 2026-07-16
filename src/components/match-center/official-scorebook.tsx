@@ -168,7 +168,7 @@ export function OfficialScorebook({
   return (
     <div
       ref={wrapRef}
-      className={`scorebook-fs-wrap ${fullscreen ? "min-h-screen bg-background" : ""}`}
+      className={`scorebook-fs-wrap ${fullscreen ? "min-h-dvh bg-background" : ""}`}
     >
       {toolbar && (
         <div className="scorebook-toolbar no-print mb-4 flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-card px-3 py-2">

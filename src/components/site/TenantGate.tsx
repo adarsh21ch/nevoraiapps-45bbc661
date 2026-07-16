@@ -17,7 +17,7 @@ export function TenantGate({ children }: { children: ReactNode }) {
 
   if (state.status === "loading") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="flex min-h-dvh items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
       </div>
     );
@@ -33,7 +33,7 @@ export function TenantGate({ children }: { children: ReactNode }) {
 
   if (state.status === "suspended") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 text-center">
+      <div className="flex min-h-dvh items-center justify-center bg-neutral-950 px-6 text-center">
         <div className="max-w-md">
           <h1 className="text-3xl font-semibold text-white">Temporarily unavailable</h1>
           <p className="mt-3 text-sm text-neutral-400">
@@ -46,7 +46,7 @@ export function TenantGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />

@@ -193,7 +193,7 @@ function PublicTournamentPage() {
     : {};
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-dvh bg-background">
       {/* Academy strip */}
       <div className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">

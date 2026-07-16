@@ -68,7 +68,7 @@ function PublicMatchPage() {
 
   if (notFound) {
     return (
-      <div className="min-h-screen grid place-items-center p-6 text-center">
+      <div className="min-h-dvh grid place-items-center p-6 text-center">
         <div>
           <h1 className="text-2xl font-bold mb-2">Match not found</h1>
           <p className="text-muted-foreground">
@@ -81,7 +81,7 @@ function PublicMatchPage() {
 
   if (!bundle) {
     return (
-      <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">
+      <div className="min-h-dvh grid place-items-center text-sm text-muted-foreground">
         Loading…
       </div>
     );
@@ -95,7 +95,7 @@ function PublicMatchPage() {
   const isLive = status === "live" || status === "in_progress";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <header className="border-b border-border bg-card/50">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="text-sm font-semibold">Live Match</div>

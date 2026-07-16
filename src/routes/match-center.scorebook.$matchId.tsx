@@ -180,7 +180,7 @@ function ScorebookPage() {
         : (m.toss_winner ?? null);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <div className="no-print border-b bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-[900px] items-center justify-between gap-2 px-4 py-2">
           <Button asChild size="sm" variant="ghost">
@@ -236,7 +236,7 @@ function DemoScorebook({ matchId, tenantId }: { matchId: string; tenantId: strin
     ? (demo.players.find((p) => p.id === match.player_of_match_athlete_id)?.student?.name ?? null)
     : null;
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <div className="no-print border-b bg-card/60 backdrop-blur">
         <div className="mx-auto flex max-w-[900px] items-center justify-between gap-2 px-4 py-2">
           <Button asChild size="sm" variant="ghost">

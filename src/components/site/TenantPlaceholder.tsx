@@ -24,7 +24,7 @@ export function TenantPlaceholder() {
 
   return (
     <div
-      className="min-h-screen w-full overflow-x-hidden bg-[#0a0a0a] text-white antialiased selection:bg-lime-400 selection:text-black"
+      className="min-h-dvh w-full overflow-x-hidden bg-[#0a0a0a] text-white antialiased selection:bg-lime-400 selection:text-black"
       style={{ fontFamily: "Inter, ui-sans-serif, system-ui" }}
     >
       {/* Ambient background */}

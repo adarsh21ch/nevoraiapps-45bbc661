@@ -93,7 +93,7 @@ function ActivatePage() {
   };
 
   return (
-    <div className="min-h-screen grid place-items-center bg-background p-6">
+    <div className="min-h-dvh grid place-items-center bg-background p-6">
       <Card className="max-w-md w-full">
         <CardHeader>
           <CardTitle>Activate your account</CardTitle>

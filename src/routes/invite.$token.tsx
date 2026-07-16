@@ -125,7 +125,7 @@ function InvitePage() {
   }
 
   return (
-    <div className="min-h-screen grid place-items-center bg-background p-6">
+    <div className="min-h-dvh grid place-items-center bg-background p-6">
       <Card className="w-full max-w-md p-6 space-y-5">
         <div className="flex items-center gap-3">
           <div className="size-10 rounded-xl grid place-items-center bg-lime-100 text-lime-700">
@@ -201,7 +201,7 @@ function InvitePage() {
 
 function CenterCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen grid place-items-center bg-background p-6">
+    <div className="min-h-dvh grid place-items-center bg-background p-6">
       <Card className="w-full max-w-md p-6 space-y-3 text-center">{children}</Card>
     </div>
   );

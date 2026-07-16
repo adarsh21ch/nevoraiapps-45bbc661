@@ -35,7 +35,7 @@ function CoachIndexRedirect({ children }: { children: React.ReactNode }) {
   }, [shouldRedirect, navigate]);
   if (shouldRedirect) {
     return (
-      <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">
+      <div className="min-h-dvh grid place-items-center text-sm text-muted-foreground">
         Loading coach dashboard…
       </div>
     );

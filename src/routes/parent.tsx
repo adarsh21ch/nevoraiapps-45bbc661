@@ -119,7 +119,7 @@ function ParentLayout() {
   if (!ready) return <PageSkeleton />;
   if (!signedIn) {
     return (
-      <div className="min-h-screen grid place-items-center p-6 bg-background">
+      <div className="min-h-dvh grid place-items-center p-6 bg-background">
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">Sign in required</h1>
           <p className="text-sm text-muted-foreground">
@@ -134,7 +134,7 @@ function ParentLayout() {
   const kids = childrenQ.data;
   if (kids.length === 0) {
     return (
-      <div className="min-h-screen grid place-items-center p-6 bg-background">
+      <div className="min-h-dvh grid place-items-center p-6 bg-background">
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">No linked children</h1>
           <p className="text-sm text-muted-foreground">
@@ -157,7 +157,7 @@ function ParentLayout() {
   const selectedChild = kids.find((k) => k.student_id === selectedId) ?? kids[0];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/40 pb-24">
+    <div className="min-h-dvh bg-gradient-to-b from-background to-muted/40 pb-24">
       <div className="max-w-3xl mx-auto px-4 pt-4">
         {/* Child switcher header */}
         <div className="mb-4">
@@ -276,7 +276,7 @@ function ChildSwitcher({
 
 function PageSkeleton() {
   return (
-    <div className="min-h-screen p-6 space-y-3 max-w-3xl mx-auto">
+    <div className="min-h-dvh p-6 space-y-3 max-w-3xl mx-auto">
       <Skeleton className="h-16 w-full" />
       <Skeleton className="h-32 w-full" />
       <Skeleton className="h-32 w-full" />

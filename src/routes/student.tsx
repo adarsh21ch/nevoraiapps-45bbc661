@@ -102,7 +102,7 @@ function StudentLayout() {
   if (!ready) return <PageSkeleton />;
   if (!signedIn) {
     return (
-      <div className="min-h-screen grid place-items-center p-6 bg-background">
+      <div className="min-h-dvh grid place-items-center p-6 bg-background">
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">Sign in required</h1>
           <p className="text-sm text-muted-foreground">
@@ -118,7 +118,7 @@ function StudentLayout() {
   // Allow /student/pending to render even without a student record.
   if (onPendingRoute) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <div className="min-h-dvh bg-gradient-to-b from-background to-muted/30">
         <Outlet />
       </div>
     );
@@ -127,7 +127,7 @@ function StudentLayout() {
   if (blockedLifecycle) {
     const label = LIFECYCLE_LABEL[blockedLifecycle as LifecycleStatus] ?? blockedLifecycle;
     return (
-      <div className="min-h-screen grid place-items-center p-6 bg-background">
+      <div className="min-h-dvh grid place-items-center p-6 bg-background">
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">Account {label}</h1>
           <p className="text-sm text-muted-foreground">
@@ -150,7 +150,7 @@ function StudentLayout() {
   if (!ctxQ.data) {
     // No student record and no pending registration → guidance card.
     return (
-      <div className="min-h-screen grid place-items-center p-6 bg-background">
+      <div className="min-h-dvh grid place-items-center p-6 bg-background">
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">No player record</h1>
           <p className="text-sm text-muted-foreground">
@@ -172,7 +172,7 @@ function StudentLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-24">
+    <div className="min-h-dvh bg-gradient-to-b from-background to-muted/30 pb-24">
       <div className="max-w-3xl mx-auto px-4 pt-6">
         <Outlet />
       </div>
@@ -208,7 +208,7 @@ function StudentLayout() {
 
 function PageSkeleton() {
   return (
-    <div className="min-h-screen p-6 space-y-3 max-w-3xl mx-auto">
+    <div className="min-h-dvh p-6 space-y-3 max-w-3xl mx-auto">
       <Skeleton className="h-20 w-full" />
       <Skeleton className="h-32 w-full" />
       <Skeleton className="h-32 w-full" />
