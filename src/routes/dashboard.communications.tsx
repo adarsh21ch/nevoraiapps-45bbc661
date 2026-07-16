@@ -101,15 +101,11 @@ function CommunicationsHub() {
         }
       />
 
-      <div className="relative">
-        <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search campaigns, templates…"
-          className="pl-9"
-        />
-      </div>
+      <DashboardSearch
+        value={q}
+        onChange={setQ}
+        placeholder="Search campaigns, templates…"
+      />
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="hidden">
