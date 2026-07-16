@@ -10,6 +10,10 @@
  * Invoices are immutable once issued. Corrections go to billing_invoice_adjustments.
  */
 import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+type Db = SupabaseClient<Database>;
 
 // ---------- Types ----------------------------------------------------------
 export type BillingCycle = "monthly" | "quarterly" | "half_yearly" | "yearly" | "one_time";
@@ -170,20 +174,20 @@ export const bqk = {
 };
 
 // ---------- Query fns ------------------------------------------------------
-export async function fetchBillingKpis(tenantId: string) {
+export async function fetchBillingKpis(tenantId: string, db: Db = supabase) {
   const [outRes, monthRes, overdueRes] = await Promise.all([
-    supabase
+    db
       .from("billing_invoices")
       .select("balance, status")
       .eq("tenant_id", tenantId)
       .in("status", ["issued", "partially_paid"]),
-    supabase
+    db
       .from("billing_payments")
       .select("amount, collected_at")
       .eq("tenant_id", tenantId)
       .eq("status", "succeeded")
       .gte("collected_at", startOfMonthIso()),
-    supabase
+    db
       .from("billing_invoices")
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
@@ -218,8 +222,8 @@ export async function fetchInvoices(
   return (data ?? []) as Invoice[];
 }
 
-export async function fetchInvoice(id: string) {
-  const { data, error } = await supabase
+export async function fetchInvoice(id: string, db: Db = supabase) {
+  const { data, error } = await db
     .from("billing_invoices")
     .select("*")
     .eq("id", id)
@@ -228,8 +232,8 @@ export async function fetchInvoice(id: string) {
   return data as Invoice | null;
 }
 
-export async function fetchInvoiceLines(invoiceId: string) {
-  const { data, error } = await supabase
+export async function fetchInvoiceLines(invoiceId: string, db: Db = supabase) {
+  const { data, error } = await db
     .from("billing_invoice_lines")
     .select("*")
     .eq("invoice_id", invoiceId)
@@ -238,14 +242,15 @@ export async function fetchInvoiceLines(invoiceId: string) {
   return (data ?? []) as InvoiceLine[];
 }
 
-export async function fetchPaymentsForInvoice(invoiceId: string) {
-  const { data, error } = await supabase
+export async function fetchPaymentsForInvoice(invoiceId: string, db: Db = supabase) {
+  const { data, error } = await db
     .from("billing_payment_allocations")
     .select("*, payment:billing_payments(*)")
     .eq("invoice_id", invoiceId);
   if (error) throw error;
   return data ?? [];
 }
+
 
 export async function fetchSubscriptions(tenantId: string) {
   const { data, error } = await supabase

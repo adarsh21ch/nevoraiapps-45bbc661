@@ -43,10 +43,10 @@ async function buildBriefForTenant(tenantId: string): Promise<DailyBrief> {
     .maybeSingle();
 
   const [kpis, billing, attendance, insights] = await Promise.all([
-    tenant ? fetchKpis(tenant as never).catch(() => null) : Promise.resolve(null),
-    fetchBillingKpis(tenantId).catch(() => null),
-    fetchAttendanceToday(tenantId).catch(() => [] as Awaited<ReturnType<typeof fetchAttendanceToday>>),
-    fetchDashboardInsights(tenantId).catch(() => null),
+    tenant ? fetchKpis(tenant as never, supabaseAdmin).catch(() => null) : Promise.resolve(null),
+    fetchBillingKpis(tenantId, supabaseAdmin).catch(() => null),
+    fetchAttendanceToday(tenantId, supabaseAdmin).catch(() => [] as Awaited<ReturnType<typeof fetchAttendanceToday>>),
+    fetchDashboardInsights(tenantId, supabaseAdmin).catch(() => null),
   ]);
 
   let present = 0;

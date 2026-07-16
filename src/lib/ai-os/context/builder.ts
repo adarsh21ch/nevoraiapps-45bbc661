@@ -7,7 +7,7 @@
  * any specific route or hook.
  */
 
-import type { AIContext, AIRole } from "./types";
+import type { AIContext, AIDataClient, AIRole } from "./types";
 
 export type ContextInput = {
   tenantId: string;
@@ -27,6 +27,7 @@ export type ContextInput = {
   subscription?: { plan: string; status: string };
   features?: Record<string, boolean>;
   language?: string;
+  dataClient?: AIDataClient;
 };
 
 function inferTimezone(explicit?: string): string {
@@ -59,7 +60,9 @@ export function buildContext(input: ContextInput): AIContext {
     subscription: input.subscription,
     features: input.features,
     language: input.language ?? "en",
+    dataClient: input.dataClient,
   };
 }
 
 export type { AIRole };
+

@@ -38,12 +38,24 @@ const limitSchema = {
   additionalProperties: false,
 } as const;
 
-/** Load the tenant row via the same query dashboard uses. */
-async function loadTenant(tenantId: string) {
+/**
+ * Return the Supabase client tools should read through: the per-request
+ * client attached to `AIContext` (RLS-scoped to the caller) when set, or
+ * the browser singleton as a legacy fallback for in-tab use.
+ */
+async function dbFor(ctx: AIContext) {
+  if (ctx.dataClient) return ctx.dataClient;
   const { supabase } = await import("@/integrations/supabase/client");
-  const { data } = await supabase.from("tenants").select("*").eq("id", tenantId).maybeSingle();
+  return supabase;
+}
+
+/** Load the tenant row via the same query dashboard uses. */
+async function loadTenant(tenantId: string, ctx: AIContext) {
+  const db = await dbFor(ctx);
+  const { data } = await db.from("tenants").select("*").eq("id", tenantId).maybeSingle();
   return data;
 }
+
 
 /** Resolve the student id a caller is allowed to inspect. */
 function resolveStudentId(input: unknown, ctx: AIContext): string | null {
@@ -72,10 +84,11 @@ export const dashboardSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
   async execute(_input, ctx): Promise<ToolResult> {
-    const tenant = await loadTenant(ctx.tenantId);
+    const db = await dbFor(ctx);
+    const tenant = await loadTenant(ctx.tenantId, ctx);
     if (!tenant) return { ok: false, reason: "not_found", message: "Tenant not found", code: "TENANT_NOT_FOUND" };
     const { fetchKpis } = await import("@/lib/dashboard-queries");
-    const kpis = await fetchKpis(tenant as never);
+    const kpis = await fetchKpis(tenant as never, db);
     return {
       ok: true,
       title: "Academy snapshot",
@@ -90,6 +103,7 @@ export const dashboardSummaryTool: AnyToolDef = {
     };
   },
 };
+
 
 /* ------------------------------------------------------------------ */
 /* Finance                                                            */
@@ -106,10 +120,11 @@ export const financeSummaryTool: AnyToolDef = {
     // use (legacy `payments` table). `fetchBillingKpis` reads Billing V2 tables
     // which are empty in production — kept in `src/lib/billing.ts` for future
     // Billing V2 use but no longer wired here.
-    const tenant = await loadTenant(ctx.tenantId);
+    const db = await dbFor(ctx);
+    const tenant = await loadTenant(ctx.tenantId, ctx);
     if (!tenant) return { ok: false, reason: "not_found", message: "Tenant not found", code: "TENANT_NOT_FOUND" };
     const { fetchKpis } = await import("@/lib/dashboard-queries");
-    const kpis = await fetchKpis(tenant as never);
+    const kpis = await fetchKpis(tenant as never, db);
     const data = {
       collectedThisMonth: kpis.collectionThisMonth,
       // Legacy `payments` has no rupee-outstanding source; the dashboard shows a
@@ -144,15 +159,16 @@ export const feeSummaryTool: AnyToolDef = {
     if (!studentId) {
       return { ok: false, reason: "forbidden", code: "STUDENT_SCOPE_DENIED", message: "No accessible student for this caller." };
     }
+    const db = await dbFor(ctx);
     const [{ fetchStudent, fetchStudentPayments }, tenant] = await Promise.all([
       import("@/lib/dashboard-queries"),
-      loadTenant(ctx.tenantId),
+      loadTenant(ctx.tenantId, ctx),
     ]);
-    const student = await fetchStudent(studentId);
+    const student = await fetchStudent(studentId, db);
     if (!student || (student as { tenant_id?: string }).tenant_id !== ctx.tenantId) {
       return { ok: false, reason: "not_found", code: "STUDENT_NOT_FOUND", message: "Student not found for this tenant." };
     }
-    const payments = await fetchStudentPayments(studentId);
+    const payments = await fetchStudentPayments(studentId, db);
     const { studentDue, tenantFeeCycle, periodKey, candidatePeriods } = await import("@/lib/fees");
     let due: unknown = null;
     if (tenant) {
@@ -203,11 +219,12 @@ export const invoiceDetailsTool: AnyToolDef = {
     if (!invoiceId) {
       return { ok: false, reason: "invalid_input", code: "MISSING_INVOICE_ID", message: "invoiceId is required." };
     }
+    const db = await dbFor(ctx);
     const { fetchInvoice, fetchInvoiceLines, fetchPaymentsForInvoice } = await import("@/lib/billing");
     const [invoice, lines, payments] = await Promise.all([
-      fetchInvoice(invoiceId),
-      fetchInvoiceLines(invoiceId),
-      fetchPaymentsForInvoice(invoiceId),
+      fetchInvoice(invoiceId, db),
+      fetchInvoiceLines(invoiceId, db),
+      fetchPaymentsForInvoice(invoiceId, db),
     ]);
     if (!invoice || (invoice as { tenant_id?: string }).tenant_id !== ctx.tenantId) {
       return { ok: false, reason: "not_found", code: "INVOICE_NOT_FOUND", message: "Invoice not found." };
@@ -233,8 +250,9 @@ export const attendanceSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin", "coach"],
   async execute(_input, ctx): Promise<ToolResult> {
+    const db = await dbFor(ctx);
     const { fetchAttendanceToday } = await import("@/lib/attendance/queries");
-    const rows = await fetchAttendanceToday(ctx.tenantId);
+    const rows = await fetchAttendanceToday(ctx.tenantId, db);
     let present = 0;
     let absent = 0;
     let inAcademy = 0;
@@ -280,8 +298,9 @@ export const playerProfileTool: AnyToolDef = {
     if (!studentId) {
       return { ok: false, reason: "forbidden", code: "STUDENT_SCOPE_DENIED", message: "No accessible student for this caller." };
     }
+    const db = await dbFor(ctx);
     const { fetchStudent } = await import("@/lib/dashboard-queries");
-    const student = await fetchStudent(studentId);
+    const student = await fetchStudent(studentId, db);
     if (!student || (student as { tenant_id?: string }).tenant_id !== ctx.tenantId) {
       return { ok: false, reason: "not_found", code: "STUDENT_NOT_FOUND", message: "Student not found." };
     }
@@ -306,8 +325,9 @@ export const admissionsSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
   async execute(_input, ctx): Promise<ToolResult> {
+    const db = await dbFor(ctx);
     const { leadsPipelineQuery } = await import("@/lib/admissions");
-    const q = leadsPipelineQuery(ctx.tenantId);
+    const q = leadsPipelineQuery(ctx.tenantId, db);
     const leads = await q.queryFn();
     const byStage: Record<string, number> = {};
     for (const l of leads) {
@@ -339,8 +359,9 @@ export const communicationsSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
   async execute(_input, ctx): Promise<ToolResult> {
+    const db = await dbFor(ctx);
     const { campaignsQueryOptions } = await import("@/lib/communications");
-    const opts = campaignsQueryOptions(ctx.tenantId);
+    const opts = campaignsQueryOptions(ctx.tenantId, db);
     const runFn = opts.queryFn as unknown as () => Promise<Array<{ status?: string; created_at?: string }>>;
     const campaigns = (await runFn()) as Array<{ status?: string; created_at?: string }>;
     const byStatus: Record<string, number> = {};
@@ -377,8 +398,8 @@ export const automationStatusTool: AnyToolDef = {
       50,
       Math.max(1, Number((input as { limit?: number } | undefined)?.limit) || 20),
     );
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { data, error } = await supabase
+    const db = await dbFor(ctx);
+    const { data, error } = await db
       .from("automation_executions")
       .select("id, status, created_at, rule_id")
       .eq("tenant_id", ctx.tenantId)
@@ -421,10 +442,10 @@ export const notificationsSummaryTool: AnyToolDef = {
       50,
       Math.max(1, Number((input as { limit?: number } | undefined)?.limit) || 15),
     );
-    const { supabase } = await import("@/integrations/supabase/client");
+    const db = await dbFor(ctx);
     // RLS on `notifications` already scopes to the caller — no manual filter needed
     // beyond ordering + limit.
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("notifications")
       .select("id, title, body, created_at, read_at, kind")
       .eq("tenant_id", ctx.tenantId)
@@ -460,8 +481,9 @@ export const reportsSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
   async execute(_input, ctx): Promise<ToolResult> {
+    const db = await dbFor(ctx);
     const { fetchDashboardInsights } = await import("@/lib/dashboard-queries");
-    const insights = await fetchDashboardInsights(ctx.tenantId);
+    const insights = await fetchDashboardInsights(ctx.tenantId, db);
     return {
       ok: true,
       title: "Reports snapshot",
@@ -487,7 +509,7 @@ export const subscriptionStatusTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
   async execute(_input, ctx): Promise<ToolResult> {
-    const tenant = await loadTenant(ctx.tenantId);
+    const tenant = await loadTenant(ctx.tenantId, ctx);
     const data = {
       plan: ctx.subscription?.plan ?? (tenant as { subscription_status?: string } | null)?.subscription_status ?? null,
       status: ctx.subscription?.status ?? (tenant as { status?: string } | null)?.status ?? null,
@@ -514,16 +536,16 @@ export const founderIntelligenceTool: AnyToolDef = {
   category: "founder",
   parameters: emptySchema,
   allowedRoles: ["platform_admin"],
-  async execute(): Promise<ToolResult> {
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { data: tenants, error } = await supabase.from("tenants").select("*");
+  async execute(_input, ctx): Promise<ToolResult> {
+    const db = await dbFor(ctx);
+    const { data: tenants, error } = await db.from("tenants").select("*");
     if (error) {
       return { ok: false, reason: "internal", code: "TENANTS_READ_FAILED", message: error.message };
     }
     const { fetchIntelligenceSnapshot, computeExecutiveKpis, computePlatformAnalytics } = await import(
       "@/lib/founder-intelligence"
     );
-    const snapshot = await fetchIntelligenceSnapshot((tenants ?? []) as never);
+    const snapshot = await fetchIntelligenceSnapshot((tenants ?? []) as never, db);
     const kpis = computeExecutiveKpis(snapshot);
     const analytics = computePlatformAnalytics(snapshot);
     return {
@@ -559,8 +581,8 @@ export const sendFeeReminderTool: AnyToolDef = {
     // Reuse the same reminder_logs surface that the dashboard "tap to send" uses.
     // The AI never sends the message itself — it only queues the row, which the
     // owner then dispatches.
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { error } = await supabase.from("reminder_logs").insert({
+    const db = await dbFor(ctx);
+    const { error } = await db.from("reminder_logs").insert({
       tenant_id: ctx.tenantId,
       student_id: studentId,
       channel: "in_app",

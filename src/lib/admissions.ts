@@ -1,4 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+type Db = SupabaseClient<Database>;
 import { emitEvent } from "@/lib/automation/emit-client";
 
 export type PipelineStage =
@@ -90,11 +94,11 @@ export type AdmissionEvent = {
   created_at: string;
 };
 
-export function leadsPipelineQuery(tenantId: string) {
+export function leadsPipelineQuery(tenantId: string, db: Db = supabase) {
   return {
     queryKey: ["admissions", "leads", tenantId],
     queryFn: async (): Promise<PipelineLead[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("leads" as never)
         .select("*")
         .eq("tenant_id", tenantId)
@@ -104,6 +108,7 @@ export function leadsPipelineQuery(tenantId: string) {
     },
   };
 }
+
 
 export function admissionTimelineQuery(params: {
   tenantId: string;

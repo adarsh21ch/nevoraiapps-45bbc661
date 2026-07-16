@@ -6,6 +6,21 @@
  * must fetch itself, gated by the role/tenant here.
  */
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+/**
+ * Supabase client the AI tool layer should read through.
+ *
+ * On the server (chat route) this is a per-request client that carries
+ * the caller's bearer token, so RLS resolves as that user. In non-server
+ * contexts the field is undefined and tools MUST fall back to the
+ * browser singleton — which is only safe when the user is signed in in
+ * that same browser tab.
+ */
+export type AIDataClient = SupabaseClient<Database>;
+
+
 export type AIRole = "owner" | "admin" | "coach" | "parent" | "student" | "platform_admin";
 
 export type AIContext = {
@@ -40,4 +55,11 @@ export type AIContext = {
   features?: Record<string, boolean>;
   /** ISO 639-1 preferred language. */
   language?: string;
+  /**
+   * Supabase client tools should query through. Populated by server
+   * entry points that already validated a bearer token; undefined
+   * elsewhere. Tools fall back to the browser singleton when absent.
+   */
+  dataClient?: AIDataClient;
 };
+

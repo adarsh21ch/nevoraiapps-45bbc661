@@ -1,7 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { Tenant } from "./tenant";
 import { candidatePeriods, periodKey, studentDue, tenantFeeCycle } from "./fees";
+
+type Db = SupabaseClient<Database>;
+
+
 
 export type Student = Database["public"]["Tables"]["students"]["Row"];
 export type Registration = Database["public"]["Tables"]["registrations"]["Row"];
@@ -47,8 +52,8 @@ export async function fetchStudents(tenantId: string) {
   return data ?? [];
 }
 
-export async function fetchStudent(id: string) {
-  const { data, error } = await supabase
+export async function fetchStudent(id: string, db: Db = supabase) {
+  const { data, error } = await db
     .from("students")
     .select("*, batches(id, name, timing), fee_plans(id, name, amount, type)")
     .eq("id", id)
@@ -57,8 +62,8 @@ export async function fetchStudent(id: string) {
   return data;
 }
 
-export async function fetchStudentPayments(studentId: string) {
-  const { data, error } = await supabase
+export async function fetchStudentPayments(studentId: string, db: Db = supabase) {
+  const { data, error } = await db
     .from("payments")
     .select("*")
     .eq("student_id", studentId)
@@ -66,6 +71,7 @@ export async function fetchStudentPayments(studentId: string) {
   if (error) throw error;
   return data ?? [];
 }
+
 
 export async function fetchBatches(tenantId: string) {
   const { data, error } = await supabase
@@ -104,7 +110,7 @@ export type Kpis = {
   pendingFeeCount: number;
 };
 
-export async function fetchKpis(tenant: Tenant): Promise<Kpis> {
+export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis> {
   const tenantId = tenant.id;
   const cycle = tenantFeeCycle(tenant);
   const now = new Date();
@@ -113,33 +119,34 @@ export async function fetchKpis(tenant: Tenant): Promise<Kpis> {
   const periods = cycle === "joining_date" ? candidatePeriods(now) : [periodKey(now)];
 
   const [active, regs, pays, studentsMonthly, paidRows] = await Promise.all([
-    supabase
+    db
       .from("students")
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
       .eq("status", "active"),
-    supabase
+    db
       .from("registrations")
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
       .gte("created_at", weekAgo),
-    supabase
+    db
       .from("payments")
       .select("amount")
       .eq("tenant_id", tenantId)
       .gte("created_at", startOfMonth),
-    supabase
+    db
       .from("students")
       .select("id, joined_at, fee_plan_id, fee_plans!inner(type)")
       .eq("tenant_id", tenantId)
       .eq("status", "active")
       .eq("fee_plans.type", "monthly"),
-    supabase
+    db
       .from("payments")
       .select("student_id, period")
       .eq("tenant_id", tenantId)
       .in("period", periods),
   ]);
+
 
   const collection = (pays.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
   const paidByStudent = new Map<string, Set<string>>();
@@ -222,29 +229,33 @@ function monthKeyOf(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
-export async function fetchDashboardInsights(tenantId: string): Promise<DashboardInsights> {
+export async function fetchDashboardInsights(
+  tenantId: string,
+  db: Db = supabase,
+): Promise<DashboardInsights> {
   const now = new Date();
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
   const todayStr = now.toISOString().slice(0, 10);
 
   const [payRes, sessRes, studRes] = await Promise.all([
-    supabase
+    db
       .from("payments")
       .select("amount, created_at")
       .eq("tenant_id", tenantId)
       .gte("created_at", sixMonthsAgo.toISOString()),
-    supabase
+    db
       .from("attendance_sessions")
       .select("id, attendance_marks(status)")
       .eq("tenant_id", tenantId)
       .eq("session_date", todayStr),
-    supabase
+    db
       .from("students")
       .select("id, name, dob, photo_url")
       .eq("tenant_id", tenantId)
       .eq("status", "active")
       .not("dob", "is", null),
   ]);
+
 
   // Revenue trend (fill zero months)
   const buckets = new Map<string, number>();

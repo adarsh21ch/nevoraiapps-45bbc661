@@ -17,7 +17,11 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import type { TenantRow } from "./platform-queries";
+
+type Db = SupabaseClient<Database>;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -27,16 +31,18 @@ const now = () => Date.now();
 const iso = (msAgo: number) => new Date(now() - msAgo).toISOString();
 
 async function selectAll<T>(
+  db: Db,
   table: string,
   columns: string,
   filters?: (q: any) => any,
 ): Promise<T[]> {
-  let q: any = (supabase as any).from(table).select(columns);
+  let q: any = (db as any).from(table).select(columns);
   if (filters) q = filters(q);
   const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as T[];
 }
+
 
 // ---------------------------------------------------------------------------
 // Raw snapshots — one wide fetch per source, joined in memory.
@@ -70,6 +76,7 @@ export interface IntelligenceSnapshot {
 
 export async function fetchIntelligenceSnapshot(
   tenants: TenantRow[],
+  db: Db = supabase,
 ): Promise<IntelligenceSnapshot> {
   const [
     students,
@@ -88,35 +95,36 @@ export async function fetchIntelligenceSnapshot(
     campaigns,
     admissionTimeline30d,
   ] = await Promise.all([
-    selectAll<any>("students", "tenant_id, status, created_at", (q) =>
+    selectAll<any>(db, "students", "tenant_id, status, created_at", (q) =>
       q.is("archived_at", null),
     ),
-    selectAll<any>("attendance_marks", "tenant_id, created_at", (q) =>
+    selectAll<any>(db, "attendance_marks", "tenant_id, created_at", (q) =>
       q.gte("created_at", iso(30 * DAY_MS)),
     ),
     selectAll<any>(
+      db,
       "billing_invoices",
       "tenant_id, status, total, amount_paid, created_at",
       (q) => q.gte("created_at", iso(90 * DAY_MS)),
     ),
-    selectAll<any>("billing_payments", "tenant_id, amount, created_at, status", (q) =>
+    selectAll<any>(db, "billing_payments", "tenant_id, amount, created_at, status", (q) =>
       q.gte("created_at", iso(30 * DAY_MS)),
     ),
-    selectAll<any>("automation_executions", "tenant_id, status, created_at", (q) =>
+    selectAll<any>(db, "automation_executions", "tenant_id, status, created_at", (q) =>
       q.gte("created_at", iso(30 * DAY_MS)),
     ),
-    selectAll<any>("notifications", "tenant_id, created_at, id", (q) =>
+    selectAll<any>(db, "notifications", "tenant_id, created_at, id", (q) =>
       q.gte("created_at", iso(30 * DAY_MS)),
     ),
-    selectAll<any>("profiles", "tenant_id, role, user_id, created_at"),
-    selectAll<any>("push_devices", "tenant_id, user_id"),
-    selectAll<any>("mc_website_config", "tenant_id"),
-    selectAll<any>("fee_plans", "tenant_id"),
-    selectAll<any>("batches", "tenant_id"),
-    selectAll<any>("coach_assignments", "tenant_id, created_at"),
-    selectAll<any>("student_import_batches", "tenant_id, status, created_at"),
-    selectAll<any>("comm_campaigns", "tenant_id, created_at"),
-    selectAll<any>("admission_timeline", "tenant_id, created_at", (q) =>
+    selectAll<any>(db, "profiles", "tenant_id, role, user_id, created_at"),
+    selectAll<any>(db, "push_devices", "tenant_id, user_id"),
+    selectAll<any>(db, "mc_website_config", "tenant_id"),
+    selectAll<any>(db, "fee_plans", "tenant_id"),
+    selectAll<any>(db, "batches", "tenant_id"),
+    selectAll<any>(db, "coach_assignments", "tenant_id, created_at"),
+    selectAll<any>(db, "student_import_batches", "tenant_id, status, created_at"),
+    selectAll<any>(db, "comm_campaigns", "tenant_id, created_at"),
+    selectAll<any>(db, "admission_timeline", "tenant_id, created_at", (q) =>
       q.gte("created_at", iso(30 * DAY_MS)),
     ),
   ]);
@@ -125,13 +133,14 @@ export async function fetchIntelligenceSnapshot(
   const notifIds = notifs30d.map((n) => n.id).slice(0, 5000);
   let notifDeliveries7d: Array<any> = [];
   if (notifIds.length > 0) {
-    const { data } = await (supabase as any)
+    const { data } = await (db as any)
       .from("notification_deliveries")
       .select("status, delivered_at, created_at, notification_id")
       .gte("created_at", iso(7 * DAY_MS))
       .in("notification_id", notifIds);
     notifDeliveries7d = data ?? [];
   }
+
 
   return {
     fetched_at: new Date().toISOString(),
