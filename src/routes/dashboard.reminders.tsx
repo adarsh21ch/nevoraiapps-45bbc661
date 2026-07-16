@@ -10,6 +10,7 @@ import { periodLabel } from "@/lib/fees";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FilterTabs } from "@/components/shared/FilterTabs";
+import { FeesTabsBar } from "@/components/dashboard/FeesTabsBar";
 
 type ReminderStatus = "queued" | "sent" | "dismissed";
 type Reminder = {
