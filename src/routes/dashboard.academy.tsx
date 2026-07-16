@@ -13,6 +13,11 @@ import {
   UserCircle,
   LineChart,
   ClipboardCheck,
+  Layers,
+  CalendarClock,
+  ReceiptText,
+  UserPlus,
+  Zap,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { useCurrentRole } from "@/hooks/use-current-role";
