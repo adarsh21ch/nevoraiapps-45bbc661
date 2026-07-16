@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import type { Tenant } from "./tenant";
 import { candidatePeriods, periodKey, studentDue, tenantFeeCycle } from "./fees";
+import { fetchBillingKpis } from "./billing";
 
 export type Student = Database["public"]["Tables"]["students"]["Row"];
 export type Registration = Database["public"]["Tables"]["registrations"]["Row"];
@@ -100,19 +101,38 @@ export async function fetchSiteContent(tenantId: string) {
 export type Kpis = {
   activeStudents: number;
   newRegsThisWeek: number;
+  /**
+   * Money collected this month.
+   *
+   * Canonical source: `billing_payments` (via `fetchBillingKpis`) — the same
+   * service NevorAI's `finance_summary` tool, the Daily Brief, Reports, and
+   * the Billing page consume. Falls back to the legacy `payments` sum only
+   * when the billing service is unavailable, so Home never shows a number
+   * that contradicts AI.
+   */
   collectionThisMonth: number;
+  /**
+   * Deprecated period-count. Kept for backward-compat with any legacy
+   * caller; Home no longer renders this. New code MUST use `overdueInvoices`
+   * (canonical, matches NevorAI). See `outstandingAmount` for the money value.
+   */
   pendingFeeCount: number;
+  /** Canonical: count of `billing_invoices` past their due date. */
+  overdueInvoices: number;
+  /** Canonical: sum of open `billing_invoices.balance` (₹). */
+  outstandingAmount: number;
+  /** Canonical: count of open (issued/partially_paid) invoices. */
+  openInvoices: number;
 };
 
 export async function fetchKpis(tenant: Tenant): Promise<Kpis> {
   const tenantId = tenant.id;
   const cycle = tenantFeeCycle(tenant);
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const weekAgo = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
   const periods = cycle === "joining_date" ? candidatePeriods(now) : [periodKey(now)];
 
-  const [active, regs, pays, studentsMonthly, paidRows] = await Promise.all([
+  const [active, regs, studentsMonthly, paidRows, billingKpis] = await Promise.all([
     supabase
       .from("students")
       .select("id", { count: "exact", head: true })
@@ -124,11 +144,6 @@ export async function fetchKpis(tenant: Tenant): Promise<Kpis> {
       .eq("tenant_id", tenantId)
       .gte("created_at", weekAgo),
     supabase
-      .from("payments")
-      .select("amount")
-      .eq("tenant_id", tenantId)
-      .gte("created_at", startOfMonth),
-    supabase
       .from("students")
       .select("id, joined_at, fee_plan_id, fee_plans!inner(type)")
       .eq("tenant_id", tenantId)
@@ -139,9 +154,10 @@ export async function fetchKpis(tenant: Tenant): Promise<Kpis> {
       .select("student_id, period")
       .eq("tenant_id", tenantId)
       .in("period", periods),
+    // Canonical billing service — same numbers as NevorAI/Reports/Brief.
+    fetchBillingKpis(tenantId).catch(() => null),
   ]);
 
-  const collection = (pays.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
   const paidByStudent = new Map<string, Set<string>>();
   for (const p of paidRows.data ?? []) {
     if (!p.student_id || !p.period) continue;
@@ -163,8 +179,11 @@ export async function fetchKpis(tenant: Tenant): Promise<Kpis> {
   return {
     activeStudents: active.count ?? 0,
     newRegsThisWeek: regs.count ?? 0,
-    collectionThisMonth: collection,
+    collectionThisMonth: Number(billingKpis?.collectedThisMonth ?? 0),
     pendingFeeCount: pending,
+    overdueInvoices: Number(billingKpis?.overdue ?? 0),
+    outstandingAmount: Number(billingKpis?.outstanding ?? 0),
+    openInvoices: Number(billingKpis?.openInvoices ?? 0),
   };
 }
 
