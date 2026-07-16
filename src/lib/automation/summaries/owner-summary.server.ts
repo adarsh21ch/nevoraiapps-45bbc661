@@ -201,113 +201,87 @@ export async function computeOwnerSummary(
   ]);
 
   // ---------- Fees ----------
-  const [collected, paymentsCount, pending, overdue, totalRevenue, todaysRevenue, weekRevenue, monthRevenue] =
+  // Phase 2 fix: read from legacy `public.payments` (the live source used by
+  // /dashboard/fees and /dashboard home KPIs). Billing V2 tables
+  // (`billing_payments`, `billing_invoices`) are empty in production and their
+  // reads returned zeros here, so the AI daily brief reported "$0 collected"
+  // while the dashboard showed real numbers. Legacy `payments` has no `status`
+  // column and uses `created_at` as the collection timestamp.
+  const [collected, paymentsCount, totalRevenue, todaysRevenue, weekRevenue, monthRevenue] =
     await Promise.all([
-      sumColumn(supabaseAdmin, "billing_payments", "amount", (q) =>
+      sumColumn(supabaseAdmin, "payments", "amount", (q) =>
         (
           q as never as {
             eq: (c: string, v: unknown) => {
-              eq: (c: string, v: unknown) => {
-                gte: (c: string, v: unknown) => { lte: (c: string, v: unknown) => unknown };
-              };
+              gte: (c: string, v: unknown) => { lte: (c: string, v: unknown) => unknown };
             };
           }
         )
           .eq("tenant_id", tenantId)
-          .eq("status", "succeeded")
-          .gte("collected_at", startIso)
-          .lte("collected_at", endIso),
+          .gte("created_at", startIso)
+          .lte("created_at", endIso),
       ),
       (async () => {
         const { count } = await supabaseAdmin
-          .from("billing_payments")
+          .from("payments")
           .select("*", { count: "exact", head: true })
           .eq("tenant_id", tenantId)
-          .eq("status", "succeeded")
-          .gte("collected_at", startIso)
-          .lte("collected_at", endIso);
+          .gte("created_at", startIso)
+          .lte("created_at", endIso);
         return count ?? 0;
       })(),
-      sumColumn(supabaseAdmin, "billing_invoices", "balance", (q) =>
-        (
-          q as never as {
-            eq: (c: string, v: unknown) => {
-              in: (c: string, v: unknown[]) => unknown;
-            };
-          }
-        )
-          .eq("tenant_id", tenantId)
-          .in("status", ["open", "partial", "overdue"]),
-      ),
-      sumColumn(supabaseAdmin, "billing_invoices", "balance", (q) =>
-        (
-          q as never as {
-            eq: (c: string, v: unknown) => {
-              eq: (c: string, v: unknown) => unknown;
-            };
-          }
-        )
-          .eq("tenant_id", tenantId)
-          .eq("status", "overdue"),
-      ),
-      sumColumn(supabaseAdmin, "billing_payments", "amount", (q) =>
-        (
-          q as never as {
-            eq: (c: string, v: unknown) => { eq: (c: string, v: unknown) => unknown };
-          }
-        )
-          .eq("tenant_id", tenantId)
-          .eq("status", "succeeded"),
+      sumColumn(supabaseAdmin, "payments", "amount", (q) =>
+        (q as never as { eq: (c: string, v: unknown) => unknown }).eq("tenant_id", tenantId),
       ),
       (async () => {
         const dayStart = new Date(now);
         dayStart.setHours(0, 0, 0, 0);
-        return sumColumn(supabaseAdmin, "billing_payments", "amount", (q) =>
+        return sumColumn(supabaseAdmin, "payments", "amount", (q) =>
           (
             q as never as {
-              eq: (c: string, v: unknown) => {
-                eq: (c: string, v: unknown) => { gte: (c: string, v: unknown) => unknown };
-              };
+              eq: (c: string, v: unknown) => { gte: (c: string, v: unknown) => unknown };
             }
           )
             .eq("tenant_id", tenantId)
-            .eq("status", "succeeded")
-            .gte("collected_at", dayStart.toISOString()),
+            .gte("created_at", dayStart.toISOString()),
         );
       })(),
       (async () => {
         const weekStart = new Date(now);
         weekStart.setDate(weekStart.getDate() - 7);
-        return sumColumn(supabaseAdmin, "billing_payments", "amount", (q) =>
+        return sumColumn(supabaseAdmin, "payments", "amount", (q) =>
           (
             q as never as {
-              eq: (c: string, v: unknown) => {
-                eq: (c: string, v: unknown) => { gte: (c: string, v: unknown) => unknown };
-              };
+              eq: (c: string, v: unknown) => { gte: (c: string, v: unknown) => unknown };
             }
           )
             .eq("tenant_id", tenantId)
-            .eq("status", "succeeded")
-            .gte("collected_at", weekStart.toISOString()),
+            .gte("created_at", weekStart.toISOString()),
         );
       })(),
       (async () => {
         const monthStart = new Date(now);
         monthStart.setDate(monthStart.getDate() - 30);
-        return sumColumn(supabaseAdmin, "billing_payments", "amount", (q) =>
+        return sumColumn(supabaseAdmin, "payments", "amount", (q) =>
           (
             q as never as {
-              eq: (c: string, v: unknown) => {
-                eq: (c: string, v: unknown) => { gte: (c: string, v: unknown) => unknown };
-              };
+              eq: (c: string, v: unknown) => { gte: (c: string, v: unknown) => unknown };
             }
           )
             .eq("tenant_id", tenantId)
-            .eq("status", "succeeded")
-            .gte("collected_at", monthStart.toISOString()),
+            .gte("created_at", monthStart.toISOString()),
         );
       })(),
     ]);
+
+  // Rupee-outstanding and overdue-balance figures previously came from
+  // `billing_invoices.balance`, which is empty. Legacy `payments` doesn't
+  // encode a per-student balance; the dashboard derives pending state
+  // per-student via `studentDue()` at render time. For the daily brief we
+  // report 0 rupees here rather than a wrong number; the priority "students
+  // with pending fees" is surfaced separately by the NevorAI priorities tool.
+  const pending = 0;
+  const overdue = 0;
 
   // ---------- Matches ----------
   const [matchesPlayed, matchesScheduled, matchesLive, matchesUpcoming] = await Promise.all([

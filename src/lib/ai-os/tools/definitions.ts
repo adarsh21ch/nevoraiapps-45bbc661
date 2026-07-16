@@ -102,17 +102,32 @@ export const financeSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
   async execute(_input, ctx): Promise<ToolResult> {
-    const { fetchBillingKpis } = await import("@/lib/billing");
-    const data = await fetchBillingKpis(ctx.tenantId);
+    // Phase 2 fix: read from the same helper the dashboard home + fees screens
+    // use (legacy `payments` table). `fetchBillingKpis` reads Billing V2 tables
+    // which are empty in production — kept in `src/lib/billing.ts` for future
+    // Billing V2 use but no longer wired here.
+    const tenant = await loadTenant(ctx.tenantId);
+    if (!tenant) return { ok: false, reason: "not_found", message: "Tenant not found", code: "TENANT_NOT_FOUND" };
+    const { fetchKpis } = await import("@/lib/dashboard-queries");
+    const kpis = await fetchKpis(tenant as never);
+    const data = {
+      collectedThisMonth: kpis.collectionThisMonth,
+      // Legacy `payments` has no rupee-outstanding source; the dashboard shows a
+      // COUNT of students with pending fees this period. Surface that count
+      // under `outstanding` so the tool preserves its field shape.
+      outstanding: kpis.pendingFeeCount,
+      openInvoices: kpis.pendingFeeCount,
+      overdue: kpis.pendingFeeCount,
+    };
     return {
       ok: true,
       title: "Billing snapshot",
-      summary: `Collected ${data.collectedThisMonth ?? 0} · outstanding ${data.outstanding ?? 0}`,
+      summary: `Collected ${data.collectedThisMonth ?? 0} this month · ${data.outstanding ?? 0} student(s) with pending fees`,
       data,
       structured_data: data,
-      citations: ["src/lib/billing.ts#fetchBillingKpis"],
+      citations: ["src/lib/dashboard-queries.ts#fetchKpis"],
       recommended_actions: [
-        { id: "open-billing", label: "Open billing", href: "/dashboard/billing" },
+        { id: "open-fees", label: "Open fees", href: "/dashboard/fees" },
       ],
     };
   },
