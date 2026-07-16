@@ -209,8 +209,19 @@ function ParentHomeInner({
           </div>
         </Card>
       )}
+
+      {/* Cross-link to Match Center parent experience (kept separate; supports demo tenants) */}
+      <div className="pt-1 text-center">
+        <Link
+          to="/parent-portal"
+          className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+        >
+          Open Match Center parent view →
+        </Link>
+      </div>
     </div>
   );
+
 }
 
 function TimePill({ label, value }: { label: string; value: string | null }) {

@@ -423,7 +423,7 @@ function SubmissionCard({ row, onChange }: { row: Row; onChange: () => void }) {
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground pt-1">
         <span>{new Date(row.created_at).toLocaleString()}</span>
         {row.invoice && (
-          <Link to="/dashboard/billing" className="hover:underline inline-flex items-center gap-1">
+          <Link to="/dashboard/subscription" className="hover:underline inline-flex items-center gap-1">
             <FileText className="size-3" /> {row.invoice.number ?? "Invoice"}
           </Link>
         )}
