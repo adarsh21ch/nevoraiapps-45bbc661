@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
@@ -136,6 +136,17 @@ function RegistrationsInbox() {
         backTo="/dashboard/academy"
         action={<ShareLinkButton tenant={tenant} />}
       />
+      <div className="-mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <span className="uppercase tracking-wide">Admissions</span>
+        <span aria-hidden>·</span>
+        <Link to="/dashboard/admissions-review" className="hover:text-foreground underline underline-offset-2">
+          Admissions Review
+        </Link>
+        <Link to="/dashboard/leads" className="hover:text-foreground underline underline-offset-2">
+          Leads pipeline
+        </Link>
+      </div>
+
       {newCount > 0 ? (
         <div className="-mt-2 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-muted-foreground">{newCount} unactioned · newest first</p>
