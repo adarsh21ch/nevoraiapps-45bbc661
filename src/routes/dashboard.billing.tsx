@@ -193,7 +193,7 @@ function BillingWorkspace() {
         />
       </section>
 
-      <BillingTabs
+      <BillingTabsBlock
         tenantId={tenantId}
         invoicesQ={invoicesQ}
         studentsQ={studentsQ}
