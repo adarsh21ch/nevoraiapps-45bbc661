@@ -490,8 +490,28 @@ function StudentsPage() {
             ))}
           </ul>
         ) : filtered.length === 0 ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">
-            No players match. {status === "active" ? "Add your first player to get started." : ""}
+          <div className="p-10 text-center">
+            <div className="text-sm font-semibold text-foreground">
+              {q.trim()
+                ? "No players match your search."
+                : status === "active"
+                  ? "No active players found."
+                  : status === "left"
+                    ? "No players have left the academy."
+                    : "No players yet."}
+            </div>
+            {!q.trim() && (status === "active" || status === "all") ? (
+              <div className="mt-3">
+                <Button
+                  onClick={() => setAddOpen(true)}
+                  className="rounded-full h-9 px-4 font-semibold text-sm"
+                  style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
+                >
+                  <Plus className="size-4 mr-1" />
+                  Add Player
+                </Button>
+              </div>
+            ) : null}
           </div>
         ) : (
           <VirtualList
