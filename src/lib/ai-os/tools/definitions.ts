@@ -481,8 +481,9 @@ export const reportsSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
   async execute(_input, ctx): Promise<ToolResult> {
+    const db = await dbFor(ctx);
     const { fetchDashboardInsights } = await import("@/lib/dashboard-queries");
-    const insights = await fetchDashboardInsights(ctx.tenantId);
+    const insights = await fetchDashboardInsights(ctx.tenantId, db);
     return {
       ok: true,
       title: "Reports snapshot",
