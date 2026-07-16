@@ -442,15 +442,11 @@ function Directory({
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-2">
-        <div className="relative flex-1">
-          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder="Search by role, batch…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
+        <DashboardSearch
+          value={query}
+          onChange={setQuery}
+          placeholder="Search by role, batch…"
+        />
         <Select value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
           <SelectTrigger className="sm:w-52">
             <Filter className="size-4 mr-1.5" />
