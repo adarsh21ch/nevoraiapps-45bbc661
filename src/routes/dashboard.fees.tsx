@@ -784,16 +784,34 @@ function CollectForm({
   const save = useMutation({
     mutationFn: async () => {
       if (!method) throw new Error("Choose a payment method");
+      const amt = Number(amount);
       const { error } = await supabase.from("payments").insert({
         tenant_id: tenantId,
         student_id: row.studentId,
-        amount: Number(amount),
+        amount: amt,
         type: "monthly",
         period,
         method,
         note: note || null,
       });
       if (error) throw error;
+
+      // M2a bridge: dual-write to Billing V2. Non-blocking on failure.
+      try {
+        await recordPayment({
+          tenant_id: tenantId,
+          student_id: row.studentId,
+          amount: amt,
+          method,
+          allocations: [],
+          collected_at: new Date().toISOString(),
+          remarks: buildQuickCollectRemarks(period, note),
+          idempotency_key: quickCollectIdempotencyKey(row.studentId, period, amt),
+        });
+      } catch (v2err) {
+        console.error("[M2a-bridge] recordPayment failed", v2err);
+        toast.warning("Payment saved. Sync warning — please refresh.");
+      }
     },
     onSuccess: () => {
       toast.success(`${row.name} marked paid ✓`);
