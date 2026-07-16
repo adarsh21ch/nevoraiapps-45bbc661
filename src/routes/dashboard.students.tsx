@@ -348,15 +348,11 @@ function StudentsPage() {
 
       {/* Search + filters toggle */}
       <div className="flex items-center gap-2">
-        <div className="relative flex-1 min-w-0">
-          <Search className="size-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search name, phone, Player ID, parent, city"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="pl-10 h-11 rounded-full bg-card border-border shadow-sm"
-          />
-        </div>
+        <DashboardSearch
+          value={q}
+          onChange={setQ}
+          placeholder="Search name, phone, Player ID, parent, city"
+        />
         <Button
           type="button"
           variant="outline"
