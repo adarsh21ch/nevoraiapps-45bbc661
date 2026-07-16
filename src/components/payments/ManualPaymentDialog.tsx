@@ -80,6 +80,26 @@ export function ManualPaymentDialog({
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [qrSrc, setQrSrc] = useState<string>("");
+
+  useEffect(() => {
+    let cancelled = false;
+    const v = setup.upi_qr_url;
+    if (!v) {
+      setQrSrc("");
+      return;
+    }
+    if (v.startsWith("http") || v.startsWith("data:")) {
+      setQrSrc(v);
+      return;
+    }
+    signedUrl(v).then((u) => {
+      if (!cancelled) setQrSrc(u);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [setup.upi_qr_url]);
 
   const submitFn = useServerFn(submitManualPayment);
   const qc = useQueryClient();
