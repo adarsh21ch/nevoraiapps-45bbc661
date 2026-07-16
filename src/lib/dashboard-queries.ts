@@ -253,7 +253,11 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
   const todayStr = now.toISOString().slice(0, 10);
 
-  const [payRes, sessRes, studRes] = await Promise.all([
+  // Canonical attendance today — same rows/state derivation as the
+  // Attendance page, NevorAI `attendance_summary`, and Reports use.
+  const { fetchAttendanceToday, summarizeAttendance } = await import("@/lib/attendance/queries");
+
+  const [payRes, sessRes, studRes, attendanceRows] = await Promise.all([
     // Canonical revenue trend — succeeded `billing_payments` only.
     supabase
       .from("billing_payments")
@@ -263,7 +267,7 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
       .gte("collected_at", sixMonthsAgo.toISOString()),
     supabase
       .from("attendance_sessions")
-      .select("id, attendance_marks(status)")
+      .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
       .eq("session_date", todayStr),
     supabase
@@ -272,6 +276,7 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
       .eq("tenant_id", tenantId)
       .eq("status", "active")
       .not("dob", "is", null),
+    fetchAttendanceToday(tenantId).catch(() => []),
   ]);
 
   // Revenue trend (fill zero months)
@@ -306,18 +311,15 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
   });
   const revenueTotal = revenue.reduce((s, r) => s + r.amount, 0);
 
-  // Today's attendance
-  let present = 0;
-  let absent = 0;
-  const sessions = (sessRes.data ?? []).length;
-  for (const s of sessRes.data ?? []) {
-    for (const m of (s as any).attendance_marks ?? []) {
-      if (m.status === "present" || m.status === "late") present++;
-      else if (m.status === "absent") absent++;
-    }
-  }
-  const total = present + absent;
-  const percent = total > 0 ? Math.round((present / total) * 100) : 0;
+  // Canonical attendance summary — no local recomputation.
+  const totals = summarizeAttendance(attendanceRows, { sessions: sessRes.count ?? 0 });
+  const attendanceToday = {
+    present: totals.present,
+    absent: totals.absent,
+    total: totals.total,
+    percent: totals.percent,
+    sessions: totals.sessions,
+  };
 
   // Birthdays in next 7 days (including today)
   const birthdays: Birthday[] = [];
@@ -346,10 +348,11 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
   return {
     revenue,
     revenueTotal,
-    attendanceToday: { present, absent, total, percent, sessions },
+    attendanceToday,
     birthdays: birthdays.slice(0, 8),
   };
 }
+
 
 // -----------------------------------------------------------------------------
 // Today's Activity feed — chronological, cross-module event stream. Derived
