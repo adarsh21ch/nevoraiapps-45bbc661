@@ -581,8 +581,8 @@ export const sendFeeReminderTool: AnyToolDef = {
     // Reuse the same reminder_logs surface that the dashboard "tap to send" uses.
     // The AI never sends the message itself — it only queues the row, which the
     // owner then dispatches.
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { error } = await supabase.from("reminder_logs").insert({
+    const db = await dbFor(ctx);
+    const { error } = await db.from("reminder_logs").insert({
       tenant_id: ctx.tenantId,
       student_id: studentId,
       channel: "in_app",
