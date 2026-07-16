@@ -14,7 +14,7 @@
 type EnvVar = { name: string; classification: "critical" | "optional"; purpose: string };
 
 const REQUIRED_ENV: EnvVar[] = [
-  { name: "GOOGLE_API_KEY", classification: "critical", purpose: "Gemini model provider" },
+  { name: "LOVABLE_API_KEY", classification: "critical", purpose: "Lovable AI Gateway (chat model provider)" },
   { name: "SUPABASE_URL", classification: "critical", purpose: "Supabase project URL" },
   { name: "SUPABASE_PUBLISHABLE_KEY", classification: "critical", purpose: "Authenticated user client (RLS-scoped reads/writes)" },
   { name: "SUPABASE_SERVICE_ROLE_KEY", classification: "optional", purpose: "Conversation persistence, analytics rollups, action queue writes" },

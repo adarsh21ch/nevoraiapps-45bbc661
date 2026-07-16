@@ -95,14 +95,14 @@ export const Route = createFileRoute("/api/chat")({
 
         const SUPABASE_URL = process.env.SUPABASE_URL;
         const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
-        const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+        const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
         if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
           return jsonError("SERVER_MISCONFIGURED", "The server is missing required configuration.");
         }
-        if (!GOOGLE_API_KEY) {
+        if (!LOVABLE_API_KEY) {
           return jsonError(
             "AI_PROVIDER_UNCONFIGURED",
-            "NevorAI is not connected to an AI provider. Please add GOOGLE_API_KEY.",
+            "NevorAI is not connected to an AI provider. Please add LOVABLE_API_KEY.",
           );
         }
 
@@ -233,8 +233,8 @@ export const Route = createFileRoute("/api/chat")({
 
         // ------------------ streaming ------------------
         bootstrapNevorAI();
-        const google = createNevorAIProvider(GOOGLE_API_KEY);
-        const model = google(NEVORAI_DEFAULT_MODEL);
+        const provider = createNevorAIProvider(LOVABLE_API_KEY);
+        const model = provider(NEVORAI_DEFAULT_MODEL);
         const tools = buildToolBag(ctx);
 
         const systemPrompt = defaultPromptFor(ctx);
