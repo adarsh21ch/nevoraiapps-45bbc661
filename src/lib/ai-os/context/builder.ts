@@ -63,6 +63,9 @@ export function buildContext(input: ContextInput): AIContext {
     subscription: input.subscription,
     features: input.features,
     language: input.language ?? "en",
+    userName: input.userName,
+    niche: input.niche,
+    feeCycle: input.feeCycle,
     dataClient: input.dataClient,
   };
 }
