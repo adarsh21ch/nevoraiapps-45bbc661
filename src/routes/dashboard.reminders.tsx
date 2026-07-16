@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { periodLabel } from "@/lib/fees";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 
 type ReminderStatus = "queued" | "sent" | "dismissed";
 type Reminder = {
