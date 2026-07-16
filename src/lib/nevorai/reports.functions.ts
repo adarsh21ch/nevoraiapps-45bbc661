@@ -98,9 +98,9 @@ async function generateForUser(
   ]);
 
   const [kpis, billing, attendance] = await Promise.all([
-    fetchKpis(tenant as never).catch(() => null),
-    fetchBillingKpis(tenantId).catch(() => null),
-    fetchAttendanceToday(tenantId).catch(() => [] as Awaited<ReturnType<typeof fetchAttendanceToday>>),
+    fetchKpis(tenant as never, supabaseAdmin).catch(() => null),
+    fetchBillingKpis(tenantId, supabaseAdmin).catch(() => null),
+    fetchAttendanceToday(tenantId, supabaseAdmin).catch(() => [] as Awaited<ReturnType<typeof fetchAttendanceToday>>),
   ]);
 
   let present = 0;
