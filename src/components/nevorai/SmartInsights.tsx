@@ -32,7 +32,7 @@ export function SmartInsights() {
         <TrendingUp className="h-4 w-4 text-primary" />
         <div className="text-sm font-semibold tracking-tight">Smart Insights</div>
       </div>
-      <div className="grid grid-cols-1 gap-0 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-0">
         {q.isLoading
           ? Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="border-r border-border/60 p-4 last:border-r-0">
