@@ -183,43 +183,37 @@ export const Route = createFileRoute("/api/chat")({
           if (!conv) conversationId = null;
         }
 
-        // Optional service-role client: used for persistence (conversations
-        // and turns). If the service role key is missing, chat still streams
-        // — persistence just becomes a no-op with a single warning.
-        const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { logNevorAIEnvReportOnce } = await import("@/lib/nevorai/env-report.server");
-        logNevorAIEnvReportOnce();
-        const supabaseAdmin = getSupabaseAdmin();
-
+        // Persistence uses the caller-scoped `authed` client so writes go
+        // through RLS as the signed-in owner (no service-role dependency).
+        // Owner-scoped INSERT/UPDATE policies on ai_conversations and
+        // ai_conversation_turns cover these writes.
         if (!conversationId) {
           const firstText = body.messages
             .find((m) => m.role === "user")
             ?.parts.find((p) => p.type === "text") as { text?: string } | undefined;
           const title = firstText?.text?.slice(0, 80) ?? "New conversation";
-          if (supabaseAdmin) {
-            const { data: created, error: createErr } = await supabaseAdmin
-              .from("ai_conversations")
-              .insert({
-                tenant_id: profile.tenant_id,
-                user_id: userId,
-                agent_id: "owner_ai",
-                title,
-              })
-              .select("id")
-              .single();
-            if (createErr) {
-              console.warn("[nevorai] could not create conversation, continuing without persistence", createErr);
-            } else {
-              conversationId = created.id;
-            }
+          const { data: created, error: createErr } = await authed
+            .from("ai_conversations")
+            .insert({
+              tenant_id: profile.tenant_id,
+              user_id: userId,
+              agent_id: "owner_ai",
+              title,
+            })
+            .select("id")
+            .single();
+          if (createErr) {
+            console.warn("[nevorai] could not create conversation, continuing without persistence", createErr);
+          } else {
+            conversationId = created.id;
           }
         }
 
         // Persist the latest user message (best-effort).
         const lastMessage = body.messages[body.messages.length - 1];
-        if (supabaseAdmin && conversationId && lastMessage?.role === "user") {
+        if (conversationId && lastMessage?.role === "user") {
           try {
-            await supabaseAdmin.from("ai_conversation_turns").insert({
+            const { error: turnErr } = await authed.from("ai_conversation_turns").insert({
               conversation_id: conversationId,
               tenant_id: profile.tenant_id,
               role: "user",
@@ -227,10 +221,12 @@ export const Route = createFileRoute("/api/chat")({
                 ?.text ?? "",
               parts: lastMessage.parts as never,
             });
+            if (turnErr) console.warn("[nevorai] persist user turn failed", turnErr);
           } catch (e) {
             console.warn("[nevorai] persist user turn failed", e);
           }
         }
+
 
 
         // ------------------ streaming ------------------
@@ -308,19 +304,19 @@ export const Route = createFileRoute("/api/chat")({
           onFinish: async ({ responseMessage, isAborted }) => {
             if (isAborted) return;
             if (!responseMessage?.parts || responseMessage.parts.length === 0) return;
-            if (!supabaseAdmin || !conversationId) return;
+            if (!conversationId) return;
             try {
               const textPart = responseMessage.parts.find((p) => p.type === "text") as
                 | { text?: string }
                 | undefined;
-              await supabaseAdmin.from("ai_conversation_turns").insert({
+              await authed.from("ai_conversation_turns").insert({
                 conversation_id: conversationId,
                 tenant_id: profile.tenant_id,
                 role: "assistant",
                 content: textPart?.text ?? "",
                 parts: responseMessage.parts as never,
               });
-              await supabaseAdmin
+              await authed
                 .from("ai_conversations")
                 .update({ updated_at: new Date().toISOString() })
                 .eq("id", conversationId);
