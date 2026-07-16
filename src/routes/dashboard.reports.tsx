@@ -163,15 +163,11 @@ function ReportsHub() {
 
       {/* Search + range dropdown */}
       <div className="flex items-center gap-2">
-        <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Search reports…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 rounded-xl"
-          />
-        </div>
+        <DashboardSearch
+          value={search}
+          onChange={setSearch}
+          placeholder="Search reports…"
+        />
         <RangeDropdown
           preset={preset}
           onPreset={setPreset}
