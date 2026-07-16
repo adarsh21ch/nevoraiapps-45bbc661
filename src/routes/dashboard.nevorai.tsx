@@ -10,14 +10,18 @@ import { DailyBrief } from "@/components/nevorai/DailyBrief";
 import { QuickInsights } from "@/components/nevorai/QuickInsights";
 import { ActionQueue } from "@/components/nevorai/ActionQueue";
 import { ConversationList } from "@/components/nevorai/ConversationList";
+import { TodaysPriorities } from "@/components/nevorai/TodaysPriorities";
+import { SmartInsights } from "@/components/nevorai/SmartInsights";
+import { FollowUpCards } from "@/components/nevorai/FollowUpCards";
+import { WelcomeExperience } from "@/components/nevorai/WelcomeExperience";
 import { listTurns } from "@/lib/nevorai/conversations.functions";
 import { Card } from "@/components/ui/card";
 
 export const Route = createFileRoute("/dashboard/nevorai")({
   head: () => ({
     meta: [
-      { title: "NevorAI · Owner AI" },
-      { name: "description", content: "Your AI Academy Manager — brief, insights, and conversation." },
+      { title: "NevorAI · AI Academy Manager" },
+      { name: "description", content: "Proactive AI operations for your academy — briefs, priorities, insights and chat." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -73,31 +77,34 @@ function NevorAIPage() {
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[260px_minmax(0,1fr)_320px]">
         {/* Left rail — conversations */}
         <div className="hidden lg:block">
-          <Card className="h-[720px] overflow-hidden">
+          <Card className="h-[820px] overflow-hidden">
             <ConversationList activeId={conversationId} onSelect={setConversationId} />
           </Card>
         </div>
 
-        {/* Center — brief + chat */}
+        {/* Center — welcome/brief/insights + chat */}
         <div className="flex flex-col gap-4">
+          {conversationId ? null : <WelcomeExperience />}
           <DailyBrief />
           <QuickInsights />
+          <SmartInsights />
           <Card className="h-[560px] overflow-hidden">
             <ChatPanel
               key={conversationId ?? "draft"}
               conversationId={conversationId}
               initialMessages={initialMessages}
               onConversationStarted={() => {
-                // conversation gets created server-side on first send; we
-                // re-fetch the list so the sidebar picks it up.
+                // conversation gets created server-side on first send; sidebar re-fetches.
               }}
               suggestions={SUGGESTIONS}
             />
           </Card>
+          <FollowUpCards />
         </div>
 
-        {/* Right rail — action queue */}
+        {/* Right rail — priorities + queue */}
         <div className="flex flex-col gap-4">
+          <TodaysPriorities />
           <ActionQueue />
           <Card className="p-5">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">Try asking</div>
