@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { MoreVertical } from "lucide-react";
 import { AdmissionActionDialog } from "@/components/dashboard/AdmissionActionDialog";
 import { useDashboard } from "@/lib/dashboard-context";
 import { admissionsRegistrationsQuery } from "@/lib/admissions/queries";
@@ -12,8 +13,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { FilterTabs } from "@/components/shared/FilterTabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { FilterTabs, DashboardSearch } from "@/components/dashboard-ui";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/admissions-review")({
@@ -21,13 +28,34 @@ export const Route = createFileRoute("/dashboard/admissions-review")({
   component: AdmissionsReviewPage,
 });
 
-const FILTERS = [
+const PRIMARY_FILTERS = [
   { key: "pending", label: "Pending" },
-  { key: "changes_requested", label: "Changes Requested" },
   { key: "approved", label: "Approved" },
   { key: "rejected", label: "Rejected" },
+] as const;
+
+const SECONDARY_FILTERS = [
+  { key: "changes_requested", label: "Changes Requested" },
   { key: "waitlisted", label: "Waitlisted" },
 ] as const;
+
+const ALL_FILTER_LABELS: Record<string, string> = {
+  ...Object.fromEntries(PRIMARY_FILTERS.map((f) => [f.key, f.label])),
+  ...Object.fromEntries(SECONDARY_FILTERS.map((f) => [f.key, f.label])),
+};
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return null;
+  try {
+    return new Date(value).toLocaleDateString(undefined, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return value;
+  }
+}
 
 function AdmissionsReviewPage() {
   const { tenant } = useDashboard();
@@ -65,11 +93,16 @@ function AdmissionsReviewPage() {
         return (
           r.name?.toLowerCase().includes(s) ||
           r.phone?.includes(s) ||
-          r.email?.toLowerCase().includes(s)
+          r.email?.toLowerCase().includes(s) ||
+          r.guardian_name?.toLowerCase().includes(s) ||
+          r.guardian_phone?.includes(s) ||
+          r.id?.toLowerCase().includes(s)
         );
       }),
     [rows, search],
   );
+
+  const isSecondary = SECONDARY_FILTERS.some((f) => f.key === filter);
 
   return (
     <div className="space-y-6">
@@ -84,69 +117,137 @@ function AdmissionsReviewPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <FilterTabs
-          value={filter}
-          onChange={setFilter}
-          items={FILTERS.map((f) => ({ key: f.key, label: f.label }))}
-          ariaLabel="Application status"
-        />
-        <Input
-          placeholder="Search name, phone, email…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="ml-auto max-w-xs h-11 rounded-full bg-card border-border shadow-sm"
-        />
+        <div className="flex-1 min-w-[240px]">
+          <FilterTabs
+            value={isSecondary ? "" : filter}
+            onChange={setFilter}
+            items={PRIMARY_FILTERS.map((f) => ({ key: f.key, label: f.label }))}
+            ariaLabel="Application status"
+            fullWidth
+          />
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-11 rounded-full">
+              {isSecondary ? ALL_FILTER_LABELS[filter] : "More filters"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {SECONDARY_FILTERS.map((f) => (
+              <DropdownMenuItem key={f.key} onSelect={() => setFilter(f.key)}>
+                {f.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      <DashboardSearch
+        value={search}
+        onChange={setSearch}
+        placeholder="Search player, parent, phone or application ID..."
+        ariaLabel="Search applications"
+      />
 
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center text-muted-foreground">No applications in this queue.</CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3">
-          {filtered.map((r: any) => (
-            <Card key={r.id}>
-              <CardHeader className="pb-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <CardTitle className="text-base">
-                    {r.name} <span className="text-xs text-muted-foreground">· {r.phone}</span>
-                  </CardTitle>
-                  <Badge variant="outline">{r.review_status}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-3 text-sm md:grid-cols-2">
-                <div className="space-y-1">
-                  {r.guardian_name && (
-                    <div><span className="text-muted-foreground">Guardian:</span> {r.guardian_name} · {r.guardian_phone}</div>
-                  )}
-                  {r.email && <div><span className="text-muted-foreground">Email:</span> {r.email}</div>}
-                  {r.sport && <div><span className="text-muted-foreground">Sport:</span> {r.sport}</div>}
-                  {r.dob && <div><span className="text-muted-foreground">DOB:</span> {r.dob}</div>}
+        <div className="grid gap-4">
+          {filtered.map((r: any) => {
+            const canAct = r.review_status === "pending" || r.review_status === "changes_requested";
+            const appliedAt = formatDate(r.created_at ?? r.submitted_at);
+            const appId = r.id ? String(r.id).slice(0, 8).toUpperCase() : null;
+            return (
+              <Card key={r.id} className="overflow-hidden">
+                <CardHeader className="pb-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <CardTitle className="text-base">{r.name}</CardTitle>
+                      {appId && (
+                        <div className="text-xs text-muted-foreground font-mono">ID · {appId}</div>
+                      )}
+                    </div>
+                    <Badge variant="outline" className="capitalize">
+                      {ALL_FILTER_LABELS[r.review_status] ?? r.review_status?.replaceAll("_", " ")}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm">
+                  <div className="grid gap-x-6 gap-y-2 md:grid-cols-2">
+                    {r.guardian_name && (
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground">Guardian</div>
+                        <div>{r.guardian_name}</div>
+                      </div>
+                    )}
+                    {(r.phone || r.guardian_phone) && (
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground">Phone</div>
+                        <div>{r.phone ?? r.guardian_phone}</div>
+                      </div>
+                    )}
+                    {appliedAt && (
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground">Date Applied</div>
+                        <div>{appliedAt}</div>
+                      </div>
+                    )}
+                    {(r.batch_name ?? r.requested_batch ?? r.sport) && (
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                          {r.batch_name || r.requested_batch ? "Requested Batch" : "Sport"}
+                        </div>
+                        <div>{r.batch_name ?? r.requested_batch ?? r.sport}</div>
+                      </div>
+                    )}
+                  </div>
                   {r.review_notes && (
                     <div className="text-muted-foreground text-xs italic">Notes: {r.review_notes}</div>
                   )}
-                </div>
-                <div className="flex flex-wrap items-end justify-end gap-2">
-                  {(r.review_status === "pending" || r.review_status === "changes_requested") && (
-                    <>
-                      <Button size="sm" onClick={() => setDialog({ id: r.id, mode: "approve" })}>
-                        Approve…
-                      </Button>
+                  {canAct && (
+                    <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
                       <Button size="sm" variant="outline" onClick={() => setDialog({ id: r.id, mode: "changes" })}>
                         Request Changes
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => waitlistMut.mutate(r.id)} disabled={waitlistMut.isPending}>
-                        Waitlist
+                      <Button size="sm" onClick={() => setDialog({ id: r.id, mode: "approve" })}>
+                        Approve
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => rejectMut.mutate(r.id)} disabled={rejectMut.isPending}>
-                        Reject
-                      </Button>
-                    </>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="ghost" className="h-9 w-9 p-0" aria-label="More actions">
+                            <MoreVertical className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link to="/dashboard/registrations" search={{ id: r.id } as any}>
+                              View Application
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() => waitlistMut.mutate(r.id)}
+                            disabled={waitlistMut.isPending}
+                          >
+                            Waitlist
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onSelect={() => rejectMut.mutate(r.id)}
+                            disabled={rejectMut.isPending}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            Reject
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -159,4 +260,3 @@ function AdmissionsReviewPage() {
     </div>
   );
 }
-
