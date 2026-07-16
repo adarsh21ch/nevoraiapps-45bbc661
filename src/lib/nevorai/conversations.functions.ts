@@ -110,11 +110,13 @@ export const deleteConversation = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+type JsonValue = string | number | boolean | null | { [k: string]: JsonValue } | JsonValue[];
+
 export type TurnRow = {
   id: string;
   role: string;
   content: string | null;
-  parts: Record<string, unknown> | Array<Record<string, unknown>> | null;
+  parts: JsonValue;
   tool_name: string | null;
   created_at: string;
 };

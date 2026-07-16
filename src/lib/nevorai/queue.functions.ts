@@ -10,6 +10,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+type JsonValue = string | number | boolean | null | { [k: string]: JsonValue } | JsonValue[];
+
 export type ActionQueueRow = {
   id: string;
   tool_name: string;
@@ -17,8 +19,8 @@ export type ActionQueueRow = {
   target: string | null;
   confirmation_title: string | null;
   confirmation_body: string | null;
-  input: Record<string, unknown> | null;
-  result: Record<string, unknown> | null;
+  input: JsonValue;
+  result: JsonValue;
   error_message: string | null;
   created_at: string;
   updated_at: string;
