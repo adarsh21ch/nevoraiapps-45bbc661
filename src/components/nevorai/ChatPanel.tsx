@@ -361,7 +361,11 @@ export function ChatPanel({
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="border-t border-border/60 bg-background/80 px-4 py-3 backdrop-blur">
+      <div
+        className="border-t border-border/60 bg-background/80 px-4 py-3 backdrop-blur"
+        style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
+      >
+
         <PromptInput
           onSubmit={(_msg, e) => {
             e?.preventDefault();
