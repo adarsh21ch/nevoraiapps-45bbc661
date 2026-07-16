@@ -398,8 +398,8 @@ export const automationStatusTool: AnyToolDef = {
       50,
       Math.max(1, Number((input as { limit?: number } | undefined)?.limit) || 20),
     );
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { data, error } = await supabase
+    const db = await dbFor(ctx);
+    const { data, error } = await db
       .from("automation_executions")
       .select("id, status, created_at, rule_id")
       .eq("tenant_id", ctx.tenantId)
