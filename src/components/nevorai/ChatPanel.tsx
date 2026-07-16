@@ -211,15 +211,27 @@ export function ChatPanel({
     },
   });
 
-  // Reset when conversation switches.
+  // Hydrate on conversation switch AND when initialMessages arrives late.
+  // Turns are fetched via a query gated by `enabled: !!conversationId`, so
+  // right after a sidebar click initialMessages is [] and useChat starts
+  // empty. When turns resolve, initialMessages recomputes with the real
+  // history — sync it in as long as we're not mid-stream and the local list
+  // is still empty.
   const lastConvIdRef = useRef(conversationId);
   useEffect(() => {
-    if (lastConvIdRef.current !== conversationId) {
+    const convChanged = lastConvIdRef.current !== conversationId;
+    const hydrateLate =
+      !convChanged &&
+      initialMessages.length > 0 &&
+      messages.length === 0 &&
+      status !== "streaming" &&
+      status !== "submitted";
+    if (convChanged || hydrateLate) {
       setMessages(initialMessages);
       lastConvIdRef.current = conversationId;
       autoRetryRef.current = 0;
     }
-  }, [conversationId, initialMessages, setMessages]);
+  }, [conversationId, initialMessages, messages.length, status, setMessages]);
 
   // Draft persistence — the composer input is remembered per-conversation
   // and per-"draft" so switching chats or refreshing never loses what the
