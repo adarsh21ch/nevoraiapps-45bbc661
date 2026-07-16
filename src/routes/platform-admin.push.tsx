@@ -284,10 +284,11 @@ function HealthBadge({ health }: { health: "healthy" | "warning" | "offline" }) 
 
 function ProviderHealth() {
   const fn = useServerFn(getPushProvidersHealth);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["push-admin", "providers"],
     queryFn: () => fn(),
     refetchInterval: 30_000,
+    retry: 1,
   });
 
   return (
@@ -296,9 +297,22 @@ function ProviderHealth() {
         <Zap className="h-4 w-4 text-primary" />
         <h2 className="text-sm font-semibold text-foreground">Provider health</h2>
       </div>
-      {isLoading || !data ? (
+      {isLoading ? (
         <Skeleton className="h-24 w-full" />
+      ) : isError || !data ? (
+        <div className="flex flex-col items-start gap-2 text-sm">
+          <div className="flex items-center gap-2 text-rose-500">
+            <AlertTriangle className="h-4 w-4" />
+            <span>{error instanceof Error ? error.message : "Failed to load provider health"}</span>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCw className={cn("mr-1 h-3 w-3", isFetching && "animate-spin")} /> Retry
+          </Button>
+        </div>
+      ) : data.providers.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No push providers configured yet.</p>
       ) : (
+
         <div className="grid gap-3 md:grid-cols-2">
           {data.providers.map((p) => (
             <div
