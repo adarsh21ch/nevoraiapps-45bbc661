@@ -211,32 +211,28 @@ export const attendanceSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin", "coach"],
   async execute(_input, ctx): Promise<ToolResult> {
-    const { fetchAttendanceToday } = await import("@/lib/attendance/queries");
+    // Canonical attendance service — Dashboard, Attendance page, Reports,
+    // Owner Summary all share these helpers (Phase 13.4).
+    const { fetchAttendanceToday, summarizeAttendance } = await import("@/lib/attendance/queries");
     const rows = await fetchAttendanceToday(ctx.tenantId);
-    let present = 0;
-    let absent = 0;
-    let inAcademy = 0;
-    let checkedOut = 0;
-    for (const r of rows) {
-      if (r.current_state === "in_academy") inAcademy++;
-      else if (r.current_state === "checked_out") checkedOut++;
-      if (r.status === "present") present++;
-      else if (r.status === "absent") absent++;
-    }
-    const summary = { present, absent, inAcademy, checkedOut, total: rows.length };
+    const totals = summarizeAttendance(rows);
     return {
       ok: true,
       title: "Attendance today",
-      summary: `${present} present · ${absent} absent · ${inAcademy} in academy`,
-      data: summary,
-      structured_data: summary,
-      citations: ["src/lib/attendance/queries.ts#fetchAttendanceToday"],
+      summary: `${totals.present} present · ${totals.absent} absent · ${totals.inAcademy} in academy`,
+      data: totals,
+      structured_data: totals,
+      citations: [
+        "src/lib/attendance/queries.ts#fetchAttendanceToday",
+        "src/lib/attendance/queries.ts#summarizeAttendance",
+      ],
       recommended_actions: [
         { id: "open-attendance", label: "Open attendance", href: "/dashboard/attendance" },
       ],
     };
   },
 };
+
 
 /* ------------------------------------------------------------------ */
 /* Students                                                           */
@@ -258,7 +254,8 @@ export const playerProfileTool: AnyToolDef = {
     if (!studentId) {
       return { ok: false, reason: "forbidden", code: "STUDENT_SCOPE_DENIED", message: "No accessible student for this caller." };
     }
-    const { fetchStudent } = await import("@/lib/dashboard-queries");
+    // Canonical students service — same fetch used by Dashboard / Students page.
+    const { fetchStudent } = await import("@/lib/students/queries");
     const student = await fetchStudent(studentId);
     if (!student || (student as { tenant_id?: string }).tenant_id !== ctx.tenantId) {
       return { ok: false, reason: "not_found", code: "STUDENT_NOT_FOUND", message: "Student not found." };
@@ -268,9 +265,10 @@ export const playerProfileTool: AnyToolDef = {
       title: (student as { full_name?: string }).full_name ?? "Player",
       summary: `Status: ${(student as { status?: string }).status ?? "unknown"}`,
       data: student,
-      citations: ["src/lib/dashboard-queries.ts#fetchStudent"],
+      citations: ["src/lib/students/queries.ts#fetchStudent"],
     };
   },
+
 };
 
 /* ------------------------------------------------------------------ */
