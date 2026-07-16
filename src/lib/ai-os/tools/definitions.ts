@@ -111,36 +111,101 @@ export const dashboardSummaryTool: AnyToolDef = {
 
 export const financeSummaryTool: AnyToolDef = {
   name: "finance_summary",
-  description: "Money overview for the current calendar month: total rupees collected this month, and the COUNT of active students with no payment recorded for this period. Use for: 'revenue', 'collections', 'how much did we earn', 'kitna paisa aaya', 'how many haven't paid', 'kitne ne fee nahi di'. Returns aggregate numbers only — this tool does NOT return student names. For a specific student's fee status use fee_summary. For a specific invoice use invoice_details.",
+  description: "Money overview for the current calendar month: total rupees collected this month, the COUNT of active students with no payment recorded for this period, AND the list of those pending students (name + amount due from their fee plan). Use for: 'revenue', 'collections', 'how much did we earn', 'kitna paisa aaya', 'how many haven't paid', 'kitne ne fee nahi di', 'who hasn't paid', 'kaun fee nahi diya', 'pending fees list'. This is the ONLY authoritative source of pending-student names — never invent names. For one student's full history use fee_summary. For a specific invoice use invoice_details.",
   category: "finance",
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
   async execute(_input, ctx): Promise<ToolResult> {
-    // Phase 2 fix: read from the same helper the dashboard home + fees screens
-    // use (legacy `payments` table). `fetchBillingKpis` reads Billing V2 tables
-    // which are empty in production — kept in `src/lib/billing.ts` for future
-    // Billing V2 use but no longer wired here.
     const db = await dbFor(ctx);
     const tenant = await loadTenant(ctx.tenantId, ctx);
     if (!tenant) return { ok: false, reason: "not_found", message: "Tenant not found", code: "TENANT_NOT_FOUND" };
     const { fetchKpis } = await import("@/lib/dashboard-queries");
     const kpis = await fetchKpis(tenant as never, db);
+
+    // Real pending-student list — the SAME rule the dashboard/fees screen
+    // uses (active monthly students with no payment for the current period).
+    // Amounts come from each student's assigned fee_plan.amount. Names are
+    // the authoritative source: renderers/models MUST NOT invent students.
+    const { tenantFeeCycle, studentDue, periodKey, candidatePeriods } = await import("@/lib/fees");
+    const cycle = tenantFeeCycle(tenant as never);
+    const now = new Date();
+    const periods = cycle === "joining_date" ? candidatePeriods(now) : [periodKey(now)];
+    const [studentsRes, paidRes] = await Promise.all([
+      db
+        .from("students")
+        .select("id, name, joined_at, fee_plan_id, fee_plans!inner(type, amount, name)")
+        .eq("tenant_id", ctx.tenantId)
+        .eq("status", "active")
+        .eq("fee_plans.type", "monthly"),
+      db
+        .from("payments")
+        .select("student_id, period")
+        .eq("tenant_id", ctx.tenantId)
+        .in("period", periods),
+    ]);
+    const paidByStudent = new Map<string, Set<string>>();
+    for (const p of (paidRes.data ?? []) as Array<{ student_id: string | null; period: string | null }>) {
+      if (!p.student_id || !p.period) continue;
+      const set = paidByStudent.get(p.student_id) ?? new Set<string>();
+      set.add(p.period);
+      paidByStudent.set(p.student_id, set);
+    }
+    type StudentRow = {
+      id: string;
+      name: string | null;
+      joined_at: string | null;
+      fee_plans:
+        | { amount: number | null; name: string | null }
+        | Array<{ amount: number | null; name: string | null }>
+        | null;
+    };
+    const pendingStudents: Array<{
+      id: string;
+      name: string;
+      amount: number;
+      period: string;
+      overdueDays: number;
+    }> = [];
+    for (const s of ((studentsRes.data ?? []) as unknown as StudentRow[])) {
+      if (!s.joined_at) continue;
+      const due = studentDue({
+        cycle,
+        joinedAt: s.joined_at,
+        selectedMonth: now,
+        paidPeriods: paidByStudent.get(s.id) ?? new Set(),
+        today: now,
+      });
+      if (due.state !== "pending") continue;
+      const plan = Array.isArray(s.fee_plans) ? s.fee_plans[0] : s.fee_plans;
+      pendingStudents.push({
+        id: s.id,
+        name: (s.name ?? "").trim() || "(unnamed)",
+        amount: Number(plan?.amount ?? 0),
+        period: due.period,
+        overdueDays: due.overdueDays,
+      });
+    }
+    pendingStudents.sort(
+      (a, b) => b.overdueDays - a.overdueDays || a.name.localeCompare(b.name),
+    );
+
     const data = {
       collectedThisMonth: kpis.collectionThisMonth,
-      // Legacy `payments` has no rupee-outstanding source; the dashboard shows a
-      // COUNT of students with pending fees this period. Surface that count
-      // under `outstanding` so the tool preserves its field shape.
       outstanding: kpis.pendingFeeCount,
       openInvoices: kpis.pendingFeeCount,
       overdue: kpis.pendingFeeCount,
+      pendingStudents,
     };
     return {
       ok: true,
       title: "Billing snapshot",
-      summary: `Collected ${data.collectedThisMonth ?? 0} this month · ${data.outstanding ?? 0} student(s) with pending fees`,
+      summary: `Collected ₹${(data.collectedThisMonth ?? 0).toLocaleString("en-IN")} this month · ${data.outstanding ?? 0} student(s) with pending fees`,
       data,
       structured_data: data,
-      citations: ["src/lib/dashboard-queries.ts#fetchKpis"],
+      citations: [
+        "src/lib/dashboard-queries.ts#fetchKpis",
+        "src/lib/fees.ts#studentDue",
+      ],
       recommended_actions: [
         { id: "open-fees", label: "Open fees", href: "/dashboard/fees" },
       ],
