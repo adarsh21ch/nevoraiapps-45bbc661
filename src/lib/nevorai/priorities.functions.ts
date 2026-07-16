@@ -110,7 +110,7 @@ export const getPriorities = createServerFn({ method: "GET" })
       });
     }
 
-    const absent = absentToday.count ?? 0;
+    const absent = absentToday;
     if (absent >= 5) {
       priorities.push({
         id: "attendance-anomaly",
