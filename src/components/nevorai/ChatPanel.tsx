@@ -75,6 +75,14 @@ export function ChatPanel({
 
   const [chatError, setChatError] = useState<{ code?: string; message: string } | null>(null);
 
+  // Ref mirrors the currently-persisted conversation id. Read at send-time
+  // so we don't recreate the transport when a fresh conversation is minted
+  // during the first submit of a draft chat.
+  const conversationIdRef = useRef<string | null>(conversationId);
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
+
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -82,7 +90,10 @@ export function ChatPanel({
         headers: () => ({
           Authorization: token ? `Bearer ${token}` : "",
         }),
-        body: () => ({ conversationId, pageContext: pageContextRef.current ?? null }),
+        body: () => ({
+          conversationId: conversationIdRef.current,
+          pageContext: pageContextRef.current ?? null,
+        }),
         // Intercept non-SSE responses (JSON error / HTML crash page) so the AI SDK
         // never renders a raw HTML document inside the conversation.
         fetch: async (input, init) => {
