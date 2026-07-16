@@ -108,6 +108,18 @@ function ProfilePage() {
           icon: Globe,
         },
         {
+          to: "/dashboard/payment-settings",
+          label: "Payment Settings",
+          hint: "Providers, offline payments & receipts",
+          icon: CreditCard,
+        },
+        {
+          to: "/dashboard/automation-settings",
+          label: "Automation",
+          hint: "Rules, triggers & scheduled workflows",
+          icon: Zap,
+        },
+        {
           to: "/dashboard/subscription",
           label: "Subscription & Plan",
           hint: "Your AcademyOS plan",
