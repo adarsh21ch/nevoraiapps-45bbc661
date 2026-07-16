@@ -284,6 +284,7 @@ export type Database = {
           conversation_id: string
           created_at: string
           id: string
+          parts: Json | null
           role: string
           tenant_id: string
           tokens: number | null
@@ -295,6 +296,7 @@ export type Database = {
           conversation_id: string
           created_at?: string
           id?: string
+          parts?: Json | null
           role: string
           tenant_id: string
           tokens?: number | null
@@ -306,6 +308,7 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           id?: string
+          parts?: Json | null
           role?: string
           tenant_id?: string
           tokens?: number | null
@@ -328,6 +331,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           id: string
+          pinned: boolean
           tenant_id: string
           title: string | null
           updated_at: string
@@ -338,6 +342,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          pinned?: boolean
           tenant_id: string
           title?: string | null
           updated_at?: string
@@ -348,6 +353,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          pinned?: boolean
           tenant_id?: string
           title?: string | null
           updated_at?: string
