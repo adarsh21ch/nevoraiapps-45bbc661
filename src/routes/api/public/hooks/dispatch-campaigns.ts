@@ -1,24 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
+import { requireCronAuth } from "@/lib/cron-auth.server";
 
 /**
  * Cron target: dispatches all `scheduled` campaigns whose scheduled_for has
  * elapsed. Configure pg_cron to POST here every minute.
  *
- * Auth: apikey header (Supabase anon/publishable key). Route is public-prefixed
- * so it bypasses SSR auth; PostgREST enforces RLS on any writes done via the
- * client below.
+ * Auth: `x-cron-secret` header (CRON_SECRET). Falls back to the Supabase
+ * publishable/anon key check when CRON_SECRET is unset (rollout only).
  */
 export const Route = createFileRoute("/api/public/hooks/dispatch-campaigns")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const auth =
-          request.headers.get("apikey") ||
-          request.headers.get("authorization")?.replace("Bearer ", "");
-        if (!auth || auth !== process.env.SUPABASE_PUBLISHABLE_KEY) {
-          return new Response("Unauthorized", { status: 401 });
-        }
+        const unauthorized = requireCronAuth(request);
+        if (unauthorized) return unauthorized;
         const supabase = createClient(
           process.env.SUPABASE_URL!,
           process.env.SUPABASE_SERVICE_ROLE_KEY!,

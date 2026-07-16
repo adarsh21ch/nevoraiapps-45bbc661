@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
+import { requireCronAuth } from "@/lib/cron-auth.server";
 
 /**
  * POST /api/public/hooks/fee-reminders
@@ -11,7 +12,9 @@ import { format } from "date-fns";
 export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        const unauthorized = requireCronAuth(request);
+        if (unauthorized) return unauthorized;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const now = new Date();
         const kolkata = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
