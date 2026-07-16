@@ -38,6 +38,13 @@ type Props = {
   /** Optional pending prompt to auto-send once the panel opens. */
   pendingPrompt?: string | null;
   onPendingPromptConsumed?: () => void;
+  /**
+   * Lazily create a conversation the first time the user submits from a draft
+   * chat. Returning the persisted ID prevents the server from silently
+   * creating a new row on every subsequent turn (which would fragment
+   * history into many "New conversation" entries).
+   */
+  ensureConversationId?: () => Promise<string | null>;
 };
 
 export function ChatPanel({
