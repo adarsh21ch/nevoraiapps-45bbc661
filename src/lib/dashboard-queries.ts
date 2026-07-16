@@ -1,12 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import type { Tenant } from "./tenant";
-import { candidatePeriods, periodKey, studentDue, tenantFeeCycle } from "./fees";
 import { fetchBillingKpis } from "./billing";
 
 export type Student = Database["public"]["Tables"]["students"]["Row"];
 export type Registration = Database["public"]["Tables"]["registrations"]["Row"];
-export type Payment = Database["public"]["Tables"]["payments"]["Row"];
+/** @deprecated Legacy `payments` row. Canonical: `billing_payments`. */
+export type Payment = Database["public"]["Tables"]["billing_payments"]["Row"];
 export type Batch = Database["public"]["Tables"]["batches"]["Row"];
 export type FeePlan = Database["public"]["Tables"]["fee_plans"]["Row"];
 export type SiteContent = Database["public"]["Tables"]["site_content"]["Row"];
@@ -58,12 +58,19 @@ export async function fetchStudent(id: string) {
   return data;
 }
 
+/**
+ * Canonical: reads succeeded `billing_payments` for a student.
+ * Replaces the legacy `payments` table read; every finance surface is
+ * required to consume this or `fetchBillingKpis` and never the
+ * deprecated `payments` table directly.
+ */
 export async function fetchStudentPayments(studentId: string) {
   const { data, error } = await supabase
-    .from("payments")
+    .from("billing_payments")
     .select("*")
     .eq("student_id", studentId)
-    .order("created_at", { ascending: false });
+    .eq("status", "succeeded")
+    .order("collected_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
