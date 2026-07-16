@@ -72,10 +72,20 @@ function supabaseFetchShim(supabaseKey: string): typeof fetch {
   };
 }
 
+function jsonError(code: string, message: string, status = 200) {
+  // Return 200 so the AI SDK client can read the JSON body and surface a
+  // friendly error card instead of the Worker's HTML crash page.
+  return new Response(JSON.stringify({ error: { code, message } }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        try {
         // ------------------ auth ------------------
         const authHeader = request.headers.get("authorization");
         if (!authHeader?.startsWith("Bearer ")) {
