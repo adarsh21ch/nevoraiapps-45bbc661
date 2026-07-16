@@ -41,7 +41,7 @@ function createSupabaseAdminClient() {
       ...(!SUPABASE_URL ? ["SUPABASE_URL"] : []),
       ...(!SUPABASE_SERVICE_ROLE_KEY ? ["SUPABASE_SERVICE_ROLE_KEY"] : []),
     ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Connect Supabase in Lovable Cloud.`;
+    const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Set them in Supabase → Project Settings → API and add them as project secrets.`;
     console.error(`[Supabase] ${message}`);
     throw new Error(message);
   }
@@ -59,14 +59,47 @@ function createSupabaseAdminClient() {
 }
 
 let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;
+let _adminUnavailable = false;
+
+/**
+ * Returns true when the service role key is configured on the server.
+ * Cheap check — does not construct the client.
+ */
+export function hasSupabaseAdmin(): boolean {
+  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+/**
+ * Returns the admin client, or `null` when the service role key is missing.
+ * Prefer this over the throwing `supabaseAdmin` for optional/degradable
+ * operations (persistence of turns, analytics, usage rollups, action queue,
+ * etc.). Chat generation MUST continue to function when this returns null.
+ */
+export function getSupabaseAdmin(): ReturnType<typeof createSupabaseAdminClient> | null {
+  if (_adminUnavailable) return null;
+  if (!hasSupabaseAdmin()) {
+    if (!_adminUnavailable) {
+      _adminUnavailable = true;
+      console.warn(
+        "[Supabase] SUPABASE_SERVICE_ROLE_KEY is not configured — server-side admin operations will be skipped. Chat generation continues, but conversation history, analytics, and action-queue writes are disabled until the key is added.",
+      );
+    }
+    return null;
+  }
+  if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
+  return _supabaseAdmin;
+}
 
 // Server-side Supabase client with service role - bypasses RLS
 // SECURITY: Only use this for trusted server-side operations, never expose to client code
 // Load inside server handlers: const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 // Top-level import is safe only in other .server.ts modules - route files and *.functions.ts ship to the client bundle.
+// NOTE: This proxy throws on first use when the key is missing. Prefer `getSupabaseAdmin()`
+// for optional operations that should degrade gracefully.
 export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdminClient>, {
   get(_, prop, receiver) {
     if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
     return Reflect.get(_supabaseAdmin, prop, receiver);
   },
 });
+
