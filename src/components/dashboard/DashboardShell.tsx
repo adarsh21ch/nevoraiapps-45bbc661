@@ -36,6 +36,8 @@ import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
 import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
+import { NevorAIProvider } from "@/components/nevorai/NevorAIProvider";
+import { NevorAIButton } from "@/components/nevorai/NevorAIButton";
 
 type NavItem = {
   to: string;
