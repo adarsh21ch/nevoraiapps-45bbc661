@@ -172,8 +172,8 @@ export const Route = createFileRoute("/api/chat")({
 
         // ------------------ streaming ------------------
         bootstrapNevorAI();
-        const gateway = createLovableAiGatewayProvider(LOVABLE_API_KEY);
-        const model = gateway(NEVORAI_DEFAULT_MODEL);
+        const google = createNevorAIProvider(GOOGLE_API_KEY);
+        const model = google(NEVORAI_DEFAULT_MODEL);
         const tools = buildToolBag(ctx);
 
         const systemPrompt = defaultPromptFor(ctx);
