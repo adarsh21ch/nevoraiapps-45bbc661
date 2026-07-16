@@ -54,7 +54,7 @@ export class SupabaseActionQueue implements ActionQueue {
         agent_id: action.agentId,
         conversation_id: action.conversationId || null,
         tool_name: action.toolName,
-        input: (action.input as object) ?? {},
+        input: (action.input ?? {}) as never,
         target: action.target ?? null,
         confirmation_title: action.confirmationTitle ?? null,
         confirmation_body: action.confirmationBody ?? null,
@@ -98,7 +98,7 @@ export class SupabaseActionQueue implements ActionQueue {
     if (patch.errorMessage !== undefined) update.error_message = patch.errorMessage;
     const { data } = await supabaseAdmin
       .from("ai_action_queue")
-      .update(update)
+      .update(update as never)
       .eq("id", id)
       .select("*")
       .maybeSingle();
