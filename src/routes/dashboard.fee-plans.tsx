@@ -125,6 +125,7 @@ function FeePlansPage() {
               <Button
                 size="icon"
                 variant="ghost"
+                aria-label={`Edit ${p.name}`}
                 onClick={() => {
                   setEditing({
                     id: p.id,
@@ -143,6 +144,7 @@ function FeePlansPage() {
                 size="icon"
                 variant="ghost"
                 className="text-rose-600"
+                aria-label={`Delete ${p.name}`}
                 onClick={() => confirm(`Delete "${p.name}"?`) && del.mutate(p.id)}
               >
                 <Trash2 className="size-4" />

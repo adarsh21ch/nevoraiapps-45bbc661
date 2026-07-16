@@ -86,7 +86,7 @@ function AuthedParentPortal() {
   if (!userChecked) return <PageSkeleton />;
   if (!signedIn) {
     return (
-      <div className="min-h-screen grid place-items-center p-6">
+      <div className="min-h-dvh grid place-items-center p-6">
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">Sign in required</h1>
           <p className="text-sm text-muted-foreground">
@@ -101,7 +101,7 @@ function AuthedParentPortal() {
   const kids = kidsQ.data ?? [];
   if (kids.length === 0) {
     return (
-      <div className="min-h-screen grid place-items-center p-6">
+      <div className="min-h-dvh grid place-items-center p-6">
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">No linked children</h1>
           <p className="text-sm text-muted-foreground">
@@ -124,7 +124,7 @@ function AuthedParentPortal() {
   const active = kids.find((k) => k.student_id === selected) ?? kids[0];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
@@ -591,7 +591,7 @@ function DemoParentPortal({ tenantId }: { tenantId: string }) {
   } as unknown as ParentChild;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">

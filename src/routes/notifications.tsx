@@ -25,7 +25,7 @@ function NotificationsPage() {
   }, []);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col bg-background">
+    <div className="mx-auto flex min-h-dvh max-w-2xl flex-col bg-background">
       <NotificationCenter userId={userId} />
     </div>
   );

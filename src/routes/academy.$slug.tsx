@@ -59,7 +59,7 @@ function AcademySite() {
   const hero = bundle.config?.hero ?? {};
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-dvh bg-background">
       <section className="border-b border-border bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="mx-auto max-w-6xl px-4 py-12">
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">

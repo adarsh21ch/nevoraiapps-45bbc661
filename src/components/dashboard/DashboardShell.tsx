@@ -132,7 +132,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const matchCenter = withBadges(matchCenterNav);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-dvh bg-background text-foreground">
       {/* Top bar */}
       <div
         aria-hidden="true"

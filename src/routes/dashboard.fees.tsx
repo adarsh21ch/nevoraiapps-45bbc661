@@ -26,6 +26,7 @@ import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FilterTabs } from "@/components/shared/FilterTabs";
+import { DashboardSearch } from "@/components/dashboard-ui";
 import {
   Banknote,
   CheckCircle2,
@@ -307,15 +308,11 @@ function FeeRegister() {
 
       {/* Sticky search + chip filters */}
       <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 space-y-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, player ID or mobile"
-            className="h-10 pl-9 rounded-full bg-card"
-          />
-        </div>
+        <DashboardSearch
+          value={search}
+          onChange={setSearch}
+          placeholder="Search name, player ID or mobile"
+        />
         <ChipFilters
           value={filter}
           onChange={setFilter}

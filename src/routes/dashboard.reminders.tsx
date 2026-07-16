@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { periodLabel } from "@/lib/fees";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 
 type ReminderStatus = "queued" | "sent" | "dismissed";
 type Reminder = {
@@ -93,6 +93,8 @@ function RemindersPage() {
     return g;
   }, [data]);
 
+  const [tab, setTab] = useState<ReminderStatus>("queued");
+
   return (
     <div className="space-y-5">
       <header className="flex items-start justify-between gap-3">
@@ -112,13 +114,15 @@ function RemindersPage() {
         </div>
       </header>
 
-      <Tabs defaultValue="queued">
-        <TabsList>
-          <TabsTrigger value="queued">Queue ({grouped.queued.length})</TabsTrigger>
-          <TabsTrigger value="sent">Sent ({grouped.sent.length})</TabsTrigger>
-          <TabsTrigger value="dismissed">Dismissed ({grouped.dismissed.length})</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <FilterTabs
+        value={tab}
+        onChange={setTab}
+        items={[
+          { key: "queued", label: "Queue", count: grouped.queued.length },
+          { key: "sent", label: "Sent", count: grouped.sent.length },
+          { key: "dismissed", label: "Dismissed", count: grouped.dismissed.length },
+        ]}
+      />
 
       {isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
       {!isLoading && data.length === 0 && (

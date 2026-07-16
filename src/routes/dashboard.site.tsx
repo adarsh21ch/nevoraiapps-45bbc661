@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import { toast } from "sonner";
 import { Upload, ExternalLink } from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
@@ -23,6 +23,8 @@ export const Route = createFileRoute("/dashboard/site")({
 
 function SiteEditor() {
   const { tenant } = useDashboard();
+  const [tab, setTab] = useState<"site" | "policies" | "contact">("site");
+
 
   const siteBase = tenantSiteUrl(tenant).replace(/\/$/, "");
   const previewLinks: { to: string; label: string }[] = [
@@ -69,22 +71,20 @@ function SiteEditor() {
         </div>
       </Card>
 
-      <Tabs defaultValue="site">
-        <TabsList className="w-full flex-wrap h-auto">
-          <TabsTrigger value="site">Site content</TabsTrigger>
-          <TabsTrigger value="policies">Policies</TabsTrigger>
-          <TabsTrigger value="contact">Contact & UPI</TabsTrigger>
-        </TabsList>
-        <TabsContent value="site" className="pt-4">
-          <SiteContentTabs tenantId={tenant.id} />
-        </TabsContent>
-        <TabsContent value="policies" className="pt-4">
-          <PoliciesEditor tenantId={tenant.id} />
-        </TabsContent>
-        <TabsContent value="contact" className="pt-4">
-          <ContactEditor />
-        </TabsContent>
-      </Tabs>
+      <FilterTabs<"site" | "policies" | "contact">
+        value={tab}
+        onChange={setTab}
+        items={[
+          { key: "site", label: "Site content" },
+          { key: "policies", label: "Policies" },
+          { key: "contact", label: "Contact & UPI" },
+        ]}
+      />
+      <div className="pt-4">
+        {tab === "site" && <SiteContentTabs tenantId={tenant.id} />}
+        {tab === "policies" && <PoliciesEditor tenantId={tenant.id} />}
+        {tab === "contact" && <ContactEditor />}
+      </div>
     </div>
   );
 }

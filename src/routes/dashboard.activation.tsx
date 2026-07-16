@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { DashboardSearch } from "@/components/dashboard-ui";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -182,7 +183,7 @@ function ActivationCenter() {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="w-56" />
+            <DashboardSearch value={search} onChange={setSearch} placeholder="Search…" className="w-56 flex-none" />
             <Button
               size="sm"
               disabled={selected.size === 0 || sendMut.isPending}
@@ -229,22 +230,22 @@ function ActivationCenter() {
                       </td>
                       <td className="py-2">
                         <div className="flex justify-end gap-1">
-                          <Button size="icon" variant="ghost" title="Copy link" onClick={() => copyLink(s.id)}>
+                          <Button size="icon" variant="ghost" title="Copy link" aria-label="Copy link" onClick={() => copyLink(s.id)}>
                             <Copy className="size-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" title="WhatsApp" onClick={() => shareWhatsApp(s.id)}>
+                          <Button size="icon" variant="ghost" title="WhatsApp" aria-label="WhatsApp" onClick={() => shareWhatsApp(s.id)}>
                             <MessageCircle className="size-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" title="Email" onClick={() => shareEmail(s.id)}>
+                          <Button size="icon" variant="ghost" title="Email" aria-label="Email" onClick={() => shareEmail(s.id)}>
                             <Mail className="size-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" title="SMS" onClick={() => shareSMS(s.id)}>
+                          <Button size="icon" variant="ghost" title="SMS" aria-label="SMS" onClick={() => shareSMS(s.id)}>
                             <Send className="size-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" title="QR" onClick={() => showQr(s.id)}>
+                          <Button size="icon" variant="ghost" title="QR" aria-label="QR" onClick={() => showQr(s.id)}>
                             <QrCode className="size-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" title="Resend invitation" onClick={() => sendMut.mutate([s.id])} disabled={sendMut.isPending}>
+                          <Button size="icon" variant="ghost" title="Resend invitation" aria-label="Resend invitation" onClick={() => sendMut.mutate([s.id])} disabled={sendMut.isPending}>
                             <RefreshCw className="size-3.5" />
                           </Button>
                         </div>

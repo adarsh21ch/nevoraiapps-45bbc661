@@ -74,7 +74,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
 
 function Full({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen grid place-items-center bg-background text-foreground p-6">
+    <div className="min-h-dvh grid place-items-center bg-background text-foreground p-6">
       <div>{children}</div>
     </div>
   );

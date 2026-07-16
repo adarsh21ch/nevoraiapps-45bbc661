@@ -39,7 +39,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FilterTabs } from "@/components/shared/FilterTabs";
 import {
   Select,
   SelectContent,
@@ -140,6 +140,8 @@ function BillingWorkspace() {
     qc.invalidateQueries({ queryKey: ["billing"] });
   };
 
+  const [tab, setTab] = useState<"invoices" | "payments" | "subs">("invoices");
+
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 pb-24 space-y-6">
       <header className="flex items-start justify-between gap-4 flex-wrap">
@@ -193,20 +195,18 @@ function BillingWorkspace() {
         />
       </section>
 
-      <Tabs defaultValue="invoices">
-        <TabsList>
-          <TabsTrigger value="invoices">
-            <FileText className="w-4 h-4 mr-1.5" /> Bills
-          </TabsTrigger>
-          <TabsTrigger value="payments">
-            <Banknote className="w-4 h-4 mr-1.5" /> Collections
-          </TabsTrigger>
-          <TabsTrigger value="subs">
-            <Users className="w-4 h-4 mr-1.5" /> Fee plans
-          </TabsTrigger>
-        </TabsList>
+      <FilterTabs<"invoices" | "payments" | "subs">
+        value={tab}
+        onChange={setTab}
+        items={[
+          { key: "invoices", label: "Bills", icon: <FileText className="w-4 h-4" /> },
+          { key: "payments", label: "Collections", icon: <Banknote className="w-4 h-4" /> },
+          { key: "subs", label: "Fee plans", icon: <Users className="w-4 h-4" /> },
+        ]}
+      />
 
-        <TabsContent value="invoices" className="mt-4">
+      <div className="mt-4">
+        {tab === "invoices" && (
           <InvoicesTable
             tenantId={tenantId}
             invoices={invoicesQ.data ?? []}
@@ -214,22 +214,22 @@ function BillingWorkspace() {
             loading={invoicesQ.isLoading}
             onDone={invalidateAll}
           />
-        </TabsContent>
-        <TabsContent value="payments" className="mt-4">
+        )}
+        {tab === "payments" && (
           <PaymentsTable
             payments={paymentsQ.data ?? []}
             students={studentsQ.data ?? []}
             loading={paymentsQ.isLoading}
           />
-        </TabsContent>
-        <TabsContent value="subs" className="mt-4">
+        )}
+        {tab === "subs" && (
           <SubscriptionsTable
             subs={subsQ.data ?? []}
             students={studentsQ.data ?? []}
             loading={subsQ.isLoading}
           />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
 }

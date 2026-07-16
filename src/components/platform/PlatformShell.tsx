@@ -51,7 +51,7 @@ export function PlatformShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
+    <div className="min-h-dvh bg-neutral-950 text-neutral-100">
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-neutral-950"
@@ -72,7 +72,8 @@ export function PlatformShell({ children }: { children: ReactNode }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-white hover:bg-white/10"
+                aria-label="Open menu"
+                className="md:hidden text-white hover:bg-white/10 min-h-11 min-w-11"
               >
                 <Menu className="size-5" />
               </Button>

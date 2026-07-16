@@ -173,6 +173,7 @@ export function CoachAssignmentsDialog({
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label="Remove coach assignment"
                       onClick={() => removeM.mutate(a.id)}
                       disabled={removeM.isPending}
                     >

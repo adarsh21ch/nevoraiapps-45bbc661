@@ -104,6 +104,7 @@ function BatchesPage() {
                   size="icon"
                   variant="ghost"
                   title="Manage coaches"
+                  aria-label="Manage coaches"
                   onClick={() => setCoachBatch({ id: b.id, name: b.name })}
                 >
                   <ShieldCheck className="size-4" />
@@ -111,6 +112,7 @@ function BatchesPage() {
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={`Edit batch ${b.name}`}
                   onClick={() => {
                     setEditing({
                       id: b.id,
@@ -127,6 +129,7 @@ function BatchesPage() {
                   size="icon"
                   variant="ghost"
                   className="text-rose-600"
+                  aria-label={`Delete batch ${b.name}`}
                   onClick={() => confirm(`Delete batch "${b.name}"?`) && del.mutate(b.id)}
                 >
                   <Trash2 className="size-4" />
