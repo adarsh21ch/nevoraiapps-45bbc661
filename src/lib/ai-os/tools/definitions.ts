@@ -143,7 +143,7 @@ export const feeSummaryTool: AnyToolDef = {
       .eq("student_id", studentId)
       .in("status", ["issued", "partially_paid"]);
     if (invErr) {
-      return { ok: false, reason: "system", code: "BILLING_READ_FAILED", message: invErr.message };
+      return { ok: false, reason: "internal", code: "BILLING_READ_FAILED", message: invErr.message };
     }
     const payments = await fetchStudentPayments(studentId);
     const today = new Date().toISOString().slice(0, 10);
