@@ -24,7 +24,7 @@ import {
 } from "ai";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { createLovableAiGatewayProvider, NEVORAI_DEFAULT_MODEL } from "@/lib/ai-gateway.server";
+import { createNevorAIProvider, NEVORAI_DEFAULT_MODEL } from "@/lib/nevorai-provider.server";
 import { buildContext, defaultPromptFor } from "@/lib/ai-os";
 import { buildToolBag } from "@/lib/nevorai/tools-adapter.server";
 import { bootstrapNevorAI } from "@/lib/ai-os/bootstrap.server";
