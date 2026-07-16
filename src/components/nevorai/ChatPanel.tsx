@@ -15,7 +15,8 @@ import {
   PromptInputFooter,
   PromptInputSubmit,
 } from "@/components/ai-elements/prompt-input";
-import { Shimmer } from "@/components/ai-elements/shimmer";
+import { ResponseRenderer } from "@/components/nevorai/ResponseRenderer";
+import { ThinkingDots } from "@/components/nevorai/ThinkingDots";
 import {
   FollowUpChips,
   deriveFollowUps,
@@ -147,27 +148,8 @@ export function ChatPanel({
 
   const isGenerating = status === "submitted" || status === "streaming";
 
-  // Owner-facing progress label. If the model is running tools we say
-  // "Checking your academy…"; once assistant text begins to stream we say
-  // "Writing…"; before either happens we say "Thinking…". This gives the
-  // owner a fast, meaningful signal instead of a silent spinner.
-  const progressLabel = useMemo(() => {
-    if (!isGenerating) return null;
-    const last = messages[messages.length - 1];
-    if (!last || last.role !== "assistant") return "Thinking…";
-    const hasText = last.parts.some(
-      (p) => p.type === "text" && ((p as { text?: string }).text ?? "").length > 0,
-    );
-    if (hasText) return "Writing…";
-    const hasPendingTool = last.parts.some(
-      (p) =>
-        p.type?.startsWith("tool-") &&
-        (p as { state?: string }).state !== "output-available" &&
-        (p as { state?: string }).state !== "output-error",
-    );
-    if (hasPendingTool) return "Checking your academy…";
-    return "Thinking…";
-  }, [isGenerating, messages]);
+  // Owner-facing loader: no changing text, just a subtle three-dot pulse.
+  // See <ThinkingDots />.
 
   // Auto-send a pending prompt (e.g. "Explain this invoice") once and only once.
   const consumedPromptRef = useRef<string | null>(null);
@@ -255,21 +237,30 @@ export function ChatPanel({
               return (
                 <Message key={m.id} from={m.role as "user" | "assistant" | "system"}>
                   <MessageContent
-                    className={cn(m.role === "assistant" && "bg-transparent px-0")}
+                    className={cn(
+                      "animate-fade-in",
+                      m.role === "assistant" && "bg-transparent px-0",
+                    )}
                   >
-                    {m.parts.map((part, idx) => {
-                      if (part.type === "text") {
-                        return (
-                          <div key={idx} className="whitespace-pre-wrap text-sm leading-relaxed">
+                    {m.role === "assistant" ? (
+                      assistantText ? (
+                        <ResponseRenderer
+                          text={assistantText}
+                          onAction={(label) => void submit(label)}
+                        />
+                      ) : null
+                    ) : (
+                      m.parts.map((part, idx) =>
+                        part.type === "text" ? (
+                          <div
+                            key={idx}
+                            className="whitespace-pre-wrap text-sm leading-relaxed"
+                          >
                             {part.text}
                           </div>
-                        );
-                      }
-                      // Reasoning and tool parts are internal implementation
-                      // details — never render them in the owner-facing chat.
-                      // The assistant text part is the final human answer.
-                      return null;
-                    })}
+                        ) : null,
+                      )
+                    )}
 
                     {m.role === "assistant" && !isGenerating && assistantText ? (
                       <div className="mt-2 flex items-center gap-1 opacity-60 transition hover:opacity-100">
@@ -302,11 +293,7 @@ export function ChatPanel({
               );
             })
           )}
-          {isGenerating && progressLabel ? (
-            <div className="px-2 py-1 text-xs">
-              <Shimmer>{progressLabel}</Shimmer>
-            </div>
-          ) : null}
+          {isGenerating ? <ThinkingDots className="ml-1 mt-1" /> : null}
           {chatError && !isGenerating ? (
             <div className="mx-2 my-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
               <div className="font-medium text-destructive">
