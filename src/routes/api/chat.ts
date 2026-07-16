@@ -130,7 +130,7 @@ export const Route = createFileRoute("/api/chat")({
         // ------------------ context ------------------
         const { data: tenant } = await authed
           .from("tenants")
-          .select("id, slug, name, status, subscription_status, features")
+          .select("id, slug, name, status, subscription_status, features, niche, fee_cycle")
           .eq("id", profile.tenant_id)
           .maybeSingle();
 
@@ -141,6 +141,13 @@ export const Route = createFileRoute("/api/chat")({
           | "parent"
           | "student"
           | "platform_admin") ?? "owner";
+
+        const userMeta = userRes.user.user_metadata as Record<string, unknown> | null;
+        const userName =
+          (typeof userMeta?.full_name === "string" && userMeta.full_name) ||
+          (typeof userMeta?.name === "string" && userMeta.name) ||
+          (userRes.user.email ? userRes.user.email.split("@")[0] : undefined) ||
+          undefined;
 
         // ------------------ payload (parse first so we can enrich context) ------------------
         const body = (await request.json()) as ChatRequestBody;
@@ -155,6 +162,10 @@ export const Route = createFileRoute("/api/chat")({
           tenantName: tenant?.name ?? null,
           role,
           userId,
+          userName,
+          niche: (tenant as { niche?: string | null } | null)?.niche ?? undefined,
+          feeCycle: (tenant as { fee_cycle?: string | null } | null)?.fee_cycle ?? undefined,
+          timezone: "Asia/Kolkata",
           subscription: tenant
             ? { plan: tenant.subscription_status ?? "trial", status: tenant.status ?? "active" }
             : undefined,

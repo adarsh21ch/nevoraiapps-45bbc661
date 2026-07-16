@@ -55,6 +55,12 @@ export type AIContext = {
   features?: Record<string, boolean>;
   /** ISO 639-1 preferred language. */
   language?: string;
+  /** Human-readable name of the signed-in caller (for prompt personalization). */
+  userName?: string;
+  /** Tenant niche (e.g. "cricket", "football") — used to personalize copy. */
+  niche?: string;
+  /** Tenant fee cycle: "calendar_month" or "joining_date". */
+  feeCycle?: string;
   /**
    * Supabase client tools should query through. Populated by server
    * entry points that already validated a bearer token; undefined

@@ -79,7 +79,7 @@ function resolveStudentId(input: unknown, ctx: AIContext): string | null {
 
 export const dashboardSummaryTool: AnyToolDef = {
   name: "dashboard_summary",
-  description: "Return the top-level KPIs for the current tenant (students, fees, attendance).",
+  description: "Academy-wide headline snapshot: active students count, new registrations this week, collections this month, and count of students with pending fees. Use for: broad status checks ('how is my academy doing?', 'sab thik hai?', 'status', 'give me an overview'). Returns aggregate numbers only — for one student's fees use fee_summary; for a full billing breakdown use finance_summary.",
   category: "dashboard",
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
@@ -111,7 +111,7 @@ export const dashboardSummaryTool: AnyToolDef = {
 
 export const financeSummaryTool: AnyToolDef = {
   name: "finance_summary",
-  description: "Return billing KPIs (collected, outstanding, overdue) for the tenant.",
+  description: "Money overview for the current calendar month: total rupees collected this month, and the COUNT of active students with no payment recorded for this period. Use for: 'revenue', 'collections', 'how much did we earn', 'kitna paisa aaya', 'how many haven't paid', 'kitne ne fee nahi di'. Returns aggregate numbers only — this tool does NOT return student names. For a specific student's fee status use fee_summary. For a specific invoice use invoice_details.",
   category: "finance",
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
@@ -150,7 +150,7 @@ export const financeSummaryTool: AnyToolDef = {
 
 export const feeSummaryTool: AnyToolDef = {
   name: "fee_summary",
-  description: "Return the fee/payment status for a specific student.",
+  description: "One student's fee status, current-period due state, and full payment history. Use when a specific student is named or implied by the current screen ('has Rahul paid?', 'show his payments', 'kya Aryan ne fee di'). Not for academy-wide totals — use finance_summary for those. Not for listing all unpaid students — use dashboard_summary/finance_summary for counts.",
   category: "finance",
   parameters: studentIdSchema,
   allowedRoles: ["owner", "admin", "parent", "student"],
@@ -207,7 +207,7 @@ export const feeSummaryTool: AnyToolDef = {
 
 export const invoiceDetailsTool: AnyToolDef = {
   name: "invoice_details",
-  description: "Fetch a single invoice with its lines and payments.",
+  description: "One specific invoice with its line items and recorded payments. Use only when the owner is looking at or references a specific invoice/bill. Not for aggregate money questions — use finance_summary.",
   category: "finance",
   parameters: invoiceIdSchema,
   allowedRoles: ["owner", "admin"],
@@ -245,7 +245,7 @@ export const invoiceDetailsTool: AnyToolDef = {
 
 export const attendanceSummaryTool: AnyToolDef = {
   name: "attendance_summary",
-  description: "Return today's attendance snapshot (present / absent / in-academy counts).",
+  description: "Today's attendance snapshot: present, absent, currently in-academy, and checked-out counts. Use for: 'attendance today', 'kitne aaye', 'aaj ki hazri', 'how many showed up'. Default period is today — this tool does not return historical attendance or per-batch breakdown.",
   category: "attendance",
   parameters: emptySchema,
   allowedRoles: ["owner", "admin", "coach"],
@@ -284,7 +284,7 @@ export const attendanceSummaryTool: AnyToolDef = {
 
 export const playerProfileTool: AnyToolDef = {
   name: "player_profile",
-  description: "Return a single player's profile — respects role scoping.",
+  description: "One student's profile: name, status, batch, joined date, contact. Use when the owner asks about a specific named student's details (not their fees or attendance). For fee history use fee_summary.",
   category: "students",
   parameters: studentIdSchema,
   allowedRoles: ["owner", "admin", "coach", "parent", "student"],
@@ -320,7 +320,7 @@ export const playerProfileTool: AnyToolDef = {
 
 export const admissionsSummaryTool: AnyToolDef = {
   name: "admissions_summary",
-  description: "Return the current admissions pipeline (counts per stage).",
+  description: "Admissions pipeline: total leads/inquiries and counts per stage (new, contacted, trial, enrolled, dropped). Use for: 'how many new leads', 'admissions kaise hain', 'new inquiries this week', 'kitne naye students aaye'. Covers leads and registrations — say which when reporting.",
   category: "admissions",
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
@@ -354,7 +354,7 @@ export const admissionsSummaryTool: AnyToolDef = {
 
 export const communicationsSummaryTool: AnyToolDef = {
   name: "communications_summary",
-  description: "Return recent broadcast / campaign activity.",
+  description: "Recent broadcast / WhatsApp / SMS / email campaign activity: how many sent, drafted, failed. Use for: 'did the reminders go out', 'campaign status', 'messages bheje kya'. Not for one-off reminders — those go through send_fee_reminder.",
   category: "communications",
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
@@ -389,7 +389,7 @@ export const communicationsSummaryTool: AnyToolDef = {
 
 export const automationStatusTool: AnyToolDef = {
   name: "automation_status",
-  description: "Return recent automation executions (successes / failures / pending).",
+  description: "Recent automation rule executions: successes, failures, pending. Use only when the owner asks whether automations/workflows are running or something didn't fire ('is automation working', 'reminders auto ja rahe hain'). Not for message counts — use communications_summary.",
   category: "automation",
   parameters: limitSchema,
   allowedRoles: ["owner", "admin"],
@@ -434,7 +434,7 @@ export const automationStatusTool: AnyToolDef = {
 
 export const notificationsSummaryTool: AnyToolDef = {
   name: "notifications_summary",
-  description: "Return the caller's most recent notifications.",
+  description: "The caller's own recent in-app notifications and unread count. Use only when the owner asks 'what did I miss', 'any alerts', 'unread notifications'. Not for academy-wide activity.",
   category: "notifications",
   parameters: limitSchema,
   async execute(input, ctx): Promise<ToolResult> {
@@ -476,7 +476,7 @@ export const notificationsSummaryTool: AnyToolDef = {
 
 export const reportsSummaryTool: AnyToolDef = {
   name: "reports_summary",
-  description: "Return recent revenue + insight signals for the tenant.",
+  description: "Revenue trend and engagement signals across recent weeks/months. Use for: 'revenue trend', 'how are we trending', 'compare this month vs last month', 'is business growing'. For a single point-in-time snapshot use finance_summary or dashboard_summary.",
   category: "reports",
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
@@ -504,7 +504,7 @@ export const reportsSummaryTool: AnyToolDef = {
 
 export const subscriptionStatusTool: AnyToolDef = {
   name: "subscription_status",
-  description: "Return the current subscription plan / trial state for the tenant.",
+  description: "The academy's own SaaS subscription plan and trial status (what the owner pays NevorAI). Use only when asked about their own plan/trial/billing to the platform. Not for student fees — those are finance_summary/fee_summary.",
   category: "subscription",
   parameters: emptySchema,
   allowedRoles: ["owner", "admin"],
@@ -568,7 +568,7 @@ export const founderIntelligenceTool: AnyToolDef = {
 
 export const sendFeeReminderTool: AnyToolDef = {
   name: "send_fee_reminder",
-  description: "Queue a fee reminder for a student. Requires user confirmation.",
+  description: "Queue a fee reminder for a specific student (the owner still dispatches). Use only when the owner has explicitly asked to send a reminder to a named/identified student ('send him a reminder', 'usko reminder bhejo'). Requires a resolved studentId — if ambiguous, ask ONE clarifying question first. Never call without explicit user intent.",
   category: "finance",
   parameters: studentIdSchema,
   allowedRoles: ["owner", "admin"],

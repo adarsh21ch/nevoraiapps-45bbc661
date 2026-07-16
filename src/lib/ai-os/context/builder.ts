@@ -27,6 +27,9 @@ export type ContextInput = {
   subscription?: { plan: string; status: string };
   features?: Record<string, boolean>;
   language?: string;
+  userName?: string;
+  niche?: string;
+  feeCycle?: string;
   dataClient?: AIDataClient;
 };
 
@@ -60,6 +63,9 @@ export function buildContext(input: ContextInput): AIContext {
     subscription: input.subscription,
     features: input.features,
     language: input.language ?? "en",
+    userName: input.userName,
+    niche: input.niche,
+    feeCycle: input.feeCycle,
     dataClient: input.dataClient,
   };
 }
