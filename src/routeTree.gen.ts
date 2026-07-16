@@ -61,6 +61,7 @@ import { Route as PlatformAdminSearchRouteImport } from './routes/platform-admin
 import { Route as PlatformAdminPushRouteImport } from './routes/platform-admin.push'
 import { Route as PlatformAdminPaymentSettingsRouteImport } from './routes/platform-admin.payment-settings'
 import { Route as PlatformAdminNewRouteImport } from './routes/platform-admin.new'
+import { Route as PlatformAdminNevoraiRouteImport } from './routes/platform-admin.nevorai'
 import { Route as PlatformAdminHealthRouteImport } from './routes/platform-admin.health'
 import { Route as PlatformAdminFounderRouteImport } from './routes/platform-admin.founder'
 import { Route as PlatformAdminFlagsRouteImport } from './routes/platform-admin.flags'
@@ -141,6 +142,7 @@ import { Route as DashboardCoachAnalyticsRouteImport } from './routes/dashboard.
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksSubscriptionCheckRouteImport } from './routes/api/public/hooks/subscription-check'
 import { Route as ApiPublicHooksOwnerSummariesRouteImport } from './routes/api/public/hooks/owner-summaries'
+import { Route as ApiPublicHooksNevoraiBriefRouteImport } from './routes/api/public/hooks/nevorai-brief'
 import { Route as ApiPublicHooksFeeRemindersRouteImport } from './routes/api/public/hooks/fee-reminders'
 import { Route as ApiPublicHooksDispatchCampaignsRouteImport } from './routes/api/public/hooks/dispatch-campaigns'
 import { Route as ApiPublicHooksAutomationTickRouteImport } from './routes/api/public/hooks/automation-tick'
@@ -407,6 +409,11 @@ const PlatformAdminPaymentSettingsRoute =
 const PlatformAdminNewRoute = PlatformAdminNewRouteImport.update({
   id: '/new',
   path: '/new',
+  getParentRoute: () => PlatformAdminRoute,
+} as any)
+const PlatformAdminNevoraiRoute = PlatformAdminNevoraiRouteImport.update({
+  id: '/nevorai',
+  path: '/nevorai',
   getParentRoute: () => PlatformAdminRoute,
 } as any)
 const PlatformAdminHealthRoute = PlatformAdminHealthRouteImport.update({
@@ -824,6 +831,12 @@ const ApiPublicHooksOwnerSummariesRoute =
     path: '/api/public/hooks/owner-summaries',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksNevoraiBriefRoute =
+  ApiPublicHooksNevoraiBriefRouteImport.update({
+    id: '/api/public/hooks/nevorai-brief',
+    path: '/api/public/hooks/nevorai-brief',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksFeeRemindersRoute =
   ApiPublicHooksFeeRemindersRouteImport.update({
     id: '/api/public/hooks/fee-reminders',
@@ -949,6 +962,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
   '/platform-admin/founder': typeof PlatformAdminFounderRoute
   '/platform-admin/health': typeof PlatformAdminHealthRoute
+  '/platform-admin/nevorai': typeof PlatformAdminNevoraiRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/payment-settings': typeof PlatformAdminPaymentSettingsRoute
   '/platform-admin/push': typeof PlatformAdminPushRoute
@@ -989,6 +1003,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
+  '/api/public/hooks/nevorai-brief': typeof ApiPublicHooksNevoraiBriefRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -1083,6 +1098,7 @@ export interface FileRoutesByTo {
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
   '/platform-admin/founder': typeof PlatformAdminFounderRoute
   '/platform-admin/health': typeof PlatformAdminHealthRoute
+  '/platform-admin/nevorai': typeof PlatformAdminNevoraiRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/payment-settings': typeof PlatformAdminPaymentSettingsRoute
   '/platform-admin/push': typeof PlatformAdminPushRoute
@@ -1123,6 +1139,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
+  '/api/public/hooks/nevorai-brief': typeof ApiPublicHooksNevoraiBriefRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -1223,6 +1240,7 @@ export interface FileRoutesById {
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
   '/platform-admin/founder': typeof PlatformAdminFounderRoute
   '/platform-admin/health': typeof PlatformAdminHealthRoute
+  '/platform-admin/nevorai': typeof PlatformAdminNevoraiRoute
   '/platform-admin/new': typeof PlatformAdminNewRoute
   '/platform-admin/payment-settings': typeof PlatformAdminPaymentSettingsRoute
   '/platform-admin/push': typeof PlatformAdminPushRoute
@@ -1263,6 +1281,7 @@ export interface FileRoutesById {
   '/api/public/hooks/automation-tick': typeof ApiPublicHooksAutomationTickRoute
   '/api/public/hooks/dispatch-campaigns': typeof ApiPublicHooksDispatchCampaignsRoute
   '/api/public/hooks/fee-reminders': typeof ApiPublicHooksFeeRemindersRoute
+  '/api/public/hooks/nevorai-brief': typeof ApiPublicHooksNevoraiBriefRoute
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
@@ -1364,6 +1383,7 @@ export interface FileRouteTypes {
     | '/platform-admin/flags'
     | '/platform-admin/founder'
     | '/platform-admin/health'
+    | '/platform-admin/nevorai'
     | '/platform-admin/new'
     | '/platform-admin/payment-settings'
     | '/platform-admin/push'
@@ -1404,6 +1424,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
+    | '/api/public/hooks/nevorai-brief'
     | '/api/public/hooks/owner-summaries'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
@@ -1498,6 +1519,7 @@ export interface FileRouteTypes {
     | '/platform-admin/flags'
     | '/platform-admin/founder'
     | '/platform-admin/health'
+    | '/platform-admin/nevorai'
     | '/platform-admin/new'
     | '/platform-admin/payment-settings'
     | '/platform-admin/push'
@@ -1538,6 +1560,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
+    | '/api/public/hooks/nevorai-brief'
     | '/api/public/hooks/owner-summaries'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
@@ -1637,6 +1660,7 @@ export interface FileRouteTypes {
     | '/platform-admin/flags'
     | '/platform-admin/founder'
     | '/platform-admin/health'
+    | '/platform-admin/nevorai'
     | '/platform-admin/new'
     | '/platform-admin/payment-settings'
     | '/platform-admin/push'
@@ -1677,6 +1701,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/automation-tick'
     | '/api/public/hooks/dispatch-campaigns'
     | '/api/public/hooks/fee-reminders'
+    | '/api/public/hooks/nevorai-brief'
     | '/api/public/hooks/owner-summaries'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
@@ -1728,6 +1753,7 @@ export interface RootRouteChildren {
   ApiPublicHooksAutomationTickRoute: typeof ApiPublicHooksAutomationTickRoute
   ApiPublicHooksDispatchCampaignsRoute: typeof ApiPublicHooksDispatchCampaignsRoute
   ApiPublicHooksFeeRemindersRoute: typeof ApiPublicHooksFeeRemindersRoute
+  ApiPublicHooksNevoraiBriefRoute: typeof ApiPublicHooksNevoraiBriefRoute
   ApiPublicHooksOwnerSummariesRoute: typeof ApiPublicHooksOwnerSummariesRoute
   ApiPublicHooksSubscriptionCheckRoute: typeof ApiPublicHooksSubscriptionCheckRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
@@ -2098,6 +2124,13 @@ declare module '@tanstack/react-router' {
       path: '/new'
       fullPath: '/platform-admin/new'
       preLoaderRoute: typeof PlatformAdminNewRouteImport
+      parentRoute: typeof PlatformAdminRoute
+    }
+    '/platform-admin/nevorai': {
+      id: '/platform-admin/nevorai'
+      path: '/nevorai'
+      fullPath: '/platform-admin/nevorai'
+      preLoaderRoute: typeof PlatformAdminNevoraiRouteImport
       parentRoute: typeof PlatformAdminRoute
     }
     '/platform-admin/health': {
@@ -2660,6 +2693,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksOwnerSummariesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/nevorai-brief': {
+      id: '/api/public/hooks/nevorai-brief'
+      path: '/api/public/hooks/nevorai-brief'
+      fullPath: '/api/public/hooks/nevorai-brief'
+      preLoaderRoute: typeof ApiPublicHooksNevoraiBriefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/fee-reminders': {
       id: '/api/public/hooks/fee-reminders'
       path: '/api/public/hooks/fee-reminders'
@@ -2909,6 +2949,7 @@ interface PlatformAdminRouteChildren {
   PlatformAdminFlagsRoute: typeof PlatformAdminFlagsRoute
   PlatformAdminFounderRoute: typeof PlatformAdminFounderRoute
   PlatformAdminHealthRoute: typeof PlatformAdminHealthRoute
+  PlatformAdminNevoraiRoute: typeof PlatformAdminNevoraiRoute
   PlatformAdminNewRoute: typeof PlatformAdminNewRoute
   PlatformAdminPaymentSettingsRoute: typeof PlatformAdminPaymentSettingsRoute
   PlatformAdminPushRoute: typeof PlatformAdminPushRoute
@@ -2929,6 +2970,7 @@ const PlatformAdminRouteChildren: PlatformAdminRouteChildren = {
   PlatformAdminFlagsRoute: PlatformAdminFlagsRoute,
   PlatformAdminFounderRoute: PlatformAdminFounderRoute,
   PlatformAdminHealthRoute: PlatformAdminHealthRoute,
+  PlatformAdminNevoraiRoute: PlatformAdminNevoraiRoute,
   PlatformAdminNewRoute: PlatformAdminNewRoute,
   PlatformAdminPaymentSettingsRoute: PlatformAdminPaymentSettingsRoute,
   PlatformAdminPushRoute: PlatformAdminPushRoute,
@@ -3014,6 +3056,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksAutomationTickRoute: ApiPublicHooksAutomationTickRoute,
   ApiPublicHooksDispatchCampaignsRoute: ApiPublicHooksDispatchCampaignsRoute,
   ApiPublicHooksFeeRemindersRoute: ApiPublicHooksFeeRemindersRoute,
+  ApiPublicHooksNevoraiBriefRoute: ApiPublicHooksNevoraiBriefRoute,
   ApiPublicHooksOwnerSummariesRoute: ApiPublicHooksOwnerSummariesRoute,
   ApiPublicHooksSubscriptionCheckRoute: ApiPublicHooksSubscriptionCheckRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
@@ -3022,13 +3065,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
