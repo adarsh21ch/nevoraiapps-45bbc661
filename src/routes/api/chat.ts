@@ -119,6 +119,30 @@ export const Route = createFileRoute("/api/chat")({
           return jsonError("UNAUTHENTICATED", "Your session has expired. Please sign in again.", 401);
         const userId = userRes.user.id;
 
+        // ------------------ rate limiting (per-user hour + day caps) ------------------
+        // Uses the existing public.check_rate_limit RPC (SECURITY DEFINER, backed by
+        // rate_limit_hits). Fails-open on RPC error so a transient DB blip does not
+        // lock the owner out of NevorAI.
+        try {
+          const hourKey = `nevorai:chat:hour:${userId}`;
+          const dayKey = `nevorai:chat:day:${userId}`;
+          const [{ data: hourOk }, { data: dayOk }] = await Promise.all([
+            authed.rpc("check_rate_limit", { _key: hourKey, _max_hits: 60, _window_seconds: 3600 }),
+            authed.rpc("check_rate_limit", { _key: dayKey, _max_hits: 500, _window_seconds: 86400 }),
+          ]);
+          if (hourOk === false || dayOk === false) {
+            return jsonError(
+              "RATE_LIMITED",
+              hourOk === false
+                ? "You've reached NevorAI's hourly limit (60 messages). Please try again in a bit."
+                : "You've reached NevorAI's daily limit (500 messages). Please try again tomorrow.",
+              429,
+            );
+          }
+        } catch {
+          // fail-open on infra error
+        }
+
         const { data: profile } = await authed
           .from("profiles")
           .select("tenant_id, role")
