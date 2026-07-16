@@ -177,7 +177,7 @@ function ParentLayout() {
 
       <nav
         aria-label="Primary"
-        className="fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70"
+        className="fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 pb-[env(safe-area-inset-bottom)]"
       >
         <div className="max-w-3xl mx-auto grid grid-cols-5">
           {TABS.map((t) => {
