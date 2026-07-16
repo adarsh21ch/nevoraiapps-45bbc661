@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import type { Tenant } from "./tenant";
 import { candidatePeriods, periodKey, studentDue, tenantFeeCycle } from "./fees";
+import { fetchBillingKpis } from "./billing";
 
 export type Student = Database["public"]["Tables"]["students"]["Row"];
 export type Registration = Database["public"]["Tables"]["registrations"]["Row"];
