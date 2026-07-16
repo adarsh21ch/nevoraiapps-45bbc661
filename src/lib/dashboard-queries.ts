@@ -254,11 +254,13 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
   const todayStr = now.toISOString().slice(0, 10);
 
   const [payRes, sessRes, studRes] = await Promise.all([
+    // Canonical revenue trend — succeeded `billing_payments` only.
     supabase
-      .from("payments")
-      .select("amount, created_at")
+      .from("billing_payments")
+      .select("amount, collected_at")
       .eq("tenant_id", tenantId)
-      .gte("created_at", sixMonthsAgo.toISOString()),
+      .eq("status", "succeeded")
+      .gte("collected_at", sixMonthsAgo.toISOString()),
     supabase
       .from("attendance_sessions")
       .select("id, attendance_marks(status)")
@@ -279,8 +281,9 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
     buckets.set(monthKeyOf(d), 0);
   }
   for (const p of payRes.data ?? []) {
-    if (!p.created_at) continue;
-    const key = monthKeyOf(new Date(p.created_at));
+    const at = (p as { collected_at?: string | null }).collected_at;
+    if (!at) continue;
+    const key = monthKeyOf(new Date(at));
     if (buckets.has(key)) buckets.set(key, buckets.get(key)! + Number(p.amount || 0));
   }
   const monthLabels = [
@@ -395,11 +398,12 @@ export async function fetchDashboardActivity(
 
   const paysP = includeFees
     ? supabase
-        .from("payments")
-        .select("id, amount, created_at, student_id, students(name)")
+        .from("billing_payments")
+        .select("id, amount, collected_at, student_id, students(name)")
         .eq("tenant_id", tenantId)
-        .gte("created_at", sinceISO)
-        .order("created_at", { ascending: false })
+        .eq("status", "succeeded")
+        .gte("collected_at", sinceISO)
+        .order("collected_at", { ascending: false })
         .limit(10)
     : Promise.resolve({ data: [] as never[], error: null });
 
@@ -447,16 +451,18 @@ export async function fetchDashboardActivity(
 
   for (const p of pays.data ?? []) {
     const name = (p as any).students?.name ?? "Player";
+    const at = (p as { collected_at?: string | null }).collected_at;
     events.push({
       id: `pay-${p.id}`,
-      at: p.created_at as string,
+      at: (at ?? new Date().toISOString()) as string,
       kind: "payment",
       actorName: name,
       amount: Number(p.amount ?? 0),
       detail: "Fee received",
-      href: "/dashboard/fees",
+      href: "/dashboard/billing",
     });
   }
+
 
   events.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
   return events.slice(0, limit);
