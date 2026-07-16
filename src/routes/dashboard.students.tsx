@@ -69,6 +69,7 @@ import { VirtualList } from "@/components/ds/VirtualList";
 import { usePermissions } from "@/hooks/use-permissions";
 import { fetchMyBatches, type MyBatch } from "@/lib/coach/queries";
 import { FilterTabs } from "@/components/shared/FilterTabs";
+import { DashboardSearch } from "@/components/dashboard-ui";
 
 export const Route = createFileRoute("/dashboard/students")({
   validateSearch: (search: Record<string, unknown>): { status?: string } => {
