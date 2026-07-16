@@ -193,43 +193,14 @@ function BillingWorkspace() {
         />
       </section>
 
-      <Tabs defaultValue="invoices">
-        <TabsList>
-          <TabsTrigger value="invoices">
-            <FileText className="w-4 h-4 mr-1.5" /> Bills
-          </TabsTrigger>
-          <TabsTrigger value="payments">
-            <Banknote className="w-4 h-4 mr-1.5" /> Collections
-          </TabsTrigger>
-          <TabsTrigger value="subs">
-            <Users className="w-4 h-4 mr-1.5" /> Fee plans
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="invoices" className="mt-4">
-          <InvoicesTable
-            tenantId={tenantId}
-            invoices={invoicesQ.data ?? []}
-            students={studentsQ.data ?? []}
-            loading={invoicesQ.isLoading}
-            onDone={invalidateAll}
-          />
-        </TabsContent>
-        <TabsContent value="payments" className="mt-4">
-          <PaymentsTable
-            payments={paymentsQ.data ?? []}
-            students={studentsQ.data ?? []}
-            loading={paymentsQ.isLoading}
-          />
-        </TabsContent>
-        <TabsContent value="subs" className="mt-4">
-          <SubscriptionsTable
-            subs={subsQ.data ?? []}
-            students={studentsQ.data ?? []}
-            loading={subsQ.isLoading}
-          />
-        </TabsContent>
-      </Tabs>
+      <BillingTabs
+        tenantId={tenantId}
+        invoicesQ={invoicesQ}
+        studentsQ={studentsQ}
+        paymentsQ={paymentsQ}
+        subsQ={subsQ}
+        invalidateAll={invalidateAll}
+      />
     </div>
   );
 }
