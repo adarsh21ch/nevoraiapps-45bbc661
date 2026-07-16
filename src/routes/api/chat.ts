@@ -328,14 +328,14 @@ export const Route = createFileRoute("/api/chat")({
           },
 
           onError: (err) => {
+            // Never leak raw error details (RPC/table names, stack traces) to the client.
             console.error("[nevorai] stream error", err);
-            return err instanceof Error ? err.message : "stream failed";
+            return "Something went wrong on our side. Please try again in a moment.";
           },
         });
         } catch (e) {
           console.error("[nevorai] handler crashed", e);
-          const msg = e instanceof Error ? e.message : "Unknown error";
-          return jsonError("AI_HANDLER_FAILED", `NevorAI hit an error: ${msg}`);
+          return jsonError("AI_HANDLER_FAILED", "NevorAI couldn't complete that request. Please try again in a moment.");
         }
       },
     },
