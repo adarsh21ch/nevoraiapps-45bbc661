@@ -73,7 +73,7 @@ export function ChatPanel({
     pageContextRef.current = pageContext;
   }, [pageContext]);
 
-  const [chatError, setChatError] = useState<{ code?: string; message: string } | null>(null);
+  const [chatError, setChatError] = useState<{ code?: string; title: string; message: string } | null>(null);
 
   // Ref mirrors the currently-persisted conversation id. Read at send-time
   // so we don't recreate the transport when a fresh conversation is minted
@@ -82,6 +82,63 @@ export function ChatPanel({
   useEffect(() => {
     conversationIdRef.current = conversationId;
   }, [conversationId]);
+
+  // Remember the last user prompt so Retry works even when the first turn
+  // failed before an assistant message was produced.
+  const lastPromptRef = useRef<string | null>(null);
+
+  // Classify errors into safe categories. NEVER surface raw messages,
+  // stack traces, tool/RPC/provider names, or JSON — the fetch shim
+  // already extracted an { error: { code, message } } envelope when the
+  // server could produce one; anything else is treated as a transport
+  // failure with a generic friendly line.
+  const classifyError = useCallback(
+    (e: unknown): { code: string; title: string; message: string; category:
+      "network" | "auth" | "authz" | "timeout" | "provider" | "tool" | "database" | "unknown"; retryable: boolean } => {
+      const raw = e as { code?: string; message?: string; name?: string } | undefined;
+      const code = raw?.code;
+      const nameOrMsg = `${raw?.name ?? ""} ${raw?.message ?? ""}`.toLowerCase();
+      const looksNetwork =
+        nameOrMsg.includes("failed to fetch") ||
+        nameOrMsg.includes("networkerror") ||
+        nameOrMsg.includes("network error") ||
+        nameOrMsg.includes("load failed") ||
+        raw?.name === "TypeError";
+      const looksAbort = raw?.name === "AbortError" || nameOrMsg.includes("aborted");
+      if (looksAbort) {
+        return { code: "ABORTED", category: "unknown", retryable: false,
+          title: "Stopped", message: "Response was cancelled." };
+      }
+      switch (code) {
+        case "UNAUTHENTICATED":
+          return { code, category: "auth", retryable: false,
+            title: "Session expired", message: "Please sign in again to continue." };
+        case "NO_TENANT":
+          return { code, category: "authz", retryable: false,
+            title: "No academy linked", message: "This account isn't linked to an academy yet." };
+        case "AI_PROVIDER_UNCONFIGURED":
+          return { code, category: "provider", retryable: false,
+            title: "AI temporarily unavailable", message: "I couldn't reach the AI service. Please try again in a moment." };
+        case "RATE_LIMITED":
+          return { code, category: "provider", retryable: true,
+            title: "Slow down a moment", message: "Too many requests. Please try again shortly." };
+        case "BAD_REQUEST":
+          return { code, category: "unknown", retryable: true,
+            title: "Something went off", message: "Please try again." };
+        case "SERVER_MISCONFIGURED":
+        case "AI_HANDLER_FAILED":
+          return { code: code!, category: "provider", retryable: true,
+            title: "NevorAI couldn't respond", message: "Something went wrong on our side. Please try again in a moment." };
+      }
+      if (looksNetwork) {
+        return { code: "NETWORK", category: "network", retryable: true,
+          title: "Connection issue", message: "I couldn't connect. Please check your internet and try again." };
+      }
+      return { code: "UNKNOWN", category: "unknown", retryable: true,
+        title: "NevorAI couldn't respond", message: "Something went wrong. Please try again." };
+    },
+    [],
+  );
 
   const transport = useMemo(
     () =>
@@ -101,7 +158,7 @@ export function ChatPanel({
           const ct = res.headers.get("content-type") ?? "";
           if (!res.ok || (!ct.includes("event-stream") && !ct.includes("text/plain"))) {
             let code: string | undefined;
-            let message = `NevorAI is temporarily unavailable (HTTP ${res.status}).`;
+            let message = "NevorAI is temporarily unavailable.";
             if (ct.includes("application/json")) {
               try {
                 const body = (await res.clone().json()) as {
@@ -120,19 +177,37 @@ export function ChatPanel({
           return res;
         },
       }),
-    [token, conversationId],
+    // Depend ONLY on `token`. Transport reads conversationId + pageContext
+    // through refs at send-time — recreating the transport mid-stream on
+    // conversation-id changes previously aborted the in-flight fetch and
+    // surfaced as "Network error" in the UI.
+    [token],
   );
 
   const chatId = conversationId ?? "draft";
+
+  // Track transient auto-retry so we don't loop forever.
+  const autoRetryRef = useRef(0);
 
   const { messages, sendMessage, status, stop, setMessages, regenerate } = useChat({
     id: chatId,
     messages: initialMessages,
     transport,
     onError: (e) => {
-      const code = (e as Error & { code?: string }).code;
-      setChatError({ code, message: e.message || "NevorAI failed to respond" });
-      toast.error(e.message || "NevorAI failed to respond");
+      const info = classifyError(e);
+      // Auto-retry ONCE on transient network hiccups — reuses the same
+      // conversation id and last prompt, so history is preserved.
+      if (info.category === "network" && autoRetryRef.current === 0 && lastPromptRef.current) {
+        autoRetryRef.current = 1;
+        setTimeout(() => {
+          void sendMessage({ text: lastPromptRef.current! });
+        }, 400);
+        return;
+      }
+      autoRetryRef.current = 0;
+      setChatError({ code: info.code, title: info.title, message: info.message });
+      // Friendly toast only; never raw error text.
+      toast.error(info.title);
     },
   });
 
@@ -142,6 +217,7 @@ export function ChatPanel({
     if (lastConvIdRef.current !== conversationId) {
       setMessages(initialMessages);
       lastConvIdRef.current = conversationId;
+      autoRetryRef.current = 0;
     }
   }, [conversationId, initialMessages, setMessages]);
 
@@ -157,6 +233,8 @@ export function ChatPanel({
       if (!trimmed || status === "streaming" || status === "submitted") return;
       const wasEmpty = messages.length === 0 && !conversationIdRef.current;
       setChatError(null);
+      autoRetryRef.current = 0;
+      lastPromptRef.current = trimmed;
       // Mint a real conversation row BEFORE the first send so the server
       // does not silently create a new "New conversation" every turn.
       if (!conversationIdRef.current && ensureConversationId) {
@@ -174,6 +252,19 @@ export function ChatPanel({
     },
     [messages.length, onConversationStarted, sendMessage, status, ensureConversationId],
   );
+
+  // Safe retry: preserves conversation id + last prompt so nothing is lost,
+  // even when the first turn failed before any assistant reply.
+  const retry = useCallback(() => {
+    setChatError(null);
+    autoRetryRef.current = 0;
+    const hasAssistant = messages.some((m) => m.role === "assistant");
+    if (hasAssistant) {
+      void regenerate();
+    } else if (lastPromptRef.current) {
+      void sendMessage({ text: lastPromptRef.current });
+    }
+  }, [messages, regenerate, sendMessage]);
 
   const isGenerating = status === "submitted" || status === "streaming";
 
@@ -325,23 +416,12 @@ export function ChatPanel({
           {isGenerating ? <ThinkingDots className="ml-1 mt-1" /> : null}
           {chatError && !isGenerating ? (
             <div className="mx-2 my-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
-              <div className="font-medium text-destructive">
-                {chatError.code === "AI_PROVIDER_UNCONFIGURED"
-                  ? "AI provider not configured"
-                  : chatError.code === "UNAUTHENTICATED"
-                    ? "Session expired"
-                    : chatError.code === "RATE_LIMITED"
-                      ? "Too many requests"
-                      : "NevorAI couldn't respond"}
-              </div>
+              <div className="font-medium text-destructive">{chatError.title}</div>
               <div className="mt-0.5 text-xs text-muted-foreground">{chatError.message}</div>
               <div className="mt-2 flex gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setChatError(null);
-                    void regenerate();
-                  }}
+                  onClick={retry}
                   className="rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent"
                 >
                   Retry
