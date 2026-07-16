@@ -3,25 +3,27 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { UIMessage } from "ai";
+import { PanelLeft, PanelRight, Plus, Sparkles } from "lucide-react";
 import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
-import { ModuleHeader } from "@/components/shared/ModuleHeader";
 import { ChatPanel } from "@/components/nevorai/ChatPanel";
-import { DailyBrief } from "@/components/nevorai/DailyBrief";
-import { QuickInsights } from "@/components/nevorai/QuickInsights";
-import { ActionQueue } from "@/components/nevorai/ActionQueue";
 import { ConversationList } from "@/components/nevorai/ConversationList";
 import { TodaysPriorities } from "@/components/nevorai/TodaysPriorities";
+import { ActionQueue } from "@/components/nevorai/ActionQueue";
+import { QuickInsights } from "@/components/nevorai/QuickInsights";
 import { SmartInsights } from "@/components/nevorai/SmartInsights";
-import { FollowUpCards } from "@/components/nevorai/FollowUpCards";
-import { WelcomeExperience } from "@/components/nevorai/WelcomeExperience";
 import { listTurns } from "@/lib/nevorai/conversations.functions";
-import { Card } from "@/components/ui/card";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/nevorai")({
   head: () => ({
     meta: [
       { title: "NevorAI · AI Academy Manager" },
-      { name: "description", content: "Proactive AI operations for your academy — briefs, priorities, insights and chat." },
+      {
+        name: "description",
+        content:
+          "Chat with NevorAI — your AI academy manager for attendance, fees, admissions, and reports.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -43,6 +45,8 @@ const SUGGESTIONS = [
 
 function NevorAIPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [convOpen, setConvOpen] = useState(false); // mobile drawer
+  const [rightOpen, setRightOpen] = useState(false); // mobile drawer
   const fetchTurns = useServerFn(listTurns);
 
   const turnsQ = useQuery({
@@ -68,56 +72,139 @@ function NevorAIPage() {
   }, [conversationId, turnsQ.data]);
 
   return (
-    <div className="mx-auto w-full max-w-[1400px] px-4 py-6">
-      <ModuleHeader
-        overline="AI Operating System"
-        title="NevorAI"
-      />
-
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[260px_minmax(0,1fr)_320px]">
-        {/* Left rail — conversations */}
-        <div className="hidden lg:block">
-          <Card className="h-[820px] overflow-hidden">
-            <ConversationList activeId={conversationId} onSelect={setConversationId} />
-          </Card>
+    <div className="fixed inset-0 top-[calc(env(safe-area-inset-top)+3.5rem)] flex bg-background text-foreground">
+      {/* Left rail — conversations (desktop) */}
+      <aside className="hidden lg:flex w-[260px] shrink-0 flex-col border-r border-border/60 bg-card/40">
+        <LeftHeader onNew={() => setConversationId(null)} />
+        <div className="min-h-0 flex-1">
+          <ConversationList activeId={conversationId} onSelect={setConversationId} />
         </div>
+      </aside>
 
-        {/* Center — welcome/brief/insights + chat */}
-        <div className="flex flex-col gap-4">
-          {conversationId ? null : <WelcomeExperience />}
-          <DailyBrief />
-          <QuickInsights />
-          <SmartInsights />
-          <Card className="h-[560px] overflow-hidden">
+      {/* Center — chat */}
+      <main className="flex min-w-0 flex-1 flex-col">
+        <header className="flex items-center justify-between border-b border-border/50 px-3 py-2 lg:px-6">
+          <button
+            type="button"
+            onClick={() => setConvOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-md p-1.5 text-muted-foreground hover:bg-accent lg:hidden"
+            aria-label="Open conversations"
+          >
+            <PanelLeft className="size-4" />
+          </button>
+          <div className="flex items-center gap-2">
+            <Sparkles
+              className="size-4"
+              style={{ color: "var(--tenant-brand, var(--brand, #E8873C))" }}
+            />
+            <span className="text-sm font-medium">NevorAI</span>
+            <span className="hidden text-xs text-muted-foreground sm:inline">
+              · AI Academy Manager
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setConversationId(null)}
+              className="hidden sm:inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium hover:bg-accent"
+            >
+              <Plus className="size-3.5" /> New
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-md p-1.5 text-muted-foreground hover:bg-accent xl:hidden"
+              aria-label="Open panel"
+            >
+              <PanelRight className="size-4" />
+            </button>
+          </div>
+        </header>
+
+        {/* Empty state overlays inside ChatPanel via its own empty message, but we
+            layer an academy-branded intro just above it when idle. */}
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col">
             <ChatPanel
               key={conversationId ?? "draft"}
               conversationId={conversationId}
               initialMessages={initialMessages}
               onConversationStarted={() => {
-                // conversation gets created server-side on first send; sidebar re-fetches.
+                /* server creates row; sidebar re-queries. */
               }}
               suggestions={SUGGESTIONS}
             />
-          </Card>
-          <FollowUpCards />
+          </div>
         </div>
+      </main>
 
-        {/* Right rail — priorities + queue */}
-        <div className="flex flex-col gap-4">
-          <TodaysPriorities />
-          <ActionQueue />
-          <Card className="p-5">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">Try asking</div>
-            <ul className="mt-2 space-y-1.5 text-sm">
-              {SUGGESTIONS.map((s) => (
-                <li key={s} className="text-muted-foreground">
-                  · {s}
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </div>
-      </div>
+      {/* Right rail — priorities/queue/insights (xl+) */}
+      <aside className="hidden xl:flex w-[340px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-border/60 bg-card/30 p-4">
+        <RightRail />
+      </aside>
+
+      {/* Mobile: conversations drawer */}
+      <Sheet open={convOpen} onOpenChange={setConvOpen}>
+        <SheetContent side="left" className="w-[280px] p-0">
+          <div className="flex h-full flex-col">
+            <LeftHeader
+              onNew={() => {
+                setConversationId(null);
+                setConvOpen(false);
+              }}
+            />
+            <div className="min-h-0 flex-1">
+              <ConversationList
+                activeId={conversationId}
+                onSelect={(id) => {
+                  setConversationId(id);
+                  setConvOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Tablet/mobile: right rail drawer */}
+      <Sheet open={rightOpen} onOpenChange={setRightOpen}>
+        <SheetContent side="right" className="w-[360px] max-w-full p-4">
+          <div className="mb-3 text-sm font-semibold">Today at your academy</div>
+          <div className="flex flex-col gap-3">
+            <RightRail />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
+  );
+}
+
+function LeftHeader({ onNew }: { onNew: () => void }) {
+  return (
+    <div className="flex items-center justify-between border-b border-border/60 px-3 py-2.5">
+      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Conversations
+      </div>
+      <button
+        type="button"
+        onClick={onNew}
+        className={cn(
+          "inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium hover:bg-accent",
+        )}
+      >
+        <Plus className="size-3.5" /> New
+      </button>
+    </div>
+  );
+}
+
+function RightRail() {
+  return (
+    <>
+      <TodaysPriorities />
+      <ActionQueue />
+      <QuickInsights />
+      <SmartInsights />
+    </>
   );
 }

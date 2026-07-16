@@ -72,14 +72,24 @@ function supabaseFetchShim(supabaseKey: string): typeof fetch {
   };
 }
 
+function jsonError(code: string, message: string, status = 200) {
+  // Return 200 so the AI SDK client can read the JSON body and surface a
+  // friendly error card instead of the Worker's HTML crash page.
+  return new Response(JSON.stringify({ error: { code, message } }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        try {
         // ------------------ auth ------------------
         const authHeader = request.headers.get("authorization");
         if (!authHeader?.startsWith("Bearer ")) {
-          return new Response("Unauthorized", { status: 401 });
+          return jsonError("UNAUTHENTICATED", "Please sign in to chat with NevorAI.", 401);
         }
         const token = authHeader.slice("Bearer ".length);
 
@@ -87,10 +97,13 @@ export const Route = createFileRoute("/api/chat")({
         const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
         const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
         if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-          return new Response("Missing Supabase env", { status: 500 });
+          return jsonError("SERVER_MISCONFIGURED", "The server is missing required configuration.");
         }
         if (!GOOGLE_API_KEY) {
-          return new Response("Missing GOOGLE_API_KEY", { status: 500 });
+          return jsonError(
+            "AI_PROVIDER_UNCONFIGURED",
+            "NevorAI is not connected to an AI provider. Please add GOOGLE_API_KEY.",
+          );
         }
 
         const authed = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -102,7 +115,8 @@ export const Route = createFileRoute("/api/chat")({
         });
 
         const { data: userRes, error: userErr } = await authed.auth.getUser(token);
-        if (userErr || !userRes?.user) return new Response("Unauthorized", { status: 401 });
+        if (userErr || !userRes?.user)
+          return jsonError("UNAUTHENTICATED", "Your session has expired. Please sign in again.", 401);
         const userId = userRes.user.id;
 
         const { data: profile } = await authed
@@ -110,7 +124,8 @@ export const Route = createFileRoute("/api/chat")({
           .select("tenant_id, role")
           .eq("user_id", userId)
           .maybeSingle();
-        if (!profile?.tenant_id) return new Response("No tenant", { status: 403 });
+        if (!profile?.tenant_id)
+          return jsonError("NO_TENANT", "No academy is linked to this account.", 403);
 
         // ------------------ context ------------------
         const { data: tenant } = await authed
@@ -130,7 +145,7 @@ export const Route = createFileRoute("/api/chat")({
         // ------------------ payload (parse first so we can enrich context) ------------------
         const body = (await request.json()) as ChatRequestBody;
         if (!Array.isArray(body.messages)) {
-          return new Response("Messages required", { status: 400 });
+          return jsonError("BAD_REQUEST", "Messages are required.", 400);
         }
         const pageCtx: PageContext = body.pageContext ?? {};
 
@@ -182,7 +197,7 @@ export const Route = createFileRoute("/api/chat")({
             })
             .select("id")
             .single();
-          if (createErr) return new Response("Failed to create conversation", { status: 500 });
+          if (createErr) return jsonError("DB_ERROR", "Could not start a new conversation.");
           conversationId = created.id;
         }
 
@@ -298,6 +313,11 @@ export const Route = createFileRoute("/api/chat")({
             return err instanceof Error ? err.message : "stream failed";
           },
         });
+        } catch (e) {
+          console.error("[nevorai] handler crashed", e);
+          const msg = e instanceof Error ? e.message : "Unknown error";
+          return jsonError("AI_HANDLER_FAILED", `NevorAI hit an error: ${msg}`);
+        }
       },
     },
   },

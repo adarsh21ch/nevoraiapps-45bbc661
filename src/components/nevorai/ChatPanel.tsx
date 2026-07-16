@@ -66,6 +66,8 @@ export function ChatPanel({
     pageContextRef.current = pageContext;
   }, [pageContext]);
 
+  const [chatError, setChatError] = useState<{ code?: string; message: string } | null>(null);
+
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -74,6 +76,31 @@ export function ChatPanel({
           Authorization: token ? `Bearer ${token}` : "",
         }),
         body: () => ({ conversationId, pageContext: pageContextRef.current ?? null }),
+        // Intercept non-SSE responses (JSON error / HTML crash page) so the AI SDK
+        // never renders a raw HTML document inside the conversation.
+        fetch: async (input, init) => {
+          const res = await fetch(input, init);
+          const ct = res.headers.get("content-type") ?? "";
+          if (!res.ok || (!ct.includes("event-stream") && !ct.includes("text/plain"))) {
+            let code: string | undefined;
+            let message = `NevorAI is temporarily unavailable (HTTP ${res.status}).`;
+            if (ct.includes("application/json")) {
+              try {
+                const body = (await res.clone().json()) as {
+                  error?: { code?: string; message?: string };
+                };
+                if (body?.error?.message) message = body.error.message;
+                code = body?.error?.code;
+              } catch {
+                /* fall through */
+              }
+            }
+            const err = new Error(message) as Error & { code?: string };
+            err.code = code;
+            throw err;
+          }
+          return res;
+        },
       }),
     [token, conversationId],
   );
@@ -84,7 +111,11 @@ export function ChatPanel({
     id: chatId,
     messages: initialMessages,
     transport,
-    onError: (e) => toast.error(e.message || "NevorAI failed to respond"),
+    onError: (e) => {
+      const code = (e as Error & { code?: string }).code;
+      setChatError({ code, message: e.message || "NevorAI failed to respond" });
+      toast.error(e.message || "NevorAI failed to respond");
+    },
   });
 
   // Reset when conversation switches.
@@ -107,6 +138,7 @@ export function ChatPanel({
       const trimmed = text.trim();
       if (!trimmed || status === "streaming" || status === "submitted") return;
       const wasEmpty = messages.length === 0;
+      setChatError(null);
       await sendMessage({ text: trimmed });
       setInput("");
       if (wasEmpty) onConversationStarted?.();
@@ -151,14 +183,29 @@ export function ChatPanel({
       <Conversation className="flex-1">
         <ConversationContent>
           {messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-4 py-16 text-center">
-              <div className="text-3xl font-semibold tracking-tight">Ask NevorAI</div>
-              <p className="max-w-md text-sm text-muted-foreground">
-                Your AI Academy Manager. Ask about attendance, fees, admissions, or say
-                "brief me on today".
-              </p>
+            <div className="flex h-full flex-col items-center justify-center gap-5 px-4 py-16 text-center">
+              <div
+                aria-hidden
+                className="grid size-14 place-items-center rounded-2xl text-2xl text-white shadow-sm"
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--tenant-brand, var(--brand, #E8873C)), color-mix(in oklab, var(--tenant-brand, var(--brand, #E8873C)) 55%, transparent))",
+                }}
+              >
+                ✨
+              </div>
+              <div>
+                <div className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                  Hi, I&apos;m NevorAI
+                </div>
+                <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                  Your AI Academy Manager. Ask anything about attendance, fees,
+                  admissions, automations or reports — I&apos;ll cite the data and never
+                  change anything without your approval.
+                </p>
+              </div>
               {suggestions.length > 0 ? (
-                <div className="mt-2 flex max-w-2xl flex-wrap justify-center gap-2">
+                <div className="mt-1 flex max-w-2xl flex-wrap justify-center gap-2">
                   {suggestions.slice(0, 6).map((s) => (
                     <button
                       key={s}
@@ -277,6 +324,39 @@ export function ChatPanel({
               <Shimmer>NevorAI is thinking…</Shimmer>
             </div>
           )}
+          {chatError && !isGenerating ? (
+            <div className="mx-2 my-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
+              <div className="font-medium text-destructive">
+                {chatError.code === "AI_PROVIDER_UNCONFIGURED"
+                  ? "AI provider not configured"
+                  : chatError.code === "UNAUTHENTICATED"
+                    ? "Session expired"
+                    : chatError.code === "RATE_LIMITED"
+                      ? "Too many requests"
+                      : "NevorAI couldn't respond"}
+              </div>
+              <div className="mt-0.5 text-xs text-muted-foreground">{chatError.message}</div>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChatError(null);
+                    void regenerate();
+                  }}
+                  className="rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent"
+                >
+                  Retry
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChatError(null)}
+                  className="rounded-md px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          ) : null}
         </ConversationContent>
         <ConversationScrollButton />
       </Conversation>
