@@ -61,6 +61,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { VirtualList } from "@/components/ds/VirtualList";
+import { FeesTabsBar } from "@/components/dashboard/FeesTabsBar";
 
 export const Route = createFileRoute("/dashboard/fees")({
   validateSearch: (search: Record<string, unknown>): { filter?: Filter } => {
@@ -243,6 +244,7 @@ function FeeRegister() {
 
   return (
     <div className="-mt-4 md:-mt-8 space-y-3">
+      <FeesTabsBar />
       {/* Header — uniform across dashboard tabs */}
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 pt-2 pb-1">
         <div className="min-w-0">

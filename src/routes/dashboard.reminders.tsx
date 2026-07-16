@@ -97,6 +97,7 @@ function RemindersPage() {
 
   return (
     <div className="space-y-5">
+      <FeesTabsBar />
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Fee reminders</h1>
