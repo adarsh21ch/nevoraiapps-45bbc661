@@ -24,7 +24,7 @@ import {
 } from "ai";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { createLovableAiGatewayProvider, NEVORAI_DEFAULT_MODEL } from "@/lib/ai-gateway.server";
+import { createNevorAIProvider, NEVORAI_DEFAULT_MODEL } from "@/lib/nevorai-provider.server";
 import { buildContext, defaultPromptFor } from "@/lib/ai-os";
 import { buildToolBag } from "@/lib/nevorai/tools-adapter.server";
 import { bootstrapNevorAI } from "@/lib/ai-os/bootstrap.server";
@@ -64,12 +64,12 @@ export const Route = createFileRoute("/api/chat")({
 
         const SUPABASE_URL = process.env.SUPABASE_URL;
         const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
-        const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+        const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
         if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
           return new Response("Missing Supabase env", { status: 500 });
         }
-        if (!LOVABLE_API_KEY) {
-          return new Response("Missing LOVABLE_API_KEY", { status: 500 });
+        if (!GOOGLE_API_KEY) {
+          return new Response("Missing GOOGLE_API_KEY", { status: 500 });
         }
 
         const authed = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -172,8 +172,8 @@ export const Route = createFileRoute("/api/chat")({
 
         // ------------------ streaming ------------------
         bootstrapNevorAI();
-        const gateway = createLovableAiGatewayProvider(LOVABLE_API_KEY);
-        const model = gateway(NEVORAI_DEFAULT_MODEL);
+        const google = createNevorAIProvider(GOOGLE_API_KEY);
+        const model = google(NEVORAI_DEFAULT_MODEL);
         const tools = buildToolBag(ctx);
 
         const systemPrompt = defaultPromptFor(ctx);

@@ -1,11 +1,13 @@
 /**
- * Gemini provider — Lovable AI Gateway (OpenAI-compatible).
+ * Gemini provider — Official Google Generative Language API.
  *
- * SERVER-ONLY. Reads `LOVABLE_API_KEY` from process.env inside call sites.
+ * SERVER-ONLY. Reads `GOOGLE_API_KEY` from process.env inside call sites.
+ * Uses Google's OpenAI-compatibility endpoint so the OpenAI-shaped code
+ * paths below (chat completions, tool_calls, streaming SSE) work unchanged.
  * Client code MUST NOT import this module.
  *
  * This is the first concrete implementation of `AIProvider`. Adding
- * Claude / OpenAI / DeepSeek later means dropping another `<id>.server.ts`
+ * Claude / OpenAI / Grok later means dropping another `<id>.server.ts`
  * and calling `registerProvider(...)` — no changes elsewhere.
  */
 
@@ -19,12 +21,13 @@ import type {
   AIUsage,
 } from "./types";
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const GATEWAY_URL =
+  "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
 /** Rough price per 1M tokens (USD). Only used for estimation / dashboards. */
 const PRICE_PER_MTOK: Record<string, { in: number; out: number }> = {
-  "google/gemini-2.5-flash": { in: 0.075, out: 0.3 },
-  "google/gemini-3-flash-preview": { in: 0.1, out: 0.4 },
+  "gemini-2.5-flash": { in: 0.075, out: 0.3 },
+  "gemini-2.5-pro": { in: 1.25, out: 5.0 },
 };
 
 function estimateCost(model: string, inTok: number, outTok: number): number {
@@ -43,15 +46,14 @@ async function sleep(ms: number, signal?: AbortSignal) {
 }
 
 async function callGateway(body: unknown, signal: AbortSignal): Promise<Response> {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("LOVABLE_API_KEY is not set");
+  const key = process.env.GOOGLE_API_KEY;
+  if (!key) throw new Error("GOOGLE_API_KEY is not set");
 
   return fetch(GATEWAY_URL, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "Lovable-API-Key": key,
-      "X-Lovable-AIG-SDK": "ai-os",
+      authorization: `Bearer ${key}`,
     },
     body: JSON.stringify(body),
     signal,

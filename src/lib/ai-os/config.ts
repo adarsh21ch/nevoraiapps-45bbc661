@@ -10,7 +10,7 @@ export const AI_OS_CONFIG = {
   defaultProvider: "gemini" as const,
   /** Default model id per provider. */
   defaultModels: {
-    gemini: "google/gemini-2.5-flash",
+    gemini: "gemini-2.5-flash",
   },
   /** Hard timeout for a single provider call. */
   requestTimeoutMs: 30_000,
