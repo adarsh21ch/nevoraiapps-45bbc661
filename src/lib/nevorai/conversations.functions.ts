@@ -112,9 +112,9 @@ export const deleteConversation = createServerFn({ method: "POST" })
 
 export type TurnRow = {
   id: string;
-  role: "system" | "user" | "assistant" | "tool";
+  role: string;
   content: string | null;
-  parts: unknown | null;
+  parts: Record<string, unknown> | Array<Record<string, unknown>> | null;
   tool_name: string | null;
   created_at: string;
 };
@@ -132,5 +132,5 @@ export const listTurns = createServerFn({ method: "GET" })
       .order("created_at", { ascending: true })
       .limit(500);
     if (error) throw error;
-    return (rows ?? []) as TurnRow[];
+    return (rows ?? []) as unknown as TurnRow[];
   });

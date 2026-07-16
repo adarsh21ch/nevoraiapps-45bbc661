@@ -128,8 +128,8 @@ async function buildBriefForTenant(tenantId: string): Promise<DailyBrief> {
     {
       id: "growth",
       title: "Growth",
-      body: insights?.newStudents30d != null
-        ? `${insights.newStudents30d} new students in the last 30 days.`
+      body: insights
+        ? `Tracking ${activeStudents} active students across the roll.`
         : `${activeStudents} active students on the roll.`,
     },
   ];

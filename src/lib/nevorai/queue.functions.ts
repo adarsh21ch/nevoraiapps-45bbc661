@@ -17,8 +17,8 @@ export type ActionQueueRow = {
   target: string | null;
   confirmation_title: string | null;
   confirmation_body: string | null;
-  input: unknown;
-  result: unknown;
+  input: Record<string, unknown> | null;
+  result: Record<string, unknown> | null;
   error_message: string | null;
   created_at: string;
   updated_at: string;
@@ -42,25 +42,27 @@ export const listActionQueue = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) throw error;
-    return (data ?? []) as ActionQueueRow[];
+    return (data ?? []) as unknown as ActionQueueRow[];
   });
 
 export const approveQueuedAction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
-  .handler(async ({ context, data }) => {
+  .handler(async ({ data }) => {
     const { bootstrapNevorAI } = await import("@/lib/ai-os/bootstrap.server");
     bootstrapNevorAI();
     const { approveAction } = await import("@/lib/ai-os");
-    return await approveAction({ actionId: data.id, approvedByUserId: context.userId });
+    const ok = await approveAction(data.id);
+    return { ok };
   });
 
 export const rejectQueuedAction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
-  .handler(async ({ context, data }) => {
+  .handler(async ({ data }) => {
     const { bootstrapNevorAI } = await import("@/lib/ai-os/bootstrap.server");
     bootstrapNevorAI();
     const { rejectAction } = await import("@/lib/ai-os");
-    return await rejectAction({ actionId: data.id, rejectedByUserId: context.userId });
+    const ok = await rejectAction(data.id);
+    return { ok };
   });
