@@ -199,8 +199,38 @@ function DashboardHome() {
         <LiveBadge state="live" />
       </div>
 
+      {/* ─── Money-in headline · the number owners check first each morning ── */}
+      {role === "owner" && feeEnabled ? (
+        <Link
+          to="/dashboard/fees"
+          className={cn(
+            "flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3",
+            "shadow-[var(--shadow-soft)] transition-all hover:border-[color:var(--brand)]/40 active:scale-[0.99]",
+          )}
+        >
+          <div className="min-w-0">
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Collected this month
+            </div>
+            <div className="mt-0.5 text-2xl font-bold tabular-nums tracking-tight truncate">
+              {kpisQ.isLoading ? <Skeleton className="h-6 w-24" /> : money(collectedMonth)}
+            </div>
+          </div>
+          <span
+            className="grid size-9 shrink-0 place-items-center rounded-xl"
+            style={{
+              backgroundColor: "color-mix(in oklab, var(--brand) 14%, transparent)",
+              color: "var(--brand)",
+            }}
+          >
+            <IndianRupee className="size-4" />
+          </span>
+        </Link>
+      ) : null}
+
       {/* ─── Section 1 · Primary KPIs ─────────────────────────────────── */}
       <section aria-label="Today at a glance">
+
         <div className="grid grid-cols-2 gap-2.5">
           <KpiTile
             to="/dashboard/attendance"
