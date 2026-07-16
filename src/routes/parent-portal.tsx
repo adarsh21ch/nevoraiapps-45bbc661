@@ -142,6 +142,12 @@ function AuthedParentPortal() {
             {kids.length > 1 && (
               <ChildSwitcher kids={kids} selected={active.student_id} onChange={setSelected} />
             )}
+            <Link
+              to="/parent"
+              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 hidden sm:inline"
+            >
+              Academy parent view →
+            </Link>
             <Button
               variant="outline"
               size="sm"
@@ -154,6 +160,7 @@ function AuthedParentPortal() {
             </Button>
           </div>
         </div>
+
       </header>
       <main className="max-w-6xl mx-auto p-4">
         <ChildTabs studentId={active.student_id} kid={active} />
