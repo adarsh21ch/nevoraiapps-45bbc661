@@ -219,11 +219,12 @@ export const invoiceDetailsTool: AnyToolDef = {
     if (!invoiceId) {
       return { ok: false, reason: "invalid_input", code: "MISSING_INVOICE_ID", message: "invoiceId is required." };
     }
+    const db = await dbFor(ctx);
     const { fetchInvoice, fetchInvoiceLines, fetchPaymentsForInvoice } = await import("@/lib/billing");
     const [invoice, lines, payments] = await Promise.all([
-      fetchInvoice(invoiceId),
-      fetchInvoiceLines(invoiceId),
-      fetchPaymentsForInvoice(invoiceId),
+      fetchInvoice(invoiceId, db),
+      fetchInvoiceLines(invoiceId, db),
+      fetchPaymentsForInvoice(invoiceId, db),
     ]);
     if (!invoice || (invoice as { tenant_id?: string }).tenant_id !== ctx.tenantId) {
       return { ok: false, reason: "not_found", code: "INVOICE_NOT_FOUND", message: "Invoice not found." };
