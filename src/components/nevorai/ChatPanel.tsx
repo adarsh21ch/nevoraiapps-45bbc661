@@ -155,14 +155,24 @@ export function ChatPanel({
     async (text: string) => {
       const trimmed = text.trim();
       if (!trimmed || status === "streaming" || status === "submitted") return;
-      const wasEmpty = messages.length === 0;
+      const wasEmpty = messages.length === 0 && !conversationIdRef.current;
       setChatError(null);
+      // Mint a real conversation row BEFORE the first send so the server
+      // does not silently create a new "New conversation" every turn.
+      if (!conversationIdRef.current && ensureConversationId) {
+        try {
+          const id = await ensureConversationId();
+          if (id) conversationIdRef.current = id;
+        } catch {
+          /* Fall through — chat.ts will create one server-side as a fallback. */
+        }
+      }
       await sendMessage({ text: trimmed });
       setInput("");
       if (wasEmpty) onConversationStarted?.();
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
-    [messages.length, onConversationStarted, sendMessage, status],
+    [messages.length, onConversationStarted, sendMessage, status, ensureConversationId],
   );
 
   const isGenerating = status === "submitted" || status === "streaming";
