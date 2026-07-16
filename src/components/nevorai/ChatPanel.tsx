@@ -56,6 +56,7 @@ export function ChatPanel({
   pageContext,
   pendingPrompt,
   onPendingPromptConsumed,
+  ensureConversationId,
 }: Props) {
   const [token, setToken] = useState<string | null>(null);
 
