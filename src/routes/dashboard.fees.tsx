@@ -890,12 +890,19 @@ function CollectForm({
       </div>
 
       <Button
-        onClick={() => save.mutate()}
-        disabled={disabled}
+        onClick={() => {
+          if (disabled) return;
+          // Fire the write in the background and close the sheet in the same
+          // frame. Error rollback + toast is handled inside the mutation.
+          save.mutate();
+          toast.success(`${row.name} marked paid ✓`);
+          onDone();
+        }}
+        disabled={!method || !numeric || numeric <= 0}
         className="w-full h-14 text-base font-semibold rounded-xl"
         style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
       >
-        {save.isPending ? "Saving…" : "Confirm payment"}
+        Confirm payment
       </Button>
     </div>
   );
