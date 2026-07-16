@@ -36,6 +36,8 @@ import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
 import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { TrialBanner } from "@/components/dashboard/TrialBanner";
+import { NevorAIProvider } from "@/components/nevorai/NevorAIProvider";
+import { NevorAIButton } from "@/components/nevorai/NevorAIButton";
 
 type NavItem = {
   to: string;
@@ -134,6 +136,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const matchCenter = withBadges(matchCenterNav);
 
   return (
+    <NevorAIProvider>
     <div className="min-h-dvh bg-background text-foreground">
       {/* Top bar */}
       <div
@@ -179,12 +182,15 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
             <NotificationBell />
 
+            <NevorAIButton className="ml-1" />
+
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>
           </div>
         </div>
       </header>
+
 
       <div className="flex">
         {/* Desktop sidebar */}
@@ -211,6 +217,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       {/* Unified mobile bottom nav — shared with Match Center for a seamless experience. */}
       <GlobalBottomNav />
     </div>
+    </NevorAIProvider>
   );
 }
 

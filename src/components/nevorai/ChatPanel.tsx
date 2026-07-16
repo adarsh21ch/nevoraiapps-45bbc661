@@ -26,6 +26,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { copyText, downloadMarkdown, messagesToMarkdown } from "@/lib/nevorai/export";
+import type { NevorAIPageContext } from "@/lib/nevorai/page-context";
 
 type Props = {
   conversationId: string | null;
@@ -33,6 +34,11 @@ type Props = {
   onConversationStarted?: () => void;
   suggestions?: string[];
   conversationTitle?: string | null;
+  /** Live page context — attached to every request so NevorAI knows where the user is. */
+  pageContext?: NevorAIPageContext;
+  /** Optional pending prompt to auto-send once the panel opens. */
+  pendingPrompt?: string | null;
+  onPendingPromptConsumed?: () => void;
 };
 
 export function ChatPanel({
@@ -41,6 +47,9 @@ export function ChatPanel({
   onConversationStarted,
   suggestions = [],
   conversationTitle,
+  pageContext,
+  pendingPrompt,
+  onPendingPromptConsumed,
 }: Props) {
   const [token, setToken] = useState<string | null>(null);
 
@@ -50,6 +59,13 @@ export function ChatPanel({
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  // Keep latest pageContext in a ref so DefaultChatTransport reads the current
+  // value at send-time without recreating the transport on every navigation.
+  const pageContextRef = useRef<NevorAIPageContext | undefined>(pageContext);
+  useEffect(() => {
+    pageContextRef.current = pageContext;
+  }, [pageContext]);
+
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -57,7 +73,7 @@ export function ChatPanel({
         headers: () => ({
           Authorization: token ? `Bearer ${token}` : "",
         }),
-        body: () => ({ conversationId }),
+        body: () => ({ conversationId, pageContext: pageContextRef.current ?? null }),
       }),
     [token, conversationId],
   );
@@ -100,6 +116,18 @@ export function ChatPanel({
   );
 
   const isGenerating = status === "submitted" || status === "streaming";
+
+  // Auto-send a pending prompt (e.g. "Explain this invoice") once and only once.
+  const consumedPromptRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!pendingPrompt || !token) return;
+    if (consumedPromptRef.current === pendingPrompt) return;
+    if (isGenerating) return;
+    consumedPromptRef.current = pendingPrompt;
+    void submit(pendingPrompt);
+    onPendingPromptConsumed?.();
+  }, [pendingPrompt, token, isGenerating, submit, onPendingPromptConsumed]);
+
 
   const handleCopy = useCallback(async (text: string) => {
     const ok = await copyText(text);

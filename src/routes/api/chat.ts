@@ -28,10 +28,31 @@ import { createNevorAIProvider, NEVORAI_DEFAULT_MODEL } from "@/lib/nevorai-prov
 import { buildContext, defaultPromptFor } from "@/lib/ai-os";
 import { buildToolBag } from "@/lib/nevorai/tools-adapter.server";
 import { bootstrapNevorAI } from "@/lib/ai-os/bootstrap.server";
+import {
+  renderTopicForPrompt,
+  selectRelevantTopics,
+} from "@/lib/nevorai/product-knowledge";
+
+type PageContext = {
+  currentScreen?: string;
+  screenLabel?: string;
+  selectedStudentId?: string;
+  selectedBatchId?: string;
+  selectedInvoiceId?: string;
+  selectedChildId?: string;
+  selectedDate?: string;
+  selectedCampaignId?: string;
+  selectedLeadId?: string;
+  selectedReportId?: string;
+  selectedAutomationId?: string;
+  currentFilters?: Record<string, string | number | boolean | null>;
+  note?: string;
+};
 
 type ChatRequestBody = {
   messages?: UIMessage[];
   conversationId?: string;
+  pageContext?: PageContext | null;
 };
 
 function supabaseFetchShim(supabaseKey: string): typeof fetch {
@@ -106,6 +127,13 @@ export const Route = createFileRoute("/api/chat")({
           | "student"
           | "platform_admin") ?? "owner";
 
+        // ------------------ payload (parse first so we can enrich context) ------------------
+        const body = (await request.json()) as ChatRequestBody;
+        if (!Array.isArray(body.messages)) {
+          return new Response("Messages required", { status: 400 });
+        }
+        const pageCtx: PageContext = body.pageContext ?? {};
+
         const ctx = buildContext({
           tenantId: profile.tenant_id,
           tenantSlug: tenant?.slug ?? null,
@@ -116,13 +144,14 @@ export const Route = createFileRoute("/api/chat")({
             ? { plan: tenant.subscription_status ?? "trial", status: tenant.status ?? "active" }
             : undefined,
           features: (tenant?.features as Record<string, boolean> | null) ?? undefined,
+          currentScreen: pageCtx.currentScreen,
+          selectedStudentId: pageCtx.selectedStudentId,
+          selectedBatchId: pageCtx.selectedBatchId,
+          selectedInvoiceId: pageCtx.selectedInvoiceId,
+          selectedChildId: pageCtx.selectedChildId,
+          selectedDate: pageCtx.selectedDate,
+          currentFilters: pageCtx.currentFilters,
         });
-
-        // ------------------ payload ------------------
-        const body = (await request.json()) as ChatRequestBody;
-        if (!Array.isArray(body.messages)) {
-          return new Response("Messages required", { status: 400 });
-        }
 
         // Ensure the conversation row exists / belongs to this user.
         let conversationId = body.conversationId ?? null;
@@ -178,13 +207,57 @@ export const Route = createFileRoute("/api/chat")({
 
         const systemPrompt = defaultPromptFor(ctx);
 
+        const lastUserText = (() => {
+          for (let i = body.messages.length - 1; i >= 0; i--) {
+            const m = body.messages[i];
+            if (m.role === "user") {
+              const part = m.parts.find((p) => p.type === "text") as { text?: string } | undefined;
+              return part?.text ?? "";
+            }
+          }
+          return "";
+        })();
+
+        const topics = selectRelevantTopics({
+          currentScreen: pageCtx.currentScreen,
+          query: lastUserText,
+          limit: 2,
+        });
+        const knowledgeBlock = topics.length
+          ? [
+              "\n---\nRelevant product knowledge (use to answer 'how do I' questions without calling tools; do NOT quote source code or internal implementation):",
+              ...topics.map(renderTopicForPrompt),
+            ].join("\n")
+          : "";
+
+        const pageContextLines: string[] = [];
+        if (pageCtx.currentScreen) pageContextLines.push(`Current screen: ${pageCtx.currentScreen}${pageCtx.screenLabel ? ` (${pageCtx.screenLabel})` : ""}`);
+        if (pageCtx.selectedStudentId) pageContextLines.push(`Selected student: ${pageCtx.selectedStudentId}`);
+        if (pageCtx.selectedBatchId) pageContextLines.push(`Selected batch: ${pageCtx.selectedBatchId}`);
+        if (pageCtx.selectedInvoiceId) pageContextLines.push(`Selected invoice: ${pageCtx.selectedInvoiceId}`);
+        if (pageCtx.selectedChildId) pageContextLines.push(`Selected child: ${pageCtx.selectedChildId}`);
+        if (pageCtx.selectedLeadId) pageContextLines.push(`Selected lead: ${pageCtx.selectedLeadId}`);
+        if (pageCtx.selectedCampaignId) pageContextLines.push(`Selected campaign: ${pageCtx.selectedCampaignId}`);
+        if (pageCtx.selectedReportId) pageContextLines.push(`Selected report: ${pageCtx.selectedReportId}`);
+        if (pageCtx.selectedAutomationId) pageContextLines.push(`Selected automation: ${pageCtx.selectedAutomationId}`);
+        if (pageCtx.selectedDate) pageContextLines.push(`Selected date: ${pageCtx.selectedDate}`);
+        if (pageCtx.currentFilters && Object.keys(pageCtx.currentFilters).length) {
+          pageContextLines.push(`Active filters: ${JSON.stringify(pageCtx.currentFilters)}`);
+        }
+        if (pageCtx.note) pageContextLines.push(`Note: ${pageCtx.note}`);
+
         const enrichedSystem = [
           systemPrompt,
           `\nAcademy: ${ctx.tenantName ?? "Unknown"} (${ctx.tenantSlug ?? "-"})`,
           `Caller role: ${ctx.role}. Timezone: ${ctx.timezone ?? "UTC"}. Language: ${ctx.language ?? "en"}.`,
           `Now: ${ctx.now}.`,
+          pageContextLines.length ? `\nUser is currently viewing:\n${pageContextLines.map((l) => `- ${l}`).join("\n")}\nUse this to resolve ambiguous references like "this invoice" or "today" without re-asking.` : "",
           `Follow-up policy: after answering, suggest 2–3 next actions when useful. Never call a write tool without explicit user confirmation — those return a "confirmation required" envelope and the user will approve them in the Action Queue.`,
-        ].join("\n");
+          `Error explanation: when a tool returns an error envelope (permission denied, subscription required, feature disabled, validation failed, automation failed, webhook failed, payment verification failed), explain the cause in plain language, why it happened, and the exact next step to fix it. Never surface raw error codes or stack traces.`,
+          knowledgeBlock,
+        ]
+          .filter(Boolean)
+          .join("\n");
 
         const result = streamText({
           model,
