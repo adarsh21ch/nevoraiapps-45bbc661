@@ -243,46 +243,9 @@ export function ChatPanel({
                           </div>
                         );
                       }
-                      if (part.type === "reasoning") {
-                        return (
-                          <div key={idx} className="text-xs italic text-muted-foreground">
-                            {part.text}
-                          </div>
-                        );
-                      }
-                      if (part.type?.startsWith("tool-")) {
-                        const p = part as {
-                          type: string;
-                          state?: string;
-                          input?: unknown;
-                          output?: unknown;
-                          errorText?: string;
-                        };
-                        const toolName = p.type.slice("tool-".length);
-                        return (
-                          <Tool key={idx} defaultOpen={false}>
-                            <ToolHeader
-                              type={`tool-${toolName}`}
-                              state={
-                                (p.state as
-                                  | "input-streaming"
-                                  | "input-available"
-                                  | "output-available"
-                                  | "output-error") ?? "output-available"
-                              }
-                            />
-                            <ToolContent>
-                              <ToolInput input={p.input} />
-                              <ToolOutput
-                                output={
-                                  p.output ? <RichToolOutput output={p.output} /> : undefined
-                                }
-                                errorText={p.errorText}
-                              />
-                            </ToolContent>
-                          </Tool>
-                        );
-                      }
+                      // Reasoning and tool parts are internal implementation
+                      // details — never render them in the owner-facing chat.
+                      // The assistant text part is the final human answer.
                       return null;
                     })}
 
