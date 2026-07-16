@@ -118,7 +118,7 @@ export const getFounderAIIntel = createServerFn({ method: "GET" })
     return {
       totalRequests,
       totalTokens,
-      totalCostCredits: Math.round(totalCost * 100) / 100,
+      totalCostUsd: Math.round(totalCost * 10000) / 10000,
       avgLatencyMs: totalRequests > 0 ? Math.round(latencySum / totalRequests) : 0,
       activeAcademies: tenantSet.size,
       activeUsers: userSet.size,
