@@ -12,7 +12,6 @@ import { ActionQueue } from "@/components/nevorai/ActionQueue";
 import { ConversationList } from "@/components/nevorai/ConversationList";
 import { listTurns } from "@/lib/nevorai/conversations.functions";
 import { Card } from "@/components/ui/card";
-import { Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard/nevorai")({
   head: () => ({
