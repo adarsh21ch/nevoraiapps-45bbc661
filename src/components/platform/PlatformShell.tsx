@@ -72,7 +72,8 @@ export function PlatformShell({ children }: { children: ReactNode }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-white hover:bg-white/10"
+                aria-label="Open menu"
+                className="md:hidden text-white hover:bg-white/10 min-h-11 min-w-11"
               >
                 <Menu className="size-5" />
               </Button>
