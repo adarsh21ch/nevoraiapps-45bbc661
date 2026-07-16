@@ -16,8 +16,6 @@ import {
   PromptInputSubmit,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
-import { RichToolOutput } from "@/components/nevorai/RichToolOutput";
 import {
   FollowUpChips,
   deriveFollowUps,
