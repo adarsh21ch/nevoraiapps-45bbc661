@@ -284,8 +284,8 @@ export const Route = createFileRoute("/api/chat")({
           `Caller role: ${ctx.role}. Timezone: ${ctx.timezone ?? "UTC"}. Language: ${ctx.language ?? "en"}.`,
           `Now: ${ctx.now}.`,
           pageContextLines.length ? `\nUser is currently viewing:\n${pageContextLines.map((l) => `- ${l}`).join("\n")}\nUse this to resolve ambiguous references like "this invoice" or "today" without re-asking.` : "",
-          `Follow-up policy: after answering, suggest 2–3 next actions when useful. Never call a write tool without explicit user confirmation — those return a "confirmation required" envelope and the user will approve them in the Action Queue.`,
-          `Error explanation: when a tool returns an error envelope (permission denied, subscription required, feature disabled, validation failed, automation failed, webhook failed, payment verification failed), explain the cause in plain language, why it happened, and the exact next step to fix it. Never surface raw error codes or stack traces.`,
+          `Follow-up policy: end with at most one short "Suggestion:" line when it genuinely helps the owner. Never label recommendations "Next:" or "Source:". Never mention which tools you used. Never call a write tool without explicit user confirmation.`,
+          `Error explanation: when a tool returns an error envelope (permission denied, subscription required, feature disabled, validation failed, automation failed, webhook failed, payment verification failed), translate the cause into one plain-English sentence and give the exact next step. Never surface tool names, error codes, RPC names, table names, or stack traces.`,
           knowledgeBlock,
         ]
           .filter(Boolean)
@@ -301,7 +301,7 @@ export const Route = createFileRoute("/api/chat")({
         });
 
         return result.toUIMessageStreamResponse({
-          sendReasoning: true,
+          sendReasoning: false,
           originalMessages: body.messages,
           onFinish: async ({ responseMessage, isAborted }) => {
             if (isAborted) return;

@@ -16,8 +16,6 @@ import {
   PromptInputSubmit,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
-import { RichToolOutput } from "@/components/nevorai/RichToolOutput";
 import {
   FollowUpChips,
   deriveFollowUps,
@@ -149,6 +147,28 @@ export function ChatPanel({
 
   const isGenerating = status === "submitted" || status === "streaming";
 
+  // Owner-facing progress label. If the model is running tools we say
+  // "Checking your academy…"; once assistant text begins to stream we say
+  // "Writing…"; before either happens we say "Thinking…". This gives the
+  // owner a fast, meaningful signal instead of a silent spinner.
+  const progressLabel = useMemo(() => {
+    if (!isGenerating) return null;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant") return "Thinking…";
+    const hasText = last.parts.some(
+      (p) => p.type === "text" && ((p as { text?: string }).text ?? "").length > 0,
+    );
+    if (hasText) return "Writing…";
+    const hasPendingTool = last.parts.some(
+      (p) =>
+        p.type?.startsWith("tool-") &&
+        (p as { state?: string }).state !== "output-available" &&
+        (p as { state?: string }).state !== "output-error",
+    );
+    if (hasPendingTool) return "Checking your academy…";
+    return "Thinking…";
+  }, [isGenerating, messages]);
+
   // Auto-send a pending prompt (e.g. "Explain this invoice") once and only once.
   const consumedPromptRef = useRef<string | null>(null);
   useEffect(() => {
@@ -245,46 +265,9 @@ export function ChatPanel({
                           </div>
                         );
                       }
-                      if (part.type === "reasoning") {
-                        return (
-                          <div key={idx} className="text-xs italic text-muted-foreground">
-                            {part.text}
-                          </div>
-                        );
-                      }
-                      if (part.type?.startsWith("tool-")) {
-                        const p = part as {
-                          type: string;
-                          state?: string;
-                          input?: unknown;
-                          output?: unknown;
-                          errorText?: string;
-                        };
-                        const toolName = p.type.slice("tool-".length);
-                        return (
-                          <Tool key={idx} defaultOpen={false}>
-                            <ToolHeader
-                              type={`tool-${toolName}`}
-                              state={
-                                (p.state as
-                                  | "input-streaming"
-                                  | "input-available"
-                                  | "output-available"
-                                  | "output-error") ?? "output-available"
-                              }
-                            />
-                            <ToolContent>
-                              <ToolInput input={p.input} />
-                              <ToolOutput
-                                output={
-                                  p.output ? <RichToolOutput output={p.output} /> : undefined
-                                }
-                                errorText={p.errorText}
-                              />
-                            </ToolContent>
-                          </Tool>
-                        );
-                      }
+                      // Reasoning and tool parts are internal implementation
+                      // details — never render them in the owner-facing chat.
+                      // The assistant text part is the final human answer.
                       return null;
                     })}
 
@@ -319,11 +302,11 @@ export function ChatPanel({
               );
             })
           )}
-          {isGenerating && messages.length > 0 && (
+          {isGenerating && progressLabel ? (
             <div className="px-2 py-1 text-xs">
-              <Shimmer>NevorAI is thinking…</Shimmer>
+              <Shimmer>{progressLabel}</Shimmer>
             </div>
-          )}
+          ) : null}
           {chatError && !isGenerating ? (
             <div className="mx-2 my-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
               <div className="font-medium text-destructive">
