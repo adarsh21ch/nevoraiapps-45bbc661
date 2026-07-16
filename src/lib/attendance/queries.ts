@@ -447,13 +447,63 @@ export async function checkOutStudent(input: CheckOutInput): Promise<void> {
 
 // ---------------------------------------------------------------------------
 // Mutation hooks
+//
+// HOT-PATH RULE (Phase 14): user-initiated writes on high-frequency screens
+// update the local query cache IMMEDIATELY via `onMutate` so the UI moves in
+// the same frame the finger lifts. The Supabase write runs in the background;
+// on failure we roll the cache back to the pre-mutation snapshot and toast.
+// Never block the tap on a network round-trip; never `await` a full-list
+// refetch before showing the state change — realtime + a non-blocking
+// background invalidate reconciles the temporary row with the real one.
 // ---------------------------------------------------------------------------
+
+type TodayCache = AttendanceTodayRow[] | undefined;
+
 export function useCheckIn() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: checkInStudent,
-    onSuccess: (_data, vars) => {
+    onMutate: async (vars) => {
+      const key = attendanceKeys.today(vars.tenantId);
+      // Cancel in-flight refetches so they can't clobber our optimistic patch.
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<TodayCache>(key);
+      const now = new Date().toISOString();
+      const optimisticRow: AttendanceTodayRow = {
+        mark_id: `optimistic-${vars.studentId}-${Date.now()}`,
+        tenant_id: vars.tenantId,
+        student_id: vars.studentId,
+        session_id: "optimistic",
+        batch_id: vars.batchId,
+        session_date: todayISO(),
+        status: "present",
+        check_in_at: now,
+        check_out_at: null,
+        duration_minutes: 0,
+        visit_count: 1,
+        source: vars.source ?? "manual",
+        marked_by: vars.markedBy ?? null,
+        current_state: "in_academy",
+        last_visit_type: vars.visitType ?? null,
+      };
+      qc.setQueryData<TodayCache>(key, (old) => {
+        const rows = old ?? [];
+        // If a stale row exists for this student today (e.g. checked_out),
+        // replace it so the state flips to in_academy immediately.
+        const filtered = rows.filter((r) => r.student_id !== vars.studentId);
+        return [...filtered, optimisticRow];
+      });
+      return { previous, key };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous !== undefined && ctx.key) {
+        qc.setQueryData(ctx.key, ctx.previous);
+      }
+    },
+    onSettled: (_data, _err, vars) => {
+      // Fire-and-forget reconcile — do NOT await; realtime will also nudge us.
       qc.invalidateQueries({ queryKey: attendanceKeys.today(vars.tenantId) });
+      qc.invalidateQueries({ queryKey: attendanceKeys.inAcademyCount(vars.tenantId) });
     },
   });
 }
@@ -462,8 +512,28 @@ export function useCheckOut(tenantId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: checkOutStudent,
-    onSuccess: () => {
+    onMutate: async (vars) => {
+      const key = attendanceKeys.today(tenantId);
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<TodayCache>(key);
+      const now = new Date().toISOString();
+      qc.setQueryData<TodayCache>(key, (old) =>
+        (old ?? []).map((r) =>
+          r.mark_id === vars.markId
+            ? { ...r, check_out_at: now, current_state: "checked_out" as AttendanceState }
+            : r,
+        ),
+      );
+      return { previous, key };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous !== undefined && ctx.key) {
+        qc.setQueryData(ctx.key, ctx.previous);
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: attendanceKeys.today(tenantId) });
+      qc.invalidateQueries({ queryKey: attendanceKeys.inAcademyCount(tenantId) });
     },
   });
 }
