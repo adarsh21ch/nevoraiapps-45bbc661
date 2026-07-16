@@ -148,27 +148,8 @@ export function ChatPanel({
 
   const isGenerating = status === "submitted" || status === "streaming";
 
-  // Owner-facing progress label. If the model is running tools we say
-  // "Checking your academy…"; once assistant text begins to stream we say
-  // "Writing…"; before either happens we say "Thinking…". This gives the
-  // owner a fast, meaningful signal instead of a silent spinner.
-  const progressLabel = useMemo(() => {
-    if (!isGenerating) return null;
-    const last = messages[messages.length - 1];
-    if (!last || last.role !== "assistant") return "Thinking…";
-    const hasText = last.parts.some(
-      (p) => p.type === "text" && ((p as { text?: string }).text ?? "").length > 0,
-    );
-    if (hasText) return "Writing…";
-    const hasPendingTool = last.parts.some(
-      (p) =>
-        p.type?.startsWith("tool-") &&
-        (p as { state?: string }).state !== "output-available" &&
-        (p as { state?: string }).state !== "output-error",
-    );
-    if (hasPendingTool) return "Checking your academy…";
-    return "Thinking…";
-  }, [isGenerating, messages]);
+  // Owner-facing loader: no changing text, just a subtle three-dot pulse.
+  // See <ThinkingDots />.
 
   // Auto-send a pending prompt (e.g. "Explain this invoice") once and only once.
   const consumedPromptRef = useRef<string | null>(null);
