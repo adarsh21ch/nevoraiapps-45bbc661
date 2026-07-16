@@ -10,6 +10,7 @@ import { periodLabel } from "@/lib/fees";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FilterTabs } from "@/components/shared/FilterTabs";
+import { FeesTabsBar } from "@/components/dashboard/FeesTabsBar";
 
 type ReminderStatus = "queued" | "sent" | "dismissed";
 type Reminder = {
@@ -97,6 +98,7 @@ function RemindersPage() {
 
   return (
     <div className="space-y-5">
+      <FeesTabsBar />
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Fee reminders</h1>
