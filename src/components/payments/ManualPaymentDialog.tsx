@@ -247,11 +247,15 @@ export function ManualPaymentDialog({
             {method === "qr" && setup.upi_qr_url && (
               <div className="rounded-lg border p-3 space-y-2 bg-muted/30 text-center">
                 <p className="text-xs font-semibold">Scan this QR</p>
-                <img
-                  src={setup.upi_qr_url}
-                  alt="UPI QR"
-                  className="mx-auto rounded-md max-h-56"
-                />
+                {qrSrc ? (
+                  <img
+                    src={qrSrc}
+                    alt="UPI QR"
+                    className="mx-auto rounded-md max-h-56 bg-white"
+                  />
+                ) : (
+                  <div className="mx-auto h-40 w-40 rounded-md bg-muted animate-pulse" />
+                )}
                 <p className="text-[11px] text-muted-foreground">
                   Open any UPI app and scan
                 </p>
