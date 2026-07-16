@@ -11,6 +11,7 @@ export type AIRole = "owner" | "admin" | "coach" | "parent" | "student" | "platf
 export type AIContext = {
   tenantId: string;
   tenantSlug: string | null;
+  tenantName?: string | null;
   role: AIRole;
   userId: string;
   /** Route pathname the caller is currently viewing, if any. */
@@ -23,8 +24,16 @@ export type AIContext = {
   selectedBatchId?: string;
   /** Selected child (parent role). */
   selectedChildId?: string;
+  /** Currently selected invoice, if the caller is looking at a bill. */
+  selectedInvoiceId?: string;
+  /** ISO date the caller has filtered to (attendance, reports, etc.). */
+  selectedDate?: string;
+  /** Arbitrary filter map the caller has active — passed as read-only hints. */
+  currentFilters?: Record<string, string | number | boolean | null>;
   /** ISO date at request time. */
   now: string;
+  /** IANA timezone of the caller. Defaults to UTC when unknown. */
+  timezone?: string;
   /** Subscription plan + status, if known. */
   subscription?: { plan: string; status: string };
   /** Tenant feature-flag map. */

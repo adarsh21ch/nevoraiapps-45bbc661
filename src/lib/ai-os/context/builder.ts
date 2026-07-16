@@ -12,6 +12,7 @@ import type { AIContext, AIRole } from "./types";
 export type ContextInput = {
   tenantId: string;
   tenantSlug?: string | null;
+  tenantName?: string | null;
   role: AIRole;
   userId: string;
   currentScreen?: string;
@@ -19,15 +20,30 @@ export type ContextInput = {
   selectedStudentId?: string;
   selectedBatchId?: string;
   selectedChildId?: string;
+  selectedInvoiceId?: string;
+  selectedDate?: string;
+  currentFilters?: Record<string, string | number | boolean | null>;
+  timezone?: string;
   subscription?: { plan: string; status: string };
   features?: Record<string, boolean>;
   language?: string;
 };
 
+function inferTimezone(explicit?: string): string {
+  if (explicit) return explicit;
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return tz || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
 export function buildContext(input: ContextInput): AIContext {
   return {
     tenantId: input.tenantId,
     tenantSlug: input.tenantSlug ?? null,
+    tenantName: input.tenantName ?? null,
     role: input.role,
     userId: input.userId,
     currentScreen: input.currentScreen,
@@ -35,9 +51,15 @@ export function buildContext(input: ContextInput): AIContext {
     selectedStudentId: input.selectedStudentId,
     selectedBatchId: input.selectedBatchId,
     selectedChildId: input.selectedChildId,
+    selectedInvoiceId: input.selectedInvoiceId,
+    selectedDate: input.selectedDate,
+    currentFilters: input.currentFilters,
     now: new Date().toISOString(),
+    timezone: inferTimezone(input.timezone),
     subscription: input.subscription,
     features: input.features,
     language: input.language ?? "en",
   };
 }
+
+export type { AIRole };
