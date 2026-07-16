@@ -28,10 +28,31 @@ import { createNevorAIProvider, NEVORAI_DEFAULT_MODEL } from "@/lib/nevorai-prov
 import { buildContext, defaultPromptFor } from "@/lib/ai-os";
 import { buildToolBag } from "@/lib/nevorai/tools-adapter.server";
 import { bootstrapNevorAI } from "@/lib/ai-os/bootstrap.server";
+import {
+  renderTopicForPrompt,
+  selectRelevantTopics,
+} from "@/lib/nevorai/product-knowledge";
+
+type PageContext = {
+  currentScreen?: string;
+  screenLabel?: string;
+  selectedStudentId?: string;
+  selectedBatchId?: string;
+  selectedInvoiceId?: string;
+  selectedChildId?: string;
+  selectedDate?: string;
+  selectedCampaignId?: string;
+  selectedLeadId?: string;
+  selectedReportId?: string;
+  selectedAutomationId?: string;
+  currentFilters?: Record<string, string | number | boolean | null>;
+  note?: string;
+};
 
 type ChatRequestBody = {
   messages?: UIMessage[];
   conversationId?: string;
+  pageContext?: PageContext | null;
 };
 
 function supabaseFetchShim(supabaseKey: string): typeof fetch {
