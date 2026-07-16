@@ -66,6 +66,8 @@ export function ChatPanel({
     pageContextRef.current = pageContext;
   }, [pageContext]);
 
+  const [chatError, setChatError] = useState<{ code?: string; message: string } | null>(null);
+
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -74,6 +76,31 @@ export function ChatPanel({
           Authorization: token ? `Bearer ${token}` : "",
         }),
         body: () => ({ conversationId, pageContext: pageContextRef.current ?? null }),
+        // Intercept non-SSE responses (JSON error / HTML crash page) so the AI SDK
+        // never renders a raw HTML document inside the conversation.
+        fetch: async (input, init) => {
+          const res = await fetch(input, init);
+          const ct = res.headers.get("content-type") ?? "";
+          if (!res.ok || (!ct.includes("event-stream") && !ct.includes("text/plain"))) {
+            let code: string | undefined;
+            let message = `NevorAI is temporarily unavailable (HTTP ${res.status}).`;
+            if (ct.includes("application/json")) {
+              try {
+                const body = (await res.clone().json()) as {
+                  error?: { code?: string; message?: string };
+                };
+                if (body?.error?.message) message = body.error.message;
+                code = body?.error?.code;
+              } catch {
+                /* fall through */
+              }
+            }
+            const err = new Error(message) as Error & { code?: string };
+            err.code = code;
+            throw err;
+          }
+          return res;
+        },
       }),
     [token, conversationId],
   );
@@ -84,7 +111,11 @@ export function ChatPanel({
     id: chatId,
     messages: initialMessages,
     transport,
-    onError: (e) => toast.error(e.message || "NevorAI failed to respond"),
+    onError: (e) => {
+      const code = (e as Error & { code?: string }).code;
+      setChatError({ code, message: e.message || "NevorAI failed to respond" });
+      toast.error(e.message || "NevorAI failed to respond");
+    },
   });
 
   // Reset when conversation switches.
