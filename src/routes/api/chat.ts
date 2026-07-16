@@ -207,26 +207,34 @@ export const Route = createFileRoute("/api/chat")({
 
         // Ensure the conversation row exists / belongs to this user.
         let conversationId = body.conversationId ?? null;
+        let conversationTitle: string | null = null;
         if (conversationId) {
           const { data: conv } = await authed
             .from("ai_conversations")
-            .select("id")
+            .select("id, title")
             .eq("id", conversationId)
             .eq("user_id", userId)
             .is("deleted_at", null)
             .maybeSingle();
-          if (!conv) conversationId = null;
+          if (!conv) {
+            conversationId = null;
+          } else {
+            conversationTitle = conv.title;
+          }
         }
 
-        // Persistence uses the caller-scoped `authed` client so writes go
-        // through RLS as the signed-in owner (no service-role dependency).
-        // Owner-scoped INSERT/UPDATE policies on ai_conversations and
-        // ai_conversation_turns cover these writes.
-        if (!conversationId) {
+        const firstUserText = ((): string | null => {
           const firstText = body.messages
             .find((m) => m.role === "user")
             ?.parts.find((p) => p.type === "text") as { text?: string } | undefined;
-          const title = firstText?.text?.slice(0, 80) ?? "New conversation";
+          const t = firstText?.text?.trim();
+          return t ? t.slice(0, 80) : null;
+        })();
+
+        // Persistence uses the caller-scoped `authed` client so writes go
+        // through RLS as the signed-in owner (no service-role dependency).
+        if (!conversationId) {
+          const title = firstUserText ?? "New conversation";
           const { data: created, error: createErr } = await authed
             .from("ai_conversations")
             .insert({
@@ -241,6 +249,24 @@ export const Route = createFileRoute("/api/chat")({
             console.warn("[nevorai] could not create conversation, continuing without persistence", createErr);
           } else {
             conversationId = created.id;
+            conversationTitle = title;
+          }
+        } else if (
+          firstUserText &&
+          (!conversationTitle || conversationTitle === "New conversation")
+        ) {
+          // Client minted the row with the default title before the first
+          // send. Upgrade it to the first user message so the sidebar is
+          // scannable. Best-effort — never blocks the stream.
+          try {
+            await authed
+              .from("ai_conversations")
+              .update({ title: firstUserText })
+              .eq("id", conversationId)
+              .eq("user_id", userId);
+            conversationTitle = firstUserText;
+          } catch (e) {
+            console.warn("[nevorai] auto-title failed", e);
           }
         }
 
