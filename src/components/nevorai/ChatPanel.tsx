@@ -117,6 +117,18 @@ export function ChatPanel({
 
   const isGenerating = status === "submitted" || status === "streaming";
 
+  // Auto-send a pending prompt (e.g. "Explain this invoice") once and only once.
+  const consumedPromptRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!pendingPrompt || !token) return;
+    if (consumedPromptRef.current === pendingPrompt) return;
+    if (isGenerating) return;
+    consumedPromptRef.current = pendingPrompt;
+    void submit(pendingPrompt);
+    onPendingPromptConsumed?.();
+  }, [pendingPrompt, token, isGenerating, submit, onPendingPromptConsumed]);
+
+
   const handleCopy = useCallback(async (text: string) => {
     const ok = await copyText(text);
     toast[ok ? "success" : "error"](ok ? "Copied" : "Copy failed");
