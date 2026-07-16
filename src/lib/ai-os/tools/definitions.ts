@@ -254,7 +254,8 @@ export const playerProfileTool: AnyToolDef = {
     if (!studentId) {
       return { ok: false, reason: "forbidden", code: "STUDENT_SCOPE_DENIED", message: "No accessible student for this caller." };
     }
-    const { fetchStudent } = await import("@/lib/dashboard-queries");
+    // Canonical students service — same fetch used by Dashboard / Students page.
+    const { fetchStudent } = await import("@/lib/students/queries");
     const student = await fetchStudent(studentId);
     if (!student || (student as { tenant_id?: string }).tenant_id !== ctx.tenantId) {
       return { ok: false, reason: "not_found", code: "STUDENT_NOT_FOUND", message: "Student not found." };
@@ -264,9 +265,10 @@ export const playerProfileTool: AnyToolDef = {
       title: (student as { full_name?: string }).full_name ?? "Player",
       summary: `Status: ${(student as { status?: string }).status ?? "unknown"}`,
       data: student,
-      citations: ["src/lib/dashboard-queries.ts#fetchStudent"],
+      citations: ["src/lib/students/queries.ts#fetchStudent"],
     };
   },
+
 };
 
 /* ------------------------------------------------------------------ */
