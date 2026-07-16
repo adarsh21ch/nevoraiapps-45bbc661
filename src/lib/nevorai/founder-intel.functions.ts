@@ -11,7 +11,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export type FounderAIIntel = {
   totalRequests: number;
   totalTokens: number;
-  totalCostCredits: number;
+  totalCostUsd: number;
   avgLatencyMs: number;
   activeAcademies: number;
   activeUsers: number;
