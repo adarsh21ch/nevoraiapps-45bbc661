@@ -83,7 +83,7 @@ export const getSmartInsights = createServerFn({ method: "GET" })
       {
         id: "attendance-trend",
         title: "Attendance (7-day)",
-        metric: `${attThis.count ?? 0}`,
+        metric: `${attThis}`,
         direction: att.dir,
         delta: att.delta,
         recommendation: { label: "Open Attendance", href: "/dashboard/attendance" },
