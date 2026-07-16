@@ -11,8 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { Pin, PinOff, Plus, Trash2, Pencil } from "lucide-react";
-import { useState } from "react";
+import { Pin, PinOff, Plus, Trash2, Pencil, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
 
 type Props = {
   activeId: string | null;
