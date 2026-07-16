@@ -136,6 +136,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const matchCenter = withBadges(matchCenterNav);
 
   return (
+    <NevorAIProvider>
     <div className="min-h-dvh bg-background text-foreground">
       {/* Top bar */}
       <div
