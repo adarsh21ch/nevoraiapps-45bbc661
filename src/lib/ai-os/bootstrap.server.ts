@@ -27,13 +27,27 @@ export function bootstrapNevorAI(): void {
   bootstrapTools();
   bootstrapAgents();
 
-  setRuntime({
-    memory: new SupabaseMemoryStore(),
-    queue: new SupabaseActionQueue(),
-    analytics: new SupabaseAnalyticsSink(),
-    rateLimiter: new SupabaseRateLimiter(),
-    usage: new SupabaseUsageTracker(),
-  });
-
-  bootstrapAutomationBridge();
+  // Only wire Supabase-backed runtime when the service role key is present.
+  // Without it the in-memory defaults in orchestrator/runtime.ts stay active
+  // and chat continues to work — persistence, analytics rollups, and the
+  // action queue simply live in-process for the request.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { hasSupabaseAdmin } = require("@/integrations/supabase/client.server") as {
+    hasSupabaseAdmin: () => boolean;
+  };
+  if (hasSupabaseAdmin()) {
+    setRuntime({
+      memory: new SupabaseMemoryStore(),
+      queue: new SupabaseActionQueue(),
+      analytics: new SupabaseAnalyticsSink(),
+      rateLimiter: new SupabaseRateLimiter(),
+      usage: new SupabaseUsageTracker(),
+    });
+    bootstrapAutomationBridge();
+  } else {
+    console.warn(
+      "[NevorAI] Bootstrap — running with in-memory runtime (memory/queue/analytics/rate-limit/usage). Set SUPABASE_SERVICE_ROLE_KEY to enable durable persistence.",
+    );
+  }
 }
+
