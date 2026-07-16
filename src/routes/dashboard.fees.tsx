@@ -6,6 +6,17 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchPaymentsForPeriods, fetchStudents, qk } from "@/lib/dashboard-queries";
+import { recordPayment } from "@/lib/billing";
+
+// M2a bridge helpers — route-local, no lib changes.
+function buildQuickCollectRemarks(period: string, existingRemarks: string | null | undefined) {
+  const prefix = `[period:${period}]`;
+  const rest = (existingRemarks ?? "").trim();
+  return rest ? `${prefix} ${rest}` : prefix;
+}
+function quickCollectIdempotencyKey(studentId: string, period: string, amount: number) {
+  return `fees:quick:${studentId}:${period}:${amount}`;
+}
 import {
   candidatePeriods,
   periodKey,
@@ -773,16 +784,34 @@ function CollectForm({
   const save = useMutation({
     mutationFn: async () => {
       if (!method) throw new Error("Choose a payment method");
+      const amt = Number(amount);
       const { error } = await supabase.from("payments").insert({
         tenant_id: tenantId,
         student_id: row.studentId,
-        amount: Number(amount),
+        amount: amt,
         type: "monthly",
         period,
         method,
         note: note || null,
       });
       if (error) throw error;
+
+      // M2a bridge: dual-write to Billing V2. Non-blocking on failure.
+      try {
+        await recordPayment({
+          tenant_id: tenantId,
+          student_id: row.studentId,
+          amount: amt,
+          method,
+          allocations: [],
+          collected_at: new Date().toISOString(),
+          remarks: buildQuickCollectRemarks(period, note),
+          idempotency_key: quickCollectIdempotencyKey(row.studentId, period, amt),
+        });
+      } catch (v2err) {
+        console.error("[M2a-bridge] recordPayment failed", v2err);
+        toast.warning("Payment saved. Sync warning — please refresh.");
+      }
     },
     onSuccess: () => {
       toast.success(`${row.name} marked paid ✓`);
