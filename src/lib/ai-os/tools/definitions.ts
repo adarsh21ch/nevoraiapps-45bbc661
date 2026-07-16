@@ -442,10 +442,10 @@ export const notificationsSummaryTool: AnyToolDef = {
       50,
       Math.max(1, Number((input as { limit?: number } | undefined)?.limit) || 15),
     );
-    const { supabase } = await import("@/integrations/supabase/client");
+    const db = await dbFor(ctx);
     // RLS on `notifications` already scopes to the caller — no manual filter needed
     // beyond ordering + limit.
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("notifications")
       .select("id, title, body, created_at, read_at, kind")
       .eq("tenant_id", ctx.tenantId)
