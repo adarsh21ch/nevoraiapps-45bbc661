@@ -27,6 +27,9 @@ export type ContextInput = {
   subscription?: { plan: string; status: string };
   features?: Record<string, boolean>;
   language?: string;
+  userName?: string;
+  niche?: string;
+  feeCycle?: string;
   dataClient?: AIDataClient;
 };
 
