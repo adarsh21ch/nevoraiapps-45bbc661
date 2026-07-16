@@ -30,46 +30,65 @@ export const getPriorities = createServerFn({ method: "GET" })
     const todayISO = now.toISOString();
     const in7 = new Date(now.getTime() + 7 * 86400_000).toISOString();
 
-    const [overdueInv, pendingReg, autoFail, subsExp, absentToday] = await Promise.all([
-      context.supabase
-        .from("billing_invoices")
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", tenantId)
-        .in("status", ["overdue", "past_due"]),
-      context.supabase
-        .from("registrations")
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", tenantId)
-        .eq("status", "pending"),
-      context.supabase
-        .from("automation_executions")
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", tenantId)
-        .eq("status", "failed")
-        .gte("created_at", new Date(now.getTime() - 24 * 3600_000).toISOString()),
-      context.supabase
-        .from("billing_subscriptions")
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", tenantId)
-        .eq("status", "active")
-        .lte("next_billing_at", in7)
-        .gte("next_billing_at", todayISO),
-      context.supabase
-        .from("attendance_marks")
-        .select("id", { count: "exact", head: true })
-        .eq("tenant_id", tenantId)
-        .eq("status", "absent")
-        .gte("created_at", new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()),
-    ]);
+    // Phase 2 fix: derive overdue-fees priority from the same live source the
+    // dashboard uses (legacy `payments` + `students`/`fee_plans`).
+    // `billing_invoices` is empty in production so the previous head-count
+    // read always returned 0, hiding real overdue fees from priorities.
+    const [pendingReg, autoFail, subsExp, absentToday, activeMonthly, paidThisMonth] =
+      await Promise.all([
+        context.supabase
+          .from("registrations")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .eq("status", "pending"),
+        context.supabase
+          .from("automation_executions")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .eq("status", "failed")
+          .gte("created_at", new Date(now.getTime() - 24 * 3600_000).toISOString()),
+        context.supabase
+          .from("billing_subscriptions")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .eq("status", "active")
+          .lte("next_billing_at", in7)
+          .gte("next_billing_at", todayISO),
+        context.supabase
+          .from("attendance_marks")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", tenantId)
+          .eq("status", "absent")
+          .gte("created_at", new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()),
+        // Active students on a monthly fee plan (the fees screen's universe).
+        context.supabase
+          .from("students")
+          .select("id, fee_plans!inner(type)")
+          .eq("tenant_id", tenantId)
+          .eq("status", "active")
+          .eq("fee_plans.type", "monthly"),
+        // Distinct students who have paid for the current YYYY-MM period.
+        context.supabase
+          .from("payments")
+          .select("student_id, period")
+          .eq("tenant_id", tenantId)
+          .eq("period", `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`),
+      ]);
 
     const priorities: Priority[] = [];
 
-    const overdue = overdueInv.count ?? 0;
+    // Overdue = active-monthly students who have NOT paid for this period.
+    const paidSet = new Set<string>();
+    for (const r of (paidThisMonth.data ?? []) as Array<{ student_id: string | null }>) {
+      if (r.student_id) paidSet.add(r.student_id);
+    }
+    const activeIds = ((activeMonthly.data ?? []) as Array<{ id: string }>).map((s) => s.id);
+    const overdue = activeIds.filter((id) => !paidSet.has(id)).length;
     if (overdue > 0) {
       priorities.push({
         id: "overdue-invoices",
         severity: "critical",
-        title: `${overdue} overdue invoice${overdue > 1 ? "s" : ""}`,
+        title: `${overdue} student${overdue > 1 ? "s" : ""} with pending fees`,
         detail: "Send reminders or record payments to keep collection healthy.",
         action: { label: "Open Fees", href: "/dashboard/fees" },
         score: 100 + overdue,
