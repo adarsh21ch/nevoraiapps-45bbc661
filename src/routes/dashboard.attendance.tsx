@@ -780,7 +780,13 @@ function AttendancePage() {
         <EmptyState
           title="No active batches"
           description="Create a batch to start taking attendance."
+          action={
+            <Button asChild size="sm" className="rounded-full">
+              <Link to="/dashboard/batches">Create a batch</Link>
+            </Button>
+          }
         />
+
       ) : (
         <>
           {/* Compact live summary + KPI strip fused into a single tight card. */}
