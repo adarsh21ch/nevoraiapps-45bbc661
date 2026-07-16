@@ -23,6 +23,8 @@ export const Route = createFileRoute("/dashboard/site")({
 
 function SiteEditor() {
   const { tenant } = useDashboard();
+  const [tab, setTab] = useState<"site" | "policies" | "contact">("site");
+
 
   const siteBase = tenantSiteUrl(tenant).replace(/\/$/, "");
   const previewLinks: { to: string; label: string }[] = [
