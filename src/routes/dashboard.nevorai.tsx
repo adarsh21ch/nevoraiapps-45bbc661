@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { UIMessage } from "ai";
 import { PanelLeft, PanelRight, Plus, Sparkles } from "lucide-react";
@@ -11,7 +11,12 @@ import { TodaysPriorities } from "@/components/nevorai/TodaysPriorities";
 import { ActionQueue } from "@/components/nevorai/ActionQueue";
 import { QuickInsights } from "@/components/nevorai/QuickInsights";
 import { SmartInsights } from "@/components/nevorai/SmartInsights";
-import { listConversations, listTurns } from "@/lib/nevorai/conversations.functions";
+import {
+  listConversations,
+  listTurns,
+  createConversation,
+} from "@/lib/nevorai/conversations.functions";
+import { useNevorAIPageContext } from "@/lib/nevorai/page-context";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
