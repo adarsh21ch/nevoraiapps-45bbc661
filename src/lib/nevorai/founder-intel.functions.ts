@@ -42,7 +42,7 @@ export const getFounderAIIntel = createServerFn({ method: "GET" })
     const [analytics, tenants, turns] = await Promise.all([
       supabaseAdmin
         .from("ai_analytics")
-        .select("tenant_id, user_id, tool_name, latency_ms, total_tokens, cost_credits, created_at")
+        .select("tenant_id, user_id, tool_calls, latency_ms, input_tokens, output_tokens, estimated_cost_usd, created_at")
         .gte("created_at", since)
         .limit(20000),
       supabaseAdmin.from("tenants").select("id, name").eq("status", "active"),
@@ -65,10 +65,17 @@ export const getFounderAIIntel = createServerFn({ method: "GET" })
     const tenantSet = new Set<string>();
 
     for (const r of rows) {
-      totalTokens += Number(r.total_tokens || 0);
-      totalCost += Number(r.cost_credits || 0);
+      totalTokens += Number(r.input_tokens || 0) + Number(r.output_tokens || 0);
+      totalCost += Number(r.estimated_cost_usd || 0);
       latencySum += Number(r.latency_ms || 0);
-      if (r.tool_name) toolCounts.set(r.tool_name, (toolCounts.get(r.tool_name) ?? 0) + 1);
+      const calls = Array.isArray(r.tool_calls) ? r.tool_calls : [];
+      for (const c of calls) {
+        const name =
+          c && typeof c === "object" && "name" in c && typeof (c as { name: unknown }).name === "string"
+            ? (c as { name: string }).name
+            : null;
+        if (name) toolCounts.set(name, (toolCounts.get(name) ?? 0) + 1);
+      }
       if (r.tenant_id) {
         tenantCounts.set(r.tenant_id, (tenantCounts.get(r.tenant_id) ?? 0) + 1);
         tenantSet.add(r.tenant_id);
