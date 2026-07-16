@@ -125,6 +125,7 @@ function FeePlansPage() {
               <Button
                 size="icon"
                 variant="ghost"
+                aria-label={`Edit ${p.name}`}
                 onClick={() => {
                   setEditing({
                     id: p.id,
