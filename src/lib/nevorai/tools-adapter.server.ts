@@ -65,6 +65,50 @@ function isOkResult(r: unknown): boolean {
   if (rec.error) return false;
   return true;
 }
+function isTransientFailure(r: unknown): boolean {
+  if (!r || typeof r !== "object") return false;
+  const rec = r as Record<string, unknown>;
+  if (rec.ok !== false && !rec.error) return false;
+  const err = rec.error as { code?: string; category?: string } | undefined;
+  const code = (err?.code ?? "").toString().toLowerCase();
+  const category = (err?.category ?? "").toString().toLowerCase();
+  // Retry only on transient categories — never on permission / validation /
+  // subscription / feature-disabled errors, where retrying would only produce
+  // the same refusal.
+  return (
+    category === "network" ||
+    category === "timeout" ||
+    category === "provider" ||
+    code.includes("timeout") ||
+    code.includes("network") ||
+    code.includes("unavailable") ||
+    code === "internal_error"
+  );
+}
+
+/** Invoke a tool, retrying once on transient failures (network/timeout). */
+async function invokeWithRetry(name: string, input: unknown, ctx: AIContext): Promise<ToolResult> {
+  try {
+    const first = await invokeTool(name, input, ctx);
+    if (isTransientFailure(first)) {
+      try {
+        const second = await invokeTool(name, input, ctx);
+        return second;
+      } catch {
+        return first;
+      }
+    }
+    return first;
+  } catch (e) {
+    // Thrown transient error — retry once.
+    try {
+      return await invokeTool(name, input, ctx);
+    } catch {
+      throw e;
+    }
+  }
+}
+
 
 export function buildToolBag(ctx: AIContext): NevorAIToolBag {
   bootstrapNevorAI();
