@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { sendTestWhatsApp } from "@/lib/automation/whatsapp-admin.functions";
+import { isPlatformAdmin, pqk } from "@/lib/platform-queries";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/dashboard/automation-test")({
@@ -29,10 +30,81 @@ export const Route = createFileRoute("/dashboard/automation-test")({
   }),
   component: () => (
     <OwnerOnly>
-      <AutomationTestPage />
+      <PlatformAdminGate>
+        <AutomationTestPage />
+      </PlatformAdminGate>
     </OwnerOnly>
   ),
 });
+
+/**
+ * Fail-closed platform-admin gate. Mirrors PlatformProvider's check
+ * (isPlatformAdmin(uid) via user_roles) without pulling in the
+ * platform-admin dark shell — we stay inside the dashboard layout.
+ * Any state that is not a verified platform admin renders "Access denied";
+ * we never render children by default.
+ */
+function PlatformAdminGate({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+  const [uid, setUid] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (active) setUid(data.user?.id ?? null);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setUid(s?.user?.id ?? null);
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const adminQ = useQuery({
+    enabled: !!uid,
+    queryKey: uid ? pqk.isAdmin(uid) : ["platform", "is-admin", "-"],
+    queryFn: () => isPlatformAdmin(uid!),
+  });
+
+  if (uid === undefined) return <GateMessage>Loading…</GateMessage>;
+  if (uid === null) {
+    return (
+      <GateMessage>
+        <div className="space-y-3 text-center">
+          <p className="text-sm text-muted-foreground">Sign in required.</p>
+          <Button size="sm" onClick={() => navigate({ to: "/auth" })}>
+            Sign in
+          </Button>
+        </div>
+      </GateMessage>
+    );
+  }
+  if (adminQ.isLoading) return <GateMessage>Verifying access…</GateMessage>;
+  if (adminQ.isError || !adminQ.data) {
+    return (
+      <GateMessage>
+        <div className="space-y-2 text-center">
+          <h1 className="text-lg font-semibold">Access denied</h1>
+          <p className="text-sm text-muted-foreground">
+            Automation Test is restricted to platform administrators.
+          </p>
+        </div>
+      </GateMessage>
+    );
+  }
+  return <>{children}</>;
+}
+
+function GateMessage({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-[40vh] grid place-items-center p-6">
+      <Card className="p-6 max-w-md w-full">{children}</Card>
+    </div>
+  );
+}
+
 
 type DeliveryRow = {
   id: string;
