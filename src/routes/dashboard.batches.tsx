@@ -128,6 +128,7 @@ function BatchesPage() {
                   size="icon"
                   variant="ghost"
                   className="text-rose-600"
+                  aria-label={`Delete batch ${b.name}`}
                   onClick={() => confirm(`Delete batch "${b.name}"?`) && del.mutate(b.id)}
                 >
                   <Trash2 className="size-4" />
