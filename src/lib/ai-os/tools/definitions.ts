@@ -250,8 +250,9 @@ export const attendanceSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin", "coach"],
   async execute(_input, ctx): Promise<ToolResult> {
+    const db = await dbFor(ctx);
     const { fetchAttendanceToday } = await import("@/lib/attendance/queries");
-    const rows = await fetchAttendanceToday(ctx.tenantId);
+    const rows = await fetchAttendanceToday(ctx.tenantId, db);
     let present = 0;
     let absent = 0;
     let inAcademy = 0;
