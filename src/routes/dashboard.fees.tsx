@@ -898,7 +898,7 @@ function CollectForm({
           toast.success(`${row.name} marked paid ✓`);
           onDone();
         }}
-        disabled={!method || !numeric || numeric <= 0}
+        disabled={disabled}
         className="w-full h-14 text-base font-semibold rounded-xl"
         style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
       >
