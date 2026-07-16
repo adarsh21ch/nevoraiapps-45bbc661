@@ -11,8 +11,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { Pin, PinOff, Plus, Trash2, Pencil } from "lucide-react";
-import { useState } from "react";
+import { Pin, PinOff, Plus, Trash2, Pencil, Search } from "lucide-react";
+import { useMemo, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
 
 type Props = {
   activeId: string | null;
@@ -62,6 +63,14 @@ export function ConversationList({ activeId, onSelect }: Props) {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    const rows = q.data ?? [];
+    const s = search.trim().toLowerCase();
+    if (!s) return rows;
+    return rows.filter((r) => (r.title ?? "").toLowerCase().includes(s));
+  }, [q.data, search]);
 
   return (
     <div className="flex h-full flex-col">
@@ -79,6 +88,18 @@ export function ConversationList({ activeId, onSelect }: Props) {
           <Plus className="h-4 w-4" />
         </Button>
       </div>
+      <div className="border-b border-border/60 px-3 py-2">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search conversations…"
+            className="w-full rounded-md border border-border bg-background pl-7 pr-2 py-1 text-xs outline-none focus:border-primary/50"
+          />
+        </div>
+      </div>
       <div className="flex-1 overflow-y-auto p-2">
         {q.isLoading ? (
           <div className="space-y-2 p-2">
@@ -86,13 +107,13 @@ export function ConversationList({ activeId, onSelect }: Props) {
               <Skeleton key={i} className="h-8 w-full" />
             ))}
           </div>
-        ) : (q.data ?? []).length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="p-4 text-center text-xs text-muted-foreground">
-            No conversations yet. Ask NevorAI to get started.
+            {search ? "No matches." : "No conversations yet. Ask NevorAI to get started."}
           </div>
         ) : (
           <ul className="space-y-0.5">
-            {(q.data ?? []).map((c) => (
+            {filtered.map((c) => (
               <li key={c.id}>
                 <div
                   className={cn(
@@ -103,30 +124,35 @@ export function ConversationList({ activeId, onSelect }: Props) {
                   <button
                     type="button"
                     onClick={() => onSelect(c.id)}
-                    className="min-w-0 flex-1 truncate text-left"
+                    className="min-w-0 flex-1 text-left"
                     title={c.title ?? "Untitled"}
                   >
-                    {c.pinned && <Pin className="mr-1 inline h-3 w-3 text-primary" />}
-                    {editingId === c.id ? (
-                      <input
-                        autoFocus
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={() => {
-                          if (editValue.trim() && editValue !== c.title) {
-                            rename.mutate({ id: c.id, title: editValue.trim() });
-                          }
-                          setEditingId(null);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") e.currentTarget.blur();
-                          if (e.key === "Escape") setEditingId(null);
-                        }}
-                        className="w-full rounded border border-border bg-background px-1 py-0.5 text-xs"
-                      />
-                    ) : (
-                      c.title || "Untitled"
-                    )}
+                    <div className="truncate">
+                      {c.pinned && <Pin className="mr-1 inline h-3 w-3 text-primary" />}
+                      {editingId === c.id ? (
+                        <input
+                          autoFocus
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={() => {
+                            if (editValue.trim() && editValue !== c.title) {
+                              rename.mutate({ id: c.id, title: editValue.trim() });
+                            }
+                            setEditingId(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") e.currentTarget.blur();
+                            if (e.key === "Escape") setEditingId(null);
+                          }}
+                          className="w-full rounded border border-border bg-background px-1 py-0.5 text-xs"
+                        />
+                      ) : (
+                        c.title || "Untitled"
+                      )}
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-muted-foreground">
+                      {formatDistanceToNow(new Date(c.updated_at), { addSuffix: true })}
+                    </div>
                   </button>
                   <button
                     type="button"

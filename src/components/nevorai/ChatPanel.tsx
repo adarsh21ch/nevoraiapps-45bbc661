@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import { toast } from "sonner";
+import { Copy, Download, RotateCcw } from "lucide-react";
 import {
   Conversation,
   ConversationContent,
@@ -16,14 +17,22 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
+import { RichToolOutput } from "@/components/nevorai/RichToolOutput";
+import {
+  FollowUpChips,
+  deriveFollowUps,
+  extractRecommendedActions,
+} from "@/components/nevorai/FollowUpChips";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { copyText, downloadMarkdown, messagesToMarkdown } from "@/lib/nevorai/export";
 
 type Props = {
   conversationId: string | null;
   initialMessages?: UIMessage[];
   onConversationStarted?: () => void;
   suggestions?: string[];
+  conversationTitle?: string | null;
 };
 
 export function ChatPanel({
@@ -31,6 +40,7 @@ export function ChatPanel({
   initialMessages = [],
   onConversationStarted,
   suggestions = [],
+  conversationTitle,
 }: Props) {
   const [token, setToken] = useState<string | null>(null);
 
@@ -54,7 +64,7 @@ export function ChatPanel({
 
   const chatId = conversationId ?? "draft";
 
-  const { messages, sendMessage, status, stop, setMessages } = useChat({
+  const { messages, sendMessage, status, stop, setMessages, regenerate } = useChat({
     id: chatId,
     messages: initialMessages,
     transport,
@@ -91,6 +101,23 @@ export function ChatPanel({
 
   const isGenerating = status === "submitted" || status === "streaming";
 
+  const handleCopy = useCallback(async (text: string) => {
+    const ok = await copyText(text);
+    toast[ok ? "success" : "error"](ok ? "Copied" : "Copy failed");
+  }, []);
+
+  const handleExport = useCallback(() => {
+    const md = messagesToMarkdown(conversationTitle || "NevorAI Conversation", messages);
+    downloadMarkdown(`nevorai-${(conversationTitle || "conversation").slice(0, 40)}`, md);
+  }, [conversationTitle, messages]);
+
+  const lastAssistantId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "assistant") return messages[i].id;
+    }
+    return null;
+  }, [messages]);
+
   return (
     <div className="flex h-full flex-col">
       <Conversation className="flex-1">
@@ -117,70 +144,105 @@ export function ChatPanel({
               ) : null}
             </div>
           ) : (
-            messages.map((m) => (
-              <Message key={m.id} from={m.role as "user" | "assistant" | "system"}>
-                <MessageContent
-                  className={cn(m.role === "assistant" && "bg-transparent px-0")}
-                >
-                  {m.parts.map((part, idx) => {
-                    if (part.type === "text") {
-                      return (
-                        <div key={idx} className="whitespace-pre-wrap text-sm leading-relaxed">
-                          {part.text}
-                        </div>
-                      );
-                    }
-                    if (part.type === "reasoning") {
-                      return (
-                        <div key={idx} className="text-xs italic text-muted-foreground">
-                          {part.text}
-                        </div>
-                      );
-                    }
-                    if (part.type?.startsWith("tool-")) {
-                      const p = part as {
-                        type: string;
-                        state?: string;
-                        input?: unknown;
-                        output?: unknown;
-                        errorText?: string;
-                      };
-                      const toolName = p.type.slice("tool-".length);
-                      return (
-                        <Tool key={idx} defaultOpen={false}>
-                          <ToolHeader
-                            type={`tool-${toolName}`}
-                            state={
-                              (p.state as
-                                | "input-streaming"
-                                | "input-available"
-                                | "output-available"
-                                | "output-error") ?? "output-available"
-                            }
-                          />
-                          <ToolContent>
-                            <ToolInput input={p.input} />
-                            <ToolOutput
-                              output={
-                                p.output ? (
-                                  <pre className="whitespace-pre-wrap text-xs">
-                                    {typeof p.output === "string"
-                                      ? p.output
-                                      : JSON.stringify(p.output, null, 2)}
-                                  </pre>
-                                ) : undefined
+            messages.map((m) => {
+              const isLastAssistant = m.id === lastAssistantId;
+              const assistantText = m.parts
+                .filter((p) => p.type === "text")
+                .map((p) => (p as { text: string }).text)
+                .join("\n");
+              const followUps =
+                m.role === "assistant" && isLastAssistant && !isGenerating
+                  ? [
+                      ...extractRecommendedActions(m.parts),
+                      ...deriveFollowUps(assistantText),
+                    ]
+                  : [];
+              return (
+                <Message key={m.id} from={m.role as "user" | "assistant" | "system"}>
+                  <MessageContent
+                    className={cn(m.role === "assistant" && "bg-transparent px-0")}
+                  >
+                    {m.parts.map((part, idx) => {
+                      if (part.type === "text") {
+                        return (
+                          <div key={idx} className="whitespace-pre-wrap text-sm leading-relaxed">
+                            {part.text}
+                          </div>
+                        );
+                      }
+                      if (part.type === "reasoning") {
+                        return (
+                          <div key={idx} className="text-xs italic text-muted-foreground">
+                            {part.text}
+                          </div>
+                        );
+                      }
+                      if (part.type?.startsWith("tool-")) {
+                        const p = part as {
+                          type: string;
+                          state?: string;
+                          input?: unknown;
+                          output?: unknown;
+                          errorText?: string;
+                        };
+                        const toolName = p.type.slice("tool-".length);
+                        return (
+                          <Tool key={idx} defaultOpen={false}>
+                            <ToolHeader
+                              type={`tool-${toolName}`}
+                              state={
+                                (p.state as
+                                  | "input-streaming"
+                                  | "input-available"
+                                  | "output-available"
+                                  | "output-error") ?? "output-available"
                               }
-                              errorText={p.errorText}
                             />
-                          </ToolContent>
-                        </Tool>
-                      );
-                    }
-                    return null;
-                  })}
-                </MessageContent>
-              </Message>
-            ))
+                            <ToolContent>
+                              <ToolInput input={p.input} />
+                              <ToolOutput
+                                output={
+                                  p.output ? <RichToolOutput output={p.output} /> : undefined
+                                }
+                                errorText={p.errorText}
+                              />
+                            </ToolContent>
+                          </Tool>
+                        );
+                      }
+                      return null;
+                    })}
+
+                    {m.role === "assistant" && !isGenerating && assistantText ? (
+                      <div className="mt-2 flex items-center gap-1 opacity-60 transition hover:opacity-100">
+                        <button
+                          type="button"
+                          onClick={() => void handleCopy(assistantText)}
+                          className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground hover:bg-accent hover:text-foreground"
+                          aria-label="Copy response"
+                        >
+                          <Copy className="h-3 w-3" /> Copy
+                        </button>
+                        {isLastAssistant ? (
+                          <button
+                            type="button"
+                            onClick={() => void regenerate()}
+                            className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] text-muted-foreground hover:bg-accent hover:text-foreground"
+                            aria-label="Retry"
+                          >
+                            <RotateCcw className="h-3 w-3" /> Retry
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {followUps.length > 0 ? (
+                      <FollowUpChips items={followUps} onSelect={(p) => void submit(p)} />
+                    ) : null}
+                  </MessageContent>
+                </Message>
+              );
+            })
           )}
           {isGenerating && messages.length > 0 && (
             <div className="px-2 py-1 text-xs">
@@ -204,7 +266,19 @@ export function ChatPanel({
             onChange={(e) => setInput(e.currentTarget.value)}
             placeholder="Ask NevorAI about attendance, fees, admissions…"
           />
-          <PromptInputFooter className="justify-end">
+          <PromptInputFooter className="justify-between">
+            <div className="flex items-center gap-1">
+              {messages.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:bg-accent hover:text-foreground"
+                  aria-label="Export conversation"
+                >
+                  <Download className="h-3 w-3" /> Export
+                </button>
+              ) : null}
+            </div>
             <PromptInputSubmit
               size="icon-sm"
               className="rounded-full"
