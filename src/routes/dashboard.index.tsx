@@ -219,12 +219,18 @@ function DashboardHome() {
             <KpiTile
               to="/dashboard/fees"
               search={{ filter: "pending" }}
-              label="Pending Fees"
-              value={kpisQ.isLoading ? null : pendingFees}
-              hint={pendingFees > 0 ? "Follow up" : "All caught up"}
+              label="Overdue Fees"
+              value={kpisQ.isLoading ? null : overdueInvoices}
+              hint={
+                overdueInvoices > 0
+                  ? outstandingAmount > 0
+                    ? `₹${outstandingAmount.toLocaleString("en-IN")} outstanding`
+                    : "Follow up"
+                  : "All caught up"
+              }
               icon={<IndianRupee className="size-4" />}
-              tone={pendingFees > 0 ? "warn" : "muted"}
-              emphasize={pendingFees > 0}
+              tone={overdueInvoices > 0 ? "warn" : "muted"}
+              emphasize={overdueInvoices > 0}
             />
           ) : (
             <KpiTile
