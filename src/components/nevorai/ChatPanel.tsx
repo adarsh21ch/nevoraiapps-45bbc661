@@ -15,7 +15,8 @@ import {
   PromptInputFooter,
   PromptInputSubmit,
 } from "@/components/ai-elements/prompt-input";
-import { Shimmer } from "@/components/ai-elements/shimmer";
+import { ResponseRenderer } from "@/components/nevorai/ResponseRenderer";
+import { ThinkingDots } from "@/components/nevorai/ThinkingDots";
 import {
   FollowUpChips,
   deriveFollowUps,
