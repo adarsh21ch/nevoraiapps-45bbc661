@@ -63,6 +63,14 @@ export function ConversationList({ activeId, onSelect }: Props) {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    const rows = q.data ?? [];
+    const s = search.trim().toLowerCase();
+    if (!s) return rows;
+    return rows.filter((r) => (r.title ?? "").toLowerCase().includes(s));
+  }, [q.data, search]);
 
   return (
     <div className="flex h-full flex-col">
@@ -80,6 +88,18 @@ export function ConversationList({ activeId, onSelect }: Props) {
           <Plus className="h-4 w-4" />
         </Button>
       </div>
+      <div className="border-b border-border/60 px-3 py-2">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search conversations…"
+            className="w-full rounded-md border border-border bg-background pl-7 pr-2 py-1 text-xs outline-none focus:border-primary/50"
+          />
+        </div>
+      </div>
       <div className="flex-1 overflow-y-auto p-2">
         {q.isLoading ? (
           <div className="space-y-2 p-2">
@@ -87,13 +107,13 @@ export function ConversationList({ activeId, onSelect }: Props) {
               <Skeleton key={i} className="h-8 w-full" />
             ))}
           </div>
-        ) : (q.data ?? []).length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="p-4 text-center text-xs text-muted-foreground">
-            No conversations yet. Ask NevorAI to get started.
+            {search ? "No matches." : "No conversations yet. Ask NevorAI to get started."}
           </div>
         ) : (
           <ul className="space-y-0.5">
-            {(q.data ?? []).map((c) => (
+            {filtered.map((c) => (
               <li key={c.id}>
                 <div
                   className={cn(
