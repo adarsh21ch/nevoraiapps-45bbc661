@@ -1,12 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import type { Tenant } from "./tenant";
-import { fetchBillingKpis } from "./billing";
+import { candidatePeriods, periodKey, studentDue, tenantFeeCycle } from "./fees";
 
 export type Student = Database["public"]["Tables"]["students"]["Row"];
 export type Registration = Database["public"]["Tables"]["registrations"]["Row"];
-/** @deprecated Legacy `payments` row. Canonical: `billing_payments`. */
-export type Payment = Database["public"]["Tables"]["billing_payments"]["Row"];
+export type Payment = Database["public"]["Tables"]["payments"]["Row"];
 export type Batch = Database["public"]["Tables"]["batches"]["Row"];
 export type FeePlan = Database["public"]["Tables"]["fee_plans"]["Row"];
 export type SiteContent = Database["public"]["Tables"]["site_content"]["Row"];
@@ -58,19 +57,12 @@ export async function fetchStudent(id: string) {
   return data;
 }
 
-/**
- * Canonical: reads succeeded `billing_payments` for a student.
- * Replaces the legacy `payments` table read; every finance surface is
- * required to consume this or `fetchBillingKpis` and never the
- * deprecated `payments` table directly.
- */
 export async function fetchStudentPayments(studentId: string) {
   const { data, error } = await supabase
-    .from("billing_payments")
+    .from("payments")
     .select("*")
     .eq("student_id", studentId)
-    .eq("status", "succeeded")
-    .order("collected_at", { ascending: false });
+    .order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
 }
@@ -108,42 +100,19 @@ export async function fetchSiteContent(tenantId: string) {
 export type Kpis = {
   activeStudents: number;
   newRegsThisWeek: number;
-  /**
-   * Money collected this month.
-   *
-   * Canonical source: `billing_payments` (via `fetchBillingKpis`) — the same
-   * service NevorAI's `finance_summary` tool, the Daily Brief, Reports, and
-   * the Billing page consume. Falls back to the legacy `payments` sum only
-   * when the billing service is unavailable, so Home never shows a number
-   * that contradicts AI.
-   */
   collectionThisMonth: number;
-  /**
-   * Deprecated period-count. Kept for backward-compat with any legacy
-   * caller; Home no longer renders this. New code MUST use `overdueInvoices`
-   * (canonical, matches NevorAI). See `outstandingAmount` for the money value.
-   */
   pendingFeeCount: number;
-  /** Canonical: count of `billing_invoices` past their due date. */
-  overdueInvoices: number;
-  /** Canonical: sum of open `billing_invoices.balance` (₹). */
-  outstandingAmount: number;
-  /** Canonical: count of open (issued/partially_paid) invoices. */
-  openInvoices: number;
 };
 
-/**
- * Canonical KPIs. Every finance number here comes from `fetchBillingKpis`
- * (`billing_invoices` + `billing_payments`). Legacy `payments` +
- * `studentDue()` reads were removed in Phase 13.3 — Dashboard, Fees,
- * Billing, Reports, NevorAI, Daily Brief and Analytics now share one
- * calculation.
- */
 export async function fetchKpis(tenant: Tenant): Promise<Kpis> {
   const tenantId = tenant.id;
+  const cycle = tenantFeeCycle(tenant);
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const weekAgo = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
+  const periods = cycle === "joining_date" ? candidatePeriods(now) : [periodKey(now)];
 
-  const [active, regs, billingKpis] = await Promise.all([
+  const [active, regs, pays, studentsMonthly, paidRows] = await Promise.all([
     supabase
       .from("students")
       .select("id", { count: "exact", head: true })
@@ -154,68 +123,73 @@ export async function fetchKpis(tenant: Tenant): Promise<Kpis> {
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
       .gte("created_at", weekAgo),
-    // Canonical billing service — same numbers as NevorAI/Reports/Brief/Billing.
-    fetchBillingKpis(tenantId).catch(() => null),
+    supabase
+      .from("payments")
+      .select("amount")
+      .eq("tenant_id", tenantId)
+      .gte("created_at", startOfMonth),
+    supabase
+      .from("students")
+      .select("id, joined_at, fee_plan_id, fee_plans!inner(type)")
+      .eq("tenant_id", tenantId)
+      .eq("status", "active")
+      .eq("fee_plans.type", "monthly"),
+    supabase
+      .from("payments")
+      .select("student_id, period")
+      .eq("tenant_id", tenantId)
+      .in("period", periods),
   ]);
+
+  const collection = (pays.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
+  const paidByStudent = new Map<string, Set<string>>();
+  for (const p of paidRows.data ?? []) {
+    if (!p.student_id || !p.period) continue;
+    const set = paidByStudent.get(p.student_id) ?? new Set<string>();
+    set.add(p.period);
+    paidByStudent.set(p.student_id, set);
+  }
+  const pending = (studentsMonthly.data ?? []).filter((s) => {
+    const due = studentDue({
+      cycle,
+      joinedAt: s.joined_at,
+      selectedMonth: now,
+      paidPeriods: paidByStudent.get(s.id) ?? new Set(),
+      today: now,
+    });
+    return due.state === "pending";
+  }).length;
 
   return {
     activeStudents: active.count ?? 0,
     newRegsThisWeek: regs.count ?? 0,
-    collectionThisMonth: Number(billingKpis?.collectedThisMonth ?? 0),
-    // `pendingFeeCount` is deprecated. Use `overdueInvoices` — the canonical
-    // count of past-due `billing_invoices` (matches NevorAI/Reports).
-    pendingFeeCount: Number(billingKpis?.overdue ?? 0),
-    overdueInvoices: Number(billingKpis?.overdue ?? 0),
-    outstandingAmount: Number(billingKpis?.outstanding ?? 0),
-    openInvoices: Number(billingKpis?.openInvoices ?? 0),
+    collectionThisMonth: collection,
+    pendingFeeCount: pending,
   };
 }
 
-/**
- * @deprecated Legacy fee-register paid-lookup (period-keyed `payments`).
- * Retained only for backward-compat with tests/scripts; the fee register
- * route now redirects to `/dashboard/billing`. Returns an empty list so
- * callers get a safe no-op instead of contradictory data.
- */
-export async function fetchPaymentsForPeriods(_tenantId: string, _periods: string[]) {
-  return [] as Array<{
-    id: string;
-    student_id: string | null;
-    period: string | null;
-    amount: number;
-    method: string | null;
-    type: string | null;
-    receipt_no: number | null;
-    created_at: string;
-  }>;
+/** Payments carrying any of the given period keys (fee register paid-lookup). */
+export async function fetchPaymentsForPeriods(tenantId: string, periods: string[]) {
+  const { data, error } = await supabase
+    .from("payments")
+    .select("id, student_id, period, amount, method, type, receipt_no, created_at")
+    .eq("tenant_id", tenantId)
+    .in("period", periods);
+  if (error) throw error;
+  return data ?? [];
 }
 
-/**
- * Canonical: succeeded `billing_payments` since a timestamp, with student
- * names for reports/CSV export. Replaces the legacy `payments` read.
- */
+/** All payments since a date, with student names (reports + CSV export). */
 export async function fetchPaymentsSince(tenantId: string, sinceISO: string) {
   const { data, error } = await supabase
-    .from("billing_payments")
-    .select("id, amount, method, reference_number, remarks, collected_at, students(name)")
+    .from("payments")
+    .select("id, amount, type, period, method, receipt_no, note, created_at, students(name)")
     .eq("tenant_id", tenantId)
-    .eq("status", "succeeded")
-    .gte("collected_at", sinceISO)
-    .order("collected_at", { ascending: false });
+    .gte("created_at", sinceISO)
+    .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    amount: Number(r.amount ?? 0),
-    type: null as string | null,
-    period: null as string | null,
-    method: r.method,
-    receipt_no: r.reference_number,
-    note: r.remarks,
-    created_at: r.collected_at,
-    students: r.students,
-  }));
+  return data ?? [];
 }
-
 
 // -----------------------------------------------------------------------------
 // Dashboard insights: revenue trend (last 6 months), today's attendance %,
@@ -253,21 +227,15 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
   const todayStr = now.toISOString().slice(0, 10);
 
-  // Canonical attendance today — same rows/state derivation as the
-  // Attendance page, NevorAI `attendance_summary`, and Reports use.
-  const { fetchAttendanceToday, summarizeAttendance } = await import("@/lib/attendance/queries");
-
-  const [payRes, sessRes, studRes, attendanceRows] = await Promise.all([
-    // Canonical revenue trend — succeeded `billing_payments` only.
+  const [payRes, sessRes, studRes] = await Promise.all([
     supabase
-      .from("billing_payments")
-      .select("amount, collected_at")
+      .from("payments")
+      .select("amount, created_at")
       .eq("tenant_id", tenantId)
-      .eq("status", "succeeded")
-      .gte("collected_at", sixMonthsAgo.toISOString()),
+      .gte("created_at", sixMonthsAgo.toISOString()),
     supabase
       .from("attendance_sessions")
-      .select("id", { count: "exact", head: true })
+      .select("id, attendance_marks(status)")
       .eq("tenant_id", tenantId)
       .eq("session_date", todayStr),
     supabase
@@ -276,7 +244,6 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
       .eq("tenant_id", tenantId)
       .eq("status", "active")
       .not("dob", "is", null),
-    fetchAttendanceToday(tenantId).catch(() => []),
   ]);
 
   // Revenue trend (fill zero months)
@@ -286,9 +253,8 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
     buckets.set(monthKeyOf(d), 0);
   }
   for (const p of payRes.data ?? []) {
-    const at = (p as { collected_at?: string | null }).collected_at;
-    if (!at) continue;
-    const key = monthKeyOf(new Date(at));
+    if (!p.created_at) continue;
+    const key = monthKeyOf(new Date(p.created_at));
     if (buckets.has(key)) buckets.set(key, buckets.get(key)! + Number(p.amount || 0));
   }
   const monthLabels = [
@@ -311,15 +277,18 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
   });
   const revenueTotal = revenue.reduce((s, r) => s + r.amount, 0);
 
-  // Canonical attendance summary — no local recomputation.
-  const totals = summarizeAttendance(attendanceRows, { sessions: sessRes.count ?? 0 });
-  const attendanceToday = {
-    present: totals.present,
-    absent: totals.absent,
-    total: totals.total,
-    percent: totals.percent,
-    sessions: totals.sessions,
-  };
+  // Today's attendance
+  let present = 0;
+  let absent = 0;
+  const sessions = (sessRes.data ?? []).length;
+  for (const s of sessRes.data ?? []) {
+    for (const m of (s as any).attendance_marks ?? []) {
+      if (m.status === "present" || m.status === "late") present++;
+      else if (m.status === "absent") absent++;
+    }
+  }
+  const total = present + absent;
+  const percent = total > 0 ? Math.round((present / total) * 100) : 0;
 
   // Birthdays in next 7 days (including today)
   const birthdays: Birthday[] = [];
@@ -348,11 +317,10 @@ export async function fetchDashboardInsights(tenantId: string): Promise<Dashboar
   return {
     revenue,
     revenueTotal,
-    attendanceToday,
+    attendanceToday: { present, absent, total, percent, sessions },
     birthdays: birthdays.slice(0, 8),
   };
 }
-
 
 // -----------------------------------------------------------------------------
 // Today's Activity feed — chronological, cross-module event stream. Derived
@@ -401,12 +369,11 @@ export async function fetchDashboardActivity(
 
   const paysP = includeFees
     ? supabase
-        .from("billing_payments")
-        .select("id, amount, collected_at, student_id, students(name)")
+        .from("payments")
+        .select("id, amount, created_at, student_id, students(name)")
         .eq("tenant_id", tenantId)
-        .eq("status", "succeeded")
-        .gte("collected_at", sinceISO)
-        .order("collected_at", { ascending: false })
+        .gte("created_at", sinceISO)
+        .order("created_at", { ascending: false })
         .limit(10)
     : Promise.resolve({ data: [] as never[], error: null });
 
@@ -454,18 +421,16 @@ export async function fetchDashboardActivity(
 
   for (const p of pays.data ?? []) {
     const name = (p as any).students?.name ?? "Player";
-    const at = (p as { collected_at?: string | null }).collected_at;
     events.push({
       id: `pay-${p.id}`,
-      at: (at ?? new Date().toISOString()) as string,
+      at: p.created_at as string,
       kind: "payment",
       actorName: name,
       amount: Number(p.amount ?? 0),
       detail: "Fee received",
-      href: "/dashboard/billing",
+      href: "/dashboard/fees",
     });
   }
-
 
   events.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
   return events.slice(0, limit);

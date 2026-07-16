@@ -867,21 +867,14 @@ function TimelineTab({
   const paymentsQ = useQuery({
     queryKey: ["player", "payments", studentId],
     queryFn: async () => {
-      // Canonical: succeeded `billing_payments` only.
       const { data, error } = await supabase
-        .from("billing_payments")
-        .select("id, amount, collected_at")
+        .from("payments")
+        .select("id, amount, period, created_at")
         .eq("student_id", studentId)
-        .eq("status", "succeeded")
-        .order("collected_at", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(30);
       if (error) throw error;
-      return (data ?? []).map((r) => ({
-        id: r.id,
-        amount: Number(r.amount ?? 0),
-        period: null as string | null,
-        created_at: r.collected_at,
-      }));
+      return data ?? [];
     },
   });
 

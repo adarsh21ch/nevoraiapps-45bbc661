@@ -120,7 +120,7 @@ export const financeSummaryTool: AnyToolDef = {
 
 export const feeSummaryTool: AnyToolDef = {
   name: "fee_summary",
-  description: "Return the fee/payment status for a specific student (canonical billing).",
+  description: "Return the fee/payment status for a specific student.",
   category: "finance",
   parameters: studentIdSchema,
   allowedRoles: ["owner", "admin", "parent", "student"],
@@ -129,39 +129,46 @@ export const feeSummaryTool: AnyToolDef = {
     if (!studentId) {
       return { ok: false, reason: "forbidden", code: "STUDENT_SCOPE_DENIED", message: "No accessible student for this caller." };
     }
-    const { fetchStudent, fetchStudentPayments } = await import("@/lib/dashboard-queries");
+    const [{ fetchStudent, fetchStudentPayments }, tenant] = await Promise.all([
+      import("@/lib/dashboard-queries"),
+      loadTenant(ctx.tenantId),
+    ]);
     const student = await fetchStudent(studentId);
     if (!student || (student as { tenant_id?: string }).tenant_id !== ctx.tenantId) {
       return { ok: false, reason: "not_found", code: "STUDENT_NOT_FOUND", message: "Student not found for this tenant." };
     }
-    // Canonical: open invoice balance per student, from `billing_invoices`.
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { data: openInvoices, error: invErr } = await supabase
-      .from("billing_invoices")
-      .select("id, total, balance, due_date, status")
-      .eq("tenant_id", ctx.tenantId)
-      .eq("student_id", studentId)
-      .in("status", ["issued", "partially_paid"]);
-    if (invErr) {
-      return { ok: false, reason: "internal", code: "BILLING_READ_FAILED", message: invErr.message };
-    }
     const payments = await fetchStudentPayments(studentId);
-    const today = new Date().toISOString().slice(0, 10);
-    const outstanding = (openInvoices ?? []).reduce((s, r) => s + Number(r.balance ?? 0), 0);
-    const overdueCount = (openInvoices ?? []).filter(
-      (r) => r.due_date && r.due_date < today,
-    ).length;
-    const state = outstanding <= 0 ? "paid" : overdueCount > 0 ? "overdue" : "pending";
+    const { studentDue, tenantFeeCycle, periodKey, candidatePeriods } = await import("@/lib/fees");
+    let due: unknown = null;
+    if (tenant) {
+      const cycle = tenantFeeCycle(tenant as never);
+      const now = new Date();
+      const paidPeriods = new Set<string>();
+      for (const p of (payments ?? []) as Array<{ period: string | null }>) {
+        if (p.period) paidPeriods.add(p.period);
+      }
+      const joinedAt = (student as { joined_at?: string }).joined_at;
+      if (joinedAt) {
+        // For calendar_month: check current month. For joining_date: engine uses joiningCycleDue internally.
+        const selectedMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        due = studentDue({ cycle, joinedAt, selectedMonth, paidPeriods });
+        void candidatePeriods; // silence unused import warnings
+        void periodKey;
+      }
+    }
+    const dueState = due && typeof due === "object" && "state" in due
+      ? (due as { state: string }).state
+      : "unknown";
     return {
       ok: true,
       title: "Fee status",
-      summary: `Status: ${state} · outstanding ₹${outstanding.toLocaleString("en-IN")}`,
-      data: { student, payments, openInvoices, outstanding, overdueCount, state },
-      structured_data: { state, outstanding, overdueCount, openInvoiceCount: (openInvoices ?? []).length },
+      summary: `Status: ${dueState}`,
+      data: { student, payments, due },
+      structured_data: { due, paymentCount: payments?.length ?? 0 },
       citations: [
         "src/lib/dashboard-queries.ts#fetchStudent",
         "src/lib/dashboard-queries.ts#fetchStudentPayments",
-        "src/lib/billing.ts#fetchBillingKpis",
+        "src/lib/fees.ts#studentDue",
       ],
     };
   },
@@ -211,28 +218,32 @@ export const attendanceSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin", "coach"],
   async execute(_input, ctx): Promise<ToolResult> {
-    // Canonical attendance service — Dashboard, Attendance page, Reports,
-    // Owner Summary all share these helpers (Phase 13.4).
-    const { fetchAttendanceToday, summarizeAttendance } = await import("@/lib/attendance/queries");
+    const { fetchAttendanceToday } = await import("@/lib/attendance/queries");
     const rows = await fetchAttendanceToday(ctx.tenantId);
-    const totals = summarizeAttendance(rows);
+    let present = 0;
+    let absent = 0;
+    let inAcademy = 0;
+    let checkedOut = 0;
+    for (const r of rows) {
+      if (r.current_state === "in_academy") inAcademy++;
+      else if (r.current_state === "checked_out") checkedOut++;
+      if (r.status === "present") present++;
+      else if (r.status === "absent") absent++;
+    }
+    const summary = { present, absent, inAcademy, checkedOut, total: rows.length };
     return {
       ok: true,
       title: "Attendance today",
-      summary: `${totals.present} present · ${totals.absent} absent · ${totals.inAcademy} in academy`,
-      data: totals,
-      structured_data: totals,
-      citations: [
-        "src/lib/attendance/queries.ts#fetchAttendanceToday",
-        "src/lib/attendance/queries.ts#summarizeAttendance",
-      ],
+      summary: `${present} present · ${absent} absent · ${inAcademy} in academy`,
+      data: summary,
+      structured_data: summary,
+      citations: ["src/lib/attendance/queries.ts#fetchAttendanceToday"],
       recommended_actions: [
         { id: "open-attendance", label: "Open attendance", href: "/dashboard/attendance" },
       ],
     };
   },
 };
-
 
 /* ------------------------------------------------------------------ */
 /* Students                                                           */
@@ -254,8 +265,7 @@ export const playerProfileTool: AnyToolDef = {
     if (!studentId) {
       return { ok: false, reason: "forbidden", code: "STUDENT_SCOPE_DENIED", message: "No accessible student for this caller." };
     }
-    // Canonical students service — same fetch used by Dashboard / Students page.
-    const { fetchStudent } = await import("@/lib/students/queries");
+    const { fetchStudent } = await import("@/lib/dashboard-queries");
     const student = await fetchStudent(studentId);
     if (!student || (student as { tenant_id?: string }).tenant_id !== ctx.tenantId) {
       return { ok: false, reason: "not_found", code: "STUDENT_NOT_FOUND", message: "Student not found." };
@@ -265,10 +275,9 @@ export const playerProfileTool: AnyToolDef = {
       title: (student as { full_name?: string }).full_name ?? "Player",
       summary: `Status: ${(student as { status?: string }).status ?? "unknown"}`,
       data: student,
-      citations: ["src/lib/students/queries.ts#fetchStudent"],
+      citations: ["src/lib/dashboard-queries.ts#fetchStudent"],
     };
   },
-
 };
 
 /* ------------------------------------------------------------------ */

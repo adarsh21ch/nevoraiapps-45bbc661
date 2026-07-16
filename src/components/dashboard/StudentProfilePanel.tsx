@@ -74,19 +74,16 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
 
   const today = new Date();
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [periodKey(today)];
-  const monthStartIso = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
   const paymentsQ = useQuery({
     queryKey: ["d", "student-current-pay", studentId, periods.join(",")],
     queryFn: async () => {
-      // Canonical: has this student made any succeeded payment this month?
       const { data, error } = await supabase
-        .from("billing_payments")
-        .select("id, collected_at")
+        .from("payments")
+        .select("period")
         .eq("student_id", studentId)
-        .eq("status", "succeeded")
-        .gte("collected_at", monthStartIso);
+        .in("period", periods);
       if (error) throw error;
-      return (data ?? []).map(() => ({ period: periodKey(today) }));
+      return data ?? [];
     },
   });
 

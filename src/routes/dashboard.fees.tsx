@@ -1,562 +1,899 @@
-/**
- * Fees — Owner workflow (restored, canonical backend).
- *
- * Three tabs only: Pending · Paid · All.
- *
- * UI language: "fee", "amount", "collect", "paid". No invoice/bill/collection
- * accounting terms are surfaced to the owner.
- *
- * Backend (implementation detail, never exposed):
- *   • Pending — aggregates open `billing_invoices` (issued, partially_paid,
- *     overdue, past_due) per student. Balance = sum of open balances.
- *   • Paid   — reads succeeded `billing_payments` per student.
- *   • Collect — records a succeeded `billing_payment` allocated across the
- *     student's open invoices (oldest first) via the canonical
- *     `record_billing_payment` RPC.
- *
- * Every finance surface (Home KPIs, NevorAI, Reports) already reads from the
- * same billing tables, so numbers here match everywhere.
- */
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
-import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
+import { fetchPaymentsForPeriods, fetchStudents, qk } from "@/lib/dashboard-queries";
 import {
-  DashboardPage,
-  DashboardHeader,
-  DashboardSearch,
-  DashboardKPIRow,
-  DashboardKPICard,
-  DashboardList,
-  DashboardListRow,
-  DashboardEmptyState,
-  DashboardLoadingState,
-  DashboardErrorState,
-  DashboardBadge,
-  FilterTabs,
-} from "@/components/dashboard-ui";
+  candidatePeriods,
+  periodKey,
+  periodLabel,
+  reminderMessage,
+  studentDue,
+  tenantFeeCycle,
+  type DueStatus,
+} from "@/lib/fees";
+import { getFeatures } from "@/lib/tenant";
+import { generateReceiptPdf } from "@/lib/receipt-pdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { PersonAvatar } from "@/components/site/PersonAvatar";
+import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { FilterTabs } from "@/components/shared/FilterTabs";
+import { DashboardSearch } from "@/components/dashboard-ui";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Banknote,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  MessageCircle,
+  MoreHorizontal,
+  PartyPopper,
+  Search,
+  Smartphone,
+  UserPlus,
+} from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  formatMoney,
-  newIdempotencyKey,
-  recordPayment,
-  type PaymentMethod,
-} from "@/lib/billing";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { VirtualList } from "@/components/ds/VirtualList";
 
-// -----------------------------------------------------------------------------
-// Types + query keys
-// -----------------------------------------------------------------------------
-type OpenInvoice = {
-  id: string;
-  student_id: string;
-  balance: number;
-  total: number;
-  due_date: string | null;
-  status: string;
-  currency: string;
-  issue_date: string | null;
-};
-type StudentRow = { id: string; name: string; photo_url: string | null };
-type PaymentRow = {
-  id: string;
-  student_id: string | null;
-  amount: number;
-  method: string | null;
-  collected_at: string | null;
-  reference_number: string | null;
-  currency: string;
-};
-
-type PendingStudent = {
-  student: StudentRow;
-  balance: number;
-  oldestDueDate: string | null;
-  overdue: boolean;
-  invoiceCount: number;
-  invoices: OpenInvoice[];
-};
-
-const feesKeys = {
-  pending: (t: string) => ["fees", "pending", t] as const,
-  paid: (t: string) => ["fees", "paid", t] as const,
-};
-
-// -----------------------------------------------------------------------------
-// Data loaders
-// -----------------------------------------------------------------------------
-async function loadPending(tenantId: string): Promise<PendingStudent[]> {
-  const { data: invs, error } = await supabase
-    .from("billing_invoices")
-    .select("id, student_id, balance, total, due_date, status, currency, issue_date")
-    .eq("tenant_id", tenantId)
-    .in("status", ["issued", "partially_paid", "overdue", "past_due"])
-    .order("due_date", { ascending: true });
-  if (error) throw error;
-
-  const invoices = (invs ?? []).filter((i) => Number(i.balance ?? 0) > 0) as OpenInvoice[];
-  const studentIds = Array.from(
-    new Set(invoices.map((i) => i.student_id).filter((x): x is string => !!x)),
-  );
-  if (studentIds.length === 0) return [];
-
-  const { data: students, error: sErr } = await supabase
-    .from("students")
-    .select("id, name, photo_url")
-    .in("id", studentIds);
-  if (sErr) throw sErr;
-
-  const byId = new Map<string, StudentRow>((students ?? []).map((s) => [s.id, s as StudentRow]));
-  const today = new Date().toISOString().slice(0, 10);
-  const grouped = new Map<string, PendingStudent>();
-  for (const inv of invoices) {
-    if (!inv.student_id) continue;
-    const s = byId.get(inv.student_id);
-    if (!s) continue;
-    const bucket =
-      grouped.get(inv.student_id) ??
-      ({
-        student: s,
-        balance: 0,
-        oldestDueDate: null,
-        overdue: false,
-        invoiceCount: 0,
-        invoices: [],
-      } as PendingStudent);
-    bucket.balance += Number(inv.balance ?? 0);
-    bucket.invoiceCount += 1;
-    bucket.invoices.push(inv);
-    if (inv.due_date) {
-      if (!bucket.oldestDueDate || inv.due_date < bucket.oldestDueDate) {
-        bucket.oldestDueDate = inv.due_date;
-      }
-      if (inv.due_date < today) bucket.overdue = true;
-    }
-    grouped.set(inv.student_id, bucket);
-  }
-  return Array.from(grouped.values()).sort((a, b) => {
-    if (a.overdue !== b.overdue) return a.overdue ? -1 : 1;
-    return b.balance - a.balance;
-  });
-}
-
-async function loadPaid(tenantId: string): Promise<Array<PaymentRow & { student: StudentRow | null }>> {
-  const { data, error } = await supabase
-    .from("billing_payments")
-    .select("id, student_id, amount, method, collected_at, reference_number, currency, students(id, name, photo_url)")
-    .eq("tenant_id", tenantId)
-    .eq("status", "succeeded")
-    .order("collected_at", { ascending: false })
-    .limit(500);
-  if (error) throw error;
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    student_id: r.student_id,
-    amount: Number(r.amount ?? 0),
-    method: r.method,
-    collected_at: r.collected_at,
-    reference_number: r.reference_number,
-    currency: (r as { currency?: string }).currency ?? "INR",
-    student: (r as { students?: StudentRow | null }).students ?? null,
-  }));
-}
-
-// -----------------------------------------------------------------------------
-// Route
-// -----------------------------------------------------------------------------
 export const Route = createFileRoute("/dashboard/fees")({
-  validateSearch: (search: Record<string, unknown>): { filter?: string } => {
+  validateSearch: (search: Record<string, unknown>): { filter?: Filter } => {
     const f = search.filter;
-    return typeof f === "string" ? { filter: f } : {};
+    return f === "pending" || f === "paid" || f === "all" || f === "overdue" ? { filter: f } : {};
   },
+
   component: () => (
     <OwnerOnly>
-      <FeesPage />
+      <FeeRegister />
     </OwnerOnly>
   ),
 });
 
-type Tab = "pending" | "paid" | "all";
+type Filter = "all" | "pending" | "paid" | "overdue";
 
-function FeesPage() {
+type RegisterRow = {
+  studentId: string;
+  name: string;
+  photoUrl: string | null;
+  batchName: string | null;
+  planName: string | null;
+  playerId: string | null;
+  amount: number; // effective (custom_fee ?? plan amount)
+  planAmount: number;
+  hasCustomFee: boolean;
+  phone: string;
+  guardianName: string | null;
+  guardianPhone: string | null;
+  due: DueStatus;
+  paidPayment: PaidPayment | null;
+};
+
+type PaidPayment = {
+  id: string;
+  receipt_no: number;
+  amount: number;
+  method: string;
+  type: string;
+  period: string | null;
+  created_at: string;
+};
+
+const money = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+
+function FeeRegister() {
   const { tenant } = useDashboard();
-  const tenantId = tenant?.id ?? "";
-  const search = Route.useSearch();
-  const initialTab: Tab =
-    search.filter === "paid" ? "paid" : search.filter === "all" ? "all" : "pending";
-  const [tab, setTab] = useState<Tab>(initialTab);
-  const [q, setQ] = useState("");
-  const [collectFor, setCollectFor] = useState<PendingStudent | null>(null);
-
-  const pendingQ = useQuery({
-    queryKey: feesKeys.pending(tenantId),
-    queryFn: () => loadPending(tenantId),
-    enabled: !!tenantId,
-    staleTime: 30_000,
-  });
-  const paidQ = useQuery({
-    queryKey: feesKeys.paid(tenantId),
-    queryFn: () => loadPaid(tenantId),
-    enabled: !!tenantId,
-    staleTime: 30_000,
-  });
-
-  const totals = useMemo(() => {
-    const pending = pendingQ.data ?? [];
-    const paid = paidQ.data ?? [];
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const collectedMonth = paid
-      .filter((p) => (p.collected_at ?? "") >= monthStart)
-      .reduce((s, p) => s + p.amount, 0);
-    return {
-      pendingStudents: pending.length,
-      pendingAmount: pending.reduce((s, p) => s + p.balance, 0),
-      collectedMonth,
-    };
-  }, [pendingQ.data, paidQ.data]);
-
-  const filteredPending = useMemo(() => {
-    const rows = pendingQ.data ?? [];
-    const term = q.trim().toLowerCase();
-    if (!term) return rows;
-    return rows.filter((r) => r.student.name.toLowerCase().includes(term));
-  }, [pendingQ.data, q]);
-
-  const filteredPaid = useMemo(() => {
-    const rows = paidQ.data ?? [];
-    const term = q.trim().toLowerCase();
-    if (!term) return rows;
-    return rows.filter((r) => (r.student?.name ?? "").toLowerCase().includes(term));
-  }, [paidQ.data, q]);
-
-  return (
-    <DashboardPage>
-      <DashboardHeader
-        title="Fees"
-        subtitle="Track pending fees and record collections."
-      />
-
-      <DashboardKPIRow>
-        <DashboardKPICard
-          label="Pending"
-          value={String(totals.pendingStudents)}
-          delta={`${formatMoney(totals.pendingAmount, "INR")} due`}
-        />
-        <DashboardKPICard
-          label="Collected this month"
-          value={formatMoney(totals.collectedMonth, "INR")}
-        />
-        <DashboardKPICard
-          label="Payments recorded"
-          value={String((paidQ.data ?? []).length)}
-        />
-      </DashboardKPIRow>
-
-      <FilterTabs
-        value={tab}
-        onChange={(v) => setTab(v as Tab)}
-        items={[
-          { key: "pending", label: "Pending", count: totals.pendingStudents || undefined },
-          { key: "paid", label: "Paid" },
-          { key: "all", label: "All" },
-        ]}
-
-      />
-
-      <DashboardSearch
-        value={q}
-        onChange={setQ}
-        placeholder="Search by student name"
-      />
-
-      {tab === "pending" && (
-        <PendingList
-          data={filteredPending}
-          isLoading={pendingQ.isLoading}
-          error={pendingQ.error}
-          onCollect={setCollectFor}
-        />
-      )}
-      {tab === "paid" && (
-        <PaidList data={filteredPaid} isLoading={paidQ.isLoading} error={paidQ.error} />
-      )}
-      {tab === "all" && (
-        <div className="space-y-4">
-          <PendingList
-            data={filteredPending}
-            isLoading={pendingQ.isLoading}
-            error={pendingQ.error}
-            onCollect={setCollectFor}
-          />
-          <PaidList data={filteredPaid} isLoading={paidQ.isLoading} error={paidQ.error} />
-        </div>
-      )}
-
-      <CollectDialog
-        entry={collectFor}
-        tenantId={tenantId}
-        onClose={() => setCollectFor(null)}
-      />
-    </DashboardPage>
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Lists
-// -----------------------------------------------------------------------------
-function PendingList({
-  data,
-  isLoading,
-  error,
-  onCollect,
-}: {
-  data: PendingStudent[];
-  isLoading: boolean;
-  error: unknown;
-  onCollect: (s: PendingStudent) => void;
-}) {
-  if (isLoading) return <DashboardLoadingState />;
-  if (error) return <DashboardErrorState title="Could not load pending fees." />;
-  if (data.length === 0) {
-    return (
-      <DashboardEmptyState
-        title="Nothing pending"
-        description="Every active student is up to date on fees."
-      />
-    );
-  }
-  return (
-    <DashboardList>
-      {data.map((row) => (
-        <DashboardListRow
-          key={row.student.id}
-          title={<span className="font-medium">{row.student.name}</span>}
-          subtitle={
-            row.oldestDueDate ? (
-              <span>
-                Due {formatDate(row.oldestDueDate)}
-                {row.invoiceCount > 1 ? ` · ${row.invoiceCount} periods` : ""}
-              </span>
-            ) : row.invoiceCount > 1 ? (
-              <span>{row.invoiceCount} periods pending</span>
-            ) : null
-          }
-          status={
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">{formatMoney(row.balance, "INR")}</span>
-              {row.overdue ? <DashboardBadge tone="danger">Overdue</DashboardBadge> : null}
-            </div>
-          }
-          action={
-            <Button size="sm" onClick={() => onCollect(row)}>
-              Collect
-            </Button>
-          }
-        />
-      ))}
-    </DashboardList>
-  );
-}
-
-function PaidList({
-  data,
-  isLoading,
-  error,
-}: {
-  data: Array<PaymentRow & { student: StudentRow | null }>;
-  isLoading: boolean;
-  error: unknown;
-}) {
-  if (isLoading) return <DashboardLoadingState />;
-  if (error) return <DashboardErrorState title="Could not load payments." />;
-  if (data.length === 0) {
-    return (
-      <DashboardEmptyState
-        title="No payments yet"
-        description="Recorded payments will appear here."
-      />
-    );
-  }
-  return (
-    <DashboardList>
-      {data.map((p) => (
-        <DashboardListRow
-          key={p.id}
-          title={<span className="font-medium">{p.student?.name ?? "Unknown"}</span>}
-          subtitle={
-            <span>
-              {p.collected_at ? formatDate(p.collected_at) : ""}
-              {p.method ? ` · ${p.method}` : ""}
-            </span>
-          }
-          status={<span className="font-semibold">{formatMoney(p.amount, p.currency)}</span>}
-        />
-      ))}
-    </DashboardList>
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Collect dialog — records a canonical billing_payment.
-// -----------------------------------------------------------------------------
-function CollectDialog({
-  entry,
-  tenantId,
-  onClose,
-}: {
-  entry: PendingStudent | null;
-  tenantId: string;
-  onClose: () => void;
-}) {
   const qc = useQueryClient();
-  const [amount, setAmount] = useState<string>("");
-  const [method, setMethod] = useState<PaymentMethod>("cash");
-  const [reference, setReference] = useState("");
+  const cycle = tenantFeeCycle(tenant);
+  const features = getFeatures(tenant);
+  const today = new Date();
 
-  const open = !!entry;
+  const [monthOffset, setMonthOffset] = useState(0);
+  const selectedMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+  const selectedPeriod = periodKey(selectedMonth);
+  const periods = cycle === "joining_date" ? candidatePeriods(today) : [selectedPeriod];
 
-  // Sync default amount when opening for a new student.
-  useMemo(() => {
-    if (entry) {
-      setAmount(String(entry.balance));
-      setMethod("cash");
-      setReference("");
-    }
-  }, [entry?.student.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const initialFilter = Route.useSearch().filter ?? "pending";
+  const [filter, setFilter] = useState<Filter>(initialFilter);
+  const [search, setSearch] = useState("");
+  const [payRow, setPayRow] = useState<RegisterRow | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
+  useEffect(() => {
+    setFilter(initialFilter);
+  }, [initialFilter]);
 
-  const m = useMutation({
-    mutationFn: async () => {
-      if (!entry) throw new Error("no entry");
-      const amt = Number(amount);
-      if (!Number.isFinite(amt) || amt <= 0) throw new Error("Enter a valid amount.");
-      // Allocate against open invoices oldest-first until amount is exhausted.
-      const sorted = [...entry.invoices].sort((a, b) =>
-        (a.due_date ?? a.issue_date ?? "").localeCompare(b.due_date ?? b.issue_date ?? ""),
-      );
-      let remaining = amt;
-      const allocations: Array<{ invoice_id: string; amount: number }> = [];
-      for (const inv of sorted) {
-        if (remaining <= 0) break;
-        const take = Math.min(remaining, Number(inv.balance ?? 0));
-        if (take > 0) {
-          allocations.push({ invoice_id: inv.id, amount: take });
-          remaining -= take;
-        }
-      }
-      if (allocations.length === 0) throw new Error("Nothing to collect.");
-      return recordPayment({
-        tenant_id: tenantId,
-        student_id: entry.student.id,
-        amount: amt,
-        method,
-        allocations,
-        reference_number: reference || undefined,
-        idempotency_key: newIdempotencyKey(),
-      });
-    },
-    onSuccess: () => {
-      toast.success("Payment recorded");
-      qc.invalidateQueries({ queryKey: feesKeys.pending(tenantId) });
-      qc.invalidateQueries({ queryKey: feesKeys.paid(tenantId) });
-      qc.invalidateQueries({ queryKey: ["d", "kpis"] });
-      qc.invalidateQueries({ queryKey: ["billing"] });
-      onClose();
-    },
-    onError: (e: unknown) => {
-      const msg = e instanceof Error ? e.message : "Could not record payment.";
-      toast.error(msg);
-    },
+  const studentsQ = useQuery({
+    queryKey: qk.students(tenant.id),
+    queryFn: () => fetchStudents(tenant.id),
+  });
+  const paymentsQ = useQuery({
+    queryKey: qk.feeRegister(tenant.id, periods.join(",")),
+    queryFn: () => fetchPaymentsForPeriods(tenant.id, periods),
   });
 
+  // Instant profile open — seed the detail query cache from the roster list.
+  const openProfile = (studentId: string) => {
+    const s = (studentsQ.data ?? []).find((x: any) => x.id === studentId);
+    if (s) qc.setQueryData(qk.student(studentId), s);
+    setProfileId(studentId);
+  };
+
+  const rows: RegisterRow[] = useMemo(() => {
+    const paidByStudent = new Map<string, Set<string>>();
+    const paymentByStudentPeriod = new Map<string, PaidPayment>();
+    for (const p of paymentsQ.data ?? []) {
+      if (!p.student_id || !p.period) continue;
+      const set = paidByStudent.get(p.student_id) ?? new Set<string>();
+      set.add(p.period);
+      paidByStudent.set(p.student_id, set);
+      paymentByStudentPeriod.set(`${p.student_id}:${p.period}`, p as PaidPayment);
+    }
+
+    return (studentsQ.data ?? [])
+      .filter((s: any) => s.status === "active" && s.fee_plans?.type === "monthly")
+      .map((s: any): RegisterRow => {
+        const due = studentDue({
+          cycle,
+          joinedAt: s.joined_at,
+          selectedMonth,
+          paidPeriods: paidByStudent.get(s.id) ?? new Set(),
+          today,
+        });
+        const paidPayment =
+          due.state === "paid"
+            ? (paymentByStudentPeriod.get(`${s.id}:${due.period}`) ?? null)
+            : null;
+        const planAmount = Number(s.fee_plans?.amount ?? 0);
+        const custom = s.custom_fee == null ? null : Number(s.custom_fee);
+        const amount = custom != null && !Number.isNaN(custom) ? custom : planAmount;
+        return {
+          studentId: s.id,
+          name: s.name,
+          photoUrl: s.photo_url ?? null,
+          batchName: s.batches?.name ?? null,
+          planName: s.fee_plans?.name ?? null,
+          playerId: s.player_id ?? null,
+
+          amount,
+          planAmount,
+          hasCustomFee: custom != null,
+          phone: s.phone,
+          guardianName: s.guardian_name,
+          guardianPhone: s.guardian_phone,
+          due,
+          paidPayment,
+        };
+      })
+      .filter((r) => r.due.state !== "not_due")
+      .sort((a, b) => {
+        const ap = a.due.state === "pending" ? 0 : 1;
+        const bp = b.due.state === "pending" ? 0 : 1;
+        if (ap !== bp) return ap - bp;
+        if (a.due.state === "pending" && b.due.state === "pending")
+          return b.due.overdueDays - a.due.overdueDays;
+        return a.name.localeCompare(b.name);
+      });
+  }, [studentsQ.data, paymentsQ.data, cycle, selectedPeriod]);
+
+  const pendingRows = rows.filter((r) => r.due.state === "pending");
+  const paidRows = rows.filter((r) => r.due.state === "paid");
+  const overdueRows = pendingRows.filter((r) => r.due.state === "pending" && r.due.overdueDays > 0);
+  const collectedAmount = paidRows.reduce(
+    (s, r) => s + Number(r.paidPayment?.amount ?? r.amount),
+    0,
+  );
+  const pendingAmount = pendingRows.reduce((s, r) => s + r.amount, 0);
+  const expectedAmount = collectedAmount + pendingAmount;
+  const collectionPct =
+    expectedAmount > 0 ? Math.round((collectedAmount / expectedAmount) * 100) : 0;
+
+  const byFilter =
+    filter === "pending"
+      ? pendingRows
+      : filter === "paid"
+        ? paidRows
+        : filter === "overdue"
+          ? overdueRows
+          : rows;
+
+  const q = search.trim().toLowerCase();
+  const visible = q
+    ? byFilter.filter((r) => {
+        const digits = q.replace(/\D/g, "");
+        return (
+          r.name.toLowerCase().includes(q) ||
+          (r.playerId ?? "").toLowerCase().includes(q) ||
+          (digits.length >= 3 &&
+            ((r.phone ?? "").replace(/\D/g, "").includes(digits) ||
+              (r.guardianPhone ?? "").replace(/\D/g, "").includes(digits)))
+        );
+      })
+    : byFilter;
+  const loading = studentsQ.isLoading || paymentsQ.isLoading;
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["d", "fees"] });
+    qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Collect fee</DialogTitle>
-        </DialogHeader>
-        {entry ? (
-          <div className="space-y-3">
-            <div className="rounded-xl bg-muted/40 p-3 text-sm">
-              <div className="font-medium">{entry.student.name}</div>
-              <div className="text-muted-foreground">
-                Pending {formatMoney(entry.balance, "INR")}
-                {entry.oldestDueDate ? ` · due ${formatDate(entry.oldestDueDate)}` : ""}
+    <div className="-mt-4 md:-mt-8 space-y-3">
+      {/* Header — uniform across dashboard tabs */}
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 pt-2 pb-1">
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">
+            Student Fees
+          </h1>
+          <p className="text-[11px] text-muted-foreground leading-tight truncate">
+            Who's paid, who's pending — collect in one tap.
+          </p>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          {cycle === "calendar_month" && (
+            <div className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-8 w-8"
+                aria-label="Previous month"
+                onClick={() => setMonthOffset((m) => m - 1)}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <div className="text-xs font-semibold w-20 text-center tabular-nums">
+                {format(selectedMonth, "MMM yyyy")}
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-8 w-8"
+                aria-label="Next month"
+                disabled={monthOffset >= 0}
+                onClick={() => setMonthOffset((m) => Math.min(0, m + 1))}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
             </div>
-            <div className="space-y-1">
-              <Label>Amount</Label>
-              <Input
-                inputMode="decimal"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label>Method</Label>
-              <Select value={method} onValueChange={(v) => setMethod(v as PaymentMethod)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="upi">UPI</SelectItem>
-                  <SelectItem value="bank_transfer">Bank transfer</SelectItem>
-                  <SelectItem value="card">Card</SelectItem>
-                  <SelectItem value="cheque">Cheque</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label>Reference (optional)</Label>
-              <Input
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-                placeholder="UTR / cheque no. / receipt"
-              />
-            </div>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full h-9 w-9 bg-card border border-border shadow-sm"
+                aria-label="More actions"
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/fee-plans">Manage Fee Plans</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/students">Assign to Students</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/reminders">Send Reminders</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard/reports">Reports &amp; Exports</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </header>
+
+      {/* Compact KPI strip */}
+      <KpiStrip
+        pending={pendingAmount}
+        collected={collectedAmount}
+        overdueCount={overdueRows.length}
+        pct={collectionPct}
+      />
+
+      {/* Sticky search + chip filters */}
+      <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 space-y-2">
+        <DashboardSearch
+          value={search}
+          onChange={setSearch}
+          placeholder="Search name, player ID or mobile"
+        />
+        <ChipFilters
+          value={filter}
+          onChange={setFilter}
+          counts={{
+            all: rows.length,
+            pending: pendingRows.length,
+            paid: paidRows.length,
+            overdue: overdueRows.length,
+          }}
+        />
+      </div>
+
+      <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
+        {loading ? (
+          <SkeletonList />
+        ) : visible.length === 0 ? (
+          <EmptyState
+            filter={filter}
+            monthLabel={format(selectedMonth, "MMMM")}
+            searching={q.length > 0}
+            hasStudents={rows.length > 0}
+          />
+        ) : (
+          <VirtualList
+            items={visible}
+            estimateSize={84}
+            overscan={8}
+            className="max-h-[calc(100vh-260px)] min-h-[400px]"
+            getKey={(r) => r.studentId}
+            renderItem={(r) => (
+              <div className="border-b border-border">
+                <FeeRow
+                  row={r}
+                  tenantName={tenant.name}
+                  whatsappEnabled={features.whatsapp_reminders !== false}
+                  onOpenProfile={() => openProfile(r.studentId)}
+                  onCollect={() => setPayRow(r)}
+                  onReceipt={() => {
+                    if (!r.paidPayment) return;
+                    generateReceiptPdf(tenant, {
+                      receiptNo: r.paidPayment.receipt_no,
+                      studentName: r.name,
+                      amount: Number(r.paidPayment.amount),
+                      type: r.paidPayment.type,
+                      period: r.paidPayment.period,
+                      method: r.paidPayment.method,
+                      paidAt: r.paidPayment.created_at,
+                    });
+                  }}
+                />
+              </div>
+            )}
+          />
+        )}
+      </section>
+
+      <CollectFlow
+        row={payRow}
+        tenantId={tenant.id}
+        onClose={() => setPayRow(null)}
+        onDone={() => {
+          setPayRow(null);
+          invalidate();
+        }}
+      />
+
+      <FeesProfileSheet id={profileId} onOpenChange={(o) => !o && setProfileId(null)} />
+    </div>
+  );
+}
+
+function FeesProfileSheet({
+  id,
+  onOpenChange,
+}: {
+  id: string | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const isMobile = useIsMobile();
+  const open = !!id;
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl p-0 border-0 max-h-[92vh] overflow-y-auto"
+        >
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
+          <div className="p-5 pt-3">
+            <SheetHeader>
+              <SheetTitle className="sr-only">Student profile</SheetTitle>
+            </SheetHeader>
+            {id && <StudentProfilePanel studentId={id} compact />}
           </div>
-        ) : null}
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={m.isPending}>
-            Cancel
-          </Button>
-          <Button onClick={() => m.mutate()} disabled={m.isPending || !entry}>
-            {m.isPending ? "Saving…" : "Record payment"}
-          </Button>
-        </DialogFooter>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="sr-only">Student profile</DialogTitle>
+        </DialogHeader>
+        {id && <StudentProfilePanel studentId={id} />}
       </DialogContent>
     </Dialog>
   );
 }
 
-// -----------------------------------------------------------------------------
-// Utils
-// -----------------------------------------------------------------------------
-function formatDate(iso: string): string {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
-  } catch {
-    return iso;
+/* ---------- Compact KPI strip ---------- */
+
+function KpiStrip({
+  pending,
+  collected,
+  overdueCount,
+  pct,
+}: {
+  pending: number;
+  collected: number;
+  overdueCount: number;
+  pct: number;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-card shadow-sm px-3 py-2">
+      <div className="grid grid-cols-4 gap-2 text-center">
+        <KpiCell label="Pending" value={money(pending)} tone="danger" />
+        <KpiCell label="Collected" value={money(collected)} tone="success" />
+        <KpiCell label="Overdue" value={String(overdueCount)} tone="danger" />
+        <KpiCell label="Collection" value={`${pct}%`} tone="neutral" />
+      </div>
+      <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
+        <div
+          className="h-full rounded-full bg-foreground transition-all"
+          style={{ width: `${Math.min(100, pct)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function KpiCell({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "danger" | "success" | "neutral";
+}) {
+  const color =
+    tone === "danger"
+      ? "text-rose-600"
+      : tone === "success"
+        ? "text-emerald-600"
+        : "text-foreground";
+  return (
+    <div className="min-w-0">
+      <div className={cn("text-sm font-bold tabular-nums truncate", color)}>{value}</div>
+      <div className="text-[10px] uppercase tracking-wide text-muted-foreground leading-tight">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Chip filters ---------- */
+
+function ChipFilters({
+  value,
+  onChange,
+  counts,
+}: {
+  value: Filter;
+  onChange: (v: Filter) => void;
+  counts: { all: number; pending: number; paid: number; overdue: number };
+}) {
+  return (
+    <FilterTabs<Filter>
+      value={value}
+      onChange={onChange}
+      items={[
+        { key: "pending", label: "Pending", count: counts.pending },
+        { key: "paid", label: "Paid", count: counts.paid },
+        { key: "all", label: "All", count: counts.all },
+      ]}
+      ariaLabel="Fee status"
+    />
+  );
+}
+
+/* ---------- Row ---------- */
+
+function FeeRow({
+  row,
+  tenantName,
+  whatsappEnabled,
+  onOpenProfile,
+  onCollect,
+  onReceipt,
+}: {
+  row: RegisterRow;
+  tenantName: string;
+  whatsappEnabled: boolean;
+  onOpenProfile: () => void;
+  onCollect: () => void;
+  onReceipt: () => void;
+}) {
+  const due = row.due;
+  const remindPhone = (row.guardianPhone || row.phone || "").replace(/\D/g, "");
+  const isPending = due.state === "pending";
+  const isOverdue = isPending && due.overdueDays > 0;
+
+  const secondaryLine = isPending
+    ? isOverdue
+      ? `Overdue · ${due.overdueDays} ${due.overdueDays === 1 ? "day" : "days"}`
+      : `Pending · ${periodLabel(due.period)}`
+    : "Paid";
+  const secondaryClass = isPending
+    ? isOverdue
+      ? "text-rose-600 dark:text-rose-400"
+      : "text-amber-600 dark:text-amber-400"
+    : "text-emerald-600 dark:text-emerald-400";
+
+  return (
+    <li className="p-3 md:px-5 md:py-3 hover:bg-accent/60 transition-colors">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onOpenProfile}
+          className="flex items-center gap-3 min-w-0 flex-1 text-left"
+          title={row.name}
+        >
+          <div className="relative shrink-0">
+            <PersonAvatar name={row.name} src={row.photoUrl} className="h-10 w-10" />
+            {isOverdue && (
+              <span
+                className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-card bg-rose-500"
+                title={`Overdue ${due.overdueDays}d`}
+              />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="font-semibold text-[15px] truncate">{row.name}</div>
+            <div className={cn("text-[11px] truncate leading-tight font-medium", secondaryClass)}>
+              {secondaryLine}
+            </div>
+          </div>
+        </button>
+
+        <div className="text-right shrink-0">
+          <div className="font-bold tabular-nums text-[15px]">{money(row.amount)}</div>
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0">
+          {isPending ? (
+            <>
+              {whatsappEnabled && remindPhone && (
+                <Button
+                  asChild
+                  size="icon"
+                  variant="ghost"
+                  className="rounded-full h-9 w-9 text-[#25D366] hover:bg-[#25D366]/10 hidden sm:inline-flex"
+                  aria-label="Remind on WhatsApp"
+                >
+                  <a
+                    href={`https://wa.me/${remindPhone}?text=${encodeURIComponent(
+                      reminderMessage({
+                        tenantName,
+                        studentName: row.name,
+                        guardianName: row.guardianName,
+                        amount: row.amount,
+                        period: due.period,
+                      }),
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <MessageCircle className="size-5" />
+                  </a>
+                </Button>
+              )}
+              <Button
+                onClick={onCollect}
+                className="rounded-full h-9 px-4 font-semibold text-sm"
+                style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
+              >
+                Collect
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="rounded-full h-9 w-9"
+              aria-label="Download receipt"
+              onClick={onReceipt}
+            >
+              <Download className="size-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+/* ---------- Empty / loading ---------- */
+
+function SkeletonList() {
+  return (
+    <ul className="divide-y divide-border">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <li key={i} className="p-4 md:px-5 md:py-4">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="hidden md:block w-6" />
+            <div className="h-11 w-11 rounded-full bg-muted animate-pulse" />
+            <div className="flex-1 space-y-2">
+              <div className="h-3.5 w-40 rounded bg-muted animate-pulse" />
+              <div className="h-3 w-24 rounded bg-muted animate-pulse" />
+            </div>
+            <div className="h-5 w-16 rounded bg-muted animate-pulse" />
+            <div className="h-10 w-24 rounded-full bg-muted animate-pulse" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function EmptyState({
+  filter,
+  monthLabel,
+  searching,
+  hasStudents,
+}: {
+  filter: Filter;
+  monthLabel: string;
+  searching: boolean;
+  hasStudents: boolean;
+}) {
+  if (searching) {
+    return (
+      <div className="p-10 text-center text-sm text-muted-foreground">
+        No students match your search.
+      </div>
+    );
   }
+  if (!hasStudents) {
+    return (
+      <div className="p-10 text-center">
+        <div
+          className="mx-auto h-14 w-14 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, white)" }}
+        >
+          <UserPlus className="size-7" style={{ color: "var(--brand)" }} />
+        </div>
+        <div className="mt-3 font-semibold text-lg">No students with a monthly plan</div>
+        <div className="text-sm text-muted-foreground mt-1 mb-4">
+          Add students or assign a fee plan to start collecting.
+        </div>
+        <div className="flex items-center justify-center gap-2">
+          <Button asChild variant="outline" className="rounded-full">
+            <Link to="/dashboard/students">Add Student</Link>
+          </Button>
+          <Button
+            asChild
+            className="rounded-full"
+            style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
+          >
+            <Link to="/dashboard/fee-plans">Assign Fee Plan</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  if (filter === "pending" || filter === "overdue") {
+    return (
+      <div className="p-10 text-center">
+        <div
+          className="mx-auto h-14 w-14 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, white)" }}
+        >
+          <PartyPopper className="size-7" style={{ color: "var(--brand)" }} />
+        </div>
+        <div className="mt-3 font-semibold text-lg">
+          {filter === "overdue" ? "Nothing overdue" : `All fees collected for ${monthLabel}`}
+        </div>
+        <div className="text-sm text-muted-foreground mt-1">Nothing to chase right now 🎉</div>
+      </div>
+    );
+  }
+  return <div className="p-10 text-center text-sm text-muted-foreground">Nothing here yet.</div>;
+}
+
+/* ---------- Collect flow (responsive: bottom-sheet on mobile, modal on desktop) ---------- */
+
+function CollectFlow({
+  row,
+  tenantId,
+  onClose,
+  onDone,
+}: {
+  row: RegisterRow | null;
+  tenantId: string;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const isMobile = useIsMobile();
+  const open = !!row;
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-2xl p-0 border-0 max-h-[92vh] overflow-y-auto"
+        >
+          <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-muted" />
+          <div className="p-5 pt-4">
+            <SheetHeader>
+              <SheetTitle>{row ? `Collect fee — ${row.name}` : "Collect fee"}</SheetTitle>
+            </SheetHeader>
+            {row && <CollectForm row={row} tenantId={tenantId} onDone={onDone} />}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>{row ? `Collect fee — ${row.name}` : "Collect fee"}</DialogTitle>
+        </DialogHeader>
+        {row && <CollectForm row={row} tenantId={tenantId} onDone={onDone} />}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CollectForm({
+  row,
+  tenantId,
+  onDone,
+}: {
+  row: RegisterRow;
+  tenantId: string;
+  onDone: () => void;
+}) {
+  const due = row.due;
+  const period = due.state === "pending" ? due.period : periodKey(new Date());
+  const [amount, setAmount] = useState(String(row.amount || ""));
+  const [method, setMethod] = useState<"cash" | "upi" | null>(null);
+  const [note, setNote] = useState("");
+
+  const save = useMutation({
+    mutationFn: async () => {
+      if (!method) throw new Error("Choose a payment method");
+      const { error } = await supabase.from("payments").insert({
+        tenant_id: tenantId,
+        student_id: row.studentId,
+        amount: Number(amount),
+        type: "monthly",
+        period,
+        method,
+        note: note || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(`${row.name} marked paid ✓`);
+      onDone();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const numeric = Number(amount);
+  const disabled = save.isPending || !numeric || numeric <= 0 || !method;
+
+  return (
+    <div className="space-y-5 pt-2">
+      <div className="text-xs text-muted-foreground">
+        Period: <span className="font-medium text-foreground">{periodLabel(period)}</span>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-sm">Amount</Label>
+        <div className="relative">
+          <span className="absolute inset-y-0 left-4 flex items-center text-lg font-semibold text-muted-foreground">
+            ₹
+          </span>
+          <Input
+            type="number"
+            inputMode="numeric"
+            className="text-2xl font-bold h-14 pl-9 rounded-xl"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Fee is {money(row.amount)}
+          {row.hasCustomFee ? " (custom for this student)" : ""}. Edit for partial or discounted
+          amounts.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-sm">Payment method</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <MethodButton
+            label="Cash"
+            icon={<Banknote className="size-5" />}
+            active={method === "cash"}
+            onClick={() => setMethod("cash")}
+          />
+          <MethodButton
+            label="UPI"
+            icon={<Smartphone className="size-5" />}
+            active={method === "upi"}
+            onClick={() => setMethod("upi")}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-sm text-muted-foreground">Note (optional)</Label>
+        <Input
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="e.g. paid half, rest next week"
+          className="h-11 rounded-xl"
+        />
+      </div>
+
+      <Button
+        onClick={() => save.mutate()}
+        disabled={disabled}
+        className="w-full h-14 text-base font-semibold rounded-xl"
+        style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
+      >
+        {save.isPending ? "Saving…" : "Confirm payment"}
+      </Button>
+    </div>
+  );
+}
+
+function MethodButton({
+  label,
+  icon,
+  active,
+  onClick,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "h-16 rounded-xl border-2 flex items-center justify-center gap-2 text-base font-semibold transition-all",
+        active
+          ? "shadow-sm text-background"
+          : "bg-card text-foreground border-border hover:border-foreground/30",
+      )}
+      style={
+        active
+          ? {
+              backgroundColor: "var(--brand)",
+              borderColor: "var(--brand)",
+              color: "var(--brand-ink)",
+            }
+          : undefined
+      }
+    >
+      {icon}
+      {label}
+    </button>
+  );
 }

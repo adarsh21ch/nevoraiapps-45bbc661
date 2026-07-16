@@ -133,13 +133,39 @@ export async function computeOwnerSummary(
   const startDate = startIso.slice(0, 10);
   const endDate = endIso.slice(0, 10);
 
-  // ---------- Attendance (canonical helpers — Phase 13.4) ----------
-  const { countAttendanceByStatus } = await import("@/lib/attendance/queries");
+  // ---------- Attendance ----------
   const [present, absent, lateIn, lateOut, newAdmissions, newLeads] = await Promise.all([
-    countAttendanceByStatus(supabaseAdmin, tenantId, "present", startIso, endIso),
-    countAttendanceByStatus(supabaseAdmin, tenantId, "absent", startIso, endIso),
-    countAttendanceByStatus(supabaseAdmin, tenantId, "late", startIso, endIso),
+    (async () => {
+      const { count } = await supabaseAdmin
+        .from("attendance_marks")
+        .select("*", { count: "exact", head: true })
+        .eq("tenant_id", tenantId)
+        .eq("status", "present")
+        .gte("check_in_at", startIso)
+        .lte("check_in_at", endIso);
+      return count ?? 0;
+    })(),
 
+    (async () => {
+      const { count } = await supabaseAdmin
+        .from("attendance_marks")
+        .select("*", { count: "exact", head: true })
+        .eq("tenant_id", tenantId)
+        .eq("status", "absent")
+        .gte("created_at", startIso)
+        .lte("created_at", endIso);
+      return count ?? 0;
+    })(),
+    (async () => {
+      const { count } = await supabaseAdmin
+        .from("attendance_marks")
+        .select("*", { count: "exact", head: true })
+        .eq("tenant_id", tenantId)
+        .eq("status", "late")
+        .gte("check_in_at", startIso)
+        .lte("check_in_at", endIso);
+      return count ?? 0;
+    })(),
     (async () => {
       // No dedicated late-checkout status; count check_outs after 20:00 as a proxy.
       const { data } = await supabaseAdmin

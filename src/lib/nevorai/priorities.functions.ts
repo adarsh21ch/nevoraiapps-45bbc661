@@ -30,7 +30,6 @@ export const getPriorities = createServerFn({ method: "GET" })
     const todayISO = now.toISOString();
     const in7 = new Date(now.getTime() + 7 * 86400_000).toISOString();
 
-    const { countAbsentToday } = await import("@/lib/attendance/queries");
     const [overdueInv, pendingReg, autoFail, subsExp, absentToday] = await Promise.all([
       context.supabase
         .from("billing_invoices")
@@ -55,10 +54,13 @@ export const getPriorities = createServerFn({ method: "GET" })
         .eq("status", "active")
         .lte("next_billing_at", in7)
         .gte("next_billing_at", todayISO),
-      // Canonical absent-today count — same helper as owner summary/trends.
-      countAbsentToday(context.supabase, tenantId, now),
+      context.supabase
+        .from("attendance_marks")
+        .select("id", { count: "exact", head: true })
+        .eq("tenant_id", tenantId)
+        .eq("status", "absent")
+        .gte("created_at", new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()),
     ]);
-
 
     const priorities: Priority[] = [];
 
@@ -110,7 +112,7 @@ export const getPriorities = createServerFn({ method: "GET" })
       });
     }
 
-    const absent = absentToday;
+    const absent = absentToday.count ?? 0;
     if (absent >= 5) {
       priorities.push({
         id: "attendance-anomaly",

@@ -172,11 +172,7 @@ function DashboardHome() {
 
   const insights = insightsQ.data;
   const kpis = kpisQ.data;
-  // Canonical finance numbers — same source (`fetchBillingKpis`) that
-  // NevorAI's `finance_summary` tool, the Daily Brief and Reports consume.
-  // Home MUST never contradict AI.
-  const overdueInvoices = kpis?.overdueInvoices ?? 0;
-  const outstandingAmount = kpis?.outstandingAmount ?? 0;
+  const pendingFees = kpis?.pendingFeeCount ?? 0;
   const collectedMonth = kpis?.collectionThisMonth ?? 0;
   const attendanceLoading = attendanceQ.isLoading || batchesQ.isLoading || studentsQ.isLoading;
 
@@ -219,18 +215,12 @@ function DashboardHome() {
             <KpiTile
               to="/dashboard/fees"
               search={{ filter: "pending" }}
-              label="Overdue Fees"
-              value={kpisQ.isLoading ? null : overdueInvoices}
-              hint={
-                overdueInvoices > 0
-                  ? outstandingAmount > 0
-                    ? `₹${outstandingAmount.toLocaleString("en-IN")} outstanding`
-                    : "Follow up"
-                  : "All caught up"
-              }
+              label="Pending Fees"
+              value={kpisQ.isLoading ? null : pendingFees}
+              hint={pendingFees > 0 ? "Follow up" : "All caught up"}
               icon={<IndianRupee className="size-4" />}
-              tone={overdueInvoices > 0 ? "warn" : "muted"}
-              emphasize={overdueInvoices > 0}
+              tone={pendingFees > 0 ? "warn" : "muted"}
+              emphasize={pendingFees > 0}
             />
           ) : (
             <KpiTile
@@ -297,7 +287,7 @@ function DashboardHome() {
         <SectionLabel>Next actions</SectionLabel>
         <NextActions
           notArrived={notArrived}
-          pendingFees={canViewFees && feeEnabled ? overdueInvoices : 0}
+          pendingFees={canViewFees && feeEnabled ? pendingFees : 0}
           newRegs={newRegs}
           birthdaysToday={(insights?.birthdays ?? []).filter((b) => b.daysAway === 0).length}
           isLoading={attendanceLoading || insightsQ.isLoading || kpisQ.isLoading}
