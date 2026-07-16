@@ -71,22 +71,20 @@ function SiteEditor() {
         </div>
       </Card>
 
-      <Tabs defaultValue="site">
-        <TabsList className="w-full flex-wrap h-auto">
-          <TabsTrigger value="site">Site content</TabsTrigger>
-          <TabsTrigger value="policies">Policies</TabsTrigger>
-          <TabsTrigger value="contact">Contact & UPI</TabsTrigger>
-        </TabsList>
-        <TabsContent value="site" className="pt-4">
-          <SiteContentTabs tenantId={tenant.id} />
-        </TabsContent>
-        <TabsContent value="policies" className="pt-4">
-          <PoliciesEditor tenantId={tenant.id} />
-        </TabsContent>
-        <TabsContent value="contact" className="pt-4">
-          <ContactEditor />
-        </TabsContent>
-      </Tabs>
+      <FilterTabs<"site" | "policies" | "contact">
+        value={tab}
+        onChange={setTab}
+        items={[
+          { key: "site", label: "Site content" },
+          { key: "policies", label: "Policies" },
+          { key: "contact", label: "Contact & UPI" },
+        ]}
+      />
+      <div className="pt-4">
+        {tab === "site" && <SiteContentTabs tenantId={tenant.id} />}
+        {tab === "policies" && <PoliciesEditor tenantId={tenant.id} />}
+        {tab === "contact" && <ContactEditor />}
+      </div>
     </div>
   );
 }
