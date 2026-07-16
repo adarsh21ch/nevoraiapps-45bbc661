@@ -67,9 +67,8 @@ function NevorAIPage() {
   return (
     <div className="mx-auto w-full max-w-[1400px] px-4 py-6">
       <ModuleHeader
-        icon={Sparkles}
+        overline="AI Operating System"
         title="NevorAI"
-        description="Your AI Academy Manager"
       />
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[260px_minmax(0,1fr)_320px]">

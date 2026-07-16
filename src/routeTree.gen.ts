@@ -101,6 +101,7 @@ import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile
 import { Route as DashboardPaymentVerificationRouteImport } from './routes/dashboard.payment-verification'
 import { Route as DashboardPaymentSettingsRouteImport } from './routes/dashboard.payment-settings'
 import { Route as DashboardNotificationsRouteImport } from './routes/dashboard.notifications'
+import { Route as DashboardNevoraiRouteImport } from './routes/dashboard.nevorai'
 import { Route as DashboardLeadsRouteImport } from './routes/dashboard.leads'
 import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
 import { Route as DashboardFeesRouteImport } from './routes/dashboard.fees'
@@ -611,6 +612,11 @@ const DashboardNotificationsRoute = DashboardNotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardNevoraiRoute = DashboardNevoraiRouteImport.update({
+  id: '/nevorai',
+  path: '/nevorai',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardLeadsRoute = DashboardLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -902,6 +908,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/nevorai': typeof DashboardNevoraiRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
@@ -1035,6 +1042,7 @@ export interface FileRoutesByTo {
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/nevorai': typeof DashboardNevoraiRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
@@ -1174,6 +1182,7 @@ export interface FileRoutesById {
   '/dashboard/fees': typeof DashboardFeesRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/leads': typeof DashboardLeadsRoute
+  '/dashboard/nevorai': typeof DashboardNevoraiRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/payment-settings': typeof DashboardPaymentSettingsRoute
   '/dashboard/payment-verification': typeof DashboardPaymentVerificationRoute
@@ -1314,6 +1323,7 @@ export interface FileRouteTypes {
     | '/dashboard/fees'
     | '/dashboard/insights'
     | '/dashboard/leads'
+    | '/dashboard/nevorai'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
     | '/dashboard/payment-verification'
@@ -1447,6 +1457,7 @@ export interface FileRouteTypes {
     | '/dashboard/fees'
     | '/dashboard/insights'
     | '/dashboard/leads'
+    | '/dashboard/nevorai'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
     | '/dashboard/payment-verification'
@@ -1585,6 +1596,7 @@ export interface FileRouteTypes {
     | '/dashboard/fees'
     | '/dashboard/insights'
     | '/dashboard/leads'
+    | '/dashboard/nevorai'
     | '/dashboard/notifications'
     | '/dashboard/payment-settings'
     | '/dashboard/payment-verification'
@@ -2368,6 +2380,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardNotificationsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/nevorai': {
+      id: '/dashboard/nevorai'
+      path: '/nevorai'
+      fullPath: '/dashboard/nevorai'
+      preLoaderRoute: typeof DashboardNevoraiRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/leads': {
       id: '/dashboard/leads'
       path: '/leads'
@@ -2724,6 +2743,7 @@ interface DashboardRouteChildren {
   DashboardFeesRoute: typeof DashboardFeesRoute
   DashboardInsightsRoute: typeof DashboardInsightsRoute
   DashboardLeadsRoute: typeof DashboardLeadsRoute
+  DashboardNevoraiRoute: typeof DashboardNevoraiRoute
   DashboardNotificationsRoute: typeof DashboardNotificationsRoute
   DashboardPaymentSettingsRoute: typeof DashboardPaymentSettingsRoute
   DashboardPaymentVerificationRoute: typeof DashboardPaymentVerificationRoute
@@ -2757,6 +2777,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardFeesRoute: DashboardFeesRoute,
   DashboardInsightsRoute: DashboardInsightsRoute,
   DashboardLeadsRoute: DashboardLeadsRoute,
+  DashboardNevoraiRoute: DashboardNevoraiRoute,
   DashboardNotificationsRoute: DashboardNotificationsRoute,
   DashboardPaymentSettingsRoute: DashboardPaymentSettingsRoute,
   DashboardPaymentVerificationRoute: DashboardPaymentVerificationRoute,

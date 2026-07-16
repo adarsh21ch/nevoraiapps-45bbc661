@@ -120,7 +120,6 @@ export function ChatPanel({
             messages.map((m) => (
               <Message key={m.id} from={m.role as "user" | "assistant" | "system"}>
                 <MessageContent
-                  variant={m.role === "assistant" ? "flat" : "contained"}
                   className={cn(m.role === "assistant" && "bg-transparent px-0")}
                 >
                   {m.parts.map((part, idx) => {
