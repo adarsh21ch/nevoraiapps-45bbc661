@@ -104,6 +104,7 @@ function BatchesPage() {
                   size="icon"
                   variant="ghost"
                   title="Manage coaches"
+                  aria-label="Manage coaches"
                   onClick={() => setCoachBatch({ id: b.id, name: b.name })}
                 >
                   <ShieldCheck className="size-4" />
