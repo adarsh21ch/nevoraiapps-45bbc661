@@ -145,7 +145,7 @@ export const Route = createFileRoute("/api/chat")({
         // ------------------ payload (parse first so we can enrich context) ------------------
         const body = (await request.json()) as ChatRequestBody;
         if (!Array.isArray(body.messages)) {
-          return new Response("Messages required", { status: 400 });
+          return jsonError("BAD_REQUEST", "Messages are required.", 400);
         }
         const pageCtx: PageContext = body.pageContext ?? {};
 
