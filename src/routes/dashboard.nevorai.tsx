@@ -199,7 +199,7 @@ function NevorAIPage() {
 
         {/* Chat: comfortable centered column that breathes at every width */}
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <div className="mx-auto flex w-full max-w-[880px] flex-1 flex-col px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto flex w-full min-h-0 max-w-[880px] flex-1 flex-col px-4 sm:px-6 lg:px-8">
             <ChatPanel
               key={conversationId ?? "draft"}
               conversationId={conversationId}
