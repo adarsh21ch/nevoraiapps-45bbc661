@@ -172,7 +172,11 @@ function DashboardHome() {
 
   const insights = insightsQ.data;
   const kpis = kpisQ.data;
-  const pendingFees = kpis?.pendingFeeCount ?? 0;
+  // Canonical finance numbers — same source (`fetchBillingKpis`) that
+  // NevorAI's `finance_summary` tool, the Daily Brief and Reports consume.
+  // Home MUST never contradict AI.
+  const overdueInvoices = kpis?.overdueInvoices ?? 0;
+  const outstandingAmount = kpis?.outstandingAmount ?? 0;
   const collectedMonth = kpis?.collectionThisMonth ?? 0;
   const attendanceLoading = attendanceQ.isLoading || batchesQ.isLoading || studentsQ.isLoading;
 
