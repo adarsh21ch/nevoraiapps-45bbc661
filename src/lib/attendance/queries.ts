@@ -17,6 +17,10 @@ import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+type Db = SupabaseClient<Database>;
 import { useRealtimeChannel } from "@/hooks/use-realtime-channel";
 import { emitEvent } from "@/lib/automation/emit-client";
 import type { AttendanceState, AttendanceStatus, AttendanceSource } from "./constants";
@@ -75,12 +79,15 @@ export interface AttendanceTodayRow {
  * Reuses `fetchAttendanceByDate` (same lifecycle rules, same append-only
  * source of truth) — no schema, RLS, or realtime changes.
  */
-export async function fetchAttendanceToday(tenantId: string): Promise<AttendanceTodayRow[]> {
+export async function fetchAttendanceToday(
+  tenantId: string,
+  db: Db = supabase,
+): Promise<AttendanceTodayRow[]> {
   const localToday = new Date();
   const y = localToday.getFullYear();
   const m = String(localToday.getMonth() + 1).padStart(2, "0");
   const d = String(localToday.getDate()).padStart(2, "0");
-  return fetchAttendanceByDate(tenantId, `${y}-${m}-${d}`);
+  return fetchAttendanceByDate(tenantId, `${y}-${m}-${d}`, db);
 }
 
 /**
@@ -93,8 +100,9 @@ export async function fetchAttendanceToday(tenantId: string): Promise<Attendance
 export async function fetchAttendanceByDate(
   tenantId: string,
   dateISO: string,
+  db: Db = supabase,
 ): Promise<AttendanceTodayRow[]> {
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("attendance_marks")
     .select(
       "id, tenant_id, session_id, student_id, status, check_in_at, check_out_at, duration_minutes, source, marked_by, visit_type, superseded_by, created_at, attendance_sessions!inner(id, batch_id, session_date, tenant_id)",
@@ -103,6 +111,7 @@ export async function fetchAttendanceByDate(
     .is("superseded_by", null)
     .eq("attendance_sessions.session_date", dateISO);
   if (error) throw error;
+
 
   type Row = {
     id: string;

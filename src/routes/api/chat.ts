@@ -166,7 +166,9 @@ export const Route = createFileRoute("/api/chat")({
           selectedChildId: pageCtx.selectedChildId,
           selectedDate: pageCtx.selectedDate,
           currentFilters: pageCtx.currentFilters,
+          dataClient: authed,
         });
+
 
         // Ensure the conversation row exists / belongs to this user.
         let conversationId = body.conversationId ?? null;

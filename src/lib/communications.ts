@@ -7,6 +7,10 @@
  */
 import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+type Db = SupabaseClient<Database>;
 import type { NotificationCategory, NotificationPriority } from "@/lib/notifications";
 
 export type Channel = "in_app" | "push" | "email" | "whatsapp" | "sms";
@@ -101,11 +105,13 @@ export const commKeys = {
   recipients: (campaignId: string) => ["comm", "recipients", campaignId] as const,
 };
 
-export function campaignsQueryOptions(tenantId: string) {
+export function campaignsQueryOptions(tenantId: string, db: Db = supabase) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fromDb = (t: string) => (db.from as any)(t);
   return queryOptions({
     queryKey: commKeys.campaigns(tenantId),
     queryFn: async () => {
-      const { data, error } = await from("comm_campaigns")
+      const { data, error } = await fromDb("comm_campaigns")
         .select("*")
         .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
@@ -116,6 +122,7 @@ export function campaignsQueryOptions(tenantId: string) {
     staleTime: 15_000,
   });
 }
+
 
 export function templatesQueryOptions(tenantId: string) {
   return queryOptions({
