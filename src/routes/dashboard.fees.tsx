@@ -498,9 +498,9 @@ function ChipFilters({
       value={value}
       onChange={onChange}
       items={[
-        { key: "all", label: "All", count: counts.all },
         { key: "pending", label: "Pending", count: counts.pending },
         { key: "paid", label: "Paid", count: counts.paid },
+        { key: "all", label: "All", count: counts.all },
       ]}
       ariaLabel="Fee status"
     />
