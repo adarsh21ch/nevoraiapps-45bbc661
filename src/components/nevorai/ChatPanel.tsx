@@ -309,6 +309,39 @@ export function ChatPanel({
               <Shimmer>NevorAI is thinking…</Shimmer>
             </div>
           )}
+          {chatError && !isGenerating ? (
+            <div className="mx-2 my-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm">
+              <div className="font-medium text-destructive">
+                {chatError.code === "AI_PROVIDER_UNCONFIGURED"
+                  ? "AI provider not configured"
+                  : chatError.code === "UNAUTHENTICATED"
+                    ? "Session expired"
+                    : chatError.code === "RATE_LIMITED"
+                      ? "Too many requests"
+                      : "NevorAI couldn't respond"}
+              </div>
+              <div className="mt-0.5 text-xs text-muted-foreground">{chatError.message}</div>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChatError(null);
+                    void regenerate();
+                  }}
+                  className="rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium hover:bg-accent"
+                >
+                  Retry
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChatError(null)}
+                  className="rounded-md px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          ) : null}
         </ConversationContent>
         <ConversationScrollButton />
       </Conversation>
