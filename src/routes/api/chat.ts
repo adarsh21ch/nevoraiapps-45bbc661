@@ -301,7 +301,7 @@ export const Route = createFileRoute("/api/chat")({
         });
 
         return result.toUIMessageStreamResponse({
-          sendReasoning: true,
+          sendReasoning: false,
           originalMessages: body.messages,
           onFinish: async ({ responseMessage, isAborted }) => {
             if (isAborted) return;
