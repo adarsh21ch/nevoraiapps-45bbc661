@@ -149,13 +149,15 @@ export const toolRegistryProbe: DependencyProbe = {
   reason: () => "In-process registry — always available",
   async health() {
     try {
-      const mod = await import("@/lib/ai-os/tools/registry");
-      const registry = (mod as { toolRegistry?: { list?: () => unknown[] } }).toolRegistry;
-      const count = registry?.list?.().length ?? 0;
+      const { bootstrapTools } = await import("@/lib/ai-os/tools/bootstrap");
+      bootstrapTools();
+      const { getTool } = await import("@/lib/ai-os/tools/registry");
+      // Any well-known tool works as a smoke check.
+      const ok = !!getTool("get_students") || !!getTool("get_attendance");
       return {
-        level: count > 0 ? "healthy" : "warning",
+        level: ok ? "healthy" : "warning",
         latencyMs: 0,
-        lastError: count > 0 ? null : "No tools registered",
+        lastError: ok ? null : "Tool registry appears empty",
       };
     } catch (e) {
       return {
