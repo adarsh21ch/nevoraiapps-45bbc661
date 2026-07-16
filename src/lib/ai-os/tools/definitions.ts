@@ -211,32 +211,28 @@ export const attendanceSummaryTool: AnyToolDef = {
   parameters: emptySchema,
   allowedRoles: ["owner", "admin", "coach"],
   async execute(_input, ctx): Promise<ToolResult> {
-    const { fetchAttendanceToday } = await import("@/lib/attendance/queries");
+    // Canonical attendance service — Dashboard, Attendance page, Reports,
+    // Owner Summary all share these helpers (Phase 13.4).
+    const { fetchAttendanceToday, summarizeAttendance } = await import("@/lib/attendance/queries");
     const rows = await fetchAttendanceToday(ctx.tenantId);
-    let present = 0;
-    let absent = 0;
-    let inAcademy = 0;
-    let checkedOut = 0;
-    for (const r of rows) {
-      if (r.current_state === "in_academy") inAcademy++;
-      else if (r.current_state === "checked_out") checkedOut++;
-      if (r.status === "present") present++;
-      else if (r.status === "absent") absent++;
-    }
-    const summary = { present, absent, inAcademy, checkedOut, total: rows.length };
+    const totals = summarizeAttendance(rows);
     return {
       ok: true,
       title: "Attendance today",
-      summary: `${present} present · ${absent} absent · ${inAcademy} in academy`,
-      data: summary,
-      structured_data: summary,
-      citations: ["src/lib/attendance/queries.ts#fetchAttendanceToday"],
+      summary: `${totals.present} present · ${totals.absent} absent · ${totals.inAcademy} in academy`,
+      data: totals,
+      structured_data: totals,
+      citations: [
+        "src/lib/attendance/queries.ts#fetchAttendanceToday",
+        "src/lib/attendance/queries.ts#summarizeAttendance",
+      ],
       recommended_actions: [
         { id: "open-attendance", label: "Open attendance", href: "/dashboard/attendance" },
       ],
     };
   },
 };
+
 
 /* ------------------------------------------------------------------ */
 /* Students                                                           */
