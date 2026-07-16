@@ -260,10 +260,6 @@ export const Route = createFileRoute("/api/chat")({
           .join("\n");
 
         const result = streamText({
-          `Follow-up policy: after answering, suggest 2–3 next actions when useful. Never call a write tool without explicit user confirmation — those return a "confirmation required" envelope and the user will approve them in the Action Queue.`,
-        ].join("\n");
-
-        const result = streamText({
           model,
           system: enrichedSystem,
           tools,
