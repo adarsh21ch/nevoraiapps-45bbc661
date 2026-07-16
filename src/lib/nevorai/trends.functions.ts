@@ -58,7 +58,7 @@ export const getSmartInsights = createServerFn({ method: "GET" })
     const revPrev = (payPrev.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
     const rev = pct(revThis, revPrev);
     const reg = pct(regThis.count ?? 0, regPrev.count ?? 0);
-    const att = pct(attThis.count ?? 0, attPrev.count ?? 0);
+    const att = pct(attThis, attPrev);
 
     return [
       {
