@@ -183,14 +183,29 @@ export function ChatPanel({
       <Conversation className="flex-1">
         <ConversationContent>
           {messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-4 py-16 text-center">
-              <div className="text-3xl font-semibold tracking-tight">Ask NevorAI</div>
-              <p className="max-w-md text-sm text-muted-foreground">
-                Your AI Academy Manager. Ask about attendance, fees, admissions, or say
-                "brief me on today".
-              </p>
+            <div className="flex h-full flex-col items-center justify-center gap-5 px-4 py-16 text-center">
+              <div
+                aria-hidden
+                className="grid size-14 place-items-center rounded-2xl text-2xl text-white shadow-sm"
+                style={{
+                  background:
+                    "linear-gradient(135deg, var(--tenant-brand, var(--brand, #E8873C)), color-mix(in oklab, var(--tenant-brand, var(--brand, #E8873C)) 55%, transparent))",
+                }}
+              >
+                ✨
+              </div>
+              <div>
+                <div className="text-2xl font-semibold tracking-tight sm:text-3xl">
+                  Hi, I&apos;m NevorAI
+                </div>
+                <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                  Your AI Academy Manager. Ask anything about attendance, fees,
+                  admissions, automations or reports — I&apos;ll cite the data and never
+                  change anything without your approval.
+                </p>
+              </div>
               {suggestions.length > 0 ? (
-                <div className="mt-2 flex max-w-2xl flex-wrap justify-center gap-2">
+                <div className="mt-1 flex max-w-2xl flex-wrap justify-center gap-2">
                   {suggestions.slice(0, 6).map((s) => (
                     <button
                       key={s}
