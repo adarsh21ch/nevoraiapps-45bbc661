@@ -32,10 +32,7 @@ export function bootstrapNevorAI(): void {
   // Without it the in-memory defaults in orchestrator/runtime.ts stay active
   // and chat continues to work — persistence, analytics rollups, and the
   // action queue simply live in-process for the request.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { hasSupabaseAdmin } = require("@/integrations/supabase/client.server") as {
-    hasSupabaseAdmin: () => boolean;
-  };
+
   if (hasSupabaseAdmin()) {
     setRuntime({
       memory: new SupabaseMemoryStore(),
