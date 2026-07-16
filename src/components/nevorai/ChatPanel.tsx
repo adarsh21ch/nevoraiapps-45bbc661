@@ -221,11 +221,37 @@ export function ChatPanel({
     }
   }, [conversationId, initialMessages, setMessages]);
 
-  const [input, setInput] = useState("");
+  // Draft persistence — the composer input is remembered per-conversation
+  // and per-"draft" so switching chats or refreshing never loses what the
+  // owner was typing. Keyed by conversation id (or "draft" for new chats).
+  const draftKey = `nevorai:draft:${conversationId ?? "draft"}`;
+  const [input, setInput] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      return window.localStorage.getItem(`nevorai:draft:${conversationId ?? "draft"}`) ?? "";
+    } catch {
+      return "";
+    }
+  });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // Reload draft when switching conversations.
   useEffect(() => {
+    try {
+      setInput(window.localStorage.getItem(draftKey) ?? "");
+    } catch {
+      setInput("");
+    }
     textareaRef.current?.focus();
-  }, [conversationId]);
+  }, [conversationId, draftKey]);
+  // Persist draft as the owner types (debounced by React batch).
+  useEffect(() => {
+    try {
+      if (input) window.localStorage.setItem(draftKey, input);
+      else window.localStorage.removeItem(draftKey);
+    } catch {
+      /* quota / private mode — silently skip */
+    }
+  }, [draftKey, input]);
 
   const submit = useCallback(
     async (text: string) => {
