@@ -197,7 +197,7 @@ export const Route = createFileRoute("/api/chat")({
             })
             .select("id")
             .single();
-          if (createErr) return new Response("Failed to create conversation", { status: 500 });
+          if (createErr) return jsonError("DB_ERROR", "Could not start a new conversation.");
           conversationId = created.id;
         }
 
