@@ -306,6 +306,7 @@ export const Route = createFileRoute("/api/chat")({
           onFinish: async ({ responseMessage, isAborted }) => {
             if (isAborted) return;
             if (!responseMessage?.parts || responseMessage.parts.length === 0) return;
+            if (!supabaseAdmin || !conversationId) return;
             try {
               const textPart = responseMessage.parts.find((p) => p.type === "text") as
                 | { text?: string }
@@ -325,6 +326,7 @@ export const Route = createFileRoute("/api/chat")({
               console.error("[nevorai] persist assistant turn failed", e);
             }
           },
+
           onError: (err) => {
             console.error("[nevorai] stream error", err);
             return err instanceof Error ? err.message : "stream failed";
