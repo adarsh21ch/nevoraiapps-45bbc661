@@ -623,7 +623,10 @@ function MultiSectionEditor({
       const c = (other.content ?? {}) as Record<string, unknown>;
       if (c[uniqueBooleanKey]) {
         const next = { ...c, [uniqueBooleanKey]: false };
-        await supabase.from("site_content").update({ content: next }).eq("id", other.id);
+        await supabase
+          .from("site_content")
+          .update({ content: next as any })
+          .eq("id", other.id);
       }
     }
   }
