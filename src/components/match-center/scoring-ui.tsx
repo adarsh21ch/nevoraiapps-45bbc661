@@ -803,28 +803,31 @@ export function ExtraRunsModal({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        overlayClassName="bg-background/35 backdrop-blur-[1px]"
-        className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl"
+        hideClose
+        overlayClassName="bg-background/40 backdrop-blur-[2px]"
+        className="rounded-3xl bg-card/95 p-0 backdrop-blur-xl border-border/60 shadow-2xl w-[calc(100vw-1.5rem)] sm:w-auto"
       >
-        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
-        <SheetHeader className="px-4 pb-2 pt-3 text-left">
-          <SheetTitle className="text-base">{kind} — how many runs?</SheetTitle>
-          <SheetDescription className="text-xs">{hint}</SheetDescription>
+        <SheetHeader className="px-4 pb-2 pt-4 text-left space-y-0.5">
+          <SheetTitle className="text-[15px] font-semibold">
+            {kind} — total runs
+          </SheetTitle>
+          <SheetDescription className="text-[11px] leading-tight">
+            {hint}
+          </SheetDescription>
         </SheetHeader>
-        <div className="flex items-stretch gap-1.5 px-3 sm:gap-2">
+
+        <div className="flex items-stretch gap-1.5 px-3 pt-1">
           {options.map((r) => {
             const boundary = isBoundaryHit(r);
             const sub = sublabelFor(r);
-            const isNoBall = kind === "No Ball";
             return (
               <button
                 key={r}
                 type="button"
                 onClick={() => onSelect(r)}
                 className={cn(
-                  "no-tap-highlight flex-1 min-w-0 rounded-xl border font-black tabular-nums shadow-sm transition active:scale-[0.96]",
-                  "px-1 flex flex-col items-center justify-center gap-0.5",
-                  isNoBall ? "h-14 sm:h-16" : "h-12 sm:h-14",
+                  "no-tap-highlight flex-1 min-w-0 rounded-full border font-black tabular-nums shadow-sm transition active:scale-[0.94]",
+                  "px-0.5 h-14 flex flex-col items-center justify-center gap-0.5",
                   boundary === "four"
                     ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-600"
                     : boundary === "six"
@@ -832,11 +835,9 @@ export function ExtraRunsModal({
                       : "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
                 )}
               >
-                <span className={cn("leading-none", isNoBall ? "text-base sm:text-lg" : "text-lg sm:text-xl")}>
-                  {r}
-                </span>
+                <span className="leading-none text-lg">{r}</span>
                 {sub && (
-                  <span className="text-[8.5px] sm:text-[9px] font-semibold uppercase tracking-wider leading-none opacity-80">
+                  <span className="text-[9px] font-semibold uppercase tracking-tight leading-none opacity-85 whitespace-nowrap">
                     {sub}
                   </span>
                 )}
@@ -845,12 +846,15 @@ export function ExtraRunsModal({
           })}
         </div>
 
-
         <SheetFooter
-          className="px-3 pb-3 pt-2"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}
+          className="px-3 pt-3 pb-3"
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .5rem)" }}
         >
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="ghost"
+            className="w-full h-10 rounded-full text-sm"
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
         </SheetFooter>
@@ -858,6 +862,7 @@ export function ExtraRunsModal({
     </Sheet>
   );
 }
+
 
 /* ---------------- Drawers ---------------- */
 
