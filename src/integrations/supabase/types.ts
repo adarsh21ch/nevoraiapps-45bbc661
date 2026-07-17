@@ -7314,6 +7314,7 @@ export type Database = {
         Args: { _delta?: number; _feature_id: string; _tenant_id: string }
         Returns: undefined
       }
+      is_active_tenant: { Args: { _tenant_id: string }; Returns: boolean }
       is_coach_for_batch: { Args: { _batch_id: string }; Returns: boolean }
       is_match_scorer: {
         Args: { _tenant: string; _uid: string }
