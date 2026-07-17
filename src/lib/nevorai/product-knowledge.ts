@@ -314,10 +314,10 @@ export const PRODUCT_KNOWLEDGE: ProductKnowledgeTopic[] = [
   {
     id: "staff-coaches",
     title: "Staff & Coaches",
-    screens: ["/dashboard/staff", "/dashboard/coach", "/dashboard/admins"],
-    keywords: ["staff", "coach", "coaches", "admin", "invite", "role", "permissions"],
+    screens: ["/dashboard/staff", "/dashboard/coach"],
+    keywords: ["staff", "coach", "coaches", "admin", "invite", "role", "permissions", "members", "access"],
     summary:
-      "Invite coaches and admins from Dashboard → Staff. Each invite is scoped to a role (coach, admin) and their permissions apply automatically.",
+      "Team & Access lives at Dashboard → Staff. The Directory lists staff, Members lists every account in this academy (students, parents, staff) with a role dropdown, Invitations tracks pending invites, and Activity shows role changes.",
   },
   {
     id: "subscription",
