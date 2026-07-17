@@ -102,6 +102,7 @@ export interface MobileScorerProps {
   onOpenScorebook?: () => void;
   onShareMatch?: () => void;
   scorecardContent?: ReactNode;
+  pendingActionSlot?: ReactNode;
 }
 
 type PickerKind = "striker" | "nonStriker" | "bowler";
