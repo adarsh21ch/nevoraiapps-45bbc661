@@ -214,6 +214,21 @@ function RegisterContent() {
       toast.error("Please fill all required fields.");
       return;
     }
+    // Account credentials — become the applicant's login after approval.
+    const emailTrim = form.email.trim().toLowerCase();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim);
+    if (!emailOk) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    if (form.password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    if (form.password !== form.password2) {
+      toast.error("Passwords do not match.");
+      return;
+    }
     if (!termsAccepted) {
       toast.error("Please accept the Terms & Conditions to continue.");
       return;
@@ -247,6 +262,29 @@ function RegisterContent() {
       toast.error("Too many submissions. Please try again in a few minutes.");
       return;
     }
+
+    // 1) Create the applicant's auth account (browser → Supabase Auth directly;
+    // password never touches our servers).
+    const { data: authData, error: authErr } = await supabase.auth.signUp({
+      email: emailTrim,
+      password: form.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth`,
+        data: { full_name: form.name.trim(), tenant_slug: tenant.slug },
+      },
+    });
+    if (authErr) {
+      setSaving(false);
+      const msg = authErr.message || "";
+      if (/already|registered|exist/i.test(msg)) {
+        toast.error("This email is already registered. Please sign in first, then submit.");
+      } else {
+        toast.error(msg || "Could not create your account. Please try again.");
+      }
+      return;
+    }
+    const applicantUserId = authData.user?.id ?? null;
+
     const { data, error } = await supabase.rpc(
       "submit_registration" as never,
       {
@@ -263,7 +301,12 @@ function RegisterContent() {
         _lead_id: leadId ?? null,
       } as never,
     );
-    const extras: Record<string, unknown> = {};
+    // Always persist email + applicant_user_id + optional profile extras so
+    // the applicant can log in and land on /student/pending.
+    const extras: Record<string, unknown> = {
+      email: emailTrim,
+      applicant_user_id: applicantUserId,
+    };
     if (form.address.trim()) extras.address = form.address.trim();
     if (form.gender) extras.gender = form.gender;
     if (form.medical_notes.trim()) extras.medical_notes = form.medical_notes.trim();
@@ -280,7 +323,7 @@ function RegisterContent() {
     if (Object.keys(profile).length > 0) {
       extras.documents = { profile };
     }
-    if (!error && data && Object.keys(extras).length > 0) {
+    if (!error && data) {
       await supabase
         .from("registrations")
         .update(extras as never)
