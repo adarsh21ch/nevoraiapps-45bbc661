@@ -686,7 +686,11 @@ function RegistrationDetails({
 
       <button
         type="button"
-        onClick={() =>
+        onClick={() => {
+          const docs = (reg.documents as { profile?: Record<string, unknown> } | null) ?? null;
+          const profile = docs?.profile ?? {};
+          const s = (v: unknown) =>
+            v === null || v === undefined || v === "" ? null : String(v);
           generateFilledRegistrationPdf(tenant, {
             name: reg.name,
             phone: reg.phone,
@@ -695,18 +699,27 @@ function RegistrationDetails({
             guardian_name: reg.guardian_name,
             guardian_phone: reg.guardian_phone,
             whatsapp: reg.whatsapp,
+            email: reg.email ?? null,
             address: reg.address,
             batch_name: batch?.name ?? null,
             fee_plan_name: plan?.name ?? null,
             fee_amount: plan?.amount ?? null,
+            height_cm: s((profile as Record<string, unknown>).height_cm),
+            weight_kg: s((profile as Record<string, unknown>).weight_kg),
+            batting_style: s((profile as Record<string, unknown>).batting_style),
+            bowling_style: s((profile as Record<string, unknown>).bowling_style),
+            interests: s((profile as Record<string, unknown>).interests),
+            medical_notes: reg.medical_notes ?? null,
+            terms_accepted: Boolean((profile as Record<string, unknown>).terms_accepted),
             policy_acceptances: reg.policy_acceptances ?? null,
             created_at: reg.created_at,
-          })
-        }
+          });
+        }}
         className="w-full text-center text-xs text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1 py-1"
       >
         <FileDown className="size-3.5" /> Download filled PDF
       </button>
+
 
       <button
         type="button"

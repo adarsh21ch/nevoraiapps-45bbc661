@@ -113,6 +113,20 @@ export function SiteFooter() {
             © {new Date().getFullYear()} {tenant.name}. All rights reserved.
           </div>
           <div className="flex items-center gap-4">
+            <Link
+              to="/policies/$kind"
+              params={{ kind: "terms" }}
+              className="text-muted-foreground/80 hover:text-foreground"
+            >
+              Terms &amp; Conditions
+            </Link>
+            <Link
+              to="/policies/$kind"
+              params={{ kind: "privacy" }}
+              className="text-muted-foreground/80 hover:text-foreground"
+            >
+              Privacy
+            </Link>
             <Link to="/auth" className="text-muted-foreground/80 hover:text-foreground">
               Owner login
             </Link>

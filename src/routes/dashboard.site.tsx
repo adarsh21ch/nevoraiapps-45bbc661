@@ -152,6 +152,23 @@ function ContactEditor() {
     }
   }
 
+  async function remove(field: "upi_qr_url" | "logo_url") {
+    try {
+      const next = { ...form, [field]: "" };
+      setForm(next);
+      const { error } = await supabase
+        .from("tenants")
+        .update({ [field]: null } as any)
+        .eq("id", tenant.id);
+      if (error) throw error;
+      toast.success(field === "logo_url" ? "Logo removed" : "QR removed");
+      invalidateTenant();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  }
+
+
   return (
     <Card className="p-5 space-y-3">
       <div className="grid gap-3 md:grid-cols-2">
@@ -203,7 +220,7 @@ function ContactEditor() {
           <div className="flex items-center gap-3">
             {qrPreview && <img src={qrPreview} alt="" className="size-16 rounded border" />}
             <label className="text-xs cursor-pointer inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
-              <Upload className="size-3" /> Upload QR
+              <Upload className="size-3" /> {form.upi_qr_url ? "Replace QR" : "Upload QR"}
               <input
                 type="file"
                 accept="image/*"
@@ -211,6 +228,15 @@ function ContactEditor() {
                 onChange={(e) => e.target.files?.[0] && upload("upi_qr_url", e.target.files[0])}
               />
             </label>
+            {form.upi_qr_url ? (
+              <button
+                type="button"
+                onClick={() => remove("upi_qr_url")}
+                className="text-xs text-muted-foreground hover:text-rose-600"
+              >
+                Remove
+              </button>
+            ) : null}
           </div>
         </div>
         <div className="space-y-2">
@@ -218,7 +244,7 @@ function ContactEditor() {
           <div className="flex items-center gap-3">
             {logoPreview && <img src={logoPreview} alt="" className="size-16 rounded border" />}
             <label className="text-xs cursor-pointer inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
-              <Upload className="size-3" /> Upload logo
+              <Upload className="size-3" /> {form.logo_url ? "Replace logo" : "Upload logo"}
               <input
                 type="file"
                 accept="image/*"
@@ -226,6 +252,15 @@ function ContactEditor() {
                 onChange={(e) => e.target.files?.[0] && upload("logo_url", e.target.files[0])}
               />
             </label>
+            {form.logo_url ? (
+              <button
+                type="button"
+                onClick={() => remove("logo_url")}
+                className="text-xs text-muted-foreground hover:text-rose-600"
+              >
+                Remove
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
