@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveTenantHint, type Tenant } from "./tenant";
 import { pickPreset } from "./theme-presets";
-import { signedUrl } from "./storage";
 
 type TenantState =
   | { status: "loading"; tenant: null }
@@ -72,9 +71,14 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       root.style.setProperty("--brand-accent", preset.accent);
       root.style.setProperty("--brand-surface", preset.surface);
       document.title = t.tagline ? `${t.name} — ${t.tagline}` : t.name;
+      const tenantIconUrl = t.logo_url
+        ? `/api/public/tenant-icon?tenant=${encodeURIComponent(t.slug)}&v=${encodeURIComponent(
+            t.logo_url.split("/").pop() ?? t.slug,
+          )}`
+        : "";
 
-      // Favicon / app icons. Tenant logos are stored as private storage paths,
-      // so resolve them before using them in browser chrome metadata.
+      // Favicon / app icons. The tenant-icon endpoint serves an install-safe
+      // same-origin URL, so browser and phone installers can fetch the logo.
       if (t.logo_url) {
         let link = document.querySelector<HTMLLinkElement>('link[rel="icon"][data-tenant]');
         if (!link) {
@@ -83,9 +87,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
           link.setAttribute("data-tenant", "1");
           document.head.appendChild(link);
         }
-        signedUrl(t.logo_url).then((url) => {
-          if (url) link.href = url;
-        });
+        link.href = tenantIconUrl;
       }
 
       // Meta description + og
@@ -93,6 +95,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         let el = document.head.querySelector<HTMLMetaElement>(
           `meta[${attr}="${key}"][data-tenant="1"]`,
         );
+        if (!el) el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
         if (!el) {
           el = document.createElement("meta");
           el.setAttribute(attr, key);
@@ -114,21 +117,18 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         let el = document.head.querySelector<HTMLLinkElement>(
           `link[rel="${rel}"][data-tenant="1"]`,
         );
+        if (!el) el = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
         if (!el) {
           el = document.createElement("link");
           el.rel = rel;
-          el.setAttribute("data-tenant", "1");
           document.head.appendChild(el);
         }
+        el.setAttribute("data-tenant", "1");
         el.href = href;
         if (extra) for (const [k, v] of Object.entries(extra)) el.setAttribute(k, v);
       };
-      setLink("manifest", "/api/public/manifest/webmanifest");
-      if (t.logo_url) {
-        signedUrl(t.logo_url).then((url) => {
-          if (url) setLink("apple-touch-icon", url);
-        });
-      }
+      setLink("manifest", `/api/public/manifest/webmanifest?tenant=${encodeURIComponent(t.slug)}`);
+      if (tenantIconUrl) setLink("apple-touch-icon", tenantIconUrl);
       setMeta("name", "apple-mobile-web-app-capable", "yes");
       setMeta("name", "apple-mobile-web-app-title", t.name);
       setMeta("name", "apple-mobile-web-app-status-bar-style", "black-translucent");

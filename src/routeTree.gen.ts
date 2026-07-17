@@ -140,6 +140,7 @@ import { Route as DashboardStudentsIdRouteImport } from './routes/dashboard.stud
 import { Route as DashboardCoachOnboardingRouteImport } from './routes/dashboard.coach.onboarding'
 import { Route as DashboardCoachApprovalsRouteImport } from './routes/dashboard.coach.approvals'
 import { Route as DashboardCoachAnalyticsRouteImport } from './routes/dashboard.coach.analytics'
+import { Route as ApiPublicTenantIconRouteImport } from './routes/api/public/tenant-icon'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksSubscriptionCheckRouteImport } from './routes/api/public/hooks/subscription-check'
 import { Route as ApiPublicHooksOwnerSummariesRouteImport } from './routes/api/public/hooks/owner-summaries'
@@ -819,6 +820,11 @@ const DashboardCoachAnalyticsRoute = DashboardCoachAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => DashboardCoachRoute,
 } as any)
+const ApiPublicTenantIconRoute = ApiPublicTenantIconRouteImport.update({
+  id: '/api/public/tenant-icon',
+  path: '/api/public/tenant-icon',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicManifestWebmanifestRoute =
   ApiPublicManifestWebmanifestRouteImport.update({
     id: '/api/public/manifest/webmanifest',
@@ -991,6 +997,7 @@ export interface FileRoutesByFullPath {
   '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
   '/dashboard/coach/analytics': typeof DashboardCoachAnalyticsRoute
   '/dashboard/coach/approvals': typeof DashboardCoachApprovalsRoute
   '/dashboard/coach/onboarding': typeof DashboardCoachOnboardingRoute
@@ -1128,6 +1135,7 @@ export interface FileRoutesByTo {
   '/parent': typeof ParentIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/student': typeof StudentIndexRoute
+  '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
   '/dashboard/coach/analytics': typeof DashboardCoachAnalyticsRoute
   '/dashboard/coach/approvals': typeof DashboardCoachApprovalsRoute
   '/dashboard/coach/onboarding': typeof DashboardCoachOnboardingRoute
@@ -1271,6 +1279,7 @@ export interface FileRoutesById {
   '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
+  '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
   '/dashboard/coach/analytics': typeof DashboardCoachAnalyticsRoute
   '/dashboard/coach/approvals': typeof DashboardCoachApprovalsRoute
   '/dashboard/coach/onboarding': typeof DashboardCoachOnboardingRoute
@@ -1415,6 +1424,7 @@ export interface FileRouteTypes {
     | '/parent/'
     | '/platform-admin/'
     | '/student/'
+    | '/api/public/tenant-icon'
     | '/dashboard/coach/analytics'
     | '/dashboard/coach/approvals'
     | '/dashboard/coach/onboarding'
@@ -1552,6 +1562,7 @@ export interface FileRouteTypes {
     | '/parent'
     | '/platform-admin'
     | '/student'
+    | '/api/public/tenant-icon'
     | '/dashboard/coach/analytics'
     | '/dashboard/coach/approvals'
     | '/dashboard/coach/onboarding'
@@ -1694,6 +1705,7 @@ export interface FileRouteTypes {
     | '/parent/'
     | '/platform-admin/'
     | '/student/'
+    | '/api/public/tenant-icon'
     | '/dashboard/coach/analytics'
     | '/dashboard/coach/approvals'
     | '/dashboard/coach/onboarding'
@@ -1761,6 +1773,7 @@ export interface RootRouteChildren {
   MatchSlugRoute: typeof MatchSlugRoute
   PoliciesKindRoute: typeof PoliciesKindRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
+  ApiPublicTenantIconRoute: typeof ApiPublicTenantIconRoute
   AcademyAcademySlugTournamentsTournamentSlugRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRoute
   ApiPublicHooksAutomationTickRoute: typeof ApiPublicHooksAutomationTickRoute
   ApiPublicHooksDispatchCampaignsRoute: typeof ApiPublicHooksDispatchCampaignsRoute
@@ -2691,6 +2704,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCoachAnalyticsRouteImport
       parentRoute: typeof DashboardCoachRoute
     }
+    '/api/public/tenant-icon': {
+      id: '/api/public/tenant-icon'
+      path: '/api/public/tenant-icon'
+      fullPath: '/api/public/tenant-icon'
+      preLoaderRoute: typeof ApiPublicTenantIconRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/manifest/webmanifest': {
       id: '/api/public/manifest/webmanifest'
       path: '/api/public/manifest/webmanifest'
@@ -3072,6 +3092,7 @@ const rootRouteChildren: RootRouteChildren = {
   MatchSlugRoute: MatchSlugRoute,
   PoliciesKindRoute: PoliciesKindRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
+  ApiPublicTenantIconRoute: ApiPublicTenantIconRoute,
   AcademyAcademySlugTournamentsTournamentSlugRoute:
     AcademyAcademySlugTournamentsTournamentSlugRoute,
   ApiPublicHooksAutomationTickRoute: ApiPublicHooksAutomationTickRoute,
