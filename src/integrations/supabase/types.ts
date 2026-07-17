@@ -6734,6 +6734,7 @@ export type Database = {
           platform_notes: string | null
           player_prefix: string | null
           primary_color: string
+          registration_pdf_url: string | null
           secondary_color: string
           setup_fee: number
           short_name: string | null
@@ -6776,6 +6777,7 @@ export type Database = {
           platform_notes?: string | null
           player_prefix?: string | null
           primary_color?: string
+          registration_pdf_url?: string | null
           secondary_color?: string
           setup_fee?: number
           short_name?: string | null
@@ -6818,6 +6820,7 @@ export type Database = {
           platform_notes?: string | null
           player_prefix?: string | null
           primary_color?: string
+          registration_pdf_url?: string | null
           secondary_color?: string
           setup_fee?: number
           short_name?: string | null
