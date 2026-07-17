@@ -1,66 +1,52 @@
-# Phase 6 — Coach & Staff Operations
+## Goal
 
-Phase 6 is huge (18 parts). I want to confirm scope and sequencing before I ship, because a single-turn "everything at once" build will be low-quality and hard to review. Everything below EXTENDS what exists — no rewrites of attendance, students, Match Center, automation, notifications, or the dashboard shell.
+Make Registrations the single canonical intake tab. Fold the extra Admissions-Review capabilities into it (tucked under the row "More" menu so the UI stays clean), rename it to "Registrations / Admissions", and remove the standalone Admissions tab.
 
-## Current state (verified from code)
+## What gets merged in
 
-- `user_roles` table + `has_role()` / `current_role()` RPCs already exist.
-- `usePermissions()` collapses everything to `owner | admin | platform_admin | student`. There is no `coach` role wired end-to-end yet — `profiles.role` is still `owner | coach` legacy, and the UI maps `coach → admin`.
-- Attendance, batches, students, Match Center, tournaments, automation, push, notifications, communications, dashboard shell — all shipped and reused as-is.
-- No invitation flow exists. No staff management screen. No coach-scoped dashboard, batch view, or activity feed.
+Registrations already has: approve, delete, PDF, share, copy, "new" badge, detail sheet.
+Admissions Review adds these on top — I'll port them:
 
-## Proposed sequencing (3 chunks, one turn each)
+- **Reject** (with reason)
+- **Waitlist** (with note)
+- **Request changes** (dialog with notes → sets `changes_requested`)
+- **Approve-with-details** dialog (batch + fee plan at approval time)
+- **Status filter tabs**: Pending / Approved / Rejected / Waitlisted / Changes-requested
+- **Admission timeline** (audit trail shown inside the detail sheet)
 
-I recommend shipping in 3 chunks so each turn stays reviewable. Ship order optimizes for the critical path: **role foundation → staff mgmt → coach surfaces**.
+All of the above already have working server functions (`rejectRegistration`, `waitlistRegistration`, `AdmissionActionDialog`) — this is wiring, not new backend.
 
-### Chunk A — Role foundation + RLS (this turn if you approve)
+## UI placement (keeping the current look)
 
-Database:
-- Extend `app_role` enum with `coach`, `assistant_coach`, `head_coach`, `staff`.
-- `coach_assignments` table (coach_id, tenant_id, batch_id, role, assigned_at, active) with RLS + GRANTs.
-- `staff_invitations` table (tenant_id, email, phone, role, token, expires_at, accepted_at, invited_by) with RLS + GRANTs.
-- `staff_activity_log` view over existing `platform_audit_log` scoped to tenant.
-- Helper RPCs: `is_coach_for_batch(_batch_id)`, `list_my_batches()`, `accept_invitation(_token, _password)`.
-- Attendance/session RLS: add policy `coach can write iff is_coach_for_batch(batch_id)`.
+- Row primary buttons stay as today: **Approve** + kebab.
+- Kebab "More" menu gains: Request changes, Waitlist, Reject, View timeline, Download PDF, Share, Copy, Delete.
+- Filter tabs (Pending / Approved / Rejected / Waitlisted / Changes-requested) appear above the list — same `FilterTabs` component Admissions already uses, so it matches project design.
+- Detail sheet gets a small "Timeline" section at the bottom (collapsed by default).
+- Sidebar label: **Registrations / Admissions** (single entry).
 
-Client:
-- Extend `PermissionFeature` union with `canManageStaff`, `canInviteCoach`, `canViewCoachAnalytics`, `canManageAssignedBatches`.
-- Update `RULES` map and role normalization to recognize `coach` / `head_coach` / `assistant_coach` distinctly.
-- No UI yet — just the plumbing.
+## Removals & redirects
 
-### Chunk B — Staff Management + Invitations (next turn)
+- Delete link "Admissions" from sidebar, home shortcuts, and any dashboard hero card.
+- `/dashboard/admissions-review` route file → converted to a redirect that pushes to `/dashboard/registrations` (preserves any old bookmarks / links from AI briefs / emails).
+- No DB / RLS / RPC changes. `approve_registration` RPC and `admission_timeline` table stay.
 
-- `dashboard.staff.tsx` — list/invite/disable/reset/remove; owner+admin only.
-- Invitation server functions (`createServerFn` under `src/lib/staff/`): `inviteStaff`, `revokeInvitation`, `resendInvitation`, `acceptInvitation`, `disableStaff`.
-- `auth.tsx` extended to accept `?invite=<token>` and route through `acceptInvitation`.
-- Coach assignment UI inside `dashboard.batches.tsx` (assign multiple coaches per batch).
-- Staff activity feed component reusing `AuditFeed`.
-- Notifications: `staff.invited`, `staff.accepted`, `staff.disabled` automation events wired to existing engine.
+## Files affected
 
-### Chunk C — Coach surfaces + analytics (turn after)
+- `src/routes/dashboard.registrations.tsx` — add filter tabs, more-menu actions, timeline in sheet
+- `src/routes/dashboard.admissions-review.tsx` — replace body with a redirect
+- `src/components/dashboard/DashboardShell.tsx` (or wherever sidebar is defined) — remove Admissions entry, rename Registrations
+- `src/routes/dashboard.index.tsx` — swap any "Admissions Review" tile/link to point at Registrations
+- Any other file that links to `/dashboard/admissions-review` (I'll grep and update)
 
-- New routes under `_authenticated` (or `dashboard.*` since that's the pattern):
-  - `dashboard.coach.index.tsx` — coach dashboard (Today's Sessions, Attendance Pending, Upcoming Matches, Announcements, Quick Actions).
-  - `dashboard.coach.batches.tsx` — my batches.
-  - `dashboard.coach.sessions.tsx` — session mgmt (session objective/duration/weather/equipment/notes/completion).
-  - `dashboard.coach.players.$id.tsx` — player profile with coach-only private notes.
-  - `dashboard.coach.analytics.tsx`.
-- Reuse existing components: `AttendanceGrid`, `StudentProfilePanel`, `NotificationCenter`, `ModuleHeader`, `BottomNav`.
-- `mc_coach_remarks` already exists — reuse for private notes.
-- New: `coach_session_notes` table for session metadata (objective, weather, equipment, completion).
-- Nav-config entry that only renders when `role in {coach, head_coach, assistant_coach, owner, admin}`.
-- Communication: coach-scoped composer that emits automation events (`coach.announcement`, `session.cancelled`, `session.shifted`) — no direct provider calls.
+## Risk & rollback
 
-## Not in this phase (explicitly)
+- **Risk:** MEDIUM. UI-heavy merge on an existing owner workflow. No schema change.
+- **Regression surface:** the Registrations inbox itself — I keep its current markup and only additively wire the new menu items and filter tabs.
+- **Rollback:** revert the four files above; the admissions-review route is only converted (not deleted), so restoring its component is a one-file revert.
 
-- Payment gateway, subscription self-serve, AI, CRM, marketing — deferred as instructed.
-- OTP-based invitation (only temporary-password + email/mobile invite this phase; OTP is a follow-up).
-- Native Coach app — everything stays inside AcademyOS.
+## Verification
 
-## Questions before I start Chunk A
+- Typecheck.
+- Playwright: submit a `/register` form → open Registrations → filter Pending → open kebab → run each action (approve with dialog, request changes, waitlist, reject) → confirm the row moves to the right tab and timeline shows the event → confirm approve creates a student + fee schedule (spot-check via Supabase).
 
-1. **Route prefix for coach surfaces**: keep everything under `dashboard.coach.*` (single app, role-gated), or introduce a top-level `/coach/*` alias like the existing `/parent` and `/student` shells? Recommendation: `dashboard.coach.*` — matches your "no separate Coach app" rule and reuses `DashboardShell`.
-2. **`profiles.role` legacy column**: leave it (still `owner|coach`) and drive everything off `user_roles`? Recommendation: yes — `user_roles` becomes the source of truth, `profiles.role` stays for backward compat.
-3. **Approve shipping Chunk A now** (role foundation + RLS + migrations only, no UI)? Or would you rather I attempt all three chunks in this turn?
-
-Once you confirm, I'll start with Chunk A: one migration + permission-hook extension + type updates + typecheck.
+If this looks right I'll go build it.

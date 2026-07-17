@@ -63,7 +63,7 @@ export function deriveFollowUps(text: string): FollowUp[] {
     suggestions.push({ label: "Open attendance", href: "/dashboard/attendance" });
   }
   if (t.includes("admission") || t.includes("lead")) {
-    suggestions.push({ label: "Open admissions", href: "/dashboard/admissions-review" });
+    suggestions.push({ label: "Open admissions", href: "/dashboard/registrations" });
   }
   if (t.includes("student") || t.includes("player")) {
     suggestions.push({ label: "Open students", href: "/dashboard/students" });
