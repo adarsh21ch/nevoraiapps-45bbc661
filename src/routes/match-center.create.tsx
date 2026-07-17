@@ -28,6 +28,7 @@ import {
   ensureAthleteProfileIds,
   createExternalTeam,
   createMatch,
+  updateMatchStatus,
   writeMatchDefaults,
   readMatchDefaults,
   MATCH_TYPES,
