@@ -770,36 +770,29 @@ export function ExtraRunsModal({
 }) {
   const isNoBall = kind === "No Ball";
   const isWide = kind === "Wide";
-  const options: { value: number; label: string }[] = isNoBall
-    ? [
-        { value: 0, label: "0" },
-        { value: 1, label: "1" },
-        { value: 2, label: "2" },
-        { value: 3, label: "3" },
-        { value: 4, label: "4" },
-        { value: 6, label: "6" },
-      ]
-    : isWide
-      ? [
-          { value: 0, label: "0" },
-          { value: 1, label: "1" },
-          { value: 2, label: "2" },
-          { value: 3, label: "3" },
-          { value: 4, label: "4" },
-          { value: 5, label: "5" },
-        ]
-      : [1, 2, 3, 4, 5, 6].map((n) => ({ value: n, label: String(n) }));
+  const isBye = kind === "Bye";
+  const isLegBye = kind === "Leg Bye";
 
   const title = isNoBall
-    ? "No Ball — what did the batsman score?"
+    ? "No Ball — bat runs"
     : isWide
-      ? "Wide — additional runs after the wide"
-      : `${kind} — how many runs?`;
+      ? "Wide — additional runs"
+      : isBye
+        ? "Bye — completed runs"
+        : isLegBye
+          ? "Leg Bye — completed runs"
+          : `${kind} — runs`;
+
   const description = isNoBall
-    ? "Runs off the bat only. The scoring engine adds the +1 no-ball penalty automatically."
+    ? "Runs scored off the bat on the no-ball. Engine auto-adds the +1 no-ball penalty. Boundaries credit the batter."
     : isWide
-      ? "Only the runs the batsmen actually completed (or 4 if the ball ran to the boundary). The +1 wide penalty is added automatically."
-      : `Total runs conceded on this ball including the ${kind.toLowerCase()}.`;
+      ? "Additional runs the batsmen completed after the wide (or 4 if it ran to the boundary). Engine auto-adds the +1 wide penalty."
+      : isBye || isLegBye
+        ? "Completed runs on this delivery. No automatic runs are added."
+        : "Runs on this ball.";
+
+  const numeric = [0, 1, 2, 3];
+  const handle = (v: number) => onSelect(v);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -813,17 +806,41 @@ export function ExtraRunsModal({
           <SheetTitle className="text-base">{title}</SheetTitle>
           <SheetDescription className="text-xs">{description}</SheetDescription>
         </SheetHeader>
-        <div className={`grid ${options.length === 6 ? "grid-cols-6" : "grid-cols-5"} gap-2 px-3`}>
-          {options.map((o) => (
+        <div className="grid grid-cols-4 gap-2 px-3">
+          {numeric.map((v) => (
             <Button
-              key={o.value}
+              key={v}
               variant="outline"
               className="h-12 text-base font-black tabular-nums"
-              onClick={() => onSelect(o.value)}
+              onClick={() => handle(v)}
             >
-              {o.label}
+              {v}
             </Button>
           ))}
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2 px-3">
+          <Button
+            className="h-14 text-base font-black bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            onClick={() => handle(4)}
+          >
+            FOUR
+          </Button>
+          {isWide ? (
+            <Button
+              variant="outline"
+              className="h-14 text-base font-black tabular-nums"
+              onClick={() => handle(5)}
+            >
+              5
+            </Button>
+          ) : (
+            <Button
+              className="h-14 text-base font-black bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+              onClick={() => handle(6)}
+            >
+              SIX
+            </Button>
+          )}
         </div>
         <SheetFooter
           className="px-3 pb-3 pt-2"
