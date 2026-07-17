@@ -63,6 +63,7 @@ function RegisterContent() {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [accepted, setAccepted] = useState<Record<string, boolean>>({});
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -72,6 +73,12 @@ function RegisterContent() {
     dob: "",
     address: "",
     gender: "",
+    height_cm: "",
+    weight_kg: "",
+    batting_style: "",
+    bowling_style: "",
+    interests: "",
+    medical_notes: "",
   });
 
   // Prefill from originating lead when arriving via /register?lead=<id>
