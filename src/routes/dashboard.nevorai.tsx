@@ -228,6 +228,8 @@ function NevorAIPage() {
                 qc.invalidateQueries({ queryKey: ["nevorai", "conversations"] });
               }}
               suggestions={SUGGESTIONS}
+              pendingPrompt={pendingPrompt}
+              onPendingPromptConsumed={() => setPendingPrompt(null)}
             />
           </div>
         </div>
