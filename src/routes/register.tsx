@@ -643,6 +643,52 @@ function BatchSelect({
   );
 }
 
+function FeeSummary({ batch, fees }: { batch: Batch | undefined; fees: FeePlan[] }) {
+  const registration = fees.find((f) => f.type === "registration");
+  const monthly = batch ? batchFeePlan(batch, fees) : undefined;
+  const cur = (registration?.currency || monthly?.currency || "INR").toUpperCase();
+  const sym = cur === "INR" ? "₹" : cur + " ";
+  const fmt = (n: number | undefined) => (n == null ? "—" : `${sym}${n}`);
+  const bn = (batch?.name || "").toLowerCase();
+  const isPersonal =
+    bn.includes("personal") || bn.includes("1-on-1") || bn.includes("one-on-one");
+  const monthlyText = !batch
+    ? "Select a batch to see monthly fee"
+    : isPersonal && !monthly
+      ? "Contact academy"
+      : monthly
+        ? fmt(monthly.amount)
+        : "Contact academy";
+  const total =
+    !isPersonal && monthly && registration ? monthly.amount + registration.amount : null;
+  return (
+    <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3">
+      <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        Fee summary
+      </div>
+      <dl className="grid gap-2 text-sm sm:grid-cols-2">
+        <div className="flex items-center justify-between rounded-md bg-background/60 px-3 py-2">
+          <dt className="text-muted-foreground">Registration fee (one-time)</dt>
+          <dd className="font-semibold text-foreground">{fmt(registration?.amount)}</dd>
+        </div>
+        <div className="flex items-center justify-between rounded-md bg-background/60 px-3 py-2">
+          <dt className="text-muted-foreground">Monthly fee</dt>
+          <dd className="font-semibold text-foreground">{monthlyText}</dd>
+        </div>
+      </dl>
+      {total != null ? (
+        <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-sm">
+          <span className="text-muted-foreground">Due at joining</span>
+          <span className="font-semibold text-foreground">{fmt(total)}</span>
+        </div>
+      ) : null}
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        Fees are auto-filled from the academy's fee plans. Final amount is confirmed by the academy.
+      </p>
+    </div>
+  );
+}
+
 function BatchInfoDialog({
   batches,
   fees,
