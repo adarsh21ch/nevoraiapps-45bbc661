@@ -43,7 +43,7 @@ function PendingPage() {
     );
   }
 
-  const status = reg.review_status ?? "pending";
+  
   const label =
     status === "pending" ? "Under Review"
     : status === "waitlisted" ? "Waitlisted"
