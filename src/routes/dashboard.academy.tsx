@@ -187,9 +187,9 @@ const OWNER_GROUPS: Group[] = [
     title: "Team",
     items: [
       {
-        to: "/dashboard/admins",
-        label: "Admins & Staff",
-        hint: "Invite, suspend, reset access",
+        to: "/dashboard/staff",
+        label: "Team & Access",
+        hint: "Members, invitations & role assignments",
         icon: ShieldCheck,
       },
     ],
