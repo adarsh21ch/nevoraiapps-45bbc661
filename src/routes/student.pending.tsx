@@ -116,11 +116,14 @@ function PendingPage() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/"))}>
-          Sign out
-        </Button>
-      </div>
+      {status !== "approved" && (
+        <div className="flex justify-between">
+          <Button variant="outline" onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/"))}>
+            Sign out
+          </Button>
+        </div>
+      )}
+
     </div>
   );
 }
