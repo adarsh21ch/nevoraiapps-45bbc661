@@ -196,6 +196,8 @@ function BlockView({ block, onAction }: { block: Block; onAction?: (label: strin
       return <TimelineBlock title={block.title} items={block.items} />;
     case "table":
       return <TableBlock title={block.title} columns={block.columns} rows={block.rows} />;
+    case "compare":
+      return <CompareBlock title={block.title} headers={block.headers} rows={block.rows} />;
     case "callout":
       return <CalloutBlock tone={block.tone} text={block.text} />;
     case "actions":
