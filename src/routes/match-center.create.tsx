@@ -905,7 +905,6 @@ function NewTeamBody({
   onName,
   players,
   onAdd,
-  onRemove,
   studentPool,
   studentsLoading,
 }: {
@@ -918,9 +917,37 @@ function NewTeamBody({
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
 }) {
-  const [customName, setCustomName] = useState("");
-  const addCustom = () => {
-    const trimmed = customName.trim();
+  const [q, setQ] = useState("");
+  const selectedKeys = useMemo(() => new Set(players.map((p) => p.key)), [players]);
+
+  const results = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return [];
+    return studentPool
+      .filter((s) => !selectedKeys.has(s.key))
+      .map((s) => {
+        const n = s.name.toLowerCase();
+        const parts = n.split(/\s+/);
+        const initials = parts.map((p) => p[0] ?? "").join("");
+        let score = 0;
+        if (n.startsWith(term)) score += 100;
+        else if (parts.some((p) => p.startsWith(term))) score += 60;
+        else if (n.includes(term)) score += 30;
+        if (initials.includes(term)) score += 20;
+        return { p: s, score };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+      .map((x) => x.p);
+  }, [q, studentPool, selectedKeys]);
+
+  const trimmed = q.trim();
+  const exactAcademyMatch =
+    trimmed.length > 0 &&
+    results.some((r) => r.name.toLowerCase() === trimmed.toLowerCase());
+
+  const addGuest = () => {
     if (!trimmed) return;
     onAdd({
       key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -928,8 +955,20 @@ function NewTeamBody({
       photo_url: null,
       athlete_profile_id: null,
     });
-    setCustomName("");
+    setQ("");
   };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (results.length > 0) {
+      onAdd(results[0]);
+      setQ("");
+    } else if (trimmed) {
+      addGuest();
+    }
+  };
+
   return (
     <div className="space-y-3">
       <div>
@@ -937,48 +976,81 @@ function NewTeamBody({
         <Input
           value={name}
           onChange={(e) => onName(e.target.value)}
-          placeholder="e.g. U16 · Weekend Warriors"
-          className="mt-1"
+          placeholder="e.g. Team A · U16 · Weekend Warriors"
+          className="mt-1 h-11 text-base"
         />
       </div>
-      <AcademyPlayerSearch
-        studentPool={studentPool}
-        selectedKeys={new Set(players.map((p) => p.key))}
-        onAdd={onAdd}
-        loading={studentsLoading}
-        emptyLabel="No matching academy players. Type a name below to add anyway."
-      />
+
       <div>
-        <Label>Or add a player by name</Label>
-        <div className="mt-1 flex gap-2">
+        <Label>Add player</Label>
+        <div className="relative mt-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            value={customName}
-            onChange={(e) => setCustomName(e.target.value)}
-            placeholder="Type a player's name…"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addCustom();
-              }
-            }}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder="Search academy players or type any name…"
+            className="pl-9 h-11 text-base"
           />
-          <Button type="button" onClick={addCustom} disabled={!customName.trim()}>
-            <Plus className="size-4" />
-          </Button>
         </div>
+        {trimmed && (
+          <div className="mt-2 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border bg-background/60 p-1">
+            {studentsLoading ? (
+              <div className="p-3 text-sm text-muted-foreground">Loading…</div>
+            ) : (
+              <>
+                {results.map((p) => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    onClick={() => {
+                      onAdd(p);
+                      setQ("");
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
+                  >
+                    <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full" />
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                      Academy
+                    </span>
+                  </button>
+                ))}
+                {!exactAcademyMatch && (
+                  <button
+                    type="button"
+                    onClick={addGuest}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
+                  >
+                    <span className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground">
+                      <Plus className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm">
+                      Add <span className="font-semibold">{trimmed}</span> as guest
+                    </span>
+                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                      Guest
+                    </span>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
         <p className="mt-1.5 text-[11px] text-muted-foreground">
-          Not registered in the academy? Just type the name — they'll be recorded for this match.
+          Not in the academy? Type any name and add as guest — no registration needed.
         </p>
       </div>
+
       {players.length === 0 && (
         <div className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-          Add academy players or type any name to build the Playing XI.
+          Add academy players or type any name to build the squad.
         </div>
       )}
-      {void onRemove}
     </div>
   );
 }
+
 
 
 
