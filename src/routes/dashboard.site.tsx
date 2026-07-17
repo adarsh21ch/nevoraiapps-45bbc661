@@ -288,6 +288,50 @@ function ContactEditor() {
         </div>
       </div>
 
+      <div className="pt-3 border-t space-y-2">
+        <Label>Offline registration PDF</Label>
+        <p className="text-xs text-muted-foreground">
+          Upload the printable admission form. When present, the public website's{" "}
+          <strong>Offline PDF form</strong> button downloads this file. If nothing is uploaded,
+          the button is hidden automatically.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-xs cursor-pointer inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-foreground hover:bg-muted">
+            <Upload className="size-3" />
+            {form.registration_pdf_url ? "Replace PDF" : "Upload PDF"}
+            <input
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={(e) =>
+                e.target.files?.[0] && upload("registration_pdf_url", e.target.files[0])
+              }
+            />
+          </label>
+          {form.registration_pdf_url && pdfPreview ? (
+            <a
+              href={pdfPreview}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs underline text-muted-foreground hover:text-foreground"
+            >
+              Preview current PDF
+            </a>
+          ) : null}
+          {form.registration_pdf_url ? (
+            <button
+              type="button"
+              onClick={() => remove("registration_pdf_url")}
+              className="text-xs text-muted-foreground hover:text-rose-600"
+            >
+              Remove
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+
+
       <div>
         <Button
           onClick={() => save.mutate()}
