@@ -128,6 +128,28 @@ function parseFence(tag: string, arg: string, body: string): Block | null {
         .map((l) => l.split("|").map((s) => s.trim()));
       return { kind: "table", title: arg.trim(), columns, rows };
     }
+    case "compare": {
+      const sepIdx = lines.findIndex((l) => /^-{2,}(\s*\|\s*-{2,})*$/.test(l));
+      const headerIdx = sepIdx > 0 ? sepIdx - 1 : 0;
+      const hdr = (lines[headerIdx] ?? "").split("|").map((s) => s.trim());
+      const headers: [string, string, string] = [
+        hdr[0] ?? "Metric",
+        hdr[1] ?? "A",
+        hdr[2] ?? "B",
+      ];
+      const rowStart = sepIdx > 0 ? sepIdx + 1 : 1;
+      const rows: CompareRow[] = lines.slice(rowStart).map((l) => {
+        const cols = l.split("|").map((s) => s.trim());
+        const flag = (cols[3] ?? "").toLowerCase();
+        return {
+          metric: cols[0] ?? "",
+          a: cols[1] ?? "—",
+          b: cols[2] ?? "—",
+          lowerBetter: flag === "lower" || flag === "lower_better",
+        };
+      });
+      return { kind: "compare", title: arg.trim(), headers, rows };
+    }
     case "callout": {
       const tone = (arg.trim() as "info" | "success" | "warning" | "error") || "info";
       return { kind: "callout", tone, text: lines.join(" ") };
