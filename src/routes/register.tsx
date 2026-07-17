@@ -69,28 +69,43 @@ function formatFeeLabel(plan: FeePlan | undefined): string {
 }
 
 // Best-effort mapping: given a batch, find the fee plan that represents its
-// monthly (or recurring) fee. Uses name overlap with active recurring plans.
+// monthly (or recurring) fee. Uses keyword matching against active recurring plans.
 function batchFeePlan(batch: Batch, fees: FeePlan[]): FeePlan | undefined {
   const monthly = fees.filter(
     (f) => f.type !== "registration" && (f.billing_cycle ?? "monthly") !== "annual",
   );
   const bn = (batch.name || "").toLowerCase();
-  if (!bn) return monthly[0];
-  // 1) exact substring match either direction
-  const hit = monthly.find((f) => {
+  if (!bn) return undefined;
+  // Personal coaching → look for a plan whose name mentions personal/coaching
+  if (bn.includes("personal") || bn.includes("1-on-1") || bn.includes("one-on-one")) {
+    return monthly.find((f) => {
+      const fn = (f.name || "").toLowerCase();
+      return fn.includes("personal") || fn.includes("coaching");
+    });
+  }
+  // "Both" sessions (morning + evening) → prefer a plan named "both"
+  const isBoth =
+    bn.includes("both") ||
+    (bn.includes("morning") && (bn.includes("eve") || bn.includes("evening")));
+  if (isBoth) {
+    const hit = monthly.find((f) => (f.name || "").toLowerCase().includes("both"));
+    if (hit) return hit;
+  } else {
+    // Single-session batches (morning / evening / night) → prefer "single"
+    const hit = monthly.find((f) => (f.name || "").toLowerCase().includes("single"));
+    if (hit) return hit;
+  }
+  // Direct substring match either direction
+  const direct = monthly.find((f) => {
     const fn = (f.name || "").toLowerCase();
     return fn && (fn.includes(bn) || bn.includes(fn));
   });
-  if (hit) return hit;
-  // 2) fall back to the tenant's default monthly plan
+  if (direct) return direct;
+  // Fall back to the tenant's default monthly plan
   return monthly[0];
 }
 
 function batchFeeText(batch: Batch, fees: FeePlan[]): string {
-  const bn = (batch.name || "").toLowerCase();
-  if (bn.includes("personal") || bn.includes("1-on-1") || bn.includes("one-on-one")) {
-    return "Contact academy";
-  }
   const plan = batchFeePlan(batch, fees);
   return formatFeeLabel(plan) || "Contact academy";
 }
