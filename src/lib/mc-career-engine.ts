@@ -539,8 +539,11 @@ async function detectAndRecordMilestones(
  * Reads
  * ================================================================ */
 
-export async function getCareer(athleteProfileId: string): Promise<MCPlayerCareer | null> {
-  const { data, error } = await supabase
+export async function getCareer(
+  athleteProfileId: string,
+  db: typeof supabase = supabase,
+): Promise<MCPlayerCareer | null> {
+  const { data, error } = await db
     .from("mc_player_careers")
     .select("*")
     .eq("athlete_profile_id", athleteProfileId)
