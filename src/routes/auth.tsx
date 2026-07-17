@@ -98,6 +98,13 @@ async function routeAfterLogin(uid: string): Promise<PostLoginRoute> {
 function AuthPage() {
   const navigate = useNavigate();
   const { mode: searchMode } = Route.useSearch();
+  const tenantState = useTenantState();
+  const tenant = tenantState.status === "ready" ? tenantState.tenant : null;
+  const brandName = tenant?.name ?? "AcademyOS";
+  const brandShort =
+    tenant?.short_name || (tenant?.name ? tenant.name.charAt(0).toUpperCase() : "A");
+  const brandLogo = tenant?.logo_url ?? null;
+  const brandColor = tenant?.primary_color ?? "#a3e635";
   const [mode, setMode] = useState<"signin" | "forgot" | "reset">(searchMode ?? "signin");
   const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
