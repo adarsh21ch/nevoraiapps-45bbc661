@@ -444,72 +444,11 @@ function HomeContent() {
         </section>
       ) : null}
 
-      {/* Star players */}
-      {stars.length > 0 ? (
-        <section className="relative bg-[#05060a] py-20 text-white">
-          <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:22px_22px]" />
-          <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="flex items-end justify-between gap-4">
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/60">
-                  <span style={{ color: tenant.primary_color }}>01 —</span> Our champions
-                </div>
-                <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
-                  Star players
-                </h2>
-              </div>
-              <Link
-                to="/star-players"
-                className="hidden text-sm font-medium text-white/70 hover:text-white sm:inline"
-              >
-                See all →
-              </Link>
-            </div>
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {stars.slice(0, 6).map((p, i) => (
-                <div
-                  key={i}
-                  className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6 transition-all hover:-translate-y-1 hover:border-white/25"
-                >
-                  <div
-                    className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl transition-opacity group-hover:opacity-90"
-                    style={{ backgroundColor: `${tenant.primary_color}40` }}
-                  />
-                  <div className="relative flex items-center gap-4">
-                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl ring-2 ring-white/20">
-                      <StoragedImage
-                        path={p.photo_url}
-                        alt={p.name}
-                        className="h-full w-full object-cover"
-                        fallback={
-                          <div
-                            className="flex h-full w-full items-center justify-center text-xl font-bold text-white"
-                            style={{
-                              background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
-                            }}
-                          >
-                            {p.name.charAt(0)}
-                          </div>
-                        }
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="truncate text-lg font-bold">{p.name}</div>
-                      <div className="text-sm text-white/60">{p.achievement}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {/* Gallery / Facilities */}
+      {/* Gallery / Facilities — full-bleed masonry, natural aspect ratios */}
       {gallery.length > 0 ? (
-        <section className="bg-background py-16 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="text-center">
+        <section className="bg-background py-20 sm:py-24">
+          <div className="mx-auto max-w-none px-4 sm:px-6 lg:px-10">
+            <div className="mx-auto max-w-7xl text-center">
               <div
                 className="text-xs font-semibold uppercase tracking-[0.25em]"
                 style={{ color: "var(--brand)" }}
@@ -520,20 +459,18 @@ function HomeContent() {
                 Inside the academy
               </h2>
             </div>
-            <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-10 columns-2 gap-3 md:columns-3 xl:columns-4">
               {gallery.map((g, i) => (
                 <figure
                   key={i}
-                  className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-muted ${i % 5 === 0 ? "sm:col-span-2 sm:row-span-2" : ""}`}
+                  className="group relative mb-3 break-inside-avoid overflow-hidden rounded-xl border border-border/60 bg-muted animate-in fade-in duration-500"
                 >
-                  <div className={`${i % 5 === 0 ? "aspect-[4/3]" : "aspect-square"} w-full`}>
-                    <StoragedImage
-                      path={g.url}
-                      alt={g.caption ?? ""}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      fallback={<div className="h-full w-full bg-muted" />}
-                    />
-                  </div>
+                  <StoragedImage
+                    path={g.url}
+                    alt={g.caption ?? ""}
+                    className="h-auto w-full transition-transform duration-500 group-hover:scale-[1.03]"
+                    fallback={<div className="aspect-video w-full bg-muted" />}
+                  />
                   {g.caption ? (
                     <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-sm font-medium text-white">
                       {g.caption}
