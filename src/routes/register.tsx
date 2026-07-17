@@ -17,6 +17,8 @@ import type { Batch, FeePlan } from "@/lib/tenant";
 import { supabase } from "@/integrations/supabase/client";
 import { checkRateLimit } from "@/lib/bulk-ops";
 import { signedUrl } from "@/lib/storage";
+import { toE164 } from "@/lib/phone";
+import { attachPhoneToApplicant } from "@/lib/registration/attach-phone.functions";
 
 // Policies that must be accepted before registration submits (if the academy
 // has published them). Missing policies are silently skipped — never block
