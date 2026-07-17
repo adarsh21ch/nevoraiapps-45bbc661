@@ -603,7 +603,7 @@ function BatchSelect({
   options: { value: string; label: string; right: string }[];
   onInfo: () => void;
 }) {
-  const selected = options.find((o) => o.value === value);
+  
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -622,7 +622,7 @@ function BatchSelect({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="block w-full appearance-none rounded-lg border border-border bg-background px-3 py-2.5 pr-24 text-sm text-foreground shadow-sm outline-none"
+          className="block w-full appearance-none rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none"
         >
           {options.map((o) => (
             <option key={o.value} value={o.value}>
@@ -630,14 +630,6 @@ function BatchSelect({
             </option>
           ))}
         </select>
-        {selected?.right ? (
-          <span
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-            style={{ backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)", color: "var(--brand)" }}
-          >
-            {selected.right}
-          </span>
-        ) : null}
       </div>
     </div>
   );
