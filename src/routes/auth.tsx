@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { toE164, isLikelyEmail } from "@/lib/phone";
+import { useTenantState } from "@/lib/tenant-context";
+
 
 type AuthSearch = { mode?: "signin" | "forgot" | "reset" };
 
