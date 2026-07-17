@@ -662,29 +662,25 @@ function FeeSummary({ batch, fees }: { batch: Batch | undefined; fees: FeePlan[]
   const total =
     !isPersonal && monthly && registration ? monthly.amount + registration.amount : null;
   return (
-    <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3">
-      <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        Fee summary
-      </div>
-      <dl className="grid gap-2 text-sm sm:grid-cols-2">
-        <div className="flex items-center justify-between rounded-md bg-background/60 px-3 py-2">
-          <dt className="text-muted-foreground">Registration fee (one-time)</dt>
-          <dd className="font-semibold text-foreground">{fmt(registration?.amount)}</dd>
-        </div>
-        <div className="flex items-center justify-between rounded-md bg-background/60 px-3 py-2">
-          <dt className="text-muted-foreground">Monthly fee</dt>
-          <dd className="font-semibold text-foreground">{monthlyText}</dd>
-        </div>
-      </dl>
+    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
+      <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        Fees
+      </span>
+      <span className="flex items-baseline gap-1.5">
+        <span className="text-muted-foreground">Admission</span>
+        <span className="font-semibold text-foreground">{fmt(registration?.amount)}</span>
+      </span>
+      <span className="text-border">•</span>
+      <span className="flex items-baseline gap-1.5">
+        <span className="text-muted-foreground">Monthly</span>
+        <span className="font-semibold text-foreground">{monthlyText}</span>
+      </span>
       {total != null ? (
-        <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-sm">
+        <span className="ml-auto flex items-baseline gap-1.5">
           <span className="text-muted-foreground">Due at joining</span>
           <span className="font-semibold text-foreground">{fmt(total)}</span>
-        </div>
+        </span>
       ) : null}
-      <p className="mt-2 text-[11px] text-muted-foreground">
-        Fees are auto-filled from the academy's fee plans. Final amount is confirmed by the academy.
-      </p>
     </div>
   );
 }
