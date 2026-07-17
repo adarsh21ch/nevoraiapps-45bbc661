@@ -1,10 +1,12 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { toE164, isLikelyEmail } from "@/lib/phone";
 import { useTenantState } from "@/lib/tenant-context";
+
 
 
 type AuthSearch = { mode?: "signin" | "forgot" | "reset" };
