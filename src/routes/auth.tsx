@@ -258,7 +258,7 @@ function AuthPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg text-zinc-400"
           >
-            Students, parents and academy staff — sign in with the email you registered with.
+            Students, parents and academy staff — sign in with the email or phone you registered with.
             We'll take you to the right place.
           </motion.p>
 
