@@ -284,6 +284,63 @@ function RegisterContent() {
             onChange={(v) => setForm({ ...form, address: v })}
           />
 
+          <div className="grid grid-cols-2 gap-4">
+            <Field
+              label="Height (cm)"
+              type="number"
+              value={form.height_cm}
+              onChange={(v) => setForm({ ...form, height_cm: v })}
+              placeholder="e.g. 165"
+            />
+            <Field
+              label="Weight (kg)"
+              type="number"
+              value={form.weight_kg}
+              onChange={(v) => setForm({ ...form, weight_kg: v })}
+              placeholder="e.g. 55"
+            />
+          </div>
+          <SelectField
+            label="Batting style"
+            value={form.batting_style}
+            onChange={(v) => setForm({ ...form, batting_style: v })}
+            options={[
+              { value: "", label: "Not sure yet" },
+              { value: "right-hand", label: "Right-hand" },
+              { value: "left-hand", label: "Left-hand" },
+            ]}
+          />
+          <SelectField
+            label="Bowling style"
+            value={form.bowling_style}
+            onChange={(v) => setForm({ ...form, bowling_style: v })}
+            options={[
+              { value: "", label: "Not sure yet" },
+              { value: "right-arm-pace", label: "Right-arm pace" },
+              { value: "left-arm-pace", label: "Left-arm pace" },
+              { value: "right-arm-spin", label: "Right-arm spin" },
+              { value: "left-arm-spin", label: "Left-arm spin" },
+              { value: "none", label: "Doesn't bowl" },
+            ]}
+          />
+          <SelectField
+            label="Playing role / interest"
+            value={form.interests}
+            onChange={(v) => setForm({ ...form, interests: v })}
+            options={[
+              { value: "", label: "Select a role" },
+              { value: "batter", label: "Batter" },
+              { value: "bowler", label: "Bowler" },
+              { value: "all-rounder", label: "All-rounder" },
+              { value: "wicket-keeper", label: "Wicket-keeper" },
+            ]}
+          />
+          <TextArea
+            label="Medical notes (allergies, conditions)"
+            value={form.medical_notes}
+            onChange={(v) => setForm({ ...form, medical_notes: v })}
+          />
+
           {requiredPolicies.length > 0 ? (
             <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -323,9 +380,38 @@ function RegisterContent() {
             </div>
           ) : null}
 
+          <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 rounded border-border"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+              />
+              <span className="text-sm text-foreground">
+                I / We accept the{" "}
+                <Link
+                  to="/policies/$kind"
+                  params={{ kind: "terms" }}
+                  target="_blank"
+                  className="font-medium underline"
+                  style={{ color: "var(--brand)" }}
+                >
+                  Terms &amp; Conditions
+                </Link>{" "}
+                of {tenant.name}, including fees, refunds, code of conduct and
+                use of images / videos.
+              </span>
+            </label>
+          </div>
+
           <button
             type="submit"
-            disabled={saving || (requiredPolicies.length > 0 && !allRequiredAccepted)}
+            disabled={
+              saving ||
+              !termsAccepted ||
+              (requiredPolicies.length > 0 && !allRequiredAccepted)
+            }
             className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-lg disabled:opacity-60"
             style={{ backgroundColor: "var(--brand)" }}
           >
