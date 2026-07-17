@@ -35,8 +35,12 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
             auth: { persistSession: false },
           });
 
-          // Try custom_domain match first
-          const first = await (supabase.from("tenants") as any)
+          // Query the anon-readable public directory view. The base `tenants`
+          // table is not granted to anon, so a direct select returns null and
+          // the manifest silently falls back to platform defaults — which is
+          // why every academy previously installed as "Academy OS" with the
+          // Lovable favicon.
+          const first = await (supabase.from("tenants_public_directory") as any)
             .select(COLS)
             .eq("custom_domain", hostname)
             .maybeSingle();
@@ -49,7 +53,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
               .split(".")
               .pop();
             if (slug) {
-              const res = await (supabase.from("tenants") as any)
+              const res = await (supabase.from("tenants_public_directory") as any)
                 .select(COLS)
                 .eq("slug", slug)
                 .maybeSingle();
@@ -61,6 +65,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
         } catch {
           // fall through to platform defaults
         }
+
 
         // Resolve logo → signed URL for icons if it's a storage path
         let iconUrl = tenant?.logo_url ?? "/favicon.ico";
