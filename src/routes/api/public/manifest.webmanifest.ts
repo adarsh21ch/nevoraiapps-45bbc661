@@ -12,6 +12,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
       GET: async ({ request }) => {
         const url = new URL(request.url);
         const hostname = (request.headers.get("host") ?? url.hostname).split(":")[0].toLowerCase();
+        const tenantParam = url.searchParams.get("tenant")?.trim().toLowerCase() ?? "";
         const platformBase = process.env.VITE_PLATFORM_BASE_DOMAIN ?? "nevorai.com";
         const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL!;
         const supabaseKey =
@@ -40,11 +41,23 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           // the manifest silently falls back to platform defaults — which is
           // why every academy previously installed as "Academy OS" with the
           // Lovable favicon.
-          const first = await (supabase.from("tenants_public_directory") as any)
-            .select(COLS)
-            .eq("custom_domain", hostname)
-            .maybeSingle();
-          let data = first.data as TenantRow | null;
+          let data: TenantRow | null = null;
+
+          if (/^[a-z0-9-]{1,80}$/.test(tenantParam)) {
+            const res = await (supabase.from("tenants_public_directory") as any)
+              .select(COLS)
+              .eq("slug", tenantParam)
+              .maybeSingle();
+            data = res.data as TenantRow | null;
+          }
+
+          if (!data) {
+            const first = await (supabase.from("tenants_public_directory") as any)
+              .select(COLS)
+              .eq("custom_domain", hostname)
+              .maybeSingle();
+            data = first.data as TenantRow | null;
+          }
 
           // Fallback: {slug}.{platformBase}
           if (!data && hostname.endsWith("." + platformBase)) {
@@ -73,6 +86,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
         const iconVersion = tenant?.logo_url
           ? tenant.logo_url.split("/").pop()?.replace(/[^a-zA-Z0-9._-]/g, "") || tenant.slug
           : "platform";
+        const iconTenant = tenant?.slug ?? tenantParam;
         let iconUrl = tenant?.logo_url
           ? `/api/public/tenant-icon?tenant=${encodeURIComponent(tenant.slug)}&v=${encodeURIComponent(iconVersion)}`
           : "/favicon.ico";
@@ -102,7 +116,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
         // never on the owner login/router. The platform PWA on the bare
         // nevorai.com / lovable.app host keeps the /app-launch behaviour so
         // owners land in their dashboard.
-        const startUrl = tenant ? "/" : "/app-launch";
+        const startUrl = tenant ? (tenantParam ? `/?tenant=${encodeURIComponent(iconTenant)}` : "/") : "/app-launch";
 
         const manifest = {
           id: startUrl,
