@@ -75,7 +75,7 @@ type Founder = {
 };
 type Coach = { name?: string; role?: string; bio?: string; photo_url?: string | null };
 type GalleryItem = { url?: string; caption?: string };
-type StarPlayer = { name: string; achievement: string; photo_url?: string | null };
+// StarPlayer type comes from StarPlayersShowcase; raw shape read from jsonb.
 type Spotlight = { name?: string; role?: string; bio?: string; photo_url?: string | null };
 type Cta = {
   headline?: string;
@@ -116,7 +116,10 @@ function HomeContent() {
   const founder = sectionOne<Founder>(sections, "founder");
   const coaches = sectionsBy(sections, "coaches").map((s) => s.content as Coach);
   const gallery = sectionsBy(sections, "gallery").map((s) => s.content as GalleryItem);
-  const stars = sectionsBy(sections, "star_players").map((s) => s.content as StarPlayer);
+  const stars = sectionsBy(sections, "star_players")
+    .map((s) => normalizeStar(s.content as RawStarPlayer))
+    .filter((p) => p.name);
+  const { featured: featuredStar, rest: restStars } = pickFeatured(stars);
   const spotlights = sectionsBy(sections, "spotlight").map((s) => s.content as Spotlight);
   const cta = sectionOne<Cta>(sections, "cta");
   const mapContent = sectionOne<MapContent>(sections, "map");
