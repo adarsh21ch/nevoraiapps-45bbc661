@@ -532,20 +532,59 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   /* ---------- start innings if needed ---------- */
   const noInnings = !session.loading && !session.activeInnings && !!session.match;
-  const startFirstInnings = async () => {
+
+  // Pre-fill toss from match if already recorded
+  useEffect(() => {
     if (!session.match) return;
+    const m = session.match as { toss_winner?: string | null; toss_decision?: string | null };
+    if (m.toss_winner && !tossWinnerId) setTossWinnerId(m.toss_winner);
+    if (m.toss_decision && !tossDecision) {
+      setTossDecision(m.toss_decision === "bowl" ? "bowl" : "bat");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.match?.id]);
+
+  const openTossDialog = () => {
+    if (!session.match) return;
+    setTossOpen(true);
+  };
+
+  const confirmTossAndStart = async () => {
+    if (!session.match || !tossWinnerId || !tossDecision) return;
+    setTossSaving(true);
     try {
+      const battingTeamId =
+        tossDecision === "bat"
+          ? tossWinnerId
+          : tossWinnerId === session.match.team_a_id
+            ? session.match.team_b_id
+            : session.match.team_a_id;
+      const bowlingTeamId =
+        battingTeamId === session.match.team_a_id
+          ? session.match.team_b_id
+          : session.match.team_a_id;
+
+      const { error: upErr } = await supabase
+        .from("mc_matches")
+        .update({ toss_winner: tossWinnerId, toss_decision: tossDecision })
+        .eq("id", session.match.id);
+      if (upErr) throw upErr;
+
       await session.startInnings({
         inningsNumber: 1,
-        battingTeamId: session.match.team_a_id,
-        bowlingTeamId: session.match.team_b_id,
+        battingTeamId,
+        bowlingTeamId,
         target: null,
       });
-      toast.success("Innings started");
+      setTossOpen(false);
+      toast.success("Toss recorded · Innings 1 started");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not start innings");
+    } finally {
+      setTossSaving(false);
     }
   };
+
 
   const startSecondInnings = async () => {
     if (!session.match || !session.activeInnings) return;
