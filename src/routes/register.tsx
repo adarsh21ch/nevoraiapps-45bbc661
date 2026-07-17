@@ -603,7 +603,7 @@ function BatchSelect({
   options: { value: string; label: string; right: string }[];
   onInfo: () => void;
 }) {
-  const selected = options.find((o) => o.value === value);
+  
   return (
     <div>
       <div className="flex items-center justify-between">
