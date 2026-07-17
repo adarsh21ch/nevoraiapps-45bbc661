@@ -19,6 +19,7 @@ import { checkRateLimit } from "@/lib/bulk-ops";
 import { signedUrl } from "@/lib/storage";
 import { toE164 } from "@/lib/phone";
 import { attachPhoneToApplicant } from "@/lib/registration/attach-phone.functions";
+import { cn } from "@/lib/utils";
 
 // Policies that must be accepted before registration submits (if the academy
 // has published them). Missing policies are silently skipped — never block
@@ -26,6 +27,15 @@ import { attachPhoneToApplicant } from "@/lib/registration/attach-phone.function
 const REQUIRED_POLICIES: PolicyKind[] = ["terms", "privacy", "fee", "medical"];
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
+
+const STEP_TITLES = [
+  "Create your account",
+  "Student details",
+  "Optional details",
+  "Review & submit",
+] as const;
+type Step = 1 | 2 | 3 | 4;
+
 
 type RegisterSearch = { lead?: string };
 
@@ -167,6 +177,84 @@ function RegisterContent() {
     interests: "",
     medical_notes: "",
   });
+
+  // --- Mobile wizard state (presentation only) --------------------------
+  const [step, setStep] = useState<Step>(1);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches,
+  );
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const handler = () => setIsMobile(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Draft persistence — everything except password fields.
+  const DRAFT_KEY = `register:draft:${tenant.id}`;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.sessionStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Partial<typeof form>;
+      setForm((f) => ({ ...f, ...saved, password: "", password2: "" }));
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [DRAFT_KEY]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const { password: _p, password2: _p2, ...safe } = form;
+      window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(safe));
+    } catch {
+      /* quota / private mode */
+    }
+  }, [form, DRAFT_KEY]);
+
+  // Per-step validation — mirrors the existing submit-time checks exactly.
+  function validateStep(n: Step): boolean {
+    const e: Record<string, string> = {};
+    if (n === 1) {
+      const emailTrim = form.email.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim))
+        e.email = "Enter a valid email address.";
+      if (form.password.length < 8) e.password = "At least 8 characters.";
+      if (form.password !== form.password2) e.password2 = "Passwords do not match.";
+    } else if (n === 2) {
+      if (!form.name.trim()) e.name = "Required.";
+      if (!form.guardian_name.trim()) e.guardian_name = "Required.";
+      if (!form.dob) e.dob = "Required.";
+      if (!form.gender) e.gender = "Required.";
+      if (!form.phone.trim()) e.phone = "Required.";
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+  function goNext() {
+    if (!validateStep(step)) return;
+    setErrors({});
+    setStep((s) => Math.min(4, s + 1) as Step);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function goBack() {
+    setErrors({});
+    setStep((s) => Math.max(1, s - 1) as Step);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function skipOptional() {
+    setErrors({});
+    setStep(4);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  const showStep = (s: Step) => !isMobile || step === s;
+
+
 
   // Prefill from originating lead when arriving via /register?lead=<id>
   useEffect(() => {
@@ -356,6 +444,11 @@ function RegisterContent() {
       console.error(error);
       return;
     }
+    try {
+      window.sessionStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* ignore */
+    }
     setDone(true);
   }
 
@@ -395,281 +488,410 @@ function RegisterContent() {
 
       {!done ? (
         <form onSubmit={submitForm} className="mt-8 space-y-6">
-          {/* Section 0 — Account (becomes the applicant's login) */}
-          <Section title="Create your account">
-            <p className="mb-3 text-xs text-muted-foreground">
-              You'll sign in with this email and password to see the status of your application and,
-              once approved, your student dashboard.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Email *"
-                type="email"
-                value={form.email}
-                onChange={(v) => setForm({ ...form, email: v })}
-                placeholder="you@example.com"
-              />
-              <div>
-                <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Password *
-                </div>
-                <div className="relative mt-1.5">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder="At least 8 characters"
-                    autoComplete="new-password"
-                    className="block w-full rounded-lg border border-border bg-background px-3 py-2.5 pr-10 text-sm text-foreground shadow-sm outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute inset-y-0 right-2 grid place-items-center text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+          {isMobile ? (
+            <div className="rounded-2xl border border-border/60 bg-card/40 p-4">
+              <div
+                className="text-[11px] font-semibold uppercase tracking-widest"
+                style={{ color: "var(--brand)" }}
+              >
+                Step {step} of 4
               </div>
-              <Field
-                label="Confirm password *"
-                type={showPassword ? "text" : "password"}
-                value={form.password2}
-                onChange={(v) => setForm({ ...form, password2: v })}
-                placeholder="Re-enter password"
-              />
-              <div className="hidden sm:block" />
-              <div className="sm:col-span-2 flex items-start gap-2 rounded-lg bg-muted/40 p-2.5 text-[11px] text-muted-foreground">
-                <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                <span>
-                  Already have an account?{" "}
-                  <Link to="/auth" className="font-medium underline" style={{ color: "var(--brand)" }}>
-                    Sign in
-                  </Link>{" "}
-                  instead.
-                </span>
+              <div className="mt-1 text-base font-semibold text-foreground">
+                {STEP_TITLES[step - 1]}
               </div>
-            </div>
-          </Section>
-
-          {/* Section 1 — Basic details */}
-          <Section title="Basic details">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Student name *"
-                value={form.name}
-                onChange={(v) => setForm({ ...form, name: v })}
-              />
-              <Field
-                label="Parent / guardian name *"
-                value={form.guardian_name}
-                onChange={(v) => setForm({ ...form, guardian_name: v })}
-              />
-              <Field
-                label="Date of birth *"
-                type="date"
-                value={form.dob}
-                onChange={(v) => setForm({ ...form, dob: v })}
-              />
-              <SelectField
-                label="Gender *"
-                value={form.gender}
-                onChange={(v) => setForm({ ...form, gender: v })}
-                options={[
-                  { value: "", label: "Select gender" },
-                  { value: "male", label: "Male" },
-                  { value: "female", label: "Female" },
-                ]}
-              />
-              <Field
-                label="Contact number *"
-                value={form.phone}
-                onChange={(v) => setForm({ ...form, phone: v })}
-                placeholder="10-digit mobile"
-              />
-              {batches.length > 0 ? (
-                <BatchSelect
-                  value={form.batch_id}
-                  onChange={(v) => setForm({ ...form, batch_id: v })}
-                  options={batchOptions}
-                  onInfo={() => setBatchInfoOpen(true)}
+              <div className="mt-3 h-1 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full transition-all"
+                  style={{ width: `${step * 25}%`, backgroundColor: "var(--brand)" }}
                 />
-              ) : null}
-            </div>
-            {batches.length > 0 ? (
-              <FeeSummary
-                batch={batches.find((b) => b.id === form.batch_id)}
-                fees={fees}
-              />
-            ) : null}
-          </Section>
-
-          {/* Section 3 — Physical details */}
-          <Section title="Physical details">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Field
-                label="Height (cm)"
-                type="number"
-                value={form.height_cm}
-                onChange={(v) => setForm({ ...form, height_cm: v })}
-                placeholder="e.g. 165"
-              />
-              <Field
-                label="Weight (kg)"
-                type="number"
-                value={form.weight_kg}
-                onChange={(v) => setForm({ ...form, weight_kg: v })}
-                placeholder="e.g. 55"
-              />
-              <SelectField
-                label="Blood group"
-                value={form.blood_group}
-                onChange={(v) => setForm({ ...form, blood_group: v })}
-                options={[
-                  { value: "", label: "Select" },
-                  ...BLOOD_GROUPS.map((g) => ({ value: g, label: g })),
-                ]}
-              />
-            </div>
-          </Section>
-
-          {/* Section 4 — Cricket profile */}
-          <Section title="Cricket profile">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <SelectField
-                label="Batting style"
-                value={form.batting_style}
-                onChange={(v) => setForm({ ...form, batting_style: v })}
-                options={[
-                  { value: "", label: "Not sure yet" },
-                  { value: "right-hand", label: "Right hand" },
-                  { value: "left-hand", label: "Left hand" },
-                ]}
-              />
-              <SelectField
-                label="Bowling style"
-                value={form.bowling_style}
-                onChange={(v) => setForm({ ...form, bowling_style: v })}
-                options={[
-                  { value: "", label: "Not sure yet" },
-                  { value: "right-arm", label: "Right arm" },
-                  { value: "left-arm", label: "Left arm" },
-                ]}
-              />
-              <SelectField
-                label="Playing role"
-                value={form.interests}
-                onChange={(v) => setForm({ ...form, interests: v })}
-                options={[
-                  { value: "", label: "Not sure yet" },
-                  { value: "batter", label: "Batter" },
-                  { value: "bowler", label: "Bowler" },
-                  { value: "all-rounder", label: "All rounder" },
-                  { value: "wicket-keeper-batter", label: "Wicketkeeper batsman" },
-                ]}
-              />
-            </div>
-          </Section>
-
-          {/* Section 5 — Address */}
-          <Section title="Address">
-            <TextArea
-              label="Full address"
-              value={form.address}
-              onChange={(v) => setForm({ ...form, address: v })}
-            />
-          </Section>
-
-          {/* Section 6 — Medical */}
-          <Section title="Medical (optional)">
-            <TextArea
-              label="Allergies, conditions or other notes"
-              value={form.medical_notes}
-              onChange={(v) => setForm({ ...form, medical_notes: v })}
-            />
-          </Section>
-
-          {requiredPolicies.length > 0 ? (
-            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Academy policies
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Please read and accept the following before submitting.
-              </p>
-              <ul className="mt-3 space-y-2">
-                {requiredPolicies.map((p) => (
-                  <li key={p.id} className="flex items-start gap-2">
-                    <input
-                      id={`acc-${p.id}`}
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 rounded border-border"
-                      checked={!!accepted[p.id]}
-                      onChange={(e) =>
-                        setAccepted((prev) => ({ ...prev, [p.id]: e.target.checked }))
-                      }
-                    />
-                    <label htmlFor={`acc-${p.id}`} className="text-sm text-foreground">
-                      I accept the{" "}
-                      <Link
-                        to="/policies/$kind"
-                        params={{ kind: p.kind }}
-                        target="_blank"
-                        className="font-medium underline"
-                        style={{ color: "var(--brand)" }}
-                      >
-                        {p.title || POLICY_LABELS[p.kind]}
-                      </Link>{" "}
-                      <span className="text-xs text-muted-foreground">(v{p.version})</span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
             </div>
           ) : null}
 
-          <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
-            <label className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                className="mt-1 h-4 w-4 rounded border-border"
-                checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
-              />
-              <span className="text-sm text-foreground">
-                I / We accept the{" "}
-                <Link
-                  to="/policies/$kind"
-                  params={{ kind: "terms" }}
-                  target="_blank"
-                  className="font-medium underline"
-                  style={{ color: "var(--brand)" }}
-                >
-                  Terms &amp; Conditions
-                </Link>{" "}
-                of {tenant.name}, including fees, refunds, code of conduct and use of images /
-                videos.
-              </span>
-            </label>
-          </div>
+          {/* Step 1 — Account */}
+          {showStep(1) ? (
+            <Section title="Create your account">
+              <p className="mb-3 text-xs text-muted-foreground">
+                You'll sign in with this email and password to see the status of your application and,
+                once approved, your student dashboard.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Email *"
+                  type="email"
+                  value={form.email}
+                  onChange={(v) => setForm({ ...form, email: v })}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  inputMode="email"
+                  error={errors.email}
+                />
+                <div>
+                  <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Password *
+                  </div>
+                  <div className="relative mt-1.5">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={form.password}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      placeholder="At least 8 characters"
+                      autoComplete="new-password"
+                      aria-invalid={errors.password ? true : undefined}
+                      className={cn(
+                        "block w-full rounded-lg border bg-background px-3 py-2.5 pr-10 text-sm text-foreground shadow-sm outline-none",
+                        errors.password ? "border-red-500" : "border-border",
+                      )}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute inset-y-0 right-2 grid place-items-center text-muted-foreground hover:text-foreground"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {errors.password ? (
+                    <span className="mt-1 block text-xs text-red-600">{errors.password}</span>
+                  ) : null}
+                </div>
+                <Field
+                  label="Confirm password *"
+                  type={showPassword ? "text" : "password"}
+                  value={form.password2}
+                  onChange={(v) => setForm({ ...form, password2: v })}
+                  placeholder="Re-enter password"
+                  autoComplete="new-password"
+                  error={errors.password2}
+                />
+                <div className="hidden sm:block" />
+                <div className="sm:col-span-2 flex items-start gap-2 rounded-lg bg-muted/40 p-2.5 text-[11px] text-muted-foreground">
+                  <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>
+                    Already have an account?{" "}
+                    <Link to="/auth" className="font-medium underline" style={{ color: "var(--brand)" }}>
+                      Sign in
+                    </Link>{" "}
+                    instead.
+                  </span>
+                </div>
+              </div>
+            </Section>
+          ) : null}
 
-          <div className="sticky bottom-4 z-10 pt-2">
-            <button
-              type="submit"
-              disabled={
-                saving ||
-                !termsAccepted ||
-                (requiredPolicies.length > 0 && !allRequiredAccepted)
-              }
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-lg disabled:opacity-60"
-              style={{ backgroundColor: "var(--brand)" }}
+          {/* Step 2 — Student details */}
+          {showStep(2) ? (
+            <Section title="Student details">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Student name *"
+                  value={form.name}
+                  onChange={(v) => setForm({ ...form, name: v })}
+                  autoComplete="name"
+                  error={errors.name}
+                />
+                <Field
+                  label="Parent / guardian name *"
+                  value={form.guardian_name}
+                  onChange={(v) => setForm({ ...form, guardian_name: v })}
+                  autoComplete="off"
+                  error={errors.guardian_name}
+                />
+                <Field
+                  label="Date of birth *"
+                  type="date"
+                  value={form.dob}
+                  onChange={(v) => setForm({ ...form, dob: v })}
+                  error={errors.dob}
+                />
+                <SelectField
+                  label="Gender *"
+                  value={form.gender}
+                  onChange={(v) => setForm({ ...form, gender: v })}
+                  options={[
+                    { value: "", label: "Select gender" },
+                    { value: "male", label: "Male" },
+                    { value: "female", label: "Female" },
+                  ]}
+                  error={errors.gender}
+                />
+                <Field
+                  label="Contact number *"
+                  value={form.phone}
+                  onChange={(v) => setForm({ ...form, phone: v })}
+                  placeholder="10-digit mobile"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  error={errors.phone}
+                />
+                {batches.length > 0 ? (
+                  <BatchSelect
+                    value={form.batch_id}
+                    onChange={(v) => setForm({ ...form, batch_id: v })}
+                    options={batchOptions}
+                    onInfo={() => setBatchInfoOpen(true)}
+                  />
+                ) : null}
+              </div>
+              {batches.length > 0 ? (
+                <FeeSummary
+                  batch={batches.find((b) => b.id === form.batch_id)}
+                  fees={fees}
+                />
+              ) : null}
+            </Section>
+          ) : null}
+
+          {/* Step 3 — Optional details (all grouped) */}
+          {showStep(3) ? (
+            <>
+              {isMobile ? (
+                <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
+                  These details help your coach plan better. You can add them later in your student
+                  profile — tap <span className="font-medium text-foreground">Skip for now</span> to
+                  continue.
+                </div>
+              ) : null}
+              <Section title="Physical details">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Field
+                    label="Height (cm)"
+                    type="number"
+                    value={form.height_cm}
+                    onChange={(v) => setForm({ ...form, height_cm: v })}
+                    placeholder="e.g. 165"
+                    inputMode="numeric"
+                  />
+                  <Field
+                    label="Weight (kg)"
+                    type="number"
+                    value={form.weight_kg}
+                    onChange={(v) => setForm({ ...form, weight_kg: v })}
+                    placeholder="e.g. 55"
+                    inputMode="numeric"
+                  />
+                  <SelectField
+                    label="Blood group"
+                    value={form.blood_group}
+                    onChange={(v) => setForm({ ...form, blood_group: v })}
+                    options={[
+                      { value: "", label: "Select" },
+                      ...BLOOD_GROUPS.map((g) => ({ value: g, label: g })),
+                    ]}
+                  />
+                </div>
+              </Section>
+
+              <Section title="Cricket profile">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <SelectField
+                    label="Batting style"
+                    value={form.batting_style}
+                    onChange={(v) => setForm({ ...form, batting_style: v })}
+                    options={[
+                      { value: "", label: "Not sure yet" },
+                      { value: "right-hand", label: "Right hand" },
+                      { value: "left-hand", label: "Left hand" },
+                    ]}
+                  />
+                  <SelectField
+                    label="Bowling style"
+                    value={form.bowling_style}
+                    onChange={(v) => setForm({ ...form, bowling_style: v })}
+                    options={[
+                      { value: "", label: "Not sure yet" },
+                      { value: "right-arm", label: "Right arm" },
+                      { value: "left-arm", label: "Left arm" },
+                    ]}
+                  />
+                  <SelectField
+                    label="Playing role"
+                    value={form.interests}
+                    onChange={(v) => setForm({ ...form, interests: v })}
+                    options={[
+                      { value: "", label: "Not sure yet" },
+                      { value: "batter", label: "Batter" },
+                      { value: "bowler", label: "Bowler" },
+                      { value: "all-rounder", label: "All rounder" },
+                      { value: "wicket-keeper-batter", label: "Wicketkeeper batsman" },
+                    ]}
+                  />
+                </div>
+              </Section>
+
+              <Section title="Address">
+                <TextArea
+                  label="Full address"
+                  value={form.address}
+                  onChange={(v) => setForm({ ...form, address: v })}
+                />
+              </Section>
+
+              <Section title="Medical (optional)">
+                <TextArea
+                  label="Allergies, conditions or other notes"
+                  value={form.medical_notes}
+                  onChange={(v) => setForm({ ...form, medical_notes: v })}
+                />
+              </Section>
+            </>
+          ) : null}
+
+          {/* Step 4 — Review, policies, terms, submit */}
+          {showStep(4) ? (
+            <>
+              {isMobile ? (
+                <Section title="Review your details">
+                  <ReviewSummary
+                    form={form}
+                    batches={batches}
+                    fees={fees}
+                  />
+                </Section>
+              ) : null}
+
+              {requiredPolicies.length > 0 ? (
+                <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Academy policies
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Please read and accept the following before submitting.
+                  </p>
+                  <ul className="mt-3 space-y-2">
+                    {requiredPolicies.map((p) => (
+                      <li key={p.id} className="flex items-start gap-2">
+                        <input
+                          id={`acc-${p.id}`}
+                          type="checkbox"
+                          className="mt-1 h-4 w-4 rounded border-border"
+                          checked={!!accepted[p.id]}
+                          onChange={(e) =>
+                            setAccepted((prev) => ({ ...prev, [p.id]: e.target.checked }))
+                          }
+                        />
+                        <label htmlFor={`acc-${p.id}`} className="text-sm text-foreground">
+                          I accept the{" "}
+                          <Link
+                            to="/policies/$kind"
+                            params={{ kind: p.kind }}
+                            target="_blank"
+                            className="font-medium underline"
+                            style={{ color: "var(--brand)" }}
+                          >
+                            {p.title || POLICY_LABELS[p.kind]}
+                          </Link>{" "}
+                          <span className="text-xs text-muted-foreground">(v{p.version})</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 rounded border-border"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                  />
+                  <span className="text-sm text-foreground">
+                    I / We accept the{" "}
+                    <Link
+                      to="/policies/$kind"
+                      params={{ kind: "terms" }}
+                      target="_blank"
+                      className="font-medium underline"
+                      style={{ color: "var(--brand)" }}
+                    >
+                      Terms &amp; Conditions
+                    </Link>{" "}
+                    of {tenant.name}, including fees, refunds, code of conduct and use of images /
+                    videos.
+                  </span>
+                </label>
+              </div>
+
+              <div
+                className={cn(
+                  "z-10 pt-2",
+                  isMobile ? "sticky bottom-0 bg-background/95 pb-3 backdrop-blur" : "sticky bottom-4",
+                )}
+                style={
+                  isMobile
+                    ? { paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }
+                    : undefined
+                }
+              >
+                <div className={cn("flex gap-2", isMobile && "items-center")}>
+                  {isMobile ? (
+                    <button
+                      type="button"
+                      onClick={goBack}
+                      className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+                    >
+                      Back
+                    </button>
+                  ) : null}
+                  <button
+                    type="submit"
+                    disabled={
+                      saving ||
+                      !termsAccepted ||
+                      (requiredPolicies.length > 0 && !allRequiredAccepted)
+                    }
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-lg disabled:opacity-60"
+                    style={{ backgroundColor: "var(--brand)" }}
+                  >
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    Submit registration
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : null}
+
+          {/* Mobile-only sticky nav (steps 1–3) */}
+          {isMobile && step < 4 ? (
+            <div
+              className="sticky bottom-0 z-10 -mx-4 flex items-center gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
+              style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
             >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Submit registration
-            </button>
-          </div>
+              {step > 1 ? (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+                >
+                  Back
+                </button>
+              ) : (
+                <div />
+              )}
+              {step === 3 ? (
+                <button
+                  type="button"
+                  onClick={skipOptional}
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-muted"
+                >
+                  Skip for now
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={goNext}
+                className="ml-auto inline-flex flex-1 items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-white shadow-md disabled:opacity-60"
+                style={{ backgroundColor: "var(--brand)" }}
+              >
+                Next
+              </button>
+            </div>
+          ) : null}
         </form>
+
       ) : (
         <div className="mt-10 rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm">
           <div
@@ -812,6 +1034,47 @@ function FeeSummary({ batch, fees }: { batch: Batch | undefined; fees: FeePlan[]
   );
 }
 
+function ReviewSummary({
+  form,
+  batches,
+  fees,
+}: {
+  form: {
+    email: string;
+    name: string;
+    guardian_name: string;
+    phone: string;
+    dob: string;
+    gender: string;
+    batch_id: string;
+  };
+  batches: Batch[];
+  fees: FeePlan[];
+}) {
+  const batch = batches.find((b) => b.id === form.batch_id);
+  const rows: [string, string][] = [
+    ["Email", form.email || "—"],
+    ["Password", "••••••••"],
+    ["Student name", form.name || "—"],
+    ["Guardian", form.guardian_name || "—"],
+    ["Date of birth", form.dob || "—"],
+    ["Gender", form.gender || "—"],
+    ["Contact number", form.phone || "—"],
+    ["Preferred batch", batch ? (batch.timing ? `${batch.name} — ${batch.timing}` : batch.name) : "No preference"],
+    ["Monthly fee", batch ? batchFeeText(batch, fees) : "—"],
+  ];
+  return (
+    <dl className="divide-y divide-border/60">
+      {rows.map(([k, v]) => (
+        <div key={k} className="flex items-baseline justify-between gap-4 py-2">
+          <dt className="text-xs text-muted-foreground">{k}</dt>
+          <dd className="text-right text-sm font-medium text-foreground">{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 function BatchInfoDialog({
   batches,
   fees,
@@ -867,12 +1130,18 @@ function Field({
   onChange,
   type = "text",
   placeholder,
+  error,
+  inputMode,
+  autoComplete,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
   placeholder?: string;
+  error?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  autoComplete?: string;
 }) {
   return (
     <label className="block">
@@ -884,11 +1153,18 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2"
+        inputMode={inputMode}
+        autoComplete={autoComplete}
+        aria-invalid={error ? true : undefined}
+        className={cn(
+          "mt-1.5 block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2",
+          error ? "border-red-500" : "border-border",
+        )}
         style={{ boxShadow: "none" }}
-        onFocus={(e) => (e.currentTarget.style.borderColor = "var(--brand)")}
+        onFocus={(e) => (e.currentTarget.style.borderColor = error ? "" : "var(--brand)")}
         onBlur={(e) => (e.currentTarget.style.borderColor = "")}
       />
+      {error ? <span className="mt-1 block text-xs text-red-600">{error}</span> : null}
     </label>
   );
 }
@@ -922,11 +1198,13 @@ function SelectField({
   value,
   onChange,
   options,
+  error,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  error?: string;
 }) {
   return (
     <label className="block">
@@ -936,7 +1214,11 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none"
+        aria-invalid={error ? true : undefined}
+        className={cn(
+          "mt-1.5 block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none",
+          error ? "border-red-500" : "border-border",
+        )}
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -944,6 +1226,8 @@ function SelectField({
           </option>
         ))}
       </select>
+      {error ? <span className="mt-1 block text-xs text-red-600">{error}</span> : null}
     </label>
   );
 }
+
