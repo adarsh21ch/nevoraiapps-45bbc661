@@ -33,6 +33,17 @@ function randomToken(): string {
 }
 
 const invitedRoles = ["coach", "head_coach", "assistant_coach", "admin", "staff"] as const;
+// Roles the owner can assign from the Members tab. Includes "student" so an
+// admin/coach can be demoted back to a plain student. Never allows "owner" or
+// "platform_admin" via this path.
+const assignableMemberRoles = [
+  "student",
+  "coach",
+  "head_coach",
+  "assistant_coach",
+  "admin",
+  "staff",
+] as const;
 
 const inviteInput = z.object({
   tenantId: uuid,
@@ -232,8 +243,8 @@ export const setStaffRole = createServerFn({ method: "POST" })
   .inputValidator((v: unknown) =>
     memberInput
       .extend({
-        newRole: z.enum(invitedRoles),
-        oldRole: z.enum(["owner", "admin", ...invitedRoles]).nullable().optional(),
+        newRole: z.enum(assignableMemberRoles),
+        oldRole: z.enum(["owner", "admin", ...invitedRoles, "student"]).nullable().optional(),
       })
       .parse(v),
   )
@@ -253,14 +264,137 @@ export const setStaffRole = createServerFn({ method: "POST" })
       .from("user_roles")
       .insert({ user_id: data.userId, tenant_id: data.tenantId, role: data.newRole });
     if (insErr) throw new Error(insErr.message);
-    // Sync legacy profiles.role.
-    const legacy = data.newRole === "admin" ? "admin" : "coach";
-    await supabaseAdmin
-      .from("profiles")
-      .update({ role: legacy })
-      .eq("user_id", data.userId)
-      .eq("tenant_id", data.tenantId);
+    // Sync legacy profiles.role hint. Only "admin" / "coach" are valid legacy
+    // values; for anything else (student, staff, head_coach, assistant_coach)
+    // fall back to "coach" so profile permissions don't grant admin by accident.
+    // Skip legacy sync entirely for "student" — profiles.role has no such value.
+    if (data.newRole !== "student") {
+      const legacy = data.newRole === "admin" ? "admin" : "coach";
+      await supabaseAdmin
+        .from("profiles")
+        .update({ role: legacy })
+        .eq("user_id", data.userId)
+        .eq("tenant_id", data.tenantId);
+    }
     return { ok: true };
+  });
+
+/**
+ * List every account with a footprint in this tenant — staff, students
+ * (via applicant_user_id on registrations) and any profile row — plus their
+ * email, so the owner can promote/demote from one place. Uses the admin
+ * client after asserting the caller is owner/admin/platform_admin, so it
+ * bypasses the "user can read own roles" RLS policy safely on the server.
+ */
+export const listTenantMembers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v: unknown) => z.object({ tenantId: uuid }).parse(v))
+  .handler(async ({ data, context }) => {
+    await assertManager(context.supabase, context.userId, data.tenantId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const [rolesR, regsR, profsR, studsR] = await Promise.all([
+      supabaseAdmin
+        .from("user_roles")
+        .select("user_id, role, created_at")
+        .eq("tenant_id", data.tenantId),
+      supabaseAdmin
+        .from("registrations")
+        .select("applicant_user_id, name, email, review_status, created_at")
+        .eq("tenant_id", data.tenantId)
+        .not("applicant_user_id", "is", null),
+      supabaseAdmin
+        .from("profiles")
+        .select("user_id, role, created_at")
+        .eq("tenant_id", data.tenantId),
+      supabaseAdmin
+        .from("students")
+        .select("user_id, name, email, lifecycle_status, created_at")
+        .eq("tenant_id", data.tenantId)
+        .not("user_id", "is", null),
+    ]);
+
+    type MemberAcc = {
+      user_id: string;
+      email: string | null;
+      name: string | null;
+      roles: string[];
+      profile_role: string | null;
+      source: "staff" | "student" | "profile";
+      review_status: string | null;
+      lifecycle_status: string | null;
+      created_at: string;
+    };
+    const byUser = new Map<string, MemberAcc>();
+    const upsert = (uid: string, patch: Partial<MemberAcc> & { created_at: string }) => {
+      const cur = byUser.get(uid) ?? {
+        user_id: uid,
+        email: null,
+        name: null,
+        roles: [],
+        profile_role: null,
+        source: "profile",
+        review_status: null,
+        lifecycle_status: null,
+        created_at: patch.created_at,
+      };
+      Object.assign(cur, {
+        ...patch,
+        // Preserve existing non-null fields
+        email: patch.email ?? cur.email,
+        name: patch.name ?? cur.name,
+        roles: cur.roles,
+        profile_role: patch.profile_role ?? cur.profile_role,
+        review_status: patch.review_status ?? cur.review_status,
+        lifecycle_status: patch.lifecycle_status ?? cur.lifecycle_status,
+      });
+      byUser.set(uid, cur);
+    };
+
+    (rolesR.data ?? []).forEach((r) => {
+      upsert(r.user_id, { created_at: r.created_at, source: "staff" });
+      byUser.get(r.user_id)!.roles.push(r.role as string);
+    });
+    (profsR.data ?? []).forEach((p) => {
+      upsert(p.user_id, {
+        created_at: p.created_at,
+        profile_role: (p.role as string) ?? null,
+      });
+    });
+    (regsR.data ?? []).forEach((r) => {
+      if (!r.applicant_user_id) return;
+      upsert(r.applicant_user_id, {
+        created_at: r.created_at,
+        source: "student",
+        email: r.email,
+        name: r.name,
+        review_status: r.review_status as string | null,
+      });
+    });
+    (studsR.data ?? []).forEach((s) => {
+      if (!s.user_id) return;
+      upsert(s.user_id, {
+        created_at: s.created_at,
+        source: "student",
+        email: s.email,
+        name: s.name,
+        lifecycle_status: s.lifecycle_status as string | null,
+      });
+    });
+
+    // Enrich missing emails from Auth admin (bounded).
+    const rows = Array.from(byUser.values());
+    for (const m of rows) {
+      if (m.email) continue;
+      try {
+        const { data: u } = await supabaseAdmin.auth.admin.getUserById(m.user_id);
+        if (u?.user?.email) m.email = u.user.email;
+      } catch {
+        // ignore — email stays null
+      }
+    }
+
+    return rows.sort((a, b) => (a.created_at > b.created_at ? -1 : 1));
   });
 
 /* ---------- Coach assignments ---------- */
