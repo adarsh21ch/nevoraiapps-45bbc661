@@ -152,6 +152,23 @@ function ContactEditor() {
     }
   }
 
+  async function remove(field: "upi_qr_url" | "logo_url") {
+    try {
+      const next = { ...form, [field]: "" };
+      setForm(next);
+      const { error } = await supabase
+        .from("tenants")
+        .update({ [field]: null } as any)
+        .eq("id", tenant.id);
+      if (error) throw error;
+      toast.success(field === "logo_url" ? "Logo removed" : "QR removed");
+      invalidateTenant();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  }
+
+
   return (
     <Card className="p-5 space-y-3">
       <div className="grid gap-3 md:grid-cols-2">
