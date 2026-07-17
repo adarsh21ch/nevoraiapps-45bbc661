@@ -588,12 +588,15 @@ function MultiSectionEditor({
   section,
   fields,
   imageField,
+  uniqueBooleanKey,
 }: {
   tenantId: string;
   rows: any[];
   section: string;
   fields: Field[];
   imageField?: string;
+  /** When set, saving with this key = true clears the same key on every other row of this section. */
+  uniqueBooleanKey?: string;
 }) {
   const qc = useQueryClient();
   const items = rows.filter((r) => r.section === section);
@@ -611,6 +614,19 @@ function MultiSectionEditor({
     onSuccess: () => invalidate(),
     onError: (e: Error) => toast.error(e.message),
   });
+  // Enforce max-one for a boolean key: after saving row X with key=true, clear
+  // key on every other row of this section.
+  async function enforceUniqueBoolean(savedRowId: string) {
+    if (!uniqueBooleanKey) return;
+    const others = items.filter((r) => r.id !== savedRowId);
+    for (const other of others) {
+      const c = (other.content ?? {}) as Record<string, unknown>;
+      if (c[uniqueBooleanKey]) {
+        const next = { ...c, [uniqueBooleanKey]: false };
+        await supabase.from("site_content").update({ content: next }).eq("id", other.id);
+      }
+    }
+  }
   return (
     <div className="space-y-3">
       {items.map((it) => (
@@ -621,6 +637,8 @@ function MultiSectionEditor({
           imageField={imageField}
           tenantId={tenantId}
           onChange={invalidate}
+          onAfterSave={enforceUniqueBoolean}
+          uniqueBooleanKey={uniqueBooleanKey}
         />
       ))}
       <Button variant="outline" onClick={() => add.mutate()}>
@@ -636,19 +654,23 @@ function ItemCard({
   imageField,
   tenantId,
   onChange,
+  onAfterSave,
+  uniqueBooleanKey,
 }: {
   row: any;
   fields: Field[];
   imageField?: string;
   tenantId: string;
   onChange: () => void;
+  onAfterSave?: (rowId: string) => Promise<void> | void;
+  uniqueBooleanKey?: string;
 }) {
-  const [values, setValues] = useState<Record<string, string>>(row.content ?? {});
+  const [values, setValues] = useState<Record<string, any>>(row.content ?? {});
   const [uploading, setUploading] = useState(false);
   const [imgUrl, setImgUrl] = useState<string>("");
   useEffect(() => {
     const p = imageField ? values[imageField] : "";
-    if (p) signedUrl(p).then(setImgUrl);
+    if (p && typeof p === "string") signedUrl(p).then(setImgUrl);
     else setImgUrl("");
   }, [values, imageField]);
   const save = useMutation({
@@ -658,6 +680,9 @@ function ItemCard({
         .update({ content: values })
         .eq("id", row.id);
       if (error) throw error;
+      if (uniqueBooleanKey && values[uniqueBooleanKey] === true && onAfterSave) {
+        await onAfterSave(row.id);
+      }
     },
     onSuccess: () => {
       toast.success("Saved");
@@ -720,18 +745,41 @@ function ItemCard({
         <div className="flex-1 space-y-2">
           {fields.map((f) => (
             <div key={f.key} className="space-y-1">
-              <Label className="text-xs">{f.label}</Label>
-              {f.multiline ? (
-                <Textarea
-                  rows={f.rows ?? 2}
-                  value={values[f.key] ?? ""}
-                  onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
-                />
+              {f.type === "boolean" ? (
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4"
+                    checked={values[f.key] === true || values[f.key] === "true"}
+                    onChange={(e) => setValues({ ...values, [f.key]: e.target.checked })}
+                  />
+                  <span>
+                    <span className="text-xs font-medium">{f.label}</span>
+                    {f.hint ? (
+                      <span className="block text-[11px] text-muted-foreground mt-0.5">
+                        {f.hint}
+                      </span>
+                    ) : null}
+                  </span>
+                </label>
               ) : (
-                <Input
-                  value={values[f.key] ?? ""}
-                  onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
-                />
+                <>
+                  <Label className="text-xs">{f.label}</Label>
+                  {f.multiline ? (
+                    <Textarea
+                      rows={f.rows ?? 2}
+                      value={typeof values[f.key] === "string" ? values[f.key] : ""}
+                      placeholder={f.placeholder}
+                      onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+                    />
+                  ) : (
+                    <Input
+                      value={typeof values[f.key] === "string" ? values[f.key] : ""}
+                      placeholder={f.placeholder}
+                      onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+                    />
+                  )}
+                </>
               )}
             </div>
           ))}
@@ -752,9 +800,10 @@ function ItemCard({
           disabled={save.isPending}
           style={{ backgroundColor: "var(--brand)", color: "white" }}
         >
-          Save text
+          Save
         </Button>
       </div>
     </Card>
   );
 }
+
