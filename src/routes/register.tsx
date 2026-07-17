@@ -330,6 +330,25 @@ function RegisterContent() {
         .from("registrations")
         .update(extras as never)
         .eq("id", data as unknown as string);
+
+      // Attach phone to the auth user so they can sign in with phone+password.
+      // Silent on conflict (e.g. sibling sharing a parent's number).
+      if (applicantUserId) {
+        const phoneE164 = toE164(form.phone.trim());
+        if (phoneE164) {
+          try {
+            await attachPhoneToApplicant({
+              data: {
+                tenantId: tenant.id,
+                applicantUserId,
+                phoneE164,
+              },
+            });
+          } catch {
+            // non-fatal — email login still works
+          }
+        }
+      }
     }
     setSaving(false);
     if (error || !data) {
