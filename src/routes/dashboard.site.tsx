@@ -128,9 +128,14 @@ function ContactEditor() {
 
   const save = useMutation({
     mutationFn: async () => {
+      // Only push the text/branding fields the form actually edits. File
+      // fields (logo_url, upi_qr_url, registration_pdf_url) are written
+      // directly by upload()/remove() and must NOT be re-sent here — a stale
+      // form snapshot would otherwise wipe a just-uploaded PDF/QR/logo.
+      const { logo_url: _l, upi_qr_url: _q, registration_pdf_url: _p, ...editable } = form;
       const { error } = await supabase
         .from("tenants")
-        .update(form as any)
+        .update(editable as any)
         .eq("id", tenant.id);
       if (error) throw error;
     },
