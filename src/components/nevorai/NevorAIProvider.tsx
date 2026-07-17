@@ -1,27 +1,23 @@
 /**
  * NevorAI Global Provider
  * -----------------------
- * Mounts once at the dashboard shell. Owns:
- *   • the slide-over Sheet (desktop right side, mobile bottom sheet)
- *   • a persistent conversation state that survives navigation
- *   • a pending prompt buffer for "Ask NevorAI" deep-links
- *   • the ambient page context that gets sent with every message
- *
- * Any component in the tree can call `useNevorAI()` to open the panel,
- * pre-fill a prompt, or read whether it is open.
+ * NevorAI is a normal dashboard route (`/dashboard/nevorai`). This provider
+ * only supplies helpers so any component in the tree can navigate into it —
+ * optionally with a pre-filled prompt — and check whether it is currently
+ * active. There is no popup/sheet: opening simply routes to the tab, and
+ * closing routes back to the dashboard home. This keeps the shell (top
+ * header + bottom nav) intact and matches how Attendance / Fees / Manage /
+ * Branding open on mobile, so the keyboard and viewport behave correctly.
  */
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import { ChatPanel } from "@/components/nevorai/ChatPanel";
+import { createContext, useCallback, useContext, useMemo } from "react";
+import type { ReactNode } from "react";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   NevorAIPageContextProvider,
-  useNevorAIPageContext,
 } from "@/lib/nevorai/page-context";
-import { suggestionsForScreen } from "@/lib/nevorai/product-knowledge";
+
+const PENDING_PROMPT_KEY = "nevorai:pendingPrompt";
 
 type NevorAIState = {
   open: (opts?: { prompt?: string }) => void;
@@ -41,6 +37,17 @@ export function useNevorAI(): NevorAIState {
   );
 }
 
+export function consumePendingNevorAIPrompt(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const v = window.sessionStorage.getItem(PENDING_PROMPT_KEY);
+    if (v) window.sessionStorage.removeItem(PENDING_PROMPT_KEY);
+    return v;
+  } catch {
+    return null;
+  }
+}
+
 export function NevorAIProvider({ children }: { children: ReactNode }) {
   return (
     <NevorAIPageContextProvider>
@@ -49,110 +56,30 @@ export function NevorAIProvider({ children }: { children: ReactNode }) {
   );
 }
 
-type Viewport = { top: number; height: number } | null;
-
-function useVisualViewport(active: boolean): Viewport {
-  const [vp, setVp] = useState<Viewport>(null);
-  useEffect(() => {
-    if (!active || typeof window === "undefined") return;
-    const vv = window.visualViewport;
-    if (!vv) return;
-    let raf = 0;
-    const update = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        setVp({ top: vv.offsetTop, height: vv.height });
-      });
-    };
-    update();
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    return () => {
-      cancelAnimationFrame(raf);
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
-    };
-  }, [active]);
-  return vp;
-}
-
 function NevorAIInner({ children }: { children: ReactNode }) {
-  const [isOpen, setOpen] = useState(false);
-  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
-  const pageContext = useNevorAIPageContext();
-  const vp = useVisualViewport(isOpen);
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isOpen = pathname === "/dashboard/nevorai" || pathname.startsWith("/dashboard/nevorai/");
 
-  const open = useCallback((opts?: { prompt?: string }) => {
-    if (opts?.prompt) setPendingPrompt(opts.prompt);
-    setOpen(true);
-  }, []);
-  const close = useCallback(() => setOpen(false), []);
+  const open = useCallback(
+    (opts?: { prompt?: string }) => {
+      if (opts?.prompt && typeof window !== "undefined") {
+        try {
+          window.sessionStorage.setItem(PENDING_PROMPT_KEY, opts.prompt);
+        } catch {
+          /* ignore quota / private mode */
+        }
+      }
+      if (!isOpen) navigate({ to: "/dashboard/nevorai" });
+    },
+    [isOpen, navigate],
+  );
+
+  const close = useCallback(() => {
+    if (isOpen) navigate({ to: "/dashboard" });
+  }, [isOpen, navigate]);
 
   const state = useMemo<NevorAIState>(() => ({ open, close, isOpen }), [open, close, isOpen]);
 
-  const suggestions = useMemo(
-    () => suggestionsForScreen(pageContext.currentScreen ?? "/"),
-    [pageContext.currentScreen],
-  );
-
-  // On mobile, pin the sheet to the visual viewport (top + height) so the
-  // on-screen keyboard cannot drift the modal on iOS — where `position: fixed`
-  // is anchored to the layout viewport, not the visual viewport. `bottom:auto`
-  // neutralises the inset-y-0 utility that would otherwise stretch the box.
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
-  const contentStyle: CSSProperties =
-    isMobile && vp != null
-      ? {
-          top: `${vp.top}px`,
-          height: `${vp.height}px`,
-          maxHeight: `${vp.height}px`,
-          bottom: "auto",
-        }
-      : {};
-
-  return (
-    <NevorAICtx.Provider value={state}>
-      {children}
-      <Sheet open={isOpen} onOpenChange={setOpen}>
-        <SheetContent
-          side="right"
-          style={contentStyle}
-          className="flex h-[100dvh] max-h-[100dvh] w-full max-w-full flex-col gap-0 overflow-hidden border-l bg-background p-0 pt-0 pb-0 sm:h-full sm:max-h-none sm:max-w-[520px]"
-        >
-          <div
-            className="flex shrink-0 items-center justify-between border-b border-border/60 px-4 pb-3"
-            style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)" }}
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              <span
-                aria-hidden
-                className="grid size-7 shrink-0 place-items-center rounded-md text-white text-xs font-bold"
-                style={{ backgroundColor: "var(--brand, #E8873C)" }}
-              >
-                ✨
-              </span>
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold">NevorAI</div>
-                <div className="truncate text-[10px] uppercase tracking-wider text-muted-foreground">
-                  AI Academy Manager
-                </div>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={close} aria-label="Close NevorAI" className="shrink-0">
-              <X className="size-4" />
-            </Button>
-          </div>
-          <div className="min-h-0 flex-1 overflow-hidden">
-            <ChatPanel
-              conversationId={null}
-              suggestions={suggestions}
-              pageContext={pageContext}
-              pendingPrompt={pendingPrompt}
-              onPendingPromptConsumed={() => setPendingPrompt(null)}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
-    </NevorAICtx.Provider>
-  );
+  return <NevorAICtx.Provider value={state}>{children}</NevorAICtx.Provider>;
 }
