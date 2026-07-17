@@ -190,25 +190,11 @@ function MatchCenterDashboard() {
             <PrimaryStartMatchCard />
             <div className="md:col-span-3 grid grid-cols-2 lg:grid-cols-3 gap-4">
               <QuickActionCard
-                icon={UserPlus}
-                title="Create team"
-                description="Add a squad."
-                to="/match-center/teams/new"
-                accent="muted"
-              />
-              <QuickActionCard
                 icon={Trophy}
                 title="Tournament"
                 description="League or knockout."
                 to="/match-center/tournaments"
                 tone="tournament"
-              />
-              <QuickActionCard
-                icon={Users2}
-                title="Add player"
-                description="Grow your roster."
-                to="/match-center/players"
-                accent="muted"
               />
               <QuickActionCard
                 icon={Medal}
@@ -232,6 +218,7 @@ function MatchCenterDashboard() {
                 accent="muted"
               />
             </div>
+
           </div>
 
           {/* SNAPSHOT ----------------------------------------------------- */}
