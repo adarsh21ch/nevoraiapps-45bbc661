@@ -58,6 +58,9 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useNevorAI } from "@/components/nevorai/NevorAIProvider";
+
+type CompareRow = { metric: string; a: string; b: string; lowerBetter: boolean };
 
 type Block =
   | { kind: "text"; text: string }
@@ -65,6 +68,7 @@ type Block =
   | { kind: "checklist"; title: string; items: string[] }
   | { kind: "timeline"; title: string; items: Array<{ time: string; text: string }> }
   | { kind: "table"; title: string; columns: string[]; rows: string[][] }
+  | { kind: "compare"; title: string; headers: [string, string, string]; rows: CompareRow[] }
   | { kind: "callout"; tone: "info" | "success" | "warning" | "error"; text: string }
   | { kind: "actions"; items: Array<{ label: string; href?: string }> };
 
