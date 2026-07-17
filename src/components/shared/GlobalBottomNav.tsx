@@ -1,8 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboardOptional } from "@/lib/dashboard-context";
 import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
+import { useKeyboardOpen } from "@/hooks/use-visual-viewport";
 import { BottomNav } from "@/components/ds/BottomNav";
+import { cn } from "@/lib/utils";
 
 /**
  * Unified mobile bottom navigation. Delegates to the design-system `BottomNav`
