@@ -371,6 +371,12 @@ function RegisterContent() {
                 />
               ) : null}
             </div>
+            {batches.length > 0 ? (
+              <FeeSummary
+                batch={batches.find((b) => b.id === form.batch_id)}
+                fees={fees}
+              />
+            ) : null}
           </Section>
 
           {/* Section 3 — Physical details */}
