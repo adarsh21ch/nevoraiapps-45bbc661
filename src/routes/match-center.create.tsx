@@ -103,10 +103,11 @@ function CreateMatchPage() {
   const [matchFormat, setMatchFormat] = useState(defaults.match_format ?? "T20");
   const [overs, setOvers] = useState<number>(defaults.overs ?? 20);
   const [scheduledDate, setScheduledDate] = useState<string>(new Date().toISOString().slice(0, 10));
-  const [scheduledTime, setScheduledTime] = useState<string>("");
 
-  const [panelA, setPanelA] = useState<TeamPanelState>(emptyPanel("existing"));
-  const [panelB, setPanelB] = useState<TeamPanelState>(emptyPanel("existing"));
+
+  const [panelA, setPanelA] = useState<TeamPanelState>(emptyPanel("new"));
+  const [panelB, setPanelB] = useState<TeamPanelState>(emptyPanel("new"));
+
 
   // Advanced (collapsed by default)
   const [advOpen, setAdvOpen] = useState(false);
@@ -173,11 +174,13 @@ function CreateMatchPage() {
     return real;
   }, [studentsQ.data, demo]);
 
-  /* ----- Auto-fill overs when format changes ----- */
+  /* ----- Auto-fill overs when format changes (skip Custom) ----- */
   useEffect(() => {
+    if (matchFormat === "Custom") return;
     const f = FORMAT_OPTIONS.find((x) => x.value === matchFormat);
     if (f) setOvers(f.overs);
   }, [matchFormat]);
+
 
   /* ----- Loading Playing XI when a team is picked in "existing" mode ----- */
   const loadTeamRoster = async (teamId: string): Promise<PlayerRef[]> => {
@@ -328,7 +331,8 @@ function CreateMatchPage() {
               match_format: matchFormat,
               overs,
               scheduled_date: scheduledDate,
-              scheduled_time: scheduledTime || null,
+              scheduled_time: null,
+
               ground_name: ground || null,
               status: "scheduled",
               team_a: teamA,
@@ -355,7 +359,7 @@ function CreateMatchPage() {
         match_format: matchFormat,
         overs,
         scheduled_date: scheduledDate || null,
-        scheduled_time: scheduledTime || null,
+        scheduled_time: null,
         ground_name: ground || null,
         pitch: pitch || null,
         weather: weather || null,
@@ -475,35 +479,73 @@ function CreateMatchPage() {
         ]}
       />
 
-      {/* Step 1 — Match Type */}
-      <Section step={1} title="Match type">
-        <div className="flex flex-wrap gap-2">
-          {MATCH_TYPES.map((t) => (
-            <ChoiceChip
-              key={t.value}
-              active={matchType === t.value}
-              onClick={() => setMatchType(t.value)}
-            >
-              {t.label}
-            </ChoiceChip>
-          ))}
+      {/* Step 1 — Match type + Format (single row) */}
+      <div className="mt-6 rounded-2xl border border-border bg-card p-5">
+        <div className="mb-3 flex items-center gap-2">
+          <span
+            className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
+            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
+          >
+            1
+          </span>
+          <h3 className="text-sm font-semibold tracking-tight">Match setup</h3>
+          <span className="text-xs text-muted-foreground">· {overs} overs per side</span>
         </div>
-      </Section>
+        <div className="grid gap-3 sm:grid-cols-[minmax(180px,220px)_1fr]">
+          <div>
+            <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Type
+            </Label>
+            <select
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              value={matchType}
+              onChange={(e) => setMatchType(e.target.value)}
+            >
+              {MATCH_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Format
+            </Label>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              {FORMAT_OPTIONS.map((f) => (
+                <ChoiceChip
+                  key={f.value}
+                  active={matchFormat === f.value}
+                  onClick={() => setMatchFormat(f.value)}
+                >
+                  {f.label}
+                </ChoiceChip>
+              ))}
+              <ChoiceChip
+                active={matchFormat === "Custom"}
+                onClick={() => setMatchFormat("Custom")}
+              >
+                Custom
+              </ChoiceChip>
+              {matchFormat === "Custom" && (
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={200}
+                    value={overs}
+                    onChange={(e) => setOvers(Math.max(1, Number(e.target.value) || 1))}
+                    className="h-9 w-20"
+                  />
+                  <span className="text-xs text-muted-foreground">overs</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* Step 2 — Format */}
-      <Section step={2} title="Format" caption={`${overs} overs per side`}>
-        <div className="flex flex-wrap gap-2">
-          {FORMAT_OPTIONS.map((f) => (
-            <ChoiceChip
-              key={f.value}
-              active={matchFormat === f.value}
-              onClick={() => setMatchFormat(f.value)}
-            >
-              {f.label}
-            </ChoiceChip>
-          ))}
-        </div>
-      </Section>
 
       {/* Step 3 & 4 — Teams */}
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -569,12 +611,8 @@ function CreateMatchPage() {
               value={scheduledDate}
               onChange={setScheduledDate}
             />
-            <FieldInput
-              label="Start time"
-              type="time"
-              value={scheduledTime}
-              onChange={setScheduledTime}
-            />
+
+
             <FieldInput
               label="Streaming URL"
               value={streamingUrl}
@@ -719,15 +757,20 @@ function TeamPanel({
     caption: string;
     icon: React.ComponentType<{ className?: string }>;
   }[] = [
-    { mode: "existing", title: "Use existing team", caption: "Search academy teams", icon: Users },
     {
       mode: "new",
-      title: "Create team for this match",
-      caption: "Pick players now",
+      title: "Create team",
+      caption: "Name the team and add players.",
       icon: UserPlus,
     },
-    { mode: "guest", title: "Guest team", caption: "Type opponent names", icon: UserSearch },
+    {
+      mode: "existing",
+      title: "Use existing team",
+      caption: "Pick from your academy teams.",
+      icon: Users,
+    },
   ];
+
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
@@ -741,8 +784,8 @@ function TeamPanel({
         <h3 className="text-sm font-semibold tracking-tight">Team {side}</h3>
       </div>
 
-      {/* Three-option picker */}
-      <div className="mb-4 grid gap-2 sm:grid-cols-3">
+      {/* Two-option picker */}
+      <div className="mb-4 grid gap-2 sm:grid-cols-2">
         {modeCards.map((c) => (
           <button
             key={c.mode}
@@ -769,6 +812,7 @@ function TeamPanel({
         ))}
       </div>
 
+
       {/* Body */}
       {state.mode === "existing" && (
         <ExistingTeamBody
@@ -793,15 +837,6 @@ function TeamPanel({
         />
       )}
 
-      {state.mode === "guest" && (
-        <GuestTeamBody
-          name={state.draftName}
-          onName={(n) => onChange({ ...state, draftName: n })}
-          players={state.players}
-          onAdd={addPlayer}
-          onRemove={removePlayer}
-        />
-      )}
 
       {/* Playing XI summary — only when the panel has players */}
       {state.players.length > 0 && (
@@ -944,6 +979,18 @@ function NewTeamBody({
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
 }) {
+  const [customName, setCustomName] = useState("");
+  const addCustom = () => {
+    const trimmed = customName.trim();
+    if (!trimmed) return;
+    onAdd({
+      key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: trimmed,
+      photo_url: null,
+      athlete_profile_id: null,
+    });
+    setCustomName("");
+  };
   return (
     <div className="space-y-3">
       <div>
@@ -960,17 +1007,40 @@ function NewTeamBody({
         selectedKeys={new Set(players.map((p) => p.key))}
         onAdd={onAdd}
         loading={studentsLoading}
-        emptyLabel="No matching academy players. Switch to Guest team to type any name."
+        emptyLabel="No matching academy players. Type a name below to add anyway."
       />
+      <div>
+        <Label>Or add a player by name</Label>
+        <div className="mt-1 flex gap-2">
+          <Input
+            value={customName}
+            onChange={(e) => setCustomName(e.target.value)}
+            placeholder="Type a player's name…"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addCustom();
+              }
+            }}
+          />
+          <Button type="button" onClick={addCustom} disabled={!customName.trim()}>
+            <Plus className="size-4" />
+          </Button>
+        </div>
+        <p className="mt-1.5 text-[11px] text-muted-foreground">
+          Not registered in the academy? Just type the name — they'll be recorded for this match.
+        </p>
+      </div>
       {players.length === 0 && (
         <div className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-          Search and add academy players. Selected players appear below.
+          Add academy players or type any name to build the Playing XI.
         </div>
       )}
       {void onRemove}
     </div>
   );
 }
+
 
 /* --- Guest team --- */
 
