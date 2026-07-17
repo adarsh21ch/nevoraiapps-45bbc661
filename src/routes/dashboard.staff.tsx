@@ -62,6 +62,7 @@ import {
   resendInvitation,
   disableStaff,
   setStaffRole,
+  listTenantMembers,
 } from "@/lib/staff/staff.functions";
 import {
   fetchStaffMembers,
@@ -171,6 +172,7 @@ function StaffPage() {
       >
         <TabsList className="hidden">
           <TabsTrigger value="directory" />
+          <TabsTrigger value="members" />
           <TabsTrigger value="invitations" />
           <TabsTrigger value="activity" />
         </TabsList>
@@ -182,6 +184,10 @@ function StaffPage() {
             isError={membersQ.isError}
             tenantId={tenant.id}
           />
+        </TabsContent>
+
+        <TabsContent value="members" className="mt-4">
+          <MembersTab tenantId={tenant.id} currentUserId={undefined} />
         </TabsContent>
 
         <TabsContent value="invitations" className="mt-4">
@@ -218,6 +224,7 @@ function StaffTabs({
         onChange={setValue}
         items={[
           { key: "directory", label: "Directory", count: membersCount },
+          { key: "members", label: "Members" },
           { key: "invitations", label: "Invitations", count: pendingInvites },
           { key: "activity", label: "Activity" },
         ]}
@@ -225,6 +232,153 @@ function StaffTabs({
       />
       {children}
     </Tabs>
+  );
+}
+
+/* -------------------- Members (all tenant accounts) -------------------- */
+
+const MEMBER_ASSIGNABLE: (AppRole | "student")[] = [
+  "student",
+  "coach",
+  "head_coach",
+  "assistant_coach",
+  "admin",
+  "staff",
+];
+
+const MEMBER_ROLE_LABEL: Record<string, string> = {
+  ...ROLE_LABELS,
+  student: "Student",
+};
+
+function MembersTab({ tenantId }: { tenantId: string; currentUserId?: string }) {
+  const qc = useQueryClient();
+  const list = useServerFn(listTenantMembers);
+  const changeRole = useServerFn(setStaffRole);
+  const [query, setQuery] = useState("");
+
+  const membersQ = useQuery({
+    queryKey: ["staff", "all-members", tenantId],
+    queryFn: () => list({ data: { tenantId } }),
+  });
+
+  const filtered = useMemo(() => {
+    const rows = membersQ.data ?? [];
+    const q = query.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter(
+      (m) =>
+        (m.email ?? "").toLowerCase().includes(q) ||
+        (m.name ?? "").toLowerCase().includes(q) ||
+        m.roles.join(",").toLowerCase().includes(q),
+    );
+  }, [membersQ.data, query]);
+
+  const roleM = useMutation({
+    mutationFn: (v: { userId: string; newRole: AppRole | "student" }) =>
+      changeRole({
+        data: {
+          tenantId,
+          userId: v.userId,
+          newRole: v.newRole as
+            | "student"
+            | "coach"
+            | "head_coach"
+            | "assistant_coach"
+            | "admin"
+            | "staff",
+          oldRole: null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Role updated");
+      qc.invalidateQueries({ queryKey: ["staff", "all-members", tenantId] });
+      qc.invalidateQueries({ queryKey: staffKeys.members(tenantId) });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (membersQ.isLoading) return <SkeletonList />;
+  if (membersQ.isError) {
+    return <Card className="p-6 text-sm text-destructive">Failed to load members.</Card>;
+  }
+
+  return (
+    <div className="space-y-3">
+      <DashboardSearch
+        value={query}
+        onChange={setQuery}
+        placeholder="Search by name, email, role…"
+      />
+      <p className="text-xs text-muted-foreground">
+        Everyone with an account in this academy. Use the dropdown to promote a student to admin /
+        coach, or demote a staff member back to student. Owners cannot be changed here.
+      </p>
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="No accounts yet"
+          body="When students, parents or staff sign in, they'll appear here."
+        />
+      ) : (
+        <div className="grid gap-2">
+          {filtered.map((m) => {
+            const isOwner = m.roles.includes("owner") || m.profile_role === "owner";
+            const primary =
+              m.roles.find((r) => r !== "owner") ??
+              (m.source === "student" ? "student" : m.profile_role ?? "student");
+            const secondary =
+              m.source === "student" && m.review_status
+                ? `Application: ${m.review_status}`
+                : m.lifecycle_status
+                  ? `Student: ${m.lifecycle_status}`
+                  : m.roles.length > 1
+                    ? `${m.roles.length} roles`
+                    : null;
+            return (
+              <Card key={m.user_id} className="p-3 flex items-center gap-3">
+                <div className="size-10 rounded-full grid place-items-center bg-muted text-muted-foreground shrink-0">
+                  <UserPlus className="size-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-sm truncate">
+                      {m.name ?? m.email ?? `${m.user_id.slice(0, 8)}…`}
+                    </span>
+                    <Badge variant={isOwner ? "default" : "secondary"}>
+                      {MEMBER_ROLE_LABEL[primary] ?? primary}
+                    </Badge>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {m.email ?? "—"}
+                    {secondary ? <span className="ml-2">· {secondary}</span> : null}
+                  </div>
+                </div>
+                {!isOwner && (
+                  <Select
+                    value={primary}
+                    onValueChange={(v) =>
+                      roleM.mutate({ userId: m.user_id, newRole: v as AppRole | "student" })
+                    }
+                  >
+                    <SelectTrigger className="w-40 shrink-0" aria-label="Change role">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MEMBER_ASSIGNABLE.map((r) => (
+                        <SelectItem key={r} value={r}>
+                          {MEMBER_ROLE_LABEL[r]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
