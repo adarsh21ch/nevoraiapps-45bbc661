@@ -768,6 +768,38 @@ export function ExtraRunsModal({
   kind: string;
   onSelect: (runs: number) => void;
 }) {
+  const isNoBall = kind === "No Ball";
+  const isWide = kind === "Wide";
+  const options: { value: number; label: string }[] = isNoBall
+    ? [
+        { value: 0, label: "0" },
+        { value: 1, label: "1" },
+        { value: 2, label: "2" },
+        { value: 3, label: "3" },
+        { value: 4, label: "4" },
+        { value: 6, label: "6" },
+      ]
+    : isWide
+      ? [
+          { value: 1, label: "Wd" },
+          { value: 2, label: "Wd+1" },
+          { value: 3, label: "Wd+2" },
+          { value: 4, label: "Wd+3" },
+          { value: 5, label: "Wd+4" },
+        ]
+      : [1, 2, 3, 4, 5, 6].map((n) => ({ value: n, label: String(n) }));
+
+  const title = isNoBall
+    ? "No Ball — what did the batsman score?"
+    : isWide
+      ? "Wide — total wide runs"
+      : `${kind} — how many runs?`;
+  const description = isNoBall
+    ? "Runs off the bat only. The scoring engine adds the +1 no-ball penalty automatically."
+    : isWide
+      ? "Includes the +1 wide penalty. Pick 'Wd+4' for a boundary wide."
+      : `Total runs conceded on this ball including the ${kind.toLowerCase()}.`;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -777,20 +809,18 @@ export function ExtraRunsModal({
       >
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
         <SheetHeader className="px-4 pb-2 pt-3 text-left">
-          <SheetTitle className="text-base">{kind} — how many runs?</SheetTitle>
-          <SheetDescription className="text-xs">
-            Total runs conceded on this ball including the {kind.toLowerCase()}.
-          </SheetDescription>
+          <SheetTitle className="text-base">{title}</SheetTitle>
+          <SheetDescription className="text-xs">{description}</SheetDescription>
         </SheetHeader>
-        <div className="grid grid-cols-5 gap-2 px-3">
-          {[1, 2, 3, 4, 5].map((r) => (
+        <div className={`grid ${options.length === 6 ? "grid-cols-6" : "grid-cols-5"} gap-2 px-3`}>
+          {options.map((o) => (
             <Button
-              key={r}
+              key={o.value}
               variant="outline"
-              className="h-12 text-xl font-black tabular-nums"
-              onClick={() => onSelect(r)}
+              className="h-12 text-base font-black tabular-nums"
+              onClick={() => onSelect(o.value)}
             >
-              {r}
+              {o.label}
             </Button>
           ))}
         </div>
