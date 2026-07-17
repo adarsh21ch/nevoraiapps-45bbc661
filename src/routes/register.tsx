@@ -959,12 +959,18 @@ function Field({
   onChange,
   type = "text",
   placeholder,
+  error,
+  inputMode,
+  autoComplete,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
   placeholder?: string;
+  error?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  autoComplete?: string;
 }) {
   return (
     <label className="block">
@@ -976,11 +982,18 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2"
+        inputMode={inputMode}
+        autoComplete={autoComplete}
+        aria-invalid={error ? true : undefined}
+        className={cn(
+          "mt-1.5 block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2",
+          error ? "border-red-500" : "border-border",
+        )}
         style={{ boxShadow: "none" }}
-        onFocus={(e) => (e.currentTarget.style.borderColor = "var(--brand)")}
+        onFocus={(e) => (e.currentTarget.style.borderColor = error ? "" : "var(--brand)")}
         onBlur={(e) => (e.currentTarget.style.borderColor = "")}
       />
+      {error ? <span className="mt-1 block text-xs text-red-600">{error}</span> : null}
     </label>
   );
 }
@@ -1014,11 +1027,13 @@ function SelectField({
   value,
   onChange,
   options,
+  error,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  error?: string;
 }) {
   return (
     <label className="block">
@@ -1028,7 +1043,11 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none"
+        aria-invalid={error ? true : undefined}
+        className={cn(
+          "mt-1.5 block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none",
+          error ? "border-red-500" : "border-border",
+        )}
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -1036,6 +1055,8 @@ function SelectField({
           </option>
         ))}
       </select>
+      {error ? <span className="mt-1 block text-xs text-red-600">{error}</span> : null}
     </label>
   );
 }
+
