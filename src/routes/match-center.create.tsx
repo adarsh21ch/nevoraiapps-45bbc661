@@ -84,11 +84,9 @@ const emptyPanel = (mode: TeamMode = "existing"): TeamPanelState => ({
 const FORMAT_OPTIONS: { label: string; overs: number; value: string }[] = [
   { label: "T10", overs: 10, value: "T10" },
   { label: "T20", overs: 20, value: "T20" },
-  { label: "30 Overs", overs: 30, value: "30" },
-  { label: "40 Overs", overs: 40, value: "40" },
-  { label: "50 Overs", overs: 50, value: "50" },
-  { label: "Test", overs: 90, value: "Test" },
+  { label: "50 Overs", overs: 50, value: "ODI" },
 ];
+
 
 /* ==================== PAGE ==================== */
 
