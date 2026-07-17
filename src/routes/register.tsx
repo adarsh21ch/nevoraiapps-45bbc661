@@ -419,7 +419,7 @@ function RegisterContent() {
                   { value: "batter", label: "Batter" },
                   { value: "bowler", label: "Bowler" },
                   { value: "all-rounder", label: "All rounder" },
-                  { value: "wicket-keeper", label: "Wicket keeper" },
+                  { value: "wicket-keeper-batter", label: "Wicketkeeper batsman" },
                 ]}
               />
             </div>
