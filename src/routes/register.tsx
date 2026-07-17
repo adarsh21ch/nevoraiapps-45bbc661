@@ -1034,6 +1034,47 @@ function FeeSummary({ batch, fees }: { batch: Batch | undefined; fees: FeePlan[]
   );
 }
 
+function ReviewSummary({
+  form,
+  batches,
+  fees,
+}: {
+  form: {
+    email: string;
+    name: string;
+    guardian_name: string;
+    phone: string;
+    dob: string;
+    gender: string;
+    batch_id: string;
+  };
+  batches: Batch[];
+  fees: FeePlan[];
+}) {
+  const batch = batches.find((b) => b.id === form.batch_id);
+  const rows: [string, string][] = [
+    ["Email", form.email || "—"],
+    ["Password", "••••••••"],
+    ["Student name", form.name || "—"],
+    ["Guardian", form.guardian_name || "—"],
+    ["Date of birth", form.dob || "—"],
+    ["Gender", form.gender || "—"],
+    ["Contact number", form.phone || "—"],
+    ["Preferred batch", batch ? (batch.timing ? `${batch.name} — ${batch.timing}` : batch.name) : "No preference"],
+    ["Monthly fee", batch ? batchFeeText(batch, fees) : "—"],
+  ];
+  return (
+    <dl className="divide-y divide-border/60">
+      {rows.map(([k, v]) => (
+        <div key={k} className="flex items-baseline justify-between gap-4 py-2">
+          <dt className="text-xs text-muted-foreground">{k}</dt>
+          <dd className="text-right text-sm font-medium text-foreground">{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 function BatchInfoDialog({
   batches,
   fees,
