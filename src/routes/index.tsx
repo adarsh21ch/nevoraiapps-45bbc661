@@ -327,6 +327,47 @@ function HomeContent() {
         </div>
       </section>
 
+      {/* Star players — conversion centerpiece, first full section after hero */}
+      {stars.length > 0 && featuredStar ? (
+        <section className="relative overflow-hidden bg-[#05060a] py-20 text-white sm:py-24">
+          <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:radial-gradient(white_1px,transparent_1px)] [background-size:22px_22px]" />
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: `radial-gradient(900px 500px at 20% 30%, ${tenant.primary_color}25, transparent 60%), radial-gradient(700px 400px at 90% 80%, ${tenant.secondary_color}20, transparent 60%)`,
+            }}
+          />
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/60">
+                  <span style={{ color: tenant.primary_color }}>01 —</span> Our champions
+                </div>
+                <h2 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">
+                  Star players
+                </h2>
+              </div>
+              <Link
+                to="/star-players"
+                className="hidden text-sm font-medium text-white/70 hover:text-white sm:inline"
+              >
+                See all →
+              </Link>
+            </div>
+            <div className="mt-12">
+              <StarPlayerFeaturedCard player={featuredStar} />
+            </div>
+            {restStars.length > 0 ? (
+              <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {restStars.slice(0, 6).map((p, i) => (
+                  <StarPlayerCard key={i} player={p} />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
       {/* Founder */}
       {founder && (founder.name || founder.bio || founder.photo_url) ? (
         <section className="bg-background py-16 sm:py-20">
