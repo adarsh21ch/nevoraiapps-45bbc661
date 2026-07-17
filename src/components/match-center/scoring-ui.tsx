@@ -785,10 +785,8 @@ export function ExtraRunsModal({
     return String(r);
   };
 
-  const isBoundary = (r: number): boolean => {
-    if (kind === "No Ball") return r === 5 || r === 7;
-    return r === 4 || r === 6;
-  };
+
+
 
   const hint =
     kind === "No Ball"
