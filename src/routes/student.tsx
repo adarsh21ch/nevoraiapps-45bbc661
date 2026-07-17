@@ -97,7 +97,12 @@ function StudentLayout() {
     if (shouldGate && !onPendingRoute) {
       navigate({ to: "/student/pending" });
     }
-  }, [gateQ.data, onPendingRoute, navigate]);
+    // Approved / active student who landed on /student/pending: bounce to dashboard.
+    if (!shouldGate && onPendingRoute && ctxQ.data) {
+      navigate({ to: "/student", replace: true });
+    }
+  }, [gateQ.data, onPendingRoute, navigate, ctxQ.data]);
+
 
   const blockedLifecycle = gateQ.data?.lifecycle && isBlocked(gateQ.data.lifecycle) ? gateQ.data.lifecycle : null;
 
