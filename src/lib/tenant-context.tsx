@@ -77,8 +77,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
           )}`
         : "";
 
-      // Favicon / app icons. Tenant logos are stored as private storage paths,
-      // so resolve them before using them in browser chrome metadata.
+      // Favicon / app icons. The tenant-icon endpoint serves an install-safe
+      // same-origin URL, so browser and phone installers can fetch the logo.
       if (t.logo_url) {
         let link = document.querySelector<HTMLLinkElement>('link[rel="icon"][data-tenant]');
         if (!link) {
@@ -117,12 +117,13 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         let el = document.head.querySelector<HTMLLinkElement>(
           `link[rel="${rel}"][data-tenant="1"]`,
         );
+        if (!el) el = document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
         if (!el) {
           el = document.createElement("link");
           el.rel = rel;
-          el.setAttribute("data-tenant", "1");
           document.head.appendChild(el);
         }
+        el.setAttribute("data-tenant", "1");
         el.href = href;
         if (extra) for (const [k, v] of Object.entries(extra)) el.setAttribute(k, v);
       };
