@@ -29,7 +29,7 @@ async function fetchTenant(): Promise<Tenant | null> {
   // marketing-safe columns. Sensitive billing/subscription fields on the
   // tenants table are not accessible to anon or cross-tenant users.
   const PUBLIC_COLS =
-    "id, slug, name, short_name, tagline, custom_domain, logo_url, primary_color, secondary_color, niche, features, phone, whatsapp, email, address, upi_id, upi_qr_url, status, fee_cycle, player_prefix";
+    "id, slug, name, short_name, tagline, custom_domain, logo_url, primary_color, secondary_color, niche, features, phone, whatsapp, email, address, upi_id, upi_qr_url, status, fee_cycle, player_prefix, registration_pdf_url";
   const from = supabase.from("tenants_public_directory" as never);
   const query =
     hint.mode === "domain"

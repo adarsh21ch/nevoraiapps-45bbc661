@@ -7066,6 +7066,7 @@ export type Database = {
           phone: string | null
           player_prefix: string | null
           primary_color: string | null
+          registration_pdf_url: string | null
           secondary_color: string | null
           short_name: string | null
           slug: string | null
@@ -7088,6 +7089,7 @@ export type Database = {
           phone?: string | null
           player_prefix?: string | null
           primary_color?: string | null
+          registration_pdf_url?: string | null
           secondary_color?: string | null
           short_name?: string | null
           slug?: string | null
@@ -7110,6 +7112,7 @@ export type Database = {
           phone?: string | null
           player_prefix?: string | null
           primary_color?: string | null
+          registration_pdf_url?: string | null
           secondary_color?: string | null
           short_name?: string | null
           slug?: string | null
