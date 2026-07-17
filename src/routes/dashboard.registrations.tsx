@@ -77,13 +77,15 @@ const FILTERS = [
 
 type FilterKey = (typeof FILTERS)[number]["key"];
 
-// A row's effective review status. Falls back to legacy `status` for
-// pre-admissions-review data (status = "new" | "approved" | "rejected").
+// A row's effective review status. The legacy `status` column ("approved"
+// / "rejected") is authoritative when set, because the registration-approval
+// flow writes it (and creates the student) without touching review_status.
+// Falls back to review_status for admissions-review flow rows.
 function effectiveReviewStatus(r: any): string {
-  const rs = r.review_status as string | null | undefined;
-  if (rs) return rs;
   if (r.status === "approved") return "approved";
   if (r.status === "rejected") return "rejected";
+  const rs = r.review_status as string | null | undefined;
+  if (rs) return rs;
   return "pending";
 }
 
