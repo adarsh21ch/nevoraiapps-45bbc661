@@ -730,67 +730,26 @@ function TeamPanel({
   const removePlayer = (key: string) =>
     onChange({ ...state, players: state.players.filter((p) => p.key !== key) });
 
-  const modeCards: {
-    mode: TeamMode;
-    title: string;
-    caption: string;
-    icon: React.ComponentType<{ className?: string }>;
-  }[] = [
-    {
-      mode: "new",
-      title: "Create team",
-      caption: "Name the team and add players.",
-      icon: UserPlus,
-    },
-    {
-      mode: "existing",
-      title: "Use existing team",
-      caption: "Pick from your academy teams.",
-      icon: Users,
-    },
-  ];
-
-
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
-      <div className="mb-3 flex items-center gap-2">
-        <span
-          className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
-          style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
-        >
-          {stepNumber}
-        </span>
-        <h3 className="text-sm font-semibold tracking-tight">Team {side}</h3>
-      </div>
-
-      {/* Two-option picker */}
-      <div className="mb-4 grid gap-2 sm:grid-cols-2">
-        {modeCards.map((c) => (
-          <button
-            key={c.mode}
-            type="button"
-            onClick={() => setMode(c.mode)}
-            className={cn(
-              "flex items-start gap-2 rounded-xl border p-3 text-left transition-colors",
-              state.mode === c.mode
-                ? "border-primary bg-primary/5"
-                : "border-border bg-background hover:bg-accent/40",
-            )}
+    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span
+            className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
+            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
           >
-            <c.icon
-              className={cn(
-                "mt-0.5 size-4",
-                state.mode === c.mode ? "text-primary" : "text-muted-foreground",
-              )}
-            />
-            <div>
-              <div className="text-sm font-medium leading-tight">{c.title}</div>
-              <div className="mt-0.5 text-[11px] text-muted-foreground">{c.caption}</div>
-            </div>
-          </button>
-        ))}
+            {stepNumber}
+          </span>
+          <h3 className="text-sm font-semibold tracking-tight">Team {side}</h3>
+        </div>
+        <button
+          type="button"
+          onClick={() => setMode(state.mode === "existing" ? "new" : "existing")}
+          className="text-[11px] font-semibold text-primary hover:underline"
+        >
+          {state.mode === "existing" ? "← Create new team" : "Use existing team →"}
+        </button>
       </div>
-
 
       {/* Body */}
       {state.mode === "existing" && (
@@ -824,6 +783,7 @@ function TeamPanel({
     </div>
   );
 }
+
 
 /* --- Existing team --- */
 
