@@ -768,13 +768,21 @@ export function ExtraRunsModal({
   kind: string;
   onSelect: (runs: number) => void;
 }) {
+  // Freeze `kind` while the sheet animates closed so options/sublabels
+  // don't visually "shrink" mid-animation when the parent nulls the kind.
+  const [frozenKind, setFrozenKind] = useState(kind);
+  useMemo(() => {
+    if (open && kind) setFrozenKind(kind);
+  }, [open, kind]);
+  const k = open ? (kind || frozenKind) : frozenKind;
+
   // No Ball is 1..7 (penalty is always included; 1 = NB only).
   // Wide/Bye/Leg Bye are 0..6 (0 allowed per spec / match rules).
   const options: number[] =
-    kind === "No Ball" ? [1, 2, 3, 4, 5, 6, 7] : [0, 1, 2, 3, 4, 5, 6];
+    k === "No Ball" ? [1, 2, 3, 4, 5, 6, 7] : [0, 1, 2, 3, 4, 5, 6];
 
   const isBoundaryHit = (r: number): "four" | "six" | null => {
-    if (kind === "No Ball") {
+    if (k === "No Ball") {
       if (r === 5) return "four";
       if (r === 7) return "six";
       return null;
@@ -785,7 +793,7 @@ export function ExtraRunsModal({
   };
 
   const sublabelFor = (r: number): string | null => {
-    if (kind === "No Ball") {
+    if (k === "No Ball") {
       if (r === 1) return "NB only";
       if (r === 5) return "NB + 4";
       if (r === 7) return "NB + 6";
@@ -795,9 +803,17 @@ export function ExtraRunsModal({
   };
 
   const hint =
-    kind === "No Ball"
+    k === "No Ball"
       ? "Total runs on this delivery (includes the 1-run no-ball penalty)."
-      : `Total ${kind.toLowerCase()} runs on this delivery.`;
+      : `Total ${k.toLowerCase()} runs on this delivery.`;
+
+  const handlePick = (r: number) => {
+    // Close instantly, then commit selection — avoids a double-close
+    // animation flash when parent state churn causes a remount.
+    onOpenChange(false);
+    // Defer so the exit animation starts before parent re-renders.
+    requestAnimationFrame(() => onSelect(r));
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -805,18 +821,18 @@ export function ExtraRunsModal({
         side="bottom"
         hideClose
         overlayClassName="bg-background/40 backdrop-blur-[2px]"
-        className="rounded-3xl bg-card/95 p-0 backdrop-blur-xl border-border/60 shadow-2xl w-[calc(100vw-1.5rem)] sm:w-auto"
+        className="rounded-3xl bg-card/95 p-0 backdrop-blur-xl border-border/60 shadow-2xl w-[calc(100vw-1.5rem)] sm:w-auto sm:max-w-md mx-auto"
       >
-        <SheetHeader className="px-4 pb-2 pt-4 text-left space-y-0.5">
+        <SheetHeader className="px-5 pb-2 pt-4 text-left space-y-0.5">
           <SheetTitle className="text-[15px] font-semibold">
-            {kind} — total runs
+            {k} — total runs
           </SheetTitle>
           <SheetDescription className="text-[11px] leading-tight">
             {hint}
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex items-stretch gap-1.5 px-3 pt-1">
+        <div className="flex items-start justify-between gap-1 px-3 pt-2">
           {options.map((r) => {
             const boundary = isBoundaryHit(r);
             const sub = sublabelFor(r);
@@ -824,20 +840,23 @@ export function ExtraRunsModal({
               <button
                 key={r}
                 type="button"
-                onClick={() => onSelect(r)}
-                className={cn(
-                  "no-tap-highlight flex-1 min-w-0 rounded-full border font-black tabular-nums shadow-sm transition active:scale-[0.94]",
-                  "px-0.5 h-14 flex flex-col items-center justify-center gap-0.5",
-                  boundary === "four"
-                    ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-600"
-                    : boundary === "six"
-                      ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-600"
-                      : "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
-                )}
+                onClick={() => handlePick(r)}
+                className="no-tap-highlight flex flex-1 min-w-0 flex-col items-center gap-1 group"
               >
-                <span className="leading-none text-lg">{r}</span>
+                <span
+                  className={cn(
+                    "flex aspect-square w-full max-w-[52px] items-center justify-center rounded-full border font-black tabular-nums text-lg shadow-sm transition group-active:scale-[0.92]",
+                    boundary === "four"
+                      ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-600"
+                      : boundary === "six"
+                        ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-600"
+                        : "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
+                  )}
+                >
+                  {r}
+                </span>
                 {sub && (
-                  <span className="text-[9px] font-semibold uppercase tracking-tight leading-none opacity-85 whitespace-nowrap">
+                  <span className="text-[9px] font-semibold uppercase tracking-tight leading-none text-muted-foreground whitespace-nowrap">
                     {sub}
                   </span>
                 )}
