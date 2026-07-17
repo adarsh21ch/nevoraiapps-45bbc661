@@ -390,11 +390,24 @@ function CreateMatchPage() {
 
       return { id: match.id, demo: false } as const;
     },
-    onSuccess: () => {
+    onSuccess: async (res) => {
       qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] });
       qc.invalidateQueries({ queryKey: ["mc-all-teams", tenant.id] });
-      toast.success("Match created");
-      navigate({ to: "/match-center/matches" });
+
+      // Auto-start the match so it goes live immediately and shows up
+      // in Live + Matches, and land the user on the scoring screen.
+      if (!res.demo) {
+        try {
+          await updateMatchStatus(res.id, "live", tenant.id);
+        } catch (e) {
+          // If the status update fails, we still created the match — surface it
+          // but continue navigating so the user can start scoring manually.
+          console.error("Auto-start match failed", e);
+        }
+        qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] });
+      }
+      toast.success("Match started");
+      navigate({ to: "/scorer/$matchId", params: { matchId: res.id } });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to create match"),
   });
