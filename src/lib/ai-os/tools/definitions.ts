@@ -668,6 +668,8 @@ export const sendFeeReminderTool: AnyToolDef = {
   },
 };
 
+import { CRICKET_TOOLS, HELP_TOOLS } from "./cricket-tools";
+
 export const READ_TOOLS: AnyToolDef[] = [
   dashboardSummaryTool,
   financeSummaryTool,
@@ -682,6 +684,8 @@ export const READ_TOOLS: AnyToolDef[] = [
   reportsSummaryTool,
   subscriptionStatusTool,
   founderIntelligenceTool,
+  ...CRICKET_TOOLS,
+  ...HELP_TOOLS,
 ];
 
 export const WRITE_TOOLS: AnyToolDef[] = [sendFeeReminderTool];
