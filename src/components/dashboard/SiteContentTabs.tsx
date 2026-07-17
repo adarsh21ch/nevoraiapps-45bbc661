@@ -18,6 +18,8 @@ type Field = {
   multiline?: boolean;
   rows?: number;
   placeholder?: string;
+  type?: "text" | "boolean";
+  hint?: string;
 };
 
 export function SiteContentTabs({ tenantId }: { tenantId: string }) {
@@ -143,8 +145,25 @@ export function SiteContentTabs({ tenantId }: { tenantId: string }) {
           fields={[
             { key: "name", label: "Name" },
             { key: "achievement", label: "Achievement" },
+            {
+              key: "currently_playing",
+              label: "Currently playing (optional)",
+              placeholder: "Currently playing for India",
+            },
+            {
+              key: "teams",
+              label: "Teams (comma-separated, optional)",
+              placeholder: "🇮🇳 Team India, WPL",
+            },
+            {
+              key: "featured",
+              label: "Feature at the top of the page",
+              type: "boolean",
+              hint: "Only one star can be featured — enabling this turns it off on other players.",
+            },
           ]}
           imageField="photo_url"
+          uniqueBooleanKey="featured"
         />
       </TabsContent>
       <TabsContent value="gallery" className="pt-4">
