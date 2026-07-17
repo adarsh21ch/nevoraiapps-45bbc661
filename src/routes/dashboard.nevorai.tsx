@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { UIMessage } from "ai";
-import { PanelLeft, PanelRight, Plus, Sparkles } from "lucide-react";
+import { ArrowLeft, PanelLeft, PanelRight, Plus, Sparkles } from "lucide-react";
+import { consumePendingNevorAIPrompt } from "@/components/nevorai/NevorAIProvider";
 import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { ChatPanel } from "@/components/nevorai/ChatPanel";
 import { ConversationList } from "@/components/nevorai/ConversationList";
