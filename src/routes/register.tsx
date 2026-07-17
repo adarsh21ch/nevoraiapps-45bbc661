@@ -17,6 +17,8 @@ import type { Batch, FeePlan } from "@/lib/tenant";
 import { supabase } from "@/integrations/supabase/client";
 import { checkRateLimit } from "@/lib/bulk-ops";
 import { signedUrl } from "@/lib/storage";
+import { toE164 } from "@/lib/phone";
+import { attachPhoneToApplicant } from "@/lib/registration/attach-phone.functions";
 
 // Policies that must be accepted before registration submits (if the academy
 // has published them). Missing policies are silently skipped — never block
@@ -328,6 +330,25 @@ function RegisterContent() {
         .from("registrations")
         .update(extras as never)
         .eq("id", data as unknown as string);
+
+      // Attach phone to the auth user so they can sign in with phone+password.
+      // Silent on conflict (e.g. sibling sharing a parent's number).
+      if (applicantUserId) {
+        const phoneE164 = toE164(form.phone.trim());
+        if (phoneE164) {
+          try {
+            await attachPhoneToApplicant({
+              data: {
+                tenantId: tenant.id,
+                applicantUserId,
+                phoneE164,
+              },
+            });
+          } catch {
+            // non-fatal — email login still works
+          }
+        }
+      }
     }
     setSaving(false);
     if (error || !data) {
@@ -659,7 +680,7 @@ function RegisterContent() {
           </div>
           <h2 className="mt-6 text-2xl font-bold text-foreground">Registration submitted 🎉</h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            {tenant.name} will review your application. You can sign in anytime to see the status.
+            {tenant.name} will review your application. You can sign in right away with your email or phone and the password you just set.
           </p>
           <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
             <Link

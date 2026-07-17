@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { toE164, isLikelyEmail } from "@/lib/phone";
 
 type AuthSearch = { mode?: "signin" | "forgot" | "reset" };
 
@@ -96,6 +97,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const { mode: searchMode } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "forgot" | "reset">(searchMode ?? "signin");
+  const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -125,11 +127,28 @@ function AuthPage() {
 
   async function onSignIn(e: React.FormEvent) {
     e.preventDefault();
+    const id = identifier.trim();
+    if (!id || !password) {
+      toast.error("Enter your email or phone and password.");
+      return;
+    }
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    let result;
+    if (isLikelyEmail(id)) {
+      result = await supabase.auth.signInWithPassword({ email: id.toLowerCase(), password });
+    } else {
+      const phone = toE164(id);
+      if (!phone) {
+        setLoading(false);
+        toast.error("Enter a valid email address or phone number.");
+        return;
+      }
+      result = await supabase.auth.signInWithPassword({ phone, password });
+    }
+    const { data, error } = result;
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error("Wrong email/phone or password. Please try again.");
       return;
     }
     toast.success("Signed in");
@@ -239,7 +258,7 @@ function AuthPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg text-zinc-400"
           >
-            Students, parents and academy staff — sign in with the email you registered with.
+            Students, parents and academy staff — sign in with the email or phone you registered with.
             We'll take you to the right place.
           </motion.p>
 
@@ -308,13 +327,13 @@ function AuthPage() {
           {mode === "signin" && (
             <form onSubmit={onSignIn} className="space-y-5">
               <Field
-                id="email"
-                label="Email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={setEmail}
-                placeholder="you@example.com"
+                id="identifier"
+                label="Email or phone"
+                type="text"
+                autoComplete="username"
+                value={identifier}
+                onChange={setIdentifier}
+                placeholder="you@example.com or 98xxxxxxxx"
               />
               <Field
                 id="password"
@@ -350,6 +369,9 @@ function AuthPage() {
                   New here? Register →
                 </Link>
               </div>
+              <p className="text-[11px] leading-relaxed text-zinc-400">
+                Password reset works via your email.
+              </p>
             </form>
           )}
 

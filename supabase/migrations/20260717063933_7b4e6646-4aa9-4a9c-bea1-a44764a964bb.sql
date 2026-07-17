@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.submit_registration(uuid, text, text, uuid, uuid, date, text, text, text, jsonb, uuid) TO anon;
