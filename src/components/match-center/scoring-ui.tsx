@@ -863,18 +863,15 @@ export function ExtraRunsModal({
           })}
         </div>
 
-        <SheetFooter
-          className="px-3 pt-3 pb-3"
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .5rem)" }}
-        >
+        <div className="px-4 pt-3 pb-3">
           <Button
             variant="ghost"
-            className="w-full h-10 rounded-full text-sm"
+            className="w-full h-9 rounded-full text-sm"
             onClick={() => onOpenChange(false)}
           >
             Cancel
           </Button>
-        </SheetFooter>
+        </div>
       </SheetContent>
     </Sheet>
   );
