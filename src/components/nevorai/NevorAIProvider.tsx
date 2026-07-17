@@ -49,29 +49,38 @@ export function NevorAIProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function useVisualViewportHeight(active: boolean): number | null {
-  const [height, setHeight] = useState<number | null>(null);
+type Viewport = { top: number; height: number } | null;
+
+function useVisualViewport(active: boolean): Viewport {
+  const [vp, setVp] = useState<Viewport>(null);
   useEffect(() => {
     if (!active || typeof window === "undefined") return;
     const vv = window.visualViewport;
     if (!vv) return;
-    const update = () => setHeight(vv.height);
+    let raf = 0;
+    const update = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        setVp({ top: vv.offsetTop, height: vv.height });
+      });
+    };
     update();
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
     return () => {
+      cancelAnimationFrame(raf);
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
     };
   }, [active]);
-  return height;
+  return vp;
 }
 
 function NevorAIInner({ children }: { children: ReactNode }) {
   const [isOpen, setOpen] = useState(false);
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
   const pageContext = useNevorAIPageContext();
-  const vvHeight = useVisualViewportHeight(isOpen);
+  const vp = useVisualViewport(isOpen);
 
   const open = useCallback((opts?: { prompt?: string }) => {
     if (opts?.prompt) setPendingPrompt(opts.prompt);
@@ -86,11 +95,19 @@ function NevorAIInner({ children }: { children: ReactNode }) {
     [pageContext.currentScreen],
   );
 
-  // On mobile, size the sheet to the visual viewport so the keyboard
-  // never pushes the composer off-screen. On sm+ we fall back to full height.
+  // On mobile, pin the sheet to the visual viewport (top + height) so the
+  // on-screen keyboard cannot drift the modal on iOS — where `position: fixed`
+  // is anchored to the layout viewport, not the visual viewport. `bottom:auto`
+  // neutralises the inset-y-0 utility that would otherwise stretch the box.
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
   const contentStyle: CSSProperties =
-    vvHeight != null && typeof window !== "undefined" && window.innerWidth < 640
-      ? { height: `${vvHeight}px`, maxHeight: `${vvHeight}px` }
+    isMobile && vp != null
+      ? {
+          top: `${vp.top}px`,
+          height: `${vp.height}px`,
+          maxHeight: `${vp.height}px`,
+          bottom: "auto",
+        }
       : {};
 
   return (
