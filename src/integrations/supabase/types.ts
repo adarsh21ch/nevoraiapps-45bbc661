@@ -7382,6 +7382,9 @@ export type Database = {
       }
       mark_all_notifications_read: { Args: never; Returns: number }
       mark_notification_read: { Args: { _id: string }; Returns: undefined }
+      mc_match_has_my_child: { Args: { _match_id: string }; Returns: boolean }
+      mc_match_has_my_student: { Args: { _match_id: string }; Returns: boolean }
+      mc_match_scorer_of: { Args: { _match_id: string }; Returns: boolean }
       owner_delete_member: { Args: { _profile_id: string }; Returns: undefined }
       owner_delete_student: {
         Args: { _confirm_name: string; _student_id: string }
