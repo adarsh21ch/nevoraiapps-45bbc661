@@ -161,9 +161,24 @@ function RegisterContent() {
         _lead_id: leadId ?? null,
       } as never,
     );
-    const extras: Record<string, string> = {};
+    const extras: Record<string, unknown> = {};
     if (form.address.trim()) extras.address = form.address.trim();
     if (form.gender) extras.gender = form.gender;
+    if (form.medical_notes.trim()) extras.medical_notes = form.medical_notes.trim();
+    // Sport-agnostic profile stored under registrations.documents.profile so
+    // future sports plug in without a schema migration.
+    const profile: Record<string, unknown> = {};
+    if (form.height_cm.trim()) profile.height_cm = Number(form.height_cm) || form.height_cm.trim();
+    if (form.weight_kg.trim()) profile.weight_kg = Number(form.weight_kg) || form.weight_kg.trim();
+    if (form.batting_style) profile.batting_style = form.batting_style;
+    if (form.bowling_style) profile.bowling_style = form.bowling_style;
+    if (form.interests) profile.interests = form.interests;
+    profile.terms_accepted = true;
+    profile.terms_accepted_at = now;
+    profile.sport = "cricket";
+    if (Object.keys(profile).length > 0) {
+      extras.documents = { profile };
+    }
     if (!error && data && Object.keys(extras).length > 0) {
       await supabase
         .from("registrations")
