@@ -27,6 +27,15 @@ const REQUIRED_POLICIES: PolicyKind[] = ["terms", "privacy", "fee", "medical"];
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
 
+const STEP_TITLES = [
+  "Create your account",
+  "Student details",
+  "Optional details",
+  "Review & submit",
+] as const;
+type Step = 1 | 2 | 3 | 4;
+
+
 type RegisterSearch = { lead?: string };
 
 export const Route = createFileRoute("/register")({
