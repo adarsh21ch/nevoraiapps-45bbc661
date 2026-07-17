@@ -391,15 +391,9 @@ function RegisterContent() {
         _lead_id: leadId ?? null,
       } as never,
     );
-    // Always persist email + applicant_user_id + optional profile extras so
-    // the applicant can log in and land on /student/pending.
-    const extras: Record<string, unknown> = {
-      email: emailTrim,
-      applicant_user_id: applicantUserId,
-    };
-    if (form.address.trim()) extras.address = form.address.trim();
-    if (form.gender) extras.gender = form.gender;
-    if (form.medical_notes.trim()) extras.medical_notes = form.medical_notes.trim();
+    // Persist email + profile extras and link applicant_user_id via
+    // SECURITY DEFINER RPC (tenant-scoped RLS blocks a direct client UPDATE
+    // by the just-signed-up applicant).
     const profile: Record<string, unknown> = {};
     if (form.height_cm.trim()) profile.height_cm = Number(form.height_cm) || form.height_cm.trim();
     if (form.weight_kg.trim()) profile.weight_kg = Number(form.weight_kg) || form.weight_kg.trim();
@@ -410,31 +404,35 @@ function RegisterContent() {
     profile.terms_accepted = true;
     profile.terms_accepted_at = now;
     profile.sport = "cricket";
-    if (Object.keys(profile).length > 0) {
-      extras.documents = { profile };
-    }
-    if (!error && data) {
-      await supabase
-        .from("registrations")
-        .update(extras as never)
-        .eq("id", data as unknown as string);
+    const documents = Object.keys(profile).length > 0 ? { profile } : null;
+
+    if (!error && data && applicantUserId) {
+      const { error: attachErr } = await supabase.rpc(
+        "attach_applicant_to_registration" as never,
+        {
+          _registration_id: data as unknown as string,
+          _email: emailTrim,
+          _address: form.address.trim() || null,
+          _gender: form.gender || null,
+          _medical_notes: form.medical_notes.trim() || null,
+          _documents: documents as unknown as never,
+        } as never,
+      );
+      if (attachErr) console.error("attach_applicant_to_registration", attachErr);
 
       // Attach phone to the auth user so they can sign in with phone+password.
-      // Silent on conflict (e.g. sibling sharing a parent's number).
-      if (applicantUserId) {
-        const phoneE164 = toE164(form.phone.trim());
-        if (phoneE164) {
-          try {
-            await attachPhoneToApplicant({
-              data: {
-                tenantId: tenant.id,
-                applicantUserId,
-                phoneE164,
-              },
-            });
-          } catch {
-            // non-fatal — email login still works
-          }
+      const phoneE164 = toE164(form.phone.trim());
+      if (phoneE164) {
+        try {
+          await attachPhoneToApplicant({
+            data: {
+              tenantId: tenant.id,
+              applicantUserId,
+              phoneE164,
+            },
+          });
+        } catch {
+          // non-fatal — email login still works
         }
       }
     }
