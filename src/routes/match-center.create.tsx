@@ -13,7 +13,7 @@ import {
   X,
   Users,
   UserPlus,
-  UserSearch,
+  
   CheckCircle2,
 } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
@@ -661,35 +661,9 @@ function CreateMatchPage() {
   );
 }
 
-/* ==================== SECTION / CHIPS ==================== */
+/* ==================== CHIPS ==================== */
 
-function Section({
-  step,
-  title,
-  caption,
-  children,
-}: {
-  step: number;
-  title: string;
-  caption?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="mt-6 rounded-2xl border border-border bg-card p-5">
-      <div className="mb-3 flex items-center gap-2">
-        <span
-          className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
-          style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
-        >
-          {step}
-        </span>
-        <h3 className="text-sm font-semibold tracking-tight">{title}</h3>
-        {caption && <span className="text-xs text-muted-foreground">· {caption}</span>}
-      </div>
-      {children}
-    </div>
-  );
-}
+
 
 function ChoiceChip({
   active,
@@ -1042,70 +1016,7 @@ function NewTeamBody({
 }
 
 
-/* --- Guest team --- */
 
-function GuestTeamBody({
-  name,
-  onName,
-  players,
-  onAdd,
-  onRemove,
-}: {
-  name: string;
-  onName: (v: string) => void;
-  players: PlayerRef[];
-  onAdd: (p: PlayerRef) => void;
-  onRemove: (key: string) => void;
-}) {
-  const [playerName, setPlayerName] = useState("");
-  const add = () => {
-    const trimmed = playerName.trim();
-    if (!trimmed) return;
-    onAdd({
-      key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      name: trimmed,
-      photo_url: null,
-      athlete_profile_id: null,
-    });
-    setPlayerName("");
-  };
-  return (
-    <div className="space-y-3">
-      <div>
-        <Label>Team name</Label>
-        <Input
-          value={name}
-          onChange={(e) => onName(e.target.value)}
-          placeholder="e.g. Sky Cricket Academy"
-          className="mt-1"
-        />
-      </div>
-      <div>
-        <Label>Add player</Label>
-        <div className="mt-1 flex gap-2">
-          <Input
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            placeholder="Type a player's name…"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                add();
-              }
-            }}
-          />
-          <Button type="button" onClick={add} disabled={!playerName.trim()}>
-            <Plus className="size-4" />
-          </Button>
-        </div>
-        <p className="mt-1.5 text-[11px] text-muted-foreground">
-          Guest players exist only for this match — no academy registration needed.
-        </p>
-      </div>
-      {void onRemove}
-    </div>
-  );
-}
 
 /* --- Academy-player search (used by "existing" edit and "new" panels) --- */
 
