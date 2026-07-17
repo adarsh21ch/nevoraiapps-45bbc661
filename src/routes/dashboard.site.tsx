@@ -102,9 +102,11 @@ function ContactEditor() {
     tagline: tenant.tagline ?? "",
     logo_url: tenant.logo_url ?? "",
     short_name: (tenant as any).short_name ?? "",
+    registration_pdf_url: (tenant as any).registration_pdf_url ?? "",
   });
   const [qrPreview, setQrPreview] = useState<string>("");
   const [logoPreview, setLogoPreview] = useState<string>("");
+  const [pdfPreview, setPdfPreview] = useState<string>("");
   useEffect(() => {
     if (form.upi_qr_url) signedUrl(form.upi_qr_url).then(setQrPreview);
     else setQrPreview("");
@@ -113,6 +115,11 @@ function ContactEditor() {
     if (form.logo_url) signedUrl(form.logo_url).then(setLogoPreview);
     else setLogoPreview("");
   }, [form.logo_url]);
+  useEffect(() => {
+    if (form.registration_pdf_url) signedUrl(form.registration_pdf_url).then(setPdfPreview);
+    else setPdfPreview("");
+  }, [form.registration_pdf_url]);
+
 
   const invalidateTenant = () => {
     qc.invalidateQueries({ queryKey: ["dashboard-tenant", tenant.id] });
@@ -134,25 +141,34 @@ function ContactEditor() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  async function upload(field: "upi_qr_url" | "logo_url", file: File) {
+  async function upload(
+    field: "upi_qr_url" | "logo_url" | "registration_pdf_url",
+    file: File,
+  ) {
     try {
-      const path = await uploadTenantFile(tenant.id, field, file);
+      const folder = field === "registration_pdf_url" ? "public/registration-pdf" : field;
+      const path = await uploadTenantFile(tenant.id, folder, file);
       const next = { ...form, [field]: path };
       setForm(next);
-      // Auto-persist the single field immediately so the change survives reload.
       const { error } = await supabase
         .from("tenants")
         .update({ [field]: path } as any)
         .eq("id", tenant.id);
       if (error) throw error;
-      toast.success(field === "logo_url" ? "Logo updated" : "QR updated");
+      toast.success(
+        field === "logo_url"
+          ? "Logo updated"
+          : field === "registration_pdf_url"
+            ? "Registration PDF updated"
+            : "QR updated",
+      );
       invalidateTenant();
     } catch (e: any) {
       toast.error(e.message);
     }
   }
 
-  async function remove(field: "upi_qr_url" | "logo_url") {
+  async function remove(field: "upi_qr_url" | "logo_url" | "registration_pdf_url") {
     try {
       const next = { ...form, [field]: "" };
       setForm(next);
@@ -161,12 +177,19 @@ function ContactEditor() {
         .update({ [field]: null } as any)
         .eq("id", tenant.id);
       if (error) throw error;
-      toast.success(field === "logo_url" ? "Logo removed" : "QR removed");
+      toast.success(
+        field === "logo_url"
+          ? "Logo removed"
+          : field === "registration_pdf_url"
+            ? "Registration PDF removed"
+            : "QR removed",
+      );
       invalidateTenant();
     } catch (e: any) {
       toast.error(e.message);
     }
   }
+
 
 
   return (
@@ -264,6 +287,50 @@ function ContactEditor() {
           </div>
         </div>
       </div>
+
+      <div className="pt-3 border-t space-y-2">
+        <Label>Offline registration PDF</Label>
+        <p className="text-xs text-muted-foreground">
+          Upload the printable admission form. When present, the public website's{" "}
+          <strong>Offline PDF form</strong> button downloads this file. If nothing is uploaded,
+          the button is hidden automatically.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-xs cursor-pointer inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5 text-foreground hover:bg-muted">
+            <Upload className="size-3" />
+            {form.registration_pdf_url ? "Replace PDF" : "Upload PDF"}
+            <input
+              type="file"
+              accept="application/pdf"
+              className="hidden"
+              onChange={(e) =>
+                e.target.files?.[0] && upload("registration_pdf_url", e.target.files[0])
+              }
+            />
+          </label>
+          {form.registration_pdf_url && pdfPreview ? (
+            <a
+              href={pdfPreview}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs underline text-muted-foreground hover:text-foreground"
+            >
+              Preview current PDF
+            </a>
+          ) : null}
+          {form.registration_pdf_url ? (
+            <button
+              type="button"
+              onClick={() => remove("registration_pdf_url")}
+              className="text-xs text-muted-foreground hover:text-rose-600"
+            >
+              Remove
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+
 
       <div>
         <Button
