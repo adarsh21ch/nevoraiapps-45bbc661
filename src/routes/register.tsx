@@ -680,7 +680,7 @@ function RegisterContent() {
           </div>
           <h2 className="mt-6 text-2xl font-bold text-foreground">Registration submitted 🎉</h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            {tenant.name} will review your application. You can sign in anytime to see the status.
+            {tenant.name} will review your application. You can sign in right away with your email or phone and the password you just set.
           </p>
           <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
             <Link
