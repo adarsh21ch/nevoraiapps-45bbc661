@@ -142,45 +142,67 @@ function NevorAIPage() {
       });
   }, [conversationId, turnsQ.data]);
 
-  // Mobile layout: use window.visualViewport height so the chat container
-  // shrinks correctly when the on-screen keyboard opens (iOS `100dvh` does
-  // NOT shrink). Lock body scroll while mounted so the page never moves —
-  // only the message list scrolls. Desktop keeps the flow layout.
+  // Mobile chat architecture:
+  //  • The workspace mounts as a fullscreen fixed overlay (inset-0), covering
+  //    the DashboardShell header and hiding it while chat is open. Only ONE
+  //    element sits above the keyboard; nothing behind it can move.
+  //  • Body is hard-locked with position:fixed for the lifetime of the page.
+  //    `overflow: hidden` alone does NOT stop iOS Safari from auto-scrolling
+  //    the layout viewport to reveal a focused input — position:fixed does.
+  //  • Height is driven by window.visualViewport so the container shrinks
+  //    exactly to the space above the on-screen keyboard (iOS `100dvh` does
+  //    not shrink on keyboard open). Composer stays welded to the bottom.
+  //  • Desktop (md+) keeps the normal flow layout inside DashboardShell.
   const vvHeight = useVisualViewportHeight();
   useEffect(() => {
     if (typeof document === "undefined") return;
+    if (typeof window === "undefined") return;
+    // Only lock on mobile viewports; desktop scrolls normally inside main.
+    if (window.matchMedia("(min-width: 768px)").matches) return;
     const html = document.documentElement;
     const body = document.body;
-    const prev = { html: html.style.overflow, body: body.style.overflow };
+    const scrollY = window.scrollY;
+    const prev = {
+      htmlOverflow: html.style.overflow,
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+    };
     html.style.overflow = "hidden";
     body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
     return () => {
-      html.style.overflow = prev.html;
-      body.style.overflow = prev.body;
+      html.style.overflow = prev.htmlOverflow;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.position = prev.bodyPosition;
+      body.style.top = prev.bodyTop;
+      body.style.width = prev.bodyWidth;
+      window.scrollTo(0, scrollY);
     };
   }, []);
 
-  // Header offset = safe-area-inset-top + 3.5rem shell header. Bottom-nav is
-  // hidden on this route on mobile (see GlobalBottomNav), so no bottom offset.
+  // Mobile: fullscreen overlay whose height tracks the visual viewport so the
+  // keyboard shrinks only this container. No top offset — we replace the shell
+  // header with our own NevorAI header (rendered below).
   const mobileStyle: React.CSSProperties | undefined = vvHeight
-    ? {
-        top: "calc(env(safe-area-inset-top) + 3.5rem)",
-        height: `calc(${vvHeight}px - env(safe-area-inset-top) - 3.5rem)`,
-      }
+    ? { height: `${vvHeight}px` }
     : undefined;
 
   return (
     <div
       data-nevorai-workspace
       className={cn(
-        // Mobile: fixed under the shell header, height driven by visual viewport
-        // so keyboard open/close resizes ONLY the chat area (no page jump).
-        "fixed inset-x-0 z-30 flex bg-background text-foreground",
-        // Desktop: normal flow inside the dashboard main; negate main padding.
-        "md:static md:-mx-8 md:-mt-8 md:-mb-8 md:h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]",
+        // Mobile: fullscreen fixed overlay above everything, incl. shell header.
+        "fixed inset-0 z-[60] flex bg-background text-foreground",
+        // Desktop: normal flow inside dashboard main, negate main padding.
+        "md:static md:z-auto md:-mx-8 md:-mt-8 md:-mb-8 md:h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]",
       )}
       style={mobileStyle}
     >
+
 
 
       {/* Conversations rail — persistent on lg+ (compact) */}
