@@ -60,6 +60,7 @@ export function ChatPanel({
   ensureConversationId,
 }: Props) {
   const [token, setToken] = useState<string | null>(null);
+  const keyboardOpen = useKeyboardOpen();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setToken(data.session?.access_token ?? null));
