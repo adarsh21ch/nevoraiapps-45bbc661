@@ -304,7 +304,7 @@ export function generateBlankRegistrationPdf(tenant: Tenant, fees: FeePlan[], ba
   };
   checkboxRow("Batting style", ["Right-hand", "Left-hand"]);
   checkboxRow("Bowling style", ["Right-arm", "Left-arm", "Spin", "Pace"]);
-  checkboxRow("Role", ["Batter", "Bowler", "All-rounder", "Wicket-keeper"]);
+  checkboxRow("Role", ["Batter", "Bowler", "All-rounder", "Wicketkeeper batsman"]);
 
   y += 4;
   doc.setFont("helvetica", "bold");
