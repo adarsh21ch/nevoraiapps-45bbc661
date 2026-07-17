@@ -269,6 +269,7 @@ function AdminPicker({
   const eligible = useMemo(() => {
     return members.filter(
       (m) =>
+        m.source === "student" &&
         !m.roles.includes("owner") &&
         m.profile_role !== "owner" &&
         !m.roles.includes("admin"),
