@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchRegistrations, qk } from "@/lib/dashboard-queries";
@@ -8,6 +9,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { bulkApproveRegistrations } from "@/lib/bulk-ops";
 import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
 import { markRegistrationsReviewed, newRegsQueryKey } from "@/hooks/use-new-registrations";
+import {
+  rejectRegistration,
+  waitlistRegistration,
+} from "@/lib/admissions/admissions.functions";
 
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { Button } from "@/components/ui/button";
@@ -23,22 +28,68 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Textarea } from "@/components/ui/textarea";
+import { FilterTabs } from "@/components/dashboard-ui";
+import { AdmissionActionDialog } from "@/components/dashboard/AdmissionActionDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { CheckCheck, Trash2, Phone, Share2, Copy, FileDown } from "lucide-react";
+import {
+  CheckCheck,
+  Trash2,
+  Phone,
+  Share2,
+  Copy,
+  FileDown,
+  MoreVertical,
+  MessageSquareWarning,
+  Hourglass,
+  XCircle,
+} from "lucide-react";
 import { generateFilledRegistrationPdf } from "@/lib/registration-pdf";
 import { ModuleHeader } from "@/components/shared/ModuleHeader";
 import { VirtualList } from "@/components/ds/VirtualList";
 
 export const Route = createFileRoute("/dashboard/registrations")({
+  head: () => ({ meta: [{ title: "Registrations / Admissions" }] }),
   component: RegistrationsInbox,
 });
 
 const money = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
+// Filter chips shown above the list. "All" and "Pending" cover the common
+// daily flow; the rest are also-ran statuses ported from Admissions Review.
+const FILTERS = [
+  { key: "pending", label: "Pending" },
+  { key: "approved", label: "Approved" },
+  { key: "rejected", label: "Rejected" },
+  { key: "waitlisted", label: "Waitlisted" },
+  { key: "changes_requested", label: "Changes requested" },
+  { key: "all", label: "All" },
+] as const;
+
+type FilterKey = (typeof FILTERS)[number]["key"];
+
+// A row's effective review status. Falls back to legacy `status` for
+// pre-admissions-review data (status = "new" | "approved" | "rejected").
+function effectiveReviewStatus(r: any): string {
+  const rs = r.review_status as string | null | undefined;
+  if (rs) return rs;
+  if (r.status === "approved") return "approved";
+  if (r.status === "rejected") return "rejected";
+  return "pending";
+}
+
 function RegistrationsInbox() {
   const { tenant } = useDashboard();
+  const tenantId = tenant.id!;
   const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({
     queryKey: qk.regs(tenant.id),
@@ -46,6 +97,11 @@ function RegistrationsInbox() {
   });
 
   const [openId, setOpenId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterKey>("pending");
+  const [dialog, setDialog] = useState<{ id: string; mode: "approve" | "changes" } | null>(null);
+  const [rejectReasonFor, setRejectReasonFor] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [waitlistFor, setWaitlistFor] = useState<string | null>(null);
 
   // Gmail/WhatsApp/Slack behaviour: opening the inbox marks every NEW
   // registration as REVIEWED. The badge instantly disappears everywhere.
@@ -71,6 +127,7 @@ function RegistrationsInbox() {
     qc.invalidateQueries({ queryKey: newRegsQueryKey(tenant.id) });
     qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
     qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
+    qc.invalidateQueries({ queryKey: ["admissions"] });
   };
 
   const approve = useMutation({
@@ -101,7 +158,7 @@ function RegistrationsInbox() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // Phase 3 — optimistic delete with automatic rollback via useOptimisticMutation.
+  // Hard delete — for spam / mistakes.
   const del = useOptimisticMutation<void, string, any[]>({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("registrations").delete().eq("id", id);
@@ -117,6 +174,33 @@ function RegistrationsInbox() {
     onError: (e) => toast.error((e as Error).message),
   });
 
+  // Soft reject — sets review_status=rejected with a reason.
+  const reject = useServerFn(rejectRegistration);
+  const rejectMut = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      reject({ data: { registrationId: id, tenantId, reason } }),
+    onSuccess: () => {
+      toast.success("Application rejected");
+      invalidate();
+      setRejectReasonFor(null);
+      setRejectReason("");
+      setOpenId(null);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to reject"),
+  });
+
+  const waitlist = useServerFn(waitlistRegistration);
+  const waitlistMut = useMutation({
+    mutationFn: (id: string) => waitlist({ data: { registrationId: id, tenantId } }),
+    onSuccess: () => {
+      toast.success("Moved to waitlist");
+      invalidate();
+      setWaitlistFor(null);
+      setOpenId(null);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Failed to waitlist"),
+  });
+
   const sorted = useMemo(
     () =>
       [...data].sort(
@@ -125,6 +209,20 @@ function RegistrationsInbox() {
     [data],
   );
 
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { all: sorted.length };
+    for (const r of sorted) {
+      const s = effectiveReviewStatus(r);
+      c[s] = (c[s] ?? 0) + 1;
+    }
+    return c;
+  }, [sorted]);
+
+  const filtered = useMemo(() => {
+    if (filter === "all") return sorted;
+    return sorted.filter((r: any) => effectiveReviewStatus(r) === filter);
+  }, [sorted, filter]);
+
   const openReg = sorted.find((r: any) => r.id === openId) ?? null;
   const newCount = sorted.filter((r: any) => r.status === "new" || r.status === "reviewed").length;
 
@@ -132,24 +230,29 @@ function RegistrationsInbox() {
     <div className="space-y-4">
       <ModuleHeader
         overline="Academy"
-        title="Registrations"
+        title="Registrations / Admissions"
         backTo="/dashboard/academy"
         action={<ShareLinkButton tenant={tenant} />}
       />
       <div className="-mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <span className="uppercase tracking-wide">Admissions</span>
+        <span className="uppercase tracking-wide">Intake</span>
         <span aria-hidden>·</span>
-        <Link to="/dashboard/admissions-review" className="hover:text-foreground underline underline-offset-2">
-          Admissions Review
-        </Link>
         <Link to="/dashboard/leads" className="hover:text-foreground underline underline-offset-2">
           Leads pipeline
         </Link>
       </div>
 
-      {newCount > 0 ? (
-        <div className="-mt-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground">{newCount} unactioned · newest first</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <FilterTabs
+          value={filter}
+          onChange={(v) => setFilter(v as FilterKey)}
+          items={FILTERS.map((f) => ({
+            key: f.key,
+            label: counts[f.key] ? `${f.label} · ${counts[f.key]}` : f.label,
+          }))}
+          ariaLabel="Filter registrations by status"
+        />
+        {newCount > 0 && filter === "pending" ? (
           <Button
             size="sm"
             variant="outline"
@@ -166,8 +269,8 @@ function RegistrationsInbox() {
             <CheckCheck className="size-3.5 mr-1" />
             Approve all pending
           </Button>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
       {isLoading ? (
         <div className="space-y-2">
@@ -175,7 +278,7 @@ function RegistrationsInbox() {
             <div key={i} className="h-14 rounded-xl bg-card border border-border animate-pulse" />
           ))}
         </div>
-      ) : sorted.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="rounded-2xl bg-card border border-border shadow-sm p-10 text-center">
           <div
             className="mx-auto h-14 w-14 rounded-full flex items-center justify-center text-2xl"
@@ -183,17 +286,30 @@ function RegistrationsInbox() {
           >
             📮
           </div>
-          <div className="mt-3 font-semibold">No registrations yet</div>
+          <div className="mt-3 font-semibold">
+            {filter === "pending" && sorted.length === 0
+              ? "No registrations yet"
+              : `No ${FILTERS.find((f) => f.key === filter)?.label.toLowerCase() ?? ""} applications`}
+          </div>
           <div className="text-sm text-muted-foreground mt-1">
-            New sign-ups from your public site will appear here.
+            {sorted.length === 0
+              ? "New sign-ups from your public site will appear here."
+              : "Try a different filter to see other applications."}
           </div>
         </div>
       ) : (
         <RegistrationsTable
-          rows={sorted}
+          rows={filtered}
           onOpen={(id) => setOpenId(id)}
           onAccept={(id) => approve.mutate(id)}
-          onReject={(id) => del.mutate(id)}
+          onDelete={(id) => del.mutate(id)}
+          onApproveWithDetails={(id) => setDialog({ id, mode: "approve" })}
+          onRequestChanges={(id) => setDialog({ id, mode: "changes" })}
+          onSoftReject={(id) => {
+            setRejectReason("");
+            setRejectReasonFor(id);
+          }}
+          onWaitlist={(id) => setWaitlistFor(id)}
           accepting={approve.isPending}
           rejecting={del.isPending}
         />
@@ -203,10 +319,93 @@ function RegistrationsInbox() {
         reg={openReg}
         onClose={() => setOpenId(null)}
         onAccept={() => openReg && approve.mutate(openReg.id)}
+        onApproveWithDetails={() => openReg && setDialog({ id: openReg.id, mode: "approve" })}
+        onRequestChanges={() => openReg && setDialog({ id: openReg.id, mode: "changes" })}
+        onSoftReject={() => {
+          if (!openReg) return;
+          setRejectReason("");
+          setRejectReasonFor(openReg.id);
+        }}
+        onWaitlist={() => openReg && setWaitlistFor(openReg.id)}
         onDelete={() => openReg && del.mutate(openReg.id)}
         accepting={approve.isPending}
         deleting={del.isPending}
       />
+
+      <AdmissionActionDialog
+        registrationId={dialog?.id ?? null}
+        mode={dialog?.mode ?? null}
+        tenantId={tenantId}
+        onClose={() => {
+          setDialog(null);
+          invalidate();
+        }}
+      />
+
+      {/* Soft reject with reason */}
+      <AlertDialog
+        open={!!rejectReasonFor}
+        onOpenChange={(o) => {
+          if (!o) {
+            setRejectReasonFor(null);
+            setRejectReason("");
+          }
+        }}
+      >
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reject application</AlertDialogTitle>
+            <AlertDialogDescription>
+              The applicant will be marked as rejected. Add a short reason for your records.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea
+            rows={3}
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder="e.g. Age group not offered right now."
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={rejectMut.isPending || rejectReason.trim().length < 3}
+              onClick={(e) => {
+                e.preventDefault();
+                if (rejectReasonFor)
+                  rejectMut.mutate({ id: rejectReasonFor, reason: rejectReason.trim() });
+              }}
+              className="bg-rose-600 hover:bg-rose-700"
+            >
+              Reject
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Waitlist confirm */}
+      <AlertDialog open={!!waitlistFor} onOpenChange={(o) => !o && setWaitlistFor(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Move to waitlist?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The applicant will be marked as waitlisted. You can approve them later from the
+              Waitlisted filter.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={waitlistMut.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (waitlistFor) waitlistMut.mutate(waitlistFor);
+              }}
+            >
+              Yes, waitlist
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -260,24 +459,96 @@ function ShareLinkButton({
   );
 }
 
+type RowActions = {
+  rows: any[];
+  onOpen: (id: string) => void;
+  onAccept: (id: string) => void;
+  onDelete: (id: string) => void;
+  onApproveWithDetails: (id: string) => void;
+  onRequestChanges: (id: string) => void;
+  onSoftReject: (id: string) => void;
+  onWaitlist: (id: string) => void;
+  accepting: boolean;
+  rejecting: boolean;
+};
+
+function MoreMenu({
+  reg,
+  onApproveWithDetails,
+  onRequestChanges,
+  onWaitlist,
+  onSoftReject,
+  onDelete,
+  size = "sm",
+}: {
+  reg: any;
+  onApproveWithDetails: (id: string) => void;
+  onRequestChanges: (id: string) => void;
+  onWaitlist: (id: string) => void;
+  onSoftReject: (id: string) => void;
+  onDelete: (id: string) => void;
+  size?: "sm" | "md";
+}) {
+  const rs = effectiveReviewStatus(reg);
+  const canAct = rs === "pending" || rs === "changes_requested" || rs === "waitlisted";
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label="More actions"
+          className={cn(
+            "inline-grid place-items-center rounded-full border border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground",
+            size === "sm" ? "size-8" : "size-9",
+          )}
+        >
+          <MoreVertical className="size-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        {canAct ? (
+          <>
+            <DropdownMenuItem onSelect={() => onApproveWithDetails(reg.id)}>
+              <CheckCheck className="size-4 mr-2" /> Approve with details…
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onRequestChanges(reg.id)}>
+              <MessageSquareWarning className="size-4 mr-2" /> Request changes
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onWaitlist(reg.id)}>
+              <Hourglass className="size-4 mr-2" /> Move to waitlist
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onSoftReject(reg.id)}>
+              <XCircle className="size-4 mr-2" /> Reject with reason
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        ) : null}
+        <DropdownMenuItem
+          onSelect={() => onDelete(reg.id)}
+          className="text-rose-500 focus:text-rose-500"
+        >
+          <Trash2 className="size-4 mr-2" /> Delete permanently
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function RegistrationsTable({
   rows,
   onOpen,
   onAccept,
-  onReject,
+  onDelete,
+  onApproveWithDetails,
+  onRequestChanges,
+  onSoftReject,
+  onWaitlist,
   accepting,
   rejecting,
-}: {
-  rows: any[];
-  onOpen: (id: string) => void;
-  onAccept: (id: string) => void;
-  onReject: (id: string) => void;
-  accepting: boolean;
-  rejecting: boolean;
-}) {
-  const [confirmRejectId, setConfirmRejectId] = useState<string | null>(null);
+}: RowActions) {
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [confirmAcceptId, setConfirmAcceptId] = useState<string | null>(null);
-  const rejectTarget = rows.find((r) => r.id === confirmRejectId);
+  const deleteTarget = rows.find((r) => r.id === confirmDeleteId);
   const acceptTarget = rows.find((r) => r.id === confirmAcceptId);
 
   return (
@@ -301,7 +572,8 @@ function RegistrationsTable({
               const plan = r.fee_plans as { name?: string } | null;
               const batch = r.batches as { name?: string } | null;
               const status = statusMeta(r);
-              const actionable = r.status !== "approved" && r.status !== "rejected";
+              const rs = effectiveReviewStatus(r);
+              const actionable = rs !== "approved" && rs !== "rejected";
               return (
                 <tr key={r.id} className="hover:bg-accent/60 transition-colors">
                   <td className="px-3 py-3 text-muted-foreground tabular-nums">{idx + 1}</td>
@@ -334,8 +606,8 @@ function RegistrationsTable({
                     </span>
                   </td>
                   <td className="px-3 py-3 text-right">
-                    {actionable ? (
-                      <div className="inline-flex gap-1.5">
+                    <div className="inline-flex gap-1.5 items-center">
+                      {actionable ? (
                         <Button
                           size="sm"
                           onClick={() => setConfirmAcceptId(r.id)}
@@ -345,19 +617,16 @@ function RegistrationsTable({
                         >
                           <CheckCheck className="size-3.5 mr-1" /> Accept
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setConfirmRejectId(r.id)}
-                          disabled={rejecting}
-                          className="h-8 rounded-full text-rose-500 border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-500"
-                        >
-                          <Trash2 className="size-3.5 mr-1" /> Reject
-                        </Button>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
+                      ) : null}
+                      <MoreMenu
+                        reg={r}
+                        onApproveWithDetails={onApproveWithDetails}
+                        onRequestChanges={onRequestChanges}
+                        onWaitlist={onWaitlist}
+                        onSoftReject={onSoftReject}
+                        onDelete={(id) => setConfirmDeleteId(id)}
+                      />
+                    </div>
                   </td>
                 </tr>
               );
@@ -375,7 +644,8 @@ function RegistrationsTable({
           getKey={(r) => r.id}
           renderItem={(r, idx) => {
             const status = statusMeta(r);
-            const actionable = r.status !== "approved" && r.status !== "rejected";
+            const rs = effectiveReviewStatus(r);
+            const actionable = rs !== "approved" && rs !== "rejected";
             const batch = r.batches as { name?: string } | null;
             return (
               <div className="pb-2">
@@ -410,8 +680,8 @@ function RegistrationsTable({
                       </div>
                     </div>
                   </button>
-                  {actionable ? (
-                    <div className="flex gap-1 shrink-0">
+                  <div className="flex gap-1 shrink-0 items-center">
+                    {actionable ? (
                       <button
                         type="button"
                         onClick={() => setConfirmAcceptId(r.id)}
@@ -422,17 +692,17 @@ function RegistrationsTable({
                       >
                         <CheckCheck className="size-4" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmRejectId(r.id)}
-                        disabled={rejecting}
-                        aria-label="Reject"
-                        className="inline-grid place-items-center size-9 rounded-full border border-rose-500/40 text-rose-500 hover:bg-rose-500/10"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
-                    </div>
-                  ) : null}
+                    ) : null}
+                    <MoreMenu
+                      reg={r}
+                      onApproveWithDetails={onApproveWithDetails}
+                      onRequestChanges={onRequestChanges}
+                      onWaitlist={onWaitlist}
+                      onSoftReject={onSoftReject}
+                      onDelete={(id) => setConfirmDeleteId(id)}
+                      size="md"
+                    />
+                  </div>
                 </div>
               </div>
             );
@@ -445,7 +715,9 @@ function RegistrationsTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Accept {acceptTarget?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will add them as a student with an auto-generated Player ID.
+              This will add them as a student with an auto-generated Player ID and create their fee
+              schedule. Use "Approve with details…" from the ⋮ menu to assign batch + fee plan at
+              the same time.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -465,12 +737,13 @@ function RegistrationsTable({
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={!!confirmRejectId} onOpenChange={(o) => !o && setConfirmRejectId(null)}>
+      <AlertDialog open={!!confirmDeleteId} onOpenChange={(o) => !o && setConfirmDeleteId(null)}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Reject {rejectTarget?.name}?</AlertDialogTitle>
+            <AlertDialogTitle>Delete {deleteTarget?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This registration will be permanently deleted. This can't be undone.
+              This registration will be permanently deleted. This can't be undone. For applicants
+              who don't qualify, use "Reject with reason" instead — it keeps the record.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -479,12 +752,12 @@ function RegistrationsTable({
               disabled={rejecting}
               onClick={(e) => {
                 e.preventDefault();
-                if (confirmRejectId) onReject(confirmRejectId);
-                setConfirmRejectId(null);
+                if (confirmDeleteId) onDelete(confirmDeleteId);
+                setConfirmDeleteId(null);
               }}
               className="bg-rose-600 hover:bg-rose-700"
             >
-              Reject
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -494,10 +767,12 @@ function RegistrationsTable({
 }
 
 function statusMeta(r: any): { label: string; className: string } {
-  if (r.status === "approved")
-    return { label: "Accepted", className: "bg-emerald-500/15 text-emerald-500" };
-  if (r.status === "rejected")
-    return { label: "Rejected", className: "bg-rose-500/15 text-rose-500" };
+  const rs = effectiveReviewStatus(r);
+  if (rs === "approved") return { label: "Accepted", className: "bg-emerald-500/15 text-emerald-500" };
+  if (rs === "rejected") return { label: "Rejected", className: "bg-rose-500/15 text-rose-500" };
+  if (rs === "waitlisted") return { label: "Waitlist", className: "bg-amber-500/15 text-amber-500" };
+  if (rs === "changes_requested")
+    return { label: "Changes", className: "bg-sky-500/15 text-sky-500" };
   return { label: "New", className: "bg-[var(--brand)]/20 text-[var(--brand)]" };
 }
 
@@ -505,6 +780,10 @@ function RegistrationSheet({
   reg,
   onClose,
   onAccept,
+  onApproveWithDetails,
+  onRequestChanges,
+  onSoftReject,
+  onWaitlist,
   onDelete,
   accepting,
   deleting,
@@ -512,6 +791,10 @@ function RegistrationSheet({
   reg: any | null;
   onClose: () => void;
   onAccept: () => void;
+  onApproveWithDetails: () => void;
+  onRequestChanges: () => void;
+  onSoftReject: () => void;
+  onWaitlist: () => void;
   onDelete: () => void;
   accepting: boolean;
   deleting: boolean;
@@ -525,6 +808,10 @@ function RegistrationSheet({
       accepting={accepting}
       deleting={deleting}
       onAccept={onAccept}
+      onApproveWithDetails={onApproveWithDetails}
+      onRequestChanges={onRequestChanges}
+      onSoftReject={onSoftReject}
+      onWaitlist={onWaitlist}
       onRequestDelete={() => setConfirmDel(true)}
     />
   ) : null;
@@ -561,7 +848,8 @@ function RegistrationSheet({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this registration?</AlertDialogTitle>
             <AlertDialogDescription>
-              Only do this for spam or mistakes. This cannot be undone.
+              Only do this for spam or mistakes. This cannot be undone. For applicants who don't
+              qualify, use "Reject with reason" instead.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -584,17 +872,44 @@ function RegistrationSheet({
   );
 }
 
+function useAdmissionTimeline(registrationId: string | null) {
+  return useQuery({
+    queryKey: ["admissions", "timeline", registrationId],
+    enabled: !!registrationId,
+    queryFn: async () => {
+      if (!registrationId) return [];
+      const { data, error } = await supabase
+        .from("admission_timeline" as never)
+        .select("*")
+        .eq("registration_id", registrationId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) return [];
+      return (data ?? []) as any[];
+    },
+    staleTime: 15_000,
+  });
+}
+
 function RegistrationDetails({
   reg,
   accepting,
   deleting,
   onAccept,
+  onApproveWithDetails,
+  onRequestChanges,
+  onSoftReject,
+  onWaitlist,
   onRequestDelete,
 }: {
   reg: any;
   accepting: boolean;
   deleting: boolean;
   onAccept: () => void;
+  onApproveWithDetails: () => void;
+  onRequestChanges: () => void;
+  onSoftReject: () => void;
+  onWaitlist: () => void;
   onRequestDelete: () => void;
 }) {
   const { tenant } = useDashboard();
@@ -602,8 +917,11 @@ function RegistrationDetails({
   const batch = reg.batches as { name?: string } | null;
   const paid = reg.payment_status === "verified" || reg.payment_status === "claimed_paid";
   const waPhone = (reg.phone || "").replace(/\D/g, "");
-  const approved = reg.status === "approved";
-  const rejected = reg.status === "rejected";
+  const rs = effectiveReviewStatus(reg);
+  const approved = rs === "approved";
+  const rejected = rs === "rejected";
+  const canAct = rs !== "approved" && rs !== "rejected";
+  const timeline = useAdmissionTimeline(reg.id);
 
   return (
     <div className="space-y-5 pt-2 pb-2">
@@ -648,6 +966,7 @@ function RegistrationDetails({
             paid ? `Paid${reg.payment_ref ? ` · ref ${reg.payment_ref}` : ""}` : "Not marked paid"
           }
         />
+        {reg.review_notes && <DRow label="Notes" value={reg.review_notes} multiline />}
       </dl>
 
       <div className="flex gap-2">
@@ -667,20 +986,45 @@ function RegistrationDetails({
         </Button>
       </div>
 
-      {!approved && !rejected && (
-        <Button
-          onClick={onAccept}
-          disabled={accepting}
-          className="w-full h-14 rounded-xl text-base font-semibold"
-          style={{ backgroundColor: "var(--brand)", color: "white" }}
-        >
-          <CheckCheck className="size-5 mr-2" />
-          {accepting ? "Accepting…" : "Accept as student"}
-        </Button>
+      {canAct && (
+        <div className="space-y-2">
+          <Button
+            onClick={onAccept}
+            disabled={accepting}
+            className="w-full h-14 rounded-xl text-base font-semibold"
+            style={{ backgroundColor: "var(--brand)", color: "white" }}
+          >
+            <CheckCheck className="size-5 mr-2" />
+            {accepting ? "Accepting…" : "Accept as student"}
+          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" onClick={onApproveWithDetails} className="rounded-xl h-10">
+              Approve with details…
+            </Button>
+            <Button variant="outline" onClick={onRequestChanges} className="rounded-xl h-10">
+              Request changes
+            </Button>
+            <Button variant="outline" onClick={onWaitlist} className="rounded-xl h-10">
+              Waitlist
+            </Button>
+            <Button
+              variant="outline"
+              onClick={onSoftReject}
+              className="rounded-xl h-10 text-rose-500 border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-500"
+            >
+              Reject with reason
+            </Button>
+          </div>
+        </div>
       )}
       {approved && (
         <div className="text-center text-sm font-medium text-emerald-700">
           ✓ Already accepted as a student
+        </div>
+      )}
+      {rejected && (
+        <div className="text-center text-sm font-medium text-rose-600">
+          ✕ Application rejected
         </div>
       )}
 
@@ -720,6 +1064,33 @@ function RegistrationDetails({
         <FileDown className="size-3.5" /> Download filled PDF
       </button>
 
+      {timeline.data && timeline.data.length > 0 && (
+        <details className="rounded-xl border border-border bg-card">
+          <summary className="cursor-pointer px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Timeline · {timeline.data.length}
+          </summary>
+          <ol className="px-4 pb-3 space-y-2 text-xs">
+            {timeline.data.map((t: any) => (
+              <li key={t.id} className="flex items-start gap-2">
+                <span className="mt-1 size-1.5 shrink-0 rounded-full bg-[var(--brand)]" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-foreground">
+                    {t.event_type?.replaceAll("_", " ") ?? "Event"}
+                  </div>
+                  {t.notes ? (
+                    <div className="text-muted-foreground truncate">{t.notes}</div>
+                  ) : null}
+                  <div className="text-muted-foreground/70">
+                    {t.created_at
+                      ? formatDistanceToNow(new Date(t.created_at), { addSuffix: true })
+                      : ""}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
 
       <button
         type="button"
@@ -727,7 +1098,7 @@ function RegistrationDetails({
         disabled={deleting}
         className="w-full text-center text-xs text-muted-foreground hover:text-rose-600 inline-flex items-center justify-center gap-1 py-1"
       >
-        <Trash2 className="size-3.5" /> Cancel / delete
+        <Trash2 className="size-3.5" /> Delete permanently
       </button>
     </div>
   );
