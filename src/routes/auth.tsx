@@ -97,6 +97,7 @@ function AuthPage() {
   const navigate = useNavigate();
   const { mode: searchMode } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "forgot" | "reset">(searchMode ?? "signin");
+  const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -126,11 +127,28 @@ function AuthPage() {
 
   async function onSignIn(e: React.FormEvent) {
     e.preventDefault();
+    const id = identifier.trim();
+    if (!id || !password) {
+      toast.error("Enter your email or phone and password.");
+      return;
+    }
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    let result;
+    if (isLikelyEmail(id)) {
+      result = await supabase.auth.signInWithPassword({ email: id.toLowerCase(), password });
+    } else {
+      const phone = toE164(id);
+      if (!phone) {
+        setLoading(false);
+        toast.error("Enter a valid email address or phone number.");
+        return;
+      }
+      result = await supabase.auth.signInWithPassword({ phone, password });
+    }
+    const { data, error } = result;
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error("Wrong email/phone or password. Please try again.");
       return;
     }
     toast.success("Signed in");
