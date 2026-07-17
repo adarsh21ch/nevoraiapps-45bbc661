@@ -1356,6 +1356,10 @@ function MoreTab({
         })}
       </div>
 
+      {isOwner && studentUserId ? (
+        <AccessRoleCard tenantId={tenantId} studentUserId={studentUserId} />
+      ) : null}
+
       <DangerZone
         visible={canRemove}
         description="Permanently remove this player from the academy. This cannot be undone."
