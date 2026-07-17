@@ -488,281 +488,410 @@ function RegisterContent() {
 
       {!done ? (
         <form onSubmit={submitForm} className="mt-8 space-y-6">
-          {/* Section 0 — Account (becomes the applicant's login) */}
-          <Section title="Create your account">
-            <p className="mb-3 text-xs text-muted-foreground">
-              You'll sign in with this email and password to see the status of your application and,
-              once approved, your student dashboard.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Email *"
-                type="email"
-                value={form.email}
-                onChange={(v) => setForm({ ...form, email: v })}
-                placeholder="you@example.com"
-              />
-              <div>
-                <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Password *
-                </div>
-                <div className="relative mt-1.5">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder="At least 8 characters"
-                    autoComplete="new-password"
-                    className="block w-full rounded-lg border border-border bg-background px-3 py-2.5 pr-10 text-sm text-foreground shadow-sm outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute inset-y-0 right-2 grid place-items-center text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+          {isMobile ? (
+            <div className="rounded-2xl border border-border/60 bg-card/40 p-4">
+              <div
+                className="text-[11px] font-semibold uppercase tracking-widest"
+                style={{ color: "var(--brand)" }}
+              >
+                Step {step} of 4
               </div>
-              <Field
-                label="Confirm password *"
-                type={showPassword ? "text" : "password"}
-                value={form.password2}
-                onChange={(v) => setForm({ ...form, password2: v })}
-                placeholder="Re-enter password"
-              />
-              <div className="hidden sm:block" />
-              <div className="sm:col-span-2 flex items-start gap-2 rounded-lg bg-muted/40 p-2.5 text-[11px] text-muted-foreground">
-                <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                <span>
-                  Already have an account?{" "}
-                  <Link to="/auth" className="font-medium underline" style={{ color: "var(--brand)" }}>
-                    Sign in
-                  </Link>{" "}
-                  instead.
-                </span>
+              <div className="mt-1 text-base font-semibold text-foreground">
+                {STEP_TITLES[step - 1]}
               </div>
-            </div>
-          </Section>
-
-          {/* Section 1 — Basic details */}
-          <Section title="Basic details">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Student name *"
-                value={form.name}
-                onChange={(v) => setForm({ ...form, name: v })}
-              />
-              <Field
-                label="Parent / guardian name *"
-                value={form.guardian_name}
-                onChange={(v) => setForm({ ...form, guardian_name: v })}
-              />
-              <Field
-                label="Date of birth *"
-                type="date"
-                value={form.dob}
-                onChange={(v) => setForm({ ...form, dob: v })}
-              />
-              <SelectField
-                label="Gender *"
-                value={form.gender}
-                onChange={(v) => setForm({ ...form, gender: v })}
-                options={[
-                  { value: "", label: "Select gender" },
-                  { value: "male", label: "Male" },
-                  { value: "female", label: "Female" },
-                ]}
-              />
-              <Field
-                label="Contact number *"
-                value={form.phone}
-                onChange={(v) => setForm({ ...form, phone: v })}
-                placeholder="10-digit mobile"
-              />
-              {batches.length > 0 ? (
-                <BatchSelect
-                  value={form.batch_id}
-                  onChange={(v) => setForm({ ...form, batch_id: v })}
-                  options={batchOptions}
-                  onInfo={() => setBatchInfoOpen(true)}
+              <div className="mt-3 h-1 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full transition-all"
+                  style={{ width: `${step * 25}%`, backgroundColor: "var(--brand)" }}
                 />
-              ) : null}
-            </div>
-            {batches.length > 0 ? (
-              <FeeSummary
-                batch={batches.find((b) => b.id === form.batch_id)}
-                fees={fees}
-              />
-            ) : null}
-          </Section>
-
-          {/* Section 3 — Physical details */}
-          <Section title="Physical details">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Field
-                label="Height (cm)"
-                type="number"
-                value={form.height_cm}
-                onChange={(v) => setForm({ ...form, height_cm: v })}
-                placeholder="e.g. 165"
-              />
-              <Field
-                label="Weight (kg)"
-                type="number"
-                value={form.weight_kg}
-                onChange={(v) => setForm({ ...form, weight_kg: v })}
-                placeholder="e.g. 55"
-              />
-              <SelectField
-                label="Blood group"
-                value={form.blood_group}
-                onChange={(v) => setForm({ ...form, blood_group: v })}
-                options={[
-                  { value: "", label: "Select" },
-                  ...BLOOD_GROUPS.map((g) => ({ value: g, label: g })),
-                ]}
-              />
-            </div>
-          </Section>
-
-          {/* Section 4 — Cricket profile */}
-          <Section title="Cricket profile">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <SelectField
-                label="Batting style"
-                value={form.batting_style}
-                onChange={(v) => setForm({ ...form, batting_style: v })}
-                options={[
-                  { value: "", label: "Not sure yet" },
-                  { value: "right-hand", label: "Right hand" },
-                  { value: "left-hand", label: "Left hand" },
-                ]}
-              />
-              <SelectField
-                label="Bowling style"
-                value={form.bowling_style}
-                onChange={(v) => setForm({ ...form, bowling_style: v })}
-                options={[
-                  { value: "", label: "Not sure yet" },
-                  { value: "right-arm", label: "Right arm" },
-                  { value: "left-arm", label: "Left arm" },
-                ]}
-              />
-              <SelectField
-                label="Playing role"
-                value={form.interests}
-                onChange={(v) => setForm({ ...form, interests: v })}
-                options={[
-                  { value: "", label: "Not sure yet" },
-                  { value: "batter", label: "Batter" },
-                  { value: "bowler", label: "Bowler" },
-                  { value: "all-rounder", label: "All rounder" },
-                  { value: "wicket-keeper-batter", label: "Wicketkeeper batsman" },
-                ]}
-              />
-            </div>
-          </Section>
-
-          {/* Section 5 — Address */}
-          <Section title="Address">
-            <TextArea
-              label="Full address"
-              value={form.address}
-              onChange={(v) => setForm({ ...form, address: v })}
-            />
-          </Section>
-
-          {/* Section 6 — Medical */}
-          <Section title="Medical (optional)">
-            <TextArea
-              label="Allergies, conditions or other notes"
-              value={form.medical_notes}
-              onChange={(v) => setForm({ ...form, medical_notes: v })}
-            />
-          </Section>
-
-          {requiredPolicies.length > 0 ? (
-            <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Academy policies
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Please read and accept the following before submitting.
-              </p>
-              <ul className="mt-3 space-y-2">
-                {requiredPolicies.map((p) => (
-                  <li key={p.id} className="flex items-start gap-2">
-                    <input
-                      id={`acc-${p.id}`}
-                      type="checkbox"
-                      className="mt-1 h-4 w-4 rounded border-border"
-                      checked={!!accepted[p.id]}
-                      onChange={(e) =>
-                        setAccepted((prev) => ({ ...prev, [p.id]: e.target.checked }))
-                      }
-                    />
-                    <label htmlFor={`acc-${p.id}`} className="text-sm text-foreground">
-                      I accept the{" "}
-                      <Link
-                        to="/policies/$kind"
-                        params={{ kind: p.kind }}
-                        target="_blank"
-                        className="font-medium underline"
-                        style={{ color: "var(--brand)" }}
-                      >
-                        {p.title || POLICY_LABELS[p.kind]}
-                      </Link>{" "}
-                      <span className="text-xs text-muted-foreground">(v{p.version})</span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
             </div>
           ) : null}
 
-          <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
-            <label className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                className="mt-1 h-4 w-4 rounded border-border"
-                checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
-              />
-              <span className="text-sm text-foreground">
-                I / We accept the{" "}
-                <Link
-                  to="/policies/$kind"
-                  params={{ kind: "terms" }}
-                  target="_blank"
-                  className="font-medium underline"
-                  style={{ color: "var(--brand)" }}
-                >
-                  Terms &amp; Conditions
-                </Link>{" "}
-                of {tenant.name}, including fees, refunds, code of conduct and use of images /
-                videos.
-              </span>
-            </label>
-          </div>
+          {/* Step 1 — Account */}
+          {showStep(1) ? (
+            <Section title="Create your account">
+              <p className="mb-3 text-xs text-muted-foreground">
+                You'll sign in with this email and password to see the status of your application and,
+                once approved, your student dashboard.
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Email *"
+                  type="email"
+                  value={form.email}
+                  onChange={(v) => setForm({ ...form, email: v })}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  inputMode="email"
+                  error={errors.email}
+                />
+                <div>
+                  <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Password *
+                  </div>
+                  <div className="relative mt-1.5">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={form.password}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      placeholder="At least 8 characters"
+                      autoComplete="new-password"
+                      aria-invalid={errors.password ? true : undefined}
+                      className={cn(
+                        "block w-full rounded-lg border bg-background px-3 py-2.5 pr-10 text-sm text-foreground shadow-sm outline-none",
+                        errors.password ? "border-red-500" : "border-border",
+                      )}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute inset-y-0 right-2 grid place-items-center text-muted-foreground hover:text-foreground"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {errors.password ? (
+                    <span className="mt-1 block text-xs text-red-600">{errors.password}</span>
+                  ) : null}
+                </div>
+                <Field
+                  label="Confirm password *"
+                  type={showPassword ? "text" : "password"}
+                  value={form.password2}
+                  onChange={(v) => setForm({ ...form, password2: v })}
+                  placeholder="Re-enter password"
+                  autoComplete="new-password"
+                  error={errors.password2}
+                />
+                <div className="hidden sm:block" />
+                <div className="sm:col-span-2 flex items-start gap-2 rounded-lg bg-muted/40 p-2.5 text-[11px] text-muted-foreground">
+                  <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span>
+                    Already have an account?{" "}
+                    <Link to="/auth" className="font-medium underline" style={{ color: "var(--brand)" }}>
+                      Sign in
+                    </Link>{" "}
+                    instead.
+                  </span>
+                </div>
+              </div>
+            </Section>
+          ) : null}
 
-          <div className="sticky bottom-4 z-10 pt-2">
-            <button
-              type="submit"
-              disabled={
-                saving ||
-                !termsAccepted ||
-                (requiredPolicies.length > 0 && !allRequiredAccepted)
-              }
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-lg disabled:opacity-60"
-              style={{ backgroundColor: "var(--brand)" }}
+          {/* Step 2 — Student details */}
+          {showStep(2) ? (
+            <Section title="Student details">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Student name *"
+                  value={form.name}
+                  onChange={(v) => setForm({ ...form, name: v })}
+                  autoComplete="name"
+                  error={errors.name}
+                />
+                <Field
+                  label="Parent / guardian name *"
+                  value={form.guardian_name}
+                  onChange={(v) => setForm({ ...form, guardian_name: v })}
+                  autoComplete="off"
+                  error={errors.guardian_name}
+                />
+                <Field
+                  label="Date of birth *"
+                  type="date"
+                  value={form.dob}
+                  onChange={(v) => setForm({ ...form, dob: v })}
+                  error={errors.dob}
+                />
+                <SelectField
+                  label="Gender *"
+                  value={form.gender}
+                  onChange={(v) => setForm({ ...form, gender: v })}
+                  options={[
+                    { value: "", label: "Select gender" },
+                    { value: "male", label: "Male" },
+                    { value: "female", label: "Female" },
+                  ]}
+                  error={errors.gender}
+                />
+                <Field
+                  label="Contact number *"
+                  value={form.phone}
+                  onChange={(v) => setForm({ ...form, phone: v })}
+                  placeholder="10-digit mobile"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  error={errors.phone}
+                />
+                {batches.length > 0 ? (
+                  <BatchSelect
+                    value={form.batch_id}
+                    onChange={(v) => setForm({ ...form, batch_id: v })}
+                    options={batchOptions}
+                    onInfo={() => setBatchInfoOpen(true)}
+                  />
+                ) : null}
+              </div>
+              {batches.length > 0 ? (
+                <FeeSummary
+                  batch={batches.find((b) => b.id === form.batch_id)}
+                  fees={fees}
+                />
+              ) : null}
+            </Section>
+          ) : null}
+
+          {/* Step 3 — Optional details (all grouped) */}
+          {showStep(3) ? (
+            <>
+              {isMobile ? (
+                <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
+                  These details help your coach plan better. You can add them later in your student
+                  profile — tap <span className="font-medium text-foreground">Skip for now</span> to
+                  continue.
+                </div>
+              ) : null}
+              <Section title="Physical details">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Field
+                    label="Height (cm)"
+                    type="number"
+                    value={form.height_cm}
+                    onChange={(v) => setForm({ ...form, height_cm: v })}
+                    placeholder="e.g. 165"
+                    inputMode="numeric"
+                  />
+                  <Field
+                    label="Weight (kg)"
+                    type="number"
+                    value={form.weight_kg}
+                    onChange={(v) => setForm({ ...form, weight_kg: v })}
+                    placeholder="e.g. 55"
+                    inputMode="numeric"
+                  />
+                  <SelectField
+                    label="Blood group"
+                    value={form.blood_group}
+                    onChange={(v) => setForm({ ...form, blood_group: v })}
+                    options={[
+                      { value: "", label: "Select" },
+                      ...BLOOD_GROUPS.map((g) => ({ value: g, label: g })),
+                    ]}
+                  />
+                </div>
+              </Section>
+
+              <Section title="Cricket profile">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <SelectField
+                    label="Batting style"
+                    value={form.batting_style}
+                    onChange={(v) => setForm({ ...form, batting_style: v })}
+                    options={[
+                      { value: "", label: "Not sure yet" },
+                      { value: "right-hand", label: "Right hand" },
+                      { value: "left-hand", label: "Left hand" },
+                    ]}
+                  />
+                  <SelectField
+                    label="Bowling style"
+                    value={form.bowling_style}
+                    onChange={(v) => setForm({ ...form, bowling_style: v })}
+                    options={[
+                      { value: "", label: "Not sure yet" },
+                      { value: "right-arm", label: "Right arm" },
+                      { value: "left-arm", label: "Left arm" },
+                    ]}
+                  />
+                  <SelectField
+                    label="Playing role"
+                    value={form.interests}
+                    onChange={(v) => setForm({ ...form, interests: v })}
+                    options={[
+                      { value: "", label: "Not sure yet" },
+                      { value: "batter", label: "Batter" },
+                      { value: "bowler", label: "Bowler" },
+                      { value: "all-rounder", label: "All rounder" },
+                      { value: "wicket-keeper-batter", label: "Wicketkeeper batsman" },
+                    ]}
+                  />
+                </div>
+              </Section>
+
+              <Section title="Address">
+                <TextArea
+                  label="Full address"
+                  value={form.address}
+                  onChange={(v) => setForm({ ...form, address: v })}
+                />
+              </Section>
+
+              <Section title="Medical (optional)">
+                <TextArea
+                  label="Allergies, conditions or other notes"
+                  value={form.medical_notes}
+                  onChange={(v) => setForm({ ...form, medical_notes: v })}
+                />
+              </Section>
+            </>
+          ) : null}
+
+          {/* Step 4 — Review, policies, terms, submit */}
+          {showStep(4) ? (
+            <>
+              {isMobile ? (
+                <Section title="Review your details">
+                  <ReviewSummary
+                    form={form}
+                    batches={batches}
+                    fees={fees}
+                  />
+                </Section>
+              ) : null}
+
+              {requiredPolicies.length > 0 ? (
+                <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Academy policies
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Please read and accept the following before submitting.
+                  </p>
+                  <ul className="mt-3 space-y-2">
+                    {requiredPolicies.map((p) => (
+                      <li key={p.id} className="flex items-start gap-2">
+                        <input
+                          id={`acc-${p.id}`}
+                          type="checkbox"
+                          className="mt-1 h-4 w-4 rounded border-border"
+                          checked={!!accepted[p.id]}
+                          onChange={(e) =>
+                            setAccepted((prev) => ({ ...prev, [p.id]: e.target.checked }))
+                          }
+                        />
+                        <label htmlFor={`acc-${p.id}`} className="text-sm text-foreground">
+                          I accept the{" "}
+                          <Link
+                            to="/policies/$kind"
+                            params={{ kind: p.kind }}
+                            target="_blank"
+                            className="font-medium underline"
+                            style={{ color: "var(--brand)" }}
+                          >
+                            {p.title || POLICY_LABELS[p.kind]}
+                          </Link>{" "}
+                          <span className="text-xs text-muted-foreground">(v{p.version})</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 rounded border-border"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                  />
+                  <span className="text-sm text-foreground">
+                    I / We accept the{" "}
+                    <Link
+                      to="/policies/$kind"
+                      params={{ kind: "terms" }}
+                      target="_blank"
+                      className="font-medium underline"
+                      style={{ color: "var(--brand)" }}
+                    >
+                      Terms &amp; Conditions
+                    </Link>{" "}
+                    of {tenant.name}, including fees, refunds, code of conduct and use of images /
+                    videos.
+                  </span>
+                </label>
+              </div>
+
+              <div
+                className={cn(
+                  "z-10 pt-2",
+                  isMobile ? "sticky bottom-0 bg-background/95 pb-3 backdrop-blur" : "sticky bottom-4",
+                )}
+                style={
+                  isMobile
+                    ? { paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }
+                    : undefined
+                }
+              >
+                <div className={cn("flex gap-2", isMobile && "items-center")}>
+                  {isMobile ? (
+                    <button
+                      type="button"
+                      onClick={goBack}
+                      className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+                    >
+                      Back
+                    </button>
+                  ) : null}
+                  <button
+                    type="submit"
+                    disabled={
+                      saving ||
+                      !termsAccepted ||
+                      (requiredPolicies.length > 0 && !allRequiredAccepted)
+                    }
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-lg disabled:opacity-60"
+                    style={{ backgroundColor: "var(--brand)" }}
+                  >
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    Submit registration
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : null}
+
+          {/* Mobile-only sticky nav (steps 1–3) */}
+          {isMobile && step < 4 ? (
+            <div
+              className="sticky bottom-0 z-10 -mx-4 flex items-center gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
+              style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
             >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Submit registration
-            </button>
-          </div>
+              {step > 1 ? (
+                <button
+                  type="button"
+                  onClick={goBack}
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+                >
+                  Back
+                </button>
+              ) : (
+                <div />
+              )}
+              {step === 3 ? (
+                <button
+                  type="button"
+                  onClick={skipOptional}
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-muted"
+                >
+                  Skip for now
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={goNext}
+                className="ml-auto inline-flex flex-1 items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-white shadow-md disabled:opacity-60"
+                style={{ backgroundColor: "var(--brand)" }}
+              >
+                Next
+              </button>
+            </div>
+          ) : null}
         </form>
+
       ) : (
         <div className="mt-10 rounded-2xl border border-border/60 bg-card p-8 text-center shadow-sm">
           <div
