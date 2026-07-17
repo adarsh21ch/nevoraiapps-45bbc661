@@ -19,6 +19,13 @@ import { useTenant } from "@/lib/tenant-context";
 import { feePlansQuery, sectionsBy, sectionOne, siteContentQuery } from "@/lib/site-queries";
 import { signedUrl } from "@/lib/storage";
 import { StoragedImage } from "@/components/site/StoragedImage";
+import {
+  StarPlayerCard,
+  StarPlayerFeaturedCard,
+  normalizeStar,
+  pickFeatured,
+  type RawStarPlayer,
+} from "@/components/site/StarPlayersShowcase";
 
 export const Route = createFileRoute("/")({
   component: HomeRoute,
