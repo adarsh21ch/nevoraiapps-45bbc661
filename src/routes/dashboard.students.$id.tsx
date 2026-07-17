@@ -1285,6 +1285,8 @@ function MoreTab({
   student,
   studentId,
   studentName,
+  tenantId,
+  studentUserId,
 }: {
   student: {
     guardian_name: string | null;
@@ -1295,6 +1297,8 @@ function MoreTab({
   } & Record<string, unknown>;
   studentId: string;
   studentName: string;
+  tenantId: string;
+  studentUserId: string | null;
 }) {
   useDashboard();
   const qc = useQueryClient();
