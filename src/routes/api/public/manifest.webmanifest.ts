@@ -67,34 +67,17 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
         }
 
 
-        // Resolve logo → signed URL for icons if it's a storage path
-        let iconUrl = tenant?.logo_url ?? "/favicon.ico";
+        // Resolve logo → same-origin icon endpoint. Phone install flows must be
+        // able to fetch this without Supabase auth; raw storage paths 404 from
+        // the website origin and signed URLs can fail/expire during install.
+        const iconVersion = tenant?.logo_url
+          ? tenant.logo_url.split("/").pop()?.replace(/[^a-zA-Z0-9._-]/g, "") || tenant.slug
+          : "platform";
+        let iconUrl = tenant?.logo_url
+          ? `/api/public/tenant-icon?tenant=${encodeURIComponent(tenant.slug)}&v=${encodeURIComponent(iconVersion)}`
+          : "/favicon.ico";
         let iconType = "image/png";
-        if (tenant?.logo_url && !tenant.logo_url.startsWith("http")) {
-          try {
-            const supabase = createClient(supabaseUrl, supabaseKey, {
-              auth: { persistSession: false },
-            });
-            const { data: signed } = await supabase.storage
-              .from("tenant-assets")
-              .createSignedUrl(tenant.logo_url, 60 * 60 * 24 * 30);
-            if (signed?.signedUrl) iconUrl = signed.signedUrl;
-            const ext = tenant.logo_url.split(".").pop()?.toLowerCase() ?? "";
-            iconType =
-              ext === "webp"
-                ? "image/webp"
-                : ext === "svg"
-                  ? "image/svg+xml"
-                  : ext === "jpg" || ext === "jpeg"
-                    ? "image/jpeg"
-                    : ext === "ico"
-                      ? "image/x-icon"
-                      : "image/png";
-          } catch {
-            iconUrl = "/favicon.ico";
-            iconType = "image/x-icon";
-          }
-        } else if (tenant?.logo_url) {
+        if (tenant?.logo_url) {
           const ext = tenant.logo_url.split(".").pop()?.toLowerCase() ?? "";
           if (ext === "webp") iconType = "image/webp";
           else if (ext === "svg") iconType = "image/svg+xml";
