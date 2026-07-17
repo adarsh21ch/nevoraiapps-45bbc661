@@ -220,8 +220,9 @@ interface SquadRow {
 /** For one finalized match, extract every athlete's per-match contribution. */
 export async function extractMatchContributions(
   matchId: string,
+  db: typeof supabase = supabase,
 ): Promise<{ meta: MatchMeta; contributions: Map<string, MatchContribution> }> {
-  const { data: match, error: mErr } = await supabase
+  const { data: match, error: mErr } = await db
     .from("mc_matches")
     .select("id, tenant_id, winner_team, player_of_match_athlete_id, finalized_at, match_locked")
     .eq("id", matchId)
@@ -236,9 +237,9 @@ export async function extractMatchContributions(
     finalizedAt: match.finalized_at,
   };
 
-  const events = await listMatchBallEvents(matchId);
+  const events = await listMatchBallEvents(matchId, db);
 
-  const { data: squads } = await supabase
+  const { data: squads } = await db
     .from("mc_match_squads")
     .select("athlete_profile_id, team_id, is_captain")
     .eq("match_id", matchId);
@@ -538,8 +539,11 @@ async function detectAndRecordMilestones(
  * Reads
  * ================================================================ */
 
-export async function getCareer(athleteProfileId: string): Promise<MCPlayerCareer | null> {
-  const { data, error } = await supabase
+export async function getCareer(
+  athleteProfileId: string,
+  db: typeof supabase = supabase,
+): Promise<MCPlayerCareer | null> {
+  const { data, error } = await db
     .from("mc_player_careers")
     .select("*")
     .eq("athlete_profile_id", athleteProfileId)

@@ -37,6 +37,8 @@ const CACHEABLE_PREFIXES = [
   "reports_",
   "students_",
   "match_",
+  "cricket_",
+  "app_help",
 ];
 
 const TTL_MS = 15_000;

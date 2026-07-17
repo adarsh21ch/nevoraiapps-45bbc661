@@ -103,8 +103,11 @@ export async function listBallEvents(inningsId: string): Promise<MCBallEvent[]> 
   return data ?? [];
 }
 
-export async function listMatchBallEvents(matchId: string): Promise<MCBallEvent[]> {
-  const { data, error } = await supabase
+export async function listMatchBallEvents(
+  matchId: string,
+  db: typeof supabase = supabase,
+): Promise<MCBallEvent[]> {
+  const { data, error } = await db
     .from("mc_ball_events")
     .select("*")
     .eq("match_id", matchId)

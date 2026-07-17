@@ -81,7 +81,9 @@ export type ToolDef<TInput = unknown, TOutput = unknown> = {
     | "founder"
     | "subscription"
     | "automation"
-    | "notifications";
+    | "notifications"
+    | "match_center"
+    | "help";
   /** JSON schema for the input the model must produce. Keep it constraint-free. */
   parameters: Record<string, unknown>;
   /** Roles that may CALL this tool. Empty = all roles allowed. */

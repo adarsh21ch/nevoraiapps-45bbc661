@@ -156,14 +156,18 @@ function bandFor(score: number): PlayerPerformance["consistency"]["band"] {
 
 /* ---------------- Data loading ---------------- */
 
-async function listPlayerMatches(athleteId: string, tenantId: string): Promise<MatchLite[]> {
-  const { data: sq } = await supabase
+async function listPlayerMatches(
+  athleteId: string,
+  tenantId: string,
+  db: typeof supabase,
+): Promise<MatchLite[]> {
+  const { data: sq } = await db
     .from("mc_match_squads")
     .select("match_id")
     .eq("athlete_profile_id", athleteId);
   const ids = Array.from(new Set((sq ?? []).map((s) => s.match_id).filter(Boolean) as string[]));
   if (ids.length === 0) return [];
-  const { data: matches } = await supabase
+  const { data: matches } = await db
     .from("mc_matches")
     .select(
       "id, scheduled_date, finalized_at, match_type, match_format, ground_name, team_a_id, team_b_id, winner_team, match_locked, tournament_id, overs",
@@ -176,8 +180,8 @@ async function listPlayerMatches(athleteId: string, tenantId: string): Promise<M
   return (matches ?? []) as MatchLite[];
 }
 
-async function getAthleteTeamId(athleteId: string): Promise<string | null> {
-  const { data } = await supabase
+async function getAthleteTeamId(athleteId: string, db: typeof supabase): Promise<string | null> {
+  const { data } = await db
     .from("mc_match_squads")
     .select("team_id")
     .eq("athlete_profile_id", athleteId)
@@ -190,8 +194,9 @@ async function getAthleteTeamId(athleteId: string): Promise<string | null> {
 export async function buildPlayerPerformance(
   athleteId: string,
   tenantId: string,
+  db: typeof supabase = supabase,
 ): Promise<PlayerPerformance> {
-  const matches = await listPlayerMatches(athleteId, tenantId);
+  const matches = await listPlayerMatches(athleteId, tenantId, db);
 
   const perMatch: Array<{
     match: MatchLite;
@@ -204,7 +209,7 @@ export async function buildPlayerPerformance(
   }> = [];
 
   // Get the athlete's most-frequent team to compute inningsOrder + venue heuristic
-  const primaryTeamId = await getAthleteTeamId(athleteId);
+  const primaryTeamId = await getAthleteTeamId(athleteId, db);
 
   const points: PerfPoint[] = [];
   let cumRuns = 0;
@@ -213,7 +218,7 @@ export async function buildPlayerPerformance(
   for (const m of matches) {
     let contribution: MatchContribution | undefined;
     try {
-      const { contributions } = await extractMatchContributions(m.id);
+      const { contributions } = await extractMatchContributions(m.id, db);
       contribution = contributions.get(athleteId);
     } catch {
       contribution = undefined;
@@ -231,7 +236,7 @@ export async function buildPlayerPerformance(
     // Innings order for this athlete's team (batting first vs chasing)
     let inningsOrder: number | null = null;
     if (primaryTeamId) {
-      const { data: inn } = await supabase
+      const { data: inn } = await db
         .from("mc_innings")
         .select("innings_number, batting_team_id")
         .eq("match_id", m.id)
