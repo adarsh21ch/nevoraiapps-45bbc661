@@ -768,32 +768,6 @@ export function ExtraRunsModal({
   kind: string;
   onSelect: (runs: number) => void;
 }) {
-  const isNoBall = kind === "No Ball";
-  const isWide = kind === "Wide";
-  const isBye = kind === "Bye";
-  const isLegBye = kind === "Leg Bye";
-
-  const title = isNoBall
-    ? "No Ball — bat runs"
-    : isWide
-      ? "Wide — additional runs"
-      : isBye
-        ? "Bye — completed runs"
-        : isLegBye
-          ? "Leg Bye — completed runs"
-          : `${kind} — runs`;
-
-  const description = isNoBall
-    ? "Runs scored off the bat on the no-ball. Engine auto-adds the +1 no-ball penalty. Boundaries credit the batter."
-    : isWide
-      ? "Additional runs the batsmen completed after the wide (or 4 if it ran to the boundary). Engine auto-adds the +1 wide penalty."
-      : isBye || isLegBye
-        ? "Completed runs on this delivery. No automatic runs are added."
-        : "Runs on this ball.";
-
-  const numeric = [0, 1, 2, 3];
-  const handle = (v: number) => onSelect(v);
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -803,44 +777,22 @@ export function ExtraRunsModal({
       >
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
         <SheetHeader className="px-4 pb-2 pt-3 text-left">
-          <SheetTitle className="text-base">{title}</SheetTitle>
-          <SheetDescription className="text-xs">{description}</SheetDescription>
+          <SheetTitle className="text-base">{kind} — how many runs?</SheetTitle>
+          <SheetDescription className="text-xs">
+            Total runs conceded on this ball including the {kind.toLowerCase()}.
+          </SheetDescription>
         </SheetHeader>
-        <div className="grid grid-cols-4 gap-2 px-3">
-          {numeric.map((v) => (
+        <div className="grid grid-cols-5 gap-2 px-3">
+          {[1, 2, 3, 4, 5].map((r) => (
             <Button
-              key={v}
+              key={r}
               variant="outline"
-              className="h-12 text-base font-black tabular-nums"
-              onClick={() => handle(v)}
+              className="h-12 text-xl font-black tabular-nums"
+              onClick={() => onSelect(r)}
             >
-              {v}
+              {r}
             </Button>
           ))}
-        </div>
-        <div className="mt-2 grid grid-cols-2 gap-2 px-3">
-          <Button
-            className="h-14 text-base font-black bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-            onClick={() => handle(4)}
-          >
-            FOUR
-          </Button>
-          {isWide ? (
-            <Button
-              variant="outline"
-              className="h-14 text-base font-black tabular-nums"
-              onClick={() => handle(5)}
-            >
-              5
-            </Button>
-          ) : (
-            <Button
-              className="h-14 text-base font-black bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
-              onClick={() => handle(6)}
-            >
-              SIX
-            </Button>
-          )}
         </div>
         <SheetFooter
           className="px-3 pb-3 pt-2"

@@ -4189,41 +4189,6 @@ export type Database = {
           },
         ]
       }
-      mc_scoring_locks: {
-        Row: {
-          acquired_at: string
-          last_heartbeat_at: string
-          match_id: string
-          owner_user_id: string
-          session_id: string
-          tenant_id: string
-        }
-        Insert: {
-          acquired_at?: string
-          last_heartbeat_at?: string
-          match_id: string
-          owner_user_id: string
-          session_id: string
-          tenant_id: string
-        }
-        Update: {
-          acquired_at?: string
-          last_heartbeat_at?: string
-          match_id?: string
-          owner_user_id?: string
-          session_id?: string
-          tenant_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mc_scoring_locks_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: true
-            referencedRelation: "mc_matches"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       mc_team_players: {
         Row: {
           added_at: string
@@ -7173,7 +7138,7 @@ export type Database = {
         Returns: undefined
       }
       acquire_match_scoring_lock: {
-        Args: { _match_id: string; _session_id: string }
+        Args: { _match_id: string }
         Returns: boolean
       }
       advance_lead_stage: {
@@ -7487,7 +7452,7 @@ export type Database = {
         Returns: string
       }
       release_match_scoring_lock: {
-        Args: { _match_id: string; _session_id: string }
+        Args: { _match_id: string }
         Returns: boolean
       }
       render_template_preview: {
