@@ -116,11 +116,17 @@ export function SiteHeader() {
             })}
           </nav>
 
-          {/* Single prominent CTA */}
-          <div className="hidden shrink-0 md:block">
+          {/* Auth CTAs */}
+          <div className="hidden shrink-0 items-center gap-2 md:flex">
+            <Link
+              to="/auth"
+              className="inline-flex items-center rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+            >
+              Sign in
+            </Link>
             <Link
               to="/register"
-              className="ml-4 inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
               style={{ backgroundColor: "var(--brand)" }}
             >
               Register
@@ -161,9 +167,9 @@ export function SiteHeader() {
               <Link
                 to="/auth"
                 onClick={() => setOpen(false)}
-                className="mx-1 mb-2 text-center text-[11px] font-medium text-muted-foreground hover:text-foreground"
+                className="mx-1 mb-2 rounded-full border border-border bg-background px-4 py-2.5 text-center text-sm font-semibold text-foreground hover:bg-muted"
               >
-                Owner login
+                Sign in
               </Link>
             </div>
           </div>

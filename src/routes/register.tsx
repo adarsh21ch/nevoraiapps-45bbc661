@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Info, Loader2, MessageCircle } from "lucide-react";
+import { CheckCircle2, Download, Info, Loader2, MessageCircle, Eye, EyeOff, Lock } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
 import {
@@ -145,10 +145,14 @@ function RegisterContent() {
     };
   }, [registrationPdfPath]);
 
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     name: "",
     guardian_name: "",
     phone: "",
+    email: "",
+    password: "",
+    password2: "",
     batch_id: "",
     dob: "",
     address: "",
@@ -210,6 +214,21 @@ function RegisterContent() {
       toast.error("Please fill all required fields.");
       return;
     }
+    // Account credentials — become the applicant's login after approval.
+    const emailTrim = form.email.trim().toLowerCase();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim);
+    if (!emailOk) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    if (form.password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    if (form.password !== form.password2) {
+      toast.error("Passwords do not match.");
+      return;
+    }
     if (!termsAccepted) {
       toast.error("Please accept the Terms & Conditions to continue.");
       return;
@@ -243,6 +262,29 @@ function RegisterContent() {
       toast.error("Too many submissions. Please try again in a few minutes.");
       return;
     }
+
+    // 1) Create the applicant's auth account (browser → Supabase Auth directly;
+    // password never touches our servers).
+    const { data: authData, error: authErr } = await supabase.auth.signUp({
+      email: emailTrim,
+      password: form.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth`,
+        data: { full_name: form.name.trim(), tenant_slug: tenant.slug },
+      },
+    });
+    if (authErr) {
+      setSaving(false);
+      const msg = authErr.message || "";
+      if (/already|registered|exist/i.test(msg)) {
+        toast.error("This email is already registered. Please sign in first, then submit.");
+      } else {
+        toast.error(msg || "Could not create your account. Please try again.");
+      }
+      return;
+    }
+    const applicantUserId = authData.user?.id ?? null;
+
     const { data, error } = await supabase.rpc(
       "submit_registration" as never,
       {
@@ -259,7 +301,12 @@ function RegisterContent() {
         _lead_id: leadId ?? null,
       } as never,
     );
-    const extras: Record<string, unknown> = {};
+    // Always persist email + applicant_user_id + optional profile extras so
+    // the applicant can log in and land on /student/pending.
+    const extras: Record<string, unknown> = {
+      email: emailTrim,
+      applicant_user_id: applicantUserId,
+    };
     if (form.address.trim()) extras.address = form.address.trim();
     if (form.gender) extras.gender = form.gender;
     if (form.medical_notes.trim()) extras.medical_notes = form.medical_notes.trim();
@@ -276,7 +323,7 @@ function RegisterContent() {
     if (Object.keys(profile).length > 0) {
       extras.documents = { profile };
     }
-    if (!error && data && Object.keys(extras).length > 0) {
+    if (!error && data) {
       await supabase
         .from("registrations")
         .update(extras as never)
@@ -327,6 +374,64 @@ function RegisterContent() {
 
       {!done ? (
         <form onSubmit={submitForm} className="mt-8 space-y-6">
+          {/* Section 0 — Account (becomes the applicant's login) */}
+          <Section title="Create your account">
+            <p className="mb-3 text-xs text-muted-foreground">
+              You'll sign in with this email and password to see the status of your application and,
+              once approved, your student dashboard.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label="Email *"
+                type="email"
+                value={form.email}
+                onChange={(v) => setForm({ ...form, email: v })}
+                placeholder="you@example.com"
+              />
+              <div>
+                <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Password *
+                </div>
+                <div className="relative mt-1.5">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    placeholder="At least 8 characters"
+                    autoComplete="new-password"
+                    className="block w-full rounded-lg border border-border bg-background px-3 py-2.5 pr-10 text-sm text-foreground shadow-sm outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute inset-y-0 right-2 grid place-items-center text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <Field
+                label="Confirm password *"
+                type={showPassword ? "text" : "password"}
+                value={form.password2}
+                onChange={(v) => setForm({ ...form, password2: v })}
+                placeholder="Re-enter password"
+              />
+              <div className="hidden sm:block" />
+              <div className="sm:col-span-2 flex items-start gap-2 rounded-lg bg-muted/40 p-2.5 text-[11px] text-muted-foreground">
+                <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>
+                  Already have an account?{" "}
+                  <Link to="/auth" className="font-medium underline" style={{ color: "var(--brand)" }}>
+                    Sign in
+                  </Link>{" "}
+                  instead.
+                </span>
+              </div>
+            </div>
+          </Section>
+
           {/* Section 1 — Basic details */}
           <Section title="Basic details">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -554,19 +659,28 @@ function RegisterContent() {
           </div>
           <h2 className="mt-6 text-2xl font-bold text-foreground">Registration submitted 🎉</h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            {tenant.name} will get in touch shortly. Tap the button below to say hi on WhatsApp.
+            {tenant.name} will review your application. You can sign in anytime to see the status.
           </p>
-          {waHref ? (
-            <a
-              href={waHref}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-semibold text-white shadow-md hover:opacity-95"
+          <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white shadow-md hover:opacity-90"
+              style={{ backgroundColor: "var(--brand)" }}
             >
-              <MessageCircle className="h-4 w-4" fill="currentColor" />
-              Message us on WhatsApp
-            </a>
-          ) : null}
+              Sign in to check status
+            </Link>
+            {waHref ? (
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-semibold text-white shadow-md hover:opacity-95"
+              >
+                <MessageCircle className="h-4 w-4" fill="currentColor" />
+                Message on WhatsApp
+              </a>
+            ) : null}
+          </div>
         </div>
       )}
 

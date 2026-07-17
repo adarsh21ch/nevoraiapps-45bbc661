@@ -4,30 +4,126 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+type AuthSearch = { mode?: "signin" | "forgot" | "reset" };
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>): AuthSearch => ({
+    mode:
+      s.mode === "forgot" || s.mode === "reset" || s.mode === "signin"
+        ? s.mode
+        : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Sign in · Academy OS" },
-      { name: "description", content: "Sign in to your academy dashboard." },
+      { name: "description", content: "Sign in to your academy — students, parents, and staff." },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: AuthPage,
 });
 
+// After sign-in, decide where the user actually belongs. Priority order:
+//  1) Platform admin
+//  2) Any tenant role in user_roles (owner/admin/coach/head_coach/assistant_coach/staff)
+//  3) Parent link (mc_parent_links)
+//  4) Student surface (students.user_id or a pending registrations.applicant_user_id)
+//  5) Orphan → /register
+type PostLoginRoute =
+  | "/platform-admin"
+  | "/dashboard"
+  | "/parent"
+  | "/student"
+  | "/register";
+
+async function routeAfterLogin(uid: string): Promise<PostLoginRoute> {
+  // 1) platform admin
+  const { data: pa } = await supabase
+    .from("platform_admins")
+    .select("user_id")
+    .eq("user_id", uid)
+    .maybeSingle();
+  if (pa) return "/platform-admin";
+
+  // 2) tenant staff role
+  const { data: roles } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", uid);
+  const staffRoles = new Set([
+    "owner",
+    "admin",
+    "coach",
+    "head_coach",
+    "assistant_coach",
+    "staff",
+  ]);
+  if ((roles ?? []).some((r) => staffRoles.has(r.role as string))) return "/dashboard";
+
+  // 3) parent (linked child)
+  try {
+    const { data: parentLink } = await supabase
+      .from("mc_parent_links" as never)
+      .select("user_id")
+      .eq("user_id", uid)
+      .limit(1)
+      .maybeSingle();
+    if (parentLink) return "/parent";
+  } catch {
+    // table not accessible under RLS — fall through
+  }
+
+  // 4) student — either an active student row or a pending registration
+  const { data: student } = await supabase
+    .from("students")
+    .select("id")
+    .eq("user_id", uid)
+    .limit(1)
+    .maybeSingle();
+  if (student) return "/student";
+  const { data: pendingReg } = await supabase
+    .from("registrations")
+    .select("id")
+    .eq("applicant_user_id", uid)
+    .limit(1)
+    .maybeSingle();
+  if (pendingReg) return "/student";
+
+  return "/register";
+}
+
 function AuthPage() {
   const navigate = useNavigate();
+  const { mode: searchMode } = Route.useSearch();
+  const [mode, setMode] = useState<"signin" | "forgot" | "reset">(searchMode ?? "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Handle Supabase password-recovery redirect: URL comes back with
+  // #type=recovery&access_token=... → show reset-password form.
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash || "";
+    if (hash.includes("type=recovery")) {
+      setMode("reset");
+    }
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setMode("reset");
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // Redirect if already signed in — but stay put if this is a recovery flow.
+  useEffect(() => {
+    if (mode === "reset") return;
     supabase.auth.getSession().then(async ({ data }) => {
       if (data.session) navigate({ to: await routeAfterLogin(data.session.user.id) });
     });
-  }, [navigate]);
+  }, [navigate, mode]);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSignIn(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -41,13 +137,42 @@ function AuthPage() {
     navigate({ to: uid ? await routeAfterLogin(uid) : "/dashboard" });
   }
 
-  async function routeAfterLogin(uid: string): Promise<"/platform-admin" | "/dashboard"> {
-    const { data } = await supabase
-      .from("platform_admins")
-      .select("user_id")
-      .eq("user_id", uid)
-      .maybeSingle();
-    return data ? "/platform-admin" : "/dashboard";
+  async function onForgot(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error("Enter your email address first.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Check your email for a password-reset link.");
+    setMode("signin");
+  }
+
+  async function onReset(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Password updated. Signing you in…");
+    const { data } = await supabase.auth.getUser();
+    const uid = data.user?.id;
+    navigate({ to: uid ? await routeAfterLogin(uid) : "/dashboard" });
   }
 
   return (
@@ -71,7 +196,6 @@ function AuthPage() {
           />
         </div>
 
-        {/* Top — brand */}
         <Link to="/" className="z-10 flex items-center gap-2.5">
           <div className="grid h-9 w-9 place-items-center rounded bg-lime-400 text-sm font-black text-black">
             A
@@ -84,7 +208,6 @@ function AuthPage() {
           </span>
         </Link>
 
-        {/* Middle — pitch */}
         <div className="z-10 max-w-md space-y-6">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -96,7 +219,7 @@ function AuthPage() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400" />
             </span>
-            Coach Dashboard
+            One sign in for everyone
           </motion.div>
 
           <motion.h2
@@ -107,7 +230,7 @@ function AuthPage() {
             style={{ fontFamily: "'Bebas Neue', sans-serif" }}
           >
             Welcome <br />
-            <span className="text-lime-400">back, Coach.</span>
+            <span className="text-lime-400">back.</span>
           </motion.h2>
 
           <motion.p
@@ -116,8 +239,8 @@ function AuthPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg text-zinc-400"
           >
-            Sign in to run your academy — registrations, fees, batches and attendance, all in one
-            place on your phone.
+            Students, parents and academy staff — sign in with the email you registered with.
+            We'll take you to the right place.
           </motion.p>
 
           <motion.ul
@@ -127,9 +250,9 @@ function AuthPage() {
             className="space-y-2 pt-2"
           >
             {[
-              "See new enquiries the moment they arrive",
-              "Send fee reminders on WhatsApp with one tap",
-              "Mark attendance from the ground",
+              "Students — see attendance, fees and progress",
+              "Parents — follow your child's academy journey",
+              "Coaches & admins — run the academy from your phone",
             ].map((t) => (
               <li key={t} className="flex items-center gap-3 text-sm text-zinc-300">
                 <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-lime-400/20 text-lime-400">
@@ -141,15 +264,13 @@ function AuthPage() {
           </motion.ul>
         </div>
 
-        {/* Bottom — reassurance for offline coaches */}
         <div className="z-10 text-[10px] uppercase tracking-[0.25em] text-white/40">
           Simple. On your phone. In your language soon.
         </div>
       </aside>
 
-      {/* Right — friendly form */}
+      {/* Right — form */}
       <main className="relative flex items-center justify-center bg-white p-6 sm:p-10">
-        {/* Mobile-only mini brand strip */}
         <Link to="/" className="absolute left-4 top-4 flex items-center gap-2 lg:hidden">
           <div className="grid h-8 w-8 place-items-center rounded bg-lime-400 text-[13px] font-black text-black">
             A
@@ -166,58 +287,131 @@ function AuthPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-sm space-y-8"
+          className="w-full max-w-sm space-y-6"
         >
           <div>
             <h1
               className="text-4xl uppercase leading-none tracking-tight text-zinc-900"
               style={{ fontFamily: "'Bebas Neue', sans-serif" }}
             >
-              Sign in
+              {mode === "reset" ? "Set new password" : mode === "forgot" ? "Reset password" : "Sign in"}
             </h1>
             <p className="mt-2 text-sm text-zinc-500">
-              Use the email and password we set up for your academy.
+              {mode === "reset"
+                ? "Choose a new password to finish signing in."
+                : mode === "forgot"
+                  ? "Enter your email and we'll send a reset link."
+                  : "Students · Parents · Academy staff"}
             </p>
           </div>
 
-          <form onSubmit={onSubmit} className="space-y-5">
-            <Field
-              id="email"
-              label="Email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={setEmail}
-              placeholder="you@academy.com"
-            />
-            <Field
-              id="password"
-              label="Password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={setPassword}
-              placeholder="Your password"
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative flex w-full items-center justify-center gap-2 rounded-none bg-[#0a0a0a] px-6 py-4 text-sm font-bold uppercase tracking-wider text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-lime-400 hover:text-black disabled:opacity-60"
-            >
-              {loading ? "Signing in…" : "Sign in →"}
-              <span
-                aria-hidden
-                className="absolute -bottom-1 -right-1 h-full w-full border-b-2 border-r-2 border-[#0a0a0a] transition-colors group-hover:border-lime-400"
+          {mode === "signin" && (
+            <form onSubmit={onSignIn} className="space-y-5">
+              <Field
+                id="email"
+                label="Email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={setEmail}
+                placeholder="you@example.com"
               />
-            </button>
-          </form>
+              <Field
+                id="password"
+                label="Password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={setPassword}
+                placeholder="Your password"
+              />
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="group relative flex w-full items-center justify-center gap-2 rounded-none bg-[#0a0a0a] px-6 py-4 text-sm font-bold uppercase tracking-wider text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-lime-400 hover:text-black disabled:opacity-60"
+              >
+                {loading ? "Signing in…" : "Sign in →"}
+                <span
+                  aria-hidden
+                  className="absolute -bottom-1 -right-1 h-full w-full border-b-2 border-r-2 border-[#0a0a0a] transition-colors group-hover:border-lime-400"
+                />
+              </button>
+
+              <div className="flex items-center justify-between text-xs text-zinc-500">
+                <button
+                  type="button"
+                  onClick={() => setMode("forgot")}
+                  className="hover:text-zinc-900"
+                >
+                  Forgot password?
+                </button>
+                <Link to="/register" className="font-semibold text-zinc-900 hover:text-lime-600">
+                  New here? Register →
+                </Link>
+              </div>
+            </form>
+          )}
+
+          {mode === "forgot" && (
+            <form onSubmit={onForgot} className="space-y-5">
+              <Field
+                id="forgot-email"
+                label="Email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={setEmail}
+                placeholder="you@example.com"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-none bg-[#0a0a0a] px-6 py-4 text-sm font-bold uppercase tracking-wider text-white hover:bg-lime-400 hover:text-black disabled:opacity-60"
+              >
+                {loading ? "Sending…" : "Send reset link"}
+              </button>
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setMode("signin")}
+                  className="text-xs text-zinc-500 hover:text-zinc-900"
+                >
+                  ← Back to sign in
+                </button>
+              </div>
+            </form>
+          )}
+
+          {mode === "reset" && (
+            <form onSubmit={onReset} className="space-y-5">
+              <Field
+                id="new-password"
+                label="New password"
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={setNewPassword}
+                placeholder="At least 8 characters"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-none bg-[#0a0a0a] px-6 py-4 text-sm font-bold uppercase tracking-wider text-white hover:bg-lime-400 hover:text-black disabled:opacity-60"
+              >
+                {loading ? "Updating…" : "Update password"}
+              </button>
+            </form>
+          )}
 
           <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-600">
             <div className="font-semibold text-zinc-900">First time here?</div>
             <p className="mt-1 leading-relaxed">
-              If your academy isn't set up yet, message us on WhatsApp and we'll create your account
-              and walk you through it — no tech skills needed.
+              Applying to join an academy?{" "}
+              <Link to="/register" className="font-semibold text-zinc-900 underline hover:text-lime-600">
+                Register here
+              </Link>
+              . If your academy isn't set up yet, message us on WhatsApp and we'll help.
             </p>
           </div>
 

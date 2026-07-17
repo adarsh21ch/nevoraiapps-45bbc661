@@ -145,9 +145,9 @@ function ProfilePage() {
     title: "Security",
     rows: [
       {
-        to: "/dashboard/admins",
-        label: "Roles & Permissions",
-        hint: "Admins & staff access",
+        to: "/dashboard/staff",
+        label: "Team & Access",
+        hint: "Members, invitations & role assignments",
         icon: ShieldCheck,
       },
     ],
