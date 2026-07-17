@@ -868,10 +868,12 @@ function BallBubble({ label }: { label: string }) {
   const four = upper === "4";
   const six = upper === "6";
   const extra = /WD|NB|LB|B/.test(upper) && !four && !six && !wicket;
+  const isMulti = upper.length > 1;
   return (
     <span
       className={cn(
-        "grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-black tabular-nums",
+        "inline-flex h-6 shrink-0 items-center justify-center rounded-full font-black tabular-nums leading-none",
+        isMulti ? "min-w-6 px-1.5 text-[10px]" : "w-6 text-[11px]",
         wicket && "bg-destructive text-destructive-foreground",
         four && "bg-[var(--score-four)] text-[var(--score-action-foreground)]",
         six && "bg-[var(--score-six)] text-[var(--score-action-foreground)]",
