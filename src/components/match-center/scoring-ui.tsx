@@ -773,6 +773,27 @@ export function ExtraRunsModal({
   const options: number[] =
     kind === "No Ball" ? [1, 2, 3, 4, 5, 6, 7] : [0, 1, 2, 3, 4, 5, 6];
 
+  const isBoundaryHit = (r: number): "four" | "six" | null => {
+    if (kind === "No Ball") {
+      if (r === 5) return "four";
+      if (r === 7) return "six";
+      return null;
+    }
+    if (r === 4) return "four";
+    if (r === 6) return "six";
+    return null;
+  };
+
+  const sublabelFor = (r: number): string | null => {
+    if (kind === "No Ball") {
+      if (r === 1) return "NB only";
+      if (r === 5) return "NB + 4";
+      if (r === 7) return "NB + 6";
+      return `NB + ${r - 1}`;
+    }
+    return null;
+  };
+
   const hint =
     kind === "No Ball"
       ? "Total runs on this delivery (includes the 1-run no-ball penalty)."
@@ -790,19 +811,39 @@ export function ExtraRunsModal({
           <SheetTitle className="text-base">{kind} — how many runs?</SheetTitle>
           <SheetDescription className="text-xs">{hint}</SheetDescription>
         </SheetHeader>
-        <div className="grid grid-cols-5 gap-2 px-3">
-          {options.map((r) => (
-            <Button
-              key={r}
-              variant="outline"
-              className="h-12 text-xl font-black tabular-nums"
-              onClick={() => onSelect(r)}
-            >
-              {r}
-            </Button>
-          ))}
+        <div className="flex items-stretch gap-1.5 px-3 sm:gap-2">
+          {options.map((r) => {
+            const boundary = isBoundaryHit(r);
+            const sub = sublabelFor(r);
+            const isNoBall = kind === "No Ball";
+            return (
+              <button
+                key={r}
+                type="button"
+                onClick={() => onSelect(r)}
+                className={cn(
+                  "no-tap-highlight flex-1 min-w-0 rounded-xl border font-black tabular-nums shadow-sm transition active:scale-[0.96]",
+                  "px-1 flex flex-col items-center justify-center gap-0.5",
+                  isNoBall ? "h-14 sm:h-16" : "h-12 sm:h-14",
+                  boundary === "four"
+                    ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-600"
+                    : boundary === "six"
+                      ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-600"
+                      : "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
+                )}
+              >
+                <span className={cn("leading-none", isNoBall ? "text-base sm:text-lg" : "text-lg sm:text-xl")}>
+                  {r}
+                </span>
+                {sub && (
+                  <span className="text-[8.5px] sm:text-[9px] font-semibold uppercase tracking-wider leading-none opacity-80">
+                    {sub}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
-
 
 
         <SheetFooter
