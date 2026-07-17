@@ -1394,3 +1394,89 @@ function MoreTab({
     </div>
   );
 }
+
+function AccessRoleCard({
+  tenantId,
+  studentUserId,
+}: {
+  tenantId: string;
+  studentUserId: string;
+}) {
+  const qc = useQueryClient();
+  const rolesQ = useQuery({
+    queryKey: ["student-roles", tenantId, studentUserId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("tenant_id", tenantId)
+        .eq("user_id", studentUserId);
+      if (error) throw error;
+      return (data ?? []).map((r) => r.role as string);
+    },
+  });
+
+  const roles = rolesQ.data ?? [];
+  const isAdmin = roles.includes("admin");
+  const isOwnerRow = roles.includes("owner");
+
+  const setRoleFn = useServerFn(setStaffRole);
+  const m = useMutation({
+    mutationFn: (make: boolean) =>
+      setRoleFn({
+        data: {
+          tenantId,
+          userId: studentUserId,
+          newRole: make ? "admin" : "student",
+          oldRole: make ? "student" : "admin",
+        },
+      }),
+    onSuccess: (_res, make) => {
+      toast.success(make ? "Assigned as admin" : "Admin access removed");
+      qc.invalidateQueries({ queryKey: ["student-roles", tenantId, studentUserId] });
+      qc.invalidateQueries({ queryKey: ["admins", "members", tenantId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isOwnerRow) return null;
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-3">
+        <div
+          className="grid place-items-center size-10 rounded-lg shrink-0"
+          style={{
+            backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)",
+            color: "var(--brand)",
+          }}
+        >
+          <ShieldCheckIcon className="size-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-medium">Access & role</div>
+          <div className="text-[11px] text-muted-foreground">
+            {isAdmin
+              ? "This student has admin access to the academy."
+              : "Give this student admin access to manage the academy."}
+          </div>
+        </div>
+        <Button
+          size="sm"
+          variant={isAdmin ? "outline" : "default"}
+          onClick={() => m.mutate(!isAdmin)}
+          disabled={m.isPending || rolesQ.isLoading}
+        >
+          {m.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : isAdmin ? (
+            "Remove admin"
+          ) : (
+            "Make admin"
+          )}
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
