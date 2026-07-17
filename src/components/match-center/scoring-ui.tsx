@@ -821,7 +821,7 @@ export function ExtraRunsModal({
         side="bottom"
         hideClose
         overlayClassName="bg-background/40 backdrop-blur-[2px]"
-        className="rounded-3xl bg-card/95 p-0 backdrop-blur-xl border-border/60 shadow-2xl w-[calc(100vw-1.5rem)] sm:w-auto sm:max-w-md mx-auto"
+        className="rounded-3xl bg-card/95 p-0 backdrop-blur-xl border-border/60 shadow-2xl w-[calc(100vw-1.5rem)] sm:w-[420px] sm:max-w-[420px] mx-auto"
       >
         <SheetHeader className="px-5 pb-2 pt-4 text-left space-y-0.5">
           <SheetTitle className="text-[15px] font-semibold">
