@@ -142,22 +142,46 @@ function NevorAIPage() {
       });
   }, [conversationId, turnsQ.data]);
 
-  // Negate the dashboard <main>'s padding so the workspace is flush inside the
-  // shell content area, while keeping the shell's sidebar/header/bottom-nav
-  // visible. Height fills viewport minus the shell header (3.5rem) and safe
-  // areas; bottom padding respects mobile bottom nav via env(safe-area).
+  // Mobile layout: use window.visualViewport height so the chat container
+  // shrinks correctly when the on-screen keyboard opens (iOS `100dvh` does
+  // NOT shrink). Lock body scroll while mounted so the page never moves —
+  // only the message list scrolls. Desktop keeps the flow layout.
+  const vvHeight = useVisualViewportHeight();
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const html = document.documentElement;
+    const body = document.body;
+    const prev = { html: html.style.overflow, body: body.style.overflow };
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = prev.html;
+      body.style.overflow = prev.body;
+    };
+  }, []);
+
+  // Header offset = safe-area-inset-top + 3.5rem shell header. Bottom-nav is
+  // hidden on this route on mobile (see GlobalBottomNav), so no bottom offset.
+  const mobileStyle: React.CSSProperties | undefined = vvHeight
+    ? {
+        top: "calc(env(safe-area-inset-top) + 3.5rem)",
+        height: `calc(${vvHeight}px - env(safe-area-inset-top) - 3.5rem)`,
+      }
+    : undefined;
+
   return (
     <div
+      data-nevorai-workspace
       className={cn(
-        "-mx-4 md:-mx-8 -mt-4 md:-mt-8 -mb-32 md:-mb-8",
-        "flex bg-background text-foreground",
-        // Mobile: subtract the fixed bottom nav (~56px min-height) + its
-        // safe-area padding so the chat input stays above the home indicator
-        // AND above the bottom nav. Desktop: only the top header (3.5rem).
-        "h-[calc(100dvh-env(safe-area-inset-top)-3.5rem-env(safe-area-inset-bottom)-56px)]",
-        "md:h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]",
+        // Mobile: fixed under the shell header, height driven by visual viewport
+        // so keyboard open/close resizes ONLY the chat area (no page jump).
+        "fixed inset-x-0 z-30 flex bg-background text-foreground",
+        // Desktop: normal flow inside the dashboard main; negate main padding.
+        "md:static md:-mx-8 md:-mt-8 md:-mb-8 md:h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]",
       )}
+      style={mobileStyle}
     >
+
 
       {/* Conversations rail — persistent on lg+ (compact) */}
       <aside className="hidden lg:flex w-[240px] xl:w-[260px] shrink-0 flex-col border-r border-border/60 bg-card/40">
