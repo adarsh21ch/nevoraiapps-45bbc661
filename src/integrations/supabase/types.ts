@@ -7150,6 +7150,17 @@ export type Database = {
         Returns: string
       }
       archive_notification: { Args: { _id: string }; Returns: undefined }
+      attach_applicant_to_registration: {
+        Args: {
+          _address?: string
+          _documents?: Json
+          _email?: string
+          _gender?: string
+          _medical_notes?: string
+          _registration_id: string
+        }
+        Returns: undefined
+      }
       attach_payment_ref: {
         Args: { _payment_ref: string; _registration_id: string }
         Returns: undefined
