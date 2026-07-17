@@ -1406,22 +1406,26 @@ function AccessRoleCard({
   studentUserId: string;
 }) {
   const qc = useQueryClient();
+  const list = useServerFn(listTenantMembers);
   const rolesQ = useQuery({
     queryKey: ["student-roles", tenantId, studentUserId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("tenant_id", tenantId)
-        .eq("user_id", studentUserId);
-      if (error) throw error;
-      return (data ?? []).map((r) => r.role as string);
+      const rows = (await list({ data: { tenantId } })) as Array<{
+        user_id: string;
+        roles: string[];
+        profile_role: string | null;
+      }>;
+      const me = rows.find((r) => r.user_id === studentUserId);
+      return {
+        roles: me?.roles ?? [],
+        profile_role: me?.profile_role ?? null,
+      };
     },
   });
 
-  const roles = rolesQ.data ?? [];
+  const roles = rolesQ.data?.roles ?? [];
   const isAdmin = roles.includes("admin");
-  const isOwnerRow = roles.includes("owner");
+  const isOwnerRow = roles.includes("owner") || rolesQ.data?.profile_role === "owner";
 
   const setRoleFn = useServerFn(setStaffRole);
   const m = useMutation({
