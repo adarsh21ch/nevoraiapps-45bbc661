@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { myPendingRegistrationQuery } from "@/lib/admissions/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,17 @@ export const Route = createFileRoute("/student/pending")({
 });
 
 function PendingPage() {
+  const navigate = useNavigate();
   const { data: reg } = useSuspenseQuery(myPendingRegistrationQuery());
+  const status = reg?.review_status ?? "pending";
+
+  // Approved → send straight to the dashboard; no reason to linger here.
+  useEffect(() => {
+    if (status === "approved") {
+      navigate({ to: "/student", replace: true });
+    }
+  }, [status, navigate]);
+
 
   if (!reg) {
     return (
@@ -32,7 +43,7 @@ function PendingPage() {
     );
   }
 
-  const status = reg.review_status ?? "pending";
+  
   const label =
     status === "pending" ? "Under Review"
     : status === "waitlisted" ? "Waitlisted"
@@ -105,11 +116,14 @@ function PendingPage() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/"))}>
-          Sign out
-        </Button>
-      </div>
+      {status !== "approved" && (
+        <div className="flex justify-between">
+          <Button variant="outline" onClick={() => supabase.auth.signOut().then(() => (window.location.href = "/"))}>
+            Sign out
+          </Button>
+        </div>
+      )}
+
     </div>
   );
 }

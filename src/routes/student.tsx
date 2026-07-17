@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Home, TrendingUp, Trophy, ClipboardList, Building2, UserCircle, LogOut } from "lucide-react";
+import { Home, TrendingUp, Trophy, Building2, UserCircle, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyStudentContext, studentKeys } from "@/lib/student-app";
 import { isPendingApproval, needsActivation, isBlocked, LIFECYCLE_LABEL, type LifecycleStatus } from "@/lib/admissions/lifecycle";
@@ -21,16 +21,16 @@ export const Route = createFileRoute("/student")({
   component: StudentLayout,
 });
 
-// Player nav: Home · Performance · Manage · Profile.
-// Attendance/Fees live inside Manage (personal information hub).
+// Player nav: Home · Performance · Matches · Manage · Profile.
+// The "Pending" screen is a gate, not a destination — no tab for it.
 const TABS = [
   { to: "/student", label: "Home", icon: Home, exact: true },
   { to: "/student/progress", label: "Performance", icon: TrendingUp, exact: false },
   { to: "/student/matches", label: "Matches", icon: Trophy, exact: false },
-  { to: "/student/pending", label: "Pending", icon: ClipboardList, exact: false },
   { to: "/student/manage", label: "Manage", icon: Building2, exact: false },
   { to: "/student/profile", label: "Profile", icon: UserCircle, exact: false },
 ] as const;
+
 
 function StudentLayout() {
   const navigate = useNavigate();
@@ -97,7 +97,12 @@ function StudentLayout() {
     if (shouldGate && !onPendingRoute) {
       navigate({ to: "/student/pending" });
     }
-  }, [gateQ.data, onPendingRoute, navigate]);
+    // Approved / active student who landed on /student/pending: bounce to dashboard.
+    if (!shouldGate && onPendingRoute && ctxQ.data) {
+      navigate({ to: "/student", replace: true });
+    }
+  }, [gateQ.data, onPendingRoute, navigate, ctxQ.data]);
+
 
   const blockedLifecycle = gateQ.data?.lifecycle && isBlocked(gateQ.data.lifecycle) ? gateQ.data.lifecycle : null;
 
@@ -184,7 +189,7 @@ function StudentLayout() {
         aria-label="Primary"
         className="fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 pb-[env(safe-area-inset-bottom)]"
       >
-        <div className="max-w-3xl mx-auto grid grid-cols-6">
+        <div className="max-w-3xl mx-auto grid grid-cols-5">
           {TABS.map((t) => {
             const active = t.exact ? pathname === t.to : pathname.startsWith(t.to);
             const Icon = t.icon;
