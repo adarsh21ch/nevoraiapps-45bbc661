@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { toE164, isLikelyEmail } from "@/lib/phone";
+import { useTenantState } from "@/lib/tenant-context";
+
 
 type AuthSearch = { mode?: "signin" | "forgot" | "reset" };
 
@@ -96,6 +98,13 @@ async function routeAfterLogin(uid: string): Promise<PostLoginRoute> {
 function AuthPage() {
   const navigate = useNavigate();
   const { mode: searchMode } = Route.useSearch();
+  const tenantState = useTenantState();
+  const tenant = tenantState.status === "ready" ? tenantState.tenant : null;
+  const brandName = tenant?.name ?? "AcademyOS";
+  const brandShort =
+    tenant?.short_name || (tenant?.name ? tenant.name.charAt(0).toUpperCase() : "A");
+  const brandLogo = tenant?.logo_url ?? null;
+  const brandColor = tenant?.primary_color ?? "#a3e635";
   const [mode, setMode] = useState<"signin" | "forgot" | "reset">(searchMode ?? "signin");
   const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
@@ -216,14 +225,21 @@ function AuthPage() {
         </div>
 
         <Link to="/" className="z-10 flex items-center gap-2.5">
-          <div className="grid h-9 w-9 place-items-center rounded bg-lime-400 text-sm font-black text-black">
-            A
-          </div>
+          {brandLogo ? (
+            <img src={brandLogo} alt={brandName} className="h-9 w-9 rounded object-cover" />
+          ) : (
+            <div
+              className="grid h-9 w-9 place-items-center rounded text-sm font-black text-black"
+              style={{ backgroundColor: brandColor }}
+            >
+              {brandShort}
+            </div>
+          )}
           <span
             className="text-lg font-black uppercase tracking-tight"
             style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.02em" }}
           >
-            Academy<span className="text-lime-400">OS</span>
+            {brandName}
           </span>
         </Link>
 
@@ -232,11 +248,18 @@ function AuthPage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 rounded-full border border-lime-500/30 bg-lime-500/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.25em] text-lime-400"
+            className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.25em]"
+            style={{ borderColor: `${brandColor}55`, backgroundColor: `${brandColor}1a`, color: brandColor }}
           >
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400" />
+              <span
+                className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
+                style={{ backgroundColor: brandColor }}
+              />
+              <span
+                className="relative inline-flex h-2 w-2 rounded-full"
+                style={{ backgroundColor: brandColor }}
+              />
             </span>
             One sign in for everyone
           </motion.div>
@@ -249,7 +272,7 @@ function AuthPage() {
             style={{ fontFamily: "'Bebas Neue', sans-serif" }}
           >
             Welcome <br />
-            <span className="text-lime-400">back.</span>
+            <span style={{ color: brandColor }}>back.</span>
           </motion.h2>
 
           <motion.p
@@ -258,8 +281,9 @@ function AuthPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg text-zinc-400"
           >
-            Students, parents and academy staff — sign in with the email or phone you registered with.
-            We'll take you to the right place.
+            {tenant
+              ? `Sign in to ${brandName} — students, parents and academy staff use the email or phone you registered with.`
+              : "Students, parents and academy staff — sign in with the email or phone you registered with. We'll take you to the right place."}
           </motion.p>
 
           <motion.ul
@@ -274,7 +298,10 @@ function AuthPage() {
               "Coaches & admins — run the academy from your phone",
             ].map((t) => (
               <li key={t} className="flex items-center gap-3 text-sm text-zinc-300">
-                <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-lime-400/20 text-lime-400">
+                <span
+                  className="grid h-5 w-5 shrink-0 place-items-center rounded-full"
+                  style={{ backgroundColor: `${brandColor}33`, color: brandColor }}
+                >
                   ✓
                 </span>
                 {t}
@@ -284,21 +311,28 @@ function AuthPage() {
         </div>
 
         <div className="z-10 text-[10px] uppercase tracking-[0.25em] text-white/40">
-          Simple. On your phone. In your language soon.
+          {tenant?.tagline ?? "Simple. On your phone. In your language soon."}
         </div>
       </aside>
 
       {/* Right — form */}
       <main className="relative flex items-center justify-center bg-white p-6 sm:p-10">
         <Link to="/" className="absolute left-4 top-4 flex items-center gap-2 lg:hidden">
-          <div className="grid h-8 w-8 place-items-center rounded bg-lime-400 text-[13px] font-black text-black">
-            A
-          </div>
+          {brandLogo ? (
+            <img src={brandLogo} alt={brandName} className="h-8 w-8 rounded object-cover" />
+          ) : (
+            <div
+              className="grid h-8 w-8 place-items-center rounded text-[13px] font-black text-black"
+              style={{ backgroundColor: brandColor }}
+            >
+              {brandShort}
+            </div>
+          )}
           <span
             className="text-base font-black uppercase tracking-tight text-zinc-900"
             style={{ fontFamily: "'Bebas Neue', sans-serif" }}
           >
-            Academy<span className="text-lime-500">OS</span>
+            {brandName}
           </span>
         </Link>
 
