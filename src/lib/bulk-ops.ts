@@ -54,19 +54,27 @@ export async function bulkEnqueueNotificationRecipients(
 
 /* -------- Match-scoring advisory lock ----------------------------------- */
 
-export async function acquireMatchScoringLock(matchId: string): Promise<boolean> {
+export async function acquireMatchScoringLock(
+  matchId: string,
+  sessionId: string,
+): Promise<boolean> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any).rpc("acquire_match_scoring_lock", {
     _match_id: matchId,
+    _session_id: sessionId,
   });
   if (error) throw error;
   return Boolean(data);
 }
 
-export async function releaseMatchScoringLock(matchId: string): Promise<boolean> {
+export async function releaseMatchScoringLock(
+  matchId: string,
+  sessionId: string,
+): Promise<boolean> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any).rpc("release_match_scoring_lock", {
     _match_id: matchId,
+    _session_id: sessionId,
   });
   if (error) throw error;
   return Boolean(data);
