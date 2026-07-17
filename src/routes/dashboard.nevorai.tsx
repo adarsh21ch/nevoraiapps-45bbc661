@@ -166,6 +166,13 @@ function NevorAIPage() {
       {/* Center — chat */}
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between gap-2 border-b border-border/50 px-3 py-2.5 lg:px-6">
+          <Link
+            to="/dashboard"
+            className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
+            aria-label="Back to dashboard"
+          >
+            <ArrowLeft className="size-4" />
+          </Link>
           <button
             type="button"
             onClick={() => setConvOpen(true)}
