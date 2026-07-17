@@ -46,9 +46,21 @@ export function GlobalBottomNav() {
   }
   const liveKeys: string[] = (liveMatches.data ?? 0) > 0 ? ["/match-center"] : [];
 
+  // Hide the mobile bottom nav when the keyboard is open (so it never floats
+  // halfway up the screen) and while on NevorAI (chat composer owns the
+  // bottom edge). It returns automatically when the keyboard closes.
+  const hidden = keyboardOpen || location.pathname.startsWith("/dashboard/nevorai");
+
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 md:hidden">
+    <div
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-40 md:hidden transition-transform duration-200",
+        hidden && "translate-y-full pointer-events-none",
+      )}
+      aria-hidden={hidden}
+    >
       <BottomNav badges={badges} liveKeys={liveKeys} />
     </div>
   );
 }
+
