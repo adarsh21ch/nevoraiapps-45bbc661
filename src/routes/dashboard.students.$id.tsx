@@ -29,7 +29,10 @@ import {
   FileText,
   ShieldAlert,
   Layers,
+  ShieldCheck as ShieldCheckIcon,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { setStaffRole } from "@/lib/staff/staff.functions";
 import { format, differenceInYears, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -310,6 +313,8 @@ function PlayerProfileRoute() {
             student={student as unknown as Parameters<typeof MoreTab>[0]["student"]}
             studentId={id}
             studentName={student.name}
+            tenantId={tenant.id}
+            studentUserId={(student as unknown as { user_id: string | null }).user_id ?? null}
           />
         )}
       </div>
@@ -1283,6 +1288,8 @@ function MoreTab({
   student,
   studentId,
   studentName,
+  tenantId,
+  studentUserId,
 }: {
   student: {
     guardian_name: string | null;
@@ -1293,6 +1300,8 @@ function MoreTab({
   } & Record<string, unknown>;
   studentId: string;
   studentName: string;
+  tenantId: string;
+  studentUserId: string | null;
 }) {
   useDashboard();
   const qc = useQueryClient();
@@ -1350,6 +1359,10 @@ function MoreTab({
         })}
       </div>
 
+      {isOwner && studentUserId ? (
+        <AccessRoleCard tenantId={tenantId} studentUserId={studentUserId} />
+      ) : null}
+
       <DangerZone
         visible={canRemove}
         description="Permanently remove this player from the academy. This cannot be undone."
@@ -1384,3 +1397,89 @@ function MoreTab({
     </div>
   );
 }
+
+function AccessRoleCard({
+  tenantId,
+  studentUserId,
+}: {
+  tenantId: string;
+  studentUserId: string;
+}) {
+  const qc = useQueryClient();
+  const rolesQ = useQuery({
+    queryKey: ["student-roles", tenantId, studentUserId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("tenant_id", tenantId)
+        .eq("user_id", studentUserId);
+      if (error) throw error;
+      return (data ?? []).map((r) => r.role as string);
+    },
+  });
+
+  const roles = rolesQ.data ?? [];
+  const isAdmin = roles.includes("admin");
+  const isOwnerRow = roles.includes("owner");
+
+  const setRoleFn = useServerFn(setStaffRole);
+  const m = useMutation({
+    mutationFn: (make: boolean) =>
+      setRoleFn({
+        data: {
+          tenantId,
+          userId: studentUserId,
+          newRole: make ? "admin" : "student",
+          oldRole: make ? "student" : "admin",
+        },
+      }),
+    onSuccess: (_res, make) => {
+      toast.success(make ? "Assigned as admin" : "Admin access removed");
+      qc.invalidateQueries({ queryKey: ["student-roles", tenantId, studentUserId] });
+      qc.invalidateQueries({ queryKey: ["admins", "members", tenantId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isOwnerRow) return null;
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center gap-3">
+        <div
+          className="grid place-items-center size-10 rounded-lg shrink-0"
+          style={{
+            backgroundColor: "color-mix(in oklab, var(--brand) 12%, transparent)",
+            color: "var(--brand)",
+          }}
+        >
+          <ShieldCheckIcon className="size-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-medium">Access & role</div>
+          <div className="text-[11px] text-muted-foreground">
+            {isAdmin
+              ? "This student has admin access to the academy."
+              : "Give this student admin access to manage the academy."}
+          </div>
+        </div>
+        <Button
+          size="sm"
+          variant={isAdmin ? "outline" : "default"}
+          onClick={() => m.mutate(!isAdmin)}
+          disabled={m.isPending || rolesQ.isLoading}
+        >
+          {m.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : isAdmin ? (
+            "Remove admin"
+          ) : (
+            "Make admin"
+          )}
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
