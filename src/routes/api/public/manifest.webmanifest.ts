@@ -69,6 +69,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
 
         // Resolve logo → signed URL for icons if it's a storage path
         let iconUrl = tenant?.logo_url ?? "/favicon.ico";
+        let iconType = "image/png";
         if (tenant?.logo_url && !tenant.logo_url.startsWith("http")) {
           try {
             const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -78,9 +79,28 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
               .from("tenant-assets")
               .createSignedUrl(tenant.logo_url, 60 * 60 * 24 * 30);
             if (signed?.signedUrl) iconUrl = signed.signedUrl;
+            const ext = tenant.logo_url.split(".").pop()?.toLowerCase() ?? "";
+            iconType =
+              ext === "webp"
+                ? "image/webp"
+                : ext === "svg"
+                  ? "image/svg+xml"
+                  : ext === "jpg" || ext === "jpeg"
+                    ? "image/jpeg"
+                    : ext === "ico"
+                      ? "image/x-icon"
+                      : "image/png";
           } catch {
             iconUrl = "/favicon.ico";
+            iconType = "image/x-icon";
           }
+        } else if (tenant?.logo_url) {
+          const ext = tenant.logo_url.split(".").pop()?.toLowerCase() ?? "";
+          if (ext === "webp") iconType = "image/webp";
+          else if (ext === "svg") iconType = "image/svg+xml";
+          else if (ext === "jpg" || ext === "jpeg") iconType = "image/jpeg";
+        } else {
+          iconType = "image/x-icon";
         }
 
         const name = tenant?.name ?? "Academy OS";
@@ -116,12 +136,13 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
             client_mode: ["focus-existing", "navigate-existing", "auto"],
           },
           icons: [
-            { src: iconUrl, sizes: "192x192", type: "image/png", purpose: "any" },
-            { src: iconUrl, sizes: "512x512", type: "image/png", purpose: "any" },
-            { src: iconUrl, sizes: "192x192", type: "image/png", purpose: "maskable" },
-            { src: iconUrl, sizes: "512x512", type: "image/png", purpose: "maskable" },
+            { src: iconUrl, sizes: "192x192", type: iconType, purpose: "any" },
+            { src: iconUrl, sizes: "512x512", type: iconType, purpose: "any" },
+            { src: iconUrl, sizes: "192x192", type: iconType, purpose: "maskable" },
+            { src: iconUrl, sizes: "512x512", type: iconType, purpose: "maskable" },
           ],
         };
+
 
         return new Response(JSON.stringify(manifest), {
           status: 200,
