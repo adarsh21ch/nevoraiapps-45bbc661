@@ -443,6 +443,11 @@ function RegisterContent() {
       console.error(error);
       return;
     }
+    try {
+      window.sessionStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* ignore */
+    }
     setDone(true);
   }
 
