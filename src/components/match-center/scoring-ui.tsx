@@ -781,23 +781,24 @@ export function ExtraRunsModal({
       ]
     : isWide
       ? [
-          { value: 1, label: "Wd" },
-          { value: 2, label: "Wd+1" },
-          { value: 3, label: "Wd+2" },
-          { value: 4, label: "Wd+3" },
-          { value: 5, label: "Wd+4" },
+          { value: 0, label: "0" },
+          { value: 1, label: "1" },
+          { value: 2, label: "2" },
+          { value: 3, label: "3" },
+          { value: 4, label: "4" },
+          { value: 5, label: "5" },
         ]
       : [1, 2, 3, 4, 5, 6].map((n) => ({ value: n, label: String(n) }));
 
   const title = isNoBall
     ? "No Ball — what did the batsman score?"
     : isWide
-      ? "Wide — total wide runs"
+      ? "Wide — additional runs after the wide"
       : `${kind} — how many runs?`;
   const description = isNoBall
     ? "Runs off the bat only. The scoring engine adds the +1 no-ball penalty automatically."
     : isWide
-      ? "Includes the +1 wide penalty. Pick 'Wd+4' for a boundary wide."
+      ? "Only the runs the batsmen actually completed (or 4 if the ball ran to the boundary). The +1 wide penalty is added automatically."
       : `Total runs conceded on this ball including the ${kind.toLowerCase()}.`;
 
   return (
