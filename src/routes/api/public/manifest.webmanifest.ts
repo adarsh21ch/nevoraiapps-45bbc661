@@ -35,8 +35,12 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
             auth: { persistSession: false },
           });
 
-          // Try custom_domain match first
-          const first = await (supabase.from("tenants") as any)
+          // Query the anon-readable public directory view. The base `tenants`
+          // table is not granted to anon, so a direct select returns null and
+          // the manifest silently falls back to platform defaults — which is
+          // why every academy previously installed as "Academy OS" with the
+          // Lovable favicon.
+          const first = await (supabase.from("tenants_public_directory") as any)
             .select(COLS)
             .eq("custom_domain", hostname)
             .maybeSingle();
@@ -49,7 +53,7 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
               .split(".")
               .pop();
             if (slug) {
-              const res = await (supabase.from("tenants") as any)
+              const res = await (supabase.from("tenants_public_directory") as any)
                 .select(COLS)
                 .eq("slug", slug)
                 .maybeSingle();
@@ -62,8 +66,10 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           // fall through to platform defaults
         }
 
+
         // Resolve logo → signed URL for icons if it's a storage path
         let iconUrl = tenant?.logo_url ?? "/favicon.ico";
+        let iconType = "image/png";
         if (tenant?.logo_url && !tenant.logo_url.startsWith("http")) {
           try {
             const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -73,9 +79,28 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
               .from("tenant-assets")
               .createSignedUrl(tenant.logo_url, 60 * 60 * 24 * 30);
             if (signed?.signedUrl) iconUrl = signed.signedUrl;
+            const ext = tenant.logo_url.split(".").pop()?.toLowerCase() ?? "";
+            iconType =
+              ext === "webp"
+                ? "image/webp"
+                : ext === "svg"
+                  ? "image/svg+xml"
+                  : ext === "jpg" || ext === "jpeg"
+                    ? "image/jpeg"
+                    : ext === "ico"
+                      ? "image/x-icon"
+                      : "image/png";
           } catch {
             iconUrl = "/favicon.ico";
+            iconType = "image/x-icon";
           }
+        } else if (tenant?.logo_url) {
+          const ext = tenant.logo_url.split(".").pop()?.toLowerCase() ?? "";
+          if (ext === "webp") iconType = "image/webp";
+          else if (ext === "svg") iconType = "image/svg+xml";
+          else if (ext === "jpg" || ext === "jpeg") iconType = "image/jpeg";
+        } else {
+          iconType = "image/x-icon";
         }
 
         const name = tenant?.name ?? "Academy OS";
@@ -111,12 +136,13 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
             client_mode: ["focus-existing", "navigate-existing", "auto"],
           },
           icons: [
-            { src: iconUrl, sizes: "192x192", type: "image/png", purpose: "any" },
-            { src: iconUrl, sizes: "512x512", type: "image/png", purpose: "any" },
-            { src: iconUrl, sizes: "192x192", type: "image/png", purpose: "maskable" },
-            { src: iconUrl, sizes: "512x512", type: "image/png", purpose: "maskable" },
+            { src: iconUrl, sizes: "192x192", type: iconType, purpose: "any" },
+            { src: iconUrl, sizes: "512x512", type: iconType, purpose: "any" },
+            { src: iconUrl, sizes: "192x192", type: iconType, purpose: "maskable" },
+            { src: iconUrl, sizes: "512x512", type: iconType, purpose: "maskable" },
           ],
         };
+
 
         return new Response(JSON.stringify(manifest), {
           status: 200,
