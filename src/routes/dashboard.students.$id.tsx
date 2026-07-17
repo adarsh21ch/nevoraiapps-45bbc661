@@ -32,7 +32,7 @@ import {
   ShieldCheck as ShieldCheckIcon,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
-import { setStaffRole } from "@/lib/staff/staff.functions";
+import { setStaffRole, listTenantMembers } from "@/lib/staff/staff.functions";
 import { format, differenceInYears, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
