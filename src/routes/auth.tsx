@@ -501,6 +501,9 @@ function Field({
   onChange: (v: string) => void;
   placeholder?: string;
 }) {
+  const isPassword = type === "password";
+  const [show, setShow] = useState(false);
+  const effectiveType = isPassword && show ? "text" : type;
   return (
     <div className="space-y-2">
       <label
@@ -509,16 +512,31 @@ function Field({
       >
         {label}
       </label>
-      <input
-        id={id}
-        type={type}
-        required
-        autoComplete={autoComplete}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full border-0 border-b-2 border-zinc-200 bg-transparent px-0 py-2.5 text-base text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-lime-500"
-      />
+      <div className="relative">
+        <input
+          id={id}
+          type={effectiveType}
+          required
+          autoComplete={autoComplete}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={`w-full border-0 border-b-2 border-zinc-200 bg-transparent px-0 py-2.5 text-base text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-lime-500 ${isPassword ? "pr-10" : ""}`}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShow((s) => !s)}
+            aria-label={show ? "Hide password" : "Show password"}
+            aria-pressed={show}
+            tabIndex={-1}
+            className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-900"
+          >
+            {show ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
+
