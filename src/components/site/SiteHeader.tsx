@@ -5,11 +5,27 @@ import { useTenant } from "@/lib/tenant-context";
 import { cn } from "@/lib/utils";
 import { StoragedImage } from "./StoragedImage";
 
-const nav = [
+// Desktop top nav: 7 items. Home = clicking the logo. Owner login lives in the
+// footer and mobile menu; Coaches/Achievements/Admissions are reachable from
+// About / Fees / Footer + the mobile drawer.
+const primaryNav = [
+  { to: "/about", label: "About" },
+  { to: "/programs", label: "Programs" },
+  { to: "/star-players", label: "Star Players" },
+  { to: "/matches", label: "Matches" },
+  { to: "/gallery", label: "Gallery" },
+  { to: "/fees", label: "Fees" },
+  { to: "/contact", label: "Contact" },
+] as const;
+
+// Full list surfaced in the mobile hamburger so nothing removed from the
+// desktop bar becomes unreachable.
+const mobileNav = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
   { to: "/programs", label: "Programs" },
   { to: "/coaches", label: "Coaches" },
+  { to: "/star-players", label: "Star Players" },
   { to: "/achievements", label: "Achievements" },
   { to: "/matches", label: "Matches" },
   { to: "/gallery", label: "Gallery" },
@@ -39,16 +55,21 @@ export function SiteHeader() {
         className="sticky z-40 border-b border-border/60 bg-background/85 backdrop-blur-lg"
         style={{ top: "env(safe-area-inset-top)" }}
       >
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
+        <div className="mx-auto flex h-16 max-w-screen-2xl items-center gap-4 px-4 sm:px-8">
+          {/* Lockup — mark shrink-0, text block min-w-0 + truncate so it never wraps */}
+          <Link
+            to="/"
+            className="flex min-w-0 items-center gap-3"
+            onClick={() => setOpen(false)}
+          >
             {tenant.logo_url ? (
               <StoragedImage
                 path={tenant.logo_url}
                 alt={tenant.name}
-                className="h-9 w-9 rounded-lg object-cover"
+                className="h-9 w-9 shrink-0 rounded-lg object-cover"
                 fallback={
                   <div
-                    className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm"
                     style={{ backgroundColor: "var(--brand)" }}
                   >
                     {tenant.name.charAt(0)}
@@ -57,32 +78,34 @@ export function SiteHeader() {
               />
             ) : (
               <div
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm"
                 style={{ backgroundColor: "var(--brand)" }}
               >
                 {tenant.name.charAt(0)}
               </div>
             )}
-            <div className="leading-tight">
-              <div className="text-sm font-semibold tracking-tight text-foreground">
+            <div className="min-w-0 leading-tight">
+              <div className="truncate whitespace-nowrap text-sm font-semibold tracking-tight text-foreground">
                 {tenant.name}
               </div>
               {tenant.tagline ? (
-                <div className="text-[11px] text-muted-foreground">{tenant.tagline}</div>
+                <div className="hidden truncate whitespace-nowrap text-[11px] text-muted-foreground lg:block">
+                  {tenant.tagline}
+                </div>
               ) : null}
             </div>
           </Link>
 
-          <nav className="hidden items-center gap-1 md:flex">
-            {nav.map((item) => {
-              const active =
-                item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to);
+          {/* Centered nav */}
+          <nav className="hidden flex-1 items-center justify-center gap-2 md:flex">
+            {primaryNav.map((item) => {
+              const active = location.pathname.startsWith(item.to);
               return (
                 <Link
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    "whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                     active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                   )}
                   style={active ? { color: "var(--brand)" } : undefined}
@@ -91,24 +114,22 @@ export function SiteHeader() {
                 </Link>
               );
             })}
-            <Link
-              to="/auth"
-              className="ml-1 rounded-full border border-border/60 px-3.5 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
-            >
-              Owner login
-            </Link>
+          </nav>
+
+          {/* Single prominent CTA */}
+          <div className="hidden shrink-0 md:block">
             <Link
               to="/register"
-              className="ml-1 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              className="ml-4 inline-flex items-center rounded-full px-5 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
               style={{ backgroundColor: "var(--brand)" }}
             >
               Register
             </Link>
-          </nav>
+          </div>
 
           <button
             type="button"
-            className="rounded-md p-2 text-foreground md:hidden"
+            className="ml-auto rounded-md p-2 text-foreground md:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle menu"
           >
@@ -118,8 +139,8 @@ export function SiteHeader() {
 
         {open ? (
           <div className="border-t border-border/60 bg-background md:hidden">
-            <div className="mx-auto flex max-w-6xl flex-col px-4 py-2 sm:px-6">
-              {nav.map((item) => (
+            <div className="mx-auto flex max-w-screen-2xl flex-col px-4 py-2 sm:px-6">
+              {mobileNav.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
@@ -140,7 +161,7 @@ export function SiteHeader() {
               <Link
                 to="/auth"
                 onClick={() => setOpen(false)}
-                className="mx-1 mb-2 rounded-full border border-border px-4 py-2 text-center text-xs font-semibold text-muted-foreground hover:text-foreground"
+                className="mx-1 mb-2 text-center text-[11px] font-medium text-muted-foreground hover:text-foreground"
               >
                 Owner login
               </Link>

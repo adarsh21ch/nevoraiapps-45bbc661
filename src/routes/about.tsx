@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ArrowRight, Users, Trophy } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { PageHero } from "@/components/site/PageHero";
 import { useTenant } from "@/lib/tenant-context";
@@ -30,6 +30,50 @@ function AboutContent() {
         title={about?.heading ?? `About ${tenant.name}`}
         subtitle={about?.body ?? undefined}
       />
+      <div className="mx-auto max-w-7xl px-4 pt-10 sm:px-6">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Link
+            to="/coaches"
+            className="group flex items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4 transition-colors hover:border-foreground/30"
+          >
+            <div className="flex items-center gap-3">
+              <span
+                className="grid h-10 w-10 place-items-center rounded-xl text-white"
+                style={{ backgroundColor: "var(--brand)" }}
+              >
+                <Users className="h-4 w-4" />
+              </span>
+              <div>
+                <div className="text-sm font-semibold text-foreground">Meet our coaches</div>
+                <div className="text-xs text-muted-foreground">
+                  Certified staff behind every athlete.
+                </div>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </Link>
+          <Link
+            to="/achievements"
+            className="group flex items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4 transition-colors hover:border-foreground/30"
+          >
+            <div className="flex items-center gap-3">
+              <span
+                className="grid h-10 w-10 place-items-center rounded-xl text-white"
+                style={{ backgroundColor: "var(--brand)" }}
+              >
+                <Trophy className="h-4 w-4" />
+              </span>
+              <div>
+                <div className="text-sm font-semibold text-foreground">Achievements</div>
+                <div className="text-xs text-muted-foreground">
+                  Milestones from students, teams and coaches.
+                </div>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+      </div>
       <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
         {achievements.length > 0 ? (
           <div>
