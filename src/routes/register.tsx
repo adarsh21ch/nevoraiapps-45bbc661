@@ -69,28 +69,43 @@ function formatFeeLabel(plan: FeePlan | undefined): string {
 }
 
 // Best-effort mapping: given a batch, find the fee plan that represents its
-// monthly (or recurring) fee. Uses name overlap with active recurring plans.
+// monthly (or recurring) fee. Uses keyword matching against active recurring plans.
 function batchFeePlan(batch: Batch, fees: FeePlan[]): FeePlan | undefined {
   const monthly = fees.filter(
     (f) => f.type !== "registration" && (f.billing_cycle ?? "monthly") !== "annual",
   );
   const bn = (batch.name || "").toLowerCase();
-  if (!bn) return monthly[0];
-  // 1) exact substring match either direction
-  const hit = monthly.find((f) => {
+  if (!bn) return undefined;
+  // Personal coaching → look for a plan whose name mentions personal/coaching
+  if (bn.includes("personal") || bn.includes("1-on-1") || bn.includes("one-on-one")) {
+    return monthly.find((f) => {
+      const fn = (f.name || "").toLowerCase();
+      return fn.includes("personal") || fn.includes("coaching");
+    });
+  }
+  // "Both" sessions (morning + evening) → prefer a plan named "both"
+  const isBoth =
+    bn.includes("both") ||
+    (bn.includes("morning") && (bn.includes("eve") || bn.includes("evening")));
+  if (isBoth) {
+    const hit = monthly.find((f) => (f.name || "").toLowerCase().includes("both"));
+    if (hit) return hit;
+  } else {
+    // Single-session batches (morning / evening / night) → prefer "single"
+    const hit = monthly.find((f) => (f.name || "").toLowerCase().includes("single"));
+    if (hit) return hit;
+  }
+  // Direct substring match either direction
+  const direct = monthly.find((f) => {
     const fn = (f.name || "").toLowerCase();
     return fn && (fn.includes(bn) || bn.includes(fn));
   });
-  if (hit) return hit;
-  // 2) fall back to the tenant's default monthly plan
+  if (direct) return direct;
+  // Fall back to the tenant's default monthly plan
   return monthly[0];
 }
 
 function batchFeeText(batch: Batch, fees: FeePlan[]): string {
-  const bn = (batch.name || "").toLowerCase();
-  if (bn.includes("personal") || bn.includes("1-on-1") || bn.includes("one-on-one")) {
-    return "Contact academy";
-  }
   const plan = batchFeePlan(batch, fees);
   return formatFeeLabel(plan) || "Contact academy";
 }
@@ -356,6 +371,12 @@ function RegisterContent() {
                 />
               ) : null}
             </div>
+            {batches.length > 0 ? (
+              <FeeSummary
+                batch={batches.find((b) => b.id === form.batch_id)}
+                fees={fees}
+              />
+            ) : null}
           </Section>
 
           {/* Section 3 — Physical details */}
@@ -618,6 +639,52 @@ function BatchSelect({
           </span>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+function FeeSummary({ batch, fees }: { batch: Batch | undefined; fees: FeePlan[] }) {
+  const registration = fees.find((f) => f.type === "registration");
+  const monthly = batch ? batchFeePlan(batch, fees) : undefined;
+  const cur = (registration?.currency || monthly?.currency || "INR").toUpperCase();
+  const sym = cur === "INR" ? "₹" : cur + " ";
+  const fmt = (n: number | undefined) => (n == null ? "—" : `${sym}${n}`);
+  const bn = (batch?.name || "").toLowerCase();
+  const isPersonal =
+    bn.includes("personal") || bn.includes("1-on-1") || bn.includes("one-on-one");
+  const monthlyText = !batch
+    ? "Select a batch to see monthly fee"
+    : isPersonal && !monthly
+      ? "Contact academy"
+      : monthly
+        ? fmt(monthly.amount)
+        : "Contact academy";
+  const total =
+    !isPersonal && monthly && registration ? monthly.amount + registration.amount : null;
+  return (
+    <div className="mt-4 rounded-lg border border-border bg-muted/30 p-3">
+      <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        Fee summary
+      </div>
+      <dl className="grid gap-2 text-sm sm:grid-cols-2">
+        <div className="flex items-center justify-between rounded-md bg-background/60 px-3 py-2">
+          <dt className="text-muted-foreground">Registration fee (one-time)</dt>
+          <dd className="font-semibold text-foreground">{fmt(registration?.amount)}</dd>
+        </div>
+        <div className="flex items-center justify-between rounded-md bg-background/60 px-3 py-2">
+          <dt className="text-muted-foreground">Monthly fee</dt>
+          <dd className="font-semibold text-foreground">{monthlyText}</dd>
+        </div>
+      </dl>
+      {total != null ? (
+        <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-sm">
+          <span className="text-muted-foreground">Due at joining</span>
+          <span className="font-semibold text-foreground">{fmt(total)}</span>
+        </div>
+      ) : null}
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        Fees are auto-filled from the academy's fee plans. Final amount is confirmed by the academy.
+      </p>
     </div>
   );
 }
