@@ -770,19 +770,82 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           </div>
         </div>
       ) : noInnings ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
-          <div className="text-base font-semibold">Ready to start?</div>
-          <p className="max-w-xs text-xs text-muted-foreground">
-            No innings has been created for this match yet.
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
+          <div className="text-base font-semibold">Toss & Innings 1</div>
+          <p className="max-w-sm text-xs text-muted-foreground">
+            Record the toss before starting the match. Choose who won the toss and what they elected to do.
           </p>
-          <Button onClick={startFirstInnings}>Start innings 1</Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => void navigate({ to: "/match-center/live" })}
-          >
-            Back
-          </Button>
+
+          <div className="w-full max-w-sm space-y-4 text-left">
+            <div>
+              <div className="mb-2 text-xs font-medium text-muted-foreground">Who won the toss?</div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: session.match?.team_a_id, label: teamMap.get(session.match?.team_a_id ?? "")?.name ?? "Team A" },
+                  { id: session.match?.team_b_id, label: teamMap.get(session.match?.team_b_id ?? "")?.name ?? "Team B" },
+                ].map((t) => (
+                  <Button
+                    key={t.id ?? t.label}
+                    type="button"
+                    variant={tossWinnerId === t.id ? "default" : "outline"}
+                    onClick={() => t.id && setTossWinnerId(t.id)}
+                    className="h-11"
+                  >
+                    {t.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-2 text-xs font-medium text-muted-foreground">Elected to</div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={tossDecision === "bat" ? "default" : "outline"}
+                  onClick={() => setTossDecision("bat")}
+                  className="h-11"
+                >
+                  Bat first
+                </Button>
+                <Button
+                  type="button"
+                  variant={tossDecision === "bowl" ? "default" : "outline"}
+                  onClick={() => setTossDecision("bowl")}
+                  className="h-11"
+                >
+                  Bowl first
+                </Button>
+              </div>
+            </div>
+
+            {tossWinnerId && tossDecision ? (
+              <div className="rounded-md border bg-muted/40 p-3 text-xs">
+                <span className="font-medium">
+                  {teamMap.get(tossWinnerId)?.name ?? "Winner"}
+                </span>{" "}
+                won the toss and elected to{" "}
+                <span className="font-medium">{tossDecision === "bat" ? "bat" : "bowl"}</span> first.
+              </div>
+            ) : null}
+          </div>
+
+          <div className="flex w-full max-w-sm flex-col gap-2 pt-2">
+            <Button
+              onClick={() => void confirmTossAndStart()}
+              disabled={!tossWinnerId || !tossDecision || tossSaving}
+              className="h-11"
+            >
+              {tossSaving ? "Starting…" : "Start innings 1"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void navigate({ to: "/match-center/live" })}
+            >
+              Back
+            </Button>
+          </div>
         </div>
       ) : (
         <MobileScorer
