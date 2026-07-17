@@ -318,14 +318,21 @@ function AuthPage() {
       {/* Right — form */}
       <main className="relative flex items-center justify-center bg-white p-6 sm:p-10">
         <Link to="/" className="absolute left-4 top-4 flex items-center gap-2 lg:hidden">
-          <div className="grid h-8 w-8 place-items-center rounded bg-lime-400 text-[13px] font-black text-black">
-            A
-          </div>
+          {brandLogo ? (
+            <img src={brandLogo} alt={brandName} className="h-8 w-8 rounded object-cover" />
+          ) : (
+            <div
+              className="grid h-8 w-8 place-items-center rounded text-[13px] font-black text-black"
+              style={{ backgroundColor: brandColor }}
+            >
+              {brandShort}
+            </div>
+          )}
           <span
             className="text-base font-black uppercase tracking-tight text-zinc-900"
             style={{ fontFamily: "'Bebas Neue', sans-serif" }}
           >
-            Academy<span className="text-lime-500">OS</span>
+            {brandName}
           </span>
         </Link>
 
