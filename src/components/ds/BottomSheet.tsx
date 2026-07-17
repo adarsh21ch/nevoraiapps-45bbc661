@@ -1,18 +1,18 @@
 import type { ReactNode } from "react";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 /**
- * BottomSheet — mobile-first sheet from the bottom edge.
+ * BottomSheet — universal popup.
  *
- * On desktop it also renders from the bottom (native-app parity) but with
- * a max-width. Uses the shadcn Sheet under the hood.
+ * Renders as an iOS-style centered modal (rounded corners, centered on screen)
+ * on all viewports. Name kept for API compatibility with existing call sites.
  */
 export function BottomSheet({
   open,
@@ -30,29 +30,24 @@ export function BottomSheet({
   className?: string;
 }) {
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="bottom"
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
         className={cn(
-          "rounded-t-2xl border-t border-border p-0 max-h-[90dvh] flex flex-col",
+          "p-0 gap-0 rounded-3xl border border-border shadow-2xl",
+          "w-[calc(100vw-2rem)] sm:max-w-lg max-h-[85dvh] flex flex-col overflow-hidden",
           className,
         )}
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
-        {/* Grabber */}
-        <div className="pt-2 pb-1 grid place-items-center shrink-0">
-          <span aria-hidden className="h-1 w-10 rounded-full bg-muted-foreground/30" />
-        </div>
         {(title || description) && (
-          <SheetHeader className="px-4 pb-2 text-left">
-            {title ? <SheetTitle className="text-base">{title}</SheetTitle> : null}
+          <DialogHeader className="px-5 pt-5 pb-2 text-left space-y-1">
+            {title ? <DialogTitle className="text-base font-semibold">{title}</DialogTitle> : null}
             {description ? (
-              <SheetDescription className="text-xs">{description}</SheetDescription>
+              <DialogDescription className="text-xs">{description}</DialogDescription>
             ) : null}
-          </SheetHeader>
+          </DialogHeader>
         )}
-        <div className="flex-1 overflow-y-auto px-4 pb-4">{children}</div>
-      </SheetContent>
-    </Sheet>
+        <div className="flex-1 overflow-y-auto px-5 pb-5 pt-2">{children}</div>
+      </DialogContent>
+    </Dialog>
   );
 }
