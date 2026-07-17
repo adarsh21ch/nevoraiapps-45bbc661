@@ -1545,7 +1545,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     const kind = extraKind;
     setExtraKind(null);
     if (kind === "Wide") requestSubmit(ballHelpers.wide(runs));
-    else if (kind === "No Ball") requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
+    else if (kind === "No Ball") requestSubmit(ballHelpers.noBall(runs));
     else if (kind === "Bye") requestSubmit(ballHelpers.bye(runs));
     else if (kind === "Leg Bye") requestSubmit(ballHelpers.legBye(runs));
   };
