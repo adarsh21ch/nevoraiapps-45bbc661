@@ -54,6 +54,20 @@ function FeesContent() {
         subtitle={`Pay directly to ${tenant.name} via UPI. No hidden fees, no card surcharges.`}
       />
       <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+        <div className="mb-8 rounded-2xl border border-border/60 bg-muted/30 p-4 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-muted-foreground">
+              Ready to join? Start an admission request in a few minutes.
+            </div>
+            <Link
+              to="/admissions"
+              className="inline-flex items-center gap-1 font-semibold"
+              style={{ color: "var(--brand)" }}
+            >
+              Start admissions →
+            </Link>
+          </div>
+        </div>
         {isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[0, 1, 2].map((i) => (
