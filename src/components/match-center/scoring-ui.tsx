@@ -785,10 +785,8 @@ export function ExtraRunsModal({
     return String(r);
   };
 
-  const isBoundary = (r: number): boolean => {
-    if (kind === "No Ball") return r === 5 || r === 7;
-    return r === 4 || r === 6;
-  };
+
+
 
   const hint =
     kind === "No Ball"
@@ -807,26 +805,32 @@ export function ExtraRunsModal({
           <SheetTitle className="text-base">{kind} — how many runs?</SheetTitle>
           <SheetDescription className="text-xs">{hint}</SheetDescription>
         </SheetHeader>
-        <div className="grid grid-cols-4 gap-2 px-3">
+        <div className="flex items-stretch gap-1.5 px-3 sm:gap-2">
           {options.map((r) => {
-            const boundary = isBoundary(r);
+            const label = labelFor(r);
+            const isFour = label === "FOUR";
+            const isSix = label === "SIX";
             return (
-              <Button
+              <button
                 key={r}
-                variant={boundary ? "default" : "outline"}
-                className={
-                  "h-14 font-black tabular-nums " +
-                  (boundary
-                    ? "text-sm bg-emerald-600 hover:bg-emerald-600/90 text-white border-emerald-700 shadow-sm"
-                    : "text-xl")
-                }
+                type="button"
                 onClick={() => onSelect(r)}
+                className={cn(
+                  "no-tap-highlight flex-1 min-w-0 rounded-xl border font-black tabular-nums shadow-sm transition active:scale-[0.96]",
+                  "h-12 sm:h-14 px-1",
+                  isFour
+                    ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-600 text-[11px] sm:text-xs tracking-wider"
+                    : isSix
+                      ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-600 text-[11px] sm:text-xs tracking-wider"
+                      : "bg-card/60 hover:bg-muted text-foreground border-border/70 text-lg sm:text-xl backdrop-blur-sm",
+                )}
               >
-                {labelFor(r)}
-              </Button>
+                {label}
+              </button>
             );
           })}
         </div>
+
         <SheetFooter
           className="px-3 pb-3 pt-2"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}
