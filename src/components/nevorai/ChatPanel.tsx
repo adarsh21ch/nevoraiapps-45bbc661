@@ -25,6 +25,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { copyText, downloadMarkdown, messagesToMarkdown } from "@/lib/nevorai/export";
+import { useKeyboardOpen } from "@/hooks/use-visual-viewport";
 import type { NevorAIPageContext } from "@/lib/nevorai/page-context";
 
 type Props = {
@@ -59,6 +60,7 @@ export function ChatPanel({
   ensureConversationId,
 }: Props) {
   const [token, setToken] = useState<string | null>(null);
+  const keyboardOpen = useKeyboardOpen();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setToken(data.session?.access_token ?? null));
@@ -484,8 +486,14 @@ export function ChatPanel({
       </Conversation>
 
       <div
-        className="border-t border-border/60 bg-background/80 px-4 py-3 backdrop-blur"
-        style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
+        className="shrink-0 border-t border-border/60 bg-background/80 px-4 py-3 backdrop-blur"
+        style={{
+          // When keyboard is open the visual viewport already excludes the
+          // home indicator area — don't double-pad.
+          paddingBottom: keyboardOpen
+            ? "0.75rem"
+            : "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
+        }}
       >
 
         <PromptInput
