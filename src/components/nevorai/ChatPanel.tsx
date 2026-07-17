@@ -25,6 +25,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { copyText, downloadMarkdown, messagesToMarkdown } from "@/lib/nevorai/export";
+import { useKeyboardOpen } from "@/hooks/use-visual-viewport";
 import type { NevorAIPageContext } from "@/lib/nevorai/page-context";
 
 type Props = {
