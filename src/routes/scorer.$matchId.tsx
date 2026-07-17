@@ -213,6 +213,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const [finalizeDialogOpen, setFinalizeDialogOpen] = useState(false);
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
+  const [tossOpen, setTossOpen] = useState(false);
+  const [tossWinnerId, setTossWinnerId] = useState<string | null>(null);
+  const [tossDecision, setTossDecision] = useState<"bat" | "bowl" | null>(null);
+  const [tossSaving, setTossSaving] = useState(false);
   const [pendingBallIntent, setPendingBallIntent] = useState<
     Parameters<typeof session.submitBall>[0] | null
   >(null);
