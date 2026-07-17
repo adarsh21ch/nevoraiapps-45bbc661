@@ -571,7 +571,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         bowlingTeamId,
         target: null,
       });
-      setTossOpen(false);
       toast.success("Toss recorded · Innings 1 started");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not start innings");
