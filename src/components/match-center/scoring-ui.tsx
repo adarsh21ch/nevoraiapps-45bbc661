@@ -768,6 +768,33 @@ export function ExtraRunsModal({
   kind: string;
   onSelect: (runs: number) => void;
 }) {
+  // No Ball is 1..7 (penalty is always included; 1 = NB only).
+  // Wide/Bye/Leg Bye are 0..6 (0 allowed per spec / match rules).
+  const options: number[] =
+    kind === "No Ball" ? [1, 2, 3, 4, 5, 6, 7] : [0, 1, 2, 3, 4, 5, 6];
+
+  const labelFor = (r: number): string => {
+    if (kind === "No Ball") {
+      // Total = 1 penalty + bat runs. Boundary = bat 4 (total 5) / six = bat 6 (total 7).
+      if (r === 5) return "FOUR";
+      if (r === 7) return "SIX";
+      return String(r);
+    }
+    if (r === 4) return "FOUR";
+    if (r === 6) return "SIX";
+    return String(r);
+  };
+
+  const isBoundary = (r: number): boolean => {
+    if (kind === "No Ball") return r === 5 || r === 7;
+    return r === 4 || r === 6;
+  };
+
+  const hint =
+    kind === "No Ball"
+      ? "Total runs on this delivery (includes the 1-run no-ball penalty)."
+      : `Total ${kind.toLowerCase()} runs on this delivery.`;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -778,21 +805,27 @@ export function ExtraRunsModal({
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
         <SheetHeader className="px-4 pb-2 pt-3 text-left">
           <SheetTitle className="text-base">{kind} — how many runs?</SheetTitle>
-          <SheetDescription className="text-xs">
-            Total runs conceded on this ball including the {kind.toLowerCase()}.
-          </SheetDescription>
+          <SheetDescription className="text-xs">{hint}</SheetDescription>
         </SheetHeader>
-        <div className="grid grid-cols-5 gap-2 px-3">
-          {[1, 2, 3, 4, 5].map((r) => (
-            <Button
-              key={r}
-              variant="outline"
-              className="h-12 text-xl font-black tabular-nums"
-              onClick={() => onSelect(r)}
-            >
-              {r}
-            </Button>
-          ))}
+        <div className="grid grid-cols-4 gap-2 px-3">
+          {options.map((r) => {
+            const boundary = isBoundary(r);
+            return (
+              <Button
+                key={r}
+                variant={boundary ? "default" : "outline"}
+                className={
+                  "h-14 font-black tabular-nums " +
+                  (boundary
+                    ? "text-sm bg-emerald-600 hover:bg-emerald-600/90 text-white border-emerald-700 shadow-sm"
+                    : "text-xl")
+                }
+                onClick={() => onSelect(r)}
+              >
+                {labelFor(r)}
+              </Button>
+            );
+          })}
         </div>
         <SheetFooter
           className="px-3 pb-3 pt-2"
