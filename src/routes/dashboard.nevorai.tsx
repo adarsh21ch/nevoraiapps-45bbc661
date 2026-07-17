@@ -69,6 +69,11 @@ function NevorAIPage() {
   });
   const [convOpen, setConvOpen] = useState(false); // < lg drawer
   const [rightOpen, setRightOpen] = useState(false); // < xl drawer
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
+  useEffect(() => {
+    const p = consumePendingNevorAIPrompt();
+    if (p) setPendingPrompt(p);
+  }, []);
   const fetchTurns = useServerFn(listTurns);
   const fetchConversations = useServerFn(listConversations);
   const createConv = useServerFn(createConversation);
