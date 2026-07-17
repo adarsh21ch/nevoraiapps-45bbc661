@@ -405,9 +405,12 @@ function CreateMatchPage() {
           console.error("Auto-start match failed", e);
         }
         qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] });
+        toast.success("Match started");
+        navigate({ to: "/scorer/$matchId", params: { matchId: res.id } });
+        return;
       }
-      toast.success("Match started");
-      navigate({ to: "/scorer/$matchId", params: { matchId: res.id } });
+      toast.success("Match created");
+      navigate({ to: "/match-center/matches" });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to create match"),
   });
