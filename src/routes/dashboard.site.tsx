@@ -102,9 +102,11 @@ function ContactEditor() {
     tagline: tenant.tagline ?? "",
     logo_url: tenant.logo_url ?? "",
     short_name: (tenant as any).short_name ?? "",
+    registration_pdf_url: (tenant as any).registration_pdf_url ?? "",
   });
   const [qrPreview, setQrPreview] = useState<string>("");
   const [logoPreview, setLogoPreview] = useState<string>("");
+  const [pdfPreview, setPdfPreview] = useState<string>("");
   useEffect(() => {
     if (form.upi_qr_url) signedUrl(form.upi_qr_url).then(setQrPreview);
     else setQrPreview("");
@@ -113,6 +115,11 @@ function ContactEditor() {
     if (form.logo_url) signedUrl(form.logo_url).then(setLogoPreview);
     else setLogoPreview("");
   }, [form.logo_url]);
+  useEffect(() => {
+    if (form.registration_pdf_url) signedUrl(form.registration_pdf_url).then(setPdfPreview);
+    else setPdfPreview("");
+  }, [form.registration_pdf_url]);
+
 
   const invalidateTenant = () => {
     qc.invalidateQueries({ queryKey: ["dashboard-tenant", tenant.id] });
