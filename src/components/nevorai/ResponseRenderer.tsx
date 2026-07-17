@@ -476,6 +476,67 @@ function CalloutBlock({
   );
 }
 
+function CompareBlock({
+  title,
+  headers,
+  rows,
+}: {
+  title: string;
+  headers: [string, string, string];
+  rows: CompareRow[];
+}) {
+  if (!rows.length) return null;
+  return (
+    <div className="animate-fade-in overflow-hidden rounded-2xl border border-border/60 bg-card/60">
+      {title ? (
+        <div className="border-b border-border/60 px-4 py-2.5 text-sm font-semibold tracking-tight">
+          {title}
+        </div>
+      ) : null}
+      <table className="w-full text-sm">
+        <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
+          <tr>
+            <th className="px-4 py-2 font-medium">{headers[0]}</th>
+            <th className="px-4 py-2 font-medium text-right">{headers[1]}</th>
+            <th className="px-4 py-2 font-medium text-right">{headers[2]}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => {
+            const numA = parseFloat(r.a.replace(/[^\d.\-]/g, ""));
+            const numB = parseFloat(r.b.replace(/[^\d.\-]/g, ""));
+            let winner: "a" | "b" | null = null;
+            if (Number.isFinite(numA) && Number.isFinite(numB) && numA !== numB) {
+              winner = r.lowerBetter ? (numA < numB ? "a" : "b") : numA > numB ? "a" : "b";
+            }
+            return (
+              <tr key={i} className="border-t border-border/40">
+                <td className="px-4 py-2 text-muted-foreground">{r.metric}</td>
+                <td
+                  className={cn(
+                    "px-4 py-2 text-right tabular-nums",
+                    winner === "a" && "font-semibold text-primary",
+                  )}
+                >
+                  {r.a}
+                </td>
+                <td
+                  className={cn(
+                    "px-4 py-2 text-right tabular-nums",
+                    winner === "b" && "font-semibold text-primary",
+                  )}
+                >
+                  {r.b}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function ActionsBlock({
   items,
   onAction,
@@ -483,6 +544,7 @@ function ActionsBlock({
   items: Array<{ label: string; href?: string }>;
   onAction?: (label: string) => void;
 }) {
+  const { close } = useNevorAI();
   if (!items.length) return null;
   return (
     <div className="animate-fade-in flex flex-wrap gap-2 pt-1">
@@ -491,7 +553,7 @@ function ActionsBlock({
           "inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background px-3.5 py-1.5 text-xs font-medium text-foreground/85 shadow-sm transition hover:border-primary/50 hover:bg-primary/5 hover:text-foreground";
         if (it.href && it.href.startsWith("/")) {
           return (
-            <Link key={i} to={it.href} className={cls}>
+            <Link key={i} to={it.href} className={cls} onClick={() => close()}>
               {it.label}
               <ArrowRight className="size-3" />
             </Link>
