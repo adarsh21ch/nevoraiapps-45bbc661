@@ -81,6 +81,7 @@ export async function uploadTenantFile(
 export async function signedUrl(path: string, expiresIn = 60 * 60 * 24 * 365): Promise<string> {
   if (!path) return "";
   if (path.startsWith("http")) return path;
+  if (path.startsWith("/")) return path; // absolute app-relative asset (e.g. Lovable CDN)
   const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, expiresIn);
   if (error) return "";
   return data.signedUrl;
