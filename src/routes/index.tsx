@@ -677,19 +677,32 @@ function HomeContent() {
                 </div>
               </div>
               <div className="min-h-[280px] overflow-hidden rounded-2xl border border-border/60 bg-muted">
-                {mapContent?.embed_url ? (
-                  <iframe
-                    src={mapContent.embed_url}
-                    className="h-full min-h-[280px] w-full"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Location map"
-                  />
-                ) : (
-                  <div className="flex h-full min-h-[280px] items-center justify-center p-6 text-center text-sm text-muted-foreground">
-                    Add a Google Maps embed in your site editor to show your location here.
-                  </div>
-                )}
+                {(() => {
+                  // Normalize the map URL so short/share links (maps.app.goo.gl,
+                  // /maps/place/…) don't 403 inside an iframe.
+                  const raw = (mapContent?.embed_url ?? "").trim();
+                  const isEmbeddable =
+                    raw.includes("google.com/maps/embed") ||
+                    /[?&]output=embed(&|$)/.test(raw);
+                  const src = isEmbeddable
+                    ? raw
+                    : tenant.address
+                      ? `https://www.google.com/maps?q=${encodeURIComponent(tenant.address)}&output=embed`
+                      : "";
+                  return src ? (
+                    <iframe
+                      src={src}
+                      className="h-full min-h-[280px] w-full"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title="Location map"
+                    />
+                  ) : (
+                    <div className="flex h-full min-h-[280px] items-center justify-center p-6 text-center text-sm text-muted-foreground">
+                      Add a Google Maps embed in your site editor to show your location here.
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
