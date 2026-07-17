@@ -543,10 +543,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.match?.id]);
 
-  const openTossDialog = () => {
-    if (!session.match) return;
-    setTossOpen(true);
-  };
 
   const confirmTossAndStart = async () => {
     if (!session.match || !tossWinnerId || !tossDecision) return;
