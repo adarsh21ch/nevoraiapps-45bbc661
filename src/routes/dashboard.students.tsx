@@ -212,7 +212,21 @@ function StudentsPage() {
       if (batch !== "all" && s.batch_id !== batch) return false;
       if (isAnyCoach && myBatchesOnly && !myBatchIds.has(s.batch_id ?? "")) return false;
       if (gender !== "all" && (s.gender ?? "").toLowerCase() !== gender) return false;
-      if (role !== "all" && (s.playing_role ?? "") !== role) return false;
+      if (role !== "all") {
+        const pr = String(s.playing_role ?? "").toLowerCase().replace(/[_\s]+/g, "-");
+        const isKeeper = pr === "wicket-keeper" || pr === "wicket-keeper-batter" || pr === "wicketkeeper" || pr === "wicketkeeper-batsman";
+        const isAllRounder = pr === "all-rounder" || pr === "allrounder";
+        const isBowler = pr === "bowler" || isAllRounder;
+        // Wicketkeepers are batters by convention (wicketkeeper-batsman)
+        const isBatter = pr === "batter" || pr === "batsman" || isAllRounder || isKeeper;
+        const match =
+          role === "Batter" ? isBatter :
+          role === "Bowler" ? isBowler :
+          role === "All-rounder" ? isAllRounder :
+          role === "Wicket-keeper" ? isKeeper :
+          pr === role.toLowerCase();
+        if (!match) return false;
+      }
       if (ageGroup !== "all" && !inAgeGroup(ageFromDob(s.dob), ageGroup)) return false;
       if (joinYear !== "all" && !(s.joined_at ?? "").startsWith(joinYear)) return false;
       if (q) {
@@ -421,7 +435,10 @@ function StudentsPage() {
             onChange={setRole}
             options={[
               { value: "all", label: "All roles" },
-              ...PLAYING_ROLES.map((r) => ({ value: r, label: r })),
+              { value: "Batter", label: "Batter (incl. keepers & all-rounders)" },
+              { value: "Bowler", label: "Bowler (incl. all-rounders)" },
+              { value: "All-rounder", label: "All-rounder" },
+              { value: "Wicket-keeper", label: "Wicketkeeper" },
             ]}
           />
           <FilterSelect
