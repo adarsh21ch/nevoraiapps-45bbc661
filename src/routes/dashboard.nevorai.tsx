@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import type { UIMessage } from "ai";
-import { PanelLeft, PanelRight, Plus, Sparkles } from "lucide-react";
+import { ArrowLeft, PanelLeft, PanelRight, Plus, Sparkles } from "lucide-react";
+import { consumePendingNevorAIPrompt } from "@/components/nevorai/NevorAIProvider";
 import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { ChatPanel } from "@/components/nevorai/ChatPanel";
 import { ConversationList } from "@/components/nevorai/ConversationList";
@@ -68,6 +69,11 @@ function NevorAIPage() {
   });
   const [convOpen, setConvOpen] = useState(false); // < lg drawer
   const [rightOpen, setRightOpen] = useState(false); // < xl drawer
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
+  useEffect(() => {
+    const p = consumePendingNevorAIPrompt();
+    if (p) setPendingPrompt(p);
+  }, []);
   const fetchTurns = useServerFn(listTurns);
   const fetchConversations = useServerFn(listConversations);
   const createConv = useServerFn(createConversation);
@@ -160,6 +166,13 @@ function NevorAIPage() {
       {/* Center — chat */}
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between gap-2 border-b border-border/50 px-3 py-2.5 lg:px-6">
+          <Link
+            to="/dashboard"
+            className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
+            aria-label="Back to dashboard"
+          >
+            <ArrowLeft className="size-4" />
+          </Link>
           <button
             type="button"
             onClick={() => setConvOpen(true)}
@@ -215,6 +228,8 @@ function NevorAIPage() {
                 qc.invalidateQueries({ queryKey: ["nevorai", "conversations"] });
               }}
               suggestions={SUGGESTIONS}
+              pendingPrompt={pendingPrompt}
+              onPendingPromptConsumed={() => setPendingPrompt(null)}
             />
           </div>
         </div>
