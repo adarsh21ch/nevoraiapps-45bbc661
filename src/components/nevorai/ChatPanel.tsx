@@ -486,8 +486,14 @@ export function ChatPanel({
       </Conversation>
 
       <div
-        className="border-t border-border/60 bg-background/80 px-4 py-3 backdrop-blur"
-        style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
+        className="shrink-0 border-t border-border/60 bg-background/80 px-4 py-3 backdrop-blur"
+        style={{
+          // When keyboard is open the visual viewport already excludes the
+          // home indicator area — don't double-pad.
+          paddingBottom: keyboardOpen
+            ? "0.75rem"
+            : "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
+        }}
       >
 
         <PromptInput
