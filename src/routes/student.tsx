@@ -21,16 +21,16 @@ export const Route = createFileRoute("/student")({
   component: StudentLayout,
 });
 
-// Player nav: Home · Performance · Manage · Profile.
-// Attendance/Fees live inside Manage (personal information hub).
+// Player nav: Home · Performance · Matches · Manage · Profile.
+// The "Pending" screen is a gate, not a destination — no tab for it.
 const TABS = [
   { to: "/student", label: "Home", icon: Home, exact: true },
   { to: "/student/progress", label: "Performance", icon: TrendingUp, exact: false },
   { to: "/student/matches", label: "Matches", icon: Trophy, exact: false },
-  { to: "/student/pending", label: "Pending", icon: ClipboardList, exact: false },
   { to: "/student/manage", label: "Manage", icon: Building2, exact: false },
   { to: "/student/profile", label: "Profile", icon: UserCircle, exact: false },
 ] as const;
+
 
 function StudentLayout() {
   const navigate = useNavigate();
