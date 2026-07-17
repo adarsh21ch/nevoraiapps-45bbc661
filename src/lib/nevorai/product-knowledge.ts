@@ -120,7 +120,7 @@ export const PRODUCT_KNOWLEDGE: ProductKnowledgeTopic[] = [
   {
     id: "admissions",
     title: "Admissions & Leads",
-    screens: ["/dashboard/admissions-review", "/dashboard/registrations", "/dashboard/leads"],
+    screens: ["/dashboard/registrations", "/dashboard/leads"],
     keywords: [
       "admission",
       "admissions",
