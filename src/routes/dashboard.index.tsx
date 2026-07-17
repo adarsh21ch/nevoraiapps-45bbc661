@@ -511,8 +511,8 @@ function QuickActionsGrid({
     ...(canScoreMatch
       ? [
           {
-            to: "/match-center",
-            label: "Start Match",
+            to: "/match-center/create",
+            label: "Create Match",
             icon: <Swords className="size-5" />,
           } as QAItem,
         ]
@@ -542,8 +542,8 @@ function QuickActionsGrid({
     ...(canScoreMatch
       ? [
           {
-            to: "/match-center",
-            label: "Start Match",
+            to: "/match-center/create",
+            label: "Create Match",
             icon: <Swords className="size-5" />,
           } as QAItem,
         ]

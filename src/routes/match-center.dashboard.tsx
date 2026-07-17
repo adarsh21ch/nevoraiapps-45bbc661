@@ -191,35 +191,50 @@ function MatchCenterDashboard() {
             <div className="md:col-span-3 grid grid-cols-2 lg:grid-cols-3 gap-4">
               <QuickActionCard
                 icon={Trophy}
-                title="Tournament"
-                description="League or knockout."
+                title="Tournament Center"
+                description="Leagues & knockouts."
                 to="/match-center/tournaments"
                 tone="tournament"
               />
               <QuickActionCard
-                icon={Medal}
-                title="Recognition"
-                description="Celebrate players."
-                to="/match-center/recognition"
-                tone="award"
+                icon={Radio}
+                title="Live Matches"
+                description="Scoring in progress."
+                to="/match-center/live"
+                tone="live"
               />
               <QuickActionCard
-                icon={Sparkles}
-                title="AI report"
-                description="Generate insights."
-                to="/match-center/ai-insights"
-                tone="ai"
+                icon={ClipboardList}
+                title="Match Reports"
+                description="Scorecards & results."
+                to="/match-center/matches"
+                tone="analytics"
               />
               <QuickActionCard
-                icon={Search}
-                title="Find player"
-                description="Search the academy."
+                icon={Users2}
+                title="Teams"
+                description="Manage squads."
+                to="/match-center/teams"
+                accent="muted"
+              />
+              <QuickActionCard
+                icon={UserPlus}
+                title="Players"
+                description="Academy roster."
                 to="/match-center/players"
                 accent="muted"
+              />
+              <QuickActionCard
+                icon={Activity}
+                title="Statistics"
+                description="Performance & insights."
+                to="/match-center/performance"
+                tone="ai"
               />
             </div>
 
           </div>
+
 
           {/* SNAPSHOT ----------------------------------------------------- */}
           <SectionTitle eyebrow="Snapshot" title="Academy at a glance" />

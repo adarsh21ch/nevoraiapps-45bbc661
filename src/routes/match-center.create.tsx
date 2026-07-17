@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -11,9 +11,6 @@ import {
   Loader2,
   Settings2,
   X,
-  Users,
-  UserPlus,
-  
   CheckCircle2,
 } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
@@ -84,8 +81,12 @@ const emptyPanel = (mode: TeamMode = "existing"): TeamPanelState => ({
 const FORMAT_OPTIONS: { label: string; overs: number; value: string }[] = [
   { label: "T10", overs: 10, value: "T10" },
   { label: "T20", overs: 20, value: "T20" },
+  { label: "30 Overs", overs: 30, value: "T30" },
+  { label: "40 Overs", overs: 40, value: "T40" },
   { label: "50 Overs", overs: 50, value: "ODI" },
+  { label: "Test", overs: 90, value: "Test" },
 ];
+
 
 
 /* ==================== PAGE ==================== */
@@ -528,7 +529,7 @@ function CreateMatchPage() {
               >
                 Custom
               </ChoiceChip>
-              {matchFormat === "Custom" && (
+              {(matchFormat === "Custom" || matchFormat === "Test") && (
                 <div className="flex items-center gap-1.5">
                   <Input
                     type="number"
@@ -545,6 +546,7 @@ function CreateMatchPage() {
           </div>
         </div>
       </div>
+
 
 
       {/* Step 3 & 4 — Teams */}
@@ -725,67 +727,26 @@ function TeamPanel({
   const removePlayer = (key: string) =>
     onChange({ ...state, players: state.players.filter((p) => p.key !== key) });
 
-  const modeCards: {
-    mode: TeamMode;
-    title: string;
-    caption: string;
-    icon: React.ComponentType<{ className?: string }>;
-  }[] = [
-    {
-      mode: "new",
-      title: "Create team",
-      caption: "Name the team and add players.",
-      icon: UserPlus,
-    },
-    {
-      mode: "existing",
-      title: "Use existing team",
-      caption: "Pick from your academy teams.",
-      icon: Users,
-    },
-  ];
-
-
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
-      <div className="mb-3 flex items-center gap-2">
-        <span
-          className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
-          style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
-        >
-          {stepNumber}
-        </span>
-        <h3 className="text-sm font-semibold tracking-tight">Team {side}</h3>
-      </div>
-
-      {/* Two-option picker */}
-      <div className="mb-4 grid gap-2 sm:grid-cols-2">
-        {modeCards.map((c) => (
-          <button
-            key={c.mode}
-            type="button"
-            onClick={() => setMode(c.mode)}
-            className={cn(
-              "flex items-start gap-2 rounded-xl border p-3 text-left transition-colors",
-              state.mode === c.mode
-                ? "border-primary bg-primary/5"
-                : "border-border bg-background hover:bg-accent/40",
-            )}
+    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span
+            className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
+            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
           >
-            <c.icon
-              className={cn(
-                "mt-0.5 size-4",
-                state.mode === c.mode ? "text-primary" : "text-muted-foreground",
-              )}
-            />
-            <div>
-              <div className="text-sm font-medium leading-tight">{c.title}</div>
-              <div className="mt-0.5 text-[11px] text-muted-foreground">{c.caption}</div>
-            </div>
-          </button>
-        ))}
+            {stepNumber}
+          </span>
+          <h3 className="text-sm font-semibold tracking-tight">Team {side}</h3>
+        </div>
+        <button
+          type="button"
+          onClick={() => setMode(state.mode === "existing" ? "new" : "existing")}
+          className="text-[11px] font-semibold text-primary hover:underline"
+        >
+          {state.mode === "existing" ? "← Create new team" : "Use existing team →"}
+        </button>
       </div>
-
 
       {/* Body */}
       {state.mode === "existing" && (
@@ -819,6 +780,7 @@ function TeamPanel({
     </div>
   );
 }
+
 
 /* --- Existing team --- */
 
@@ -940,7 +902,6 @@ function NewTeamBody({
   onName,
   players,
   onAdd,
-  onRemove,
   studentPool,
   studentsLoading,
 }: {
@@ -953,88 +914,8 @@ function NewTeamBody({
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
 }) {
-  const [customName, setCustomName] = useState("");
-  const addCustom = () => {
-    const trimmed = customName.trim();
-    if (!trimmed) return;
-    onAdd({
-      key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      name: trimmed,
-      photo_url: null,
-      athlete_profile_id: null,
-    });
-    setCustomName("");
-  };
-  return (
-    <div className="space-y-3">
-      <div>
-        <Label>Team name</Label>
-        <Input
-          value={name}
-          onChange={(e) => onName(e.target.value)}
-          placeholder="e.g. U16 · Weekend Warriors"
-          className="mt-1"
-        />
-      </div>
-      <AcademyPlayerSearch
-        studentPool={studentPool}
-        selectedKeys={new Set(players.map((p) => p.key))}
-        onAdd={onAdd}
-        loading={studentsLoading}
-        emptyLabel="No matching academy players. Type a name below to add anyway."
-      />
-      <div>
-        <Label>Or add a player by name</Label>
-        <div className="mt-1 flex gap-2">
-          <Input
-            value={customName}
-            onChange={(e) => setCustomName(e.target.value)}
-            placeholder="Type a player's name…"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addCustom();
-              }
-            }}
-          />
-          <Button type="button" onClick={addCustom} disabled={!customName.trim()}>
-            <Plus className="size-4" />
-          </Button>
-        </div>
-        <p className="mt-1.5 text-[11px] text-muted-foreground">
-          Not registered in the academy? Just type the name — they'll be recorded for this match.
-        </p>
-      </div>
-      {players.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-          Add academy players or type any name to build the Playing XI.
-        </div>
-      )}
-      {void onRemove}
-    </div>
-  );
-}
-
-
-
-
-/* --- Academy-player search (used by "existing" edit and "new" panels) --- */
-
-function AcademyPlayerSearch({
-  studentPool,
-  selectedKeys,
-  onAdd,
-  loading,
-  emptyLabel = "No matching players.",
-}: {
-  studentPool: PlayerRef[];
-  selectedKeys: Set<string>;
-  onAdd: (p: PlayerRef) => void;
-  loading?: boolean;
-  emptyLabel?: string;
-}) {
   const [q, setQ] = useState("");
-  const boxRef = useRef<HTMLDivElement | null>(null);
+  const selectedKeys = useMemo(() => new Set(players.map((p) => p.key)), [players]);
 
   const results = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -1042,62 +923,135 @@ function AcademyPlayerSearch({
     return studentPool
       .filter((s) => !selectedKeys.has(s.key))
       .map((s) => {
-        const name = s.name.toLowerCase();
-        const parts = name.split(/\s+/);
+        const n = s.name.toLowerCase();
+        const parts = n.split(/\s+/);
         const initials = parts.map((p) => p[0] ?? "").join("");
         let score = 0;
-        if (name.startsWith(term)) score += 100;
+        if (n.startsWith(term)) score += 100;
         else if (parts.some((p) => p.startsWith(term))) score += 60;
-        else if (name.includes(term)) score += 30;
+        else if (n.includes(term)) score += 30;
         if (initials.includes(term)) score += 20;
         return { p: s, score };
       })
       .filter((x) => x.score > 0)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 12)
+      .slice(0, 8)
       .map((x) => x.p);
   }, [q, studentPool, selectedKeys]);
 
+  const trimmed = q.trim();
+  const exactAcademyMatch =
+    trimmed.length > 0 &&
+    results.some((r) => r.name.toLowerCase() === trimmed.toLowerCase());
+
+  const addGuest = () => {
+    if (!trimmed) return;
+    onAdd({
+      key: `guest-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: trimmed,
+      photo_url: null,
+      athlete_profile_id: null,
+    });
+    setQ("");
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (results.length > 0) {
+      onAdd(results[0]);
+      setQ("");
+    } else if (trimmed) {
+      addGuest();
+    }
+  };
+
   return (
-    <div ref={boxRef}>
-      <Label>Add academy players</Label>
-      <div className="relative mt-1">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="space-y-3">
+      <div>
+        <Label>Team name</Label>
         <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search players by name…"
-          className="pl-9"
+          value={name}
+          onChange={(e) => onName(e.target.value)}
+          placeholder="e.g. Team A · U16 · Weekend Warriors"
+          className="mt-1 h-11 text-base"
         />
       </div>
-      {q.trim() && (
-        <div className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-xl border border-border bg-background/60 p-1">
-          {loading ? (
-            <div className="p-3 text-sm text-muted-foreground">Loading…</div>
-          ) : results.length === 0 ? (
-            <div className="p-3 text-xs text-muted-foreground">{emptyLabel}</div>
-          ) : (
-            results.map((p) => (
-              <button
-                key={p.key}
-                type="button"
-                onClick={() => {
-                  onAdd(p);
-                  setQ("");
-                }}
-                className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-accent"
-              >
-                <Avatar src={p.photo_url} name={p.name} size={28} className="rounded-full" />
-                <span className="min-w-0 flex-1 truncate text-sm">{p.name}</span>
-                <Plus className="size-3.5 text-muted-foreground" />
-              </button>
-            ))
-          )}
+
+      <div>
+        <Label>Add player</Label>
+        <div className="relative mt-1">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder="Search academy players or type any name…"
+            className="pl-9 h-11 text-base"
+          />
+        </div>
+        {trimmed && (
+          <div className="mt-2 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border bg-background/60 p-1">
+            {studentsLoading ? (
+              <div className="p-3 text-sm text-muted-foreground">Loading…</div>
+            ) : (
+              <>
+                {results.map((p) => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    onClick={() => {
+                      onAdd(p);
+                      setQ("");
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
+                  >
+                    <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full" />
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                      Academy
+                    </span>
+                  </button>
+                ))}
+                {!exactAcademyMatch && (
+                  <button
+                    type="button"
+                    onClick={addGuest}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
+                  >
+                    <span className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground">
+                      <Plus className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm">
+                      Add <span className="font-semibold">{trimmed}</span> as guest
+                    </span>
+                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                      Guest
+                    </span>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
+        <p className="mt-1.5 text-[11px] text-muted-foreground">
+          Not in the academy? Type any name and add as guest — no registration needed.
+        </p>
+      </div>
+
+      {players.length === 0 && (
+        <div className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+          Add academy players or type any name to build the squad.
         </div>
       )}
     </div>
   );
 }
+
+
+
+
+
 
 /* --- Squad footer (chips + count) --- */
 
