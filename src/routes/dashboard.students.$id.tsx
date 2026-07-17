@@ -310,6 +310,8 @@ function PlayerProfileRoute() {
             student={student as unknown as Parameters<typeof MoreTab>[0]["student"]}
             studentId={id}
             studentName={student.name}
+            tenantId={tenant.id}
+            studentUserId={(student as unknown as { user_id: string | null }).user_id ?? null}
           />
         )}
       </div>
