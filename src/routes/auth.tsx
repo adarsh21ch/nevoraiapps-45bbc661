@@ -327,13 +327,13 @@ function AuthPage() {
           {mode === "signin" && (
             <form onSubmit={onSignIn} className="space-y-5">
               <Field
-                id="email"
-                label="Email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={setEmail}
-                placeholder="you@example.com"
+                id="identifier"
+                label="Email or phone"
+                type="text"
+                autoComplete="username"
+                value={identifier}
+                onChange={setIdentifier}
+                placeholder="you@example.com or 98xxxxxxxx"
               />
               <Field
                 id="password"
@@ -369,6 +369,9 @@ function AuthPage() {
                   New here? Register →
                 </Link>
               </div>
+              <p className="text-[11px] leading-relaxed text-zinc-400">
+                Password reset works via your email.
+              </p>
             </form>
           )}
 
