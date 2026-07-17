@@ -18,6 +18,9 @@ import { cn } from "@/lib/utils";
 export function GlobalBottomNav() {
   const dash = useDashboardOptional();
   const tenantId = dash?.tenant.id;
+  const location = useLocation();
+  const keyboardOpen = useKeyboardOpen();
+
 
   const newRegs = useNewRegistrationsCount(tenantId ?? "");
 
