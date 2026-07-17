@@ -141,25 +141,34 @@ function ContactEditor() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  async function upload(field: "upi_qr_url" | "logo_url", file: File) {
+  async function upload(
+    field: "upi_qr_url" | "logo_url" | "registration_pdf_url",
+    file: File,
+  ) {
     try {
-      const path = await uploadTenantFile(tenant.id, field, file);
+      const folder = field === "registration_pdf_url" ? "public/registration-pdf" : field;
+      const path = await uploadTenantFile(tenant.id, folder, file);
       const next = { ...form, [field]: path };
       setForm(next);
-      // Auto-persist the single field immediately so the change survives reload.
       const { error } = await supabase
         .from("tenants")
         .update({ [field]: path } as any)
         .eq("id", tenant.id);
       if (error) throw error;
-      toast.success(field === "logo_url" ? "Logo updated" : "QR updated");
+      toast.success(
+        field === "logo_url"
+          ? "Logo updated"
+          : field === "registration_pdf_url"
+            ? "Registration PDF updated"
+            : "QR updated",
+      );
       invalidateTenant();
     } catch (e: any) {
       toast.error(e.message);
     }
   }
 
-  async function remove(field: "upi_qr_url" | "logo_url") {
+  async function remove(field: "upi_qr_url" | "logo_url" | "registration_pdf_url") {
     try {
       const next = { ...form, [field]: "" };
       setForm(next);
@@ -168,12 +177,19 @@ function ContactEditor() {
         .update({ [field]: null } as any)
         .eq("id", tenant.id);
       if (error) throw error;
-      toast.success(field === "logo_url" ? "Logo removed" : "QR removed");
+      toast.success(
+        field === "logo_url"
+          ? "Logo removed"
+          : field === "registration_pdf_url"
+            ? "Registration PDF removed"
+            : "QR removed",
+      );
       invalidateTenant();
     } catch (e: any) {
       toast.error(e.message);
     }
   }
+
 
 
   return (
