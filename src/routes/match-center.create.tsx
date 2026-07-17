@@ -532,7 +532,7 @@ function CreateMatchPage() {
               >
                 Custom
               </ChoiceChip>
-              {matchFormat === "Custom" && (
+              {(matchFormat === "Custom" || matchFormat === "Test") && (
                 <div className="flex items-center gap-1.5">
                   <Input
                     type="number"
@@ -549,6 +549,7 @@ function CreateMatchPage() {
           </div>
         </div>
       </div>
+
 
 
       {/* Step 3 & 4 — Teams */}
