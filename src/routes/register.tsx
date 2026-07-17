@@ -111,6 +111,10 @@ function RegisterContent() {
       toast.error("Please fill name and phone.");
       return;
     }
+    if (!termsAccepted) {
+      toast.error("Please accept the Terms & Conditions to continue.");
+      return;
+    }
     if (requiredPolicies.length > 0 && !allRequiredAccepted) {
       toast.error("Please accept the academy policies to continue.");
       return;
