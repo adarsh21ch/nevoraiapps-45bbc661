@@ -177,6 +177,84 @@ function RegisterContent() {
     medical_notes: "",
   });
 
+  // --- Mobile wizard state (presentation only) --------------------------
+  const [step, setStep] = useState<Step>(1);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches,
+  );
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const handler = () => setIsMobile(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Draft persistence — everything except password fields.
+  const DRAFT_KEY = `register:draft:${tenant.id}`;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.sessionStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Partial<typeof form>;
+      setForm((f) => ({ ...f, ...saved, password: "", password2: "" }));
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [DRAFT_KEY]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const { password: _p, password2: _p2, ...safe } = form;
+      window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(safe));
+    } catch {
+      /* quota / private mode */
+    }
+  }, [form, DRAFT_KEY]);
+
+  // Per-step validation — mirrors the existing submit-time checks exactly.
+  function validateStep(n: Step): boolean {
+    const e: Record<string, string> = {};
+    if (n === 1) {
+      const emailTrim = form.email.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim))
+        e.email = "Enter a valid email address.";
+      if (form.password.length < 8) e.password = "At least 8 characters.";
+      if (form.password !== form.password2) e.password2 = "Passwords do not match.";
+    } else if (n === 2) {
+      if (!form.name.trim()) e.name = "Required.";
+      if (!form.guardian_name.trim()) e.guardian_name = "Required.";
+      if (!form.dob) e.dob = "Required.";
+      if (!form.gender) e.gender = "Required.";
+      if (!form.phone.trim()) e.phone = "Required.";
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+  function goNext() {
+    if (!validateStep(step)) return;
+    setErrors({});
+    setStep((s) => Math.min(4, s + 1) as Step);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function goBack() {
+    setErrors({});
+    setStep((s) => Math.max(1, s - 1) as Step);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function skipOptional() {
+    setErrors({});
+    setStep(4);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  const showStep = (s: Step) => !isMobile || step === s;
+
+
+
   // Prefill from originating lead when arriving via /register?lead=<id>
   useEffect(() => {
     if (!leadId) return;
