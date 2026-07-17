@@ -143,12 +143,27 @@ function RegistrationsInbox() {
       if (error) throw error;
       return newId;
     },
+    // Optimistic — remove the row from the inbox the instant the owner
+    // confirms, so the pending list doesn't wait for a refetch to update.
+    onMutate: async (id: string) => {
+      await qc.cancelQueries({ queryKey: qk.regs(tenant.id) });
+      const prev = qc.getQueryData<any[]>(qk.regs(tenant.id));
+      qc.setQueryData<any[]>(qk.regs(tenant.id), (old) =>
+        (old ?? []).map((r) =>
+          r.id === id ? { ...r, status: "approved", review_status: "approved" } : r,
+        ),
+      );
+      return { prev };
+    },
     onSuccess: () => {
       toast.success("Accepted — student added");
       invalidate();
       setOpenId(null);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, _id, ctx) => {
+      if (ctx?.prev) qc.setQueryData(qk.regs(tenant.id), ctx.prev);
+      toast.error(e.message);
+    },
   });
 
   const bulkApprove = useMutation({
