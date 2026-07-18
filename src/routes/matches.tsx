@@ -259,11 +259,11 @@ function LiveMatchCard({
             {battingName}
           </div>
           <div className="mt-1 text-2xl font-black tabular-nums">
-            {current.runs_total}
+            {current.runs}
             <span className="text-muted-foreground">/</span>
-            {current.wickets_total}{" "}
+            {current.wickets}{" "}
             <span className="text-sm font-semibold text-muted-foreground">
-              ({current.overs_completed}.{current.balls_in_current_over})
+              ({current.overs}.{current.balls})
             </span>
           </div>
         </div>
