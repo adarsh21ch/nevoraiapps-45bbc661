@@ -215,7 +215,7 @@ function LiveMatchCard({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mc_innings")
-        .select("id,innings_number,batting_team_id,runs_total,wickets_total,overs_completed,balls_in_current_over")
+        .select("id,innings_number,batting_team_id,runs,wickets,overs,balls")
         .eq("match_id", match.id)
         .order("innings_number", { ascending: true });
       if (error) throw error;
