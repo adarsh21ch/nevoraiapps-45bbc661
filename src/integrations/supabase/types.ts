@@ -7423,6 +7423,7 @@ export type Database = {
       mc_match_has_my_child: { Args: { _match_id: string }; Returns: boolean }
       mc_match_has_my_student: { Args: { _match_id: string }; Returns: boolean }
       mc_match_scorer_of: { Args: { _match_id: string }; Returns: boolean }
+      my_post_login_route: { Args: never; Returns: string }
       owner_delete_member: { Args: { _profile_id: string }; Returns: undefined }
       owner_delete_student: {
         Args: { _confirm_name: string; _student_id: string }
