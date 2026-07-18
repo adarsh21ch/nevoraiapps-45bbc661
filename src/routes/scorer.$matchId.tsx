@@ -1832,6 +1832,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         onOpenChange={setNewBowlerOpen}
         title="Select next bowler"
         players={bowlingOptions}
+        bowledIds={bowledBowlerIds}
         onSelect={(p) => {
           setPlayer("bowler", p);
           setNewBowlerOpen(false);
@@ -1862,6 +1863,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
         onOpenChange={setPickBowlerOpen}
         title="Select bowler"
         players={bowlingOptions}
+        bowledIds={bowledBowlerIds}
         onSelect={(p) => {
           setPlayer("bowler", p);
           setPickBowlerOpen(false);
