@@ -243,6 +243,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
       {/* Unified mobile bottom nav — shared with Match Center for a seamless experience. */}
       <GlobalBottomNav />
+      {canSeeTour ? (
+        <ProductTour open={tourOpen} onClose={() => setTourOpen(false)} />
+      ) : null}
     </div>
     </NevorAIProvider>
   );
