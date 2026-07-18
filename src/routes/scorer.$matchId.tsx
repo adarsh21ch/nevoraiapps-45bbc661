@@ -510,7 +510,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         : { id: striker.athleteId, name: striker.name };
     await submit(
       ballHelpers.wicket(kind, {
-        fielderAthleteId: opts?.fielder?.id ?? null,
+        fielderAthleteId: opts?.fielder?.id && !opts.fielder.id.startsWith("ext:") ? opts.fielder.id : null,
         fielderName: opts?.fielder?.name ?? null,
         dismissedAthleteId: dismissedRef.id,
         dismissedName: dismissedRef.name,
