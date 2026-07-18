@@ -234,6 +234,10 @@ export function useScoringSession(
   const strikerRef = useRef<CurrentBatterState>(striker);
   const nonStrikerRef = useRef<CurrentBatterState>(nonStriker);
   const bowlerRef = useRef<CurrentBowlerState>(bowler);
+  // Serialized network queue so rapid taps don't fire concurrent
+  // appendBallEvent calls (which would race on sequence_number). The
+  // optimistic UI update still happens synchronously on every call.
+  const netQueueRef = useRef<Promise<void>>(Promise.resolve());
   useEffect(() => {
     eventsRef.current = events;
   }, [events]);
