@@ -55,16 +55,40 @@ export const createTenantOwner = createServerFn({ method: "POST" })
     }
     if (!userId) throw new Error("Failed to resolve user id");
 
-    // Link profile — replace any prior tenant assignment for this user.
+    // Role in user_roles is the SOURCE OF TRUTH (checked by routeAfterLogin /
+    // my_post_login_route). Mirror the dual-write pattern in staff.functions.ts:
+    // upsert user_roles first, then keep the legacy profiles hint in sync.
+    // Scope the delete to THIS tenant only so a platform admin reassigning
+    // ownership at tenant A doesn't silently strip this user's roles at
+    // tenant B (an email may legitimately own multiple tenants — user_roles
+    // supports that; profiles' single-row shape does not, which is a known
+    // legacy limitation we intentionally do not paper over here).
+    const { error: roleDelErr } = await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .eq("tenant_id", data.tenantId);
+    if (roleDelErr) throw new Error(`user_roles cleanup failed: ${roleDelErr.message}`);
+
+    const { error: roleInsErr } = await supabaseAdmin.from("user_roles").insert({
+      user_id: userId,
+      tenant_id: data.tenantId,
+      role: "owner",
+    });
+    if (roleInsErr) throw new Error(`user_roles insert failed: ${roleInsErr.message}`);
+
+    // Legacy profiles hint — keep in sync. profiles has a single row per user,
+    // so this still overwrites any prior tenant assignment (unchanged behavior).
     const { error: delErr } = await supabaseAdmin.from("profiles").delete().eq("user_id", userId);
-    if (delErr) throw new Error(delErr.message);
+    if (delErr) throw new Error(`profiles cleanup failed: ${delErr.message}`);
 
     const { error: insErr } = await supabaseAdmin.from("profiles").insert({
       user_id: userId,
       tenant_id: data.tenantId,
       role: "owner",
     });
-    if (insErr) throw new Error(insErr.message);
+    if (insErr) throw new Error(`profiles insert failed: ${insErr.message}`);
 
     return { userId, email: data.email };
   });
+
