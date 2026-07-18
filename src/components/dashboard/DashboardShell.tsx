@@ -369,6 +369,7 @@ function SidebarInner({
             buried; sub-entries surface immediately when active or expanded. */}
         <button
           type="button"
+          data-tour="match-center"
           onClick={() => setMcOpen((v) => !v)}
           aria-expanded={mcOpen}
           className={cn(
