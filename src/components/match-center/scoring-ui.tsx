@@ -615,6 +615,7 @@ export function PlayerPickerModal({
   description,
   players,
   recent,
+  bowledIds,
   onSelect,
 }: {
   open: boolean;
@@ -623,6 +624,7 @@ export function PlayerPickerModal({
   description?: string;
   players: PlayerOption[];
   recent?: PlayerOption[];
+  bowledIds?: string[];
   onSelect: (p: PlayerOption) => void;
 }) {
   const [q, setQ] = useState("");
@@ -630,6 +632,17 @@ export function PlayerPickerModal({
     () => players.filter((p) => p.name.toLowerCase().includes(q.trim().toLowerCase())),
     [q, players],
   );
+  const bowledSet = useMemo(() => new Set(bowledIds ?? []), [bowledIds]);
+  const groups = useMemo(() => {
+    if (bowledSet.size === 0) return [{ label: "Team", items: filtered }];
+    const already: PlayerOption[] = [];
+    const rest: PlayerOption[] = [];
+    for (const p of filtered) (bowledSet.has(p.id) ? already : rest).push(p);
+    return [
+      { label: "Already bowled", items: already },
+      { label: "Yet to bowl", items: rest },
+    ];
+  }, [filtered, bowledSet]);
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -667,43 +680,55 @@ export function PlayerPickerModal({
             </div>
           </div>
         )}
-        <div className="min-h-0 flex-1 px-0 pt-2">
-          <div className="mb-1.5 px-4 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Team
-          </div>
-          <div
-            className="max-h-[48dvh] overflow-y-auto pb-3"
-            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}
-          >
-            <ul className="divide-y divide-border/70">
-              {filtered.map((p) => (
-                <li key={p.id}>
-                  <button
-                    type="button"
-                    onClick={() => onSelect(p)}
-                    className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted"
-                  >
-                    <Avatar name={p.name} />
-                    <span className="min-w-0">
-                      <span className="block truncate text-[14px] font-semibold leading-tight">
-                        {p.name}
-                      </span>
-                      {p.role && (
-                        <span className="block truncate text-[11px] text-muted-foreground">
-                          {p.role}
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                </li>
-              ))}
-              {filtered.length === 0 && (
-                <li className="py-6 text-center text-sm text-muted-foreground">
-                  No players found.
-                </li>
-              )}
-            </ul>
-          </div>
+        <div
+          className="min-h-0 flex-1 overflow-y-auto pb-3 pt-2"
+          style={{ maxHeight: "48dvh", paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}
+        >
+          {filtered.length === 0 ? (
+            <div className="py-6 text-center text-sm text-muted-foreground">No players found.</div>
+          ) : (
+            groups.map((group, gi) =>
+              group.items.length === 0 ? null : (
+                <div key={group.label || `g-${gi}`}>
+                  <div className="sticky top-0 z-10 border-b border-border/60 bg-card/95 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground backdrop-blur-xl">
+                    {group.label}
+                    <span className="ml-1 text-muted-foreground/60">({group.items.length})</span>
+                  </div>
+                  <ul className="divide-y divide-border/70">
+                    {group.items.map((p) => {
+                      const bowled = bowledSet.has(p.id);
+                      return (
+                        <li key={p.id}>
+                          <button
+                            type="button"
+                            onClick={() => onSelect(p)}
+                            className="grid h-14 w-full grid-cols-[40px_minmax(0,1fr)] items-center gap-3 px-4 text-left transition duration-100 active:bg-muted"
+                          >
+                            <Avatar name={p.name} />
+                            <span className="min-w-0">
+                              <span
+                                className={cn(
+                                  "block truncate text-[14px] leading-tight",
+                                  bowled ? "font-semibold text-muted-foreground" : "font-semibold",
+                                )}
+                              >
+                                {p.name}
+                              </span>
+                              {(bowled || p.role) && (
+                                <span className="block truncate text-[11px] text-muted-foreground">
+                                  {bowled ? "Bowled earlier · Tap to continue" : p.role}
+                                </span>
+                              )}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ),
+            )
+          )}
         </div>
       </SheetContent>
     </Sheet>
