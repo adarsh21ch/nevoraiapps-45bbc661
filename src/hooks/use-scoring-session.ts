@@ -22,7 +22,7 @@ import {
   validateBallDraft,
   type MatchState,
 } from "@/lib/mc-rules-engine";
-import { formatLiveOver } from "@/lib/mc-statistics-engine";
+
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
@@ -125,13 +125,11 @@ function countCompletedLegalDeliveries(events: MCBallEvent[]) {
 }
 
 function logScoringOverCheckpoint(
-  phase: "before recording" | "after recording",
-  completedLegalBalls: number,
+  _phase: "before recording" | "after recording",
+  _completedLegalBalls: number,
 ) {
-  console.info(`[scoring-event] ${phase}`, {
-    completedLegalBalls,
-    formattedOver: formatLiveOver(completedLegalBalls),
-  });
+  // no-op: previously logged to console on every ball; removed to keep
+  // rapid tapping responsive and DevTools quiet.
 }
 
 function samePlayerRef(
@@ -234,6 +232,10 @@ export function useScoringSession(
   const strikerRef = useRef<CurrentBatterState>(striker);
   const nonStrikerRef = useRef<CurrentBatterState>(nonStriker);
   const bowlerRef = useRef<CurrentBowlerState>(bowler);
+  // Serialized network queue so rapid taps don't fire concurrent
+  // appendBallEvent calls (which would race on sequence_number). The
+  // optimistic UI update still happens synchronously on every call.
+  const netQueueRef = useRef<Promise<void>>(Promise.resolve());
   useEffect(() => {
     eventsRef.current = events;
   }, [events]);
@@ -498,22 +500,31 @@ export function useScoringSession(
         setNonStriker(next.nonStriker);
       }
 
+      // Chain the network write behind any in-flight ones so sequence
+      // numbers stay ordered on the backend. The optimistic UI update
+      // above has already been applied synchronously.
+      const networkPromise = netQueueRef.current
+        .catch(() => {})
+        .then(() =>
+          appendBallEvent({
+            eventId: optimistic.id,
+            tenantId: opts.tenantId!,
+            matchId,
+            inningsId: activeInnings.id,
+            strikerAthleteId: currentStriker.athleteId,
+            strikerName: currentStriker.name,
+            nonStrikerAthleteId: currentNonStriker.athleteId,
+            nonStrikerName: currentNonStriker.name,
+            bowlerAthleteId: currentBowler.athleteId,
+            bowlerName: currentBowler.name,
+            createdBy: opts.userId ?? null,
+            priorEvents,
+            ...partial,
+          }).then(() => undefined),
+        );
+      netQueueRef.current = networkPromise.catch(() => {});
       try {
-        await appendBallEvent({
-          eventId: optimistic.id,
-          tenantId: opts.tenantId,
-          matchId,
-          inningsId: activeInnings.id,
-          strikerAthleteId: currentStriker.athleteId,
-          strikerName: currentStriker.name,
-          nonStrikerAthleteId: currentNonStriker.athleteId,
-          nonStrikerName: currentNonStriker.name,
-          bowlerAthleteId: currentBowler.athleteId,
-          bowlerName: currentBowler.name,
-          createdBy: opts.userId ?? null,
-          priorEvents,
-          ...partial,
-        });
+        await networkPromise;
       } catch (e) {
         const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
         eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
