@@ -502,22 +502,31 @@ export function useScoringSession(
         setNonStriker(next.nonStriker);
       }
 
+      // Chain the network write behind any in-flight ones so sequence
+      // numbers stay ordered on the backend. The optimistic UI update
+      // above has already been applied synchronously.
+      const networkPromise = netQueueRef.current
+        .catch(() => {})
+        .then(() =>
+          appendBallEvent({
+            eventId: optimistic.id,
+            tenantId: opts.tenantId!,
+            matchId,
+            inningsId: activeInnings.id,
+            strikerAthleteId: currentStriker.athleteId,
+            strikerName: currentStriker.name,
+            nonStrikerAthleteId: currentNonStriker.athleteId,
+            nonStrikerName: currentNonStriker.name,
+            bowlerAthleteId: currentBowler.athleteId,
+            bowlerName: currentBowler.name,
+            createdBy: opts.userId ?? null,
+            priorEvents,
+            ...partial,
+          }).then(() => undefined),
+        );
+      netQueueRef.current = networkPromise.catch(() => {});
       try {
-        await appendBallEvent({
-          eventId: optimistic.id,
-          tenantId: opts.tenantId,
-          matchId,
-          inningsId: activeInnings.id,
-          strikerAthleteId: currentStriker.athleteId,
-          strikerName: currentStriker.name,
-          nonStrikerAthleteId: currentNonStriker.athleteId,
-          nonStrikerName: currentNonStriker.name,
-          bowlerAthleteId: currentBowler.athleteId,
-          bowlerName: currentBowler.name,
-          createdBy: opts.userId ?? null,
-          priorEvents,
-          ...partial,
-        });
+        await networkPromise;
       } catch (e) {
         const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
         eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
