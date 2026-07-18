@@ -94,5 +94,5 @@ export function ballChipLabel(e: MCBallEvent): string {
   if (extra === "bye") return `B${ex}`;
   if (extra === "leg_bye") return `LB${ex}`;
   if (extra === "penalty") return `P${ex}`;
-  return String(off);
+  return off === 0 ? "•" : String(off);
 }
