@@ -87,9 +87,8 @@ function PublicMatchDetail() {
         .eq("visibility", "public")
         .maybeSingle();
       if (error) throw error;
-      if (!data) throw notFound();
-      // Extra safety: match must belong to the tenant the visitor is viewing.
-      if (data.tenant_id !== tenant.id) throw notFound();
+      if (!data) throw new Error("Match not found");
+      if (data.tenant_id !== tenant.id) throw new Error("Match not found");
       return data as PublicMatchDetailRow;
     },
   });
