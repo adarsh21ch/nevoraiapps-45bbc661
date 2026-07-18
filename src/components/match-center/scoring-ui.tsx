@@ -593,7 +593,7 @@ export function DismissalModal({
               className="h-11 px-1 text-[12px] font-semibold"
               onClick={() => onSelect(d)}
             >
-              {d}
+              {d === "Caught" ? "Catch" : d}
             </Button>
           ))}
         </div>
