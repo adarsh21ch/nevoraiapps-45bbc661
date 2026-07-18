@@ -71,6 +71,7 @@ import { Route as ParentTimelineRouteImport } from './routes/parent.timeline'
 import { Route as ParentProgressRouteImport } from './routes/parent.progress'
 import { Route as ParentProfileRouteImport } from './routes/parent.profile'
 import { Route as ParentBillingRouteImport } from './routes/parent.billing'
+import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
 import { Route as MatchSlugRouteImport } from './routes/match.$slug'
 import { Route as MatchCenterWebsiteRouteImport } from './routes/match-center.website'
 import { Route as MatchCenterTournamentsRouteImport } from './routes/match-center.tournaments'
@@ -463,6 +464,11 @@ const ParentBillingRoute = ParentBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
   getParentRoute: () => ParentRoute,
+} as any)
+const MatchesMatchIdRoute = MatchesMatchIdRouteImport.update({
+  id: '/$matchId',
+  path: '/$matchId',
+  getParentRoute: () => MatchesRoute,
 } as any)
 const MatchSlugRoute = MatchSlugRouteImport.update({
   id: '/match/$slug',
@@ -898,7 +904,7 @@ export interface FileRoutesByFullPath {
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
   '/match-center': typeof MatchCenterRouteWithChildren
-  '/matches': typeof MatchesRoute
+  '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
@@ -966,6 +972,7 @@ export interface FileRoutesByFullPath {
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
+  '/matches/$matchId': typeof MatchesMatchIdRoute
   '/parent/billing': typeof ParentBillingRoute
   '/parent/profile': typeof ParentProfileRoute
   '/parent/progress': typeof ParentProgressRoute
@@ -1039,7 +1046,7 @@ export interface FileRoutesByTo {
   '/fees': typeof FeesRoute
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
-  '/matches': typeof MatchesRoute
+  '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/parent-portal': typeof ParentPortalRoute
   '/pricing': typeof PricingRoute
@@ -1104,6 +1111,7 @@ export interface FileRoutesByTo {
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
+  '/matches/$matchId': typeof MatchesMatchIdRoute
   '/parent/billing': typeof ParentBillingRoute
   '/parent/profile': typeof ParentProfileRoute
   '/parent/progress': typeof ParentProgressRoute
@@ -1180,7 +1188,7 @@ export interface FileRoutesById {
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
   '/match-center': typeof MatchCenterRouteWithChildren
-  '/matches': typeof MatchesRoute
+  '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
@@ -1248,6 +1256,7 @@ export interface FileRoutesById {
   '/match-center/tournaments': typeof MatchCenterTournamentsRouteWithChildren
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
+  '/matches/$matchId': typeof MatchesMatchIdRoute
   '/parent/billing': typeof ParentBillingRoute
   '/parent/profile': typeof ParentProfileRoute
   '/parent/progress': typeof ParentProgressRoute
@@ -1393,6 +1402,7 @@ export interface FileRouteTypes {
     | '/match-center/tournaments'
     | '/match-center/website'
     | '/match/$slug'
+    | '/matches/$matchId'
     | '/parent/billing'
     | '/parent/profile'
     | '/parent/progress'
@@ -1531,6 +1541,7 @@ export interface FileRouteTypes {
     | '/match-center/tournaments'
     | '/match-center/website'
     | '/match/$slug'
+    | '/matches/$matchId'
     | '/parent/billing'
     | '/parent/profile'
     | '/parent/progress'
@@ -1674,6 +1685,7 @@ export interface FileRouteTypes {
     | '/match-center/tournaments'
     | '/match-center/website'
     | '/match/$slug'
+    | '/matches/$matchId'
     | '/parent/billing'
     | '/parent/profile'
     | '/parent/progress'
@@ -1750,7 +1762,7 @@ export interface RootRouteChildren {
   GalleryRoute: typeof GalleryRoute
   LocationRoute: typeof LocationRoute
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
-  MatchesRoute: typeof MatchesRoute
+  MatchesRoute: typeof MatchesRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
   ParentRoute: typeof ParentRouteWithChildren
   ParentPortalRoute: typeof ParentPortalRoute
@@ -2220,6 +2232,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/parent/billing'
       preLoaderRoute: typeof ParentBillingRouteImport
       parentRoute: typeof ParentRoute
+    }
+    '/matches/$matchId': {
+      id: '/matches/$matchId'
+      path: '/$matchId'
+      fullPath: '/matches/$matchId'
+      preLoaderRoute: typeof MatchesMatchIdRouteImport
+      parentRoute: typeof MatchesRoute
     }
     '/match/$slug': {
       id: '/match/$slug'
@@ -2965,6 +2984,17 @@ const MatchCenterRouteWithChildren = MatchCenterRoute._addFileChildren(
   MatchCenterRouteChildren,
 )
 
+interface MatchesRouteChildren {
+  MatchesMatchIdRoute: typeof MatchesMatchIdRoute
+}
+
+const MatchesRouteChildren: MatchesRouteChildren = {
+  MatchesMatchIdRoute: MatchesMatchIdRoute,
+}
+
+const MatchesRouteWithChildren =
+  MatchesRoute._addFileChildren(MatchesRouteChildren)
+
 interface ParentRouteChildren {
   ParentBillingRoute: typeof ParentBillingRoute
   ParentProfileRoute: typeof ParentProfileRoute
@@ -3069,7 +3099,7 @@ const rootRouteChildren: RootRouteChildren = {
   GalleryRoute: GalleryRoute,
   LocationRoute: LocationRoute,
   MatchCenterRoute: MatchCenterRouteWithChildren,
-  MatchesRoute: MatchesRoute,
+  MatchesRoute: MatchesRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
   ParentRoute: ParentRouteWithChildren,
   ParentPortalRoute: ParentPortalRoute,
