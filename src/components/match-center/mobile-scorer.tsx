@@ -949,7 +949,7 @@ function RunKey({
         tone === "neutral" && "border-border/80 bg-background text-foreground active:bg-muted",
       )}
     >
-      {value}
+      {value === 0 ? "•" : value}
     </button>
   );
 }
