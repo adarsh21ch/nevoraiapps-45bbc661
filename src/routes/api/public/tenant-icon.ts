@@ -53,11 +53,13 @@ export const Route = createFileRoute("/api/public/tenant-icon")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        const url = new URL(request.url);
+        const fallback = () => Response.redirect(new URL("/favicon.ico", url.origin), 302);
         try {
           const tenant = await getTenant(request);
           const logoUrl = tenant?.logo_url?.trim();
 
-          if (!tenant || !logoUrl) return new Response("Not found", { status: 404 });
+          if (!tenant || !logoUrl) return fallback();
 
           if (logoUrl.startsWith("http://") || logoUrl.startsWith("https://")) {
             return Response.redirect(logoUrl, 302);
