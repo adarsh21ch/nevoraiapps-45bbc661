@@ -199,6 +199,18 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
             <NevorAIButton className="ml-1" />
 
+            {canSeeTour ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTourOpen(true)}
+                className="hidden md:inline-flex"
+                title="Take the product tour"
+              >
+                <HelpCircle className="size-4 mr-1" /> {t("Take the tour")}
+              </Button>
+            ) : null}
+
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>
