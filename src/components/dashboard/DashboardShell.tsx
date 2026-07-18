@@ -101,6 +101,16 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const { isOwner, isCoach: isCoachRole, isHeadCoach, isAssistantCoach } = usePermissions();
   const isAnyCoach = isCoachRole || isHeadCoach || isAssistantCoach;
 
+  // Owner product tour — auto-open on first dashboard visit for owners/admins.
+  const autoOpen = useAutoOpenTour();
+  const [tourOpen, setTourOpen] = useState(false);
+  useEffect(() => {
+    if (autoOpen) setTourOpen(true);
+  }, [autoOpen]);
+  const canSeeTour = (profile.role ?? "").toLowerCase() === "owner" ||
+    (profile.role ?? "").toLowerCase() === "admin";
+
+
   // Single source of truth for the "new registration" badge — status='new'.
   const newRegCount = useNewRegistrationsCount(tenant.id);
 
