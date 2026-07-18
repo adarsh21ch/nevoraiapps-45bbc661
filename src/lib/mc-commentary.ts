@@ -42,8 +42,12 @@ export function commentaryForBall(e: MCBallEvent): string {
   }
 
   if (extra === "wide") {
-    return ex > 1 ? `Wide, ${ex} runs.` : "Wide down the line.";
+    const ran = Math.max(0, ex - 1);
+    if (ran === 0) return "Wide down the line.";
+    if (ran === 4) return `Wide — four byes to the boundary! (WD+4)`;
+    return `Wide + ${ran} run${ran > 1 ? "s" : ""}.`;
   }
+
   if (extra === "no_ball") {
     if (off === 4) return `No ball — ${striker} smashes it for FOUR.`;
     if (off === 6) return `No ball — ${striker} clears the ropes for SIX!`;
@@ -89,7 +93,7 @@ export function ballChipLabel(e: MCBallEvent): string {
   const off = e.runs_off_bat ?? 0;
   const ex = e.extra_runs ?? 0;
   if (dt) return "W";
-  if (extra === "wide") return ex > 1 ? `WD${ex}` : "WD";
+  if (extra === "wide") return ex > 1 ? `WD+${ex - 1}` : "WD";
   if (extra === "no_ball") return off > 0 ? `NB${off}` : "NB";
   if (extra === "bye") return `B${ex}`;
   if (extra === "leg_bye") return `LB${ex}`;
