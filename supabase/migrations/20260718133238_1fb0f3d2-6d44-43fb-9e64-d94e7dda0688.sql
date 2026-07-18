@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS owner_tour_seen_at TIMESTAMPTZ;

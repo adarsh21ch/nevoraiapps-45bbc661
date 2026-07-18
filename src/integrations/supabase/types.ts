@@ -5984,6 +5984,7 @@ export type Database = {
           coach_onboarded_at: string | null
           created_at: string
           id: string
+          owner_tour_seen_at: string | null
           role: string
           tenant_id: string
           user_id: string
@@ -5992,6 +5993,7 @@ export type Database = {
           coach_onboarded_at?: string | null
           created_at?: string
           id?: string
+          owner_tour_seen_at?: string | null
           role?: string
           tenant_id: string
           user_id: string
@@ -6000,6 +6002,7 @@ export type Database = {
           coach_onboarded_at?: string | null
           created_at?: string
           id?: string
+          owner_tour_seen_at?: string | null
           role?: string
           tenant_id?: string
           user_id?: string
