@@ -50,6 +50,7 @@ type NavItem = {
   ownerOnly?: boolean;
   adminOnly?: boolean;
   coachOnly?: boolean;
+  tourId?: string;
 };
 
 // Simplified daily navigation — optimized for academy owners' daily workflow.
