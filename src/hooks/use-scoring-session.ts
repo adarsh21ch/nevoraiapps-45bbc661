@@ -125,13 +125,11 @@ function countCompletedLegalDeliveries(events: MCBallEvent[]) {
 }
 
 function logScoringOverCheckpoint(
-  phase: "before recording" | "after recording",
-  completedLegalBalls: number,
+  _phase: "before recording" | "after recording",
+  _completedLegalBalls: number,
 ) {
-  console.info(`[scoring-event] ${phase}`, {
-    completedLegalBalls,
-    formattedOver: formatLiveOver(completedLegalBalls),
-  });
+  // no-op: previously logged to console on every ball; removed to keep
+  // rapid tapping responsive and DevTools quiet.
 }
 
 function samePlayerRef(
