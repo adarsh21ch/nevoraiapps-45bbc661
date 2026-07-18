@@ -486,7 +486,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     if (!extraKind) return;
     const kind = extraKind;
     setExtraKind(null);
-    if (kind === "Wide") requestSubmit(ballHelpers.wide(runs));
+    if (kind === "Wide") requestSubmit(ballHelpers.wide(1 + Math.max(0, runs)));
+
     else if (kind === "No Ball") requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
     else if (kind === "Bye") requestSubmit(ballHelpers.bye(runs));
     else if (kind === "Leg Bye") requestSubmit(ballHelpers.legBye(runs));
@@ -1536,7 +1537,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     if (!extraKind) return;
     const kind = extraKind;
     setExtraKind(null);
-    if (kind === "Wide") requestSubmit(ballHelpers.wide(runs));
+    if (kind === "Wide") requestSubmit(ballHelpers.wide(1 + Math.max(0, runs)));
     else if (kind === "No Ball") requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
     else if (kind === "Bye") requestSubmit(ballHelpers.bye(runs));
     else if (kind === "Leg Bye") requestSubmit(ballHelpers.legBye(runs));
