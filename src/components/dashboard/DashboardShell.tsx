@@ -57,8 +57,8 @@ type NavItem = {
 // Low-frequency configuration (Batches, Settings, Billing, Staff, etc.) lives
 // under Profile — the single home for owner-level administration.
 const primaryNav: NavItem[] = [
-  { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/dashboard/nevorai", label: "NevorAI", icon: Sparkles, ownerOnly: true },
+  { to: "/dashboard", label: "Home", icon: LayoutDashboard, tourId: "home" },
+  { to: "/dashboard/nevorai", label: "NevorAI", icon: Sparkles, ownerOnly: true, tourId: "nevorai" },
   { to: "/dashboard/coach", label: "My Coaching", icon: ClipboardCheck, coachOnly: true },
   { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
@@ -68,6 +68,7 @@ const primaryNav: NavItem[] = [
     icon: IndianRupee,
     requiresFeature: "fee_tracking",
     ownerOnly: true,
+    tourId: "fees",
   },
 ];
 
