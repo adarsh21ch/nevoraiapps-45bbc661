@@ -146,7 +146,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      // Per-tenant favicon: `/api/public/tenant-icon` resolves the tenant from
+      // the request Host header and returns that academy's logo (falls back to
+      // the default only when the tenant has no logo). Custom domains like
+      // `saisportsacademy.nevorai.com` show the academy's own mark in the
+      // browser tab, home-screen and social previews — without waiting for
+      // client JS to swap the link.
+      { rel: "icon", href: "/api/public/tenant-icon", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/api/public/tenant-icon" },
       // Default (platform) manifest — the tenant provider swaps in a per-tenant
       // manifest once the tenant is resolved so each academy installs with its
       // own name/icon/colors.

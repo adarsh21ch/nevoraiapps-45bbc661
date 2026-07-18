@@ -53,28 +53,29 @@ export const Route = createFileRoute("/api/public/tenant-icon")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        const url = new URL(request.url);
+        const fallback = () => Response.redirect(new URL("/favicon.ico", url.origin), 302);
         try {
           const tenant = await getTenant(request);
           const logoUrl = tenant?.logo_url?.trim();
 
-          if (!tenant || !logoUrl) return new Response("Not found", { status: 404 });
+          if (!tenant || !logoUrl) return fallback();
 
           if (logoUrl.startsWith("http://") || logoUrl.startsWith("https://")) {
             return Response.redirect(logoUrl, 302);
           }
 
           if (logoUrl.startsWith("/")) {
-            const url = new URL(request.url);
             return Response.redirect(new URL(logoUrl, url.origin), 302);
           }
 
           // Only expose the active tenant's own logo file. The endpoint exists
           // because PWA installers cannot use private Supabase storage paths.
-          if (!logoUrl.startsWith(`${tenant.id}/`)) return new Response("Not found", { status: 404 });
+          if (!logoUrl.startsWith(`${tenant.id}/`)) return fallback();
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data, error } = await supabaseAdmin.storage.from(BUCKET).download(logoUrl);
-          if (error || !data) return new Response("Not found", { status: 404 });
+          if (error || !data) return fallback();
 
           return new Response(data, {
             status: 200,
@@ -82,14 +83,13 @@ export const Route = createFileRoute("/api/public/tenant-icon")({
           });
         } catch {
           // Optional fallback for environments without the service-role secret.
-          const url = new URL(request.url);
           const tenant = url.searchParams.get("tenant")?.trim().toLowerCase() ?? "";
-          if (!tenant || !isSafeSlug(tenant)) return new Response("Not found", { status: 404 });
+          if (!tenant || !isSafeSlug(tenant)) return fallback();
 
           const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
           const supabaseKey =
             process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-          if (!supabaseUrl || !supabaseKey) return new Response("Not found", { status: 404 });
+          if (!supabaseUrl || !supabaseKey) return fallback();
 
           const supabase = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } });
           const { data: tenantRow } = await (supabase.from("tenants_public_directory") as any)
@@ -99,11 +99,11 @@ export const Route = createFileRoute("/api/public/tenant-icon")({
             .maybeSingle();
           const logoUrl = (tenantRow as TenantIconRow | null)?.logo_url?.trim();
           if (!tenantRow || !logoUrl || logoUrl.startsWith("http") || logoUrl.startsWith("/")) {
-            return new Response("Not found", { status: 404 });
+            return fallback();
           }
 
           const { data } = await supabase.storage.from(BUCKET).download(logoUrl);
-          if (!data) return new Response("Not found", { status: 404 });
+          if (!data) return fallback();
 
           return new Response(data, {
             status: 200,
