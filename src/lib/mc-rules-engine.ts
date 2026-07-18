@@ -88,28 +88,43 @@ export function totalRunsForBall(e: MCBallEvent): number {
 }
 
 /**
- * Does this ball rotate strike? Follows MCC Law 18.
- *  - Odd runs (whether off-bat, bye, leg-bye) swap strike.
- *  - Wides: swap if the "run" component (extras beyond the 1 penalty) is odd,
- *    since additional wides are actually run.
- *  - No-balls: off-bat + bye/leg-bye runs — odd swaps strike.
- *  - Boundary 4/6 keeps strike (even runs).
- *  - End of over is handled separately.
+ * Runs the BATSMEN physically completed on this ball (crossing ends).
+ * This is the source of truth for strike rotation — extra "penalty" runs
+ * that no one runs (the +1 on a wide or no-ball) are excluded.
+ *
+ * Rule table:
+ *  ┌───────────┬───────────────────────────────────────────────────────┐
+ *  │ extra     │ batsmen-run count (used for strike parity)            │
+ *  ├───────────┼───────────────────────────────────────────────────────┤
+ *  │ (legal)   │ runs_off_bat                                          │
+ *  │ wide      │ extra_runs − 1  (1 is the wide penalty, nobody runs)  │
+ *  │ no_ball   │ runs_off_bat + extra_runs  (penalty excluded)         │
+ *  │ bye       │ extra_runs      (batsmen physically ran the byes)     │
+ *  │ leg_bye   │ extra_runs      (batsmen physically ran the leg-byes) │
+ *  │ penalty   │ 0               (5-run penalty, nobody runs)          │
+ *  └───────────┴───────────────────────────────────────────────────────┘
  */
-export function ballSwapsStrike(e: MCBallEvent): boolean {
-  const type = e.extra_type as ExtraType | null;
+export function batterRunsForStrike(e: MCBallEvent): number {
   const off = e.runs_off_bat ?? 0;
   const ex = e.extra_runs ?? 0;
-  if (type === "wide") {
-    // ex includes the 1 penalty; running component = ex - 1
-    return Math.max(0, ex - 1) % 2 === 1;
-  }
-  if (type === "no_ball") {
-    return (off + Math.max(0, ex)) % 2 === 1;
-  }
-  // legal delivery, or bye/leg_bye
-  return (off + ex) % 2 === 1;
+  const type = e.extra_type as ExtraType | null;
+  if (type === "wide") return Math.max(0, ex - 1);
+  if (type === "no_ball") return off + Math.max(0, ex);
+  if (type === "bye" || type === "leg_bye") return ex;
+  if (type === "penalty") return 0;
+  return off;
 }
+
+/**
+ * Does this ball rotate strike? Follows MCC Law 18.
+ * Parity is based on runs the BATSMEN physically completed
+ * (see `batterRunsForStrike`), NOT total runs including penalties.
+ * End-of-over swap is handled separately by the caller.
+ */
+export function ballSwapsStrike(e: MCBallEvent): boolean {
+  return batterRunsForStrike(e) % 2 === 1;
+}
+
 
 /* ---------------- Reconstructed state ---------------- */
 
