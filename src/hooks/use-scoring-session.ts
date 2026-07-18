@@ -548,21 +548,30 @@ export function useScoringSession(
       const filtered = eventsRef.current.filter((e) => e.id !== removed.id);
       eventsRef.current = filtered;
       setEvents(filtered);
-      // Restore the bowler to the one who delivered the previous ball so the
-      // scorecard reflects who was bowling before the undo. If we've undone
-      // past the first ball of the innings, clear the bowler.
-      const previous = filtered.at(-1) ?? null;
-      if (previous) {
-        setBowler({
-          athleteId: previous.bowler_athlete_id ?? null,
-          name: previous.bowler_name ?? null,
-        });
-      } else {
-        setBowler({ athleteId: null, name: null });
-      }
+      // Universal undo: restore batters and bowler to the state that existed
+      // just before the removed ball was recorded. The removed ball itself
+      // captured that pre-ball snapshot (striker/non-striker/bowler fields),
+      // so re-seating them from the removed event correctly reverses wickets
+      // (dismissed batter returns), strike rotations, and end-of-over bowler
+      // changes in a single step.
+      setStriker({
+        athleteId: removed.striker_athlete_id ?? null,
+        name: removed.striker_name ?? null,
+        onStrike: true,
+      });
+      setNonStriker({
+        athleteId: removed.non_striker_athlete_id ?? null,
+        name: removed.non_striker_name ?? null,
+        onStrike: false,
+      });
+      setBowler({
+        athleteId: removed.bowler_athlete_id ?? null,
+        name: removed.bowler_name ?? null,
+      });
     }
     return removed;
-  }, [activeInnings, setBowler]);
+  }, [activeInnings, setBowler, setStriker, setNonStriker]);
+
 
   return {
     loading,
