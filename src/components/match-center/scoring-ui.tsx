@@ -802,14 +802,23 @@ export function ExtraRunsModal({
   const k = open ? (kind || frozenKind) : frozenKind;
 
   // No Ball is 1..7 (penalty is always included; 1 = NB only).
-  // Wide/Bye/Leg Bye are 0..6 (0 allowed per spec / match rules).
+  // Wide is 0..5 batsmen-runs (0 = plain wide; total = 1 penalty + batsmen runs).
+  // Bye/Leg Bye are 0..6 batsmen-runs.
   const options: number[] =
-    k === "No Ball" ? [1, 2, 3, 4, 5, 6, 7] : [0, 1, 2, 3, 4, 5, 6];
+    k === "No Ball" ? [1, 2, 3, 4, 5, 6, 7]
+    : k === "Wide" ? [0, 1, 2, 3, 4, 5]
+    : [0, 1, 2, 3, 4, 5, 6];
 
   const isBoundaryHit = (r: number): "four" | "six" | null => {
     if (k === "No Ball") {
       if (r === 5) return "four";
       if (r === 7) return "six";
+      return null;
+    }
+    if (k === "Wide") {
+      // total = 1 + r; boundary hit at r=3 (WD+3=4) or r=5 (WD+5=6)
+      if (r === 3) return "four";
+      if (r === 5) return "six";
       return null;
     }
     if (r === 4) return "four";
@@ -824,13 +833,20 @@ export function ExtraRunsModal({
       if (r === 7) return "NB + 6";
       return `NB + ${r - 1}`;
     }
+    if (k === "Wide") {
+      if (r === 0) return "WD only";
+      return `WD + ${r}`;
+    }
     return null;
   };
 
   const hint =
     k === "No Ball"
       ? "Total runs on this delivery (includes the 1-run no-ball penalty)."
-      : `Total ${k.toLowerCase()} runs on this delivery.`;
+      : k === "Wide"
+        ? "Runs the batsmen physically ran (the wide penalty is added automatically)."
+        : `Total ${k.toLowerCase()} runs on this delivery.`;
+
 
   const handlePick = (r: number) => {
     // Close instantly, then commit selection — avoids a double-close
