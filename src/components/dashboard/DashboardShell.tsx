@@ -315,6 +315,7 @@ function SidebarInner({
       <Link
         key={n.to}
         to={n.to}
+        data-tour={n.tourId}
         aria-current={active ? "page" : undefined}
         className={cn(
           "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
