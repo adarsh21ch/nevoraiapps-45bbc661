@@ -129,6 +129,27 @@ function RegisterContent() {
   const { data: fees = [] } = useQuery(feePlansQuery(tenant.id));
   const { data: policies = [] } = useQuery(publishedPoliciesQuery(tenant.id));
 
+  // A signed-in user must never see the blank /register form. Route them
+  // to the destination the DB says they belong.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { data } = await supabase.rpc("my_post_login_route" as never);
+      if (cancelled) return;
+      const route = (data as unknown as string) ?? "student";
+      const target =
+        route === "platform_admin" ? "/platform-admin"
+        : route === "staff" ? "/dashboard"
+        : route === "parent" ? "/parent"
+        : "/student";
+      window.location.replace(target);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+
   const requiredPolicies = REQUIRED_POLICIES.map((kind) =>
     policies.find((p) => p.kind === kind),
   ).filter((p): p is PolicyDocument => Boolean(p));
