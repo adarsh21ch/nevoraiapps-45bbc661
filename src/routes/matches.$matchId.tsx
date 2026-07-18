@@ -165,7 +165,7 @@ function PublicMatchDetail() {
   const allBalls = ballsQ.data ?? [];
   const currentInnings = allInnings[allInnings.length - 1] ?? null;
   const currentBalls = currentInnings
-    ? allBalls.filter((b) => b.innings_number === currentInnings.innings_number)
+    ? allBalls.filter((b) => b.innings_id === currentInnings.id)
     : [];
   const isLive = match.status === "live" || match.status === "in_progress";
 
