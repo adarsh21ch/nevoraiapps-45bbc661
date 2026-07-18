@@ -545,10 +545,24 @@ export function useScoringSession(
     if (!activeInnings) throw new BallEventError("INVALID_INNINGS", "No active innings.");
     const removed = await undoLastBallEvent(activeInnings.id);
     if (removed) {
-      setEvents((prev) => prev.filter((e) => e.id !== removed.id));
+      const filtered = eventsRef.current.filter((e) => e.id !== removed.id);
+      eventsRef.current = filtered;
+      setEvents(filtered);
+      // Restore the bowler to the one who delivered the previous ball so the
+      // scorecard reflects who was bowling before the undo. If we've undone
+      // past the first ball of the innings, clear the bowler.
+      const previous = filtered.at(-1) ?? null;
+      if (previous) {
+        setBowler({
+          athleteId: previous.bowler_athlete_id ?? null,
+          name: previous.bowler_name ?? null,
+        });
+      } else {
+        setBowler({ athleteId: null, name: null });
+      }
     }
     return removed;
-  }, [activeInnings]);
+  }, [activeInnings, setBowler]);
 
   return {
     loading,
