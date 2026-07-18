@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { ProductTour, useAutoOpenTour } from "@/components/dashboard/ProductTour";
 import { HelpCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
