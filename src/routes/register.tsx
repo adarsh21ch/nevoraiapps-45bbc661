@@ -348,7 +348,14 @@ function RegisterContent() {
       toast.error("Please accept the academy policies to continue.");
       return;
     }
+    // Prefer the fee plan that matches the selected batch — this prevents
+    // the "batch says Both, plan silently saved as Single" data-entry bug.
+    const selectedBatch = form.batch_id
+      ? batches.find((b) => b.id === form.batch_id)
+      : undefined;
+    const matchedPlan = selectedBatch ? batchFeePlan(selectedBatch, fees) : undefined;
     const defaultPlan =
+      matchedPlan ??
       fees.find((f) => f.type === "monthly") ??
       fees.find((f) => f.type !== "registration") ??
       fees[0];
