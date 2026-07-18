@@ -1,5 +1,7 @@
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
+import { ProductTour, useAutoOpenTour } from "@/components/dashboard/ProductTour";
+import { HelpCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboard } from "@/lib/dashboard-context";
@@ -48,14 +50,15 @@ type NavItem = {
   ownerOnly?: boolean;
   adminOnly?: boolean;
   coachOnly?: boolean;
+  tourId?: string;
 };
 
 // Simplified daily navigation — optimized for academy owners' daily workflow.
 // Low-frequency configuration (Batches, Settings, Billing, Staff, etc.) lives
 // under Profile — the single home for owner-level administration.
 const primaryNav: NavItem[] = [
-  { to: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { to: "/dashboard/nevorai", label: "NevorAI", icon: Sparkles, ownerOnly: true },
+  { to: "/dashboard", label: "Home", icon: LayoutDashboard, tourId: "home" },
+  { to: "/dashboard/nevorai", label: "NevorAI", icon: Sparkles, ownerOnly: true, tourId: "nevorai" },
   { to: "/dashboard/coach", label: "My Coaching", icon: ClipboardCheck, coachOnly: true },
   { to: "/dashboard/students", label: "Students", icon: Users },
   { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
@@ -65,17 +68,18 @@ const primaryNav: NavItem[] = [
     icon: IndianRupee,
     requiresFeature: "fee_tracking",
     ownerOnly: true,
+    tourId: "fees",
   },
 ];
 
 // Everything below Match Center in the daily sidebar list.
 const secondaryNav: NavItem[] = [
-  { to: "/dashboard/registrations", label: "Registrations / Admissions", icon: Inbox },
+  { to: "/dashboard/registrations", label: "Registrations / Admissions", icon: Inbox, tourId: "registrations" },
   { to: "/dashboard/activation", label: "Activation", icon: Users, ownerOnly: true },
   { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
-  { to: "/dashboard/staff", label: "Staff", icon: Users, adminOnly: false, ownerOnly: false },
+  { to: "/dashboard/staff", label: "Staff", icon: Users, adminOnly: false, ownerOnly: false, tourId: "staff" },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-  { to: "/dashboard/site", label: "Website", icon: ImageIcon },
+  { to: "/dashboard/site", label: "Website", icon: ImageIcon, tourId: "site" },
   { to: "/dashboard/academy", label: "Manage", icon: LayoutGrid, ownerOnly: true },
   { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
 ];
@@ -96,6 +100,16 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   // Phase 3 — role via has_role / current_role RPC (usePermissions).
   const { isOwner, isCoach: isCoachRole, isHeadCoach, isAssistantCoach } = usePermissions();
   const isAnyCoach = isCoachRole || isHeadCoach || isAssistantCoach;
+
+  // Owner product tour — auto-open on first dashboard visit for owners/admins.
+  const autoOpen = useAutoOpenTour();
+  const [tourOpen, setTourOpen] = useState(false);
+  useEffect(() => {
+    if (autoOpen) setTourOpen(true);
+  }, [autoOpen]);
+  const canSeeTour = (profile.role ?? "").toLowerCase() === "owner" ||
+    (profile.role ?? "").toLowerCase() === "admin";
+
 
   // Single source of truth for the "new registration" badge — status='new'.
   const newRegCount = useNewRegistrationsCount(tenant.id);
@@ -185,6 +199,18 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
             <NevorAIButton className="ml-1" />
 
+            {canSeeTour ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTourOpen(true)}
+                className="hidden md:inline-flex"
+                title="Take the product tour"
+              >
+                <HelpCircle className="size-4 mr-1" /> {t("Take the tour")}
+              </Button>
+            ) : null}
+
             <Button variant="ghost" size="sm" onClick={signOut} className="hidden md:inline-flex">
               <LogOut className="size-4 mr-1" /> {t("Sign out")}
             </Button>
@@ -217,6 +243,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
 
       {/* Unified mobile bottom nav — shared with Match Center for a seamless experience. */}
       <GlobalBottomNav />
+      {canSeeTour ? (
+        <ProductTour open={tourOpen} onClose={() => setTourOpen(false)} />
+      ) : null}
     </div>
     </NevorAIProvider>
   );
@@ -286,6 +315,7 @@ function SidebarInner({
       <Link
         key={n.to}
         to={n.to}
+        data-tour={n.tourId}
         aria-current={active ? "page" : undefined}
         className={cn(
           "relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
@@ -339,6 +369,7 @@ function SidebarInner({
             buried; sub-entries surface immediately when active or expanded. */}
         <button
           type="button"
+          data-tour="match-center"
           onClick={() => setMcOpen((v) => !v)}
           aria-expanded={mcOpen}
           className={cn(

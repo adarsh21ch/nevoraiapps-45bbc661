@@ -56,10 +56,83 @@ export function TenantPlaceholder() {
       <Hero whatsappUrl={whatsappUrl} emailUrl={emailUrl} />
       <Marquee />
       <Bento />
+      <SeeItLive />
       <BuiltFor />
       <ClosingCTA whatsappUrl={whatsappUrl} emailUrl={emailUrl} />
       <Footer />
     </div>
+  );
+}
+
+/* ───────────────────── See it live (real tenant) ───────────────────── */
+
+/**
+ * "See it live" showcase — the single most persuasive asset on the page.
+ * Links to a real running academy on our platform so a coach who lands
+ * here from a WhatsApp share can see exactly what their own site would
+ * look like. Not a mockup; not a demo tenant.
+ */
+function SeeItLive() {
+  return (
+    <section className="relative py-24 md:py-32 px-6">
+      <div className="mx-auto max-w-6xl">
+        <div className="flex items-center gap-2 mb-6 text-lime-400 text-xs font-bold uppercase tracking-[0.2em]">
+          <span className="inline-block size-1.5 rounded-full bg-lime-400 animate-pulse" />
+          Live client · not a mockup
+        </div>
+        <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-[0.95]">
+          See a real academy
+          <br />
+          <span className="text-white/60">running on AcademyOS.</span>
+        </h2>
+        <p className="mt-6 max-w-2xl text-white/70 text-lg leading-relaxed">
+          Sai Sports Academy manages admissions, fees, attendance and live match scoring
+          from a single dashboard — parents and players see the same academy on their own
+          public site. Everything you're reading about, actually running.
+        </p>
+
+        <div className="mt-10 grid md:grid-cols-[1.4fr_1fr] gap-6">
+          <a
+            href="https://saisportsacademy.nevorai.com"
+            target="_blank"
+            rel="noreferrer"
+            className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-8 md:p-10 transition-colors hover:border-lime-400/40"
+          >
+            <div className="text-xs font-bold uppercase tracking-widest text-white/50">
+              saisportsacademy.nevorai.com
+            </div>
+            <div className="mt-3 text-3xl md:text-4xl font-black leading-tight">
+              Sai Sports Academy →
+            </div>
+            <div className="mt-4 text-white/70 text-sm md:text-base leading-relaxed">
+              Public site, star players, fee tracker, live matches — the actual customer
+              site your academy would get on day one.
+            </div>
+            <div className="pointer-events-none absolute -bottom-20 -right-20 size-64 rounded-full bg-lime-400/10 blur-3xl transition-all group-hover:bg-lime-400/20" />
+          </a>
+
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-8 md:p-10 flex flex-col justify-between gap-6">
+            <div>
+              <div className="text-xs font-bold uppercase tracking-widest text-white/50">
+                What you'll see
+              </div>
+              <ul className="mt-4 space-y-3 text-white/80 text-sm">
+                <li>· A branded public site — logo, colours, gallery</li>
+                <li>· Star players and match results, auto-updated</li>
+                <li>· One-tap enquiry and registration for parents</li>
+                <li>· Live scoring when a match is in progress</li>
+              </ul>
+            </div>
+            <Link
+              to="/demo"
+              className="inline-flex items-center justify-center rounded-full bg-white text-black text-sm font-bold px-5 py-3 hover:bg-white/90 transition-colors"
+            >
+              Book a walkthrough
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
