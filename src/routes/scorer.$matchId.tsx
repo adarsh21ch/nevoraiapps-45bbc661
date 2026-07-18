@@ -1001,6 +1001,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         title="Select next bowler"
         description="Cannot be the previous over's bowler."
         players={bowlingOptions}
+        bowledIds={bowledBowlerIds}
         onSelect={(p) => {
           setPlayer("bowler", p);
           setNewBowlerOpen(false);
@@ -1032,6 +1033,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         onOpenChange={setPickBowlerOpen}
         title="Select bowler"
         players={bowlingOptions}
+        bowledIds={bowledBowlerIds}
         onSelect={(p) => {
           setPlayer("bowler", p);
           setPickBowlerOpen(false);
