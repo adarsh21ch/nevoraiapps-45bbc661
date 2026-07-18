@@ -129,6 +129,27 @@ function RegisterContent() {
   const { data: fees = [] } = useQuery(feePlansQuery(tenant.id));
   const { data: policies = [] } = useQuery(publishedPoliciesQuery(tenant.id));
 
+  // A signed-in user must never see the blank /register form. Route them
+  // to the destination the DB says they belong.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { data } = await supabase.rpc("my_post_login_route" as never);
+      if (cancelled) return;
+      const route = (data as unknown as string) ?? "student";
+      const target =
+        route === "platform_admin" ? "/platform-admin"
+        : route === "staff" ? "/dashboard"
+        : route === "parent" ? "/parent"
+        : "/student";
+      window.location.replace(target);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+
   const requiredPolicies = REQUIRED_POLICIES.map((kind) =>
     policies.find((p) => p.kind === kind),
   ).filter((p): p is PolicyDocument => Boolean(p));
@@ -418,7 +439,26 @@ function RegisterContent() {
           _documents: documents as unknown as never,
         } as never,
       );
-      if (attachErr) console.error("attach_applicant_to_registration", attachErr);
+      if (attachErr) {
+        console.error("attach_applicant_to_registration", attachErr);
+        // Retry once — a transient RLS/network blip must not leave the row
+        // orphaned (that produces the "signed in but sent to /register" bug).
+        const { error: retryErr } = await supabase.rpc(
+          "attach_applicant_to_registration" as never,
+          {
+            _registration_id: data as unknown as string,
+            _email: emailTrim,
+            _address: form.address.trim() || null,
+            _gender: form.gender || null,
+            _medical_notes: form.medical_notes.trim() || null,
+            _documents: documents as unknown as never,
+          } as never,
+        );
+        if (retryErr) {
+          console.error("attach_applicant_to_registration retry", retryErr);
+          toast.error("Account created but we couldn't link your application. Please contact the academy.");
+        }
+      }
 
       // Attach phone to the auth user so they can sign in with phone+password.
       const phoneE164 = toE164(form.phone.trim());

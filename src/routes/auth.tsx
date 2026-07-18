@@ -41,60 +41,21 @@ type PostLoginRoute =
   | "/student"
   | "/register";
 
-async function routeAfterLogin(uid: string): Promise<PostLoginRoute> {
-  // 1) platform admin
-  const { data: pa } = await supabase
-    .from("platform_admins")
-    .select("user_id")
-    .eq("user_id", uid)
-    .maybeSingle();
-  if (pa) return "/platform-admin";
-
-  // 2) tenant staff role
-  const { data: roles } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", uid);
-  const staffRoles = new Set([
-    "owner",
-    "admin",
-    "coach",
-    "head_coach",
-    "assistant_coach",
-    "staff",
-  ]);
-  if ((roles ?? []).some((r) => staffRoles.has(r.role as string))) return "/dashboard";
-
-  // 3) parent (linked child)
-  try {
-    const { data: parentLink } = await supabase
-      .from("mc_parent_links" as never)
-      .select("user_id")
-      .eq("user_id", uid)
-      .limit(1)
-      .maybeSingle();
-    if (parentLink) return "/parent";
-  } catch {
-    // table not accessible under RLS — fall through
+export async function routeAfterLogin(_uid?: string): Promise<PostLoginRoute> {
+  // Single authoritative source: SECURITY DEFINER RPC bypasses RLS ambiguity
+  // that previously caused silent-null fallthroughs to /register.
+  const { data, error } = await supabase.rpc("my_post_login_route" as never);
+  if (error) {
+    console.error("my_post_login_route", error);
+    return "/student"; // Safer than /register for a signed-in user.
   }
-
-  // 4) student — either an active student row or a pending registration
-  const { data: student } = await supabase
-    .from("students")
-    .select("id")
-    .eq("user_id", uid)
-    .limit(1)
-    .maybeSingle();
-  if (student) return "/student";
-  const { data: pendingReg } = await supabase
-    .from("registrations")
-    .select("id")
-    .eq("applicant_user_id", uid)
-    .limit(1)
-    .maybeSingle();
-  if (pendingReg) return "/student";
-
-  return "/register";
+  switch (data as unknown as string) {
+    case "platform_admin": return "/platform-admin";
+    case "staff": return "/dashboard";
+    case "parent": return "/parent";
+    case "student": return "/student";
+    default: return "/student"; // Orphan: land on /student (pending empty-state), never blank /register.
+  }
 }
 
 function AuthPage() {
