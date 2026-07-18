@@ -134,9 +134,7 @@ function PublicMatchDetail() {
         .from("mc_ball_events")
         .select("*")
         .eq("match_id", matchId)
-        .order("innings_number", { ascending: true })
-        .order("over_number", { ascending: true })
-        .order("ball_number", { ascending: true });
+        .order("sequence_number", { ascending: true });
       if (error) throw error;
       return (data ?? []) as MCBallEvent[];
     },
