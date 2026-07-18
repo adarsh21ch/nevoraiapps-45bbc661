@@ -1473,17 +1473,12 @@ function DemoScorerView({ matchId }: { matchId: string }) {
 
   /* ---------- ball submission ---------- */
   const [redoStack, setRedoStack] = useState<Awaited<ReturnType<typeof session.undo>>[]>([]);
-  const submittingBallRef = useRef(false);
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
-    if (submittingBallRef.current) return;
-    submittingBallRef.current = true;
     try {
       await session.submitBall(partial);
       setRedoStack([]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
-    } finally {
-      submittingBallRef.current = false;
     }
   };
   const requestSubmit = (partial: Parameters<typeof session.submitBall>[0]) => {
