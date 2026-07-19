@@ -5,9 +5,8 @@ import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useMatchLive } from "@/hooks/use-match-live";
-import { LiveScorecard } from "@/components/match-center/live-scorecard";
-import { SquadList } from "@/components/match-center/SquadList";
-import { buildCommentary, ballChipLabel } from "@/lib/mc-commentary";
+import { LiveScorecard, BallChip } from "@/components/match-center/live-scorecard";
+import { buildCommentary } from "@/lib/mc-commentary";
 import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
 import { ArrowLeft, Radio, RefreshCw } from "lucide-react";
 
