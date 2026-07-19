@@ -532,7 +532,52 @@ function CreateMatchPage() {
 
   /* ==================== WIZARD ==================== */
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(
+    (draft?.step as 1 | 2 | 3 | 4 | 5) ?? 1,
+  );
+
+  // Persist wizard state to sessionStorage on every change
+  useEffect(() => {
+    writeDraft(tenant.id, {
+      step,
+      matchType,
+      matchFormat,
+      overs,
+      scheduledDate,
+      panelA,
+      panelB,
+      ground,
+      pitch,
+      weather,
+      scorer,
+      umpire,
+      notes,
+      visibility,
+      streamingUrl,
+      ballType,
+      savedAt: Date.now(),
+    });
+  }, [
+    tenant.id, step, matchType, matchFormat, overs, scheduledDate,
+    panelA, panelB, ground, pitch, weather, scorer, umpire, notes,
+    visibility, streamingUrl, ballType,
+  ]);
+
+  const resetDraft = () => {
+    clearDraft(tenant.id);
+    setStep(1);
+    setMatchType("practice");
+    setMatchFormat("");
+    setOvers(0);
+    setScheduledDate(new Date().toISOString().slice(0, 10));
+    setPanelA(emptyPanel("new"));
+    setPanelB(emptyPanel("new"));
+    setGround(""); setPitch(""); setWeather("");
+    setScorer(""); setUmpire(""); setNotes("");
+    setVisibility("public"); setStreamingUrl(""); setBallType("");
+    setShowResumedToast(false);
+  };
+
 
   const readyA =
     panelA.mode === "existing" ? !!panelA.selectedTeamId : panelA.draftName.trim().length > 0;
