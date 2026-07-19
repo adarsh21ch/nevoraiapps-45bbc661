@@ -368,7 +368,7 @@ function PublicMatchDetail() {
                         {currentInnings.wickets}
                       </span>
                       <span className="text-sm font-semibold tabular-nums text-muted-foreground">
-                        ({oversDisplay(currentInnings.balls_bowled ?? 0)}
+                        ({oversDisplay(currentInnings.balls ?? 0)}
                         {match.overs ? ` / ${match.overs}` : ""})
                       </span>
                     </div>
@@ -376,10 +376,10 @@ function PublicMatchDetail() {
                   <div className="shrink-0 text-right">
                     <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">CRR</div>
                     <div className="text-2xl font-bold tabular-nums">
-                      {(currentInnings.balls_bowled ?? 0) > 0
+                      {(currentInnings.balls ?? 0) > 0
                         ? (
                             (currentInnings.runs * 6) /
-                            (currentInnings.balls_bowled ?? 1)
+                            (currentInnings.balls ?? 1)
                           ).toFixed(2)
                         : "0.00"}
                     </div>
