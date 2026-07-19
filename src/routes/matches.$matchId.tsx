@@ -699,42 +699,41 @@ function TeamToggle({
 
 
 function YetToBatPanel({
+  matchId,
+  teamId,
   teamName,
-  bowlingBalls,
-  oversDisplay,
 }: {
+  matchId: string;
+  teamId: string;
   teamName: string;
-  bowlingBalls: MCBallEvent[];
-  oversDisplay: (legalBalls: number) => string;
 }) {
-  const bowlers = new Map<string, { runs: number; balls: number; wickets: number; maidens: number; ballsInOver: number; runsInOver: number; lastOver: number | null }>();
-  for (const b of bowlingBalls) {
-    if (!b.bowler_name) continue;
-    const et = (b.extra_type as string | null) ?? null;
-    const isWide = et === "wide";
-    const isNoBall = et === "no_ball";
-    const legal = !isWide && !isNoBall;
-    const s = bowlers.get(b.bowler_name) ?? { runs: 0, balls: 0, wickets: 0, maidens: 0, ballsInOver: 0, runsInOver: 0, lastOver: null };
-    if (s.lastOver !== null && s.lastOver !== b.over_number) {
-      if (s.ballsInOver === 6 && s.runsInOver === 0) s.maidens += 1;
-      s.ballsInOver = 0;
-      s.runsInOver = 0;
-    }
-    s.lastOver = b.over_number;
-    const runs = (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
-    s.runs += runs;
-    s.runsInOver += runs;
-    if (legal) {
-      s.balls += 1;
-      s.ballsInOver += 1;
-    }
-    if (b.dismissal_type && b.dismissal_type !== "run_out") s.wickets += 1;
-    bowlers.set(b.bowler_name, s);
-  }
-  for (const s of bowlers.values()) {
-    if (s.ballsInOver === 6 && s.runsInOver === 0) s.maidens += 1;
-  }
-  const rows = Array.from(bowlers.entries()).sort((a, b) => b[1].wickets - a[1].wickets || a[1].runs - b[1].runs);
+  const q = useQuery({
+    queryKey: ["public_match_squad", matchId, teamId],
+    queryFn: async () => {
+      const client = supabase as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (c: string, v: string) => {
+              eq: (c: string, v: string) => {
+                order: (c: string, o: { ascending: boolean; nullsFirst?: boolean }) => Promise<{ data: Array<{ squad_row_id: string; display_name: string | null; batting_order: number | null; role: string | null; is_playing: boolean | null; is_substitute: boolean | null; is_captain: boolean | null; is_vice_captain: boolean | null; is_keeper: boolean | null }> | null; error: unknown }>;
+              };
+            };
+          };
+        };
+      };
+      const { data, error } = await client
+        .from("mc_public_squad_players")
+        .select("squad_row_id,display_name,batting_order,role,is_playing,is_substitute,is_captain,is_vice_captain,is_keeper")
+        .eq("match_id", matchId)
+        .eq("team_id", teamId)
+        .order("batting_order", { ascending: true, nullsFirst: false });
+      if (error) throw error as Error;
+      return data ?? [];
+    },
+    staleTime: 60_000,
+  });
+
+  const rows = (q.data ?? []).filter((r) => r.is_playing !== false && !r.is_substitute);
 
   return (
     <section className="mt-6 rounded-3xl border border-border/60 bg-gradient-to-br from-primary/5 via-card to-card p-5 sm:p-6 shadow-sm space-y-5">
@@ -744,35 +743,40 @@ function YetToBatPanel({
             {teamName}
           </div>
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-5xl font-black leading-none tabular-nums tracking-tight sm:text-6xl text-muted-foreground/70">
-              —
+            <span className="text-3xl font-black leading-none tracking-tight sm:text-4xl text-muted-foreground/80">
+              Yet to bat
             </span>
-            <span className="text-sm font-semibold text-muted-foreground">Yet to bat</span>
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            This team hasn&apos;t come out to bat yet.
           </div>
         </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border/50 bg-background/50">
-        <div className="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.5rem_2.5rem] gap-x-2 border-b border-border/50 bg-muted/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-          <div>Bowling</div>
-          <div className="text-right">O</div>
-          <div className="text-right">M</div>
-          <div className="text-right">R</div>
-          <div className="text-right">W</div>
+        <div className="grid grid-cols-[2rem_minmax(0,1fr)_auto] gap-x-2 border-b border-border/50 bg-muted/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <div>#</div>
+          <div>Batter</div>
+          <div className="text-right">Status</div>
         </div>
-        {rows.length === 0 ? (
-          <div className="px-3 py-4 text-center text-xs text-muted-foreground">No bowling data yet</div>
+        {q.isLoading ? (
+          <div className="px-3 py-4 text-center text-xs text-muted-foreground">Loading squad…</div>
+        ) : rows.length === 0 ? (
+          <div className="px-3 py-4 text-center text-xs text-muted-foreground">Squad not published yet</div>
         ) : (
-          rows.map(([name, s]) => (
+          rows.map((r, i) => (
             <div
-              key={name}
-              className="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.5rem_2.5rem] gap-x-2 px-3 py-2 text-sm tabular-nums"
+              key={r.squad_row_id}
+              className="grid grid-cols-[2rem_minmax(0,1fr)_auto] gap-x-2 px-3 py-2 text-sm"
             >
-              <div className="truncate font-semibold">{name}</div>
-              <div className="text-right">{oversDisplay(s.balls)}</div>
-              <div className="text-right">{s.maidens}</div>
-              <div className="text-right">{s.runs}</div>
-              <div className="text-right font-bold">{s.wickets}</div>
+              <div className="tabular-nums text-muted-foreground">{r.batting_order ?? i + 1}</div>
+              <div className="flex min-w-0 items-center gap-1.5">
+                <span className="truncate font-semibold">{r.display_name ?? "—"}</span>
+                {r.is_captain && <span className="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-primary">C</span>}
+                {r.is_vice_captain && <span className="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-primary">VC</span>}
+                {r.is_keeper && <span className="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-primary">WK</span>}
+              </div>
+              <div className="text-right text-xs text-muted-foreground">Yet to bat</div>
             </div>
           ))
         )}
@@ -780,5 +784,6 @@ function YetToBatPanel({
     </section>
   );
 }
+
 
 
