@@ -519,7 +519,7 @@ function CreateMatchPage() {
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col px-3 pb-32 pt-3 sm:px-4">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col px-3 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-3 sm:px-4 md:pb-32">
       {/* Compact wizard header — slim progress bar with tiny back + step counter */}
       <header className="mb-4 flex items-center gap-3">
         <button
@@ -544,7 +544,7 @@ function CreateMatchPage() {
         </div>
       </header>
 
-      {/* Step card — content + inline Continue button (sign-in style) */}
+      {/* Scrollable step card — the fixed action bar below always stays visible */}
       <main className="flex-1">
         <div className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
           <div className="mb-5">
@@ -591,6 +591,8 @@ function CreateMatchPage() {
 
             {step === 4 && (
               <StepAdvanced
+                open={advOpen}
+                setOpen={setAdvOpen}
                 ground={ground}
                 setGround={setGround}
                 pitch={pitch}
@@ -629,48 +631,52 @@ function CreateMatchPage() {
               />
             )}
           </div>
-
-          {/* Inline primary action — inside the card, above the global bottom nav */}
-          <div className="mt-8">
-            {step < 5 ? (
-              <Button
-                className="h-12 w-full text-base font-semibold"
-                disabled={!canContinue}
-                onClick={goNext}
-              >
-                Continue
-                <ChevronRight className="ml-1 size-4" />
-              </Button>
-            ) : (
-              <Button
-                className="h-12 w-full text-base font-semibold"
-                disabled={!canStart || createM.isPending}
-                onClick={() => createM.mutate()}
-              >
-                {createM.isPending ? (
-                  <Loader2 className="mr-1.5 size-4 animate-spin" />
-                ) : (
-                  <Swords className="mr-1.5 size-4" />
-                )}
-                Start match
-              </Button>
-            )}
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={goBack}
-                disabled={createM.isPending}
-                className="mt-3 w-full text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
-              >
-                Back
-              </button>
-            )}
-          </div>
         </div>
       </main>
+
+      {/* Fixed action bar — Back (left) + Continue/Start (right), always visible.
+          Sits above the global mobile bottom nav (h-16) and flush on desktop. */}
+      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border/60 bg-background/95 backdrop-blur md:bottom-0">
+        <div className="mx-auto flex w-full max-w-2xl items-center gap-3 px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-12 flex-1 text-base font-semibold"
+            onClick={goBack}
+            disabled={createM.isPending}
+          >
+            <ArrowLeft className="mr-1 size-4" />
+            Back
+          </Button>
+          {step < 5 ? (
+            <Button
+              className="h-12 flex-[2] text-base font-semibold"
+              disabled={!canContinue}
+              onClick={goNext}
+            >
+              Continue
+              <ChevronRight className="ml-1 size-4" />
+            </Button>
+          ) : (
+            <Button
+              className="h-12 flex-[2] text-base font-semibold"
+              disabled={!canStart || createM.isPending}
+              onClick={() => createM.mutate()}
+            >
+              {createM.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" />
+              ) : (
+                <Swords className="mr-1.5 size-4" />
+              )}
+              Start match
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
+
 
 /* ==================== STEP 1 · SETUP ==================== */
 
@@ -766,6 +772,8 @@ function StepSetup({
 /* ==================== STEP 4 · ADVANCED ==================== */
 
 function StepAdvanced({
+  open,
+  setOpen,
   ground,
   setGround,
   pitch,
@@ -788,6 +796,8 @@ function StepAdvanced({
   setNotes,
   advFilled,
 }: {
+  open: boolean;
+  setOpen: (v: boolean) => void;
   ground: string;
   setGround: (v: string) => void;
   pitch: string;
@@ -812,56 +822,81 @@ function StepAdvanced({
 }) {
   return (
     <div className="space-y-4">
-      <p className="rounded-2xl border border-dashed border-border bg-card/50 p-3 text-xs text-muted-foreground">
-        Most matches don't need any of this — tap Continue to skip.
-        {advFilled > 0 && (
-          <span className="ml-1 font-semibold text-primary">{advFilled} field(s) set</span>
-        )}
+      <p className="text-sm text-muted-foreground">
+        Optional — most matches don&apos;t need any of this. Tap Continue to skip.
       </p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <FieldInput label="Ground" value={ground} onChange={setGround} />
-        <FieldInput label="Pitch" value={pitch} onChange={setPitch} />
-        <FieldInput label="Weather" value={weather} onChange={setWeather} />
-        <FieldInput
-          label="Ball type"
-          value={ballType}
-          onChange={setBallType}
-          placeholder="Leather / Tennis / Season"
-        />
-        <FieldInput label="Scorer" value={scorer} onChange={setScorer} />
-        <FieldInput label="Umpire" value={umpire} onChange={setUmpire} />
-        <FieldInput label="Date" type="date" value={scheduledDate} onChange={setScheduledDate} />
-        <FieldInput
-          label="Streaming URL"
-          value={streamingUrl}
-          onChange={setStreamingUrl}
-          placeholder="https://…"
-        />
-        <div>
-          <Label>Visibility</Label>
-          <select
-            className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3 text-sm"
-            value={visibility}
-            onChange={(e) => setVisibility(e.target.value)}
-          >
-            <option value="private">Private</option>
-            <option value="academy">Academy</option>
-            <option value="public">Public</option>
-          </select>
+
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-accent/40"
+        aria-expanded={open}
+      >
+        <div className="min-w-0">
+          <div className="text-sm font-semibold">Additional details</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">
+            {advFilled > 0
+              ? `${advFilled} field(s) set — tap to edit`
+              : "Ground, pitch, umpire, ball type, streaming, notes…"}
+          </div>
         </div>
-      </div>
-      <div>
-        <Label>Notes</Label>
-        <Textarea
-          className="mt-1"
-          rows={3}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+        <ChevronRight
+          className={cn(
+            "size-4 shrink-0 text-muted-foreground transition-transform",
+            open && "rotate-90",
+          )}
         />
-      </div>
+      </button>
+
+      {open && (
+        <div className="space-y-4 rounded-2xl border border-border bg-background/60 p-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <FieldInput label="Ground" value={ground} onChange={setGround} />
+            <FieldInput label="Pitch" value={pitch} onChange={setPitch} />
+            <FieldInput label="Weather" value={weather} onChange={setWeather} />
+            <FieldInput
+              label="Ball type"
+              value={ballType}
+              onChange={setBallType}
+              placeholder="Leather / Tennis / Season"
+            />
+            <FieldInput label="Scorer" value={scorer} onChange={setScorer} />
+            <FieldInput label="Umpire" value={umpire} onChange={setUmpire} />
+            <FieldInput label="Date" type="date" value={scheduledDate} onChange={setScheduledDate} />
+            <FieldInput
+              label="Streaming URL"
+              value={streamingUrl}
+              onChange={setStreamingUrl}
+              placeholder="https://…"
+            />
+            <div>
+              <Label>Visibility</Label>
+              <select
+                className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3 text-sm"
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value)}
+              >
+                <option value="private">Private</option>
+                <option value="academy">Academy</option>
+                <option value="public">Public</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <Label>Notes</Label>
+            <Textarea
+              className="mt-1"
+              rows={3}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 /* ==================== STEP 5 · REVIEW ==================== */
 
