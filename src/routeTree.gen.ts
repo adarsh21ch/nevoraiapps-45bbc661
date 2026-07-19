@@ -22,7 +22,6 @@ import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
 import { Route as ParentPortalRouteImport } from './routes/parent-portal'
 import { Route as ParentRouteImport } from './routes/parent'
 import { Route as NotificationsRouteImport } from './routes/notifications'
-import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as MatchCenterRouteImport } from './routes/match-center'
 import { Route as LocationRouteImport } from './routes/location'
 import { Route as GalleryRouteImport } from './routes/gallery'
@@ -43,6 +42,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudentIndexRouteImport } from './routes/student.index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
 import { Route as ParentIndexRouteImport } from './routes/parent.index'
+import { Route as MatchesIndexRouteImport } from './routes/matches.index'
 import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as StudentProgressRouteImport } from './routes/student.progress'
@@ -217,11 +217,6 @@ const NotificationsRoute = NotificationsRouteImport.update({
   path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MatchesRoute = MatchesRouteImport.update({
-  id: '/matches',
-  path: '/matches',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MatchCenterRoute = MatchCenterRouteImport.update({
   id: '/match-center',
   path: '/match-center',
@@ -321,6 +316,11 @@ const ParentIndexRoute = ParentIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ParentRoute,
+} as any)
+const MatchesIndexRoute = MatchesIndexRouteImport.update({
+  id: '/matches/',
+  path: '/matches/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const MatchCenterIndexRoute = MatchCenterIndexRouteImport.update({
   id: '/',
@@ -466,9 +466,9 @@ const ParentBillingRoute = ParentBillingRouteImport.update({
   getParentRoute: () => ParentRoute,
 } as any)
 const MatchesMatchIdRoute = MatchesMatchIdRouteImport.update({
-  id: '/$matchId',
-  path: '/$matchId',
-  getParentRoute: () => MatchesRoute,
+  id: '/matches/$matchId',
+  path: '/matches/$matchId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const MatchSlugRoute = MatchSlugRouteImport.update({
   id: '/match/$slug',
@@ -904,7 +904,6 @@ export interface FileRoutesByFullPath {
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
   '/match-center': typeof MatchCenterRouteWithChildren
-  '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
@@ -1001,6 +1000,7 @@ export interface FileRoutesByFullPath {
   '/student/progress': typeof StudentProgressRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
+  '/matches/': typeof MatchesIndexRoute
   '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
@@ -1046,7 +1046,6 @@ export interface FileRoutesByTo {
   '/fees': typeof FeesRoute
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
-  '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/parent-portal': typeof ParentPortalRoute
   '/pricing': typeof PricingRoute
@@ -1140,6 +1139,7 @@ export interface FileRoutesByTo {
   '/student/progress': typeof StudentProgressRoute
   '/dashboard': typeof DashboardIndexRoute
   '/match-center': typeof MatchCenterIndexRoute
+  '/matches': typeof MatchesIndexRoute
   '/parent': typeof ParentIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/student': typeof StudentIndexRoute
@@ -1188,7 +1188,6 @@ export interface FileRoutesById {
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
   '/match-center': typeof MatchCenterRouteWithChildren
-  '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/parent': typeof ParentRouteWithChildren
   '/parent-portal': typeof ParentPortalRoute
@@ -1285,6 +1284,7 @@ export interface FileRoutesById {
   '/student/progress': typeof StudentProgressRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
+  '/matches/': typeof MatchesIndexRoute
   '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
@@ -1334,7 +1334,6 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/location'
     | '/match-center'
-    | '/matches'
     | '/notifications'
     | '/parent'
     | '/parent-portal'
@@ -1431,6 +1430,7 @@ export interface FileRouteTypes {
     | '/student/progress'
     | '/dashboard/'
     | '/match-center/'
+    | '/matches/'
     | '/parent/'
     | '/platform-admin/'
     | '/student/'
@@ -1476,7 +1476,6 @@ export interface FileRouteTypes {
     | '/fees'
     | '/gallery'
     | '/location'
-    | '/matches'
     | '/notifications'
     | '/parent-portal'
     | '/pricing'
@@ -1570,6 +1569,7 @@ export interface FileRouteTypes {
     | '/student/progress'
     | '/dashboard'
     | '/match-center'
+    | '/matches'
     | '/parent'
     | '/platform-admin'
     | '/student'
@@ -1617,7 +1617,6 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/location'
     | '/match-center'
-    | '/matches'
     | '/notifications'
     | '/parent'
     | '/parent-portal'
@@ -1714,6 +1713,7 @@ export interface FileRouteTypes {
     | '/student/progress'
     | '/dashboard/'
     | '/match-center/'
+    | '/matches/'
     | '/parent/'
     | '/platform-admin/'
     | '/student/'
@@ -1762,7 +1762,6 @@ export interface RootRouteChildren {
   GalleryRoute: typeof GalleryRoute
   LocationRoute: typeof LocationRoute
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
-  MatchesRoute: typeof MatchesRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
   ParentRoute: typeof ParentRouteWithChildren
   ParentPortalRoute: typeof ParentPortalRoute
@@ -1783,8 +1782,10 @@ export interface RootRouteChildren {
   InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
+  MatchesMatchIdRoute: typeof MatchesMatchIdRoute
   PoliciesKindRoute: typeof PoliciesKindRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
+  MatchesIndexRoute: typeof MatchesIndexRoute
   ApiPublicTenantIconRoute: typeof ApiPublicTenantIconRoute
   AcademyAcademySlugTournamentsTournamentSlugRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRoute
   ApiPublicHooksAutomationTickRoute: typeof ApiPublicHooksAutomationTickRoute
@@ -1888,13 +1889,6 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof NotificationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/matches': {
-      id: '/matches'
-      path: '/matches'
-      fullPath: '/matches'
-      preLoaderRoute: typeof MatchesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/match-center': {
@@ -2036,6 +2030,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/parent/'
       preLoaderRoute: typeof ParentIndexRouteImport
       parentRoute: typeof ParentRoute
+    }
+    '/matches/': {
+      id: '/matches/'
+      path: '/matches'
+      fullPath: '/matches/'
+      preLoaderRoute: typeof MatchesIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/match-center/': {
       id: '/match-center/'
@@ -2235,10 +2236,10 @@ declare module '@tanstack/react-router' {
     }
     '/matches/$matchId': {
       id: '/matches/$matchId'
-      path: '/$matchId'
+      path: '/matches/$matchId'
       fullPath: '/matches/$matchId'
       preLoaderRoute: typeof MatchesMatchIdRouteImport
-      parentRoute: typeof MatchesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/match/$slug': {
       id: '/match/$slug'
@@ -2984,17 +2985,6 @@ const MatchCenterRouteWithChildren = MatchCenterRoute._addFileChildren(
   MatchCenterRouteChildren,
 )
 
-interface MatchesRouteChildren {
-  MatchesMatchIdRoute: typeof MatchesMatchIdRoute
-}
-
-const MatchesRouteChildren: MatchesRouteChildren = {
-  MatchesMatchIdRoute: MatchesMatchIdRoute,
-}
-
-const MatchesRouteWithChildren =
-  MatchesRoute._addFileChildren(MatchesRouteChildren)
-
 interface ParentRouteChildren {
   ParentBillingRoute: typeof ParentBillingRoute
   ParentProfileRoute: typeof ParentProfileRoute
@@ -3099,7 +3089,6 @@ const rootRouteChildren: RootRouteChildren = {
   GalleryRoute: GalleryRoute,
   LocationRoute: LocationRoute,
   MatchCenterRoute: MatchCenterRouteWithChildren,
-  MatchesRoute: MatchesRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
   ParentRoute: ParentRouteWithChildren,
   ParentPortalRoute: ParentPortalRoute,
@@ -3120,8 +3109,10 @@ const rootRouteChildren: RootRouteChildren = {
   InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,
+  MatchesMatchIdRoute: MatchesMatchIdRoute,
   PoliciesKindRoute: PoliciesKindRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
+  MatchesIndexRoute: MatchesIndexRoute,
   ApiPublicTenantIconRoute: ApiPublicTenantIconRoute,
   AcademyAcademySlugTournamentsTournamentSlugRoute:
     AcademyAcademySlugTournamentsTournamentSlugRoute,

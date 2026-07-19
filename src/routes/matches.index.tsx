@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMatchLive } from "@/hooks/use-match-live";
 import { Calendar, Radio } from "lucide-react";
 
-export const Route = createFileRoute("/matches")({
+export const Route = createFileRoute("/matches/")({
   head: () => ({
     meta: [
       { title: "Matches" },
