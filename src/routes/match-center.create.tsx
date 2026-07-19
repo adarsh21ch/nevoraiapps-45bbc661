@@ -1,17 +1,15 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Swords,
-  ChevronDown,
-  ChevronUp,
   Plus,
   Search,
   Loader2,
-  Settings2,
   X,
   CheckCircle2,
+  ChevronRight,
 } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { Button } from "@/components/ui/button";
