@@ -73,17 +73,25 @@ function SiteEditor() {
         </div>
       </Card>
 
-      <FilterTabs<"site" | "policies" | "contact">
+      <FilterTabs<"site" | "headers" | "policies" | "contact">
         value={tab}
         onChange={setTab}
         items={[
           { key: "site", label: "Site content" },
+          { key: "headers", label: "Page headers" },
           { key: "policies", label: "Policies" },
           { key: "contact", label: "Contact & UPI" },
         ]}
       />
       <div className="pt-4">
         {tab === "site" && <SiteContentTabs tenantId={tenant.id} />}
+        {tab === "headers" && (
+          <PageHeadersEditor
+            tenantId={tenant.id}
+            initial={(tenant as any).page_hero_images ?? null}
+            initialShowFees={showFeesTab(tenant as any)}
+          />
+        )}
         {tab === "policies" && <PoliciesEditor tenantId={tenant.id} />}
         {tab === "contact" && <ContactEditor />}
       </div>
