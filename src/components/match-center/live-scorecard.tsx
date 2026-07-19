@@ -36,11 +36,23 @@ interface Props {
     teamId: string;
     teamName: string;
   };
+  /** When provided, Squad tab shows both squads side-by-side on desktop. */
+  otherSquad?: {
+    matchId: string;
+    teamId: string;
+    teamName: string;
+  };
+  /** The selected team hasn't batted yet. Batting tab shows a pending message. */
+  battingPending?: boolean;
+  /** Ball events where the selected team was fielding — powers the Bowling tab when they haven't batted. */
+  bowlingStatsEvents?: MCBallEvent[];
   /**
    * Optional inline team switcher rendered at the top of team-scoped tabs
    * (Batting / Bowling / Squad). Phase 33 — replaces the page-level pill.
    */
   teamSwitcher?: React.ReactNode;
+  /** Optional name-only switcher used inside the Squad tab (no scores). */
+  squadSwitcher?: React.ReactNode;
 }
 
 type TabKey = "summary" | "batting" | "bowling" | "overs" | "squad" | "commentary";
