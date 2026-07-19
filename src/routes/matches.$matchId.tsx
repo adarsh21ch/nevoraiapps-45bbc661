@@ -200,18 +200,29 @@ function PublicMatchDetail() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-      <Link
-        to="/matches"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" /> Back to matches
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          to="/matches"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" /> Back to matches
+        </Link>
+        <button
+          type="button"
+          onClick={handleRefresh}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground hover:border-primary/50"
+          aria-label="Refresh"
+        >
+          <RefreshCw className={"size-3.5 " + (pulse ? "animate-spin text-primary" : "")} />
+          Refresh
+        </button>
+      </div>
 
       <div className="mt-4 rounded-3xl border border-border/60 bg-card p-6 shadow-sm">
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           {isLive && (
             <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-red-600 dark:text-red-400">
-              <Radio className="size-3" /> Live
+              <Radio className={"size-3 " + (pulse ? "animate-pulse" : "")} /> Live
             </span>
           )}
           {match.match_format && <span>{match.match_format}</span>}
@@ -237,7 +248,33 @@ function PublicMatchDetail() {
         )}
       </div>
 
-      {/* Scorecard for the current (or last) innings */}
+      {/* Innings tabs (visible when 2+ innings) */}
+      {allInnings.length > 1 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {allInnings.map((inn, idx) => {
+            const battingName =
+              inn.batting_team_id === match.team_a_id ? homeName : awayName;
+            const active = idx === activeIdx;
+            return (
+              <button
+                key={inn.id}
+                type="button"
+                onClick={() => setSelectedInningsIdx(idx)}
+                className={
+                  "rounded-full border px-3 py-1.5 text-xs font-semibold transition " +
+                  (active
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border/60 bg-card text-muted-foreground hover:text-foreground")
+                }
+              >
+                {`Innings ${inn.innings_number} · ${battingName} ${inn.runs}/${inn.wickets}`}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Scorecard for the selected innings */}
       {currentInnings ? (
         <div className="mt-6 rounded-3xl border border-border/60 bg-card p-4 sm:p-6">
           <LiveScorecard
@@ -256,6 +293,7 @@ function PublicMatchDetail() {
           />
         </div>
       ) : (
+
         <div className="mt-6 rounded-3xl border border-border/60 bg-card p-6 text-center text-muted-foreground">
           The match hasn&apos;t started yet.
         </div>
