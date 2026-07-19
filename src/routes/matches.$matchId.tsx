@@ -249,9 +249,27 @@ function PublicMatchDetail() {
   const oversDisplay = (legalBalls: number) =>
     `${Math.floor(legalBalls / 6)}.${legalBalls % 6}`;
 
+  // Derive team totals from ball events (source of truth) so the score
+  // updates in real time even if the innings row hasn't been aggregated yet.
+  let derivedRuns = 0;
+  let derivedWickets = 0;
+  let derivedLegalBalls = 0;
+  for (const b of currentBalls) {
+    const et = (b.extra_type as string | null) ?? null;
+    const isWide = et === "wide";
+    const isNoBall = et === "no_ball";
+    derivedRuns += (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
+    if (!isWide && !isNoBall) derivedLegalBalls += 1;
+    if (b.dismissal_type) derivedWickets += 1;
+  }
+  const teamRuns = Math.max(currentInnings?.runs ?? 0, derivedRuns);
+  const teamWickets = Math.max(currentInnings?.wickets ?? 0, derivedWickets);
+  const teamBalls = Math.max(currentInnings?.balls ?? 0, derivedLegalBalls);
+
   const strikerStat = strikerName ? battersMap.get(strikerName) : null;
   const nonStrikerStat = nonStrikerName ? battersMap.get(nonStrikerName) : null;
   const bowlerStat = bowlerName ? bowlersMap.get(bowlerName) : null;
+
 
   // Recent balls: show previous + current over, grouped with a separator between overs
   const currentOverNo = lastBall?.over_number ?? null;
@@ -365,12 +383,12 @@ function PublicMatchDetail() {
                 </div>
                 <div className="mt-1 flex items-baseline gap-2">
                   <span className="text-5xl font-black leading-none tabular-nums tracking-tight sm:text-6xl">
-                    {currentInnings.runs}
+                    {teamRuns}
                     <span className="text-muted-foreground">/</span>
-                    {currentInnings.wickets}
+                    {teamWickets}
                   </span>
                   <span className="text-sm font-semibold tabular-nums text-muted-foreground">
-                    ({oversDisplay(currentInnings.balls ?? 0)}
+                    ({oversDisplay(teamBalls)}
                     {match.overs ? ` / ${match.overs}` : ""})
                   </span>
                 </div>
@@ -378,11 +396,12 @@ function PublicMatchDetail() {
               <div className="shrink-0 text-right">
                 <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">CRR</div>
                 <div className="text-2xl font-bold tabular-nums">
-                  {(currentInnings.balls ?? 0) > 0
-                    ? ((currentInnings.runs * 6) / (currentInnings.balls ?? 1)).toFixed(2)
+                  {teamBalls > 0
+                    ? ((teamRuns * 6) / teamBalls).toFixed(2)
                     : "0.00"}
                 </div>
               </div>
+
             </div>
 
             {/* Batters */}
