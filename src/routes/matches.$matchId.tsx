@@ -646,6 +646,7 @@ function TeamToggle({
   allInnings,
   onSelect,
   hideScores,
+  compact,
 }: {
   teams: Record<string, { name: string; logo_url: string | null }>;
   match: PublicMatchDetailRow;
@@ -657,9 +658,11 @@ function TeamToggle({
   allInnings: MCInnings[];
   onSelect: (id: string) => void;
   hideScores?: boolean;
+  compact?: boolean;
 }) {
   return (
-    <div className="inline-flex rounded-full border border-border/60 bg-card p-1 text-xs font-semibold">
+    <div className={"inline-flex rounded-full border border-border/60 bg-card p-0.5 font-semibold " + (compact ? "text-[11px]" : "text-xs p-1")}>
+
       {[
         { id: battingFirstTeamId, name: teams[battingFirstTeamId]?.name ?? (battingFirstTeamId === match.team_a_id ? homeName : awayName) },
         { id: battingSecondTeamId, name: teams[battingSecondTeamId]?.name ?? (battingSecondTeamId === match.team_a_id ? homeName : awayName) },
