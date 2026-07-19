@@ -253,9 +253,19 @@ function PublicMatchDetail() {
   const nonStrikerStat = nonStrikerName ? battersMap.get(nonStrikerName) : null;
   const bowlerStat = bowlerName ? bowlersMap.get(bowlerName) : null;
 
-  // Current over chips only (remove Last Over per spec)
+  // Recent balls: show previous + current over, grouped with a separator between overs
   const currentOverNo = lastBall?.over_number ?? null;
-  const currentOverBalls = currentOverNo != null ? overs.get(currentOverNo) ?? [] : [];
+  const recentOverGroups: { overNo: number; balls: MCBallEvent[] }[] = [];
+  if (currentOverNo != null) {
+    for (let ov = Math.max(0, currentOverNo - 1); ov <= currentOverNo; ov++) {
+      const balls = overs.get(ov);
+      if (balls && balls.length) recentOverGroups.push({ overNo: ov, balls });
+    }
+  }
+  const recentBallsRunSum = recentOverGroups.reduce(
+    (sum, g) => sum + g.balls.reduce((n, b) => n + (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0), 0),
+    0,
+  );
 
   const ballChipClass = (b: MCBallEvent) => {
     const isWicket = !!b.dismissal_type;
