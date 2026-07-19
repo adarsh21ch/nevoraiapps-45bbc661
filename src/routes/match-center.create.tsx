@@ -614,65 +614,40 @@ function CreateMatchPage() {
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col px-3 pb-8 pt-3 sm:px-4">
-      {/* Sticky wizard header — progress bar + Back/Continue always visible on top */}
-      <header className="sticky top-0 z-30 -mx-3 mb-4 border-b border-border/60 bg-background/90 px-3 pb-3 pt-2 backdrop-blur sm:-mx-4 sm:px-4">
-        <div className="flex items-center gap-3">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full transition-[width] duration-300 ease-out"
-              style={{
-                width: `${(step / 5) * 100}%`,
-                backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
-              }}
-            />
-          </div>
-          <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-            {step}/5
-          </div>
-        </div>
-        <div className="mt-2.5 flex items-center gap-2">
-          <Button
+    <div className="mx-auto w-full max-w-2xl px-3 pb-6 pt-3 sm:px-4">
+      {showResumedToast && (
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+          <span className="text-foreground">
+            Continuing where you left off. Your draft is saved automatically.
+          </span>
+          <button
             type="button"
-            variant="outline"
-            size="sm"
-            className="h-10 flex-1 text-sm font-semibold"
-            onClick={goBack}
-            disabled={createM.isPending}
+            className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10"
+            onClick={resetDraft}
           >
-            <ArrowLeft className="mr-1 size-4" />
-            Back
-          </Button>
-          {step < 5 ? (
-            <Button
-              size="sm"
-              className="h-10 flex-[2] text-sm font-semibold"
-              disabled={!canContinue}
-              onClick={goNext}
-            >
-              Continue
-              <ChevronRight className="ml-1 size-4" />
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              className="h-10 flex-[2] text-sm font-semibold"
-              disabled={!canStart || createM.isPending}
-              onClick={() => createM.mutate()}
-            >
-              {createM.isPending ? (
-                <Loader2 className="mr-1.5 size-4 animate-spin" />
-              ) : (
-                <Swords className="mr-1.5 size-4" />
-              )}
-              Start match
-            </Button>
-          )}
+            Start over
+          </button>
         </div>
-      </header>
+      )}
 
-      <main className="flex-1">
-        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+      {/* Progress bar */}
+      <div className="mb-4 flex items-center gap-3">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full transition-[width] duration-300 ease-out"
+            style={{
+              width: `${(step / 5) * 100}%`,
+              backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
+            }}
+          />
+        </div>
+        <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+          {step}/5
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-border bg-card shadow-sm">
+        <div className="p-5 sm:p-6">
           <div className="mb-5">
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{stepTitle}</h1>
           </div>
@@ -687,7 +662,6 @@ function CreateMatchPage() {
                 overs={overs}
                 setOvers={setOvers}
               />
-
             )}
 
             {step === 2 && (
@@ -759,7 +733,44 @@ function CreateMatchPage() {
             )}
           </div>
         </div>
-      </main>
+
+        {/* Action bar — inside the card, equally distributed Back / Continue */}
+        <div className="flex items-center gap-3 rounded-b-3xl border-t border-border/60 bg-card px-5 py-4 sm:px-6">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 flex-1 text-sm font-semibold"
+            onClick={goBack}
+            disabled={createM.isPending}
+          >
+            <ArrowLeft className="mr-1 size-4" />
+            Back
+          </Button>
+          {step < 5 ? (
+            <Button
+              className="h-11 flex-1 text-sm font-semibold"
+              disabled={!canContinue}
+              onClick={goNext}
+            >
+              Continue
+              <ChevronRight className="ml-1 size-4" />
+            </Button>
+          ) : (
+            <Button
+              className="h-11 flex-1 text-sm font-semibold"
+              disabled={!canStart || createM.isPending}
+              onClick={() => createM.mutate()}
+            >
+              {createM.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" />
+              ) : (
+                <Swords className="mr-1.5 size-4" />
+              )}
+              Start match
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
