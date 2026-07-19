@@ -152,7 +152,7 @@ export function SiteHeader() {
         {open ? (
           <div className="border-t border-border/60 bg-background md:hidden">
             <div className="mx-auto flex max-w-screen-2xl flex-col px-4 py-2 sm:px-6">
-              {mobileNav.map((item) => (
+              {mobileNavItems.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
