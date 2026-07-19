@@ -83,7 +83,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             "email, address, upi_id, upi_qr_url, status, created_at, fee_cycle, " +
             "monthly_price, setup_fee, billing_day, last_paid_date, " +
             "subscription_status, platform_notes, player_prefix, show_billing_to_parents, " +
-            "registration_pdf_url",
+            "registration_pdf_url, page_hero_images, show_fees_tab",
         )
         .eq("id", tenantId!)
         .maybeSingle();
