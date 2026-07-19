@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyStudentContext, fetchStudentProfile, studentKeys } from "@/lib/student-app";
+import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
 
 export const Route = createFileRoute("/student/profile")({
   component: StudentProfilePage,
@@ -72,13 +73,14 @@ function StudentProfilePage() {
     <div className="space-y-5">
       {/* Hero */}
       <Card className="p-5 flex items-center gap-4 bg-gradient-to-br from-primary/10 to-transparent">
-        <div className="size-16 rounded-full bg-primary/20 grid place-items-center overflow-hidden">
-          {s.photo_url ? (
-            <img src={s.photo_url} alt="" className="size-full object-cover" />
-          ) : (
-            <UserCircle className="size-8 text-primary" />
-          )}
-        </div>
+        <PlayerPhotoUploader
+          tenantId={ctx.tenant_id}
+          studentId={ctx.student_id}
+          photoUrl={(s.photo_url as string | null) ?? null}
+          name={(s.name as string | null) ?? "Player"}
+          size={64}
+          onUpdated={() => q.refetch()}
+        />
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-semibold truncate">{s.name}</h1>
           {s.player_id && <p className="text-xs text-muted-foreground">ID · {s.player_id}</p>}
