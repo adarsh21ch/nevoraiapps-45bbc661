@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   ChevronRight,
 } from "lucide-react";
-import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
