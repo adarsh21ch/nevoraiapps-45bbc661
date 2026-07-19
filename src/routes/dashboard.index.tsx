@@ -126,6 +126,8 @@ function DashboardHome() {
     staleTime: 30_000,
   });
   const newRegs = useNewRegistrationsCount(tenant.id);
+  const liveMatchesQ = useLiveMatches(canScoreMatch ? tenant.id : undefined);
+  const liveMatch: MatchWithTeams | undefined = liveMatchesQ.data[0];
 
   // ── Single source of truth ────────────────────────────────────────────
   // Reuse the exact same engine as the Attendance page (session = "all"):
