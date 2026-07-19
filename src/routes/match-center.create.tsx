@@ -99,8 +99,8 @@ function CreateMatchPage() {
   const defaults = useMemo(() => readMatchDefaults(tenant.id), [tenant.id]);
 
   const [matchType, setMatchType] = useState(defaults.match_type ?? "practice");
-  const [matchFormat, setMatchFormat] = useState(defaults.match_format ?? "T20");
-  const [overs, setOvers] = useState<number>(defaults.overs ?? 20);
+  const [matchFormat, setMatchFormat] = useState(defaults.match_format ?? "");
+  const [overs, setOvers] = useState<number>(defaults.overs ?? 0);
   const [scheduledDate, setScheduledDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
 
