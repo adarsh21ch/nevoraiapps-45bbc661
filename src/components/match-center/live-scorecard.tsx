@@ -130,7 +130,7 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
       </div>
 
       {/* Scroll content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 pt-3 pb-4 animate-fade-in">
+      <div className={cn("px-1 pt-3 pb-4 animate-fade-in", embedded ? "" : "flex-1 min-h-0 overflow-y-auto overscroll-contain")}>
         {tab === "summary" && <SummaryPane stats={stats} matchInfo={matchInfo} />}
         {tab === "batting" && (
           <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />
