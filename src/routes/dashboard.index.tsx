@@ -522,16 +522,24 @@ function KpiTile({
   );
 }
 
-function QuickAction({ to, label, icon }: { to: string; label: string; icon: React.ReactNode }) {
-  return (
-    <Link
-      to={to}
-      className={cn(
-        "flex flex-col items-center justify-center gap-1.5",
-        "rounded-2xl border border-border bg-card px-2 py-3",
-        "hover:border-[color:var(--brand)]/50 hover:bg-accent/40 active:scale-[0.97] transition-all",
-      )}
-    >
+function QuickAction({
+  to,
+  onClick,
+  label,
+  icon,
+}: {
+  to?: string;
+  onClick?: () => void;
+  label: string;
+  icon: React.ReactNode;
+}) {
+  const cls = cn(
+    "flex flex-col items-center justify-center gap-1.5",
+    "rounded-2xl border border-border bg-card px-2 py-3",
+    "hover:border-[color:var(--brand)]/50 hover:bg-accent/40 active:scale-[0.97] transition-all",
+  );
+  const inner = (
+    <>
       <span
         className="grid size-9 place-items-center rounded-xl"
         style={{
@@ -542,106 +550,165 @@ function QuickAction({ to, label, icon }: { to: string; label: string; icon: Rea
         {icon}
       </span>
       <span className="text-[11px] font-semibold leading-none text-center">{label}</span>
+    </>
+  );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={cls}>
+        {inner}
+      </button>
+    );
+  }
+  return (
+    <Link to={to!} className={cls}>
+      {inner}
     </Link>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Role-based Quick Actions — fixed 4×2 grid, max 8, launch workflows.
-// Never duplicates items already available in the bottom navigation
-// (Attendance, Fees, Manage, Profile).
+// Role-based Quick Actions — trimmed to 5 (Phase 31).
 // ---------------------------------------------------------------------------
 
-type QAItem = { to: string; label: string; icon: React.ReactNode };
+type QAItem = {
+  key: string;
+  to?: string;
+  onClick?: () => void;
+  label: string;
+  icon: React.ReactNode;
+};
 
 function QuickActionsGrid({
   role,
   canScoreMatch,
-  liveMatchId,
+  tenant,
 }: {
   role: "owner" | "admin" | "student";
   canScoreMatch: boolean;
-  liveMatchId: string | null;
+  tenant: { slug: string; name: string; custom_domain: string | null };
 }) {
-  // When a match is live and the user can score, promote a "Score Live"
-  // shortcut in place of the lower-value "Scan QR" slot — same one-tap
-  // philosophy as the header banner, but reachable even after the banner
-  // is scrolled past. When no match is live, "Scan QR" stays.
-  const attendanceAction: QAItem =
-    canScoreMatch && liveMatchId
-      ? {
-          to: `/scorer/${liveMatchId}`,
-          label: "Score Live",
-          icon: <Radio className="size-5" />,
-        }
-      : { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> };
+  const [shareOpen, setShareOpen] = useState(false);
+
+  const shareAction: QAItem = {
+    key: "share",
+    onClick: () => setShareOpen(true),
+    label: "Share Website",
+    icon: <Share2 className="size-5" />,
+  };
+
+  const createMatch: QAItem[] = canScoreMatch
+    ? [
+        {
+          key: "create-match",
+          to: "/match-center/create",
+          label: "Create Match",
+          icon: <Swords className="size-5" />,
+        },
+      ]
+    : [];
 
   const ownerActions: QAItem[] = [
-    { to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
+    { key: "add-player", to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
+    ...createMatch,
     {
-      to: "/dashboard/registrations",
-      label: "New Registration",
-      icon: <Inbox className="size-5" />,
-    },
-    { to: "/dashboard/batches", label: "Create Batch", icon: <CalendarDays className="size-5" /> },
-    ...(canScoreMatch
-      ? [
-          {
-            to: "/match-center/create",
-            label: "Create Match",
-            icon: <Swords className="size-5" />,
-          } as QAItem,
-        ]
-      : []),
-    {
+      key: "announce",
       to: "/dashboard/communications",
       label: "Send Announcement",
       icon: <Megaphone className="size-5" />,
     },
-    { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
-    attendanceAction,
-    { to: "/dashboard/site", label: "Share Website", icon: <Share2 className="size-5" /> },
+    { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
+    shareAction,
   ];
 
   const adminActions: QAItem[] = [
+    { key: "add-player", to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
+    ...createMatch,
     {
-      to: "/dashboard/attendance",
-      label: "Check Attendance",
-      icon: <ClipboardCheck className="size-5" />,
-    },
-    { to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
-    {
-      to: "/dashboard/registrations",
-      label: "New Registration",
-      icon: <Inbox className="size-5" />,
-    },
-    ...(canScoreMatch
-      ? [
-          {
-            to: "/match-center/create",
-            label: "Create Match",
-            icon: <Swords className="size-5" />,
-          } as QAItem,
-        ]
-      : []),
-    attendanceAction,
-    { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
-    {
+      key: "announce",
       to: "/dashboard/communications",
       label: "Send Announcement",
       icon: <Megaphone className="size-5" />,
     },
-    { to: "/dashboard/students", label: "Player List", icon: <Users className="size-5" /> },
+    { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
+    shareAction,
   ];
 
-  const items = (role === "owner" ? ownerActions : adminActions).slice(0, 8);
+  const items = (role === "owner" ? ownerActions : adminActions).slice(0, 5);
 
   return (
-    <div className="grid grid-cols-4 grid-rows-2 gap-2">
-      {items.map((a) => (
-        <QuickAction key={`${a.to}-${a.label}`} to={a.to} label={a.label} icon={a.icon} />
-      ))}
-    </div>
+    <>
+      <div className="grid grid-cols-5 gap-2">
+        {items.map((a) => (
+          <QuickAction key={a.key} to={a.to} onClick={a.onClick} label={a.label} icon={a.icon} />
+        ))}
+      </div>
+      <ShareWebsiteDialog open={shareOpen} onOpenChange={setShareOpen} tenant={tenant} />
+    </>
+  );
+}
+
+function ShareWebsiteDialog({
+  open,
+  onOpenChange,
+  tenant,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  tenant: { slug: string; name: string; custom_domain: string | null };
+}) {
+  const url = tenantSiteUrl(tenant);
+  const message = `Check out ${tenant.name} — ${url}`;
+  const waHref = `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied", { description: url });
+    } catch {
+      toast.error("Couldn't copy link");
+    }
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Share your website</DialogTitle>
+          <DialogDescription className="truncate">{url}</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-2">
+          <button
+            type="button"
+            onClick={copyLink}
+            className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left hover:bg-accent/40 active:scale-[0.99] transition-all"
+          >
+            <span className="grid size-9 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#E8873C)_14%,transparent)] text-[color:var(--brand,#E8873C)]">
+              <Copy className="size-4" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">Copy link</div>
+              <div className="text-[11px] text-muted-foreground truncate">Copy the public site URL</div>
+            </div>
+          </button>
+          <a
+            href={waHref}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => onOpenChange(false)}
+            className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:bg-accent/40 active:scale-[0.99] transition-all"
+          >
+            <span className="grid size-9 place-items-center rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+              <MessageCircle className="size-4" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">Share on WhatsApp</div>
+              <div className="text-[11px] text-muted-foreground truncate">Send with a pre-filled message</div>
+            </div>
+          </a>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
