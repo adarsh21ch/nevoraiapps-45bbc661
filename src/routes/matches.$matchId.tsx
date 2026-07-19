@@ -440,9 +440,9 @@ function PublicMatchDetail() {
 
       {currentInnings && !activeTeamHasBatted && !showBothTotals ? (
         <YetToBatPanel
+          matchId={match.id}
+          teamId={activeTeamId}
           teamName={teams[activeTeamId]?.name ?? "This team"}
-          bowlingBalls={bowlingBalls}
-          oversDisplay={oversDisplay}
         />
       ) : null}
 
