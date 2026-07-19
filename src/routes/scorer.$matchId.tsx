@@ -1077,7 +1077,11 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
       {/* Innings complete */}
       <Dialog open={inningsCompleteOpen} onOpenChange={setInningsCompleteOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent
+          className="max-w-md"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Innings complete</DialogTitle>
             <DialogDescription>
