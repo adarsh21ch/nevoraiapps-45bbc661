@@ -318,15 +318,17 @@ function DashboardHome() {
       </section>
 
       {/* ─── Section 2 · Cricket today (moved up — daily priority) ────── */}
-      {canScoreMatch && <CricketToday tenantId={tenant.id} />}
+      {canScoreMatch && (
+        <CricketToday tenantId={tenant.id} playerCount={(studentsQ.data ?? []).length} />
+      )}
 
-      {/* ─── Section 3 · Quick actions (role-based, 4×2 grid) ─────────── */}
+      {/* ─── Section 3 · Quick actions ─────────── */}
       <section aria-label="Quick actions">
         <SectionLabel>Quick actions</SectionLabel>
         <QuickActionsGrid
           role={role}
           canScoreMatch={canScoreMatch}
-          liveMatchId={liveMatch?.id ?? null}
+          tenant={tenant}
         />
       </section>
 
