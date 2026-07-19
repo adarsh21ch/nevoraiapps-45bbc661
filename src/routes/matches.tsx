@@ -100,7 +100,7 @@ function MatchesPage() {
 
   return (
     <>
-      <PageHero
+      <PageHero pageKey="matches"
         eyebrow="Fixtures & results"
         title="Matches"
         subtitle={`Follow ${tenant.name} on the field.`}

@@ -1,52 +1,87 @@
-## Goal
+This is a MEDIUM-scope stabilization + polish pass across the tenant public website and the platform-admin/site settings. Grouped into 4 parts. Nothing removes existing data; all changes are additive and backward-compatible.
 
-Make Registrations the single canonical intake tab. Fold the extra Admissions-Review capabilities into it (tucked under the row "More" menu so the UI stays clean), rename it to "Registrations / Admissions", and remove the standalone Admissions tab.
+---
 
-## What gets merged in
+## Part 1 — Per-page hero background carousels
 
-Registrations already has: approve, delete, PDF, share, copy, "new" badge, detail sheet.
-Admissions Review adds these on top — I'll port them:
+**Goal:** Each public page (Home, About, Programs, Star Players, Matches, Gallery, Fees, Contact) can have multiple hero background images that auto-slide right→left every ~5s. Owner/platform admin uploads them from the site settings.
 
-- **Reject** (with reason)
-- **Waitlist** (with note)
-- **Request changes** (dialog with notes → sets `changes_requested`)
-- **Approve-with-details** dialog (batch + fee plan at approval time)
-- **Status filter tabs**: Pending / Approved / Rejected / Waitlisted / Changes-requested
-- **Admission timeline** (audit trail shown inside the detail sheet)
+**Backend**
+- New column on `site_content` (or equivalent tenant site record) — `page_hero_images jsonb default '{}'::jsonb` — keyed by page slug, value is an ordered array of storage paths.
+  Example: `{ "home": ["a.jpg","b.jpg"], "matches": ["m1.jpg"] }`
+- Extend `tenants_public_directory` view to expose `page_hero_images`.
+- Reuse existing `tenant-media` storage bucket (same one gallery uses). No new bucket, no new RLS surface.
 
-All of the above already have working server functions (`rejectRegistration`, `waitlistRegistration`, `AdmissionActionDialog`) — this is wiring, not new backend.
+**Owner site settings (`dashboard.site.tsx`)**
+- New "Page Headers" section with one uploader row per page. Each row: multi-file upload, reorder (drag), delete. Max 8 images per page. Reuse existing gallery upload helpers.
+- Platform-admin tenant editor gets a link to the same screen (no duplicate uploader).
 
-## UI placement (keeping the current look)
+**Public rendering**
+- New `<HeroCarousel images={...} />` component. If images empty → keep current gradient hero (no regression). If 1 image → static. If 2+ → framer-motion crossfade + slide, 5s interval, pauses on hover, respects `prefers-reduced-motion`.
+- Wire into `PageHero` used by About/Programs/Matches/Gallery/Fees/Contact and the home hero.
 
-- Row primary buttons stay as today: **Approve** + kebab.
-- Kebab "More" menu gains: Request changes, Waitlist, Reject, View timeline, Download PDF, Share, Copy, Delete.
-- Filter tabs (Pending / Approved / Rejected / Waitlisted / Changes-requested) appear above the list — same `FilterTabs` component Admissions already uses, so it matches project design.
-- Detail sheet gets a small "Timeline" section at the bottom (collapsed by default).
-- Sidebar label: **Registrations / Admissions** (single entry).
+---
 
-## Removals & redirects
+## Part 2 — Hide Fees tab toggle
 
-- Delete link "Admissions" from sidebar, home shortcuts, and any dashboard hero card.
-- `/dashboard/admissions-review` route file → converted to a redirect that pushes to `/dashboard/registrations` (preserves any old bookmarks / links from AI briefs / emails).
-- No DB / RLS / RPC changes. `approve_registration` RPC and `admission_timeline` table stay.
+**Goal:** Owner can hide the "Fees" link in public site nav without touching data.
 
-## Files affected
+**Backend**
+- New boolean on `site_content` → `show_fees_tab boolean not null default true`. Exposed via `tenants_public_directory`.
 
-- `src/routes/dashboard.registrations.tsx` — add filter tabs, more-menu actions, timeline in sheet
-- `src/routes/dashboard.admissions-review.tsx` — replace body with a redirect
-- `src/components/dashboard/DashboardShell.tsx` (or wherever sidebar is defined) — remove Admissions entry, rename Registrations
-- `src/routes/dashboard.index.tsx` — swap any "Admissions Review" tile/link to point at Registrations
-- Any other file that links to `/dashboard/admissions-review` (I'll grep and update)
+**UI**
+- Toggle in `dashboard.site.tsx` (site settings) — "Show Fees in public navigation".
+- Same toggle mirrored in platform-admin tenant detail for support access.
+- `SiteHeader` / mobile nav / footer filter out Fees when false. The `/fees` route itself stays reachable by direct URL (owner may still link it from admin), just hidden in nav.
 
-## Risk & rollback
+---
 
-- **Risk:** MEDIUM. UI-heavy merge on an existing owner workflow. No schema change.
-- **Regression surface:** the Registrations inbox itself — I keep its current markup and only additively wire the new menu items and filter tabs.
-- **Rollback:** revert the four files above; the admissions-review route is only converted (not deleted), so restoring its component is a one-file revert.
+## Part 3 — Matches page bugs + public live/history
 
-## Verification
+**Investigation first** — before changing anything I will:
+- Read `src/routes/matches.tsx`, `src/routes/matches.$matchId.tsx`, and the RPC feeding "Recent Results" to confirm why completed matches aren't listed. Likely one of: RLS on `mc_matches` for anon, missing `status='completed'` inclusion in the fetcher, or the view scoping to a wrong tenant column. Report the root cause before patching.
 
-- Typecheck.
-- Playwright: submit a `/register` form → open Registrations → filter Pending → open kebab → run each action (approve with dialog, request changes, waitlist, reject) → confirm the row moves to the right tab and timeline shows the event → confirm approve creates a student + fee schedule (spot-check via Supabase).
+**Public matches page (`/matches`)**
+- Three sections: **Live now** (status='live', prominent, "Watch live" CTA → `/matches/$id`), **Upcoming**, **Recent results** (completed, last 10, with final score + winner + "View scorecard" link).
+- Empty states stay but only when the section is genuinely empty.
 
-If this looks right I'll go build it.
+**Site header live banner**
+- Thin dismissible banner above `SiteHeader` when a live match exists for the tenant: "🔴 LIVE — Team A vs Team B · 84/3 (12.4) · Watch". Realtime-subscribed to `mc_ball_events` (already wired for the public match page — reuse the same hook).
+- Only renders on public site routes; not on dashboard/scorer.
+
+**Match detail page**
+- Already exists at `/matches/$matchId`. Add a "Watch live scorecard" prominent CTA when status='live' and ensure completed matches show the full scorecard + ball-by-ball history (should already work — will verify).
+
+---
+
+## Part 4 — Files touched (expected)
+
+Migrations
+- 1 migration: add `page_hero_images jsonb`, `show_fees_tab boolean` to `site_content`; refresh `tenants_public_directory` view; verify anon RLS on `mc_matches`/`mc_innings` covers completed matches.
+
+Frontend
+- `src/components/site/HeroCarousel.tsx` (new)
+- `src/components/site/PageHero.tsx` (accept images prop)
+- `src/components/site/SiteHeader.tsx` (respect `show_fees_tab`, mount `LiveMatchBanner`)
+- `src/components/site/LiveMatchBanner.tsx` (new, reuses `useMatchLive` hook)
+- `src/routes/matches.tsx` (Live / Upcoming / Recent sections)
+- `src/routes/dashboard.site.tsx` (Page Headers uploader + Fees toggle)
+- `src/routes/platform-admin.tenants.$id.tsx` (Fees toggle mirror + link)
+- `src/routes/index.tsx`, `src/routes/about.tsx`, `programs.tsx`, `matches.tsx`, `gallery.tsx`, `fees.tsx`, `contact.tsx`, `star-players.tsx` — pass hero images into `PageHero`.
+- `src/lib/tenant.ts` / site-content fetcher — expose new fields.
+
+Risk: MEDIUM. Additive schema, no destructive changes. Existing hero gradient remains as fallback so a tenant with zero uploaded images sees identical UI.
+
+---
+
+## Order of execution (after your approval)
+
+1. Migration (schema + view refresh).
+2. Investigate matches "recent results" root cause and report before patching.
+3. Backend fetchers + type updates.
+4. Owner site settings uploader + Fees toggle.
+5. `HeroCarousel` + wire into every public page.
+6. Public matches page rework + live banner.
+7. Typecheck + verify: fees toggle hides nav, upload → carousel shows on public page, completed match appears in Recent results.
+
+**Question before I start:** should the hero carousel replace the current blue-gradient hero background entirely when images exist, or overlay images on top of the gradient with a dark scrim so the white title text stays readable? (My default: overlay + scrim — safest for text contrast on any uploaded photo.)

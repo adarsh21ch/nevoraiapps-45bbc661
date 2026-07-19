@@ -4,6 +4,8 @@ import { Menu, X } from "lucide-react";
 import { useTenant } from "@/lib/tenant-context";
 import { cn } from "@/lib/utils";
 import { StoragedImage } from "./StoragedImage";
+import { LiveMatchBanner } from "./LiveMatchBanner";
+import { showFeesTab } from "@/lib/page-hero-images";
 
 // Desktop top nav: 7 items. Home = clicking the logo. Owner login lives in the
 // footer and mobile menu; Coaches/Achievements/Admissions are reachable from
@@ -38,9 +40,13 @@ export function SiteHeader() {
   const tenant = useTenant();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const feesVisible = showFeesTab(tenant);
+  const desktopNav = feesVisible ? primaryNav : primaryNav.filter((n) => n.to !== "/fees");
+  const mobileNavItems = feesVisible ? mobileNav : mobileNav.filter((n) => n.to !== "/fees");
 
   return (
     <>
+      <LiveMatchBanner />
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-background"
@@ -98,7 +104,7 @@ export function SiteHeader() {
 
           {/* Centered nav */}
           <nav className="hidden flex-1 items-center justify-center gap-2 md:flex">
-            {primaryNav.map((item) => {
+            {desktopNav.map((item) => {
               const active = location.pathname.startsWith(item.to);
               return (
                 <Link
@@ -146,7 +152,7 @@ export function SiteHeader() {
         {open ? (
           <div className="border-t border-border/60 bg-background md:hidden">
             <div className="mx-auto flex max-w-screen-2xl flex-col px-4 py-2 sm:px-6">
-              {mobileNav.map((item) => (
+              {mobileNavItems.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}

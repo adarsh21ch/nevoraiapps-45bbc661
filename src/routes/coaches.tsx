@@ -37,7 +37,7 @@ function CoachesPage() {
 
   return (
     <>
-      <PageHero
+      <PageHero pageKey="coaches"
         eyebrow="Coaching staff"
         title="Our Coaches"
         subtitle={`Learn from experienced coaches at ${tenant.name}.`}

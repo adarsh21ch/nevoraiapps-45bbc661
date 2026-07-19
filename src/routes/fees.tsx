@@ -48,7 +48,7 @@ function FeesContent() {
 
   return (
     <>
-      <PageHero
+      <PageHero pageKey="fees"
         eyebrow="Simple, transparent pricing"
         title="Fees & plans"
         subtitle={`Pay directly to ${tenant.name} via UPI. No hidden fees, no card surcharges.`}
@@ -143,7 +143,7 @@ function FeesCtaOnly({ tenant, mode }: { tenant: ReturnType<typeof useTenant>; m
   if (mode === "hide") {
     return (
       <>
-        <PageHero
+        <PageHero pageKey="fees"
           eyebrow="Fees"
           title="Fees & plans"
           subtitle="Please register or contact us to know more about our plans."
@@ -168,7 +168,7 @@ function FeesCtaOnly({ tenant, mode }: { tenant: ReturnType<typeof useTenant>; m
   const isDemo = mode === "demo";
   return (
     <>
-      <PageHero
+      <PageHero pageKey="fees"
         eyebrow={isDemo ? "Try before you join" : "Get in touch"}
         title={isDemo ? "Book a free demo" : "Chat with us about fees"}
         subtitle={

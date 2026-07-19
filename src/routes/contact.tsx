@@ -34,7 +34,7 @@ function ContactContent() {
 
   return (
     <>
-      <PageHero
+      <PageHero pageKey="contact"
         eyebrow="Get in touch"
         title="Contact us"
         subtitle="Have questions? Reach out — we usually reply the same day."

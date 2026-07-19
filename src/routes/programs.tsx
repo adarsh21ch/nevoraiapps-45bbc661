@@ -40,7 +40,7 @@ function ProgramsPage() {
 
   return (
     <>
-      <PageHero
+      <PageHero pageKey="programs"
         eyebrow="What we offer"
         title="Programs & Batches"
         subtitle={`Choose a program that fits your goals at ${tenant.name}.`}

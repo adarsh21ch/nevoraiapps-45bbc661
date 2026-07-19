@@ -63,7 +63,7 @@ function AchievementsPage() {
 
   return (
     <>
-      <PageHero
+      <PageHero pageKey="achievements"
         eyebrow="Legacy"
         title="Achievements"
         subtitle={`Records, honors, and recognitions from ${tenant.name}.`}

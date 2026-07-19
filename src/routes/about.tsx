@@ -25,7 +25,7 @@ function AboutContent() {
 
   return (
     <>
-      <PageHero
+      <PageHero pageKey="about"
         eyebrow={`About ${tenant.name}`}
         title={about?.heading ?? `About ${tenant.name}`}
         subtitle={about?.body ?? undefined}
