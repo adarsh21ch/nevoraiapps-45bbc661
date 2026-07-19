@@ -575,6 +575,7 @@ function TeamToggle({
   activeTeamId,
   allInnings,
   onSelect,
+  hideScores,
 }: {
   teams: Record<string, { name: string; logo_url: string | null }>;
   match: PublicMatchDetailRow;
