@@ -321,24 +321,44 @@ function PublicMatchDetail() {
 
 
 
+  const isCompleted = match.status === "completed" || !!match.result;
+  const showBothTotals = isCompleted && allInnings.length >= 2;
+
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <Link
           to="/matches"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="size-4" /> Back to matches
         </Link>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground hover:border-primary/50"
-          aria-label="Refresh"
-        >
-          <RefreshCw className={"size-3.5 " + (pulse ? "animate-spin text-primary" : "")} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          {currentInnings && allInnings.length > 0 && (
+            <TeamToggle
+              teams={teams}
+              match={match}
+              homeName={homeName}
+              awayName={awayName}
+              battingFirstTeamId={battingFirstTeamId}
+              battingSecondTeamId={battingSecondTeamId}
+              activeTeamId={activeTeamId}
+              allInnings={allInnings}
+              onSelect={setSelectedTeamId}
+              hideScores
+              compact
+            />
+          )}
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground hover:border-primary/50"
+            aria-label="Refresh"
+          >
+            <RefreshCw className={"size-3.5 " + (pulse ? "animate-spin text-primary" : "")} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+        </div>
       </div>
 
       {/* Match header — compact single-line meta */}
@@ -369,29 +389,54 @@ function PublicMatchDetail() {
         )}
       </div>
 
-      {currentInnings && allInnings.length > 0 && (
-        <div className="mt-4 flex justify-end">
-          <TeamToggle
-            teams={teams}
-            match={match}
-            homeName={homeName}
-            awayName={awayName}
-            battingFirstTeamId={battingFirstTeamId}
-            battingSecondTeamId={battingSecondTeamId}
-            activeTeamId={activeTeamId}
-            allInnings={allInnings}
-            onSelect={setSelectedTeamId}
-          />
-        </div>
+      {showBothTotals && (
+        <section className="mt-6 rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card p-5 sm:p-6 shadow-sm">
+          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            Final result
+          </div>
+          <div className="mt-3 space-y-3">
+            {allInnings.map((inn) => {
+              const tName =
+                teams[inn.batting_team_id]?.name ??
+                (inn.batting_team_id === match.team_a_id ? homeName : awayName);
+              const legalBalls = inn.balls ?? 0;
+              return (
+                <button
+                  key={inn.id}
+                  type="button"
+                  onClick={() => setSelectedTeamId(inn.batting_team_id)}
+                  className={
+                    "flex w-full items-baseline justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition " +
+                    (inn.batting_team_id === activeTeamId
+                      ? "border-primary/60 bg-primary/5"
+                      : "border-border/50 bg-background/40 hover:border-primary/40")
+                  }
+                >
+                  <span className="truncate text-sm font-semibold">{tName}</span>
+                  <span className="shrink-0 tabular-nums">
+                    <span className="text-2xl font-black">
+                      {inn.runs ?? 0}
+                      <span className="text-muted-foreground">/</span>
+                      {inn.wickets ?? 0}
+                    </span>
+                    <span className="ml-1.5 text-xs text-muted-foreground">
+                      ({oversDisplay(legalBalls)}
+                      {match.overs ? ` / ${match.overs}` : ""})
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          {match.result && (
+            <div className="mt-3 text-xs font-semibold" style={{ color: "var(--brand)" }}>
+              {match.result}
+            </div>
+          )}
+        </section>
       )}
 
-      {currentInnings && !activeTeamHasBatted ? (
-        <YetToBatPanel
-          teamName={teams[activeTeamId]?.name ?? "This team"}
-          bowlingBalls={bowlingBalls}
-          oversDisplay={oversDisplay}
-        />
-      ) : null}
+
 
       {currentInnings && activeTeamHasBatted ? (
         <>
