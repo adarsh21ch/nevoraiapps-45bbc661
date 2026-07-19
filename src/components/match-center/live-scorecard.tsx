@@ -19,6 +19,7 @@ interface Props {
   innings: MCInnings | null;
   totalOvers?: number | null;
   hideHero?: boolean;
+  commentary?: { id: string; over: string; text: string }[];
   matchInfo?: {
     ground?: string | null;
     tournament?: string | null;
@@ -30,17 +31,18 @@ interface Props {
   };
 }
 
-type TabKey = "summary" | "batting" | "bowling" | "overs" | "more";
+type TabKey = "summary" | "batting" | "bowling" | "overs" | "commentary" | "more";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "summary", label: "Summary" },
   { key: "batting", label: "Batting" },
   { key: "bowling", label: "Bowling" },
   { key: "overs", label: "Overs" },
+  { key: "commentary", label: "Commentary" },
   { key: "more", label: "More" },
 ];
 
-export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero }: Props) {
+export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary }: Props) {
   const [tab, setTab] = useState<TabKey>("summary");
   const [openBatter, setOpenBatter] = useState<BattingStat | null>(null);
   const [openBowler, setOpenBowler] = useState<BowlingStat | null>(null);
@@ -132,6 +134,7 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
           <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />
         )}
         {tab === "overs" && <OversPane overs={stats.team.overs_summary} />}
+        {tab === "commentary" && <CommentaryPane commentary={commentary ?? []} />}
         {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} />}
       </div>
 
@@ -646,5 +649,27 @@ function EmptyState({ text }: { text: string }) {
     <div className="rounded-2xl border border-dashed border-border/60 bg-card/50 p-6 text-center text-xs text-muted-foreground">
       {text}
     </div>
+  );
+}
+
+function CommentaryPane({ commentary }: { commentary: { id: string; over: string; text: string }[] }) {
+  if (commentary.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border/60 bg-card/50 p-6 text-center text-xs text-muted-foreground">
+        No commentary yet.
+      </div>
+    );
+  }
+  return (
+    <ul className="divide-y divide-border/60 rounded-2xl border border-border/60 bg-card/50">
+      {commentary.map((c) => (
+        <li key={c.id} className="flex items-start gap-3 px-4 py-3">
+          <span className="w-12 shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+            {c.over}
+          </span>
+          <span className="text-sm">{c.text}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
