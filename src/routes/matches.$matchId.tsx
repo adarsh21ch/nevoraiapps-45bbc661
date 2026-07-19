@@ -438,7 +438,16 @@ function PublicMatchDetail() {
 
 
 
-      {currentInnings && activeTeamHasBatted ? (
+      {currentInnings && !activeTeamHasBatted && !showBothTotals ? (
+        <YetToBatPanel
+          teamName={teams[activeTeamId]?.name ?? "This team"}
+          bowlingBalls={bowlingBalls}
+          oversDisplay={oversDisplay}
+        />
+      ) : null}
+
+      {currentInnings && activeTeamHasBatted && !showBothTotals ? (
+
         <>
           {/* Broadcast card: single stacked column — score → batters → bowling → this over */}
           <section className="mt-6 rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card p-5 sm:p-6 shadow-sm space-y-5">
