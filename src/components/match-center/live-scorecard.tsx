@@ -166,22 +166,41 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
         )}
         {tab === "batting" && (
           <div className="space-y-3">
-            {teamSwitcher}
-            <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />
+            <div className="flex justify-end">{teamSwitcher}</div>
+            {battingPending ? (
+              <EmptyState text="Their batting is pending — this team hasn't come out to bat yet." />
+            ) : (
+              <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />
+            )}
           </div>
         )}
         {tab === "bowling" && (
           <div className="space-y-3">
-            {teamSwitcher}
-            <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />
+            <div className="flex justify-end">{teamSwitcher}</div>
+            <BowlingTable bowlers={bowlingStats.bowling.ordered} onSelect={setOpenBowler} />
           </div>
         )}
         {tab === "overs" && <OversPane overs={stats.team.overs_summary} events={events} />}
         {tab === "squad" && (
           <div className="space-y-3">
-            {teamSwitcher}
-            {squad ? (
-              <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+            {otherSquad && squad ? (
+              <>
+                {/* Desktop: both squads side-by-side, no toggle needed. */}
+                <div className="hidden gap-4 md:grid md:grid-cols-2">
+                  <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+                  <SquadList matchId={otherSquad.matchId} teamId={otherSquad.teamId} teamName={otherSquad.teamName} />
+                </div>
+                {/* Mobile: name-only switcher + active squad. */}
+                <div className="space-y-3 md:hidden">
+                  <div className="flex justify-end">{squadSwitcher ?? teamSwitcher}</div>
+                  <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+                </div>
+              </>
+            ) : squad ? (
+              <>
+                <div className="flex justify-end">{squadSwitcher ?? teamSwitcher}</div>
+                <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+              </>
             ) : (
               <EmptyState text="Squad unavailable." />
             )}
