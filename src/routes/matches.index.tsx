@@ -295,17 +295,17 @@ function LiveMatchCard({
       <div className="mt-2 text-lg font-semibold">
         {homeName} <span className="text-muted-foreground">vs</span> {awayName}
       </div>
-      {current ? (
+      {current && score ? (
         <div className="mt-3">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             {battingName}
           </div>
           <div className="mt-1 text-2xl font-black tabular-nums">
-            {current.runs}
+            {score.runs}
             <span className="text-muted-foreground">/</span>
-            {current.wickets}{" "}
+            {score.wickets}{" "}
             <span className="text-sm font-semibold text-muted-foreground">
-              ({current.overs}.{current.balls})
+              ({score.overs}.{score.balls})
             </span>
           </div>
         </div>
