@@ -591,7 +591,7 @@ function CreateMatchPage() {
                 setMatchFormat={setMatchFormat}
                 overs={overs}
                 setOvers={setOvers}
-                onAutoAdvance={() => setStep(2)}
+                />
               />
             )}
 
