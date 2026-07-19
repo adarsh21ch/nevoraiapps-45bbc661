@@ -591,8 +591,8 @@ function CreateMatchPage() {
                 setMatchFormat={setMatchFormat}
                 overs={overs}
                 setOvers={setOvers}
-                />
               />
+
             )}
 
             {step === 2 && (
