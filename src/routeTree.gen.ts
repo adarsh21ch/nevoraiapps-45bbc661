@@ -43,6 +43,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudentIndexRouteImport } from './routes/student.index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
 import { Route as ParentIndexRouteImport } from './routes/parent.index'
+import { Route as MatchesIndexRouteImport } from './routes/matches.index'
 import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as StudentProgressRouteImport } from './routes/student.progress'
@@ -321,6 +322,11 @@ const ParentIndexRoute = ParentIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ParentRoute,
+} as any)
+const MatchesIndexRoute = MatchesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MatchesRoute,
 } as any)
 const MatchCenterIndexRoute = MatchCenterIndexRouteImport.update({
   id: '/',
@@ -1001,6 +1007,7 @@ export interface FileRoutesByFullPath {
   '/student/progress': typeof StudentProgressRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
+  '/matches/': typeof MatchesIndexRoute
   '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
@@ -1046,7 +1053,6 @@ export interface FileRoutesByTo {
   '/fees': typeof FeesRoute
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
-  '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
   '/parent-portal': typeof ParentPortalRoute
   '/pricing': typeof PricingRoute
@@ -1140,6 +1146,7 @@ export interface FileRoutesByTo {
   '/student/progress': typeof StudentProgressRoute
   '/dashboard': typeof DashboardIndexRoute
   '/match-center': typeof MatchCenterIndexRoute
+  '/matches': typeof MatchesIndexRoute
   '/parent': typeof ParentIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/student': typeof StudentIndexRoute
@@ -1285,6 +1292,7 @@ export interface FileRoutesById {
   '/student/progress': typeof StudentProgressRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
+  '/matches/': typeof MatchesIndexRoute
   '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
@@ -1431,6 +1439,7 @@ export interface FileRouteTypes {
     | '/student/progress'
     | '/dashboard/'
     | '/match-center/'
+    | '/matches/'
     | '/parent/'
     | '/platform-admin/'
     | '/student/'
@@ -1476,7 +1485,6 @@ export interface FileRouteTypes {
     | '/fees'
     | '/gallery'
     | '/location'
-    | '/matches'
     | '/notifications'
     | '/parent-portal'
     | '/pricing'
@@ -1570,6 +1578,7 @@ export interface FileRouteTypes {
     | '/student/progress'
     | '/dashboard'
     | '/match-center'
+    | '/matches'
     | '/parent'
     | '/platform-admin'
     | '/student'
@@ -1714,6 +1723,7 @@ export interface FileRouteTypes {
     | '/student/progress'
     | '/dashboard/'
     | '/match-center/'
+    | '/matches/'
     | '/parent/'
     | '/platform-admin/'
     | '/student/'
@@ -2036,6 +2046,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/parent/'
       preLoaderRoute: typeof ParentIndexRouteImport
       parentRoute: typeof ParentRoute
+    }
+    '/matches/': {
+      id: '/matches/'
+      path: '/'
+      fullPath: '/matches/'
+      preLoaderRoute: typeof MatchesIndexRouteImport
+      parentRoute: typeof MatchesRoute
     }
     '/match-center/': {
       id: '/match-center/'
@@ -2986,10 +3003,12 @@ const MatchCenterRouteWithChildren = MatchCenterRoute._addFileChildren(
 
 interface MatchesRouteChildren {
   MatchesMatchIdRoute: typeof MatchesMatchIdRoute
+  MatchesIndexRoute: typeof MatchesIndexRoute
 }
 
 const MatchesRouteChildren: MatchesRouteChildren = {
   MatchesMatchIdRoute: MatchesMatchIdRoute,
+  MatchesIndexRoute: MatchesIndexRoute,
 }
 
 const MatchesRouteWithChildren =
