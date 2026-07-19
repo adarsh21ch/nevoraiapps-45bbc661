@@ -51,8 +51,13 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
     target: innings?.target ?? null,
   });
 
+  // When embedded in a page that scrolls (hideHero=true, e.g. public match view),
+  // don't create nested scroll containers — let the page scroll naturally.
+  const embedded = !!hideHero;
+
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className={embedded ? "flex flex-col" : "flex h-full min-h-0 flex-col"}>
+
       {!hideHero && (
         <div className="px-1 pb-3">
           <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card p-4 shadow-sm">
@@ -105,7 +110,7 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
       )}
 
       {/* Segment control */}
-      <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 pb-2 backdrop-blur">
+      <div className={cn("z-10 -mx-1 space-y-2 bg-background/95 px-1 pb-2 backdrop-blur", !embedded && "sticky top-0")}>
         <div className="flex gap-1 overflow-x-auto rounded-full bg-muted p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TABS.map((t) => (
             <button
@@ -125,7 +130,7 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
       </div>
 
       {/* Scroll content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-1 pt-3 pb-4 animate-fade-in">
+      <div className={cn("px-1 pt-3 pb-4 animate-fade-in", embedded ? "" : "flex-1 min-h-0 overflow-y-auto overscroll-contain")}>
         {tab === "summary" && <SummaryPane stats={stats} matchInfo={matchInfo} />}
         {tab === "batting" && (
           <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />

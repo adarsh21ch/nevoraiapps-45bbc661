@@ -436,37 +436,46 @@ function PublicMatchDetail() {
               </div>
             </div>
 
-            {/* Recent balls (current over) */}
+            {/* Recent balls: previous over → | → current over */}
             <div className="rounded-2xl border border-border/50 bg-background/50 p-3">
               <div className="flex items-center justify-between">
                 <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  Recent balls {currentOverNo != null ? `· Over ${currentOverNo + 1}` : ""}
+                  Recent balls
+                  {currentOverNo != null ? ` · Over ${currentOverNo + 1}` : ""}
                 </div>
                 <div className="text-[10px] font-semibold tabular-nums text-muted-foreground">
-                  {currentOverBalls.reduce(
-                    (n, b) => n + (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0),
-                    0,
-                  )}{" "}
-                  runs
+                  {recentBallsRunSum} runs
                 </div>
               </div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {currentOverBalls.length === 0 && (
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {recentOverGroups.length === 0 && (
                   <span className="text-xs text-muted-foreground">Yet to begin</span>
                 )}
-                {currentOverBalls.map((b) => (
-                  <span
-                    key={b.id}
-                    className={
-                      "inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums " +
-                      ballChipClass(b)
-                    }
-                  >
-                    {ballChipLabel(b)}
-                  </span>
+                {recentOverGroups.map((group, gi) => (
+                  <div key={group.overNo} className="flex items-center gap-1.5">
+                    {gi > 0 && (
+                      <span
+                        aria-hidden
+                        className="mx-1 h-5 w-px bg-border"
+                        title={`End of over ${group.overNo + 1}`}
+                      />
+                    )}
+                    {group.balls.map((b) => (
+                      <span
+                        key={b.id}
+                        className={
+                          "inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums " +
+                          ballChipClass(b)
+                        }
+                      >
+                        {ballChipLabel(b)}
+                      </span>
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>
+
           </section>
 
           {/* Scorecard (Summary / Batting / Bowling / Overs / Commentary / More) */}
