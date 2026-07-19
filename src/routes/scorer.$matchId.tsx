@@ -283,6 +283,13 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     [session.events, session.match?.overs, session.activeInnings?.target],
   );
 
+  const overHistory = useMemo(
+    () => computeOverHistory(session.events, ballChipLabel),
+    [session.events],
+  );
+
+
+
   const striker = session.striker;
   const nonStriker = session.nonStriker;
   const bowlerRef = session.bowler;
@@ -868,7 +875,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
               : session.currentOver.events.map(ballChipLabel)
           }
           currentOverLabel={currentOverLabel}
-          overHistory={computeOverHistory(session.events, ballChipLabel)}
+          overHistory={overHistory}
           inningsLabel={undefined}
           insights={{
             partnership: stats.team.currentPartnership
@@ -1717,7 +1724,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
               : session.currentOver.events.map(ballChipLabel)
           }
           currentOverLabel={currentOverLabel}
-          overHistory={computeOverHistory(session.events, ballChipLabel)}
+          overHistory={overHistory}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`

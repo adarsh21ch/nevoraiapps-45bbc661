@@ -502,7 +502,11 @@ export function useScoringSession(
 
       // Chain the network write behind any in-flight ones so sequence
       // numbers stay ordered on the backend. The optimistic UI update
-      // above has already been applied synchronously.
+      // above has already been applied synchronously, and we do NOT
+      // await the network here — that way rapid taps never queue behind
+      // slow round-trips (bad connection at the ground, long matches,
+      // etc.). If the write eventually fails we surface it via console
+      // and revert the optimistic row.
       const networkPromise = netQueueRef.current
         .catch(() => {})
         .then(() =>
@@ -521,21 +525,19 @@ export function useScoringSession(
             priorEvents,
             ...partial,
           }).then(() => undefined),
-        );
+        )
+        .catch((e) => {
+          console.error("[scoring] append failed, reverting", e);
+          const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
+          eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
+          setEvents(eventsRef.current);
+          if (wasLatest) {
+            setStriker(currentStriker);
+            setNonStriker(currentNonStriker);
+            setBowler(currentBowler);
+          }
+        });
       netQueueRef.current = networkPromise.catch(() => {});
-      try {
-        await networkPromise;
-      } catch (e) {
-        const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
-        eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
-        setEvents(eventsRef.current);
-        if (wasLatest) {
-          setStriker(currentStriker);
-          setNonStriker(currentNonStriker);
-          setBowler(currentBowler);
-        }
-        throw e;
-      }
 
       return optimistic;
     },
@@ -545,12 +547,13 @@ export function useScoringSession(
       opts.userId,
       activeInnings,
       match?.status,
-      striker,
-      nonStriker,
-      bowler,
-      matchState,
+      match,
+      setStriker,
+      setNonStriker,
+      setBowler,
     ],
   );
+
 
   const undo = useCallback(async () => {
     if (!activeInnings) throw new BallEventError("INVALID_INNINGS", "No active innings.");
