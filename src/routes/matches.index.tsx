@@ -224,13 +224,55 @@ function LiveMatchCard({
     staleTime: 10_000,
   });
 
-  const listener = useCallback(() => {
-    onInvalidate();
-  }, [onInvalidate]);
-  useMatchLive(match.id, listener);
-
   const innings = inningsQ.data ?? [];
   const current = innings[innings.length - 1];
+
+  // mc_innings aggregate columns can lag behind the scorer; derive live totals from ball events.
+  const ballsQ = useQuery({
+    queryKey: ["public_match_innings_balls", current?.id],
+    enabled: !!current?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mc_ball_events")
+        .select("runs_off_bat,extra_runs,is_legal_delivery,dismissal_type")
+        .eq("innings_id", current!.id);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 5_000,
+  });
+
+  const listener = useCallback(() => {
+    onInvalidate();
+    if (current?.id) {
+      // ball events invalidation handled by realtime via onInvalidate on parent
+    }
+  }, [onInvalidate, current?.id]);
+  useMatchLive(match.id, listener);
+
+  const derived = (() => {
+    const balls = ballsQ.data;
+    if (!balls || balls.length === 0) return null;
+    let runs = 0;
+    let wickets = 0;
+    let legal = 0;
+    for (const b of balls as Array<{ runs_off_bat: number | null; extra_runs: number | null; is_legal_delivery: boolean | null; dismissal_type: string | null }>) {
+      runs += (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
+      if (b.is_legal_delivery) legal += 1;
+      if (b.dismissal_type) wickets += 1;
+    }
+    return { runs, wickets, overs: Math.floor(legal / 6), balls: legal % 6 };
+  })();
+
+  const score = derived ?? (current
+    ? {
+        runs: current.runs ?? 0,
+        wickets: current.wickets ?? 0,
+        overs: current.overs ?? 0,
+        balls: current.balls ?? 0,
+      }
+    : null);
+
   const battingName = current
     ? current.batting_team_id === match.team_a_id
       ? homeName
