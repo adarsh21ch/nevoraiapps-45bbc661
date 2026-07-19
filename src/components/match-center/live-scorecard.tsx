@@ -518,117 +518,84 @@ function BowlerCard({ b }: { b: BowlingStat }) {
   );
 }
 
-function OversPane({ overs }: { overs: OverSummaryStat[] }) {
+function OversPane({ overs, events }: { overs: OverSummaryStat[]; events: MCBallEvent[] }) {
   if (overs.length === 0) return <EmptyState text="No overs yet." />;
+  // Group ball events by over_number so each over shows its ball-by-ball sequence.
+  const byOver = new Map<number, MCBallEvent[]>();
+  for (const e of events) {
+    const list = byOver.get(e.over_number) ?? [];
+    list.push(e);
+    byOver.set(e.over_number, list);
+  }
   return (
     <div className="space-y-2">
-      {[...overs].reverse().map((o) => (
-        <div
-          key={o.overNumber}
-          className="rounded-2xl border border-border/60 bg-card p-3 shadow-sm"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Over {o.overNumber + 1}
-                {o.isMaiden && (
-                  <span className="ml-1.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-600">
-                    Maiden
-                  </span>
-                )}
+      {[...overs].reverse().map((o) => {
+        const balls = byOver.get(o.overNumber) ?? [];
+        return (
+          <div
+            key={o.overNumber}
+            className="rounded-2xl border border-border/60 bg-card p-3 shadow-sm"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Over {o.overNumber + 1}
+                  {o.isMaiden && (
+                    <span className="ml-1.5 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-600">
+                      Maiden
+                    </span>
+                  )}
+                </div>
+                <div className="mt-0.5 truncate text-[13px] font-semibold">
+                  {o.bowler?.name ?? "—"}
+                </div>
               </div>
-              <div className="mt-0.5 truncate text-[13px] font-semibold">
-                {o.bowler?.name ?? "—"}
+              <div className="shrink-0 text-right">
+                <div className="text-lg font-black leading-none tabular-nums">
+                  {o.runs}
+                  <span className="text-muted-foreground">/</span>
+                  {o.wickets}
+                </div>
+                <div className="text-[10px] text-muted-foreground tabular-nums">
+                  {o.dotBalls} dots · {o.boundaries} bnd
+                </div>
               </div>
             </div>
-            <div className="shrink-0 text-right">
-              <div className="text-lg font-black leading-none tabular-nums">
-                {o.runs}
-                <span className="text-muted-foreground">/</span>
-                {o.wickets}
+            {balls.length > 0 && (
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {balls.map((b) => (
+                  <BallChip key={b.id} b={b} />
+                ))}
               </div>
-              <div className="text-[10px] text-muted-foreground tabular-nums">
-                {o.dotBalls} dots · {o.boundaries} bnd
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function MorePane({
-  stats,
-  matchInfo,
-  commentary,
-}: {
-  stats: ReturnType<typeof calculateInningsStatistics>;
-  matchInfo?: Props["matchInfo"];
-  commentary?: { id: string; over: string; text: string }[];
-}) {
-  return (
-    <div className="space-y-4">
-      {commentary && commentary.length > 0 && (
-        <Section title="Commentary">
-          <CommentaryPane commentary={commentary} />
-        </Section>
-      )}
-
-      <Section title="Fall of wickets">
-        {stats.team.fallOfWickets.length === 0 ? (
-          <EmptyState text="No wickets yet." />
-        ) : (
-          <div className="space-y-1.5">
-            {stats.team.fallOfWickets.map((f) => (
-              <FowRow key={f.wicketNumber} f={f} />
-            ))}
-          </div>
-        )}
-      </Section>
-
-      <Section title="Partnerships">
-        {stats.team.partnerships.length === 0 && !stats.team.currentPartnership ? (
-          <EmptyState text="No partnerships yet." />
-        ) : (
-          <div className="space-y-1.5">
-            {stats.team.partnerships.map((p, i) => (
-              <PartnershipCard key={i} p={p} />
-            ))}
-            {stats.team.currentPartnership && (
-              <PartnershipCard p={stats.team.currentPartnership} current />
             )}
           </div>
-        )}
-      </Section>
-
-      <Section title="Extras">
-        <div className="grid grid-cols-2 gap-2">
-          <MetricCard label="Wides" value={String(stats.team.extras.wides)} />
-          <MetricCard label="No balls" value={String(stats.team.extras.noBalls)} />
-          <MetricCard label="Byes" value={String(stats.team.extras.byes)} />
-          <MetricCard label="Leg byes" value={String(stats.team.extras.legByes)} />
-          <MetricCard label="Penalty" value={String(stats.team.extras.penalty)} />
-          <MetricCard label="Total" value={String(stats.team.extras.total)} accent />
-        </div>
-      </Section>
-
-      <Section title="Match info">
-        <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/50">
-          <InfoRow
-            label="Teams"
-            value={`${matchInfo?.homeTeam ?? "Home"} vs ${matchInfo?.awayTeam ?? "Away"}`}
-          />
-          {matchInfo?.format && <InfoRow label="Format" value={matchInfo.format} />}
-          {matchInfo?.ground && <InfoRow label="Ground" value={matchInfo.ground} />}
-          {matchInfo?.tournament && <InfoRow label="Tournament" value={matchInfo.tournament} />}
-          {matchInfo?.date && <InfoRow label="Date" value={matchInfo.date} />}
-          {matchInfo?.result && <InfoRow label="Result" value={matchInfo.result} />}
-        </div>
-      </Section>
+        );
+      })}
     </div>
   );
 }
+
+export function BallChip({ b }: { b: MCBallEvent }) {
+  const isWicket = !!b.dismissal_type;
+  const isBoundary =
+    !b.dismissal_type && ((b.runs_off_bat ?? 0) === 4 || (b.runs_off_bat ?? 0) === 6);
+  const cls = isWicket
+    ? "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/30"
+    : isBoundary
+      ? "bg-primary/15 text-primary ring-1 ring-primary/30"
+      : "bg-muted text-foreground";
+  return (
+    <span
+      className={
+        "inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums " +
+        cls
+      }
+    >
+      {ballChipLabel(b)}
+    </span>
+  );
+}
+
 
 /* ------------------------------- Primitives ------------------------------ */
 
