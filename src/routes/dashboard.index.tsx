@@ -29,7 +29,7 @@ import {
   TrendingUp,
   Activity,
   Cake,
-  QrCode,
+  
   Megaphone,
   BarChart3,
   Share2,
