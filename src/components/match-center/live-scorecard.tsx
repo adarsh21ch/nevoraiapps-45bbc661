@@ -54,7 +54,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "commentary", label: "Commentary" },
 ];
 
-export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary, squad }: Props) {
+export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary, squad, teamSwitcher }: Props) {
 
   const [tab, setTab] = useState<TabKey>("summary");
   const [openBatter, setOpenBatter] = useState<BattingStat | null>(null);
