@@ -51,8 +51,13 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
     target: innings?.target ?? null,
   });
 
+  // When embedded in a page that scrolls (hideHero=true, e.g. public match view),
+  // don't create nested scroll containers — let the page scroll naturally.
+  const embedded = !!hideHero;
+
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className={embedded ? "flex flex-col" : "flex h-full min-h-0 flex-col"}>
+
       {!hideHero && (
         <div className="px-1 pb-3">
           <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card p-4 shadow-sm">
