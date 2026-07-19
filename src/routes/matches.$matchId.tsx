@@ -224,9 +224,12 @@ function PublicMatchDetail() {
   const battersMap = new Map<string, { runs: number; balls: number; fours: number; sixes: number }>();
   const bowlersMap = new Map<string, { runs: number; balls: number; wickets: number }>();
   for (const b of currentBalls) {
+    const et = (b.extra_type as string | null) ?? null;
+    const isWide = et === "wide";
+    const isNoBall = et === "no_ball";
     if (b.striker_name) {
       const s = battersMap.get(b.striker_name) ?? { runs: 0, balls: 0, fours: 0, sixes: 0 };
-      const faced = !b.is_wide;
+      const faced = !isWide;
       if (faced) s.balls += 1;
       const off = b.runs_off_bat ?? 0;
       s.runs += off;
@@ -236,7 +239,7 @@ function PublicMatchDetail() {
     }
     if (b.bowler_name) {
       const bw = bowlersMap.get(b.bowler_name) ?? { runs: 0, balls: 0, wickets: 0 };
-      const legal = !b.is_wide && !b.is_no_ball;
+      const legal = !isWide && !isNoBall;
       if (legal) bw.balls += 1;
       bw.runs += (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
       if (b.dismissal_type && b.dismissal_type !== "run_out") bw.wickets += 1;
