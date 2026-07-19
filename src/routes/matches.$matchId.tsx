@@ -148,7 +148,7 @@ function PublicMatchDetail() {
   }, [queryClient, matchId]);
   useMatchLive(matchId, listener);
 
-  const [selectedInningsIdx, setSelectedInningsIdx] = useState<number | null>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [pulse, setPulse] = useState(false);
   // Pulse indicator flashes whenever ball data changes.
   useEffect(() => {
@@ -176,14 +176,22 @@ function PublicMatchDetail() {
   const awayName = teams[match.team_b_id]?.name ?? "Away";
   const allInnings = inningsQ.data ?? [];
   const allBalls = ballsQ.data ?? [];
-  const activeIdx =
-    selectedInningsIdx != null && allInnings[selectedInningsIdx]
-      ? selectedInningsIdx
-      : Math.max(0, allInnings.length - 1);
-  const currentInnings = allInnings[activeIdx] ?? null;
-  const currentBalls = currentInnings
-    ? allBalls.filter((b) => b.innings_id === currentInnings.id)
-    : [];
+
+  // Default team selection: whichever team is currently/last batting; falls back to team A.
+  const latestInnings = allInnings.length > 0 ? allInnings[allInnings.length - 1] : null;
+  const activeTeamId =
+    selectedTeamId ?? latestInnings?.batting_team_id ?? match.team_a_id;
+
+  // Find the innings where the active team batted. If none yet (they haven't batted),
+  // fall back to the latest innings so the layout still renders with an empty state.
+  const teamInnings =
+    allInnings.find((i) => i.batting_team_id === activeTeamId) ?? null;
+  const currentInnings = teamInnings ?? latestInnings;
+  const activeTeamHasBatted = !!teamInnings;
+  const currentBalls =
+    currentInnings && activeTeamHasBatted
+      ? allBalls.filter((b) => b.innings_id === currentInnings.id)
+      : [];
   const isLive = match.status === "live" || match.status === "in_progress";
 
   const commentary = buildCommentary(currentBalls);
@@ -345,33 +353,44 @@ function PublicMatchDetail() {
       </div>
 
 
-      {/* Innings tabs */}
-      {allInnings.length > 1 && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {allInnings.map((inn, idx) => {
-            const battingName =
-              inn.batting_team_id === match.team_a_id ? homeName : awayName;
-            const active = idx === activeIdx;
-            return (
-              <button
-                key={inn.id}
-                type="button"
-                onClick={() => setSelectedInningsIdx(idx)}
-                className={
-                  "rounded-full border px-3 py-1.5 text-xs font-semibold transition " +
-                  (active
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border/60 bg-card text-muted-foreground hover:text-foreground")
-                }
-              >
-                {`Innings ${inn.innings_number} · ${battingName} ${inn.runs}/${inn.wickets}`}
-              </button>
-            );
-          })}
+      {/* Team toggle — switch between Team A and Team B stats */}
+      <div className="mt-4 inline-flex rounded-full border border-border/60 bg-card p-1 text-xs font-semibold">
+        {[
+          { id: match.team_a_id, name: homeName },
+          { id: match.team_b_id, name: awayName },
+        ].map((t) => {
+          const inn = allInnings.find((i) => i.batting_team_id === t.id);
+          const active = t.id === activeTeamId;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSelectedTeamId(t.id)}
+              className={
+                "rounded-full px-3.5 py-1.5 transition " +
+                (active
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground")
+              }
+            >
+              <span className="truncate">{t.name}</span>
+              {inn && (
+                <span className="ml-1.5 tabular-nums opacity-80">
+                  {inn.runs}/{inn.wickets}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {currentInnings && !activeTeamHasBatted && (
+        <div className="mt-6 rounded-3xl border border-border/60 bg-card p-6 text-center text-sm text-muted-foreground">
+          {(teams[activeTeamId]?.name ?? "This team")} hasn&apos;t batted yet.
         </div>
       )}
 
-      {currentInnings ? (
+      {currentInnings && activeTeamHasBatted ? (
         <>
           {/* Broadcast card: single stacked column — score → batters → bowling → this over */}
           <section className="mt-6 rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card p-5 sm:p-6 shadow-sm space-y-5">
