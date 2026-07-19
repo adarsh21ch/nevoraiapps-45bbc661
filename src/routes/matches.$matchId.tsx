@@ -253,9 +253,19 @@ function PublicMatchDetail() {
   const nonStrikerStat = nonStrikerName ? battersMap.get(nonStrikerName) : null;
   const bowlerStat = bowlerName ? bowlersMap.get(bowlerName) : null;
 
-  // Current over chips only (remove Last Over per spec)
+  // Recent balls: show previous + current over, grouped with a separator between overs
   const currentOverNo = lastBall?.over_number ?? null;
-  const currentOverBalls = currentOverNo != null ? overs.get(currentOverNo) ?? [] : [];
+  const recentOverGroups: { overNo: number; balls: MCBallEvent[] }[] = [];
+  if (currentOverNo != null) {
+    for (let ov = Math.max(0, currentOverNo - 1); ov <= currentOverNo; ov++) {
+      const balls = overs.get(ov);
+      if (balls && balls.length) recentOverGroups.push({ overNo: ov, balls });
+    }
+  }
+  const recentBallsRunSum = recentOverGroups.reduce(
+    (sum, g) => sum + g.balls.reduce((n, b) => n + (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0), 0),
+    0,
+  );
 
   const ballChipClass = (b: MCBallEvent) => {
     const isWicket = !!b.dismissal_type;
@@ -269,7 +279,7 @@ function PublicMatchDetail() {
   };
 
   return (
-    <div className="w-full px-4 py-6 sm:px-6 lg:px-10 xl:px-16">
+    <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
       <div className="flex items-center justify-between">
         <Link
           to="/matches"
@@ -288,35 +298,34 @@ function PublicMatchDetail() {
         </button>
       </div>
 
-      {/* Match header */}
-      <div className="mt-4 rounded-3xl border border-border/60 bg-card p-5 sm:p-6 shadow-sm">
-        <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          {isLive && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-red-600 dark:text-red-400">
-              <Radio className={"size-3 " + (pulse ? "animate-pulse" : "")} /> Live
-            </span>
-          )}
-          {match.match_format && <span>{match.match_format}</span>}
-          {match.match_type && <span>· {match.match_type}</span>}
-          {match.scheduled_date && (
-            <span>· {new Date(match.scheduled_date).toLocaleDateString()}</span>
-          )}
-          {match.ground_name && <span>· {match.ground_name}</span>}
-        </div>
-        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
+      {/* Match header — compact single-line meta */}
+      <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+        {isLive && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-[11px] font-semibold text-red-600 dark:text-red-400">
+            <Radio className={"size-3 " + (pulse ? "animate-pulse" : "")} /> Live
+          </span>
+        )}
+        <span className="font-semibold text-foreground">
           {homeName} <span className="text-muted-foreground">vs</span> {awayName}
-        </h1>
+        </span>
+        {match.match_format && <span>· {match.match_format}</span>}
+        {match.match_type && <span>· {match.match_type}</span>}
+        {match.scheduled_date && (
+          <span>· {new Date(match.scheduled_date).toLocaleDateString()}</span>
+        )}
+        {match.ground_name && <span>· {match.ground_name}</span>}
         {match.toss_winner && match.toss_decision && (
-          <p className="mt-1 text-sm text-muted-foreground">
+          <span className="basis-full text-[11px]">
             Toss: {teams[match.toss_winner]?.name ?? "Winner"} chose to {match.toss_decision}
-          </p>
+          </span>
         )}
         {match.result && (
-          <p className="mt-2 text-sm font-medium" style={{ color: "var(--brand)" }}>
+          <span className="basis-full text-[11px] font-medium" style={{ color: "var(--brand)" }}>
             {match.result}
-          </p>
+          </span>
         )}
       </div>
+
 
       {/* Innings tabs */}
       {allInnings.length > 1 && (
