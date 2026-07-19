@@ -551,10 +551,25 @@ type QAItem = { to: string; label: string; icon: React.ReactNode };
 function QuickActionsGrid({
   role,
   canScoreMatch,
+  liveMatchId,
 }: {
   role: "owner" | "admin" | "student";
   canScoreMatch: boolean;
+  liveMatchId: string | null;
 }) {
+  // When a match is live and the user can score, promote a "Score Live"
+  // shortcut in place of the lower-value "Scan QR" slot — same one-tap
+  // philosophy as the header banner, but reachable even after the banner
+  // is scrolled past. When no match is live, "Scan QR" stays.
+  const attendanceAction: QAItem =
+    canScoreMatch && liveMatchId
+      ? {
+          to: `/scorer/${liveMatchId}`,
+          label: "Score Live",
+          icon: <Radio className="size-5" />,
+        }
+      : { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> };
+
   const ownerActions: QAItem[] = [
     { to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
     {
@@ -578,7 +593,7 @@ function QuickActionsGrid({
       icon: <Megaphone className="size-5" />,
     },
     { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
-    { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> },
+    attendanceAction,
     { to: "/dashboard/site", label: "Share Website", icon: <Share2 className="size-5" /> },
   ];
 
@@ -603,7 +618,7 @@ function QuickActionsGrid({
           } as QAItem,
         ]
       : []),
-    { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> },
+    attendanceAction,
     { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     {
       to: "/dashboard/communications",
