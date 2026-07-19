@@ -6,6 +6,7 @@ import { useTenant } from "@/lib/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useMatchLive } from "@/hooks/use-match-live";
 import { LiveScorecard } from "@/components/match-center/live-scorecard";
+import { SquadList } from "@/components/match-center/SquadList";
 import { buildCommentary, ballChipLabel } from "@/lib/mc-commentary";
 import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
 import { ArrowLeft, Radio, RefreshCw } from "lucide-react";
@@ -406,6 +407,13 @@ function PublicMatchDetail() {
           );
         })}
       </div>
+
+      <SquadList
+        matchId={match.id}
+        teamId={activeTeamId}
+        teamName={teams[activeTeamId]?.name ?? (activeTeamId === match.team_a_id ? homeName : awayName)}
+      />
+
 
       {currentInnings && !activeTeamHasBatted ? (
         <YetToBatPanel

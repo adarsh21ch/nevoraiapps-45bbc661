@@ -7057,6 +7057,47 @@ export type Database = {
           },
         ]
       }
+      mc_public_squad_players: {
+        Row: {
+          athlete_profile_id: string | null
+          batting_order: number | null
+          display_name: string | null
+          external_player_name: string | null
+          is_captain: boolean | null
+          is_keeper: boolean | null
+          is_playing: boolean | null
+          is_substitute: boolean | null
+          is_vice_captain: boolean | null
+          match_id: string | null
+          photo_url: string | null
+          role: string | null
+          squad_row_id: string | null
+          team_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mc_match_squads_athlete_profile_id_fkey"
+            columns: ["athlete_profile_id"]
+            isOneToOne: false
+            referencedRelation: "mc_athlete_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_match_squads_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "mc_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_match_squads_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "mc_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students_scorer_view: {
         Row: {
           id: string | null
