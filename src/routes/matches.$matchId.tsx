@@ -148,7 +148,7 @@ function PublicMatchDetail() {
   }, [queryClient, matchId]);
   useMatchLive(matchId, listener);
 
-  const [selectedInningsIdx, setSelectedInningsIdx] = useState<number | null>(null);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [pulse, setPulse] = useState(false);
   // Pulse indicator flashes whenever ball data changes.
   useEffect(() => {
