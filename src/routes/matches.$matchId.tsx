@@ -318,16 +318,8 @@ function PublicMatchDetail() {
     0,
   );
 
-  const ballChipClass = (b: MCBallEvent) => {
-    const isWicket = !!b.dismissal_type;
-    const isBoundary =
-      !b.dismissal_type && ((b.runs_off_bat ?? 0) === 4 || (b.runs_off_bat ?? 0) === 6);
-    return isWicket
-      ? "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/30"
-      : isBoundary
-        ? "bg-primary/15 text-primary ring-1 ring-primary/30"
-        : "bg-muted text-foreground";
-  };
+
+
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
