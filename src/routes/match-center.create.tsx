@@ -1082,6 +1082,26 @@ function SquadFooter({
   onRemove: (key: string) => void;
 }) {
   const playing = players.filter((p) => !p.is_substitute);
+  const setRole = (key: string, role: "C" | "VC") => {
+    const next = players.map((p) => {
+      if (role === "C") {
+        const willBeCap = p.key === key ? !p.is_captain : false;
+        return {
+          ...p,
+          is_captain: willBeCap,
+          // Same player can't be both C and VC — clear VC if we just made them captain.
+          is_vice_captain: willBeCap ? false : p.is_vice_captain,
+        };
+      }
+      const willBeVc = p.key === key ? !p.is_vice_captain : false;
+      return {
+        ...p,
+        is_vice_captain: willBeVc,
+        is_captain: willBeVc ? false : p.is_captain,
+      };
+    });
+    onPlayers(next);
+  };
 
   return (
     <div className="mt-4 border-t border-border pt-4">
@@ -1093,17 +1113,48 @@ function SquadFooter({
           <span className="text-[11px] text-amber-600">More than 11 selected</span>
         )}
       </div>
+      <div className="mb-2 text-[11px] text-muted-foreground">
+        Tap C / VC to set captain and vice-captain (optional).
+      </div>
       <ol className="space-y-1.5">
         {players.map((p, idx) => (
           <li
             key={p.key}
-            className="flex items-center gap-2.5 rounded-lg border border-border bg-background/40 px-2 py-1.5"
+            className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2 py-1.5"
           >
             <span className="w-5 text-right text-[11px] font-mono text-muted-foreground">
               {idx + 1}
             </span>
             <Avatar src={p.photo_url} name={p.name} size={28} className="rounded-full" />
             <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
+            <button
+              type="button"
+              onClick={() => setRole(p.key, "C")}
+              className={cn(
+                "rounded-md border px-1.5 py-0.5 text-[10px] font-bold transition-colors",
+                p.is_captain
+                  ? "border-amber-500 bg-amber-500 text-white"
+                  : "border-border text-muted-foreground hover:text-foreground",
+              )}
+              title="Captain"
+              aria-label="Set captain"
+            >
+              C
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole(p.key, "VC")}
+              className={cn(
+                "rounded-md border px-1.5 py-0.5 text-[10px] font-bold transition-colors",
+                p.is_vice_captain
+                  ? "border-sky-500 bg-sky-500 text-white"
+                  : "border-border text-muted-foreground hover:text-foreground",
+              )}
+              title="Vice captain"
+              aria-label="Set vice captain"
+            >
+              VC
+            </button>
             <button
               type="button"
               onClick={() => onRemove(p.key)}
@@ -1115,7 +1166,6 @@ function SquadFooter({
           </li>
         ))}
       </ol>
-      {void onPlayers}
     </div>
   );
 }
