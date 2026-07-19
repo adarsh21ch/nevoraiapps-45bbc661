@@ -688,17 +688,19 @@ function StepSetup({
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           Match type
         </Label>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {MATCH_TYPES.map((t) => (
-            <ChoiceChip
-              key={t.value}
-              active={matchType === t.value}
-              onClick={() => setMatchType(t.value)}
-            >
-              {t.label}
-            </ChoiceChip>
-          ))}
-        </div>
+        <Select value={matchType} onValueChange={setMatchType}>
+          <SelectTrigger className="mt-2 h-12 text-base">
+            <SelectValue placeholder="Select match type" />
+          </SelectTrigger>
+          <SelectContent>
+            {MATCH_TYPES.map((t) => (
+              <SelectItem key={t.value} value={t.value}>
+                {t.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="mt-2 text-xs text-muted-foreground">Practice by default. Change anytime.</p>
       </section>
 
       <section>
@@ -710,34 +712,45 @@ function StepSetup({
             <ChoiceChip
               key={f.value}
               active={matchFormat === f.value}
-              onClick={() => setMatchFormat(f.value)}
+              onClick={() => {
+                setMatchFormat(f.value);
+                setOvers(f.overs);
+              }}
             >
               {f.label}
             </ChoiceChip>
           ))}
-          <ChoiceChip active={matchFormat === "Custom"} onClick={() => setMatchFormat("Custom")}>
+          <ChoiceChip
+            active={matchFormat === "Custom"}
+            onClick={() => {
+              setMatchFormat("Custom");
+              if (!overs) setOvers(20);
+            }}
+          >
             Custom
           </ChoiceChip>
         </div>
 
-        {(matchFormat === "Custom" || matchFormat === "Test") && (
-          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-card p-3">
+        {matchFormat === "Custom" && (
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-background p-3">
             <Label className="text-sm">Overs per side</Label>
             <Input
               type="number"
               inputMode="numeric"
               min={1}
               max={200}
-              value={overs}
+              value={overs || ""}
               onChange={(e) => setOvers(Math.max(1, Number(e.target.value) || 1))}
               className="ml-auto h-11 w-24 text-center text-base"
             />
           </div>
         )}
 
-        <p className="mt-3 text-xs text-muted-foreground">
-          {overs} overs per side · You can change this later in advanced settings.
-        </p>
+        {matchFormat && matchFormat !== "Custom" && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            {overs} overs per side · You can change this later.
+          </p>
+        )}
       </section>
     </div>
   );
