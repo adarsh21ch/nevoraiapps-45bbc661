@@ -66,7 +66,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "commentary", label: "Commentary" },
 ];
 
-export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary, squad, teamSwitcher }: Props) {
+export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary, squad, otherSquad, battingPending, bowlingStatsEvents, teamSwitcher, squadSwitcher }: Props) {
 
   const [tab, setTab] = useState<TabKey>("summary");
   const [openBatter, setOpenBatter] = useState<BattingStat | null>(null);
@@ -75,6 +75,11 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
     totalOvers: totalOvers ?? null,
     target: innings?.target ?? null,
   });
+  // Separate stats derived from the OTHER innings so a team that hasn't batted
+  // still shows correct Bowling figures.
+  const bowlingStats = bowlingStatsEvents && bowlingStatsEvents.length > 0
+    ? calculateInningsStatistics(bowlingStatsEvents, { totalOvers: null, target: null })
+    : stats;
 
   // When embedded in a page that scrolls (hideHero=true, e.g. public match view),
   // don't create nested scroll containers — let the page scroll naturally.
