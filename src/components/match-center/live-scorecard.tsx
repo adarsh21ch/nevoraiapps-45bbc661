@@ -144,20 +144,33 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
 
       {/* Scroll content */}
       <div className={cn("px-1 pt-3 pb-4 animate-fade-in", embedded ? "" : "flex-1 min-h-0 overflow-y-auto overscroll-contain")}>
-        {tab === "summary" && <SummaryPane stats={stats} matchInfo={matchInfo} />}
+        {tab === "summary" && (
+          <SummaryPane stats={stats} matchInfo={matchInfo} />
+        )}
         {tab === "batting" && (
-          <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />
+          <div className="space-y-3">
+            {teamSwitcher}
+            <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />
+          </div>
         )}
         {tab === "bowling" && (
-          <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />
+          <div className="space-y-3">
+            {teamSwitcher}
+            <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />
+          </div>
         )}
-        {tab === "overs" && <OversPane overs={stats.team.overs_summary} />}
-        {tab === "squad" && (squad ? (
-          <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
-        ) : (
-          <EmptyState text="Squad unavailable." />
-        ))}
-        {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} commentary={commentary} />}
+        {tab === "overs" && <OversPane overs={stats.team.overs_summary} events={events} />}
+        {tab === "squad" && (
+          <div className="space-y-3">
+            {teamSwitcher}
+            {squad ? (
+              <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+            ) : (
+              <EmptyState text="Squad unavailable." />
+            )}
+          </div>
+        )}
+        {tab === "commentary" && <CommentaryPane commentary={commentary ?? []} />}
 
       </div>
 
