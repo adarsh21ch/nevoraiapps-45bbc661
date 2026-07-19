@@ -33,7 +33,6 @@ import {
   Megaphone,
   BarChart3,
   Share2,
-  CalendarDays,
   CheckCircle2,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
