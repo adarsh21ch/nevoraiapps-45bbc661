@@ -55,6 +55,8 @@ import { LiveBadge } from "@/components/ds";
 import { Skeleton } from "@/components/ds/States";
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { CricketToday } from "@/components/match-center/widgets/CricketToday";
+import { useLiveMatches, type MatchWithTeams } from "@/lib/match-feeds";
+import { Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/")({
@@ -124,6 +126,8 @@ function DashboardHome() {
     staleTime: 30_000,
   });
   const newRegs = useNewRegistrationsCount(tenant.id);
+  const liveMatchesQ = useLiveMatches(canScoreMatch ? tenant.id : undefined);
+  const liveMatch: MatchWithTeams | undefined = liveMatchesQ.data[0];
 
   // ── Single source of truth ────────────────────────────────────────────
   // Reuse the exact same engine as the Attendance page (session = "all"):
@@ -198,6 +202,9 @@ function DashboardHome() {
         </div>
         <LiveBadge state="live" />
       </div>
+
+      {/* ─── Live match jump-in · single most time-sensitive action ─── */}
+      {canScoreMatch && liveMatch ? <LiveMatchBanner match={liveMatch} /> : null}
 
       {/* ─── Money-in headline · the number owners check first each morning ── */}
       {role === "owner" && feeEnabled ? (
@@ -306,13 +313,20 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* ─── Section 2 · Quick actions (role-based, 4×2 grid) ─────────── */}
+      {/* ─── Section 2 · Cricket today (moved up — daily priority) ────── */}
+      {canScoreMatch && <CricketToday tenantId={tenant.id} />}
+
+      {/* ─── Section 3 · Quick actions (role-based, 4×2 grid) ─────────── */}
       <section aria-label="Quick actions">
         <SectionLabel>Quick actions</SectionLabel>
-        <QuickActionsGrid role={role} canScoreMatch={canScoreMatch} />
+        <QuickActionsGrid
+          role={role}
+          canScoreMatch={canScoreMatch}
+          liveMatchId={liveMatch?.id ?? null}
+        />
       </section>
 
-      {/* ─── Section 3 · Today's activity ────────────────────────────── */}
+      {/* ─── Section 4 · Today's activity (compact, scrollable) ───────── */}
       <section aria-label="Today's activity">
         <SectionLabel action={<HeaderLink to="/dashboard/attendance">Open</HeaderLink>}>
           Today's activity
@@ -320,10 +334,7 @@ function DashboardHome() {
         <ActivityFeed query={activityQ} canViewFees={canViewFees} />
       </section>
 
-      {/* ─── Section 3b · Cricket today (Match Center integration) ────── */}
-      {canScoreMatch && <CricketToday tenantId={tenant.id} />}
-
-      {/* ─── Section 4 · Next actions (actionable only, no duplicate KPIs) */}
+      {/* ─── Section 5 · Next actions (actionable only, no duplicate KPIs) */}
       <section aria-label="Next actions">
         <SectionLabel>Next actions</SectionLabel>
         <NextActions
@@ -335,6 +346,50 @@ function DashboardHome() {
         />
       </section>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Live match banner — one-tap jump into scoring when a match is in progress.
+// Rendered only when the tenant has Match Center enabled AND a match is live.
+// ---------------------------------------------------------------------------
+
+function LiveMatchBanner({ match }: { match: MatchWithTeams }) {
+  const a = match.team_a?.short_name ?? match.team_a?.name ?? "Team A";
+  const b = match.team_b?.short_name ?? match.team_b?.name ?? "Team B";
+  return (
+    <Link
+      to="/scorer/$matchId"
+      params={{ matchId: match.id }}
+      className={cn(
+        "flex items-center justify-between gap-3 rounded-2xl px-4 py-3",
+        "border border-red-500/30 bg-gradient-to-r from-red-500/10 via-red-500/5 to-transparent",
+        "shadow-[var(--shadow-soft)] transition-all active:scale-[0.99]",
+        "hover:border-red-500/60",
+      )}
+      aria-label={`Live match ${a} versus ${b} — open scoring`}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="relative inline-flex size-2.5 shrink-0">
+          <span className="absolute inline-flex size-full rounded-full bg-red-500 opacity-70 animate-ping" />
+          <span className="relative inline-flex size-2.5 rounded-full bg-red-500" />
+        </span>
+        <div className="min-w-0">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">
+            Live now
+          </div>
+          <div className="mt-0.5 text-sm font-semibold tracking-tight truncate">
+            {a} vs {b} · Tap to score
+          </div>
+        </div>
+      </div>
+      <span
+        className="grid size-9 shrink-0 place-items-center rounded-xl bg-red-500 text-white"
+        aria-hidden
+      >
+        <Radio className="size-4" />
+      </span>
+    </Link>
   );
 }
 
@@ -496,10 +551,25 @@ type QAItem = { to: string; label: string; icon: React.ReactNode };
 function QuickActionsGrid({
   role,
   canScoreMatch,
+  liveMatchId,
 }: {
   role: "owner" | "admin" | "student";
   canScoreMatch: boolean;
+  liveMatchId: string | null;
 }) {
+  // When a match is live and the user can score, promote a "Score Live"
+  // shortcut in place of the lower-value "Scan QR" slot — same one-tap
+  // philosophy as the header banner, but reachable even after the banner
+  // is scrolled past. When no match is live, "Scan QR" stays.
+  const attendanceAction: QAItem =
+    canScoreMatch && liveMatchId
+      ? {
+          to: `/scorer/${liveMatchId}`,
+          label: "Score Live",
+          icon: <Radio className="size-5" />,
+        }
+      : { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> };
+
   const ownerActions: QAItem[] = [
     { to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
     {
@@ -523,7 +593,7 @@ function QuickActionsGrid({
       icon: <Megaphone className="size-5" />,
     },
     { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
-    { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> },
+    attendanceAction,
     { to: "/dashboard/site", label: "Share Website", icon: <Share2 className="size-5" /> },
   ];
 
@@ -548,7 +618,7 @@ function QuickActionsGrid({
           } as QAItem,
         ]
       : []),
-    { to: "/dashboard/attendance", label: "Scan QR", icon: <QrCode className="size-5" /> },
+    attendanceAction,
     { to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     {
       to: "/dashboard/communications",
@@ -627,11 +697,13 @@ function ActivityFeed({
     );
   }
 
-  const shown = events.slice(0, 8);
+  // Show all of today's events, but cap the panel height so ~5-6 rows are
+  // visible and the rest scroll inside. Keeps Home compact even on very
+  // busy days (50+ events).
   return (
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
-      <ul className="divide-y divide-border/60">
-        {shown.map((e) => (
+      <ul className="divide-y divide-border/60 max-h-[336px] overflow-y-auto overscroll-contain">
+        {events.map((e) => (
           <ActivityRow key={e.id} event={e} />
         ))}
       </ul>

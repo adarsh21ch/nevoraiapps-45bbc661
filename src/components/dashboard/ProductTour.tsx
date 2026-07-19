@@ -131,19 +131,27 @@ export function ProductTour({
   const markSeen = useMutation({
     mutationFn: async () => {
       if (!profile?.user_id) return;
-      await supabase
-        .from("profiles")
-        .update({ owner_tour_seen_at: new Date().toISOString() })
-        .eq("user_id", profile.user_id);
+      // Direct `update` on `public.profiles` from the client silently
+      // no-ops: the table has no self-UPDATE RLS policy (SELECT-only for
+      // `user_id = auth.uid()`), so `.update()` completes with 0 rows and
+      // no error. Route through a narrow SECURITY DEFINER RPC that only
+      // touches `owner_tour_seen_at`.
+      const { error } = await supabase.rpc("mark_owner_tour_seen");
+      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["dashboard-profile"] });
     },
+    onError: (err) => {
+      console.error("[ProductTour] failed to persist seen flag", err);
+    },
   });
 
   const finish = (viaSkip = false) => {
-    void markSeen.mutateAsync().catch(() => {});
     void viaSkip;
+    // Fire the write; react-query surfaces failures via onError and the
+    // flag will be re-attempted next time the tour is closed.
+    markSeen.mutate();
     onClose();
   };
 
