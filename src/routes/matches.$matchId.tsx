@@ -370,27 +370,12 @@ function PublicMatchDetail() {
       </div>
 
       {currentInnings && !activeTeamHasBatted ? (
-        <>
-          <YetToBatPanel
-            teamName={teams[activeTeamId]?.name ?? "This team"}
-            bowlingBalls={bowlingBalls}
-            oversDisplay={oversDisplay}
-          />
-          <TeamToggle
-            teams={teams}
-            match={match}
-            homeName={homeName}
-            awayName={awayName}
-            battingFirstTeamId={battingFirstTeamId}
-            battingSecondTeamId={battingSecondTeamId}
-            activeTeamId={activeTeamId}
-            allInnings={allInnings}
-            onSelect={setSelectedTeamId}
-          />
-        </>
+        <YetToBatPanel
+          teamName={teams[activeTeamId]?.name ?? "This team"}
+          bowlingBalls={bowlingBalls}
+          oversDisplay={oversDisplay}
+        />
       ) : null}
-
-
 
       {currentInnings && activeTeamHasBatted ? (
         <>
@@ -509,47 +494,68 @@ function PublicMatchDetail() {
             </div>
 
           </section>
-
-          {/* Scorecard (Summary / Batting / Bowling / Overs / Squad / Commentary).
-              Team switcher is scoped inline to Batting / Bowling / Squad tabs. */}
-          <div className="mt-6 rounded-3xl border border-border/60 bg-card p-4 sm:p-6">
-            <LiveScorecard
-              events={currentBalls}
-              innings={currentInnings}
-              totalOvers={match.overs}
-              hideHero={true}
-              commentary={commentary}
-              squad={{
-                matchId: match.id,
-                teamId: activeTeamId,
-                teamName: teams[activeTeamId]?.name ?? (activeTeamId === match.team_a_id ? homeName : awayName),
-              }}
-              matchInfo={{
-                ground: match.ground_name,
-                format: match.match_format,
-                date: match.scheduled_date,
-                homeTeam: homeName,
-                awayTeam: awayName,
-                result: match.result,
-              }}
-              teamSwitcher={
-                <TeamToggle
-                  teams={teams}
-                  match={match}
-                  homeName={homeName}
-                  awayName={awayName}
-                  battingFirstTeamId={battingFirstTeamId}
-                  battingSecondTeamId={battingSecondTeamId}
-                  activeTeamId={activeTeamId}
-                  allInnings={allInnings}
-                  onSelect={setSelectedTeamId}
-                />
-              }
-            />
-          </div>
-
-
         </>
+      ) : null}
+
+      {currentInnings ? (
+        /* Scorecard tabs (Summary / Batting / Bowling / Overs / Squad / Commentary).
+           Rendered for both batted and yet-to-bat teams so Squad/Bowling remain reachable. */
+        <div className="mt-6 rounded-3xl border border-border/60 bg-card p-4 sm:p-6">
+          <LiveScorecard
+            events={currentBalls}
+            innings={currentInnings}
+            totalOvers={match.overs}
+            hideHero={true}
+            commentary={commentary}
+            battingPending={!activeTeamHasBatted}
+            bowlingStatsEvents={activeTeamHasBatted ? undefined : bowlingBalls}
+            squad={{
+              matchId: match.id,
+              teamId: activeTeamId,
+              teamName: teams[activeTeamId]?.name ?? (activeTeamId === match.team_a_id ? homeName : awayName),
+            }}
+            otherSquad={{
+              matchId: match.id,
+              teamId: activeTeamId === match.team_a_id ? match.team_b_id : match.team_a_id,
+              teamName: (activeTeamId === match.team_a_id ? awayName : homeName),
+            }}
+            matchInfo={{
+              ground: match.ground_name,
+              format: match.match_format,
+              date: match.scheduled_date,
+              homeTeam: homeName,
+              awayTeam: awayName,
+              result: match.result,
+            }}
+            teamSwitcher={
+              <TeamToggle
+                teams={teams}
+                match={match}
+                homeName={homeName}
+                awayName={awayName}
+                battingFirstTeamId={battingFirstTeamId}
+                battingSecondTeamId={battingSecondTeamId}
+                activeTeamId={activeTeamId}
+                allInnings={allInnings}
+                onSelect={setSelectedTeamId}
+              />
+            }
+            squadSwitcher={
+              <TeamToggle
+                teams={teams}
+                match={match}
+                homeName={homeName}
+                awayName={awayName}
+                battingFirstTeamId={battingFirstTeamId}
+                battingSecondTeamId={battingSecondTeamId}
+                activeTeamId={activeTeamId}
+                allInnings={allInnings}
+                onSelect={setSelectedTeamId}
+                hideScores
+              />
+            }
+          />
+        </div>
       ) : (
         <div className="mt-6 rounded-3xl border border-border/60 bg-card p-6 text-center text-muted-foreground">
           The match hasn&apos;t started yet.
