@@ -176,14 +176,22 @@ function PublicMatchDetail() {
   const awayName = teams[match.team_b_id]?.name ?? "Away";
   const allInnings = inningsQ.data ?? [];
   const allBalls = ballsQ.data ?? [];
-  const activeIdx =
-    selectedInningsIdx != null && allInnings[selectedInningsIdx]
-      ? selectedInningsIdx
-      : Math.max(0, allInnings.length - 1);
-  const currentInnings = allInnings[activeIdx] ?? null;
-  const currentBalls = currentInnings
-    ? allBalls.filter((b) => b.innings_id === currentInnings.id)
-    : [];
+
+  // Default team selection: whichever team is currently/last batting; falls back to team A.
+  const latestInnings = allInnings.length > 0 ? allInnings[allInnings.length - 1] : null;
+  const activeTeamId =
+    selectedTeamId ?? latestInnings?.batting_team_id ?? match.team_a_id;
+
+  // Find the innings where the active team batted. If none yet (they haven't batted),
+  // fall back to the latest innings so the layout still renders with an empty state.
+  const teamInnings =
+    allInnings.find((i) => i.batting_team_id === activeTeamId) ?? null;
+  const currentInnings = teamInnings ?? latestInnings;
+  const activeTeamHasBatted = !!teamInnings;
+  const currentBalls =
+    currentInnings && activeTeamHasBatted
+      ? allBalls.filter((b) => b.innings_id === currentInnings.id)
+      : [];
   const isLive = match.status === "live" || match.status === "in_progress";
 
   const commentary = buildCommentary(currentBalls);
