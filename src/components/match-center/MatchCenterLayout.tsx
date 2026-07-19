@@ -234,25 +234,27 @@ function ModuleSubTabs() {
 /* Match Center module header (Back · Title · Actions)                        */
 /* -------------------------------------------------------------------------- */
 
-function MatchCenterModuleHeader() {
+function MatchCenterModuleHeader({ title, hideAction }: { title?: string; hideAction?: boolean }) {
   const navigate = useNavigate();
   return (
     <ModuleHeader
       overline="Academy"
-      title="Match Center"
+      title={title ?? "Match Center"}
       backTo="/dashboard/academy"
       action={
-        <>
-          <DemoBadge />
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/match-center/create" })}
-            className="grid size-9 shrink-0 place-items-center rounded-full active:bg-accent/60 no-tap-highlight"
-            aria-label="New match"
-          >
-            <PlusCircle className="size-[20px]" />
-          </button>
-        </>
+        hideAction ? null : (
+          <>
+            <DemoBadge />
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/match-center/create" })}
+              className="grid size-9 shrink-0 place-items-center rounded-full active:bg-accent/60 no-tap-highlight"
+              aria-label="New match"
+            >
+              <PlusCircle className="size-[20px]" />
+            </button>
+          </>
+        )
       }
     />
   );
@@ -263,11 +265,16 @@ function MatchCenterModuleHeader() {
 /* -------------------------------------------------------------------------- */
 
 export function MatchCenterLayout({ children }: { children?: ReactNode }) {
+  const location = useLocation();
+  const isCreate = location.pathname.startsWith("/match-center/create");
   return (
     <DashboardShell>
       <div className="mc-shell">
-        <MatchCenterModuleHeader />
-        <ModuleSubTabs />
+        <MatchCenterModuleHeader
+          title={isCreate ? "Create match" : undefined}
+          hideAction={isCreate}
+        />
+        {!isCreate && <ModuleSubTabs />}
         <div className="pt-3">{children ?? <Outlet />}</div>
       </div>
     </DashboardShell>

@@ -84,13 +84,58 @@ const emptyPanel = (mode: TeamMode = "existing"): TeamPanelState => ({
 });
 
 const FORMAT_OPTIONS: { label: string; overs: number; value: string }[] = [
-  { label: "T10", overs: 10, value: "T10" },
-  { label: "T20", overs: 20, value: "T20" },
+  { label: "T10 · 10 overs", overs: 10, value: "T10" },
+  { label: "T20 · 20 overs", overs: 20, value: "T20" },
   { label: "30 Overs", overs: 30, value: "T30" },
   { label: "40 Overs", overs: 40, value: "T40" },
-  { label: "50 Overs", overs: 50, value: "ODI" },
-  { label: "Test", overs: 90, value: "Test" },
+  { label: "50 Overs (ODI)", overs: 50, value: "ODI" },
+  { label: "Test · 90 overs", overs: 90, value: "Test" },
+  { label: "Custom", overs: 20, value: "Custom" },
 ];
+
+const DRAFT_KEY = (tenantId: string) => `mc-create-draft:${tenantId}`;
+type WizardDraft = {
+  step: number;
+  matchType: string;
+  matchFormat: string;
+  overs: number;
+  scheduledDate: string;
+  panelA: TeamPanelState;
+  panelB: TeamPanelState;
+  ground: string;
+  pitch: string;
+  weather: string;
+  scorer: string;
+  umpire: string;
+  notes: string;
+  visibility: string;
+  streamingUrl: string;
+  ballType: string;
+  savedAt: number;
+};
+function readDraft(tenantId: string): WizardDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(DRAFT_KEY(tenantId));
+    return raw ? (JSON.parse(raw) as WizardDraft) : null;
+  } catch {
+    return null;
+  }
+}
+function writeDraft(tenantId: string, draft: WizardDraft) {
+  try {
+    window.sessionStorage.setItem(DRAFT_KEY(tenantId), JSON.stringify(draft));
+  } catch {
+    /* ignore */
+  }
+}
+function clearDraft(tenantId: string) {
+  try {
+    window.sessionStorage.removeItem(DRAFT_KEY(tenantId));
+  } catch {
+    /* ignore */
+  }
+}
 
 
 
@@ -104,28 +149,32 @@ function CreateMatchPage() {
   const demo = useDemoData(tenant.id);
 
   const defaults = useMemo(() => readMatchDefaults(tenant.id), [tenant.id]);
+  const draft = useMemo(() => readDraft(tenant.id), [tenant.id]);
 
-  const [matchType, setMatchType] = useState(defaults.match_type ?? "practice");
-  const [matchFormat, setMatchFormat] = useState(defaults.match_format ?? "");
-  const [overs, setOvers] = useState<number>(defaults.overs ?? 0);
-  const [scheduledDate, setScheduledDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [matchType, setMatchType] = useState(draft?.matchType ?? defaults.match_type ?? "practice");
+  const [matchFormat, setMatchFormat] = useState(draft?.matchFormat ?? defaults.match_format ?? "");
+  const [overs, setOvers] = useState<number>(draft?.overs ?? defaults.overs ?? 0);
+  const [scheduledDate, setScheduledDate] = useState<string>(
+    draft?.scheduledDate ?? new Date().toISOString().slice(0, 10),
+  );
 
 
-  const [panelA, setPanelA] = useState<TeamPanelState>(emptyPanel("new"));
-  const [panelB, setPanelB] = useState<TeamPanelState>(emptyPanel("new"));
+  const [panelA, setPanelA] = useState<TeamPanelState>(draft?.panelA ?? emptyPanel("new"));
+  const [panelB, setPanelB] = useState<TeamPanelState>(draft?.panelB ?? emptyPanel("new"));
 
 
   // Advanced (collapsed by default)
   const [advOpen, setAdvOpen] = useState(false);
-  const [ground, setGround] = useState(defaults.ground_name ?? "");
-  const [pitch, setPitch] = useState(defaults.pitch ?? "");
-  const [weather, setWeather] = useState("");
-  const [scorer, setScorer] = useState(defaults.scorer ?? "");
-  const [umpire, setUmpire] = useState(defaults.umpire ?? "");
-  const [notes, setNotes] = useState("");
-  const [visibility, setVisibility] = useState("public");
-  const [streamingUrl, setStreamingUrl] = useState("");
-  const [ballType, setBallType] = useState(defaults.ball_type ?? "");
+  const [ground, setGround] = useState(draft?.ground ?? defaults.ground_name ?? "");
+  const [pitch, setPitch] = useState(draft?.pitch ?? defaults.pitch ?? "");
+  const [weather, setWeather] = useState(draft?.weather ?? "");
+  const [scorer, setScorer] = useState(draft?.scorer ?? defaults.scorer ?? "");
+  const [umpire, setUmpire] = useState(draft?.umpire ?? defaults.umpire ?? "");
+  const [notes, setNotes] = useState(draft?.notes ?? "");
+  const [visibility, setVisibility] = useState(draft?.visibility ?? "public");
+  const [streamingUrl, setStreamingUrl] = useState(draft?.streamingUrl ?? "");
+  const [ballType, setBallType] = useState(draft?.ballType ?? defaults.ball_type ?? "");
+  const [showResumedToast, setShowResumedToast] = useState(!!draft);
 
   /* ----- Load real teams (Supabase) + overlay demo teams ----- */
   const teamsQ = useQuery({
@@ -395,6 +444,7 @@ function CreateMatchPage() {
       return { id: match.id, demo: false } as const;
     },
     onSuccess: async (res) => {
+      clearDraft(tenant.id);
       qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] });
       qc.invalidateQueries({ queryKey: ["mc-all-teams", tenant.id] });
 
@@ -483,7 +533,52 @@ function CreateMatchPage() {
 
   /* ==================== WIZARD ==================== */
 
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(
+    (draft?.step as 1 | 2 | 3 | 4 | 5) ?? 1,
+  );
+
+  // Persist wizard state to sessionStorage on every change
+  useEffect(() => {
+    writeDraft(tenant.id, {
+      step,
+      matchType,
+      matchFormat,
+      overs,
+      scheduledDate,
+      panelA,
+      panelB,
+      ground,
+      pitch,
+      weather,
+      scorer,
+      umpire,
+      notes,
+      visibility,
+      streamingUrl,
+      ballType,
+      savedAt: Date.now(),
+    });
+  }, [
+    tenant.id, step, matchType, matchFormat, overs, scheduledDate,
+    panelA, panelB, ground, pitch, weather, scorer, umpire, notes,
+    visibility, streamingUrl, ballType,
+  ]);
+
+  const resetDraft = () => {
+    clearDraft(tenant.id);
+    setStep(1);
+    setMatchType("practice");
+    setMatchFormat("");
+    setOvers(0);
+    setScheduledDate(new Date().toISOString().slice(0, 10));
+    setPanelA(emptyPanel("new"));
+    setPanelB(emptyPanel("new"));
+    setGround(""); setPitch(""); setWeather("");
+    setScorer(""); setUmpire(""); setNotes("");
+    setVisibility("public"); setStreamingUrl(""); setBallType("");
+    setShowResumedToast(false);
+  };
+
 
   const readyA =
     panelA.mode === "existing" ? !!panelA.selectedTeamId : panelA.draftName.trim().length > 0;
@@ -519,65 +614,40 @@ function CreateMatchPage() {
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col px-3 pb-8 pt-3 sm:px-4">
-      {/* Sticky wizard header — progress bar + Back/Continue always visible on top */}
-      <header className="sticky top-0 z-30 -mx-3 mb-4 border-b border-border/60 bg-background/90 px-3 pb-3 pt-2 backdrop-blur sm:-mx-4 sm:px-4">
-        <div className="flex items-center gap-3">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full transition-[width] duration-300 ease-out"
-              style={{
-                width: `${(step / 5) * 100}%`,
-                backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
-              }}
-            />
-          </div>
-          <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-            {step}/5
-          </div>
-        </div>
-        <div className="mt-2.5 flex items-center gap-2">
-          <Button
+    <div className="mx-auto w-full max-w-2xl px-3 pb-6 pt-3 sm:px-4">
+      {showResumedToast && (
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+          <span className="text-foreground">
+            Continuing where you left off. Your draft is saved automatically.
+          </span>
+          <button
             type="button"
-            variant="outline"
-            size="sm"
-            className="h-10 flex-1 text-sm font-semibold"
-            onClick={goBack}
-            disabled={createM.isPending}
+            className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10"
+            onClick={resetDraft}
           >
-            <ArrowLeft className="mr-1 size-4" />
-            Back
-          </Button>
-          {step < 5 ? (
-            <Button
-              size="sm"
-              className="h-10 flex-[2] text-sm font-semibold"
-              disabled={!canContinue}
-              onClick={goNext}
-            >
-              Continue
-              <ChevronRight className="ml-1 size-4" />
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              className="h-10 flex-[2] text-sm font-semibold"
-              disabled={!canStart || createM.isPending}
-              onClick={() => createM.mutate()}
-            >
-              {createM.isPending ? (
-                <Loader2 className="mr-1.5 size-4 animate-spin" />
-              ) : (
-                <Swords className="mr-1.5 size-4" />
-              )}
-              Start match
-            </Button>
-          )}
+            Start over
+          </button>
         </div>
-      </header>
+      )}
 
-      <main className="flex-1">
-        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+      {/* Progress bar */}
+      <div className="mb-4 flex items-center gap-3">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full transition-[width] duration-300 ease-out"
+            style={{
+              width: `${(step / 5) * 100}%`,
+              backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
+            }}
+          />
+        </div>
+        <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+          {step}/5
+        </div>
+      </div>
+
+      <div className="rounded-3xl border border-border bg-card shadow-sm">
+        <div className="p-5 sm:p-6">
           <div className="mb-5">
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{stepTitle}</h1>
           </div>
@@ -592,7 +662,6 @@ function CreateMatchPage() {
                 overs={overs}
                 setOvers={setOvers}
               />
-
             )}
 
             {step === 2 && (
@@ -664,7 +733,44 @@ function CreateMatchPage() {
             )}
           </div>
         </div>
-      </main>
+
+        {/* Action bar — inside the card, equally distributed Back / Continue */}
+        <div className="flex items-center gap-3 rounded-b-3xl border-t border-border/60 bg-card px-5 py-4 sm:px-6">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 flex-1 text-sm font-semibold"
+            onClick={goBack}
+            disabled={createM.isPending}
+          >
+            <ArrowLeft className="mr-1 size-4" />
+            Back
+          </Button>
+          {step < 5 ? (
+            <Button
+              className="h-11 flex-1 text-sm font-semibold"
+              disabled={!canContinue}
+              onClick={goNext}
+            >
+              Continue
+              <ChevronRight className="ml-1 size-4" />
+            </Button>
+          ) : (
+            <Button
+              className="h-11 flex-1 text-sm font-semibold"
+              disabled={!canStart || createM.isPending}
+              onClick={() => createM.mutate()}
+            >
+              {createM.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" />
+              ) : (
+                <Swords className="mr-1.5 size-4" />
+              )}
+              Start match
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -713,29 +819,26 @@ function StepSetup({
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           Format
         </Label>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {FORMAT_OPTIONS.map((f) => (
-            <ChoiceChip
-              key={f.value}
-              active={matchFormat === f.value}
-              onClick={() => {
-                setMatchFormat(f.value);
-                setOvers(f.overs);
-              }}
-            >
-              {f.label}
-            </ChoiceChip>
-          ))}
-          <ChoiceChip
-            active={matchFormat === "Custom"}
-            onClick={() => {
-              setMatchFormat("Custom");
-              if (!overs) setOvers(20);
-            }}
-          >
-            Custom
-          </ChoiceChip>
-        </div>
+        <Select
+          value={matchFormat}
+          onValueChange={(v) => {
+            setMatchFormat(v);
+            const f = FORMAT_OPTIONS.find((x) => x.value === v);
+            if (f && v !== "Custom") setOvers(f.overs);
+            if (v === "Custom" && !overs) setOvers(20);
+          }}
+        >
+          <SelectTrigger className="mt-2 h-12 text-base">
+            <SelectValue placeholder="Select format" />
+          </SelectTrigger>
+          <SelectContent>
+            {FORMAT_OPTIONS.map((f) => (
+              <SelectItem key={f.value} value={f.value}>
+                {f.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {matchFormat === "Custom" && (
           <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-background p-3">
