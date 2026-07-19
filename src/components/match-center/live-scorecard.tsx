@@ -336,7 +336,7 @@ function SummaryPane({
   matchInfo?: Props["matchInfo"];
 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="grid grid-cols-2 gap-2">
         <MetricCard label="Boundaries" value={`${stats.team.fours}·4  ${stats.team.sixes}·6`} />
         <MetricCard label="Dot balls" value={String(stats.team.dotBalls)} />
@@ -375,6 +375,58 @@ function SummaryPane({
           {matchInfo.result}
         </div>
       )}
+
+      <Section title="Fall of wickets">
+        {stats.team.fallOfWickets.length === 0 ? (
+          <EmptyState text="No wickets yet." />
+        ) : (
+          <div className="space-y-1.5">
+            {stats.team.fallOfWickets.map((f) => (
+              <FowRow key={f.wicketNumber} f={f} />
+            ))}
+          </div>
+        )}
+      </Section>
+
+      <Section title="Partnerships">
+        {stats.team.partnerships.length === 0 && !stats.team.currentPartnership ? (
+          <EmptyState text="No partnerships yet." />
+        ) : (
+          <div className="space-y-1.5">
+            {stats.team.partnerships.map((p, i) => (
+              <PartnershipCard key={i} p={p} />
+            ))}
+            {stats.team.currentPartnership && (
+              <PartnershipCard p={stats.team.currentPartnership} current />
+            )}
+          </div>
+        )}
+      </Section>
+
+      <Section title="Extras">
+        <div className="grid grid-cols-2 gap-2">
+          <MetricCard label="Wides" value={String(stats.team.extras.wides)} />
+          <MetricCard label="No balls" value={String(stats.team.extras.noBalls)} />
+          <MetricCard label="Byes" value={String(stats.team.extras.byes)} />
+          <MetricCard label="Leg byes" value={String(stats.team.extras.legByes)} />
+          <MetricCard label="Penalty" value={String(stats.team.extras.penalty)} />
+          <MetricCard label="Total" value={String(stats.team.extras.total)} accent />
+        </div>
+      </Section>
+
+      <Section title="Match info">
+        <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/50">
+          <InfoRow
+            label="Teams"
+            value={`${matchInfo?.homeTeam ?? "Home"} vs ${matchInfo?.awayTeam ?? "Away"}`}
+          />
+          {matchInfo?.format && <InfoRow label="Format" value={matchInfo.format} />}
+          {matchInfo?.ground && <InfoRow label="Ground" value={matchInfo.ground} />}
+          {matchInfo?.tournament && <InfoRow label="Tournament" value={matchInfo.tournament} />}
+          {matchInfo?.date && <InfoRow label="Date" value={matchInfo.date} />}
+          {matchInfo?.result && <InfoRow label="Result" value={matchInfo.result} />}
+        </div>
+      </Section>
     </div>
   );
 }
