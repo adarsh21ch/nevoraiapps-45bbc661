@@ -19,6 +19,7 @@ interface Props {
   innings: MCInnings | null;
   totalOvers?: number | null;
   hideHero?: boolean;
+  commentary?: { id: string; over: string; text: string }[];
   matchInfo?: {
     ground?: string | null;
     tournament?: string | null;
@@ -30,17 +31,18 @@ interface Props {
   };
 }
 
-type TabKey = "summary" | "batting" | "bowling" | "overs" | "more";
+type TabKey = "summary" | "batting" | "bowling" | "overs" | "commentary" | "more";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "summary", label: "Summary" },
   { key: "batting", label: "Batting" },
   { key: "bowling", label: "Bowling" },
   { key: "overs", label: "Overs" },
+  { key: "commentary", label: "Commentary" },
   { key: "more", label: "More" },
 ];
 
-export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero }: Props) {
+export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary }: Props) {
   const [tab, setTab] = useState<TabKey>("summary");
   const [openBatter, setOpenBatter] = useState<BattingStat | null>(null);
   const [openBowler, setOpenBowler] = useState<BowlingStat | null>(null);
