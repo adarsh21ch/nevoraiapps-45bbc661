@@ -13,6 +13,7 @@ import {
   BatterDetailSheet,
   BowlerDetailSheet,
 } from "@/components/match-center/scorecard-detail-sheets";
+import { SquadList } from "@/components/match-center/SquadList";
 
 interface Props {
   events: MCBallEvent[];
@@ -29,20 +30,26 @@ interface Props {
     awayTeam?: string;
     result?: string | null;
   };
+  squad?: {
+    matchId: string;
+    teamId: string;
+    teamName: string;
+  };
 }
 
-type TabKey = "summary" | "batting" | "bowling" | "overs" | "commentary" | "more";
+type TabKey = "summary" | "batting" | "bowling" | "overs" | "squad" | "more";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "summary", label: "Summary" },
   { key: "batting", label: "Batting" },
   { key: "bowling", label: "Bowling" },
   { key: "overs", label: "Overs" },
-  { key: "commentary", label: "Commentary" },
+  { key: "squad", label: "Squad" },
   { key: "more", label: "More" },
 ];
 
-export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary }: Props) {
+export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary, squad }: Props) {
+
   const [tab, setTab] = useState<TabKey>("summary");
   const [openBatter, setOpenBatter] = useState<BattingStat | null>(null);
   const [openBowler, setOpenBowler] = useState<BowlingStat | null>(null);
@@ -139,8 +146,13 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
           <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />
         )}
         {tab === "overs" && <OversPane overs={stats.team.overs_summary} />}
-        {tab === "commentary" && <CommentaryPane commentary={commentary ?? []} />}
-        {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} />}
+        {tab === "squad" && (squad ? (
+          <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+        ) : (
+          <EmptyState text="Squad unavailable." />
+        ))}
+        {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} commentary={commentary} />}
+
       </div>
 
       <BatterDetailSheet
@@ -478,12 +490,20 @@ function OversPane({ overs }: { overs: OverSummaryStat[] }) {
 function MorePane({
   stats,
   matchInfo,
+  commentary,
 }: {
   stats: ReturnType<typeof calculateInningsStatistics>;
   matchInfo?: Props["matchInfo"];
+  commentary?: { id: string; over: string; text: string }[];
 }) {
   return (
     <div className="space-y-4">
+      {commentary && commentary.length > 0 && (
+        <Section title="Commentary">
+          <CommentaryPane commentary={commentary} />
+        </Section>
+      )}
+
       <Section title="Fall of wickets">
         {stats.team.fallOfWickets.length === 0 ? (
           <EmptyState text="No wickets yet." />

@@ -378,50 +378,28 @@ function PublicMatchDetail() {
         )}
       </div>
 
-
-      {/* Team toggle — bat-first team on the left, mirrors standard cricket UIs */}
-      <div className="mt-4 inline-flex rounded-full border border-border/60 bg-card p-1 text-xs font-semibold">
-        {[
-          { id: battingFirstTeamId, name: teams[battingFirstTeamId]?.name ?? (battingFirstTeamId === match.team_a_id ? homeName : awayName) },
-          { id: battingSecondTeamId, name: teams[battingSecondTeamId]?.name ?? (battingSecondTeamId === match.team_a_id ? homeName : awayName) },
-        ].map((t) => {
-          const inn = allInnings.find((i) => i.batting_team_id === t.id);
-          const active = t.id === activeTeamId;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setSelectedTeamId(t.id)}
-              className={
-                "rounded-full px-3.5 py-1.5 transition " +
-                (active
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground")
-              }
-            >
-              <span className="truncate">{t.name}</span>
-              <span className="ml-1.5 tabular-nums opacity-80">
-                {inn ? `${inn.runs}/${inn.wickets}` : "—"}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      <SquadList
-        matchId={match.id}
-        teamId={activeTeamId}
-        teamName={teams[activeTeamId]?.name ?? (activeTeamId === match.team_a_id ? homeName : awayName)}
-      />
-
-
       {currentInnings && !activeTeamHasBatted ? (
-        <YetToBatPanel
-          teamName={teams[activeTeamId]?.name ?? "This team"}
-          bowlingBalls={bowlingBalls}
-          oversDisplay={oversDisplay}
-        />
+        <>
+          <YetToBatPanel
+            teamName={teams[activeTeamId]?.name ?? "This team"}
+            bowlingBalls={bowlingBalls}
+            oversDisplay={oversDisplay}
+          />
+          <TeamToggle
+            teams={teams}
+            match={match}
+            homeName={homeName}
+            awayName={awayName}
+            battingFirstTeamId={battingFirstTeamId}
+            battingSecondTeamId={battingSecondTeamId}
+            activeTeamId={activeTeamId}
+            allInnings={allInnings}
+            onSelect={setSelectedTeamId}
+          />
+        </>
       ) : null}
+
+
 
       {currentInnings && activeTeamHasBatted ? (
         <>
@@ -549,7 +527,20 @@ function PublicMatchDetail() {
 
           </section>
 
-          {/* Scorecard (Summary / Batting / Bowling / Overs / Commentary / More) */}
+          {/* Team switcher — below the score */}
+          <TeamToggle
+            teams={teams}
+            match={match}
+            homeName={homeName}
+            awayName={awayName}
+            battingFirstTeamId={battingFirstTeamId}
+            battingSecondTeamId={battingSecondTeamId}
+            activeTeamId={activeTeamId}
+            allInnings={allInnings}
+            onSelect={setSelectedTeamId}
+          />
+
+          {/* Scorecard (Summary / Batting / Bowling / Overs / Squad / More) */}
           <div className="mt-6 rounded-3xl border border-border/60 bg-card p-4 sm:p-6">
             <LiveScorecard
               events={currentBalls}
@@ -557,6 +548,11 @@ function PublicMatchDetail() {
               totalOvers={match.overs}
               hideHero={true}
               commentary={commentary}
+              squad={{
+                matchId: match.id,
+                teamId: activeTeamId,
+                teamName: teams[activeTeamId]?.name ?? (activeTeamId === match.team_a_id ? homeName : awayName),
+              }}
               matchInfo={{
                 ground: match.ground_name,
                 format: match.match_format,
@@ -567,6 +563,7 @@ function PublicMatchDetail() {
               }}
             />
           </div>
+
         </>
       ) : (
         <div className="mt-6 rounded-3xl border border-border/60 bg-card p-6 text-center text-muted-foreground">
@@ -576,6 +573,60 @@ function PublicMatchDetail() {
     </div>
   );
 }
+
+function TeamToggle({
+  teams,
+  match,
+  homeName,
+  awayName,
+  battingFirstTeamId,
+  battingSecondTeamId,
+  activeTeamId,
+  allInnings,
+  onSelect,
+}: {
+  teams: Record<string, { name: string; logo_url: string | null }>;
+  match: PublicMatchDetailRow;
+  homeName: string;
+  awayName: string;
+  battingFirstTeamId: string;
+  battingSecondTeamId: string;
+  activeTeamId: string;
+  allInnings: MCInnings[];
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div className="mt-4 inline-flex rounded-full border border-border/60 bg-card p-1 text-xs font-semibold">
+      {[
+        { id: battingFirstTeamId, name: teams[battingFirstTeamId]?.name ?? (battingFirstTeamId === match.team_a_id ? homeName : awayName) },
+        { id: battingSecondTeamId, name: teams[battingSecondTeamId]?.name ?? (battingSecondTeamId === match.team_a_id ? homeName : awayName) },
+      ].map((t) => {
+        const inn = allInnings.find((i) => i.batting_team_id === t.id);
+        const active = t.id === activeTeamId;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onSelect(t.id)}
+            className={
+              "rounded-full px-3.5 py-1.5 transition " +
+              (active
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground")
+            }
+          >
+            <span className="truncate">{t.name}</span>
+            <span className="ml-1.5 tabular-nums opacity-80">
+              {inn ? `${inn.runs}/${inn.wickets}` : "—"}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+
 
 function YetToBatPanel({
   teamName,
