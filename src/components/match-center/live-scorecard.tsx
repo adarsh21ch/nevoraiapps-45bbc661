@@ -490,12 +490,20 @@ function OversPane({ overs }: { overs: OverSummaryStat[] }) {
 function MorePane({
   stats,
   matchInfo,
+  commentary,
 }: {
   stats: ReturnType<typeof calculateInningsStatistics>;
   matchInfo?: Props["matchInfo"];
+  commentary?: { id: string; over: string; text: string }[];
 }) {
   return (
     <div className="space-y-4">
+      {commentary && commentary.length > 0 && (
+        <Section title="Commentary">
+          <CommentaryPane commentary={commentary} />
+        </Section>
+      )}
+
       <Section title="Fall of wickets">
         {stats.team.fallOfWickets.length === 0 ? (
           <EmptyState text="No wickets yet." />
