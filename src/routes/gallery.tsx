@@ -31,7 +31,7 @@ function GalleryPage() {
 
   return (
     <>
-      <PageHero eyebrow="Moments" title="Gallery" subtitle={`Life at ${tenant.name}.`} />
+      <PageHero pageKey="gallery" eyebrow="Moments" title="Gallery" subtitle={`Life at ${tenant.name}.`} />
       {/* Full-bleed masonry — natural aspect ratios, no forced crop */}
       <div className="mx-auto max-w-none px-4 py-16 sm:px-6 lg:px-10">
         {items.length === 0 ? (
