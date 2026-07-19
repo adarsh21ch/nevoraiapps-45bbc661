@@ -509,15 +509,7 @@ function PublicMatchDetail() {
                       />
                     )}
                     {group.balls.map((b) => (
-                      <span
-                        key={b.id}
-                        className={
-                          "inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums " +
-                          ballChipClass(b)
-                        }
-                      >
-                        {ballChipLabel(b)}
-                      </span>
+                      <BallChip key={b.id} b={b} />
                     ))}
                   </div>
                 ))}
@@ -526,20 +518,8 @@ function PublicMatchDetail() {
 
           </section>
 
-          {/* Team switcher — below the score */}
-          <TeamToggle
-            teams={teams}
-            match={match}
-            homeName={homeName}
-            awayName={awayName}
-            battingFirstTeamId={battingFirstTeamId}
-            battingSecondTeamId={battingSecondTeamId}
-            activeTeamId={activeTeamId}
-            allInnings={allInnings}
-            onSelect={setSelectedTeamId}
-          />
-
-          {/* Scorecard (Summary / Batting / Bowling / Overs / Squad / More) */}
+          {/* Scorecard (Summary / Batting / Bowling / Overs / Squad / Commentary).
+              Team switcher is scoped inline to Batting / Bowling / Squad tabs. */}
           <div className="mt-6 rounded-3xl border border-border/60 bg-card p-4 sm:p-6">
             <LiveScorecard
               events={currentBalls}
@@ -560,8 +540,22 @@ function PublicMatchDetail() {
                 awayTeam: awayName,
                 result: match.result,
               }}
+              teamSwitcher={
+                <TeamToggle
+                  teams={teams}
+                  match={match}
+                  homeName={homeName}
+                  awayName={awayName}
+                  battingFirstTeamId={battingFirstTeamId}
+                  battingSecondTeamId={battingSecondTeamId}
+                  activeTeamId={activeTeamId}
+                  allInnings={allInnings}
+                  onSelect={setSelectedTeamId}
+                />
+              }
             />
           </div>
+
 
         </>
       ) : (
