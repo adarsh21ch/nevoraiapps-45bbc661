@@ -474,206 +474,514 @@ function CreateMatchPage() {
     return team.id;
   };
 
+  /* ==================== WIZARD ==================== */
+
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+
+  const readyA =
+    panelA.mode === "existing" ? !!panelA.selectedTeamId : panelA.draftName.trim().length > 0;
+  const readyB =
+    panelB.mode === "existing" ? !!panelB.selectedTeamId : panelB.draftName.trim().length > 0;
+
+  const step1Valid = !!matchType && !!matchFormat && overs > 0;
+  const step2Valid = readyA && panelA.players.length >= 2;
+  const step3Valid = readyB && panelB.players.length >= 2;
+  const canStart = !validationError;
+
+  const goBack = () => {
+    if (step === 1) {
+      navigate({ to: "/match-center/matches" });
+      return;
+    }
+    setStep(((step - 1) as 1 | 2 | 3 | 4 | 5));
+  };
+  const goNext = () => setStep(((Math.min(5, step + 1)) as 1 | 2 | 3 | 4 | 5));
+
+  const stepTitle =
+    step === 1
+      ? "Match setup"
+      : step === 2
+      ? "Team A"
+      : step === 3
+      ? "Team B"
+      : step === 4
+      ? "Advanced · optional"
+      : "Review & start";
+
+  const canContinue =
+    step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
+
   return (
-    <div>
-      <div className="mb-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/match-center/matches">
-            <ArrowLeft className="size-4 mr-1.5" /> Matches
-          </Link>
-        </Button>
-      </div>
-
-      <PageHeader
-        title="Create match"
-        description="Pick teams, add players, tap start. Everything else is optional."
-        breadcrumbs={[
-          { label: "Match Center", to: "/match-center/dashboard" },
-          { label: "Matches", to: "/match-center/matches" },
-          { label: "Create" },
-        ]}
-      />
-
-      {/* Step 1 — Match type + Format (single row) */}
-      <div className="mt-6 rounded-2xl border border-border bg-card p-5">
-        <div className="mb-3 flex items-center gap-2">
-          <span
-            className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
-            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col">
+      {/* Wizard header */}
+      <header className="sticky top-0 z-20 bg-background/85 pb-3 pt-3 backdrop-blur">
+        <div className="flex items-center gap-2 px-1">
+          <button
+            type="button"
+            onClick={goBack}
+            className="grid size-10 place-items-center rounded-full text-muted-foreground hover:bg-accent"
+            aria-label="Back"
           >
-            1
-          </span>
-          <h3 className="text-sm font-semibold tracking-tight">Match setup</h3>
-          <span className="text-xs text-muted-foreground">· {overs} overs per side</span>
+            <ArrowLeft className="size-5" />
+          </button>
+          <div className="min-w-0 flex-1">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Step {step} of 5
+            </div>
+            <div className="truncate text-lg font-bold tracking-tight">{stepTitle}</div>
+          </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-[minmax(180px,220px)_1fr]">
-          <div>
-            <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Type
-            </Label>
-            <select
-              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-              value={matchType}
-              onChange={(e) => setMatchType(e.target.value)}
+        {/* Progress bar */}
+        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full transition-[width] duration-300 ease-out"
+            style={{
+              width: `${(step / 5) * 100}%`,
+              backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
+            }}
+          />
+        </div>
+      </header>
+
+      {/* Step body */}
+      <main className="flex-1 px-1 pb-32 pt-5">
+        {step === 1 && (
+          <StepSetup
+            matchType={matchType}
+            setMatchType={setMatchType}
+            matchFormat={matchFormat}
+            setMatchFormat={setMatchFormat}
+            overs={overs}
+            setOvers={setOvers}
+          />
+        )}
+
+        {step === 2 && (
+          <TeamPanel
+            side="A"
+            state={panelA}
+            onChange={setPanelA}
+            teams={teams}
+            excludeTeamId={panelB.selectedTeamId}
+            teamsLoading={teamsQ.isLoading && !demo}
+            studentPool={studentPool}
+            studentsLoading={studentsQ.isLoading && !demo}
+          />
+        )}
+
+        {step === 3 && (
+          <TeamPanel
+            side="B"
+            state={panelB}
+            onChange={setPanelB}
+            teams={teams}
+            excludeTeamId={panelA.selectedTeamId}
+            teamsLoading={teamsQ.isLoading && !demo}
+            studentPool={studentPool}
+            studentsLoading={studentsQ.isLoading && !demo}
+          />
+        )}
+
+        {step === 4 && (
+          <StepAdvanced
+            ground={ground}
+            setGround={setGround}
+            pitch={pitch}
+            setPitch={setPitch}
+            weather={weather}
+            setWeather={setWeather}
+            scorer={scorer}
+            setScorer={setScorer}
+            umpire={umpire}
+            setUmpire={setUmpire}
+            ballType={ballType}
+            setBallType={setBallType}
+            scheduledDate={scheduledDate}
+            setScheduledDate={setScheduledDate}
+            streamingUrl={streamingUrl}
+            setStreamingUrl={setStreamingUrl}
+            visibility={visibility}
+            setVisibility={setVisibility}
+            notes={notes}
+            setNotes={setNotes}
+            advFilled={advFilled}
+          />
+        )}
+
+        {step === 5 && (
+          <StepReview
+            matchTypeLabel={MATCH_TYPES.find((t) => t.value === matchType)?.label ?? matchType}
+            matchFormat={matchFormat}
+            overs={overs}
+            teamAName={teamAName}
+            teamBName={teamBName}
+            playersA={panelA.players}
+            playersB={panelB.players}
+            error={validationError}
+            onEditStep={(s) => setStep(s as 1 | 2 | 3 | 4)}
+          />
+        )}
+      </main>
+
+      {/* Sticky footer */}
+      <footer
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur"
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.5rem)" }}
+      >
+        <div className="mx-auto flex w-full max-w-2xl items-center gap-3 px-4 py-3">
+          <Button
+            variant="ghost"
+            className="h-12 min-w-[92px]"
+            onClick={goBack}
+            disabled={createM.isPending}
+          >
+            {step === 1 ? "Cancel" : "Back"}
+          </Button>
+          {step < 5 ? (
+            <Button
+              className="h-12 flex-1 text-base font-semibold"
+              disabled={!canContinue}
+              onClick={goNext}
             >
-              {MATCH_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <Label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Format
-            </Label>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              {FORMAT_OPTIONS.map((f) => (
-                <ChoiceChip
-                  key={f.value}
-                  active={matchFormat === f.value}
-                  onClick={() => setMatchFormat(f.value)}
-                >
-                  {f.label}
-                </ChoiceChip>
-              ))}
-              <ChoiceChip
-                active={matchFormat === "Custom"}
-                onClick={() => setMatchFormat("Custom")}
-              >
-                Custom
-              </ChoiceChip>
-              {(matchFormat === "Custom" || matchFormat === "Test") && (
-                <div className="flex items-center gap-1.5">
-                  <Input
-                    type="number"
-                    min={1}
-                    max={200}
-                    value={overs}
-                    onChange={(e) => setOvers(Math.max(1, Number(e.target.value) || 1))}
-                    className="h-9 w-20"
-                  />
-                  <span className="text-xs text-muted-foreground">overs</span>
-                </div>
+              Continue
+              <ChevronRight className="ml-1 size-4" />
+            </Button>
+          ) : (
+            <Button
+              className="h-12 flex-1 text-base font-semibold"
+              disabled={!canStart || createM.isPending}
+              onClick={() => createM.mutate()}
+            >
+              {createM.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" />
+              ) : (
+                <Swords className="mr-1.5 size-4" />
               )}
-            </div>
-          </div>
+              Start match
+            </Button>
+          )}
         </div>
-      </div>
+      </footer>
+    </div>
+  );
+}
 
+/* ==================== STEP 1 · SETUP ==================== */
 
+function StepSetup({
+  matchType,
+  setMatchType,
+  matchFormat,
+  setMatchFormat,
+  overs,
+  setOvers,
+}: {
+  matchType: string;
+  setMatchType: (v: string) => void;
+  matchFormat: string;
+  setMatchFormat: (v: string) => void;
+  overs: number;
+  setOvers: (v: number) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <section>
+        <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Match type
+        </Label>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {MATCH_TYPES.map((t) => (
+            <ChoiceChip
+              key={t.value}
+              active={matchType === t.value}
+              onClick={() => setMatchType(t.value)}
+            >
+              {t.label}
+            </ChoiceChip>
+          ))}
+        </div>
+      </section>
 
-      {/* Step 3 & 4 — Teams */}
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <TeamPanel
-          side="A"
-          state={panelA}
-          onChange={setPanelA}
-          teams={teams}
-          excludeTeamId={panelB.selectedTeamId}
-          teamsLoading={teamsQ.isLoading && !demo}
-          studentPool={studentPool}
-          studentsLoading={studentsQ.isLoading && !demo}
-        />
-        <TeamPanel
-          side="B"
-          state={panelB}
-          onChange={setPanelB}
-          teams={teams}
-          excludeTeamId={panelA.selectedTeamId}
-          teamsLoading={teamsQ.isLoading && !demo}
-          studentPool={studentPool}
-          studentsLoading={studentsQ.isLoading && !demo}
-        />
-      </div>
+      <section>
+        <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Format
+        </Label>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {FORMAT_OPTIONS.map((f) => (
+            <ChoiceChip
+              key={f.value}
+              active={matchFormat === f.value}
+              onClick={() => setMatchFormat(f.value)}
+            >
+              {f.label}
+            </ChoiceChip>
+          ))}
+          <ChoiceChip active={matchFormat === "Custom"} onClick={() => setMatchFormat("Custom")}>
+            Custom
+          </ChoiceChip>
+        </div>
 
-      {/* Advanced */}
-      <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
-        <button
-          type="button"
-          onClick={() => setAdvOpen((v) => !v)}
-          className="flex w-full items-center justify-between px-5 py-3 text-left"
-        >
-          <div className="flex items-center gap-2">
-            <Settings2 className="size-4 text-muted-foreground" />
-            <span className="text-sm font-semibold">Advanced match settings</span>
-            {advFilled > 0 && (
-              <span className="ml-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                {advFilled} set
-              </span>
-            )}
-            <span className="text-xs text-muted-foreground">
-              Ground · Pitch · Toss · Umpires · Scorers · Streaming · Notes
-            </span>
-          </div>
-          {advOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-        </button>
-        {advOpen && (
-          <div className="grid gap-4 border-t border-border p-5 md:grid-cols-2 lg:grid-cols-3">
-            <FieldInput label="Ground" value={ground} onChange={setGround} />
-            <FieldInput label="Pitch" value={pitch} onChange={setPitch} />
-            <FieldInput label="Weather" value={weather} onChange={setWeather} />
-            <FieldInput label="Scorer" value={scorer} onChange={setScorer} />
-            <FieldInput label="Umpire" value={umpire} onChange={setUmpire} />
-            <FieldInput
-              label="Ball type"
-              value={ballType}
-              onChange={setBallType}
-              placeholder="Leather / Tennis / Season"
+        {(matchFormat === "Custom" || matchFormat === "Test") && (
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-card p-3">
+            <Label className="text-sm">Overs per side</Label>
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={200}
+              value={overs}
+              onChange={(e) => setOvers(Math.max(1, Number(e.target.value) || 1))}
+              className="ml-auto h-11 w-24 text-center text-base"
             />
-            <FieldInput
-              label="Date"
-              type="date"
-              value={scheduledDate}
-              onChange={setScheduledDate}
-            />
-
-
-            <FieldInput
-              label="Streaming URL"
-              value={streamingUrl}
-              onChange={setStreamingUrl}
-              placeholder="https://…"
-            />
-            <div>
-              <Label>Visibility</Label>
-              <select
-                className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-                value={visibility}
-                onChange={(e) => setVisibility(e.target.value)}
-              >
-                <option value="private">Private</option>
-                <option value="academy">Academy</option>
-                <option value="public">Public</option>
-              </select>
-            </div>
-            <div className="md:col-span-2 lg:col-span-3">
-              <Label>Notes</Label>
-              <Textarea
-                className="mt-1"
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </div>
           </div>
         )}
+
+        <p className="mt-3 text-xs text-muted-foreground">
+          {overs} overs per side · You can change this later in advanced settings.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+/* ==================== STEP 4 · ADVANCED ==================== */
+
+function StepAdvanced({
+  ground,
+  setGround,
+  pitch,
+  setPitch,
+  weather,
+  setWeather,
+  scorer,
+  setScorer,
+  umpire,
+  setUmpire,
+  ballType,
+  setBallType,
+  scheduledDate,
+  setScheduledDate,
+  streamingUrl,
+  setStreamingUrl,
+  visibility,
+  setVisibility,
+  notes,
+  setNotes,
+  advFilled,
+}: {
+  ground: string;
+  setGround: (v: string) => void;
+  pitch: string;
+  setPitch: (v: string) => void;
+  weather: string;
+  setWeather: (v: string) => void;
+  scorer: string;
+  setScorer: (v: string) => void;
+  umpire: string;
+  setUmpire: (v: string) => void;
+  ballType: string;
+  setBallType: (v: string) => void;
+  scheduledDate: string;
+  setScheduledDate: (v: string) => void;
+  streamingUrl: string;
+  setStreamingUrl: (v: string) => void;
+  visibility: string;
+  setVisibility: (v: string) => void;
+  notes: string;
+  setNotes: (v: string) => void;
+  advFilled: number;
+}) {
+  return (
+    <div className="space-y-4">
+      <p className="rounded-2xl border border-dashed border-border bg-card/50 p-3 text-xs text-muted-foreground">
+        Most matches don't need any of this — tap Continue to skip.
+        {advFilled > 0 && (
+          <span className="ml-1 font-semibold text-primary">{advFilled} field(s) set</span>
+        )}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <FieldInput label="Ground" value={ground} onChange={setGround} />
+        <FieldInput label="Pitch" value={pitch} onChange={setPitch} />
+        <FieldInput label="Weather" value={weather} onChange={setWeather} />
+        <FieldInput
+          label="Ball type"
+          value={ballType}
+          onChange={setBallType}
+          placeholder="Leather / Tennis / Season"
+        />
+        <FieldInput label="Scorer" value={scorer} onChange={setScorer} />
+        <FieldInput label="Umpire" value={umpire} onChange={setUmpire} />
+        <FieldInput label="Date" type="date" value={scheduledDate} onChange={setScheduledDate} />
+        <FieldInput
+          label="Streaming URL"
+          value={streamingUrl}
+          onChange={setStreamingUrl}
+          placeholder="https://…"
+        />
+        <div>
+          <Label>Visibility</Label>
+          <select
+            className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3 text-sm"
+            value={visibility}
+            onChange={(e) => setVisibility(e.target.value)}
+          >
+            <option value="private">Private</option>
+            <option value="academy">Academy</option>
+            <option value="public">Public</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <Label>Notes</Label>
+        <Textarea
+          className="mt-1"
+          rows={3}
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ==================== STEP 5 · REVIEW ==================== */
+
+function StepReview({
+  matchTypeLabel,
+  matchFormat,
+  overs,
+  teamAName,
+  teamBName,
+  playersA,
+  playersB,
+  error,
+  onEditStep,
+}: {
+  matchTypeLabel: string;
+  matchFormat: string;
+  overs: number;
+  teamAName: string;
+  teamBName: string;
+  playersA: PlayerRef[];
+  playersB: PlayerRef[];
+  error: string | null;
+  onEditStep: (step: 1 | 2 | 3 | 4) => void;
+}) {
+  const captainA = playersA.find((p) => p.is_captain)?.name;
+  const captainB = playersB.find((p) => p.is_captain)?.name;
+  const vcA = playersA.find((p) => p.is_vice_captain)?.name;
+  const vcB = playersB.find((p) => p.is_vice_captain)?.name;
+
+  return (
+    <div className="space-y-4">
+      {/* Match meta */}
+      <button
+        type="button"
+        onClick={() => onEditStep(1)}
+        className="flex w-full items-center justify-between rounded-2xl border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-accent/40"
+      >
+        <div className="min-w-0">
+          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            Match
+          </div>
+          <div className="mt-0.5 truncate text-sm font-semibold">
+            {matchTypeLabel} · {matchFormat} · {overs} overs
+          </div>
+        </div>
+        <span className="ml-2 text-[11px] font-semibold text-primary">Edit</span>
+      </button>
+
+      {/* Teams */}
+      <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-[1fr_auto_1fr]">
+        <ReviewTeamCard
+          title="Team A"
+          name={teamAName}
+          players={playersA}
+          captain={captainA}
+          viceCaptain={vcA}
+          onEdit={() => onEditStep(2)}
+        />
+        <div className="grid place-items-center sm:px-1">
+          <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-black uppercase tracking-widest text-primary">
+            vs
+          </span>
+        </div>
+        <ReviewTeamCard
+          title="Team B"
+          name={teamBName}
+          players={playersB}
+          captain={captainB}
+          viceCaptain={vcB}
+          onEdit={() => onEditStep(3)}
+        />
       </div>
 
-      {/* Summary */}
-      <SummaryCard
-        matchType={MATCH_TYPES.find((t) => t.value === matchType)?.label ?? matchType}
-        format={matchFormat}
-        overs={overs}
-        teamAName={teamAName}
-        teamBName={teamBName}
-        playersA={panelA.players.length}
-        playersB={panelB.players.length}
-        error={validationError}
-        pending={createM.isPending}
-        onStart={() => createM.mutate()}
-      />
+      <p className="rounded-2xl border border-dashed border-border bg-card/50 p-3 text-xs text-muted-foreground">
+        Toss happens on the match control screen right after you tap
+        <span className="font-semibold text-foreground"> Start match</span>.
+      </p>
+
+      {error && (
+        <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
+          {error}
+        </div>
+      )}
     </div>
+  );
+}
+
+function ReviewTeamCard({
+  title,
+  name,
+  players,
+  captain,
+  viceCaptain,
+  onEdit,
+}: {
+  title: string;
+  name: string;
+  players: PlayerRef[];
+  captain: string | undefined;
+  viceCaptain: string | undefined;
+  onEdit: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onEdit}
+      className="flex flex-col rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:bg-accent/40"
+    >
+      <div className="flex items-center justify-between">
+        <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          {title}
+        </div>
+        <span className="text-[11px] font-semibold text-primary">Edit</span>
+      </div>
+      <div className="mt-1 truncate text-base font-bold tracking-tight">{name}</div>
+      <div className="mt-0.5 text-xs text-muted-foreground">
+        {players.length} {players.length === 1 ? "player" : "players"}
+      </div>
+      {(captain || viceCaptain) && (
+        <div className="mt-2 space-y-0.5 text-[11px]">
+          {captain && (
+            <div className="truncate">
+              <span className="mr-1 rounded bg-amber-500/15 px-1 py-0.5 font-bold text-amber-700 dark:text-amber-400">
+                C
+              </span>
+              {captain}
+            </div>
+          )}
+          {viceCaptain && (
+            <div className="truncate">
+              <span className="mr-1 rounded bg-sky-500/15 px-1 py-0.5 font-bold text-sky-700 dark:text-sky-400">
+                VC
+              </span>
+              {viceCaptain}
+            </div>
+          )}
+        </div>
+      )}
+    </button>
   );
 }
 
