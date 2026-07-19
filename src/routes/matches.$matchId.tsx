@@ -408,6 +408,13 @@ function PublicMatchDetail() {
         })}
       </div>
 
+      <SquadList
+        matchId={match.id}
+        teamId={activeTeamId}
+        teamName={teams[activeTeamId]?.name ?? (activeTeamId === match.team_a_id ? homeName : awayName)}
+      />
+
+
       {currentInnings && !activeTeamHasBatted ? (
         <YetToBatPanel
           teamName={teams[activeTeamId]?.name ?? "This team"}
