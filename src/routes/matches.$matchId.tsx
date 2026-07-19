@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,8 @@ import { useMatchLive } from "@/hooks/use-match-live";
 import { LiveScorecard } from "@/components/match-center/live-scorecard";
 import { buildCommentary, ballChipLabel } from "@/lib/mc-commentary";
 import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
-import { ArrowLeft, Radio } from "lucide-react";
+import { ArrowLeft, Radio, RefreshCw } from "lucide-react";
+
 
 export const Route = createFileRoute("/matches/$matchId")({
   head: () => ({
