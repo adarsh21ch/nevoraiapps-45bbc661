@@ -379,12 +379,26 @@ function PublicMatchDetail() {
       </div>
 
       {currentInnings && !activeTeamHasBatted ? (
-        <YetToBatPanel
-          teamName={teams[activeTeamId]?.name ?? "This team"}
-          bowlingBalls={bowlingBalls}
-          oversDisplay={oversDisplay}
-        />
+        <>
+          <YetToBatPanel
+            teamName={teams[activeTeamId]?.name ?? "This team"}
+            bowlingBalls={bowlingBalls}
+            oversDisplay={oversDisplay}
+          />
+          <TeamToggle
+            teams={teams}
+            match={match}
+            homeName={homeName}
+            awayName={awayName}
+            battingFirstTeamId={battingFirstTeamId}
+            battingSecondTeamId={battingSecondTeamId}
+            activeTeamId={activeTeamId}
+            allInnings={allInnings}
+            onSelect={setSelectedTeamId}
+          />
+        </>
       ) : null}
+
 
 
       {currentInnings && activeTeamHasBatted ? (
