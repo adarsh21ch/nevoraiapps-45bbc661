@@ -224,13 +224,54 @@ function LiveMatchCard({
     staleTime: 10_000,
   });
 
-  const listener = useCallback(() => {
-    onInvalidate();
-  }, [onInvalidate]);
-  useMatchLive(match.id, listener);
-
   const innings = inningsQ.data ?? [];
   const current = innings[innings.length - 1];
+
+  // mc_innings aggregate columns can lag behind the scorer; derive live totals from ball events.
+  const ballsQ = useQuery({
+    queryKey: ["public_match_innings_balls", current?.id],
+    enabled: !!current?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mc_ball_events")
+        .select("runs_off_bat,extra_runs,is_legal_delivery,dismissal_type")
+        .eq("innings_id", current!.id);
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 5_000,
+  });
+
+  const listener = useCallback(() => {
+    onInvalidate();
+    void inningsQ.refetch();
+    void ballsQ.refetch();
+  }, [onInvalidate, inningsQ, ballsQ]);
+  useMatchLive(match.id, listener);
+
+  const derived = (() => {
+    const balls = ballsQ.data;
+    if (!balls || balls.length === 0) return null;
+    let runs = 0;
+    let wickets = 0;
+    let legal = 0;
+    for (const b of balls as Array<{ runs_off_bat: number | null; extra_runs: number | null; is_legal_delivery: boolean | null; dismissal_type: string | null }>) {
+      runs += (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
+      if (b.is_legal_delivery) legal += 1;
+      if (b.dismissal_type) wickets += 1;
+    }
+    return { runs, wickets, overs: Math.floor(legal / 6), balls: legal % 6 };
+  })();
+
+  const score = derived ?? (current
+    ? {
+        runs: current.runs ?? 0,
+        wickets: current.wickets ?? 0,
+        overs: current.overs ?? 0,
+        balls: current.balls ?? 0,
+      }
+    : null);
+
   const battingName = current
     ? current.batting_team_id === match.team_a_id
       ? homeName
@@ -253,17 +294,17 @@ function LiveMatchCard({
       <div className="mt-2 text-lg font-semibold">
         {homeName} <span className="text-muted-foreground">vs</span> {awayName}
       </div>
-      {current ? (
+      {current && score ? (
         <div className="mt-3">
           <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             {battingName}
           </div>
           <div className="mt-1 text-2xl font-black tabular-nums">
-            {current.runs}
+            {score.runs}
             <span className="text-muted-foreground">/</span>
-            {current.wickets}{" "}
+            {score.wickets}{" "}
             <span className="text-sm font-semibold text-muted-foreground">
-              ({current.overs}.{current.balls})
+              ({score.overs}.{score.balls})
             </span>
           </div>
         </div>
