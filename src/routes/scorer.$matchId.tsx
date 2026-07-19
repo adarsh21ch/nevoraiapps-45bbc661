@@ -875,7 +875,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
               : session.currentOver.events.map(ballChipLabel)
           }
           currentOverLabel={currentOverLabel}
-          overHistory={computeOverHistory(session.events, ballChipLabel)}
+          overHistory={overHistory}
           inningsLabel={undefined}
           insights={{
             partnership: stats.team.currentPartnership
@@ -1724,7 +1724,7 @@ function DemoScorerView({ matchId }: { matchId: string }) {
               : session.currentOver.events.map(ballChipLabel)
           }
           currentOverLabel={currentOverLabel}
-          overHistory={computeOverHistory(session.events, ballChipLabel)}
+          overHistory={overHistory}
           insights={{
             partnership: stats.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
