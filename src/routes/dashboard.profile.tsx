@@ -175,20 +175,6 @@ function ProfilePage() {
     ],
   });
 
-  if (isOwner) {
-    sections.push({
-      title: "Danger Zone",
-      rows: [
-        {
-          to: "/dashboard/settings",
-          label: "Delete or Transfer Academy",
-          hint: "Destructive actions",
-          icon: AlertTriangle,
-          danger: true,
-        },
-      ],
-    });
-  }
 
   return (
     <div className="space-y-5 pb-6">
