@@ -675,11 +675,13 @@ function TeamToggle({
             type="button"
             onClick={() => onSelect(t.id)}
             className={
-              "rounded-full px-3.5 py-1.5 transition " +
+              "rounded-full transition " +
+              (compact ? "px-2.5 py-1 " : "px-3.5 py-1.5 ") +
               (active
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground")
             }
+
           >
             <span className="truncate">{t.name}</span>
             {!hideScores && (
