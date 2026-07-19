@@ -203,6 +203,9 @@ function DashboardHome() {
         <LiveBadge state="live" />
       </div>
 
+      {/* ─── Live match jump-in · single most time-sensitive action ─── */}
+      {canScoreMatch && liveMatch ? <LiveMatchBanner match={liveMatch} /> : null}
+
       {/* ─── Money-in headline · the number owners check first each morning ── */}
       {role === "owner" && feeEnabled ? (
         <Link
@@ -310,13 +313,20 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* ─── Section 2 · Quick actions (role-based, 4×2 grid) ─────────── */}
+      {/* ─── Section 2 · Cricket today (moved up — daily priority) ────── */}
+      {canScoreMatch && <CricketToday tenantId={tenant.id} />}
+
+      {/* ─── Section 3 · Quick actions (role-based, 4×2 grid) ─────────── */}
       <section aria-label="Quick actions">
         <SectionLabel>Quick actions</SectionLabel>
-        <QuickActionsGrid role={role} canScoreMatch={canScoreMatch} />
+        <QuickActionsGrid
+          role={role}
+          canScoreMatch={canScoreMatch}
+          liveMatchId={liveMatch?.id ?? null}
+        />
       </section>
 
-      {/* ─── Section 3 · Today's activity ────────────────────────────── */}
+      {/* ─── Section 4 · Today's activity (compact, scrollable) ───────── */}
       <section aria-label="Today's activity">
         <SectionLabel action={<HeaderLink to="/dashboard/attendance">Open</HeaderLink>}>
           Today's activity
@@ -324,10 +334,7 @@ function DashboardHome() {
         <ActivityFeed query={activityQ} canViewFees={canViewFees} />
       </section>
 
-      {/* ─── Section 3b · Cricket today (Match Center integration) ────── */}
-      {canScoreMatch && <CricketToday tenantId={tenant.id} />}
-
-      {/* ─── Section 4 · Next actions (actionable only, no duplicate KPIs) */}
+      {/* ─── Section 5 · Next actions (actionable only, no duplicate KPIs) */}
       <section aria-label="Next actions">
         <SectionLabel>Next actions</SectionLabel>
         <NextActions
@@ -339,6 +346,50 @@ function DashboardHome() {
         />
       </section>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Live match banner — one-tap jump into scoring when a match is in progress.
+// Rendered only when the tenant has Match Center enabled AND a match is live.
+// ---------------------------------------------------------------------------
+
+function LiveMatchBanner({ match }: { match: MatchWithTeams }) {
+  const a = match.team_a?.short_name ?? match.team_a?.name ?? "Team A";
+  const b = match.team_b?.short_name ?? match.team_b?.name ?? "Team B";
+  return (
+    <Link
+      to="/scorer/$matchId"
+      params={{ matchId: match.id }}
+      className={cn(
+        "flex items-center justify-between gap-3 rounded-2xl px-4 py-3",
+        "border border-red-500/30 bg-gradient-to-r from-red-500/10 via-red-500/5 to-transparent",
+        "shadow-[var(--shadow-soft)] transition-all active:scale-[0.99]",
+        "hover:border-red-500/60",
+      )}
+      aria-label={`Live match ${a} versus ${b} — open scoring`}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="relative inline-flex size-2.5 shrink-0">
+          <span className="absolute inline-flex size-full rounded-full bg-red-500 opacity-70 animate-ping" />
+          <span className="relative inline-flex size-2.5 rounded-full bg-red-500" />
+        </span>
+        <div className="min-w-0">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-red-600 dark:text-red-400">
+            Live now
+          </div>
+          <div className="mt-0.5 text-sm font-semibold tracking-tight truncate">
+            {a} vs {b} · Tap to score
+          </div>
+        </div>
+      </div>
+      <span
+        className="grid size-9 shrink-0 place-items-center rounded-xl bg-red-500 text-white"
+        aria-hidden
+      >
+        <Radio className="size-4" />
+      </span>
+    </Link>
   );
 }
 
