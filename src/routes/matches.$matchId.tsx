@@ -177,10 +177,29 @@ function PublicMatchDetail() {
   const allInnings = inningsQ.data ?? [];
   const allBalls = ballsQ.data ?? [];
 
-  // Default team selection: whichever team is currently/last batting; falls back to team A.
+  // Determine which team batted first: first innings' batting team, else derive
+  // from toss decision, else default to team A. Ensures Team A / Team B order in
+  // the toggle mirrors the batting order (bat-first team appears first).
+  const firstInningsRow = allInnings.length > 0 ? allInnings[0] : null;
+  let battingFirstTeamId: string = match.team_a_id;
+  if (firstInningsRow) {
+    battingFirstTeamId = firstInningsRow.batting_team_id;
+  } else if (match.toss_winner && match.toss_decision) {
+    battingFirstTeamId =
+      match.toss_decision === "bat"
+        ? match.toss_winner
+        : match.toss_winner === match.team_a_id
+          ? match.team_b_id
+          : match.team_a_id;
+  }
+  const battingSecondTeamId =
+    battingFirstTeamId === match.team_a_id ? match.team_b_id : match.team_a_id;
+
+  // Default team selection: whichever team is currently/last batting; falls back
+  // to the team that batted first.
   const latestInnings = allInnings.length > 0 ? allInnings[allInnings.length - 1] : null;
   const activeTeamId =
-    selectedTeamId ?? latestInnings?.batting_team_id ?? match.team_a_id;
+    selectedTeamId ?? latestInnings?.batting_team_id ?? battingFirstTeamId;
 
   // Find the innings where the active team batted. If none yet (they haven't batted),
   // fall back to the latest innings so the layout still renders with an empty state.
@@ -192,6 +211,12 @@ function PublicMatchDetail() {
     currentInnings && activeTeamHasBatted
       ? allBalls.filter((b) => b.innings_id === currentInnings.id)
       : [];
+  // Innings where the active team bowled (fielded) — used to show bowling
+  // figures for a team that hasn't batted yet.
+  const bowlingInnings = allInnings.find((i) => i.batting_team_id !== activeTeamId) ?? null;
+  const bowlingBalls = bowlingInnings
+    ? allBalls.filter((b) => b.innings_id === bowlingInnings.id)
+    : [];
   const isLive = match.status === "live" || match.status === "in_progress";
 
   const commentary = buildCommentary(currentBalls);
@@ -353,11 +378,11 @@ function PublicMatchDetail() {
       </div>
 
 
-      {/* Team toggle — switch between Team A and Team B stats */}
+      {/* Team toggle — bat-first team on the left, mirrors standard cricket UIs */}
       <div className="mt-4 inline-flex rounded-full border border-border/60 bg-card p-1 text-xs font-semibold">
         {[
-          { id: match.team_a_id, name: homeName },
-          { id: match.team_b_id, name: awayName },
+          { id: battingFirstTeamId, name: teams[battingFirstTeamId]?.name ?? (battingFirstTeamId === match.team_a_id ? homeName : awayName) },
+          { id: battingSecondTeamId, name: teams[battingSecondTeamId]?.name ?? (battingSecondTeamId === match.team_a_id ? homeName : awayName) },
         ].map((t) => {
           const inn = allInnings.find((i) => i.batting_team_id === t.id);
           const active = t.id === activeTeamId;
@@ -374,21 +399,21 @@ function PublicMatchDetail() {
               }
             >
               <span className="truncate">{t.name}</span>
-              {inn && (
-                <span className="ml-1.5 tabular-nums opacity-80">
-                  {inn.runs}/{inn.wickets}
-                </span>
-              )}
+              <span className="ml-1.5 tabular-nums opacity-80">
+                {inn ? `${inn.runs}/${inn.wickets}` : "—"}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {currentInnings && !activeTeamHasBatted && (
-        <div className="mt-6 rounded-3xl border border-border/60 bg-card p-6 text-center text-sm text-muted-foreground">
-          {(teams[activeTeamId]?.name ?? "This team")} hasn&apos;t batted yet.
-        </div>
-      )}
+      {currentInnings && !activeTeamHasBatted ? (
+        <YetToBatPanel
+          teamName={teams[activeTeamId]?.name ?? "This team"}
+          bowlingBalls={bowlingBalls}
+          oversDisplay={oversDisplay}
+        />
+      ) : null}
 
       {currentInnings && activeTeamHasBatted ? (
         <>
@@ -543,4 +568,88 @@ function PublicMatchDetail() {
     </div>
   );
 }
+
+function YetToBatPanel({
+  teamName,
+  bowlingBalls,
+  oversDisplay,
+}: {
+  teamName: string;
+  bowlingBalls: MCBallEvent[];
+  oversDisplay: (legalBalls: number) => string;
+}) {
+  const bowlers = new Map<string, { runs: number; balls: number; wickets: number; maidens: number; ballsInOver: number; runsInOver: number; lastOver: number | null }>();
+  for (const b of bowlingBalls) {
+    if (!b.bowler_name) continue;
+    const et = (b.extra_type as string | null) ?? null;
+    const isWide = et === "wide";
+    const isNoBall = et === "no_ball";
+    const legal = !isWide && !isNoBall;
+    const s = bowlers.get(b.bowler_name) ?? { runs: 0, balls: 0, wickets: 0, maidens: 0, ballsInOver: 0, runsInOver: 0, lastOver: null };
+    if (s.lastOver !== null && s.lastOver !== b.over_number) {
+      if (s.ballsInOver === 6 && s.runsInOver === 0) s.maidens += 1;
+      s.ballsInOver = 0;
+      s.runsInOver = 0;
+    }
+    s.lastOver = b.over_number;
+    const runs = (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
+    s.runs += runs;
+    s.runsInOver += runs;
+    if (legal) {
+      s.balls += 1;
+      s.ballsInOver += 1;
+    }
+    if (b.dismissal_type && b.dismissal_type !== "run_out") s.wickets += 1;
+    bowlers.set(b.bowler_name, s);
+  }
+  for (const s of bowlers.values()) {
+    if (s.ballsInOver === 6 && s.runsInOver === 0) s.maidens += 1;
+  }
+  const rows = Array.from(bowlers.entries()).sort((a, b) => b[1].wickets - a[1].wickets || a[1].runs - b[1].runs);
+
+  return (
+    <section className="mt-6 rounded-3xl border border-border/60 bg-gradient-to-br from-primary/5 via-card to-card p-5 sm:p-6 shadow-sm space-y-5">
+      <div className="flex items-baseline justify-between gap-4">
+        <div className="min-w-0">
+          <div className="truncate text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            {teamName}
+          </div>
+          <div className="mt-1 flex items-baseline gap-2">
+            <span className="text-5xl font-black leading-none tabular-nums tracking-tight sm:text-6xl text-muted-foreground/70">
+              —
+            </span>
+            <span className="text-sm font-semibold text-muted-foreground">Yet to bat</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-border/50 bg-background/50">
+        <div className="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.5rem_2.5rem] gap-x-2 border-b border-border/50 bg-muted/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          <div>Bowling</div>
+          <div className="text-right">O</div>
+          <div className="text-right">M</div>
+          <div className="text-right">R</div>
+          <div className="text-right">W</div>
+        </div>
+        {rows.length === 0 ? (
+          <div className="px-3 py-4 text-center text-xs text-muted-foreground">No bowling data yet</div>
+        ) : (
+          rows.map(([name, s]) => (
+            <div
+              key={name}
+              className="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.5rem_2.5rem] gap-x-2 px-3 py-2 text-sm tabular-nums"
+            >
+              <div className="truncate font-semibold">{name}</div>
+              <div className="text-right">{oversDisplay(s.balls)}</div>
+              <div className="text-right">{s.maidens}</div>
+              <div className="text-right">{s.runs}</div>
+              <div className="text-right font-bold">{s.wickets}</div>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
 
