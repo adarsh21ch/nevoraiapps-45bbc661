@@ -177,10 +177,29 @@ function PublicMatchDetail() {
   const allInnings = inningsQ.data ?? [];
   const allBalls = ballsQ.data ?? [];
 
-  // Default team selection: whichever team is currently/last batting; falls back to team A.
+  // Determine which team batted first: first innings' batting team, else derive
+  // from toss decision, else default to team A. Ensures Team A / Team B order in
+  // the toggle mirrors the batting order (bat-first team appears first).
+  const firstInningsRow = allInnings.length > 0 ? allInnings[0] : null;
+  let battingFirstTeamId: string = match.team_a_id;
+  if (firstInningsRow) {
+    battingFirstTeamId = firstInningsRow.batting_team_id;
+  } else if (match.toss_winner && match.toss_decision) {
+    battingFirstTeamId =
+      match.toss_decision === "bat"
+        ? match.toss_winner
+        : match.toss_winner === match.team_a_id
+          ? match.team_b_id
+          : match.team_a_id;
+  }
+  const battingSecondTeamId =
+    battingFirstTeamId === match.team_a_id ? match.team_b_id : match.team_a_id;
+
+  // Default team selection: whichever team is currently/last batting; falls back
+  // to the team that batted first.
   const latestInnings = allInnings.length > 0 ? allInnings[allInnings.length - 1] : null;
   const activeTeamId =
-    selectedTeamId ?? latestInnings?.batting_team_id ?? match.team_a_id;
+    selectedTeamId ?? latestInnings?.batting_team_id ?? battingFirstTeamId;
 
   // Find the innings where the active team batted. If none yet (they haven't batted),
   // fall back to the latest innings so the layout still renders with an empty state.
@@ -192,6 +211,12 @@ function PublicMatchDetail() {
     currentInnings && activeTeamHasBatted
       ? allBalls.filter((b) => b.innings_id === currentInnings.id)
       : [];
+  // Innings where the active team bowled (fielded) — used to show bowling
+  // figures for a team that hasn't batted yet.
+  const bowlingInnings = allInnings.find((i) => i.batting_team_id !== activeTeamId) ?? null;
+  const bowlingBalls = bowlingInnings
+    ? allBalls.filter((b) => b.innings_id === bowlingInnings.id)
+    : [];
   const isLive = match.status === "live" || match.status === "in_progress";
 
   const commentary = buildCommentary(currentBalls);
