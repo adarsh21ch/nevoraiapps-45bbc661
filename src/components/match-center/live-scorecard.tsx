@@ -146,8 +146,13 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
           <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />
         )}
         {tab === "overs" && <OversPane overs={stats.team.overs_summary} />}
-        {tab === "commentary" && <CommentaryPane commentary={commentary ?? []} />}
-        {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} />}
+        {tab === "squad" && (squad ? (
+          <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+        ) : (
+          <EmptyState text="Squad unavailable." />
+        ))}
+        {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} commentary={commentary} />}
+
       </div>
 
       <BatterDetailSheet
