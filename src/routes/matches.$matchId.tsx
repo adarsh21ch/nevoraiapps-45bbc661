@@ -527,7 +527,20 @@ function PublicMatchDetail() {
 
           </section>
 
-          {/* Scorecard (Summary / Batting / Bowling / Overs / Commentary / More) */}
+          {/* Team switcher — below the score */}
+          <TeamToggle
+            teams={teams}
+            match={match}
+            homeName={homeName}
+            awayName={awayName}
+            battingFirstTeamId={battingFirstTeamId}
+            battingSecondTeamId={battingSecondTeamId}
+            activeTeamId={activeTeamId}
+            allInnings={allInnings}
+            onSelect={setSelectedTeamId}
+          />
+
+          {/* Scorecard (Summary / Batting / Bowling / Overs / Squad / More) */}
           <div className="mt-6 rounded-3xl border border-border/60 bg-card p-4 sm:p-6">
             <LiveScorecard
               events={currentBalls}
@@ -535,6 +548,11 @@ function PublicMatchDetail() {
               totalOvers={match.overs}
               hideHero={true}
               commentary={commentary}
+              squad={{
+                matchId: match.id,
+                teamId: activeTeamId,
+                teamName: teams[activeTeamId]?.name ?? (activeTeamId === match.team_a_id ? homeName : awayName),
+              }}
               matchInfo={{
                 ground: match.ground_name,
                 format: match.match_format,
@@ -545,6 +563,7 @@ function PublicMatchDetail() {
               }}
             />
           </div>
+
         </>
       ) : (
         <div className="mt-6 rounded-3xl border border-border/60 bg-card p-6 text-center text-muted-foreground">
