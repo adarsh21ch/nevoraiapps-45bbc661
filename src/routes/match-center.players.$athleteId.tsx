@@ -207,7 +207,14 @@ function AthleteProfilePage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
               <div className="ring-4 ring-card rounded-2xl">
-                <Avatar src={s?.photo_url ?? null} name={s?.name ?? "?"} size={96} />
+                <PlayerPhotoUploader
+                  tenantId={tenant.id}
+                  studentId={athlete.student_id}
+                  photoUrl={s?.photo_url ?? null}
+                  name={s?.name ?? "?"}
+                  size={96}
+                  onUpdated={() => athleteQ.refetch()}
+                />
               </div>
               <div className="pb-1">
                 <div className="flex flex-wrap items-center gap-2">
