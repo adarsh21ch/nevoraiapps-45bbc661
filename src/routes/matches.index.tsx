@@ -244,10 +244,9 @@ function LiveMatchCard({
 
   const listener = useCallback(() => {
     onInvalidate();
-    if (current?.id) {
-      // ball events invalidation handled by realtime via onInvalidate on parent
-    }
-  }, [onInvalidate, current?.id]);
+    void inningsQ.refetch();
+    void ballsQ.refetch();
+  }, [onInvalidate, inningsQ, ballsQ]);
   useMatchLive(match.id, listener);
 
   const derived = (() => {
