@@ -1,23 +1,31 @@
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 import { useTenant } from "@/lib/tenant-context";
+import { HeroCarousel } from "./HeroCarousel";
+import { getPageHeroImages, type PageHeroKey } from "@/lib/page-hero-images";
 
 /**
  * Shared decorative hero for public pages (About, Contact, Fees, Star Players).
  * Layered glow + subtle grid + glass eyebrow badge, tinted by tenant brand colors.
+ * When the tenant has uploaded background images for this page, they render as
+ * an auto-sliding carousel behind a dark scrim so the title stays readable.
  */
 export function PageHero({
   eyebrow,
   title,
   subtitle,
   children,
+  pageKey,
 }: {
   eyebrow: string;
   title: string;
   subtitle?: string;
   children?: ReactNode;
+  pageKey?: PageHeroKey;
 }) {
   const tenant = useTenant();
+  const heroImages = pageKey ? getPageHeroImages(tenant, pageKey) : [];
+  const hasImages = heroImages.length > 0;
   return (
     <section
       className="relative overflow-hidden"
@@ -25,9 +33,12 @@ export function PageHero({
         background: `linear-gradient(135deg, ${tenant.primary_color}, ${tenant.secondary_color})`,
       }}
     >
-      {/* Grid mask */}
+      {hasImages ? <HeroCarousel paths={heroImages} /> : null}
+      {/* Grid mask — kept even with images, but softened */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.12]"
+        className={
+          "pointer-events-none absolute inset-0 " + (hasImages ? "opacity-[0.06]" : "opacity-[0.12]")
+        }
         style={{
           backgroundImage:
             "linear-gradient(to right,#fff 1px,transparent 1px),linear-gradient(to bottom,#fff 1px,transparent 1px)",
@@ -35,9 +46,13 @@ export function PageHero({
           maskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
         }}
       />
-      {/* Glow blobs */}
-      <div className="pointer-events-none absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-white/15 blur-[120px]" />
-      <div className="pointer-events-none absolute -bottom-32 -right-24 h-[420px] w-[420px] rounded-full bg-black/20 blur-[120px]" />
+      {/* Glow blobs — hidden when photos are showing so the image reads clean */}
+      {!hasImages ? (
+        <>
+          <div className="pointer-events-none absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full bg-white/15 blur-[120px]" />
+          <div className="pointer-events-none absolute -bottom-32 -right-24 h-[420px] w-[420px] rounded-full bg-black/20 blur-[120px]" />
+        </>
+      ) : null}
 
       <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
         <motion.div
