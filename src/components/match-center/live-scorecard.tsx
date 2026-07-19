@@ -110,7 +110,7 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
       )}
 
       {/* Segment control */}
-      <div className="sticky top-0 z-10 -mx-1 space-y-2 bg-background/95 px-1 pb-2 backdrop-blur">
+      <div className={cn("z-10 -mx-1 space-y-2 bg-background/95 px-1 pb-2 backdrop-blur", !embedded && "sticky top-0")}>
         <div className="flex gap-1 overflow-x-auto rounded-full bg-muted p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {TABS.map((t) => (
             <button
