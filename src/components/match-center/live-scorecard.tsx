@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
+import { ballChipLabel } from "@/lib/mc-commentary";
 import {
   calculateInningsStatistics,
   type BattingStat,
@@ -35,9 +36,14 @@ interface Props {
     teamId: string;
     teamName: string;
   };
+  /**
+   * Optional inline team switcher rendered at the top of team-scoped tabs
+   * (Batting / Bowling / Squad). Phase 33 — replaces the page-level pill.
+   */
+  teamSwitcher?: React.ReactNode;
 }
 
-type TabKey = "summary" | "batting" | "bowling" | "overs" | "squad" | "more";
+type TabKey = "summary" | "batting" | "bowling" | "overs" | "squad" | "commentary";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "summary", label: "Summary" },
@@ -45,7 +51,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "bowling", label: "Bowling" },
   { key: "overs", label: "Overs" },
   { key: "squad", label: "Squad" },
-  { key: "more", label: "More" },
+  { key: "commentary", label: "Commentary" },
 ];
 
 export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary, squad }: Props) {
