@@ -1475,77 +1475,9 @@ function SquadFooter({
   );
 }
 
-/* ==================== SUMMARY / ACTION ==================== */
+/* SummaryCard removed — replaced by wizard StepReview + sticky footer. */
 
-function SummaryCard({
-  matchType,
-  format,
-  overs,
-  teamAName,
-  teamBName,
-  playersA,
-  playersB,
-  error,
-  pending,
-  onStart,
-}: {
-  matchType: string;
-  format: string;
-  overs: number;
-  teamAName: string;
-  teamBName: string;
-  playersA: number;
-  playersB: number;
-  error: string | null;
-  pending: boolean;
-  onStart: () => void;
-}) {
-  return (
-    <div className="sticky bottom-4 mt-8">
-      <div className="overflow-hidden rounded-2xl border border-border bg-card/95 shadow-lg backdrop-blur">
-        <div className="p-5">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {matchType} · {format} · {overs} overs
-          </div>
-          <div className="mt-3 grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
-            <div className="text-left">
-              <div className="truncate text-lg font-bold tracking-tight">{teamAName}</div>
-              <div className="text-xs text-muted-foreground">
-                {playersA} {playersA === 1 ? "player" : "players"}
-              </div>
-            </div>
-            <div className="mx-auto rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase text-primary sm:mx-0">
-              vs
-            </div>
-            <div className="text-right">
-              <div className="truncate text-lg font-bold tracking-tight">{teamBName}</div>
-              <div className="text-xs text-muted-foreground">
-                {playersB} {playersB === 1 ? "player" : "players"}
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between gap-3">
-            <div className="text-sm text-muted-foreground">
-              {error ?? (
-                <span className="text-emerald-600">
-                  {playersA} vs {playersB} · Ready to start
-                </span>
-              )}
-            </div>
-            <Button size="lg" disabled={!!error || pending} onClick={onStart}>
-              {pending ? (
-                <Loader2 className="size-4 mr-1.5 animate-spin" />
-              ) : (
-                <Swords className="size-4 mr-1.5" />
-              )}
-              Start match
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+
 
 /* ==================== SHARED FIELD ==================== */
 
