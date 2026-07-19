@@ -134,6 +134,7 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
           <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />
         )}
         {tab === "overs" && <OversPane overs={stats.team.overs_summary} />}
+        {tab === "commentary" && <CommentaryPane commentary={commentary ?? []} />}
         {tab === "more" && <MorePane stats={stats} matchInfo={matchInfo} />}
       </div>
 
