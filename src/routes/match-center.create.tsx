@@ -1035,8 +1035,6 @@ function TeamPanel({
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
 }) {
-  const stepNumber = side === "A" ? 3 : 4;
-
   const setMode = (mode: TeamMode) => {
     onChange({ ...emptyPanel(mode) });
   };
@@ -1054,10 +1052,10 @@ function TeamPanel({
       <div className="mb-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span
-            className="grid size-6 place-items-center rounded-full text-xs font-bold text-white"
+            className="grid size-7 place-items-center rounded-full text-xs font-black text-white"
             style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
           >
-            {stepNumber}
+            {side}
           </span>
           <h3 className="text-sm font-semibold tracking-tight">Team {side}</h3>
         </div>
@@ -1069,6 +1067,7 @@ function TeamPanel({
           {state.mode === "existing" ? "← Create new team" : "Use existing team →"}
         </button>
       </div>
+
 
       {/* Body */}
       {state.mode === "existing" && (
