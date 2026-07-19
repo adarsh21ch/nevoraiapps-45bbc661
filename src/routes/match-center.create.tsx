@@ -519,32 +519,63 @@ function CreateMatchPage() {
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col px-3 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-3 sm:px-4 md:pb-32">
-      {/* Compact wizard header — slim progress bar with tiny back + step counter */}
-      <header className="mb-4 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={goBack}
-          className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-accent"
-          aria-label="Back"
-        >
-          <ArrowLeft className="size-4" />
-        </button>
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full transition-[width] duration-300 ease-out"
-            style={{
-              width: `${(step / 5) * 100}%`,
-              backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
-            }}
-          />
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col px-3 pb-8 pt-3 sm:px-4">
+      {/* Sticky wizard header — progress bar + Back/Continue always visible on top */}
+      <header className="sticky top-0 z-30 -mx-3 mb-4 border-b border-border/60 bg-background/90 px-3 pb-3 pt-2 backdrop-blur sm:-mx-4 sm:px-4">
+        <div className="flex items-center gap-3">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full transition-[width] duration-300 ease-out"
+              style={{
+                width: `${(step / 5) * 100}%`,
+                backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
+              }}
+            />
+          </div>
+          <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+            {step}/5
+          </div>
         </div>
-        <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-          {step}/5
+        <div className="mt-2.5 flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-10 flex-1 text-sm font-semibold"
+            onClick={goBack}
+            disabled={createM.isPending}
+          >
+            <ArrowLeft className="mr-1 size-4" />
+            Back
+          </Button>
+          {step < 5 ? (
+            <Button
+              size="sm"
+              className="h-10 flex-[2] text-sm font-semibold"
+              disabled={!canContinue}
+              onClick={goNext}
+            >
+              Continue
+              <ChevronRight className="ml-1 size-4" />
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              className="h-10 flex-[2] text-sm font-semibold"
+              disabled={!canStart || createM.isPending}
+              onClick={() => createM.mutate()}
+            >
+              {createM.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" />
+              ) : (
+                <Swords className="mr-1.5 size-4" />
+              )}
+              Start match
+            </Button>
+          )}
         </div>
       </header>
 
-      {/* Scrollable step card — the fixed action bar below always stays visible */}
       <main className="flex-1">
         <div className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
           <div className="mb-5">
@@ -560,6 +591,7 @@ function CreateMatchPage() {
                 setMatchFormat={setMatchFormat}
                 overs={overs}
                 setOvers={setOvers}
+                onAutoAdvance={() => setStep(2)}
               />
             )}
 
@@ -633,49 +665,10 @@ function CreateMatchPage() {
           </div>
         </div>
       </main>
-
-      {/* Fixed action bar — Back (left) + Continue/Start (right), always visible.
-          Sits above the global mobile bottom nav (h-16) and flush on desktop. */}
-      <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border/60 bg-background/95 backdrop-blur md:bottom-0">
-        <div className="mx-auto flex w-full max-w-2xl items-center gap-3 px-3 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-4">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 flex-1 text-base font-semibold"
-            onClick={goBack}
-            disabled={createM.isPending}
-          >
-            <ArrowLeft className="mr-1 size-4" />
-            Back
-          </Button>
-          {step < 5 ? (
-            <Button
-              className="h-12 flex-[2] text-base font-semibold"
-              disabled={!canContinue}
-              onClick={goNext}
-            >
-              Continue
-              <ChevronRight className="ml-1 size-4" />
-            </Button>
-          ) : (
-            <Button
-              className="h-12 flex-[2] text-base font-semibold"
-              disabled={!canStart || createM.isPending}
-              onClick={() => createM.mutate()}
-            >
-              {createM.isPending ? (
-                <Loader2 className="mr-1.5 size-4 animate-spin" />
-              ) : (
-                <Swords className="mr-1.5 size-4" />
-              )}
-              Start match
-            </Button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
+
 
 
 /* ==================== STEP 1 · SETUP ==================== */
