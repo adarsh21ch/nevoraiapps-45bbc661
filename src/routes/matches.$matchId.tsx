@@ -198,8 +198,80 @@ function PublicMatchDetail() {
   const overRows = Array.from(overs.entries()).sort((a, b) => b[0] - a[0]);
 
 
+  // Derive live broadcast state from the last delivered ball
+  const lastBall = currentBalls.length > 0 ? currentBalls[currentBalls.length - 1] : null;
+  const strikerName = lastBall?.striker_name ?? null;
+  const nonStrikerName = lastBall?.non_striker_name ?? null;
+  const bowlerName = lastBall?.bowler_name ?? null;
+
+  // Look up stats for the current striker/non-striker/bowler using name match
+  const findBatter = (name: string | null) =>
+    name
+      ? (allInnings.length > 0
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (currentInnings as any)
+          : null) && null
+      : null;
+  // Simpler: recompute from stats
+  const battingOrdered = currentInnings
+    ? // reuse: compute via LiveScorecard's engine indirectly is heavier; do a quick derivation
+      currentBalls
+    : [];
+  void findBatter;
+  void battingOrdered;
+
+  // Local mini stats derivation from currentBalls for header (light-weight)
+  const battersMap = new Map<string, { runs: number; balls: number; fours: number; sixes: number }>();
+  const bowlersMap = new Map<string, { runs: number; balls: number; wickets: number }>();
+  for (const b of currentBalls) {
+    if (b.striker_name) {
+      const s = battersMap.get(b.striker_name) ?? { runs: 0, balls: 0, fours: 0, sixes: 0 };
+      const faced = !b.is_wide;
+      if (faced) s.balls += 1;
+      const off = b.runs_off_bat ?? 0;
+      s.runs += off;
+      if (off === 4) s.fours += 1;
+      if (off === 6) s.sixes += 1;
+      battersMap.set(b.striker_name, s);
+    }
+    if (b.bowler_name) {
+      const bw = bowlersMap.get(b.bowler_name) ?? { runs: 0, balls: 0, wickets: 0 };
+      const legal = !b.is_wide && !b.is_no_ball;
+      if (legal) bw.balls += 1;
+      bw.runs += (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
+      if (b.dismissal_type && b.dismissal_type !== "run_out") bw.wickets += 1;
+      bowlersMap.set(b.bowler_name, bw);
+    }
+  }
+  const oversDisplay = (legalBalls: number) =>
+    `${Math.floor(legalBalls / 6)}.${legalBalls % 6}`;
+
+  const strikerStat = strikerName ? battersMap.get(strikerName) : null;
+  const nonStrikerStat = nonStrikerName ? battersMap.get(nonStrikerName) : null;
+  const bowlerStat = bowlerName ? bowlersMap.get(bowlerName) : null;
+
+  // Current over + last over chips
+  const currentOverNo = lastBall?.over_number ?? null;
+  const currentOverBalls = currentOverNo != null ? overs.get(currentOverNo) ?? [] : [];
+  const lastOverBalls = currentOverNo != null && currentOverNo > 0
+    ? overs.get(currentOverNo - 1) ?? []
+    : [];
+
+  const ballChipClass = (b: MCBallEvent) => {
+    const isWicket = !!b.dismissal_type;
+    const isBoundary =
+      !b.dismissal_type && ((b.runs_off_bat ?? 0) === 4 || (b.runs_off_bat ?? 0) === 6);
+    return isWicket
+      ? "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/30"
+      : isBoundary
+        ? "bg-primary/15 text-primary ring-1 ring-primary/30"
+        : "bg-muted text-foreground";
+  };
+
+  const [pageTab, setPageTab] = useState<"scorecard" | "commentary">("scorecard");
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between">
         <Link
           to="/matches"
@@ -218,7 +290,8 @@ function PublicMatchDetail() {
         </button>
       </div>
 
-      <div className="mt-4 rounded-3xl border border-border/60 bg-card p-6 shadow-sm">
+      {/* Match header */}
+      <div className="mt-4 rounded-3xl border border-border/60 bg-card p-5 sm:p-6 shadow-sm">
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           {isLive && (
             <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-red-600 dark:text-red-400">
@@ -237,8 +310,7 @@ function PublicMatchDetail() {
         </h1>
         {match.toss_winner && match.toss_decision && (
           <p className="mt-1 text-sm text-muted-foreground">
-            Toss:{" "}
-            {teams[match.toss_winner]?.name ?? "Winner"} chose to {match.toss_decision}
+            Toss: {teams[match.toss_winner]?.name ?? "Winner"} chose to {match.toss_decision}
           </p>
         )}
         {match.result && (
@@ -248,7 +320,7 @@ function PublicMatchDetail() {
         )}
       </div>
 
-      {/* Innings tabs (visible when 2+ innings) */}
+      {/* Innings tabs */}
       {allInnings.length > 1 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {allInnings.map((inn, idx) => {
@@ -274,95 +346,226 @@ function PublicMatchDetail() {
         </div>
       )}
 
-      {/* Scorecard for the selected innings */}
       {currentInnings ? (
-        <div className="mt-6 rounded-3xl border border-border/60 bg-card p-4 sm:p-6">
-          <LiveScorecard
-            events={currentBalls}
-            innings={currentInnings}
-            totalOvers={match.overs}
-            hideHero={false}
-            matchInfo={{
-              ground: match.ground_name,
-              format: match.match_format,
-              date: match.scheduled_date,
-              homeTeam: homeName,
-              awayTeam: awayName,
-              result: match.result,
-            }}
-          />
-        </div>
-      ) : (
-
-        <div className="mt-6 rounded-3xl border border-border/60 bg-card p-6 text-center text-muted-foreground">
-          The match hasn&apos;t started yet.
-        </div>
-      )}
-
-      {/* Over-by-over strip */}
-      {overRows.length > 0 && (
-        <section className="mt-6">
-          <h2 className="text-lg font-bold">Over by over</h2>
-          <div className="mt-3 space-y-2">
-            {overRows.map(([overNo, balls]) => {
-              const runs = balls.reduce(
-                (n, b) => n + (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0),
-                0,
-              );
-              return (
-                <div
-                  key={overNo}
-                  className="flex items-center gap-3 rounded-xl border border-border/50 bg-card px-3 py-2"
-                >
-                  <div className="w-16 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    Over {overNo + 1}
+        <>
+          {/* TV-style broadcast card: score + batters + bowler + current/last over */}
+          <section className="mt-6 rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card p-5 sm:p-6 shadow-sm">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+              {/* Left: Score + Batters */}
+              <div className="min-w-0">
+                <div className="flex items-baseline justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="truncate text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {currentInnings.batting_team_id === match.team_a_id ? homeName : awayName}
+                    </div>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span className="text-5xl font-black leading-none tabular-nums tracking-tight">
+                        {currentInnings.runs}
+                        <span className="text-muted-foreground">/</span>
+                        {currentInnings.wickets}
+                      </span>
+                      <span className="text-sm font-semibold tabular-nums text-muted-foreground">
+                        ({oversDisplay(currentInnings.balls_bowled ?? 0)}
+                        {match.overs ? ` / ${match.overs}` : ""})
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-1 flex-wrap gap-1.5">
-                    {balls.map((b) => {
-                      const label = ballChipLabel(b);
-                      const isWicket = !!b.dismissal_type;
-                      const isBoundary =
-                        !b.dismissal_type && ((b.runs_off_bat ?? 0) === 4 || (b.runs_off_bat ?? 0) === 6);
-                      return (
+                  <div className="shrink-0 text-right">
+                    <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">CRR</div>
+                    <div className="text-2xl font-bold tabular-nums">
+                      {(currentInnings.balls_bowled ?? 0) > 0
+                        ? (
+                            (currentInnings.runs * 6) /
+                            (currentInnings.balls_bowled ?? 1)
+                          ).toFixed(2)
+                        : "0.00"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Batters */}
+                <div className="mt-4 overflow-hidden rounded-2xl border border-border/50 bg-background/50">
+                  <div className="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.5rem_2.5rem] gap-x-2 border-b border-border/50 bg-muted/40 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    <div>Batter</div>
+                    <div className="text-right">R</div>
+                    <div className="text-right">B</div>
+                    <div className="text-right">4s</div>
+                    <div className="text-right">6s</div>
+                  </div>
+                  {[
+                    { name: strikerName, stat: strikerStat, striker: true },
+                    { name: nonStrikerName, stat: nonStrikerStat, striker: false },
+                  ].map((row, i) => (
+                    <div
+                      key={i}
+                      className="grid grid-cols-[minmax(0,1fr)_2.5rem_2.5rem_2.5rem_2.5rem] gap-x-2 px-3 py-2 text-sm tabular-nums"
+                    >
+                      <div className="flex min-w-0 items-center gap-1.5 truncate font-semibold">
+                        <span className="truncate">{row.name ?? "—"}</span>
+                        {row.striker && row.name && (
+                          <span className="shrink-0 text-primary" aria-label="on strike">*</span>
+                        )}
+                      </div>
+                      <div className="text-right font-bold">{row.stat?.runs ?? 0}</div>
+                      <div className="text-right">{row.stat?.balls ?? 0}</div>
+                      <div className="text-right">{row.stat?.fours ?? 0}</div>
+                      <div className="text-right">{row.stat?.sixes ?? 0}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: Bowler + overs */}
+              <div className="min-w-0 space-y-4">
+                {/* Bowler */}
+                <div className="rounded-2xl border border-border/50 bg-background/50 p-3">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    Bowling
+                  </div>
+                  <div className="mt-1 flex items-baseline justify-between gap-3">
+                    <div className="min-w-0 truncate text-base font-bold">
+                      {bowlerName ?? "—"}
+                    </div>
+                    <div className="shrink-0 text-right tabular-nums">
+                      <span className="text-lg font-black">
+                        {bowlerStat?.wickets ?? 0}/{bowlerStat?.runs ?? 0}
+                      </span>
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        ({oversDisplay(bowlerStat?.balls ?? 0)} ov)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Current over */}
+                <div className="rounded-2xl border border-border/50 bg-background/50 p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      This over {currentOverNo != null ? `· ${currentOverNo + 1}` : ""}
+                    </div>
+                    <div className="text-[10px] font-semibold tabular-nums text-muted-foreground">
+                      {currentOverBalls.reduce(
+                        (n, b) => n + (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0),
+                        0,
+                      )}{" "}
+                      runs
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {currentOverBalls.length === 0 && (
+                      <span className="text-xs text-muted-foreground">Yet to begin</span>
+                    )}
+                    {currentOverBalls.map((b) => (
+                      <span
+                        key={b.id}
+                        className={
+                          "inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums " +
+                          ballChipClass(b)
+                        }
+                      >
+                        {ballChipLabel(b)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Last over */}
+                {lastOverBalls.length > 0 && (
+                  <div className="rounded-2xl border border-border/50 bg-background/50 p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        Last over {currentOverNo != null ? `· ${currentOverNo}` : ""}
+                      </div>
+                      <div className="text-[10px] font-semibold tabular-nums text-muted-foreground">
+                        {lastOverBalls.reduce(
+                          (n, b) => n + (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0),
+                          0,
+                        )}{" "}
+                        runs
+                      </div>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {lastOverBalls.map((b) => (
                         <span
                           key={b.id}
                           className={
                             "inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums " +
-                            (isWicket
-                              ? "bg-red-500/15 text-red-600 dark:text-red-400"
-                              : isBoundary
-                                ? "bg-primary/15 text-primary"
-                                : "bg-muted text-foreground")
+                            ballChipClass(b)
                           }
                         >
-                          {label}
+                          {ballChipLabel(b)}
                         </span>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
-                  <div className="w-10 text-right text-sm font-bold tabular-nums">{runs}</div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+                )}
+              </div>
+            </div>
+          </section>
 
-      {/* Commentary */}
-      {commentary.length > 0 && (
-        <section className="mt-6">
-          <h2 className="text-lg font-bold">Commentary</h2>
-          <ul className="mt-3 divide-y divide-border/60 rounded-2xl border border-border/60 bg-card">
-            {commentary.map((c) => (
-              <li key={c.id} className="flex items-start gap-3 px-4 py-3">
-                <span className="w-12 shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-                  {c.over}
-                </span>
-                <span className="text-sm">{c.text}</span>
-              </li>
+          {/* Page-level tabs: Scorecard / Commentary */}
+          <div className="mt-6 flex gap-1 rounded-full bg-muted p-1 max-w-md">
+            {(["scorecard", "commentary"] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setPageTab(k)}
+                className={
+                  "flex-1 rounded-full px-3 py-1.5 text-xs font-semibold capitalize transition " +
+                  (pageTab === k
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground")
+                }
+              >
+                {k}
+              </button>
             ))}
-          </ul>
-        </section>
+          </div>
+
+          {pageTab === "scorecard" && (
+            <div className="mt-4 rounded-3xl border border-border/60 bg-card p-4 sm:p-6">
+              <LiveScorecard
+                events={currentBalls}
+                innings={currentInnings}
+                totalOvers={match.overs}
+                hideHero={true}
+                matchInfo={{
+                  ground: match.ground_name,
+                  format: match.match_format,
+                  date: match.scheduled_date,
+                  homeTeam: homeName,
+                  awayTeam: awayName,
+                  result: match.result,
+                }}
+              />
+            </div>
+          )}
+
+          {pageTab === "commentary" && (
+            <div className="mt-4 rounded-3xl border border-border/60 bg-card">
+              {commentary.length === 0 ? (
+                <div className="p-6 text-center text-sm text-muted-foreground">
+                  No commentary yet.
+                </div>
+              ) : (
+                <ul className="divide-y divide-border/60">
+                  {commentary.map((c) => (
+                    <li key={c.id} className="flex items-start gap-3 px-4 py-3">
+                      <span className="w-12 shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+                        {c.over}
+                      </span>
+                      <span className="text-sm">{c.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="mt-6 rounded-3xl border border-border/60 bg-card p-6 text-center text-muted-foreground">
+          The match hasn&apos;t started yet.
+        </div>
       )}
     </div>
   );
