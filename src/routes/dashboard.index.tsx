@@ -697,11 +697,13 @@ function ActivityFeed({
     );
   }
 
-  const shown = events.slice(0, 8);
+  // Show all of today's events, but cap the panel height so ~5-6 rows are
+  // visible and the rest scroll inside. Keeps Home compact even on very
+  // busy days (50+ events).
   return (
     <div className="rounded-2xl border border-border bg-card overflow-hidden">
-      <ul className="divide-y divide-border/60">
-        {shown.map((e) => (
+      <ul className="divide-y divide-border/60 max-h-[336px] overflow-y-auto overscroll-contain">
+        {events.map((e) => (
           <ActivityRow key={e.id} event={e} />
         ))}
       </ul>
