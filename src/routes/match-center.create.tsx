@@ -512,27 +512,18 @@ function CreateMatchPage() {
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col">
-      {/* Wizard header */}
-      <header className="sticky top-0 z-20 bg-background/85 pb-3 pt-3 backdrop-blur">
-        <div className="flex items-center gap-2 px-1">
-          <button
-            type="button"
-            onClick={goBack}
-            className="grid size-10 place-items-center rounded-full text-muted-foreground hover:bg-accent"
-            aria-label="Back"
-          >
-            <ArrowLeft className="size-5" />
-          </button>
-          <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Step {step} of 5
-            </div>
-            <div className="truncate text-lg font-bold tracking-tight">{stepTitle}</div>
-          </div>
-        </div>
-        {/* Progress bar */}
-        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-2xl flex-col px-3 pb-32 pt-3 sm:px-4">
+      {/* Compact wizard header — slim progress bar with tiny back + step counter */}
+      <header className="mb-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={goBack}
+          className="grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-accent"
+          aria-label="Back"
+        >
+          <ArrowLeft className="size-4" />
+        </button>
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full transition-[width] duration-300 ease-out"
             style={{
@@ -541,127 +532,135 @@ function CreateMatchPage() {
             }}
           />
         </div>
+        <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+          {step}/5
+        </div>
       </header>
 
-      {/* Step body */}
-      <main className="flex-1 px-1 pb-32 pt-5">
-        {step === 1 && (
-          <StepSetup
-            matchType={matchType}
-            setMatchType={setMatchType}
-            matchFormat={matchFormat}
-            setMatchFormat={setMatchFormat}
-            overs={overs}
-            setOvers={setOvers}
-          />
-        )}
+      {/* Step card — content + inline Continue button (sign-in style) */}
+      <main className="flex-1">
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-6">
+          <div className="mb-5">
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{stepTitle}</h1>
+          </div>
 
-        {step === 2 && (
-          <TeamPanel
-            side="A"
-            state={panelA}
-            onChange={setPanelA}
-            teams={teams}
-            excludeTeamId={panelB.selectedTeamId}
-            teamsLoading={teamsQ.isLoading && !demo}
-            studentPool={studentPool}
-            studentsLoading={studentsQ.isLoading && !demo}
-          />
-        )}
+          <div>
+            {step === 1 && (
+              <StepSetup
+                matchType={matchType}
+                setMatchType={setMatchType}
+                matchFormat={matchFormat}
+                setMatchFormat={setMatchFormat}
+                overs={overs}
+                setOvers={setOvers}
+              />
+            )}
 
-        {step === 3 && (
-          <TeamPanel
-            side="B"
-            state={panelB}
-            onChange={setPanelB}
-            teams={teams}
-            excludeTeamId={panelA.selectedTeamId}
-            teamsLoading={teamsQ.isLoading && !demo}
-            studentPool={studentPool}
-            studentsLoading={studentsQ.isLoading && !demo}
-          />
-        )}
+            {step === 2 && (
+              <TeamPanel
+                side="A"
+                state={panelA}
+                onChange={setPanelA}
+                teams={teams}
+                excludeTeamId={panelB.selectedTeamId}
+                teamsLoading={teamsQ.isLoading && !demo}
+                studentPool={studentPool}
+                studentsLoading={studentsQ.isLoading && !demo}
+              />
+            )}
 
-        {step === 4 && (
-          <StepAdvanced
-            ground={ground}
-            setGround={setGround}
-            pitch={pitch}
-            setPitch={setPitch}
-            weather={weather}
-            setWeather={setWeather}
-            scorer={scorer}
-            setScorer={setScorer}
-            umpire={umpire}
-            setUmpire={setUmpire}
-            ballType={ballType}
-            setBallType={setBallType}
-            scheduledDate={scheduledDate}
-            setScheduledDate={setScheduledDate}
-            streamingUrl={streamingUrl}
-            setStreamingUrl={setStreamingUrl}
-            visibility={visibility}
-            setVisibility={setVisibility}
-            notes={notes}
-            setNotes={setNotes}
-            advFilled={advFilled}
-          />
-        )}
+            {step === 3 && (
+              <TeamPanel
+                side="B"
+                state={panelB}
+                onChange={setPanelB}
+                teams={teams}
+                excludeTeamId={panelA.selectedTeamId}
+                teamsLoading={teamsQ.isLoading && !demo}
+                studentPool={studentPool}
+                studentsLoading={studentsQ.isLoading && !demo}
+              />
+            )}
 
-        {step === 5 && (
-          <StepReview
-            matchTypeLabel={MATCH_TYPES.find((t) => t.value === matchType)?.label ?? matchType}
-            matchFormat={matchFormat}
-            overs={overs}
-            teamAName={teamAName}
-            teamBName={teamBName}
-            playersA={panelA.players}
-            playersB={panelB.players}
-            error={validationError}
-            onEditStep={(s) => setStep(s as 1 | 2 | 3 | 4)}
-          />
-        )}
-      </main>
+            {step === 4 && (
+              <StepAdvanced
+                ground={ground}
+                setGround={setGround}
+                pitch={pitch}
+                setPitch={setPitch}
+                weather={weather}
+                setWeather={setWeather}
+                scorer={scorer}
+                setScorer={setScorer}
+                umpire={umpire}
+                setUmpire={setUmpire}
+                ballType={ballType}
+                setBallType={setBallType}
+                scheduledDate={scheduledDate}
+                setScheduledDate={setScheduledDate}
+                streamingUrl={streamingUrl}
+                setStreamingUrl={setStreamingUrl}
+                visibility={visibility}
+                setVisibility={setVisibility}
+                notes={notes}
+                setNotes={setNotes}
+                advFilled={advFilled}
+              />
+            )}
 
-      {/* Sticky footer */}
-      <footer
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur"
-        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.5rem)" }}
-      >
-        <div className="mx-auto flex w-full max-w-2xl items-center gap-3 px-4 py-3">
-          <Button
-            variant="ghost"
-            className="h-12 min-w-[92px]"
-            onClick={goBack}
-            disabled={createM.isPending}
-          >
-            {step === 1 ? "Cancel" : "Back"}
-          </Button>
-          {step < 5 ? (
-            <Button
-              className="h-12 flex-1 text-base font-semibold"
-              disabled={!canContinue}
-              onClick={goNext}
-            >
-              Continue
-              <ChevronRight className="ml-1 size-4" />
-            </Button>
-          ) : (
-            <Button
-              className="h-12 flex-1 text-base font-semibold"
-              disabled={!canStart || createM.isPending}
-              onClick={() => createM.mutate()}
-            >
-              {createM.isPending ? (
-                <Loader2 className="mr-1.5 size-4 animate-spin" />
-              ) : (
-                <Swords className="mr-1.5 size-4" />
-              )}
-              Start match
-            </Button>
-          )}
+            {step === 5 && (
+              <StepReview
+                matchTypeLabel={MATCH_TYPES.find((t) => t.value === matchType)?.label ?? matchType}
+                matchFormat={matchFormat}
+                overs={overs}
+                teamAName={teamAName}
+                teamBName={teamBName}
+                playersA={panelA.players}
+                playersB={panelB.players}
+                error={validationError}
+                onEditStep={(s) => setStep(s as 1 | 2 | 3 | 4)}
+              />
+            )}
+          </div>
+
+          {/* Inline primary action — inside the card, above the global bottom nav */}
+          <div className="mt-8">
+            {step < 5 ? (
+              <Button
+                className="h-12 w-full text-base font-semibold"
+                disabled={!canContinue}
+                onClick={goNext}
+              >
+                Continue
+                <ChevronRight className="ml-1 size-4" />
+              </Button>
+            ) : (
+              <Button
+                className="h-12 w-full text-base font-semibold"
+                disabled={!canStart || createM.isPending}
+                onClick={() => createM.mutate()}
+              >
+                {createM.isPending ? (
+                  <Loader2 className="mr-1.5 size-4 animate-spin" />
+                ) : (
+                  <Swords className="mr-1.5 size-4" />
+                )}
+                Start match
+              </Button>
+            )}
+            {step > 1 && (
+              <button
+                type="button"
+                onClick={goBack}
+                disabled={createM.isPending}
+                className="mt-3 w-full text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
+              >
+                Back
+              </button>
+            )}
+          </div>
         </div>
-      </footer>
+      </main>
     </div>
   );
 }
