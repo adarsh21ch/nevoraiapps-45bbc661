@@ -148,6 +148,19 @@ function PublicMatchDetail() {
   }, [queryClient, matchId]);
   useMatchLive(matchId, listener);
 
+  const [selectedInningsIdx, setSelectedInningsIdx] = useState<number | null>(null);
+  const [pulse, setPulse] = useState(false);
+  // Pulse indicator flashes whenever ball data changes.
+  useEffect(() => {
+    setPulse(true);
+    const t = setTimeout(() => setPulse(false), 700);
+    return () => clearTimeout(t);
+  }, [ballsQ.dataUpdatedAt]);
+
+  const handleRefresh = useCallback(() => {
+    listener();
+  }, [listener]);
+
   if (matchQ.isLoading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-20 text-center text-muted-foreground">
@@ -163,7 +176,11 @@ function PublicMatchDetail() {
   const awayName = teams[match.team_b_id]?.name ?? "Away";
   const allInnings = inningsQ.data ?? [];
   const allBalls = ballsQ.data ?? [];
-  const currentInnings = allInnings[allInnings.length - 1] ?? null;
+  const activeIdx =
+    selectedInningsIdx != null && allInnings[selectedInningsIdx]
+      ? selectedInningsIdx
+      : Math.max(0, allInnings.length - 1);
+  const currentInnings = allInnings[activeIdx] ?? null;
   const currentBalls = currentInnings
     ? allBalls.filter((b) => b.innings_id === currentInnings.id)
     : [];
@@ -179,6 +196,7 @@ function PublicMatchDetail() {
     overs.set(b.over_number, list);
   });
   const overRows = Array.from(overs.entries()).sort((a, b) => b[0] - a[0]);
+
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
