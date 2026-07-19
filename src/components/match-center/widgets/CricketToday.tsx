@@ -1,20 +1,12 @@
 /**
  * Phase 03.0 — Cricket Today widget for the Owner Dashboard.
  *
- * A small, additive section that surfaces live/upcoming/recent matches on
- * the frozen `/dashboard` shell without touching its existing sections.
- * Reads use the shared `match-feeds` cache keys, so opening Match Center
- * afterwards is instant.
+ * Phase 31: cards are Live · Match History · Players.
  */
 import { Link } from "@tanstack/react-router";
-import { Radio, Swords, Trophy, ArrowRight } from "lucide-react";
+import { Radio, History, Users, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import {
-  useLiveMatches,
-  useUpcomingMatches,
-  useRecentMatches,
-  type MatchWithTeams,
-} from "@/lib/match-feeds";
+import { useTenantMatches, type MatchWithTeams } from "@/lib/match-feeds";
 
 function SectionLabel({
   children,
@@ -39,27 +31,33 @@ function teamsLabel(m: MatchWithTeams): string {
   return `${a} vs ${b}`;
 }
 
-function formatWhen(iso: string | null): string {
-  if (!iso) return "TBD";
-  const d = new Date(iso);
-  return d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+function resultSummary(m: MatchWithTeams): string {
+  return (
+    m.result ||
+    (m.winner_team === "a"
+      ? `${m.team_a?.short_name ?? "Team A"} won`
+      : m.winner_team === "b"
+        ? `${m.team_b?.short_name ?? "Team B"} won`
+        : "Completed")
+  );
 }
 
-export function CricketToday({ tenantId }: { tenantId: string }) {
-  const live = useLiveMatches(tenantId);
-  const upcoming = useUpcomingMatches(tenantId, 3);
-  const recent = useRecentMatches(tenantId, 3);
+export function CricketToday({
+  tenantId,
+  playerCount,
+}: {
+  tenantId: string;
+  playerCount?: number;
+}) {
+  const all = useTenantMatches(tenantId);
+  const matches = all.data ?? [];
+  const live = matches.filter((m) => m.status === "live");
+  const completed = matches.filter((m) => m.status === "completed");
+  const latestCompleted = completed[0];
 
-  const anyLoading = live.isLoading || upcoming.isLoading || recent.isLoading;
-  const anyData = live.data.length + upcoming.data.length + recent.data.length > 0;
+  const anyLoading = all.isLoading;
+  const anyData = matches.length > 0 || (playerCount ?? 0) > 0;
 
-  // Hide the whole section when the tenant has no cricket activity — keeps
-  // the frozen dashboard clean for non-cricket academies.
   if (!anyLoading && !anyData) return null;
 
   return (
@@ -79,33 +77,17 @@ export function CricketToday({ tenantId }: { tenantId: string }) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
         {/* Live */}
-        {live.data.length > 0 ? (
-          <LiveMatchTile match={live.data[0]} extra={live.data.length - 1} />
+        {live.length > 0 ? (
+          <LiveMatchTile match={live[0]} extra={live.length - 1} />
         ) : (
           <EmptyTile icon={<Radio className="size-4" />} label="Live now" hint="No live matches" />
         )}
 
-        {/* Next upcoming */}
-        {upcoming.data.length > 0 ? (
-          <UpcomingTile match={upcoming.data[0]} />
-        ) : (
-          <EmptyTile
-            icon={<Swords className="size-4" />}
-            label="Upcoming"
-            hint="No matches scheduled"
-          />
-        )}
+        {/* Match History */}
+        <MatchHistoryTile count={completed.length} latest={latestCompleted} />
 
-        {/* Latest result */}
-        {recent.data.length > 0 ? (
-          <RecentTile match={recent.data[0]} />
-        ) : (
-          <EmptyTile
-            icon={<Trophy className="size-4" />}
-            label="Recent result"
-            hint="No completed matches"
-          />
-        )}
+        {/* Players */}
+        <PlayersTile count={playerCount ?? 0} />
       </div>
     </section>
   );
@@ -137,22 +119,24 @@ function LiveMatchTile({ match, extra }: { match: MatchWithTeams; extra: number 
   );
 }
 
-function UpcomingTile({ match }: { match: MatchWithTeams }) {
+function MatchHistoryTile({ count, latest }: { count: number; latest?: MatchWithTeams }) {
   return (
     <Link to="/match-center/matches" className="group">
       <Card className="p-3.5 min-h-[96px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
         <div className="flex items-center justify-between">
-          <span className="grid size-7 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#E8873C)_14%,transparent)] text-[color:var(--brand,#E8873C)]">
-            <Swords className="size-4" />
+          <span className="grid size-7 place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
+            <History className="size-4" />
           </span>
           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Next
+            History
           </span>
         </div>
         <div>
-          <div className="text-sm font-semibold tracking-tight truncate">{teamsLabel(match)}</div>
+          <div className="text-sm font-semibold tracking-tight truncate">
+            {count} completed {count === 1 ? "match" : "matches"}
+          </div>
           <div className="text-[11px] text-muted-foreground truncate">
-            {formatWhen(match.scheduled_date)}
+            {latest ? `Last: ${resultSummary(latest)}` : "No completed matches yet"}
           </div>
         </div>
       </Card>
@@ -160,28 +144,25 @@ function UpcomingTile({ match }: { match: MatchWithTeams }) {
   );
 }
 
-function RecentTile({ match }: { match: MatchWithTeams }) {
-  const summary =
-    match.result ||
-    (match.winner_team === "a"
-      ? `${match.team_a?.short_name ?? "Team A"} won`
-      : match.winner_team === "b"
-        ? `${match.team_b?.short_name ?? "Team B"} won`
-        : "Completed");
+function PlayersTile({ count }: { count: number }) {
   return (
-    <Link to="/match-center/matches" className="group">
+    <Link to="/match-center/players" className="group">
       <Card className="p-3.5 min-h-[96px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
         <div className="flex items-center justify-between">
-          <span className="grid size-7 place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
-            <Trophy className="size-4" />
+          <span className="grid size-7 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#E8873C)_14%,transparent)] text-[color:var(--brand,#E8873C)]">
+            <Users className="size-4" />
           </span>
           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Result
+            Players
           </span>
         </div>
         <div>
-          <div className="text-sm font-semibold tracking-tight truncate">{teamsLabel(match)}</div>
-          <div className="text-[11px] text-muted-foreground truncate">{summary}</div>
+          <div className="text-sm font-semibold tracking-tight truncate">
+            {count} {count === 1 ? "player" : "players"}
+          </div>
+          <div className="text-[11px] text-muted-foreground truncate">
+            View stats &amp; performance
+          </div>
         </div>
       </Card>
     </Link>
