@@ -444,6 +444,7 @@ function CreateMatchPage() {
       return { id: match.id, demo: false } as const;
     },
     onSuccess: async (res) => {
+      clearDraft(tenant.id);
       qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] });
       qc.invalidateQueries({ queryKey: ["mc-all-teams", tenant.id] });
 
