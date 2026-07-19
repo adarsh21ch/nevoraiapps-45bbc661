@@ -1429,6 +1429,13 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     preOver: session.matchState.innings.awaitingNewBowler,
   });
 
+  const overHistory = useMemo(
+    () => computeOverHistory(session.events, ballChipLabel),
+    [session.events],
+  );
+
+
+
   const previousOverBowler = session.matchState.innings.completedOvers.at(-1);
   const strikerSelected = Boolean(striker.athleteId || striker.name);
   const nonStrikerSelected = Boolean(nonStriker.athleteId || nonStriker.name);
