@@ -84,13 +84,58 @@ const emptyPanel = (mode: TeamMode = "existing"): TeamPanelState => ({
 });
 
 const FORMAT_OPTIONS: { label: string; overs: number; value: string }[] = [
-  { label: "T10", overs: 10, value: "T10" },
-  { label: "T20", overs: 20, value: "T20" },
+  { label: "T10 · 10 overs", overs: 10, value: "T10" },
+  { label: "T20 · 20 overs", overs: 20, value: "T20" },
   { label: "30 Overs", overs: 30, value: "T30" },
   { label: "40 Overs", overs: 40, value: "T40" },
-  { label: "50 Overs", overs: 50, value: "ODI" },
-  { label: "Test", overs: 90, value: "Test" },
+  { label: "50 Overs (ODI)", overs: 50, value: "ODI" },
+  { label: "Test · 90 overs", overs: 90, value: "Test" },
+  { label: "Custom", overs: 20, value: "Custom" },
 ];
+
+const DRAFT_KEY = (tenantId: string) => `mc-create-draft:${tenantId}`;
+type WizardDraft = {
+  step: number;
+  matchType: string;
+  matchFormat: string;
+  overs: number;
+  scheduledDate: string;
+  panelA: TeamPanelState;
+  panelB: TeamPanelState;
+  ground: string;
+  pitch: string;
+  weather: string;
+  scorer: string;
+  umpire: string;
+  notes: string;
+  visibility: string;
+  streamingUrl: string;
+  ballType: string;
+  savedAt: number;
+};
+function readDraft(tenantId: string): WizardDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(DRAFT_KEY(tenantId));
+    return raw ? (JSON.parse(raw) as WizardDraft) : null;
+  } catch {
+    return null;
+  }
+}
+function writeDraft(tenantId: string, draft: WizardDraft) {
+  try {
+    window.sessionStorage.setItem(DRAFT_KEY(tenantId), JSON.stringify(draft));
+  } catch {
+    /* ignore */
+  }
+}
+function clearDraft(tenantId: string) {
+  try {
+    window.sessionStorage.removeItem(DRAFT_KEY(tenantId));
+  } catch {
+    /* ignore */
+  }
+}
 
 
 
