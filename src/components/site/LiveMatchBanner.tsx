@@ -131,16 +131,16 @@ export function LiveMatchBanner() {
         <span className="font-semibold tracking-wide">LIVE</span>
         <span className="truncate">
           {nameA} <span className="opacity-80">vs</span> {nameB}
-          {innings ? (
+          {innings && score ? (
             <>
               {" "}
               · <span className="font-semibold">{battingName}</span>{" "}
               <span className="tabular-nums">
-                {innings.runs}/{innings.wickets}
+                {score.runs}/{score.wickets}
               </span>
               <span className="opacity-80">
                 {" "}
-                ({innings.overs}.{innings.balls})
+                ({score.overs}.{score.balls})
               </span>
             </>
           ) : null}
