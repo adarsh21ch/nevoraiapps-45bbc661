@@ -819,29 +819,26 @@ function StepSetup({
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           Format
         </Label>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {FORMAT_OPTIONS.map((f) => (
-            <ChoiceChip
-              key={f.value}
-              active={matchFormat === f.value}
-              onClick={() => {
-                setMatchFormat(f.value);
-                setOvers(f.overs);
-              }}
-            >
-              {f.label}
-            </ChoiceChip>
-          ))}
-          <ChoiceChip
-            active={matchFormat === "Custom"}
-            onClick={() => {
-              setMatchFormat("Custom");
-              if (!overs) setOvers(20);
-            }}
-          >
-            Custom
-          </ChoiceChip>
-        </div>
+        <Select
+          value={matchFormat}
+          onValueChange={(v) => {
+            setMatchFormat(v);
+            const f = FORMAT_OPTIONS.find((x) => x.value === v);
+            if (f && v !== "Custom") setOvers(f.overs);
+            if (v === "Custom" && !overs) setOvers(20);
+          }}
+        >
+          <SelectTrigger className="mt-2 h-12 text-base">
+            <SelectValue placeholder="Select format" />
+          </SelectTrigger>
+          <SelectContent>
+            {FORMAT_OPTIONS.map((f) => (
+              <SelectItem key={f.value} value={f.value}>
+                {f.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {matchFormat === "Custom" && (
           <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-background p-3">
