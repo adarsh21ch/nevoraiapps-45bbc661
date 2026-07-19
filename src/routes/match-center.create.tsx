@@ -119,7 +119,7 @@ function CreateMatchPage() {
   const [scorer, setScorer] = useState(defaults.scorer ?? "");
   const [umpire, setUmpire] = useState(defaults.umpire ?? "");
   const [notes, setNotes] = useState("");
-  const [visibility, setVisibility] = useState("private");
+  const [visibility, setVisibility] = useState("public");
   const [streamingUrl, setStreamingUrl] = useState("");
   const [ballType, setBallType] = useState(defaults.ball_type ?? "");
 
