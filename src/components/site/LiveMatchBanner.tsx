@@ -12,6 +12,7 @@ type LiveMatch = {
 };
 
 type Innings = {
+  id: string;
   batting_team_id: string;
   runs: number;
   wickets: number;
@@ -30,6 +31,7 @@ export function LiveMatchBanner() {
   const [match, setMatch] = useState<LiveMatch | null>(null);
   const [teams, setTeams] = useState<TeamMap>({});
   const [innings, setInnings] = useState<Innings | null>(null);
+  const [derived, setDerived] = useState<{ runs: number; wickets: number; overs: number; balls: number } | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   const load = () => {
@@ -45,6 +47,8 @@ export function LiveMatchBanner() {
       .then(({ data }) => {
         if (!data) {
           setMatch(null);
+          setInnings(null);
+          setDerived(null);
           return;
         }
         setMatch(data as LiveMatch);
@@ -61,18 +65,43 @@ export function LiveMatchBanner() {
           });
         supabase
           .from("mc_innings")
-          .select("batting_team_id,runs,wickets,overs,balls")
+          .select("id,batting_team_id,runs,wickets,overs,balls")
           .eq("match_id", data.id)
           .order("innings_number", { ascending: false })
           .limit(1)
           .maybeSingle()
-          .then(({ data: inn }) => setInnings((inn as Innings) ?? null));
+          .then(({ data: inn }) => {
+            const row = (inn as Innings) ?? null;
+            setInnings(row);
+            if (!row?.id) {
+              setDerived(null);
+              return;
+            }
+            supabase
+              .from("mc_ball_events")
+              .select("runs_off_bat,extra_runs,is_legal_delivery,dismissal_type")
+              .eq("innings_id", row.id)
+              .then(({ data: balls }) => {
+                if (!balls || balls.length === 0) {
+                  setDerived(null);
+                  return;
+                }
+                let runs = 0;
+                let wickets = 0;
+                let legal = 0;
+                for (const b of balls as Array<{ runs_off_bat: number | null; extra_runs: number | null; is_legal_delivery: boolean | null; dismissal_type: string | null }>) {
+                  runs += (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
+                  if (b.is_legal_delivery) legal += 1;
+                  if (b.dismissal_type) wickets += 1;
+                }
+                setDerived({ runs, wickets, overs: Math.floor(legal / 6), balls: legal % 6 });
+              });
+          });
       });
   };
 
   useEffect(() => {
     load();
-    // Poll every 30s in case a match goes live from another device
     const id = window.setInterval(load, 30_000);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,6 +114,7 @@ export function LiveMatchBanner() {
   const battingName = innings ? teams[innings.batting_team_id] ?? "Batting" : "";
   const nameA = teams[match.team_a_id] ?? "Team A";
   const nameB = teams[match.team_b_id] ?? "Team B";
+  const score = derived ?? (innings ? { runs: innings.runs, wickets: innings.wickets, overs: innings.overs, balls: innings.balls } : null);
 
   return (
     <Link
@@ -101,16 +131,16 @@ export function LiveMatchBanner() {
         <span className="font-semibold tracking-wide">LIVE</span>
         <span className="truncate">
           {nameA} <span className="opacity-80">vs</span> {nameB}
-          {innings ? (
+          {innings && score ? (
             <>
               {" "}
               · <span className="font-semibold">{battingName}</span>{" "}
               <span className="tabular-nums">
-                {innings.runs}/{innings.wickets}
+                {score.runs}/{score.wickets}
               </span>
               <span className="opacity-80">
                 {" "}
-                ({innings.overs}.{innings.balls})
+                ({score.overs}.{score.balls})
               </span>
             </>
           ) : null}
