@@ -40,9 +40,13 @@ export function SiteHeader() {
   const tenant = useTenant();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const feesVisible = showFeesTab(tenant);
+  const desktopNav = feesVisible ? primaryNav : primaryNav.filter((n) => n.to !== "/fees");
+  const mobileNavItems = feesVisible ? mobileNav : mobileNav.filter((n) => n.to !== "/fees");
 
   return (
     <>
+      <LiveMatchBanner />
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-x-0 top-0 z-40 bg-background"
