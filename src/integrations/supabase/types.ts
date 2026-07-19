@@ -6766,6 +6766,7 @@ export type Database = {
           name: string
           niche: string
           online_payments_enabled: boolean
+          page_hero_images: Json
           payment_instructions: string | null
           phone: string | null
           plan_tier: string
@@ -6777,6 +6778,7 @@ export type Database = {
           setup_fee: number
           short_name: string | null
           show_billing_to_parents: boolean
+          show_fees_tab: boolean
           slug: string
           sport_id: string | null
           status: string
@@ -6809,6 +6811,7 @@ export type Database = {
           name: string
           niche?: string
           online_payments_enabled?: boolean
+          page_hero_images?: Json
           payment_instructions?: string | null
           phone?: string | null
           plan_tier?: string
@@ -6820,6 +6823,7 @@ export type Database = {
           setup_fee?: number
           short_name?: string | null
           show_billing_to_parents?: boolean
+          show_fees_tab?: boolean
           slug: string
           sport_id?: string | null
           status?: string
@@ -6852,6 +6856,7 @@ export type Database = {
           name?: string
           niche?: string
           online_payments_enabled?: boolean
+          page_hero_images?: Json
           payment_instructions?: string | null
           phone?: string | null
           plan_tier?: string
@@ -6863,6 +6868,7 @@ export type Database = {
           setup_fee?: number
           short_name?: string | null
           show_billing_to_parents?: boolean
+          show_fees_tab?: boolean
           slug?: string
           sport_id?: string | null
           status?: string
@@ -7101,12 +7107,14 @@ export type Database = {
           logo_url: string | null
           name: string | null
           niche: string | null
+          page_hero_images: Json | null
           phone: string | null
           player_prefix: string | null
           primary_color: string | null
           registration_pdf_url: string | null
           secondary_color: string | null
           short_name: string | null
+          show_fees_tab: boolean | null
           slug: string | null
           status: string | null
           tagline: string | null
@@ -7124,12 +7132,14 @@ export type Database = {
           logo_url?: string | null
           name?: string | null
           niche?: string | null
+          page_hero_images?: Json | null
           phone?: string | null
           player_prefix?: string | null
           primary_color?: string | null
           registration_pdf_url?: string | null
           secondary_color?: string | null
           short_name?: string | null
+          show_fees_tab?: boolean | null
           slug?: string | null
           status?: string | null
           tagline?: string | null
@@ -7147,12 +7157,14 @@ export type Database = {
           logo_url?: string | null
           name?: string | null
           niche?: string | null
+          page_hero_images?: Json | null
           phone?: string | null
           player_prefix?: string | null
           primary_color?: string | null
           registration_pdf_url?: string | null
           secondary_color?: string | null
           short_name?: string | null
+          show_fees_tab?: boolean | null
           slug?: string | null
           status?: string | null
           tagline?: string | null
