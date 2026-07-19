@@ -585,9 +585,10 @@ function TeamToggle({
   activeTeamId: string;
   allInnings: MCInnings[];
   onSelect: (id: string) => void;
+  hideScores?: boolean;
 }) {
   return (
-    <div className="mt-4 inline-flex rounded-full border border-border/60 bg-card p-1 text-xs font-semibold">
+    <div className="inline-flex rounded-full border border-border/60 bg-card p-1 text-xs font-semibold">
       {[
         { id: battingFirstTeamId, name: teams[battingFirstTeamId]?.name ?? (battingFirstTeamId === match.team_a_id ? homeName : awayName) },
         { id: battingSecondTeamId, name: teams[battingSecondTeamId]?.name ?? (battingSecondTeamId === match.team_a_id ? homeName : awayName) },
@@ -607,9 +608,11 @@ function TeamToggle({
             }
           >
             <span className="truncate">{t.name}</span>
-            <span className="ml-1.5 tabular-nums opacity-80">
-              {inn ? `${inn.runs}/${inn.wickets}` : "—"}
-            </span>
+            {!hideScores && (
+              <span className="ml-1.5 tabular-nums opacity-80">
+                {inn ? `${inn.runs}/${inn.wickets}` : "—"}
+              </span>
+            )}
           </button>
         );
       })}
