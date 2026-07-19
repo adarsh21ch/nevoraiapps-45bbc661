@@ -149,28 +149,32 @@ function CreateMatchPage() {
   const demo = useDemoData(tenant.id);
 
   const defaults = useMemo(() => readMatchDefaults(tenant.id), [tenant.id]);
+  const draft = useMemo(() => readDraft(tenant.id), [tenant.id]);
 
-  const [matchType, setMatchType] = useState(defaults.match_type ?? "practice");
-  const [matchFormat, setMatchFormat] = useState(defaults.match_format ?? "");
-  const [overs, setOvers] = useState<number>(defaults.overs ?? 0);
-  const [scheduledDate, setScheduledDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [matchType, setMatchType] = useState(draft?.matchType ?? defaults.match_type ?? "practice");
+  const [matchFormat, setMatchFormat] = useState(draft?.matchFormat ?? defaults.match_format ?? "");
+  const [overs, setOvers] = useState<number>(draft?.overs ?? defaults.overs ?? 0);
+  const [scheduledDate, setScheduledDate] = useState<string>(
+    draft?.scheduledDate ?? new Date().toISOString().slice(0, 10),
+  );
 
 
-  const [panelA, setPanelA] = useState<TeamPanelState>(emptyPanel("new"));
-  const [panelB, setPanelB] = useState<TeamPanelState>(emptyPanel("new"));
+  const [panelA, setPanelA] = useState<TeamPanelState>(draft?.panelA ?? emptyPanel("new"));
+  const [panelB, setPanelB] = useState<TeamPanelState>(draft?.panelB ?? emptyPanel("new"));
 
 
   // Advanced (collapsed by default)
   const [advOpen, setAdvOpen] = useState(false);
-  const [ground, setGround] = useState(defaults.ground_name ?? "");
-  const [pitch, setPitch] = useState(defaults.pitch ?? "");
-  const [weather, setWeather] = useState("");
-  const [scorer, setScorer] = useState(defaults.scorer ?? "");
-  const [umpire, setUmpire] = useState(defaults.umpire ?? "");
-  const [notes, setNotes] = useState("");
-  const [visibility, setVisibility] = useState("public");
-  const [streamingUrl, setStreamingUrl] = useState("");
-  const [ballType, setBallType] = useState(defaults.ball_type ?? "");
+  const [ground, setGround] = useState(draft?.ground ?? defaults.ground_name ?? "");
+  const [pitch, setPitch] = useState(draft?.pitch ?? defaults.pitch ?? "");
+  const [weather, setWeather] = useState(draft?.weather ?? "");
+  const [scorer, setScorer] = useState(draft?.scorer ?? defaults.scorer ?? "");
+  const [umpire, setUmpire] = useState(draft?.umpire ?? defaults.umpire ?? "");
+  const [notes, setNotes] = useState(draft?.notes ?? "");
+  const [visibility, setVisibility] = useState(draft?.visibility ?? "public");
+  const [streamingUrl, setStreamingUrl] = useState(draft?.streamingUrl ?? "");
+  const [ballType, setBallType] = useState(draft?.ballType ?? defaults.ball_type ?? "");
+  const [showResumedToast, setShowResumedToast] = useState(!!draft);
 
   /* ----- Load real teams (Supabase) + overlay demo teams ----- */
   const teamsQ = useQuery({
