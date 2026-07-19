@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyStudentContext, fetchStudentProfile, studentKeys } from "@/lib/student-app";
+import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
 
 export const Route = createFileRoute("/student/profile")({
   component: StudentProfilePage,
