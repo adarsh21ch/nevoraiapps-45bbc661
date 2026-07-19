@@ -5,9 +5,8 @@ import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useMatchLive } from "@/hooks/use-match-live";
-import { LiveScorecard } from "@/components/match-center/live-scorecard";
-import { SquadList } from "@/components/match-center/SquadList";
-import { buildCommentary, ballChipLabel } from "@/lib/mc-commentary";
+import { LiveScorecard, BallChip } from "@/components/match-center/live-scorecard";
+import { buildCommentary } from "@/lib/mc-commentary";
 import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
 import { ArrowLeft, Radio, RefreshCw } from "lucide-react";
 
@@ -319,16 +318,8 @@ function PublicMatchDetail() {
     0,
   );
 
-  const ballChipClass = (b: MCBallEvent) => {
-    const isWicket = !!b.dismissal_type;
-    const isBoundary =
-      !b.dismissal_type && ((b.runs_off_bat ?? 0) === 4 || (b.runs_off_bat ?? 0) === 6);
-    return isWicket
-      ? "bg-red-500/15 text-red-600 dark:text-red-400 ring-1 ring-red-500/30"
-      : isBoundary
-        ? "bg-primary/15 text-primary ring-1 ring-primary/30"
-        : "bg-muted text-foreground";
-  };
+
+
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
@@ -510,15 +501,7 @@ function PublicMatchDetail() {
                       />
                     )}
                     {group.balls.map((b) => (
-                      <span
-                        key={b.id}
-                        className={
-                          "inline-flex min-w-[2rem] items-center justify-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums " +
-                          ballChipClass(b)
-                        }
-                      >
-                        {ballChipLabel(b)}
-                      </span>
+                      <BallChip key={b.id} b={b} />
                     ))}
                   </div>
                 ))}
@@ -527,20 +510,8 @@ function PublicMatchDetail() {
 
           </section>
 
-          {/* Team switcher — below the score */}
-          <TeamToggle
-            teams={teams}
-            match={match}
-            homeName={homeName}
-            awayName={awayName}
-            battingFirstTeamId={battingFirstTeamId}
-            battingSecondTeamId={battingSecondTeamId}
-            activeTeamId={activeTeamId}
-            allInnings={allInnings}
-            onSelect={setSelectedTeamId}
-          />
-
-          {/* Scorecard (Summary / Batting / Bowling / Overs / Squad / More) */}
+          {/* Scorecard (Summary / Batting / Bowling / Overs / Squad / Commentary).
+              Team switcher is scoped inline to Batting / Bowling / Squad tabs. */}
           <div className="mt-6 rounded-3xl border border-border/60 bg-card p-4 sm:p-6">
             <LiveScorecard
               events={currentBalls}
@@ -561,8 +532,22 @@ function PublicMatchDetail() {
                 awayTeam: awayName,
                 result: match.result,
               }}
+              teamSwitcher={
+                <TeamToggle
+                  teams={teams}
+                  match={match}
+                  homeName={homeName}
+                  awayName={awayName}
+                  battingFirstTeamId={battingFirstTeamId}
+                  battingSecondTeamId={battingSecondTeamId}
+                  activeTeamId={activeTeamId}
+                  allInnings={allInnings}
+                  onSelect={setSelectedTeamId}
+                />
+              }
             />
           </div>
+
 
         </>
       ) : (
