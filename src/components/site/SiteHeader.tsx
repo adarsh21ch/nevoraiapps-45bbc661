@@ -104,7 +104,7 @@ export function SiteHeader() {
 
           {/* Centered nav */}
           <nav className="hidden flex-1 items-center justify-center gap-2 md:flex">
-            {primaryNav.map((item) => {
+            {desktopNav.map((item) => {
               const active = location.pathname.startsWith(item.to);
               return (
                 <Link
