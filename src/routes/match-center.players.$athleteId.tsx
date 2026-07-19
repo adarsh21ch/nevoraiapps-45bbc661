@@ -33,6 +33,7 @@ import {
   InfoRow,
   KindBadge,
 } from "@/components/match-center/athlete-ui";
+import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
