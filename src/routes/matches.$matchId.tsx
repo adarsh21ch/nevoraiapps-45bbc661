@@ -574,6 +574,60 @@ function PublicMatchDetail() {
   );
 }
 
+function TeamToggle({
+  teams,
+  match,
+  homeName,
+  awayName,
+  battingFirstTeamId,
+  battingSecondTeamId,
+  activeTeamId,
+  allInnings,
+  onSelect,
+}: {
+  teams: Record<string, { name: string; logo_url: string | null }>;
+  match: PublicMatchDetailRow;
+  homeName: string;
+  awayName: string;
+  battingFirstTeamId: string;
+  battingSecondTeamId: string;
+  activeTeamId: string;
+  allInnings: MCInnings[];
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div className="mt-4 inline-flex rounded-full border border-border/60 bg-card p-1 text-xs font-semibold">
+      {[
+        { id: battingFirstTeamId, name: teams[battingFirstTeamId]?.name ?? (battingFirstTeamId === match.team_a_id ? homeName : awayName) },
+        { id: battingSecondTeamId, name: teams[battingSecondTeamId]?.name ?? (battingSecondTeamId === match.team_a_id ? homeName : awayName) },
+      ].map((t) => {
+        const inn = allInnings.find((i) => i.batting_team_id === t.id);
+        const active = t.id === activeTeamId;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onSelect(t.id)}
+            className={
+              "rounded-full px-3.5 py-1.5 transition " +
+              (active
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground")
+            }
+          >
+            <span className="truncate">{t.name}</span>
+            <span className="ml-1.5 tabular-nums opacity-80">
+              {inn ? `${inn.runs}/${inn.wickets}` : "—"}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+
+
 function YetToBatPanel({
   teamName,
   bowlingBalls,
