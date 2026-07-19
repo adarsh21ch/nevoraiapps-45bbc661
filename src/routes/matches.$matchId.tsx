@@ -369,6 +369,22 @@ function PublicMatchDetail() {
         )}
       </div>
 
+      {currentInnings && allInnings.length > 0 && (
+        <div className="mt-4 flex justify-end">
+          <TeamToggle
+            teams={teams}
+            match={match}
+            homeName={homeName}
+            awayName={awayName}
+            battingFirstTeamId={battingFirstTeamId}
+            battingSecondTeamId={battingSecondTeamId}
+            activeTeamId={activeTeamId}
+            allInnings={allInnings}
+            onSelect={setSelectedTeamId}
+          />
+        </div>
+      )}
+
       {currentInnings && !activeTeamHasBatted ? (
         <YetToBatPanel
           teamName={teams[activeTeamId]?.name ?? "This team"}
