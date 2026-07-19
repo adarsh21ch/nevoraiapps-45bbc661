@@ -13,6 +13,7 @@ import {
   BatterDetailSheet,
   BowlerDetailSheet,
 } from "@/components/match-center/scorecard-detail-sheets";
+import { SquadList } from "@/components/match-center/SquadList";
 
 interface Props {
   events: MCBallEvent[];
@@ -29,20 +30,26 @@ interface Props {
     awayTeam?: string;
     result?: string | null;
   };
+  squad?: {
+    matchId: string;
+    teamId: string;
+    teamName: string;
+  };
 }
 
-type TabKey = "summary" | "batting" | "bowling" | "overs" | "commentary" | "more";
+type TabKey = "summary" | "batting" | "bowling" | "overs" | "squad" | "more";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "summary", label: "Summary" },
   { key: "batting", label: "Batting" },
   { key: "bowling", label: "Bowling" },
   { key: "overs", label: "Overs" },
-  { key: "commentary", label: "Commentary" },
+  { key: "squad", label: "Squad" },
   { key: "more", label: "More" },
 ];
 
-export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary }: Props) {
+export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary, squad }: Props) {
+
   const [tab, setTab] = useState<TabKey>("summary");
   const [openBatter, setOpenBatter] = useState<BattingStat | null>(null);
   const [openBowler, setOpenBowler] = useState<BowlingStat | null>(null);
