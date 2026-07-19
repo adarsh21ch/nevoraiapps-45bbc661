@@ -36,11 +36,23 @@ interface Props {
     teamId: string;
     teamName: string;
   };
+  /** When provided, Squad tab shows both squads side-by-side on desktop. */
+  otherSquad?: {
+    matchId: string;
+    teamId: string;
+    teamName: string;
+  };
+  /** The selected team hasn't batted yet. Batting tab shows a pending message. */
+  battingPending?: boolean;
+  /** Ball events where the selected team was fielding — powers the Bowling tab when they haven't batted. */
+  bowlingStatsEvents?: MCBallEvent[];
   /**
    * Optional inline team switcher rendered at the top of team-scoped tabs
    * (Batting / Bowling / Squad). Phase 33 — replaces the page-level pill.
    */
   teamSwitcher?: React.ReactNode;
+  /** Optional name-only switcher used inside the Squad tab (no scores). */
+  squadSwitcher?: React.ReactNode;
 }
 
 type TabKey = "summary" | "batting" | "bowling" | "overs" | "squad" | "commentary";
@@ -54,7 +66,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "commentary", label: "Commentary" },
 ];
 
-export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary, squad, teamSwitcher }: Props) {
+export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero, commentary, squad, otherSquad, battingPending, bowlingStatsEvents, teamSwitcher, squadSwitcher }: Props) {
 
   const [tab, setTab] = useState<TabKey>("summary");
   const [openBatter, setOpenBatter] = useState<BattingStat | null>(null);
@@ -63,6 +75,11 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
     totalOvers: totalOvers ?? null,
     target: innings?.target ?? null,
   });
+  // Separate stats derived from the OTHER innings so a team that hasn't batted
+  // still shows correct Bowling figures.
+  const bowlingStats = bowlingStatsEvents && bowlingStatsEvents.length > 0
+    ? calculateInningsStatistics(bowlingStatsEvents, { totalOvers: null, target: null })
+    : stats;
 
   // When embedded in a page that scrolls (hideHero=true, e.g. public match view),
   // don't create nested scroll containers — let the page scroll naturally.
@@ -149,22 +166,41 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
         )}
         {tab === "batting" && (
           <div className="space-y-3">
-            {teamSwitcher}
-            <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />
+            <div className="flex justify-end">{teamSwitcher}</div>
+            {battingPending ? (
+              <EmptyState text="Their batting is pending — this team hasn't come out to bat yet." />
+            ) : (
+              <BattingTable batters={stats.batting.ordered} onSelect={setOpenBatter} />
+            )}
           </div>
         )}
         {tab === "bowling" && (
           <div className="space-y-3">
-            {teamSwitcher}
-            <BowlingTable bowlers={stats.bowling.ordered} onSelect={setOpenBowler} />
+            <div className="flex justify-end">{teamSwitcher}</div>
+            <BowlingTable bowlers={bowlingStats.bowling.ordered} onSelect={setOpenBowler} />
           </div>
         )}
         {tab === "overs" && <OversPane overs={stats.team.overs_summary} events={events} />}
         {tab === "squad" && (
           <div className="space-y-3">
-            {teamSwitcher}
-            {squad ? (
-              <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+            {otherSquad && squad ? (
+              <>
+                {/* Desktop: both squads side-by-side, no toggle needed. */}
+                <div className="hidden gap-4 md:grid md:grid-cols-2">
+                  <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+                  <SquadList matchId={otherSquad.matchId} teamId={otherSquad.teamId} teamName={otherSquad.teamName} />
+                </div>
+                {/* Mobile: name-only switcher + active squad. */}
+                <div className="space-y-3 md:hidden">
+                  <div className="flex justify-end">{squadSwitcher ?? teamSwitcher}</div>
+                  <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+                </div>
+              </>
+            ) : squad ? (
+              <>
+                <div className="flex justify-end">{squadSwitcher ?? teamSwitcher}</div>
+                <SquadList matchId={squad.matchId} teamId={squad.teamId} teamName={squad.teamName} />
+              </>
             ) : (
               <EmptyState text="Squad unavailable." />
             )}
