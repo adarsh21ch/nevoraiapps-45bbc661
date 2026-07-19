@@ -283,6 +283,13 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     [session.events, session.match?.overs, session.activeInnings?.target],
   );
 
+  const overHistory = useMemo(
+    () => computeOverHistory(session.events, ballChipLabel),
+    [session.events],
+  );
+
+
+
   const striker = session.striker;
   const nonStriker = session.nonStriker;
   const bowlerRef = session.bowler;
