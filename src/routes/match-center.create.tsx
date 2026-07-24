@@ -1444,14 +1444,31 @@ function NewTeamBody({
       </div>
 
       <div>
-        <Label>Add player</Label>
+        <div className="flex items-center gap-1.5">
+          <Label>Add player</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="How to add players"
+                className="grid size-4 place-items-center rounded-full text-muted-foreground hover:text-foreground"
+              >
+                <Info className="size-3.5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" className="w-64 text-xs leading-relaxed">
+              Search to pick an academy player, or type any name and add them as a guest — no
+              registration needed.
+            </PopoverContent>
+          </Popover>
+        </div>
         <div className="relative mt-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Search academy players or type any name…"
+            placeholder="Search or type a name…"
             className="pl-9 h-11 text-base"
           />
         </div>
@@ -1499,19 +1516,11 @@ function NewTeamBody({
             )}
           </div>
         )}
-        <p className="mt-1.5 text-[11px] text-muted-foreground">
-          Not in the academy? Type any name and add as guest — no registration needed.
-        </p>
       </div>
-
-      {players.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-          Add academy players or type any name to build the squad.
-        </div>
-      )}
     </div>
   );
 }
+
 
 
 
