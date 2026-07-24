@@ -737,7 +737,7 @@ function CreateMatchPage() {
         </div>
 
         {/* Action bar — inside the card, equally distributed Back / Continue */}
-        <div className="flex items-center gap-3 rounded-b-3xl border-t border-border/60 bg-card px-5 py-4 sm:px-6">
+        <div className="flex items-center gap-3 border-t border-border/60 bg-card px-4 py-4 sm:rounded-b-3xl sm:px-6">
           <Button
             type="button"
             variant="outline"
