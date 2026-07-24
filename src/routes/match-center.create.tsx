@@ -10,7 +10,9 @@ import {
   X,
   CheckCircle2,
   ChevronRight,
+  Info,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -614,9 +616,9 @@ function CreateMatchPage() {
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-3 pb-6 pt-3 sm:px-4">
+    <div className="mx-auto w-full max-w-2xl px-0 pb-6 sm:px-4 sm:pt-3">
       {showResumedToast && (
-        <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+        <div className="mx-3 mb-2 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs sm:mx-0 sm:mb-3">
           <span className="text-foreground">
             Continuing where you left off. Your draft is saved automatically.
           </span>
@@ -630,29 +632,29 @@ function CreateMatchPage() {
         </div>
       )}
 
-      {/* Progress bar */}
-      <div className="mb-4 flex items-center gap-3">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full transition-[width] duration-300 ease-out"
-            style={{
-              width: `${(step / 5) * 100}%`,
-              backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
-            }}
-          />
+      {/* Sticky step header — progress + title stay pinned while body scrolls */}
+      <div className="sticky top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 -mx-0 border-b border-border/60 bg-background/95 px-4 pb-3 pt-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-0 sm:backdrop-blur-none">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full transition-[width] duration-300 ease-out"
+              style={{
+                width: `${(step / 5) * 100}%`,
+                backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
+              }}
+            />
+          </div>
+          <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+            {step}/5
+          </div>
         </div>
-        <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-          {step}/5
-        </div>
+        <h1 className="text-lg font-bold tracking-tight sm:text-2xl">{stepTitle}</h1>
       </div>
 
-      <div className="rounded-3xl border border-border bg-card shadow-sm">
-        <div className="p-5 sm:p-6">
-          <div className="mb-5">
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{stepTitle}</h1>
-          </div>
-
+      <div className="border-b border-border bg-card shadow-sm sm:rounded-3xl sm:border">
+        <div className="px-4 py-4 sm:p-6">
           <div>
+
             {step === 1 && (
               <StepSetup
                 matchType={matchType}
@@ -735,7 +737,7 @@ function CreateMatchPage() {
         </div>
 
         {/* Action bar — inside the card, equally distributed Back / Continue */}
-        <div className="flex items-center gap-3 rounded-b-3xl border-t border-border/60 bg-card px-5 py-4 sm:px-6">
+        <div className="flex items-center gap-3 border-t border-border/60 bg-card px-4 py-4 sm:rounded-b-3xl sm:px-6">
           <Button
             type="button"
             variant="outline"
@@ -1198,17 +1200,8 @@ function TeamPanel({
     onChange({ ...state, players: state.players.filter((p) => p.key !== key) });
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span
-            className="grid size-7 place-items-center rounded-full text-xs font-black text-white"
-            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
-          >
-            {side}
-          </span>
-          <h3 className="text-sm font-semibold tracking-tight">Team {side}</h3>
-        </div>
+    <div>
+      <div className="mb-3 flex items-center justify-end">
         <button
           type="button"
           onClick={() => setMode(state.mode === "existing" ? "new" : "existing")}
@@ -1251,6 +1244,7 @@ function TeamPanel({
     </div>
   );
 }
+
 
 
 /* --- Existing team --- */
@@ -1450,14 +1444,31 @@ function NewTeamBody({
       </div>
 
       <div>
-        <Label>Add player</Label>
+        <div className="flex items-center gap-1.5">
+          <Label>Add player</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="How to add players"
+                className="grid size-4 place-items-center rounded-full text-muted-foreground hover:text-foreground"
+              >
+                <Info className="size-3.5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" className="w-64 text-xs leading-relaxed">
+              Search to pick an academy player, or type any name and add them as a guest — no
+              registration needed.
+            </PopoverContent>
+          </Popover>
+        </div>
         <div className="relative mt-1">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Search academy players or type any name…"
+            placeholder="Search or type a name…"
             className="pl-9 h-11 text-base"
           />
         </div>
@@ -1505,19 +1516,11 @@ function NewTeamBody({
             )}
           </div>
         )}
-        <p className="mt-1.5 text-[11px] text-muted-foreground">
-          Not in the academy? Type any name and add as guest — no registration needed.
-        </p>
       </div>
-
-      {players.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
-          Add academy players or type any name to build the squad.
-        </div>
-      )}
     </div>
   );
 }
+
 
 
 
