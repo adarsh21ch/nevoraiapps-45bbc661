@@ -616,9 +616,9 @@ function CreateMatchPage() {
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-3 pb-6 pt-3 sm:px-4">
+    <div className="mx-auto w-full max-w-2xl px-0 pb-6 sm:px-4 sm:pt-3">
       {showResumedToast && (
-        <div className="mb-3 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+        <div className="mx-3 mb-2 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs sm:mx-0 sm:mb-3">
           <span className="text-foreground">
             Continuing where you left off. Your draft is saved automatically.
           </span>
@@ -632,29 +632,29 @@ function CreateMatchPage() {
         </div>
       )}
 
-      {/* Progress bar */}
-      <div className="mb-4 flex items-center gap-3">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full transition-[width] duration-300 ease-out"
-            style={{
-              width: `${(step / 5) * 100}%`,
-              backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
-            }}
-          />
+      {/* Sticky step header — progress + title stay pinned while body scrolls */}
+      <div className="sticky top-[calc(env(safe-area-inset-top)+3.5rem)] z-20 -mx-0 border-b border-border/60 bg-background/95 px-4 pb-3 pt-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-0 sm:backdrop-blur-none">
+        <div className="mb-3 flex items-center gap-3">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full transition-[width] duration-300 ease-out"
+              style={{
+                width: `${(step / 5) * 100}%`,
+                backgroundColor: "var(--tenant-brand, var(--brand, hsl(var(--primary))))",
+              }}
+            />
+          </div>
+          <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+            {step}/5
+          </div>
         </div>
-        <div className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-          {step}/5
-        </div>
+        <h1 className="text-lg font-bold tracking-tight sm:text-2xl">{stepTitle}</h1>
       </div>
 
-      <div className="rounded-3xl border border-border bg-card shadow-sm">
-        <div className="p-5 sm:p-6">
-          <div className="mb-5">
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{stepTitle}</h1>
-          </div>
-
+      <div className="border-b border-border bg-card shadow-sm sm:rounded-3xl sm:border">
+        <div className="px-4 py-4 sm:p-6">
           <div>
+
             {step === 1 && (
               <StepSetup
                 matchType={matchType}
