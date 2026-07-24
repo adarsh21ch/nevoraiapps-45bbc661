@@ -1200,17 +1200,8 @@ function TeamPanel({
     onChange({ ...state, players: state.players.filter((p) => p.key !== key) });
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span
-            className="grid size-7 place-items-center rounded-full text-xs font-black text-white"
-            style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
-          >
-            {side}
-          </span>
-          <h3 className="text-sm font-semibold tracking-tight">Team {side}</h3>
-        </div>
+    <div>
+      <div className="mb-3 flex items-center justify-end">
         <button
           type="button"
           onClick={() => setMode(state.mode === "existing" ? "new" : "existing")}
@@ -1253,6 +1244,7 @@ function TeamPanel({
     </div>
   );
 }
+
 
 
 /* --- Existing team --- */
