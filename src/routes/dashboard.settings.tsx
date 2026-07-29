@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { PreferencesCard } from "@/components/settings/PreferencesCard";
+import { AccountCard } from "@/components/settings/AccountCard";
 
 export const Route = createFileRoute("/dashboard/settings")({
   head: () => ({
@@ -26,6 +27,7 @@ function SettingsPage() {
         </div>
       </header>
 
+      <AccountCard />
       <PreferencesCard />
     </div>
   );
