@@ -28,8 +28,29 @@ import {
 } from "@/components/site/StarPlayersShowcase";
 
 export const Route = createFileRoute("/")({
+  // Static crawler-facing defaults. TenantProvider overrides document.title and
+  // the description at runtime with the resolved academy's own branding.
+  head: () => ({
+    meta: [
+      { title: "Sports Academy — Coaching, Batches & Live Match Centre" },
+      {
+        name: "description",
+        content:
+          "Join our sports academy: professional coaching, flexible batches, fee plans and a live match centre. Register online in minutes.",
+      },
+      { property: "og:title", content: "Sports Academy — Coaching, Batches & Live Match Centre" },
+      {
+        property: "og:description",
+        content:
+          "Professional coaching, flexible batches, transparent fees and live match coverage. Register online in minutes.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: HomeRoute,
 });
+
 
 function HomeRoute() {
   // Installed PWA (standalone display-mode) users should never see the
