@@ -389,9 +389,41 @@ export async function updateMatchStatus(id: string, status: string, tenantId?: s
   }
 }
 
+/**
+ * Delete a match and every record derived from it.
+ *
+ * Ball events, innings, squads, timeline, audit log and scoring locks are removed
+ * by ON DELETE CASCADE. Rows that only NULL their match_id (academy records,
+ * recognitions) are deleted explicitly, and every athlete who took part gets their
+ * career cache rebuilt so student/player stats no longer count this match.
+ */
 export async function deleteMatch(id: string) {
+  // 1. Collect everyone whose stats are affected, before the rows disappear.
+  const athleteIds = new Set<string>();
+  const [squads, strikers, bowlers] = await Promise.all([
+    supabase.from("mc_match_squads").select("athlete_profile_id").eq("match_id", id),
+    supabase.from("mc_ball_events").select("striker_athlete_id").eq("match_id", id).limit(5000),
+    supabase.from("mc_ball_events").select("bowler_athlete_id").eq("match_id", id).limit(5000),
+  ]);
+  (squads.data ?? []).forEach((r) => r.athlete_profile_id && athleteIds.add(r.athlete_profile_id));
+  (strikers.data ?? []).forEach((r) => r.striker_athlete_id && athleteIds.add(r.striker_athlete_id));
+  (bowlers.data ?? []).forEach((r) => r.bowler_athlete_id && athleteIds.add(r.bowler_athlete_id));
+
+  // 2. Remove derived records that would otherwise survive with a NULL match_id.
+  await Promise.all([
+    supabase.from("mc_academy_records").delete().eq("match_id", id),
+    supabase.from("mc_recognitions").delete().eq("match_id", id),
+  ]);
+
+  // 3. Delete the match (cascades to events, innings, squads, timeline, locks).
   const { error } = await supabase.from("mc_matches").delete().eq("id", id);
   if (error) throw error;
+
+  // 4. Rebuild career caches so the deleted match no longer shows in any profile.
+  if (athleteIds.size > 0) {
+    const { rebuildCareer } = await import("@/lib/mc-career-engine");
+    await Promise.allSettled([...athleteIds].map((aid) => rebuildCareer(aid)));
+  }
 }
 
 export async function duplicateMatch(tenantId: string, matchId: string) {
