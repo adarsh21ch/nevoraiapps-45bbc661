@@ -109,20 +109,12 @@ export function ApprovalsPanel() {
   }, [rows, status]);
 
   return (
-    <div className="max-w-5xl mx-auto p-4 space-y-4">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Payment Verification</h1>
-          <p className="text-xs text-muted-foreground">
-            Review parent-submitted UPI/QR/bank transfers. Approvals post through the billing engine.
-          </p>
-        </div>
-        <Link
-          to="/dashboard/fees"
-          className="text-xs text-primary hover:underline"
-        >
-          Back to Fees
-        </Link>
+    <div className="space-y-4">
+      <header>
+        <h2 className="text-lg font-bold tracking-tight">Payment verification</h2>
+        <p className="text-xs text-muted-foreground">
+          Review parent-submitted UPI/QR/bank transfers. Approvals post through the billing engine.
+        </p>
       </header>
 
       <FilterTabs<"pending" | "reviewed">

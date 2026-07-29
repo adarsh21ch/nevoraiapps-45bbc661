@@ -228,13 +228,12 @@ export function CollectionsPanel({ initialFilter: initialFilterProp }: { initial
   };
 
   return (
-    <div className="-mt-4 md:-mt-8 space-y-3">
-      {/* Header — uniform across dashboard tabs */}
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 pt-2 pb-1">
+    <div className="space-y-3">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">
+          <h2 className="text-lg font-bold tracking-tight leading-tight truncate">
             Student Fees
-          </h1>
+          </h2>
           <p className="text-[11px] text-muted-foreground leading-tight truncate">
             Who's paid, who's pending — collect in one tap.
           </p>
