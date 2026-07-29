@@ -13,6 +13,7 @@ import {
   GitCompare,
 } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
+import { InsightsTabsBar } from "@/components/match-center/InsightsTabsBar";
 import { LoadingSkeleton, EmptyState } from "@/components/match-center/ui";
 import { useDashboard } from "@/lib/dashboard-context";
 import { listAthletes } from "@/lib/mc-athletes";
@@ -119,6 +120,7 @@ function PerformancePage() {
           </Button>
         }
       />
+      <InsightsTabsBar />
 
       {/* Overview cards */}
       <div className="grid gap-3 grid-cols-2 md:grid-cols-4 mb-6">

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ListOrdered, Trophy, Target, Zap } from "lucide-react";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
+import { InsightsTabsBar } from "@/components/match-center/InsightsTabsBar";
 import { EmptyState } from "@/components/match-center/ui";
 import { useDashboard } from "@/lib/dashboard-context";
 import { useDemoData } from "@/lib/mc-demo/store";
@@ -34,6 +35,7 @@ function LeaderboardsPage() {
           { label: "Leaderboards" },
         ]}
       />
+      <InsightsTabsBar />
       {!hasData ? (
         <EmptyState
           icon={ListOrdered}

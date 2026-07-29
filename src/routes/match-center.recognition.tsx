@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
+import { InsightsTabsBar } from "@/components/match-center/InsightsTabsBar";
 import { SectionTitle, EmptyState } from "@/components/match-center/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -145,7 +146,7 @@ function RecognitionPage() {
   return (
     <div>
       <PageHeader
-        title="Recognition"
+        title="Awards & Recognition"
         description="Automatic award suggestions, certificates and digital badges."
         breadcrumbs={[
           { label: "Match Center", to: "/match-center/dashboard" },
@@ -162,6 +163,7 @@ function RecognitionPage() {
               <RefreshCw
                 className={`size-4 mr-1.5 ${monthlyMut.isPending ? "animate-spin" : ""}`}
               />
+      <InsightsTabsBar />
               Monthly
             </Button>
             <Button
