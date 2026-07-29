@@ -1,4 +1,3 @@
-import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDashboard } from "@/lib/dashboard-context";

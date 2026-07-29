@@ -1,4 +1,3 @@
-import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -93,7 +92,7 @@ type PaidPayment = {
 
 const money = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
-export function CollectionsPanel() {
+export function CollectionsPanel({ initialFilter: initialFilterProp }: { initialFilter?: Filter } = {}) {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
   const cycle = tenantFeeCycle(tenant);
@@ -105,7 +104,7 @@ export function CollectionsPanel() {
   const selectedPeriod = periodKey(selectedMonth);
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [selectedPeriod];
 
-  const initialFilter = Route.useSearch().filter ?? "pending";
+  const initialFilter = initialFilterProp ?? "pending";
   const [filter, setFilter] = useState<Filter>(initialFilter);
   const [search, setSearch] = useState("");
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);

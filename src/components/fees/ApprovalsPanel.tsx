@@ -41,7 +41,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { FilterTabs } from "@/components/shared/FilterTabs";
 import { toast } from "sonner";
-import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useDashboard } from "@/lib/dashboard-context";
 import {
   listPendingManualPayments,
