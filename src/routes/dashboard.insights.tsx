@@ -116,7 +116,7 @@ function InsightsPage() {
           tone="emerald"
         />
         <InsightTile
-          to="/match-center/awards"
+          to="/match-center/recognition"
           icon={<Award className="size-5" />}
           title="Awards"
           desc="Player of the match, MVP"
