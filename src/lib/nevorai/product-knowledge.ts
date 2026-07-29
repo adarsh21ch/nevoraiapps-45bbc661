@@ -228,7 +228,7 @@ export const PRODUCT_KNOWLEDGE: ProductKnowledgeTopic[] = [
   {
     id: "website-gallery",
     title: "Website & Photo Gallery",
-    screens: ["/dashboard/site", "/dashboard/branding"],
+    screens: ["/dashboard/site"],
     keywords: [
       "website",
       "site",
@@ -244,7 +244,7 @@ export const PRODUCT_KNOWLEDGE: ProductKnowledgeTopic[] = [
       "public page",
     ],
     summary:
-      "Your public academy site is edited from Dashboard → Website. Gallery photos, hero images, testimonials, program cards — all live under the Site content tabs. Logo, colours and favicon are in Branding.",
+      "Your public academy site is edited from Dashboard → Website. Gallery photos, hero images, testimonials, program cards — all live under the Site content tabs. Logo, colours and favicon are on the same Website page.",
     steps: [
       "Open Dashboard → Website (or /dashboard/site).",
       "Stay on the Site content tab.",
@@ -253,7 +253,7 @@ export const PRODUCT_KNOWLEDGE: ProductKnowledgeTopic[] = [
     faq: [
       {
         q: "Where does the logo change?",
-        a: "Dashboard → Branding (/dashboard/branding) — logo, favicon, brand colour all live there.",
+        a: "Dashboard → Website (/dashboard/site) — logo, favicon and brand colour all live there.",
       },
     ],
     troubleshooting: [
