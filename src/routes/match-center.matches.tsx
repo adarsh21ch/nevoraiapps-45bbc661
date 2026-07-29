@@ -18,6 +18,16 @@ import { toast } from "sonner";
 import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 import { cn } from "@/lib/utils";
 import { VirtualList } from "@/components/ds/VirtualList";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/match-center/matches")({
   head: () => ({
@@ -32,6 +42,8 @@ function MatchesPage() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const [pendingDelete, setPendingDelete] = useState<MatchWithTeams | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const matchesQ = useQuery({
     queryKey: ["mc-matches", tenant.id],
@@ -63,10 +75,23 @@ function MatchesPage() {
     invalidate();
   };
   const onDelete = async (m: MatchWithTeams) => {
-    if (!confirm("Delete this match? This cannot be undone.")) return;
-    await deleteMatch(m.id);
-    toast.success("Match deleted");
-    invalidate();
+    setPendingDelete(m);
+  };
+  const confirmDelete = async () => {
+    const m = pendingDelete;
+    if (!m) return;
+    setDeleting(true);
+    try {
+      await deleteMatch(m.id);
+      toast.success("Match deleted — player records updated");
+      setPendingDelete(null);
+      invalidate();
+      qc.invalidateQueries({ queryKey: ["mc-careers"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not delete match");
+    } finally {
+      setDeleting(false);
+    }
   };
   const onDuplicate = async (m: MatchWithTeams) => {
     await duplicateMatch(tenant.id, m.id);
@@ -144,6 +169,37 @@ function MatchesPage() {
           />
         )}
       </div>
+
+      <AlertDialog
+        open={!!pendingDelete}
+        onOpenChange={(o) => {
+          if (!o && !deleting) setPendingDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this match?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete
+                ? `${pendingDelete.team_a?.name ?? "Team A"} vs ${pendingDelete.team_b?.name ?? "Team B"} will be removed permanently, along with its scorecard, ball-by-ball data, squads and awards. Every player's career stats will be recalculated without this match.`
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={(e) => {
+                e.preventDefault();
+                void confirmDelete();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete match"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
