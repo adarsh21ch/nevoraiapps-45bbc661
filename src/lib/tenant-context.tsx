@@ -28,8 +28,13 @@ async function fetchTenant(): Promise<Tenant | null> {
   // Anon reads go through the tenants_public_directory view, which exposes only
   // marketing-safe columns. Sensitive billing/subscription fields on the
   // tenants table are not accessible to anon or cross-tenant users.
+  // NOTE: upi_id / upi_qr_url are deliberately NOT selected here. Payment
+  // collection details are served to signed-in payers through the
+  // `getManualPaymentSetup` server fn instead, so they never sit in an
+  // anonymously readable payload where they could be scraped for fraud.
   const PUBLIC_COLS =
-    "id, slug, name, short_name, tagline, custom_domain, logo_url, primary_color, secondary_color, niche, features, phone, whatsapp, email, address, upi_id, upi_qr_url, status, fee_cycle, player_prefix, registration_pdf_url, page_hero_images, show_fees_tab";
+    "id, slug, name, short_name, tagline, custom_domain, logo_url, primary_color, secondary_color, niche, features, phone, whatsapp, email, address, status, fee_cycle, player_prefix, registration_pdf_url, page_hero_images, show_fees_tab";
+
   const from = supabase.from("tenants_public_directory" as never);
   const query =
     hint.mode === "domain"
