@@ -1292,10 +1292,18 @@ function DemoScorerView({ matchId }: { matchId: string }) {
     );
   }
 
-  return <DemoScorerBody dataset={dataset} session={session} />;
+  return <DemoScorerBody matchId={matchId} dataset={dataset} session={session} />;
 }
 
-function DemoScorerBody({ dataset, session }: { dataset: DemoDataset; session: DemoSession }) {
+function DemoScorerBody({
+  matchId,
+  dataset,
+  session,
+}: {
+  matchId: string;
+  dataset: DemoDataset;
+  session: DemoSession;
+}) {
 
 
   /* ---------- modal state ---------- */
@@ -1331,7 +1339,9 @@ function DemoScorerBody({ dataset, session }: { dataset: DemoDataset; session: D
 
   /* Batter/bowler setup is handled from the mobile scorer rows and bottom sheets. */
 
-  const match = session.match;
+  // Guaranteed non-null: the DemoScorerView wrapper renders this body only once
+  // both `dataset` and `session.match` have hydrated.
+  const match = session.match as NonNullable<DemoSession["match"]>;
 
   const activeInnings = session.activeInnings;
   const demo = dataset.data;
