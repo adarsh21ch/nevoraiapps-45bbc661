@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,15 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { FeesTabsBar } from "@/components/dashboard/FeesTabsBar";
 
-export const Route = createFileRoute("/dashboard/fee-plans")({
-  component: () => (
-    <OwnerOnly>
-      <FeePlansPage />
-    </OwnerOnly>
-  ),
-});
 
 type PlanForm = {
   id?: string;
@@ -46,7 +37,7 @@ type PlanForm = {
   active: boolean;
 };
 
-function FeePlansPage() {
+export function FeePlansPanel() {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
   const plans = useQuery({
@@ -70,7 +61,6 @@ function FeePlansPage() {
 
   return (
     <div className="space-y-4">
-      <FeesTabsBar />
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Fee plans</h1>

@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { OwnerOnly } from "@/components/dashboard/OwnerOnly";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -61,20 +60,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { VirtualList } from "@/components/ds/VirtualList";
-import { FeesTabsBar } from "@/components/dashboard/FeesTabsBar";
 
-export const Route = createFileRoute("/dashboard/fees")({
-  validateSearch: (search: Record<string, unknown>): { filter?: Filter } => {
-    const f = search.filter;
-    return f === "pending" || f === "paid" || f === "all" || f === "overdue" ? { filter: f } : {};
-  },
-
-  component: () => (
-    <OwnerOnly>
-      <FeeRegister />
-    </OwnerOnly>
-  ),
-});
 
 type Filter = "all" | "pending" | "paid" | "overdue";
 
@@ -107,7 +93,7 @@ type PaidPayment = {
 
 const money = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
-function FeeRegister() {
+export function CollectionsPanel() {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
   const cycle = tenantFeeCycle(tenant);
@@ -244,7 +230,6 @@ function FeeRegister() {
 
   return (
     <div className="-mt-4 md:-mt-8 space-y-3">
-      <FeesTabsBar />
       {/* Header — uniform across dashboard tabs */}
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 pt-2 pb-1">
         <div className="min-w-0">

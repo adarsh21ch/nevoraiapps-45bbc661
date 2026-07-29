@@ -8,7 +8,7 @@
  *   - Automation Engine (events emitted server-side)
  *   - Existing design tokens (Card / Badge / Dialog / Button)
  */
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -52,21 +52,7 @@ import {
 } from "@/lib/payments/manual.functions";
 import { formatMoney } from "@/lib/billing";
 import { cn } from "@/lib/utils";
-import { FeesTabsBar } from "@/components/dashboard/FeesTabsBar";
 
-export const Route = createFileRoute("/dashboard/payment-verification")({
-  head: () => ({
-    meta: [
-      { title: "Payment verification — Owner" },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
-  component: () => (
-    <OwnerOnly>
-      <PaymentVerificationPage />
-    </OwnerOnly>
-  ),
-});
 
 type Row = {
   id: string;
@@ -101,7 +87,7 @@ type Row = {
   } | null;
 };
 
-function PaymentVerificationPage() {
+export function ApprovalsPanel() {
   const { tenant } = useDashboard();
   const [status, setStatus] = useState<"pending" | "reviewed">("pending");
   const listFn = useServerFn(listPendingManualPayments);
@@ -125,7 +111,6 @@ function PaymentVerificationPage() {
 
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-4">
-      <FeesTabsBar />
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Payment Verification</h1>

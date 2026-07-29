@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -10,7 +9,6 @@ import { periodLabel } from "@/lib/fees";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FilterTabs } from "@/components/shared/FilterTabs";
-import { FeesTabsBar } from "@/components/dashboard/FeesTabsBar";
 
 type ReminderStatus = "queued" | "sent" | "dismissed";
 type Reminder = {
@@ -29,12 +27,8 @@ type Reminder = {
   students: { name: string; guardian_name: string | null } | null;
 };
 
-export const Route = createFileRoute("/dashboard/reminders")({
-  head: () => ({ meta: [{ title: "Fee reminders · Academy dashboard" }] }),
-  component: RemindersPage,
-});
 
-function RemindersPage() {
+export function RemindersPanel() {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
 
@@ -98,7 +92,6 @@ function RemindersPage() {
 
   return (
     <div className="space-y-5">
-      <FeesTabsBar />
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Fee reminders</h1>

@@ -1,17 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { PaymentProviderSettings } from "@/components/payments/PaymentProviderSettings";
 import { OfflinePaymentSettings } from "@/components/payments/OfflinePaymentSettings";
 import { Card } from "@/components/ds/Card";
-import { FeesTabsBar } from "@/components/dashboard/FeesTabsBar";
 
-export const Route = createFileRoute("/dashboard/payment-settings")({
-  head: () => ({ meta: [{ title: "Payment Settings · AcademyOS" }, { name: "robots", content: "noindex" }] }),
-  component: Page,
-});
 
-function Page() {
+export function SetupPanel() {
   const { tenant } = useDashboard();
   const [online, setOnline] = useState(tenant?.online_payments_enabled ?? false);
   const tenantId = tenant?.id ?? null;
@@ -33,7 +27,6 @@ function Page() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <FeesTabsBar />
       {heading}
 
       <Card className="mb-4 p-4">
