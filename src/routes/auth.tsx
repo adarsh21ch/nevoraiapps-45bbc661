@@ -345,12 +345,11 @@ function AuthPage() {
               <Field
                 id="identifier"
                 label="Username, email or phone"
-
                 type="text"
                 autoComplete="username"
                 value={identifier}
                 onChange={setIdentifier}
-                placeholder="you@example.com or 98xxxxxxxx"
+                placeholder="username, you@example.com or 98xxxxxxxx"
               />
               <Field
                 id="password"
