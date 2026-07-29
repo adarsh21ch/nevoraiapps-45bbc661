@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
+import { InsightsTabsBar } from "@/components/match-center/InsightsTabsBar";
 import { SectionTitle, StatCard, EmptyState } from "@/components/match-center/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -155,6 +156,7 @@ function RecordsPage() {
             disabled={rebuildMut.isPending}
           >
             <RefreshCw className={`size-4 mr-1.5 ${rebuildMut.isPending ? "animate-spin" : ""}`} />
+      <InsightsTabsBar />
             Rebuild
           </Button>
         }

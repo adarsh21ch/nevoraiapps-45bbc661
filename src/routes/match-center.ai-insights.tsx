@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
+import { InsightsTabsBar } from "@/components/match-center/InsightsTabsBar";
 import { SectionTitle, EmptyState } from "@/components/match-center/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -422,6 +423,7 @@ function AIInsightsPage() {
             { label: "AI Insights" },
           ]}
         />
+        <InsightsTabsBar />
         <div className="space-y-3">
           {demoReports.map((r: DemoAIReport) => (
             <Card key={r.id} className="p-4 space-y-3">
@@ -482,6 +484,7 @@ function AIInsightsPage() {
           { label: "AI Insights" },
         ]}
       />
+      <InsightsTabsBar />
       <GenerateForm tenantId={tenantId} />
       <Tabs defaultValue="match">
         <TabsList className="flex-wrap">

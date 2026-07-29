@@ -96,12 +96,6 @@ function ProfilePage() {
           icon: Settings2,
         },
         {
-          to: "/dashboard/branding",
-          label: "Branding",
-          hint: "Logo, theme, colors",
-          icon: Palette,
-        },
-        {
           to: "/dashboard/site",
           label: "Public Website",
           hint: "Edit pages, SEO, social, payments",
