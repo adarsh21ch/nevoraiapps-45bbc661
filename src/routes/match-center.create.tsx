@@ -353,9 +353,23 @@ function CreateMatchPage() {
 
       const isDemoMatch = teamAId.startsWith("demo-") || teamBId.startsWith("demo-");
 
+      // Academy students picked from search carry the student id in `key` but no
+      // athlete profile yet — resolve/create profiles so their match record,
+      // career stats and student-portal history are linked (guests stay external).
+      const studentIds = new Set((studentsQ.data ?? []).map((s: { id: string }) => s.id));
+      const pendingStudentIds = [...panelA.players, ...panelB.players]
+        .filter((p) => !p.athlete_profile_id && studentIds.has(p.key))
+        .map((p) => p.key);
+      const resolvedAthletes: Record<string, string> =
+        !isDemoMatch && pendingStudentIds.length > 0
+          ? await ensureAthleteProfileIds(tenant.id, [...new Set(pendingStudentIds)])
+          : {};
+      const athleteIdFor = (p: PlayerRef) =>
+        p.athlete_profile_id ?? resolvedAthletes[p.key] ?? null;
+
       const squadA: MatchSquadDraft[] = panelA.players.map((p, i) => ({
-        athlete_profile_id: p.athlete_profile_id,
-        external_player_name: p.athlete_profile_id ? null : p.name,
+        athlete_profile_id: athleteIdFor(p),
+        external_player_name: athleteIdFor(p) ? null : p.name,
         batting_order: i + 1,
         is_captain: !!p.is_captain,
         is_vice_captain: !!p.is_vice_captain,
@@ -363,8 +377,9 @@ function CreateMatchPage() {
         is_substitute: !!p.is_substitute,
       }));
       const squadB: MatchSquadDraft[] = panelB.players.map((p, i) => ({
-        athlete_profile_id: p.athlete_profile_id,
-        external_player_name: p.athlete_profile_id ? null : p.name,
+        athlete_profile_id: athleteIdFor(p),
+        external_player_name: athleteIdFor(p) ? null : p.name,
+
         batting_order: i + 1,
         is_captain: !!p.is_captain,
         is_vice_captain: !!p.is_vice_captain,
