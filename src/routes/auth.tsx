@@ -344,7 +344,8 @@ function AuthPage() {
             <form onSubmit={onSignIn} className="space-y-5">
               <Field
                 id="identifier"
-                label="Email or phone"
+                label="Username, email or phone"
+
                 type="text"
                 autoComplete="username"
                 value={identifier}
