@@ -7159,6 +7159,8 @@ export type Database = {
           slug: string | null
           status: string | null
           tagline: string | null
+          upi_id: string | null
+          upi_qr_url: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -7182,6 +7184,8 @@ export type Database = {
           slug?: string | null
           status?: string | null
           tagline?: string | null
+          upi_id?: never
+          upi_qr_url?: never
           whatsapp?: string | null
         }
         Update: {
@@ -7205,6 +7209,8 @@ export type Database = {
           slug?: string | null
           status?: string | null
           tagline?: string | null
+          upi_id?: never
+          upi_qr_url?: never
           whatsapp?: string | null
         }
         Relationships: []
