@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyStudentContext, fetchStudentProfile, studentKeys } from "@/lib/student-app";
 import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
+import { AccountCard } from "@/components/settings/AccountCard";
 
 export const Route = createFileRoute("/student/profile")({
   component: StudentProfilePage,
@@ -170,6 +171,8 @@ function StudentProfilePage() {
           Documents & Certificates will appear here.
         </Card>
       </section>
+
+      <AccountCard />
 
       <div className="pt-2">
         <Button

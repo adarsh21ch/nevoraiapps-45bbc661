@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchStudentProfile, studentKeys } from "@/lib/student-app";
 import { useParentChild } from "@/hooks/use-parent-child";
+import { AccountCard } from "@/components/settings/AccountCard";
 
 export const Route = createFileRoute("/parent/profile")({
   component: ParentProfilePage,
@@ -110,6 +111,8 @@ function ParentProfilePage() {
           Coming soon — certificates and documents will appear here.
         </Card>
       </section>
+
+      <AccountCard />
 
       <div className="pt-2">
         <Button

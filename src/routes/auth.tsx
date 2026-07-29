@@ -5,6 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { toE164, isLikelyEmail } from "@/lib/phone";
+import { signInWithUsername } from "@/lib/account.functions";
 import { useTenantState } from "@/lib/tenant-context";
 
 
@@ -101,18 +102,36 @@ function AuthPage() {
     e.preventDefault();
     const id = identifier.trim();
     if (!id || !password) {
-      toast.error("Enter your email or phone and password.");
+      toast.error("Enter your username, email or phone and password.");
       return;
     }
     setLoading(true);
     let result;
     if (isLikelyEmail(id)) {
       result = await supabase.auth.signInWithPassword({ email: id.toLowerCase(), password });
+    } else if (/^[a-zA-Z0-9._]{3,20}$/.test(id) && /[a-zA-Z_.]/.test(id)) {
+      // Username sign-in — resolved server-side, never exposes the email/phone.
+      try {
+        const res = await signInWithUsername({ data: { username: id.toLowerCase(), password } });
+        if (!res.ok) {
+          setLoading(false);
+          toast.error(res.error);
+          return;
+        }
+        result = await supabase.auth.setSession({
+          access_token: res.access_token,
+          refresh_token: res.refresh_token,
+        });
+      } catch {
+        setLoading(false);
+        toast.error("Wrong username or password. Please try again.");
+        return;
+      }
     } else {
       const phone = toE164(id);
       if (!phone) {
         setLoading(false);
-        toast.error("Enter a valid email address or phone number.");
+        toast.error("Enter a valid username, email address or phone number.");
         return;
       }
       result = await supabase.auth.signInWithPassword({ phone, password });
@@ -120,7 +139,7 @@ function AuthPage() {
     const { data, error } = result;
     setLoading(false);
     if (error) {
-      toast.error("Wrong email/phone or password. Please try again.");
+      toast.error("Wrong username, email/phone or password. Please try again.");
       return;
     }
     toast.success("Signed in");
@@ -325,12 +344,12 @@ function AuthPage() {
             <form onSubmit={onSignIn} className="space-y-5">
               <Field
                 id="identifier"
-                label="Email or phone"
+                label="Username, email or phone"
                 type="text"
                 autoComplete="username"
                 value={identifier}
                 onChange={setIdentifier}
-                placeholder="you@example.com or 98xxxxxxxx"
+                placeholder="username, you@example.com or 98xxxxxxxx"
               />
               <Field
                 id="password"
