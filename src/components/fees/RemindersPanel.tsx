@@ -94,7 +94,7 @@ export function RemindersPanel() {
     <div className="space-y-5">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Fee reminders</h1>
+          <h2 className="text-lg font-bold tracking-tight">Fee reminders</h2>
           <p className="text-sm text-muted-foreground">
             Auto-generated daily at 9:00 IST for overdue monthly fees. Tap to send on WhatsApp.
           </p>

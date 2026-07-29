@@ -13,7 +13,7 @@ export function SetupPanel() {
   const heading = useMemo(
     () => (
       <header className="mb-4">
-        <h1 className="text-2xl font-semibold">Payment Settings</h1>
+        <h2 className="text-lg font-bold tracking-tight">Payment Settings</h2>
         <p className="mt-1 text-sm text-neutral-500">
           Configure how parents pay fees to your academy. Use your own payment gateway keys — they never leave your
           academy.
@@ -26,7 +26,7 @@ export function SetupPanel() {
   if (!tenantId) return <div className="p-6">Loading…</div>;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
+    <div className="space-y-4">
       {heading}
 
       <Card className="mb-4 p-4">

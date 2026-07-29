@@ -62,7 +62,7 @@ export function FeePlansPanel() {
     <div className="space-y-4">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Fee plans</h1>
+          <h2 className="text-lg font-bold tracking-tight">Fee plans</h2>
           <p className="text-sm text-muted-foreground">These show on your public /fees page.</p>
         </div>
         <Dialog
