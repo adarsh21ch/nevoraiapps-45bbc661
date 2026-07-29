@@ -14,8 +14,6 @@ import {
   LineChart,
   ClipboardCheck,
   Layers,
-  CalendarClock,
-  ReceiptText,
   UserPlus,
   Zap,
 } from "lucide-react";
