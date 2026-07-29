@@ -32,6 +32,8 @@ function MatchesPage() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const [pendingDelete, setPendingDelete] = useState<MatchWithTeams | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const matchesQ = useQuery({
     queryKey: ["mc-matches", tenant.id],
