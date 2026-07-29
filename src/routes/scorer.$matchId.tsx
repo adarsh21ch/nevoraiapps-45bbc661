@@ -1331,29 +1331,8 @@ function DemoScorerBody({ dataset, session }: { dataset: DemoDataset; session: D
 
   /* Batter/bowler setup is handled from the mobile scorer rows and bottom sheets. */
 
-  if (!dataset || !session.match) {
-    return (
-      <div className="flex h-dvh flex-col items-center justify-center gap-4 bg-background p-6 text-center">
-        <div className="max-w-sm space-y-3">
-          <div className="text-lg font-semibold">Demo match unavailable</div>
-          <p className="text-sm text-muted-foreground">
-            The demo fixtures aren't loaded on this device. Turn on Demo Mode from Match Center →
-            Settings, then reopen this match.
-          </p>
-          <div className="flex justify-center gap-2">
-            <Button asChild size="sm" variant="outline">
-              <Link to="/match-center/matches">Back to matches</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/match-center">Match Center</Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const match = session.match;
+
   const activeInnings = session.activeInnings;
   const demo = dataset.data;
 
