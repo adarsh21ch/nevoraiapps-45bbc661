@@ -6929,6 +6929,27 @@ export type Database = {
           },
         ]
       }
+      user_usernames: {
+        Row: {
+          created_at: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       attendance_today: {
@@ -7557,6 +7578,7 @@ export type Database = {
         Returns: undefined
       }
       send_campaign: { Args: { _campaign_id: string }; Returns: Json }
+      set_my_username: { Args: { _username: string }; Returns: string }
       set_tenant_feature: {
         Args: { _enabled: boolean; _key: string; _tenant_id: string }
         Returns: undefined
