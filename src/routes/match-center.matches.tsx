@@ -18,6 +18,16 @@ import { toast } from "sonner";
 import { useDemoOverlay } from "@/lib/mc-demo/overlay";
 import { cn } from "@/lib/utils";
 import { VirtualList } from "@/components/ds/VirtualList";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/match-center/matches")({
   head: () => ({
