@@ -63,10 +63,23 @@ function MatchesPage() {
     invalidate();
   };
   const onDelete = async (m: MatchWithTeams) => {
-    if (!confirm("Delete this match? This cannot be undone.")) return;
-    await deleteMatch(m.id);
-    toast.success("Match deleted");
-    invalidate();
+    setPendingDelete(m);
+  };
+  const confirmDelete = async () => {
+    const m = pendingDelete;
+    if (!m) return;
+    setDeleting(true);
+    try {
+      await deleteMatch(m.id);
+      toast.success("Match deleted — player records updated");
+      setPendingDelete(null);
+      invalidate();
+      qc.invalidateQueries({ queryKey: ["mc-careers"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not delete match");
+    } finally {
+      setDeleting(false);
+    }
   };
   const onDuplicate = async (m: MatchWithTeams) => {
     await duplicateMatch(tenant.id, m.id);
