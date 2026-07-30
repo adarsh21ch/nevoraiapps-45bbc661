@@ -942,32 +942,6 @@ function StripKpi({
   );
 }
 
-function MiniKpi({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: number;
-  tone?: "default" | "success" | "info";
-}) {
-  const toneClass =
-    tone === "success"
-      ? "text-emerald-600 dark:text-emerald-400"
-      : tone === "info"
-        ? "text-sky-600 dark:text-sky-400"
-        : "text-foreground";
-  return (
-    <div className="min-w-0">
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground leading-none">
-        {label}
-      </p>
-      <p className={cn("mt-0.5 text-base font-semibold tabular-nums leading-tight", toneClass)}>
-        {value}
-      </p>
-    </div>
-  );
-}
 
 function RosterTabButton({
   active,
