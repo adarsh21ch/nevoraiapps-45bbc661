@@ -713,24 +713,12 @@ function AttendancePage() {
         </div>
       ) : null}
 
-      {/* Sticky filter + search — always accessible while scrolling. */}
+      {/* Sticky search — always accessible while scrolling. */}
       <div className="sticky top-14 z-20 -mx-4 md:-mx-8 mb-2 border-b border-border/60 bg-background/90 px-4 md:px-8 py-2 backdrop-blur">
-        <FilterTabs
-          value={session}
-          onChange={(v: string) => setSession(v as SessionFilter)}
-          items={[
-            { key: "all", label: "All" },
-            { key: "morning", label: "Morning" },
-            { key: "evening", label: "Evening" },
-            { key: "night", label: "Night" },
-          ]}
-          ariaLabel="Session"
-        />
         <SearchBar
           value={query}
           onChange={setQuery}
           placeholder="Search name, player ID or mobile"
-          className="mt-2"
         />
       </div>
 
