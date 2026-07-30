@@ -894,6 +894,28 @@ function AttendancePage() {
 }
 
 
+function StripKpi({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: number;
+  tone?: "default" | "success" | "info";
+}) {
+  const toneClass =
+    tone === "success"
+      ? "text-emerald-600 dark:text-emerald-400"
+      : tone === "info"
+        ? "text-sky-600 dark:text-sky-400"
+        : "text-foreground";
+  return (
+    <span className="shrink-0 whitespace-nowrap text-muted-foreground">
+      {label} <span className={cn("font-semibold tabular-nums", toneClass)}>{value}</span>
+    </span>
+  );
+}
+
 function MiniKpi({
   label,
   value,
