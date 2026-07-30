@@ -623,6 +623,32 @@ function AttendancePage() {
               </div>
             </PopoverContent>
           </Popover>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="Filter by session"
+                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-1 text-xs font-medium hover:bg-muted min-h-8"
+              >
+                {session === "all"
+                  ? "All"
+                  : session === "morning"
+                    ? "Morning"
+                    : session === "evening"
+                      ? "Evening"
+                      : "Night"}
+                <ChevronDown className="size-3" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {(["all", "morning", "evening", "night"] as SessionFilter[]).map((s) => (
+                <DropdownMenuItem key={s} onClick={() => setSession(s)}>
+                  <span className={cn("capitalize", session === s && "font-semibold")}>{s}</span>
+                  {session === s ? <CheckCircle2 className="ml-auto size-4 text-primary" /> : null}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="flex items-center gap-1.5">
           {isTodayView ? (
@@ -713,24 +739,12 @@ function AttendancePage() {
         </div>
       ) : null}
 
-      {/* Sticky filter + search — always accessible while scrolling. */}
+      {/* Sticky search — always accessible while scrolling. */}
       <div className="sticky top-14 z-20 -mx-4 md:-mx-8 mb-2 border-b border-border/60 bg-background/90 px-4 md:px-8 py-2 backdrop-blur">
-        <FilterTabs
-          value={session}
-          onChange={(v: string) => setSession(v as SessionFilter)}
-          items={[
-            { key: "all", label: "All" },
-            { key: "morning", label: "Morning" },
-            { key: "evening", label: "Evening" },
-            { key: "night", label: "Night" },
-          ]}
-          ariaLabel="Session"
-        />
         <SearchBar
           value={query}
           onChange={setQuery}
           placeholder="Search name, player ID or mobile"
-          className="mt-2"
         />
       </div>
 
@@ -789,36 +803,22 @@ function AttendancePage() {
 
       ) : (
         <>
-          {/* Compact live summary + KPI strip fused into a single tight card. */}
-          <div className="rounded-lg border border-border/60 bg-card px-3 py-2">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground leading-none">
-                  {isTodayView ? "Today" : format(selectedDate, "d MMM yyyy")}
-                </p>
-                <p className="mt-0.5 text-sm font-semibold tabular-nums leading-tight">
-                  {kpis.present} / {kpis.total}{" "}
-                  <span className="text-muted-foreground font-normal">present</span>
-                </p>
-              </div>
-              <p className="text-lg font-bold tabular-nums leading-none">{kpis.pct}%</p>
-            </div>
-            <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted" aria-hidden>
-              <div
-                className="h-full rounded-full bg-emerald-500 transition-[width] duration-300"
-                style={{ width: `${kpis.pct}%` }}
-              />
-            </div>
-            <div className="mt-2 grid grid-cols-4 gap-2 border-t border-border/50 pt-2">
-              <MiniKpi label="Waiting" value={kpis.notArrived} />
-              <MiniKpi label="Inside" value={kpis.inAcademy} tone="success" />
-              <MiniKpi label="Out" value={kpis.checkedOutToday} tone="info" />
-              <MiniKpi label="Total" value={kpis.total} />
-            </div>
+          {/* One-line KPI strip — minimal vertical footprint for mobile. */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none rounded-full border border-border/60 bg-card px-3 py-1.5 text-[12px] leading-none">
+            <span className="shrink-0 font-semibold tabular-nums">
+              {kpis.present}/{kpis.total}
+              <span className="ml-1 font-normal text-muted-foreground">present</span>
+            </span>
+            <span className="shrink-0 font-bold tabular-nums">{kpis.pct}%</span>
+            <span className="h-3 w-px shrink-0 bg-border" aria-hidden />
+            <StripKpi label="Waiting" value={kpis.notArrived} />
+            <StripKpi label="Inside" value={kpis.inAcademy} tone="success" />
+            <StripKpi label="Out" value={kpis.checkedOutToday} tone="info" />
+            <StripKpi label="Total" value={kpis.total} />
           </div>
 
           {/* Roster tab selector — Waiting / Present / Checked Out. */}
-          <div className="sticky top-[8.5rem] z-10 mt-2 -mx-4 md:-mx-8 border-b border-border/60 bg-background/95 px-4 md:px-8 py-1.5 backdrop-blur">
+          <div className="sticky top-[6.5rem] z-10 mt-2 -mx-4 md:-mx-8 border-b border-border/60 bg-background/95 px-4 md:px-8 py-1.5 backdrop-blur">
             <FilterTabs
               value={rosterTab}
               onChange={(k: string) => changeRosterTab(k as RosterTab)}
@@ -920,7 +920,7 @@ function AttendancePage() {
 }
 
 
-function MiniKpi({
+function StripKpi({
   label,
   value,
   tone = "default",
@@ -936,16 +936,12 @@ function MiniKpi({
         ? "text-sky-600 dark:text-sky-400"
         : "text-foreground";
   return (
-    <div className="min-w-0">
-      <p className="text-[10px] uppercase tracking-wide text-muted-foreground leading-none">
-        {label}
-      </p>
-      <p className={cn("mt-0.5 text-base font-semibold tabular-nums leading-tight", toneClass)}>
-        {value}
-      </p>
-    </div>
+    <span className="shrink-0 whitespace-nowrap text-muted-foreground">
+      {label} <span className={cn("font-semibold tabular-nums", toneClass)}>{value}</span>
+    </span>
   );
 }
+
 
 function RosterTabButton({
   active,
