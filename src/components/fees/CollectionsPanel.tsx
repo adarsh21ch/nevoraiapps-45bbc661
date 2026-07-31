@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchPaymentsForPeriods, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { recordPayment } from "@/lib/billing";
