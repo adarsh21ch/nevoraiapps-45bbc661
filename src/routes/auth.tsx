@@ -68,7 +68,16 @@ export async function routeAfterLogin(_uid?: string): Promise<PostLoginRoute> {
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { mode: searchMode } = Route.useSearch();
+  const { mode: searchMode, next: nextPath } = Route.useSearch();
+  // Post-login destination: honour an explicit same-origin `next` (used by the
+  // QR check-in page), otherwise route by role.
+  const goAfterLogin = async (uid?: string) => {
+    if (nextPath) {
+      window.location.assign(nextPath);
+      return;
+    }
+    await goAfterLogin(uid);
+  };
   const tenantState = useTenantState();
   const tenant = tenantState.status === "ready" ? tenantState.tenant : null;
   const brandName = tenant?.name ?? "AcademyOS";
@@ -101,9 +110,9 @@ function AuthPage() {
   useEffect(() => {
     if (mode === "reset") return;
     supabase.auth.getSession().then(async ({ data }) => {
-      if (data.session) navigate({ to: await routeAfterLogin(data.session.user.id) });
+      if (data.session) await goAfterLogin(data.session.user.id);
     });
-  }, [navigate, mode]);
+  }, [navigate, mode, nextPath]);
 
   async function onSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -151,7 +160,7 @@ function AuthPage() {
     }
     toast.success("Signed in");
     const uid = data.user?.id;
-    navigate({ to: uid ? await routeAfterLogin(uid) : "/dashboard" });
+    await goAfterLogin(uid);
   }
 
   async function onForgot(e: React.FormEvent) {
@@ -189,7 +198,7 @@ function AuthPage() {
     toast.success("Password updated. Signing you in…");
     const { data } = await supabase.auth.getUser();
     const uid = data.user?.id;
-    navigate({ to: uid ? await routeAfterLogin(uid) : "/dashboard" });
+    await goAfterLogin(uid);
   }
 
   return (
