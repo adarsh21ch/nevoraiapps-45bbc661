@@ -19,6 +19,7 @@ import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
+import { Route as ParentRouteImport } from './routes/parent'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as MatchCenterRouteImport } from './routes/match-center'
@@ -196,6 +197,11 @@ const PricingRoute = PricingRouteImport.update({
 const PlatformAdminRoute = PlatformAdminRouteImport.update({
   id: '/platform-admin',
   path: '/platform-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParentRoute = ParentRouteImport.update({
+  id: '/parent',
+  path: '/parent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -882,6 +888,7 @@ export interface FileRoutesByFullPath {
   '/match-center': typeof MatchCenterRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
+  '/parent': typeof ParentRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -1019,6 +1026,7 @@ export interface FileRoutesByTo {
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
   '/notifications': typeof NotificationsRoute
+  '/parent': typeof ParentRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
@@ -1158,6 +1166,7 @@ export interface FileRoutesById {
   '/match-center': typeof MatchCenterRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
+  '/parent': typeof ParentRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -1300,6 +1309,7 @@ export interface FileRouteTypes {
     | '/match-center'
     | '/matches'
     | '/notifications'
+    | '/parent'
     | '/platform-admin'
     | '/pricing'
     | '/privacy'
@@ -1437,6 +1447,7 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/location'
     | '/notifications'
+    | '/parent'
     | '/pricing'
     | '/privacy'
     | '/programs'
@@ -1575,6 +1586,7 @@ export interface FileRouteTypes {
     | '/match-center'
     | '/matches'
     | '/notifications'
+    | '/parent'
     | '/platform-admin'
     | '/pricing'
     | '/privacy'
@@ -1716,6 +1728,7 @@ export interface RootRouteChildren {
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
   MatchesRoute: typeof MatchesRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
+  ParentRoute: typeof ParentRoute
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -1817,6 +1830,13 @@ declare module '@tanstack/react-router' {
       path: '/platform-admin'
       fullPath: '/platform-admin'
       preLoaderRoute: typeof PlatformAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parent': {
+      id: '/parent'
+      path: '/parent'
+      fullPath: '/parent'
+      preLoaderRoute: typeof ParentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -3010,6 +3030,7 @@ const rootRouteChildren: RootRouteChildren = {
   MatchCenterRoute: MatchCenterRouteWithChildren,
   MatchesRoute: MatchesRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
+  ParentRoute: ParentRoute,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
