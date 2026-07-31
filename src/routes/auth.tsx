@@ -10,7 +10,14 @@ import { useTenantState } from "@/lib/tenant-context";
 
 
 
-type AuthSearch = { mode?: "signin" | "forgot" | "reset" };
+type AuthSearch = { mode?: "signin" | "forgot" | "reset"; next?: string };
+
+// Only same-origin relative paths may be used as a post-login destination.
+function safeNext(value: unknown): string | undefined {
+  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//")
+    ? value
+    : undefined;
+}
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): AuthSearch => ({
@@ -18,6 +25,7 @@ export const Route = createFileRoute("/auth")({
       s.mode === "forgot" || s.mode === "reset" || s.mode === "signin"
         ? s.mode
         : undefined,
+    next: safeNext(s.next),
   }),
   head: () => ({
     meta: [

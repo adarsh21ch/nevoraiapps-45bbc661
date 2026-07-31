@@ -34,6 +34,7 @@ import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CoachesRouteImport } from './routes/coaches'
+import { Route as CheckinRouteImport } from './routes/checkin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppLaunchRouteImport } from './routes/app-launch'
 import { Route as AdmissionsRouteImport } from './routes/admissions'
@@ -275,6 +276,11 @@ const ContactRoute = ContactRouteImport.update({
 const CoachesRoute = CoachesRouteImport.update({
   id: '/coaches',
   path: '/coaches',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckinRoute = CheckinRouteImport.update({
+  id: '/checkin',
+  path: '/checkin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -893,6 +899,7 @@ export interface FileRoutesByFullPath {
   '/admissions': typeof AdmissionsRoute
   '/app-launch': typeof AppLaunchRoute
   '/auth': typeof AuthRoute
+  '/checkin': typeof CheckinRoute
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
@@ -1037,6 +1044,7 @@ export interface FileRoutesByTo {
   '/admissions': typeof AdmissionsRoute
   '/app-launch': typeof AppLaunchRoute
   '/auth': typeof AuthRoute
+  '/checkin': typeof CheckinRoute
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/demo': typeof DemoRoute
@@ -1176,6 +1184,7 @@ export interface FileRoutesById {
   '/admissions': typeof AdmissionsRoute
   '/app-launch': typeof AppLaunchRoute
   '/auth': typeof AuthRoute
+  '/checkin': typeof CheckinRoute
   '/coaches': typeof CoachesRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRouteWithChildren
@@ -1322,6 +1331,7 @@ export interface FileRouteTypes {
     | '/admissions'
     | '/app-launch'
     | '/auth'
+    | '/checkin'
     | '/coaches'
     | '/contact'
     | '/dashboard'
@@ -1466,6 +1476,7 @@ export interface FileRouteTypes {
     | '/admissions'
     | '/app-launch'
     | '/auth'
+    | '/checkin'
     | '/coaches'
     | '/contact'
     | '/demo'
@@ -1604,6 +1615,7 @@ export interface FileRouteTypes {
     | '/admissions'
     | '/app-launch'
     | '/auth'
+    | '/checkin'
     | '/coaches'
     | '/contact'
     | '/dashboard'
@@ -1749,6 +1761,7 @@ export interface RootRouteChildren {
   AdmissionsRoute: typeof AdmissionsRoute
   AppLaunchRoute: typeof AppLaunchRoute
   AuthRoute: typeof AuthRoute
+  CheckinRoute: typeof CheckinRoute
   CoachesRoute: typeof CoachesRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRouteWithChildren
@@ -1970,6 +1983,13 @@ declare module '@tanstack/react-router' {
       path: '/coaches'
       fullPath: '/coaches'
       preLoaderRoute: typeof CoachesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkin': {
+      id: '/checkin'
+      path: '/checkin'
+      fullPath: '/checkin'
+      preLoaderRoute: typeof CheckinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -3086,6 +3106,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdmissionsRoute: AdmissionsRoute,
   AppLaunchRoute: AppLaunchRoute,
   AuthRoute: AuthRoute,
+  CheckinRoute: CheckinRoute,
   CoachesRoute: CoachesRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRouteWithChildren,
