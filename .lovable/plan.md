@@ -1,87 +1,49 @@
-This is a MEDIUM-scope stabilization + polish pass across the tenant public website and the platform-admin/site settings. Grouped into 4 parts. Nothing removes existing data; all changes are additive and backward-compatible.
+## Objective
 
----
+Let students check themselves in and out by scanning a printed QR code at the academy, with GPS location verification so a photographed QR can't be used from home. Manual owner/coach check-in stays exactly as it is — QR becomes a second `source` on the same append-only attendance records.
 
-## Part 1 — Per-page hero background carousels
+## How it works for people
 
-**Goal:** Each public page (Home, About, Programs, Star Players, Matches, Gallery, Fees, Contact) can have multiple hero background images that auto-slide right→left every ~5s. Owner/platform admin uploads them from the site settings.
+1. Owner opens Attendance → "QR check-in" and sets the academy location (pin from current GPS or map coords) and an allowed radius (default 150 m).
+2. Owner prints the academy QR poster (generated in-app, A4 PDF with academy name + logo).
+3. Student arrives, opens phone camera, scans the poster → opens the academy site at a check-in page.
+4. Page asks for location permission → shows "You're at the academy ✓" → one big button: **Check in** (or **Check out** if already inside).
+5. Result screen shows time in / time out and total time today. The owner's live roster updates in real time.
 
-**Backend**
-- New column on `site_content` (or equivalent tenant site record) — `page_hero_images jsonb default '{}'::jsonb` — keyed by page slug, value is an ordered array of storage paths.
-  Example: `{ "home": ["a.jpg","b.jpg"], "matches": ["m1.jpg"] }`
-- Extend `tenants_public_directory` view to expose `page_hero_images`.
-- Reuse existing `tenant-media` storage bucket (same one gallery uses). No new bucket, no new RLS surface.
+Failure states are explicit, never silent: location denied, too far away (shows distance), not a student of this academy, not signed in (sends to login and returns), QR disabled by owner.
 
-**Owner site settings (`dashboard.site.tsx`)**
-- New "Page Headers" section with one uploader row per page. Each row: multi-file upload, reorder (drag), delete. Max 8 images per page. Reuse existing gallery upload helpers.
-- Platform-admin tenant editor gets a link to the same screen (no duplicate uploader).
+## Anti-abuse
 
-**Public rendering**
-- New `<HeroCarousel images={...} />` component. If images empty → keep current gradient hero (no regression). If 1 image → static. If 2+ → framer-motion crossfade + slide, 5s interval, pauses on hover, respects `prefers-reduced-motion`.
-- Wire into `PageHero` used by About/Programs/Matches/Gallery/Fees/Contact and the home hero.
+- Location is the primary guard: server compares the reported coordinates against the tenant's pinned location and radius, rejecting anything outside. Verification happens server-side; the client never decides.
+- Accuracy floor: readings with GPS accuracy worse than ~200 m are rejected as unreliable.
+- Signed-in-only: the scan is tied to the student's own logged-in account, so one person can't mark others.
+- Rate limit: minimum gap between two scans by the same student (default 2 minutes) to stop double-tap duplicates.
+- Every scan stores coordinates, accuracy and distance in the mark's `check_in_meta` / `check_out_meta`, so the owner can audit anything suspicious.
+- Owner can turn QR check-in off, or rotate the QR token (invalidates old printouts) at any time.
 
----
+## Technical plan
 
-## Part 2 — Hide Fees tab toggle
+**Database (one forward-only migration)**
+- `tenants`: add `attendance_qr_enabled boolean default false`, `attendance_qr_token text`, `geo_lat double precision`, `geo_lng double precision`, `geo_radius_m integer default 150`, `attendance_qr_min_gap_seconds integer default 120`. No existing column touched.
+- New `public.attendance_qr_scans` (audit log): tenant_id, student_id, action, lat, lng, accuracy_m, distance_m, result (`ok` / `too_far` / `low_accuracy` / `rate_limited` / `invalid_token` / `not_student`), created_at. RLS: staff of the tenant read; only the SECURITY DEFINER function writes. GRANTs to `authenticated` (select) and `service_role`.
+- New RPC `public.qr_attendance_scan(_token text, _lat, _lng, _accuracy)` — SECURITY DEFINER, `search_path = public`. It resolves tenant by token, verifies the caller is an active student of that tenant, checks radius/accuracy/rate limit, then performs the exact same insert (check-in) or update (check-out) the manual flow performs, with `source = 'qr'` and geo meta. Returns a typed result the UI renders. `EXECUTE` granted to `authenticated` only.
+- Settings RPC/update path for the owner to set location + radius + rotate token, guarded by `has_role`.
 
-**Goal:** Owner can hide the "Fees" link in public site nav without touching data.
+**Server/client**
+- `src/lib/attendance/qr.functions.ts` — thin server-function wrappers over the RPC and settings updates.
+- Reuse `src/lib/attendance/queries.ts` for all reads; no duplicate aggregation. `source: "qr"` already exists in `ATTENDANCE_SOURCES`, and existing realtime invalidation already covers QR-created rows.
+- New public route `src/routes/checkin.tsx` (mobile-first, tenant-branded): geolocation prompt, distance readout, single primary action, result state. Unauthenticated visitors go to `/auth` and return to the same URL.
+- New Attendance sub-screen for the owner: enable toggle, "Use my current location" pin, radius slider, live preview of the QR, "Download poster (PDF)" via existing `qrcode` + PDF helpers, rotate-token action, and a recent-scans audit list (including rejected attempts).
+- Attendance roster rows show a small QR badge for QR-sourced marks so manual vs self-scan is distinguishable.
 
-**Backend**
-- New boolean on `site_content` → `show_fees_tab boolean not null default true`. Exposed via `tenants_public_directory`.
+## Risk and rollback
 
-**UI**
-- Toggle in `dashboard.site.tsx` (site settings) — "Show Fees in public navigation".
-- Same toggle mirrored in platform-admin tenant detail for support access.
-- `SiteHeader` / mobile nav / footer filter out Fees when false. The `/fees` route itself stays reachable by direct URL (owner may still link it from admin), just hidden in nav.
+- Risk: MEDIUM-HIGH (new DB objects + a public route + a write RPC). Existing manual flow, roster reads, RLS on `attendance_marks` and the append-only trigger are untouched.
+- Default off: `attendance_qr_enabled` is false, so nothing changes for existing academies until the owner opts in.
+- Rollback: flip the toggle off (instant), or drop the RPC/table and the new columns — no existing data depends on them.
 
----
+## Decisions I'll take unless you say otherwise
 
-## Part 3 — Matches page bugs + public live/history
-
-**Investigation first** — before changing anything I will:
-- Read `src/routes/matches.tsx`, `src/routes/matches.$matchId.tsx`, and the RPC feeding "Recent Results" to confirm why completed matches aren't listed. Likely one of: RLS on `mc_matches` for anon, missing `status='completed'` inclusion in the fetcher, or the view scoping to a wrong tenant column. Report the root cause before patching.
-
-**Public matches page (`/matches`)**
-- Three sections: **Live now** (status='live', prominent, "Watch live" CTA → `/matches/$id`), **Upcoming**, **Recent results** (completed, last 10, with final score + winner + "View scorecard" link).
-- Empty states stay but only when the section is genuinely empty.
-
-**Site header live banner**
-- Thin dismissible banner above `SiteHeader` when a live match exists for the tenant: "🔴 LIVE — Team A vs Team B · 84/3 (12.4) · Watch". Realtime-subscribed to `mc_ball_events` (already wired for the public match page — reuse the same hook).
-- Only renders on public site routes; not on dashboard/scorer.
-
-**Match detail page**
-- Already exists at `/matches/$matchId`. Add a "Watch live scorecard" prominent CTA when status='live' and ensure completed matches show the full scorecard + ball-by-ball history (should already work — will verify).
-
----
-
-## Part 4 — Files touched (expected)
-
-Migrations
-- 1 migration: add `page_hero_images jsonb`, `show_fees_tab boolean` to `site_content`; refresh `tenants_public_directory` view; verify anon RLS on `mc_matches`/`mc_innings` covers completed matches.
-
-Frontend
-- `src/components/site/HeroCarousel.tsx` (new)
-- `src/components/site/PageHero.tsx` (accept images prop)
-- `src/components/site/SiteHeader.tsx` (respect `show_fees_tab`, mount `LiveMatchBanner`)
-- `src/components/site/LiveMatchBanner.tsx` (new, reuses `useMatchLive` hook)
-- `src/routes/matches.tsx` (Live / Upcoming / Recent sections)
-- `src/routes/dashboard.site.tsx` (Page Headers uploader + Fees toggle)
-- `src/routes/platform-admin.tenants.$id.tsx` (Fees toggle mirror + link)
-- `src/routes/index.tsx`, `src/routes/about.tsx`, `programs.tsx`, `matches.tsx`, `gallery.tsx`, `fees.tsx`, `contact.tsx`, `star-players.tsx` — pass hero images into `PageHero`.
-- `src/lib/tenant.ts` / site-content fetcher — expose new fields.
-
-Risk: MEDIUM. Additive schema, no destructive changes. Existing hero gradient remains as fallback so a tenant with zero uploaded images sees identical UI.
-
----
-
-## Order of execution (after your approval)
-
-1. Migration (schema + view refresh).
-2. Investigate matches "recent results" root cause and report before patching.
-3. Backend fetchers + type updates.
-4. Owner site settings uploader + Fees toggle.
-5. `HeroCarousel` + wire into every public page.
-6. Public matches page rework + live banner.
-7. Typecheck + verify: fees toggle hides nav, upload → carousel shows on public page, completed match appears in Recent results.
-
-**Question before I start:** should the hero carousel replace the current blue-gradient hero background entirely when images exist, or overlay images on top of the gradient with a dark scrim so the white title text stays readable? (My default: overlay + scrim — safest for text contrast on any uploaded photo.)
+- Radius default 150 m, owner-adjustable 50–1000 m.
+- Student must be signed in to scan (required for identity; guest scanning would be trivially abusable).
+- One poster per academy (not per batch); the batch is inferred from the student's assigned batch, same as manual check-in.
