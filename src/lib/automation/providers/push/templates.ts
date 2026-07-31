@@ -51,48 +51,48 @@ const TEMPLATES: Partial<Record<AutomationEventType, Template>> = {
   "student.check_in": {
     title: "🟢 {{StudentName}} Checked In",
     body: "Checked in at {{Time}}. {{AcademyName}}.",
-    deepLink: "/parent?tab=attendance",
+    deepLink: "/student",
     category: "attendance",
     priority: "high",
   },
   "attendance.marked": {
     title: "🟢 {{StudentName}} Checked In",
     body: "Marked present at {{Time}}. {{AcademyName}}.",
-    deepLink: "/parent?tab=attendance",
+    deepLink: "/student",
     category: "attendance",
     priority: "high",
   },
   "student.check_out": {
     title: "🔴 {{StudentName}} Checked Out",
     body: "Checked out at {{Time}}.",
-    deepLink: "/parent?tab=attendance",
+    deepLink: "/student",
     category: "attendance",
     priority: "high",
   },
   "fee.generated": {
     title: "💰 New Fee",
     body: "{{StudentName}}'s ₹{{Amount}} fee is generated. Due {{DueDate}}.",
-    deepLink: "/parent?tab=fees",
+    deepLink: "/student/fees",
     category: "fees",
   },
   "fee.due_tomorrow": {
     title: "💰 Fee Due Tomorrow",
     body: "{{StudentName}}'s ₹{{Amount}} fee is due tomorrow. Tap to pay now.",
-    deepLink: "/parent?tab=fees",
+    deepLink: "/student/fees",
     category: "fees",
     priority: "high",
   },
   "fee.overdue": {
     title: "🔴 Fee Overdue",
     body: "{{StudentName}}'s ₹{{Amount}} fee is overdue. Please pay now.",
-    deepLink: "/parent?tab=fees",
+    deepLink: "/student/fees",
     category: "fees",
     priority: "high",
   },
   "fee.paid": {
     title: "✅ Payment Received",
     body: "₹{{Amount}} received successfully. Thank you.",
-    deepLink: "/parent?tab=fees",
+    deepLink: "/student/fees",
     category: "fees",
   },
   "student.created": {
@@ -110,7 +110,7 @@ const TEMPLATES: Partial<Record<AutomationEventType, Template>> = {
   "match.finished": {
     title: "🏏 Match Completed",
     body: "{{StudentName}} scored {{Runs}} runs, took {{Wickets}} wickets.",
-    deepLink: "/parent?tab=performance",
+    deepLink: "/student/progress",
     category: "match",
   },
   "tournament.published": {
@@ -123,7 +123,7 @@ const TEMPLATES: Partial<Record<AutomationEventType, Template>> = {
   "communication.sent": {
     title: "📣 Announcement",
     body: "{{Message}}",
-    deepLink: "/parent",
+    deepLink: "/student",
     category: "announcement",
   },
   "website.lead_received": {
@@ -155,7 +155,7 @@ const TEMPLATES: Partial<Record<AutomationEventType, Template>> = {
 const DEFAULT: Template = {
   title: "🔔 {{AcademyName}}",
   body: "You have a new update.",
-  deepLink: "/parent",
+  deepLink: "/student",
   category: "general",
 };
 
