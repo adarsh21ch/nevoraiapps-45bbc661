@@ -281,6 +281,11 @@ export function MobileScorer(props: MobileScorerProps) {
                   Live
                 </span>
               )}
+              {props.freeHit && (
+                <span className="inline-flex shrink-0 items-center rounded-full border border-amber-500/50 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wider text-amber-600 dark:text-amber-400">
+                  Free hit
+                </span>
+              )}
             </div>
           </div>
           {!props.hideEndMatch && (
