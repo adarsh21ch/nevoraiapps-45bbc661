@@ -46,6 +46,7 @@ import { Route as ParentIndexRouteImport } from './routes/parent.index'
 import { Route as MatchesIndexRouteImport } from './routes/matches.index'
 import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as StudentTimelineRouteImport } from './routes/student.timeline'
 import { Route as StudentProgressRouteImport } from './routes/student.progress'
 import { Route as StudentProfileRouteImport } from './routes/student.profile'
 import { Route as StudentPendingRouteImport } from './routes/student.pending'
@@ -338,6 +339,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+const StudentTimelineRoute = StudentTimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
+  getParentRoute: () => StudentRoute,
 } as any)
 const StudentProgressRoute = StudentProgressRouteImport.update({
   id: '/progress',
@@ -1012,6 +1018,7 @@ export interface FileRoutesByFullPath {
   '/student/pending': typeof StudentPendingRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/progress': typeof StudentProgressRoute
+  '/student/timeline': typeof StudentTimelineRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/matches/': typeof MatchesIndexRoute
@@ -1152,6 +1159,7 @@ export interface FileRoutesByTo {
   '/student/pending': typeof StudentPendingRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/progress': typeof StudentProgressRoute
+  '/student/timeline': typeof StudentTimelineRoute
   '/dashboard': typeof DashboardIndexRoute
   '/match-center': typeof MatchCenterIndexRoute
   '/matches': typeof MatchesIndexRoute
@@ -1299,6 +1307,7 @@ export interface FileRoutesById {
   '/student/pending': typeof StudentPendingRoute
   '/student/profile': typeof StudentProfileRoute
   '/student/progress': typeof StudentProgressRoute
+  '/student/timeline': typeof StudentTimelineRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/matches/': typeof MatchesIndexRoute
@@ -1447,6 +1456,7 @@ export interface FileRouteTypes {
     | '/student/pending'
     | '/student/profile'
     | '/student/progress'
+    | '/student/timeline'
     | '/dashboard/'
     | '/match-center/'
     | '/matches/'
@@ -1587,6 +1597,7 @@ export interface FileRouteTypes {
     | '/student/pending'
     | '/student/profile'
     | '/student/progress'
+    | '/student/timeline'
     | '/dashboard'
     | '/match-center'
     | '/matches'
@@ -1733,6 +1744,7 @@ export interface FileRouteTypes {
     | '/student/pending'
     | '/student/profile'
     | '/student/progress'
+    | '/student/timeline'
     | '/dashboard/'
     | '/match-center/'
     | '/matches/'
@@ -2079,6 +2091,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/student/timeline': {
+      id: '/student/timeline'
+      path: '/timeline'
+      fullPath: '/student/timeline'
+      preLoaderRoute: typeof StudentTimelineRouteImport
+      parentRoute: typeof StudentRoute
     }
     '/student/progress': {
       id: '/student/progress'
@@ -3105,6 +3124,7 @@ interface StudentRouteChildren {
   StudentPendingRoute: typeof StudentPendingRoute
   StudentProfileRoute: typeof StudentProfileRoute
   StudentProgressRoute: typeof StudentProgressRoute
+  StudentTimelineRoute: typeof StudentTimelineRoute
   StudentIndexRoute: typeof StudentIndexRoute
 }
 
@@ -3115,6 +3135,7 @@ const StudentRouteChildren: StudentRouteChildren = {
   StudentPendingRoute: StudentPendingRoute,
   StudentProfileRoute: StudentProfileRoute,
   StudentProgressRoute: StudentProgressRoute,
+  StudentTimelineRoute: StudentTimelineRoute,
   StudentIndexRoute: StudentIndexRoute,
 }
 
