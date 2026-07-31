@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchPaymentsForPeriods, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { recordPayment } from "@/lib/billing";
@@ -60,7 +60,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { VirtualList } from "@/components/ds/VirtualList";
 
-
 type Filter = "all" | "pending" | "paid" | "overdue";
 
 type RegisterRow = {
@@ -92,7 +91,9 @@ type PaidPayment = {
 
 const money = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
-export function CollectionsPanel({ initialFilter: initialFilterProp }: { initialFilter?: Filter } = {}) {
+export function CollectionsPanel({
+  initialFilter: initialFilterProp,
+}: { initialFilter?: Filter } = {}) {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
   const cycle = tenantFeeCycle(tenant);
@@ -231,9 +232,7 @@ export function CollectionsPanel({ initialFilter: initialFilterProp }: { initial
     <div className="space-y-3">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <div className="min-w-0">
-          <h2 className="text-lg font-bold tracking-tight leading-tight truncate">
-            Student Fees
-          </h2>
+          <h2 className="text-lg font-bold tracking-tight leading-tight truncate">Student Fees</h2>
           <p className="text-[11px] text-muted-foreground leading-tight truncate">
             Who's paid, who's pending — collect in one tap.
           </p>
@@ -769,41 +768,28 @@ function CollectForm({
   const qc = useQueryClient();
 
   // Phase 14 hot-path: close the sheet + toast success in the same frame the
-  // user taps "Confirm payment". The Supabase insert + Billing V2 bridge
-  // still run — but in the background. On failure we roll the cached fees
-  // list back and toast an error the owner can retry.
+  // user taps "Confirm payment". The write still runs in the background; on
+  // failure we roll the cached fees list back and toast an error.
+  //
+  // Canonical write path = Billing V2 (`record_billing_payment`). A database
+  // trigger mirrors it into the legacy `payments` read model, so no client
+  // dual-write is needed (and duplicates are impossible).
   const save = useMutation({
     mutationFn: async () => {
       if (!method) throw new Error("Choose a payment method");
       const amt = Number(amount);
-      const { error } = await supabase.from("payments").insert({
+      await recordPayment({
         tenant_id: tenantId,
         student_id: row.studentId,
         amount: amt,
-        type: "monthly",
-        period,
         method,
-        note: note || null,
+        allocations: [],
+        collected_at: new Date().toISOString(),
+        remarks: buildQuickCollectRemarks(period, note),
+        idempotency_key: quickCollectIdempotencyKey(row.studentId, period, amt),
       });
-      if (error) throw error;
-
-      // M2a bridge: dual-write to Billing V2. Non-blocking on failure.
-      try {
-        await recordPayment({
-          tenant_id: tenantId,
-          student_id: row.studentId,
-          amount: amt,
-          method,
-          allocations: [],
-          collected_at: new Date().toISOString(),
-          remarks: buildQuickCollectRemarks(period, note),
-          idempotency_key: quickCollectIdempotencyKey(row.studentId, period, amt),
-        });
-      } catch (v2err) {
-        console.error("[M2a-bridge] recordPayment failed", v2err);
-        toast.warning("Payment saved. Sync warning — please refresh.");
-      }
     },
+
     onSuccess: () => {
       // Reconcile in the background — do NOT await; the UI already moved on.
       qc.invalidateQueries({ queryKey: ["d", "fees"] });

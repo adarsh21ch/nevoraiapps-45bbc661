@@ -5579,6 +5579,7 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          billing_payment_id: string | null
           created_at: string
           id: string
           method: string
@@ -5592,6 +5593,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          billing_payment_id?: string | null
           created_at?: string
           id?: string
           method?: string
@@ -5605,6 +5607,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          billing_payment_id?: string | null
           created_at?: string
           id?: string
           method?: string
@@ -5617,6 +5620,13 @@ export type Database = {
           type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_billing_payment_id_fkey"
+            columns: ["billing_payment_id"]
+            isOneToOne: false
+            referencedRelation: "billing_payments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_student_id_fkey"
             columns: ["student_id"]
