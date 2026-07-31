@@ -686,7 +686,17 @@ function AttendancePage() {
                   <CheckSquare className="size-3" /> Select
                 </button>
               ) : null}
+              {canMark ? (
+                <Link
+                  to="/dashboard/attendance-qr"
+                  aria-label="QR check-in setup"
+                  className="inline-flex items-center gap-1 rounded-full border border-border/60 px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground min-h-8"
+                >
+                  <QrCode className="size-3" /> QR
+                </Link>
+              ) : null}
               <LiveBadge state="live" />
+
             </>
           ) : (
             <DropdownMenu>
