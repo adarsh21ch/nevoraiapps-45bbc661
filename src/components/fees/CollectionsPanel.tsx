@@ -329,7 +329,7 @@ export function CollectionsPanel({
             items={visible}
             estimateSize={84}
             overscan={8}
-            className="max-h-[calc(100vh-260px)] min-h-[400px]"
+            className="max-h-[calc(100vh-200px)] min-h-[420px]"
             getKey={(r) => r.studentId}
             renderItem={(r) => (
               <div className="border-b border-border">
