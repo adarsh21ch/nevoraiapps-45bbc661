@@ -91,7 +91,7 @@ function FeesHub() {
 
         <nav
           aria-label="Fees sections"
-          className="scrollbar-none -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-2 md:-mx-6 md:px-6"
+          className="scrollbar-none -mx-4 mt-1.5 flex gap-1.5 overflow-x-auto px-4 pb-1.5 md:-mx-6 md:mt-0 md:px-6 md:pb-2"
         >
           {TABS.map((t) => {
             const active = t.key === tab;
