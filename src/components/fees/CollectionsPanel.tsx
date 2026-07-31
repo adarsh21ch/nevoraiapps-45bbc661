@@ -60,7 +60,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { VirtualList } from "@/components/ds/VirtualList";
 
-
 type Filter = "all" | "pending" | "paid" | "overdue";
 
 type RegisterRow = {
@@ -92,7 +91,9 @@ type PaidPayment = {
 
 const money = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
-export function CollectionsPanel({ initialFilter: initialFilterProp }: { initialFilter?: Filter } = {}) {
+export function CollectionsPanel({
+  initialFilter: initialFilterProp,
+}: { initialFilter?: Filter } = {}) {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
   const cycle = tenantFeeCycle(tenant);
@@ -231,9 +232,7 @@ export function CollectionsPanel({ initialFilter: initialFilterProp }: { initial
     <div className="space-y-3">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <div className="min-w-0">
-          <h2 className="text-lg font-bold tracking-tight leading-tight truncate">
-            Student Fees
-          </h2>
+          <h2 className="text-lg font-bold tracking-tight leading-tight truncate">Student Fees</h2>
           <p className="text-[11px] text-muted-foreground leading-tight truncate">
             Who's paid, who's pending — collect in one tap.
           </p>
