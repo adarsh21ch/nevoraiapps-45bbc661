@@ -850,6 +850,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           matchTitle={matchTitle}
           tournamentLabel={tournamentLabel || undefined}
           isLive={!!session.activeInnings && !session.match?.match_locked}
+          freeHit={session.matchState.innings.freeHit}
           score={`${stats.team.runs}/${stats.team.wickets}`}
           overs={currentOverLabel}
           crr={String(stats.team.runRate)}

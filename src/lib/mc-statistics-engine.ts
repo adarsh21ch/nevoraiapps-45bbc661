@@ -21,6 +21,7 @@ import type { DismissalType, ExtraType, MCBallEvent } from "@/lib/mc-ball-events
 import { isLegalDelivery } from "@/lib/mc-ball-events-core";
 import {
   ballSwapsStrike,
+  bowlerRunsForBall,
   isBowlerCredited,
   isWicketDismissal,
   totalRunsForBall,
@@ -156,15 +157,13 @@ export function computeBatting(events: MCBallEvent[]): BattingTable {
     // Runs off bat count toward the batter's runs.
     striker.runs += off;
 
-    if (faced && off === 0 && !isWicketDismissal(e.dismissal_type as DismissalType | null)) {
-      // Dot ball (from the batter's POV) — a delivery the batter faced with 0 off bat.
-      // We only count when nothing "happened" for the batter; extras still counted
-      // separately in team stats.
-      if (extra == null || extra === "no_ball") {
-        // For no-ball with off=0, still a dot for the batter (no runs to bat).
-        striker.dotBalls += 1;
-      }
+    if (faced && off === 0 && (extra == null || extra === "no_ball")) {
+      // Dot ball from the batter's POV: a delivery faced with nothing off the
+      // bat. A wicket ball is still a dot; byes/leg-byes are team runs and are
+      // counted separately, so those deliveries are not dots for the batter.
+      striker.dotBalls += 1;
     }
+
 
     if (off === 4) {
       striker.fours += 1;
@@ -270,14 +269,9 @@ function emptyBowling(player: PlayerRef): BowlingStat {
 
 /** Runs charged to the bowler (excludes byes, leg-byes, penalties). */
 function bowlerRunsFor(e: MCBallEvent): number {
-  const extra = e.extra_type as ExtraType | null;
-  const off = e.runs_off_bat ?? 0;
-  const ex = e.extra_runs ?? 0;
-  if (extra === "wide") return ex; // whole wide count charged
-  if (extra === "no_ball") return 1 + off; // penalty + off-bat; ex byes not charged
-  if (extra === "bye" || extra === "leg_bye" || extra === "penalty") return 0;
-  return off;
+  return bowlerRunsForBall(e);
 }
+
 
 export function computeBowling(events: MCBallEvent[]): BowlingTable {
   const byKey = new Map<PlayerKey, BowlingStat>();
@@ -310,7 +304,9 @@ export function computeBowling(events: MCBallEvent[]): BowlingTable {
     row.runsConceded += conceded;
 
     if (legal) row.legalBalls += 1;
-    if (legal && conceded === 0 && (e.runs_off_bat ?? 0) === 0) row.dotBalls += 1;
+    // A dot ball for the bowler is a legal delivery from which no run of any
+    // kind was scored — byes and leg-byes are runs, so they break the dot.
+    if (legal && totalRunsForBall(e) === 0) row.dotBalls += 1;
     if ((e.runs_off_bat ?? 0) === 4 || (e.runs_off_bat ?? 0) === 6) row.boundaryBalls += 1;
     if (e.extra_type === "wide") row.wides += 1;
     if (e.extra_type === "no_ball") row.noBalls += 1;
@@ -330,9 +326,10 @@ export function computeBowling(events: MCBallEvent[]): BowlingTable {
     if ((e.runs_off_bat ?? 0) >= 4) bucket.hadBoundary = true;
   }
 
-  // Finalize per-over stats: maidens.
+  // Finalize per-over stats: maidens. Law 17.4 — an over with no runs DEBITED
+  // to the bowler. Byes/leg-byes are not debited, so they do not break it.
   for (const bucket of perOver.values()) {
-    if (bucket.legal === 6 && bucket.runs === 0 && !bucket.hadBoundary) {
+    if (bucket.legal === 6 && bucket.runs === 0) {
       const row = byKey.get(bucket.player.key);
       if (row) row.maidens += 1;
     }

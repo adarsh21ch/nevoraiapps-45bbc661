@@ -116,14 +116,76 @@ export function batterRunsForStrike(e: MCBallEvent): number {
 }
 
 /**
+ * Runs debited to the BOWLER for this ball (MCC Law 17 / scoring convention).
+ * Byes, leg-byes and 5-run penalties are NOT charged to the bowler — which is
+ * also what decides a maiden over. Kept here (rather than only in the stats
+ * engine) so the replay engine's maiden flag and the bowling card can never
+ * disagree.
+ */
+export function bowlerRunsForBall(e: MCBallEvent): number {
+  const off = e.runs_off_bat ?? 0;
+  const ex = e.extra_runs ?? 0;
+  const type = e.extra_type as ExtraType | null;
+  if (type === "wide") return ex; // the whole wide is charged to the bowler
+  if (type === "no_ball") return 1 + off; // penalty + off-bat; byes are not charged
+  if (type === "bye" || type === "leg_bye" || type === "penalty") return 0;
+  return off;
+}
+
+/**
  * Does this ball rotate strike? Follows MCC Law 18.
  * Parity is based on runs the BATSMEN physically completed
  * (see `batterRunsForStrike`), NOT total runs including penalties.
  * End-of-over swap is handled separately by the caller.
  */
 export function ballSwapsStrike(e: MCBallEvent): boolean {
+  // Law 33.6 (2017 Code, 2022 ed.): after a batter is out Caught, the incoming
+  // batter always takes strike, irrespective of whether the batters crossed.
+  // So a Caught ball never rotates strike — the vacated end is the striker's.
+  if ((e.dismissal_type as DismissalType | null) === "caught") return false;
   return batterRunsForStrike(e) % 2 === 1;
 }
+
+/* ---------------- Which dismissals are possible on which delivery ---------------- */
+
+/** Dismissals still available when the ball is a no ball (Law 21.19). */
+const NO_BALL_DISMISSALS: readonly DismissalType[] = [
+  "run_out",
+  "obstructing_field",
+  "hit_ball_twice",
+  "retired_hurt",
+  "retired_out",
+  "timed_out",
+] as const;
+
+/** Dismissals still available when the ball is a wide (Law 22.6). */
+const WIDE_DISMISSALS: readonly DismissalType[] = [
+  "run_out",
+  "stumped",
+  "hit_wicket",
+  "obstructing_field",
+  "retired_hurt",
+  "retired_out",
+  "timed_out",
+] as const;
+
+/**
+ * Is `dt` a legal way to be out on this delivery?
+ * A free hit is treated exactly like a no ball for dismissal purposes
+ * (ICC T20 playing conditions 21.18 / MCC Law 21.18).
+ */
+export function dismissalAllowedOnDelivery(
+  dt: DismissalType | null | undefined,
+  extraType: ExtraType | null | undefined,
+  isFreeHit = false,
+): boolean {
+  if (!dt) return true;
+  if (extraType === "no_ball" || isFreeHit)
+    return (NO_BALL_DISMISSALS as readonly string[]).includes(dt);
+  if (extraType === "wide") return (WIDE_DISMISSALS as readonly string[]).includes(dt);
+  return true;
+}
+
 
 
 /* ---------------- Reconstructed state ---------------- */
@@ -159,11 +221,19 @@ export interface InningsState {
   strikeSwapPending: boolean; // set after over-end; UI shows swap in next ball
   awaitingNewBatter: boolean;
   awaitingNewBowler: boolean;
+  /**
+   * Is the NEXT delivery a free hit? True after any no ball, and it stays true
+   * while the free-hit delivery keeps being nullified (a wide/no ball does not
+   * consume it). Only run out / obstructing / hit ball twice are possible.
+   */
+  freeHit: boolean;
 
   completedOvers: OverSummary[];
   currentOver: OverSummary | null;
   dismissedIds: Set<string>;
   dismissedNames: Set<string>;
+  /** Legal balls bowled by each bowler, keyed by athlete id or lowercased name. */
+  bowlerLegalBalls: Map<string, number>;
 }
 
 export interface MatchState {
@@ -179,6 +249,26 @@ export interface MatchState {
 
 /* ---------------- Replay ---------------- */
 
+/**
+ * Stable identity for a bowler. Guest bowlers have no athlete id, so we fall
+ * back to a normalised name — otherwise the consecutive-over and max-overs
+ * rules silently skip every guest player.
+ */
+export function bowlerKeyOf(
+  e: { bowler_athlete_id?: string | null; bowler_name?: string | null } | null | undefined,
+): string | null {
+  if (!e) return null;
+  if (e.bowler_athlete_id) return `id:${e.bowler_athlete_id}`;
+  const n = e.bowler_name?.trim().toLowerCase();
+  return n ? `name:${n}` : null;
+}
+
+/** Max overs one bowler may bowl (ICC: a fifth of the innings, rounded up). */
+export function maxOversPerBowler(totalOvers: number | null | undefined): number | null {
+  if (!totalOvers || totalOvers <= 0) return null;
+  return Math.ceil(totalOvers / 5);
+}
+
 export interface ReplayOptions {
   /** Total overs in the innings, if known (limited-overs). */
   totalOvers?: number | null;
@@ -187,6 +277,7 @@ export interface ReplayOptions {
   /** Target for a chase. */
   target?: number | null;
 }
+
 
 /**
  * Replay a full innings from its event log. Deterministic and pure.
@@ -209,16 +300,18 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
   let awaitingNewBatter = false;
   let awaitingNewBowler = false;
   let strikeSwapPending = false;
+  let freeHit = false;
 
   const completed: OverSummary[] = [];
   const dismissedIds = new Set<string>();
   const dismissedNames = new Set<string>();
+  const bowlerLegalBalls = new Map<string, number>();
 
   let curOverNum = 0;
   let curOverEvents: MCBallEvent[] = [];
   let curOverRuns = 0;
+  let curOverCharged = 0; // runs debited to the bowler — decides the maiden
   let curOverLegal = 0;
-  let curOverHadBoundary = false;
   let curOverBowlerId: string | null = null;
   let curOverBowlerName: string | null = null;
 
@@ -229,8 +322,10 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
       bowlerAthleteId: curOverBowlerId,
       bowlerName: curOverBowlerName,
       legalBalls: curOverLegal,
-      runsConceded: curOverRuns,
-      isMaiden: finished && curOverLegal === 6 && curOverRuns === 0 && !curOverHadBoundary,
+      runsConceded: curOverCharged,
+      // MCC Law 17.4: a maiden is an over from which no runs are DEBITED to
+      // the bowler. Byes and leg-byes do not stop a maiden; wides/no-balls do.
+      isMaiden: finished && curOverLegal === 6 && curOverCharged === 0,
       completed: finished,
       events: curOverEvents.slice(),
     };
@@ -255,8 +350,8 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
       flushOver(true);
       curOverEvents = [];
       curOverRuns = 0;
+      curOverCharged = 0;
       curOverLegal = 0;
-      curOverHadBoundary = false;
     }
     curOverNum = e.over_number;
     curOverBowlerId = e.bowler_athlete_id;
@@ -266,17 +361,15 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
     const total = totalRunsForBall(e);
     runs += total;
     curOverRuns += total;
+    curOverCharged += bowlerRunsForBall(e);
 
     const legal = isLegalDelivery(e.extra_type as ExtraType | null);
     if (legal) {
       legalBalls += 1;
       curOverLegal += 1;
+      const bkey = bowlerKeyOf(e);
+      if (bkey) bowlerLegalBalls.set(bkey, (bowlerLegalBalls.get(bkey) ?? 0) + 1);
     }
-
-    // Boundary detection (only off-bat 4/6 disqualifies a maiden by MCC law;
-    // byes/leg-byes to the boundary do NOT disqualify — but we keep the
-    // stricter rule that any 4+ conceded breaks a maiden, which is standard).
-    if ((e.runs_off_bat ?? 0) >= 4) curOverHadBoundary = true;
 
     // Wicket accounting
     const dt = e.dismissal_type as DismissalType | null;
@@ -289,6 +382,12 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
       // Not a wicket, but the batter leaves; scorer must send a replacement.
       awaitingNewBatter = true;
     }
+
+    // Free hit (Law 21.18): the delivery after ANY no ball is a free hit, and
+    // it is not consumed by a delivery that is itself nullified (wide/no ball).
+    if (e.extra_type === "no_ball") freeHit = true;
+    else if (freeHit && !legal) freeHit = true;
+    else freeHit = false;
 
     // Strike rotation (per-ball). End-of-over swap handled after loop tail.
     if (ballSwapsStrike(e)) {
@@ -308,8 +407,8 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
       awaitingNewBowler = true;
       curOverEvents = [];
       curOverRuns = 0;
+      curOverCharged = 0;
       curOverLegal = 0;
-      curOverHadBoundary = false;
       curOverNum = e.over_number + 1;
       curOverBowlerId = null;
       curOverBowlerName = null;
@@ -317,6 +416,7 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
       awaitingNewBowler = false;
     }
   }
+
 
   // In-progress over summary (not yet completed)
   const currentOver: OverSummary | null =
@@ -369,6 +469,8 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
     strikeSwapPending,
     awaitingNewBatter: awaitingNewBatter && inningsShouldEnd == null,
     awaitingNewBowler: awaitingNewBowler && inningsShouldEnd == null,
+    freeHit: freeHit && inningsShouldEnd == null,
+    bowlerLegalBalls,
     completedOvers: completed,
     currentOver,
     dismissedIds,
@@ -424,6 +526,8 @@ export function validateBallDraft(
     innings: MCInnings | null;
     events: MCBallEvent[];
     matchStatus?: string | null;
+    /** Innings length, used to derive the per-bowler over quota. */
+    totalOvers?: number | null;
   },
 ): void {
   if (!ctx.innings) throw new BallEventError("INVALID_INNINGS", "Start an innings first.");
@@ -441,6 +545,19 @@ export function validateBallDraft(
     );
   if (dt && !(MODERN_DISMISSALS as readonly string[]).includes(dt))
     throw new BallEventError("INVALID_DISMISSAL", `Unsupported dismissal type: ${dt}.`);
+
+  // Which dismissals are even possible on this delivery (Laws 21.19 / 22.6).
+  const extraType = (draft.extraType ?? null) as ExtraType | null;
+  const isFreeHit = state.innings.freeHit && extraType !== "no_ball";
+  if (!dismissalAllowedOnDelivery(dt, extraType, isFreeHit)) {
+    const what =
+      extraType === "no_ball" ? "a no ball" : extraType === "wide" ? "a wide" : "a free hit";
+    throw new BallEventError(
+      "IMPOSSIBLE_DISMISSAL",
+      `A batter cannot be out ${String(dt).replace(/_/g, " ")} off ${what}. Only a run out (or obstructing the field) applies.`,
+    );
+  }
+
 
   // Batters
   if (!draft.strikerAthleteId && !draft.strikerName)
@@ -487,20 +604,40 @@ export function validateBallDraft(
       );
     }
   }
+  const draftBowlerKey = bowlerKeyOf({
+    bowler_athlete_id: draft.bowlerAthleteId ?? null,
+    bowler_name: draft.bowlerName ?? null,
+  });
+
   if (state.innings.awaitingNewBowler) {
     // A new bowler must be assigned. Verify he isn't the previous over's bowler.
+    // Compare by key so guest (name-only) bowlers are checked too.
     const prevOver = state.innings.completedOvers[state.innings.completedOvers.length - 1];
-    if (
-      prevOver &&
-      draft.bowlerAthleteId &&
-      prevOver.bowlerAthleteId &&
-      draft.bowlerAthleteId === prevOver.bowlerAthleteId
-    )
+    const prevKey = prevOver
+      ? bowlerKeyOf({
+          bowler_athlete_id: prevOver.bowlerAthleteId,
+          bowler_name: prevOver.bowlerName,
+        })
+      : null;
+    if (prevKey && draftBowlerKey && prevKey === draftBowlerKey)
       throw new BallEventError(
         "CONSECUTIVE_OVERS",
         "The same bowler cannot bowl consecutive overs.",
       );
   }
+
+  // Bowler quota (ICC playing conditions: a fifth of the innings, rounded up —
+  // 4 overs in a T20). Only enforced for limited-overs matches.
+  const quota = maxOversPerBowler(ctx.totalOvers ?? null);
+  if (quota && draftBowlerKey) {
+    const bowled = state.innings.bowlerLegalBalls.get(draftBowlerKey) ?? 0;
+    if (bowled >= quota * 6)
+      throw new BallEventError(
+        "BOWLER_QUOTA",
+        `This bowler has already bowled the maximum of ${quota} over${quota === 1 ? "" : "s"}.`,
+      );
+  }
+
 
   // Cannot re-dismiss
   if (isWicketDismissal(dt)) {

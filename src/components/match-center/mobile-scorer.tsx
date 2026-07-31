@@ -49,6 +49,8 @@ export interface MobileScorerProps {
   tournamentLabel?: string;
   matchTitle: string;
   isLive?: boolean;
+  /** Next delivery is a free hit (follows a no ball) — only run outs apply. */
+  freeHit?: boolean;
 
   score: string;
   overs: string;
@@ -279,6 +281,11 @@ export function MobileScorer(props: MobileScorerProps) {
                 <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wider text-destructive">
                   <span className="size-1.5 animate-pulse rounded-full bg-destructive" />
                   Live
+                </span>
+              )}
+              {props.freeHit && (
+                <span className="inline-flex shrink-0 items-center rounded-full border border-amber-500/50 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wider text-amber-600 dark:text-amber-400">
+                  Free hit
                 </span>
               )}
             </div>
