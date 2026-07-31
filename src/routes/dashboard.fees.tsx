@@ -83,11 +83,12 @@ function FeesHub() {
   return (
     <div className="-mt-4 md:-mt-8">
       {/* Sticky, always-identical header. Nothing below it ever shifts it. */}
-      <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 pt-3 backdrop-blur md:-mx-6 md:px-6">
-        <h1 className="text-xl font-bold tracking-tight">Fees</h1>
-        <p className="mb-2 text-[11px] text-muted-foreground">
+      <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 pt-2 backdrop-blur md:-mx-6 md:px-6">
+        <h1 className="text-base font-bold tracking-tight md:text-xl">Fees</h1>
+        <p className="mb-2 hidden text-[11px] text-muted-foreground md:block">
           Collections, approvals, plans and payment setup — all in one place.
         </p>
+
         <nav
           aria-label="Fees sections"
           className="scrollbar-none -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-2 md:-mx-6 md:px-6"
