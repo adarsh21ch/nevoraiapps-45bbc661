@@ -76,7 +76,7 @@ function AuthPage() {
       window.location.assign(nextPath);
       return;
     }
-    await goAfterLogin(uid);
+    navigate({ to: uid ? await routeAfterLogin(uid) : "/dashboard" });
   };
   const tenantState = useTenantState();
   const tenant = tenantState.status === "ready" ? tenantState.tenant : null;
