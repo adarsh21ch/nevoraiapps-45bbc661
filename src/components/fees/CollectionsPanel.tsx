@@ -412,7 +412,7 @@ function FeesProfileSheet({
   );
 }
 
-/* ---------- Compact KPI strip ---------- */
+/* ---------- Single-line KPI strip ---------- */
 
 function KpiStrip({
   pending,
@@ -426,21 +426,22 @@ function KpiStrip({
   pct: number;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm px-3 py-2">
-      <div className="grid grid-cols-4 gap-2 text-center">
+    <div className="scrollbar-none min-w-0 flex-1 overflow-x-auto">
+      <div className="flex h-7 items-center gap-2.5 whitespace-nowrap rounded-full border border-border bg-card px-3 shadow-sm">
         <KpiCell label="Pending" value={money(pending)} tone="danger" />
+        <Dot />
         <KpiCell label="Collected" value={money(collected)} tone="success" />
+        <Dot />
         <KpiCell label="Overdue" value={String(overdueCount)} tone="danger" />
-        <KpiCell label="Collection" value={`${pct}%`} tone="neutral" />
-      </div>
-      <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
-        <div
-          className="h-full rounded-full bg-foreground transition-all"
-          style={{ width: `${Math.min(100, pct)}%` }}
-        />
+        <Dot />
+        <KpiCell label="Collected %" value={`${pct}%`} tone="neutral" />
       </div>
     </div>
   );
+}
+
+function Dot() {
+  return <span aria-hidden className="h-1 w-1 shrink-0 rounded-full bg-border" />;
 }
 
 function KpiCell({
@@ -459,14 +460,13 @@ function KpiCell({
         ? "text-emerald-600"
         : "text-foreground";
   return (
-    <div className="min-w-0">
-      <div className={cn("text-sm font-bold tabular-nums truncate", color)}>{value}</div>
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground leading-tight">
-        {label}
-      </div>
-    </div>
+    <span className="inline-flex shrink-0 items-baseline gap-1">
+      <span className={cn("text-[12px] font-bold tabular-nums", color)}>{value}</span>
+      <span className="text-[10px] text-muted-foreground">{label}</span>
+    </span>
   );
 }
+
 
 /* ---------- Chip filters ---------- */
 
