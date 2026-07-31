@@ -127,7 +127,7 @@ function FeesHub() {
         </nav>
       </div>
 
-      <div className="pt-3 pb-24">
+      <div className="pt-2 pb-24">
         {tab === "collections" && (
           <>
             {pendingCount > 0 && (
