@@ -118,6 +118,7 @@ import { Route as DashboardBatchesRouteImport } from './routes/dashboard.batches
 import { Route as DashboardAutomationTestRouteImport } from './routes/dashboard.automation-test'
 import { Route as DashboardAutomationSettingsRouteImport } from './routes/dashboard.automation-settings'
 import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
+import { Route as DashboardAttendanceQrRouteImport } from './routes/dashboard.attendance-qr'
 import { Route as DashboardAttendanceRouteImport } from './routes/dashboard.attendance'
 import { Route as DashboardAdmissionsReviewRouteImport } from './routes/dashboard.admissions-review'
 import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
@@ -704,6 +705,11 @@ const DashboardAutomationRoute = DashboardAutomationRouteImport.update({
   path: '/automation',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAttendanceQrRoute = DashboardAttendanceQrRouteImport.update({
+  id: '/attendance-qr',
+  path: '/attendance-qr',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAttendanceRoute = DashboardAttendanceRouteImport.update({
   id: '/attendance',
   path: '/attendance',
@@ -934,6 +940,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/admissions-review': typeof DashboardAdmissionsReviewRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
+  '/dashboard/attendance-qr': typeof DashboardAttendanceQrRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
   '/dashboard/automation-test': typeof DashboardAutomationTestRoute
@@ -1073,6 +1080,7 @@ export interface FileRoutesByTo {
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/admissions-review': typeof DashboardAdmissionsReviewRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
+  '/dashboard/attendance-qr': typeof DashboardAttendanceQrRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
   '/dashboard/automation-test': typeof DashboardAutomationTestRoute
@@ -1219,6 +1227,7 @@ export interface FileRoutesById {
   '/dashboard/admins': typeof DashboardAdminsRoute
   '/dashboard/admissions-review': typeof DashboardAdmissionsReviewRoute
   '/dashboard/attendance': typeof DashboardAttendanceRoute
+  '/dashboard/attendance-qr': typeof DashboardAttendanceQrRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/automation-settings': typeof DashboardAutomationSettingsRoute
   '/dashboard/automation-test': typeof DashboardAutomationTestRoute
@@ -1366,6 +1375,7 @@ export interface FileRouteTypes {
     | '/dashboard/admins'
     | '/dashboard/admissions-review'
     | '/dashboard/attendance'
+    | '/dashboard/attendance-qr'
     | '/dashboard/automation'
     | '/dashboard/automation-settings'
     | '/dashboard/automation-test'
@@ -1505,6 +1515,7 @@ export interface FileRouteTypes {
     | '/dashboard/admins'
     | '/dashboard/admissions-review'
     | '/dashboard/attendance'
+    | '/dashboard/attendance-qr'
     | '/dashboard/automation'
     | '/dashboard/automation-settings'
     | '/dashboard/automation-test'
@@ -1650,6 +1661,7 @@ export interface FileRouteTypes {
     | '/dashboard/admins'
     | '/dashboard/admissions-review'
     | '/dashboard/attendance'
+    | '/dashboard/attendance-qr'
     | '/dashboard/automation'
     | '/dashboard/automation-settings'
     | '/dashboard/automation-test'
@@ -2573,6 +2585,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAutomationRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/attendance-qr': {
+      id: '/dashboard/attendance-qr'
+      path: '/attendance-qr'
+      fullPath: '/dashboard/attendance-qr'
+      preLoaderRoute: typeof DashboardAttendanceQrRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/attendance': {
       id: '/dashboard/attendance'
       path: '/attendance'
@@ -2847,6 +2866,7 @@ interface DashboardRouteChildren {
   DashboardAdminsRoute: typeof DashboardAdminsRoute
   DashboardAdmissionsReviewRoute: typeof DashboardAdmissionsReviewRoute
   DashboardAttendanceRoute: typeof DashboardAttendanceRoute
+  DashboardAttendanceQrRoute: typeof DashboardAttendanceQrRoute
   DashboardAutomationRoute: typeof DashboardAutomationRoute
   DashboardAutomationSettingsRoute: typeof DashboardAutomationSettingsRoute
   DashboardAutomationTestRoute: typeof DashboardAutomationTestRoute
@@ -2882,6 +2902,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdminsRoute: DashboardAdminsRoute,
   DashboardAdmissionsReviewRoute: DashboardAdmissionsReviewRoute,
   DashboardAttendanceRoute: DashboardAttendanceRoute,
+  DashboardAttendanceQrRoute: DashboardAttendanceQrRoute,
   DashboardAutomationRoute: DashboardAutomationRoute,
   DashboardAutomationSettingsRoute: DashboardAutomationSettingsRoute,
   DashboardAutomationTestRoute: DashboardAutomationTestRoute,
