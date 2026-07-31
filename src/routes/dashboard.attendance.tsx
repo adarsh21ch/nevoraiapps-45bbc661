@@ -24,6 +24,7 @@ import {
   CalendarIcon,
   MoreVertical,
   ArrowLeft,
+  QrCode,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
