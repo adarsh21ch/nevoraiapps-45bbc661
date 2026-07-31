@@ -19,6 +19,7 @@ import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
+import { Route as ParentPortalRouteImport } from './routes/parent-portal'
 import { Route as ParentRouteImport } from './routes/parent'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MatchesRouteImport } from './routes/matches'
@@ -41,6 +42,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudentIndexRouteImport } from './routes/student.index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
+import { Route as ParentIndexRouteImport } from './routes/parent.index'
 import { Route as MatchesIndexRouteImport } from './routes/matches.index'
 import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
@@ -68,6 +70,7 @@ import { Route as PlatformAdminFounderRouteImport } from './routes/platform-admi
 import { Route as PlatformAdminFlagsRouteImport } from './routes/platform-admin.flags'
 import { Route as PlatformAdminCommunicationRouteImport } from './routes/platform-admin.communication'
 import { Route as PlatformAdminAuditRouteImport } from './routes/platform-admin.audit'
+import { Route as ParentSplatRouteImport } from './routes/parent.$'
 import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
 import { Route as MatchSlugRouteImport } from './routes/match.$slug'
 import { Route as MatchCenterWebsiteRouteImport } from './routes/match-center.website'
@@ -199,6 +202,11 @@ const PlatformAdminRoute = PlatformAdminRouteImport.update({
   path: '/platform-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParentPortalRoute = ParentPortalRouteImport.update({
+  id: '/parent-portal',
+  path: '/parent-portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ParentRoute = ParentRouteImport.update({
   id: '/parent',
   path: '/parent',
@@ -308,6 +316,11 @@ const PlatformAdminIndexRoute = PlatformAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PlatformAdminRoute,
+} as any)
+const ParentIndexRoute = ParentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ParentRoute,
 } as any)
 const MatchesIndexRoute = MatchesIndexRouteImport.update({
   id: '/',
@@ -446,6 +459,11 @@ const PlatformAdminAuditRoute = PlatformAdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
   getParentRoute: () => PlatformAdminRoute,
+} as any)
+const ParentSplatRoute = ParentSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => ParentRoute,
 } as any)
 const MatchesMatchIdRoute = MatchesMatchIdRouteImport.update({
   id: '/$matchId',
@@ -888,7 +906,8 @@ export interface FileRoutesByFullPath {
   '/match-center': typeof MatchCenterRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
-  '/parent': typeof ParentRoute
+  '/parent': typeof ParentRouteWithChildren
+  '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -954,6 +973,7 @@ export interface FileRoutesByFullPath {
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
+  '/parent/$': typeof ParentSplatRoute
   '/platform-admin/audit': typeof PlatformAdminAuditRoute
   '/platform-admin/communication': typeof PlatformAdminCommunicationRoute
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
@@ -981,6 +1001,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/matches/': typeof MatchesIndexRoute
+  '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
   '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
@@ -1026,7 +1047,7 @@ export interface FileRoutesByTo {
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
   '/notifications': typeof NotificationsRoute
-  '/parent': typeof ParentRoute
+  '/parent-portal': typeof ParentPortalRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
@@ -1090,6 +1111,7 @@ export interface FileRoutesByTo {
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
+  '/parent/$': typeof ParentSplatRoute
   '/platform-admin/audit': typeof PlatformAdminAuditRoute
   '/platform-admin/communication': typeof PlatformAdminCommunicationRoute
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
@@ -1117,6 +1139,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/match-center': typeof MatchCenterIndexRoute
   '/matches': typeof MatchesIndexRoute
+  '/parent': typeof ParentIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/student': typeof StudentIndexRoute
   '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
@@ -1166,7 +1189,8 @@ export interface FileRoutesById {
   '/match-center': typeof MatchCenterRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
-  '/parent': typeof ParentRoute
+  '/parent': typeof ParentRouteWithChildren
+  '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -1232,6 +1256,7 @@ export interface FileRoutesById {
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
+  '/parent/$': typeof ParentSplatRoute
   '/platform-admin/audit': typeof PlatformAdminAuditRoute
   '/platform-admin/communication': typeof PlatformAdminCommunicationRoute
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
@@ -1259,6 +1284,7 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/matches/': typeof MatchesIndexRoute
+  '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
   '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
@@ -1310,6 +1336,7 @@ export interface FileRouteTypes {
     | '/matches'
     | '/notifications'
     | '/parent'
+    | '/parent-portal'
     | '/platform-admin'
     | '/pricing'
     | '/privacy'
@@ -1375,6 +1402,7 @@ export interface FileRouteTypes {
     | '/match-center/website'
     | '/match/$slug'
     | '/matches/$matchId'
+    | '/parent/$'
     | '/platform-admin/audit'
     | '/platform-admin/communication'
     | '/platform-admin/flags'
@@ -1402,6 +1430,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/match-center/'
     | '/matches/'
+    | '/parent/'
     | '/platform-admin/'
     | '/student/'
     | '/api/public/tenant-icon'
@@ -1447,7 +1476,7 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/location'
     | '/notifications'
-    | '/parent'
+    | '/parent-portal'
     | '/pricing'
     | '/privacy'
     | '/programs'
@@ -1511,6 +1540,7 @@ export interface FileRouteTypes {
     | '/match-center/website'
     | '/match/$slug'
     | '/matches/$matchId'
+    | '/parent/$'
     | '/platform-admin/audit'
     | '/platform-admin/communication'
     | '/platform-admin/flags'
@@ -1538,6 +1568,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/match-center'
     | '/matches'
+    | '/parent'
     | '/platform-admin'
     | '/student'
     | '/api/public/tenant-icon'
@@ -1587,6 +1618,7 @@ export interface FileRouteTypes {
     | '/matches'
     | '/notifications'
     | '/parent'
+    | '/parent-portal'
     | '/platform-admin'
     | '/pricing'
     | '/privacy'
@@ -1652,6 +1684,7 @@ export interface FileRouteTypes {
     | '/match-center/website'
     | '/match/$slug'
     | '/matches/$matchId'
+    | '/parent/$'
     | '/platform-admin/audit'
     | '/platform-admin/communication'
     | '/platform-admin/flags'
@@ -1679,6 +1712,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/match-center/'
     | '/matches/'
+    | '/parent/'
     | '/platform-admin/'
     | '/student/'
     | '/api/public/tenant-icon'
@@ -1728,7 +1762,8 @@ export interface RootRouteChildren {
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
   MatchesRoute: typeof MatchesRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
-  ParentRoute: typeof ParentRoute
+  ParentRoute: typeof ParentRouteWithChildren
+  ParentPortalRoute: typeof ParentPortalRoute
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -1830,6 +1865,13 @@ declare module '@tanstack/react-router' {
       path: '/platform-admin'
       fullPath: '/platform-admin'
       preLoaderRoute: typeof PlatformAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parent-portal': {
+      id: '/parent-portal'
+      path: '/parent-portal'
+      fullPath: '/parent-portal'
+      preLoaderRoute: typeof ParentPortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parent': {
@@ -1985,6 +2027,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/platform-admin/'
       preLoaderRoute: typeof PlatformAdminIndexRouteImport
       parentRoute: typeof PlatformAdminRoute
+    }
+    '/parent/': {
+      id: '/parent/'
+      path: '/'
+      fullPath: '/parent/'
+      preLoaderRoute: typeof ParentIndexRouteImport
+      parentRoute: typeof ParentRoute
     }
     '/matches/': {
       id: '/matches/'
@@ -2174,6 +2223,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/platform-admin/audit'
       preLoaderRoute: typeof PlatformAdminAuditRouteImport
       parentRoute: typeof PlatformAdminRoute
+    }
+    '/parent/$': {
+      id: '/parent/$'
+      path: '/$'
+      fullPath: '/parent/$'
+      preLoaderRoute: typeof ParentSplatRouteImport
+      parentRoute: typeof ParentRoute
     }
     '/matches/$matchId': {
       id: '/matches/$matchId'
@@ -2939,6 +2995,19 @@ const MatchesRouteChildren: MatchesRouteChildren = {
 const MatchesRouteWithChildren =
   MatchesRoute._addFileChildren(MatchesRouteChildren)
 
+interface ParentRouteChildren {
+  ParentSplatRoute: typeof ParentSplatRoute
+  ParentIndexRoute: typeof ParentIndexRoute
+}
+
+const ParentRouteChildren: ParentRouteChildren = {
+  ParentSplatRoute: ParentSplatRoute,
+  ParentIndexRoute: ParentIndexRoute,
+}
+
+const ParentRouteWithChildren =
+  ParentRoute._addFileChildren(ParentRouteChildren)
+
 interface PlatformAdminRouteChildren {
   PlatformAdminAuditRoute: typeof PlatformAdminAuditRoute
   PlatformAdminCommunicationRoute: typeof PlatformAdminCommunicationRoute
@@ -3030,7 +3099,8 @@ const rootRouteChildren: RootRouteChildren = {
   MatchCenterRoute: MatchCenterRouteWithChildren,
   MatchesRoute: MatchesRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
-  ParentRoute: ParentRoute,
+  ParentRoute: ParentRouteWithChildren,
+  ParentPortalRoute: ParentPortalRoute,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
