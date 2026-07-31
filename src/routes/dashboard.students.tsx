@@ -86,7 +86,6 @@ export const Route = createFileRoute("/dashboard/students")({
 const PRIMARY_STATUS_TABS: { key: string; label: string }[] = [
   { key: "active", label: "Active" },
   { key: "left", label: "Left" },
-  { key: "all", label: "All" },
 ];
 const ADVANCED_STATUSES: PlayerStatus[] = [
   "trial",
