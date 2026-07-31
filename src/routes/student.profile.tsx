@@ -11,6 +11,8 @@ import {
   Trophy,
   LogOut,
   FileText,
+  CalendarDays,
+  Building2,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
