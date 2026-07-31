@@ -19,8 +19,6 @@ import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PlatformAdminRouteImport } from './routes/platform-admin'
-import { Route as ParentPortalRouteImport } from './routes/parent-portal'
-import { Route as ParentRouteImport } from './routes/parent'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MatchesRouteImport } from './routes/matches'
 import { Route as MatchCenterRouteImport } from './routes/match-center'
@@ -42,7 +40,6 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StudentIndexRouteImport } from './routes/student.index'
 import { Route as PlatformAdminIndexRouteImport } from './routes/platform-admin.index'
-import { Route as ParentIndexRouteImport } from './routes/parent.index'
 import { Route as MatchesIndexRouteImport } from './routes/matches.index'
 import { Route as MatchCenterIndexRouteImport } from './routes/match-center.index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
@@ -70,10 +67,6 @@ import { Route as PlatformAdminFounderRouteImport } from './routes/platform-admi
 import { Route as PlatformAdminFlagsRouteImport } from './routes/platform-admin.flags'
 import { Route as PlatformAdminCommunicationRouteImport } from './routes/platform-admin.communication'
 import { Route as PlatformAdminAuditRouteImport } from './routes/platform-admin.audit'
-import { Route as ParentTimelineRouteImport } from './routes/parent.timeline'
-import { Route as ParentProgressRouteImport } from './routes/parent.progress'
-import { Route as ParentProfileRouteImport } from './routes/parent.profile'
-import { Route as ParentBillingRouteImport } from './routes/parent.billing'
 import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
 import { Route as MatchSlugRouteImport } from './routes/match.$slug'
 import { Route as MatchCenterWebsiteRouteImport } from './routes/match-center.website'
@@ -205,16 +198,6 @@ const PlatformAdminRoute = PlatformAdminRouteImport.update({
   path: '/platform-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ParentPortalRoute = ParentPortalRouteImport.update({
-  id: '/parent-portal',
-  path: '/parent-portal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ParentRoute = ParentRouteImport.update({
-  id: '/parent',
-  path: '/parent',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
@@ -319,11 +302,6 @@ const PlatformAdminIndexRoute = PlatformAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PlatformAdminRoute,
-} as any)
-const ParentIndexRoute = ParentIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ParentRoute,
 } as any)
 const MatchesIndexRoute = MatchesIndexRouteImport.update({
   id: '/',
@@ -462,26 +440,6 @@ const PlatformAdminAuditRoute = PlatformAdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
   getParentRoute: () => PlatformAdminRoute,
-} as any)
-const ParentTimelineRoute = ParentTimelineRouteImport.update({
-  id: '/timeline',
-  path: '/timeline',
-  getParentRoute: () => ParentRoute,
-} as any)
-const ParentProgressRoute = ParentProgressRouteImport.update({
-  id: '/progress',
-  path: '/progress',
-  getParentRoute: () => ParentRoute,
-} as any)
-const ParentProfileRoute = ParentProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => ParentRoute,
-} as any)
-const ParentBillingRoute = ParentBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => ParentRoute,
 } as any)
 const MatchesMatchIdRoute = MatchesMatchIdRouteImport.update({
   id: '/$matchId',
@@ -924,8 +882,6 @@ export interface FileRoutesByFullPath {
   '/match-center': typeof MatchCenterRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
-  '/parent': typeof ParentRouteWithChildren
-  '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -991,10 +947,6 @@ export interface FileRoutesByFullPath {
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
-  '/parent/billing': typeof ParentBillingRoute
-  '/parent/profile': typeof ParentProfileRoute
-  '/parent/progress': typeof ParentProgressRoute
-  '/parent/timeline': typeof ParentTimelineRoute
   '/platform-admin/audit': typeof PlatformAdminAuditRoute
   '/platform-admin/communication': typeof PlatformAdminCommunicationRoute
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
@@ -1022,7 +974,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/matches/': typeof MatchesIndexRoute
-  '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
   '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
@@ -1068,7 +1019,6 @@ export interface FileRoutesByTo {
   '/gallery': typeof GalleryRoute
   '/location': typeof LocationRoute
   '/notifications': typeof NotificationsRoute
-  '/parent-portal': typeof ParentPortalRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
@@ -1132,10 +1082,6 @@ export interface FileRoutesByTo {
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
-  '/parent/billing': typeof ParentBillingRoute
-  '/parent/profile': typeof ParentProfileRoute
-  '/parent/progress': typeof ParentProgressRoute
-  '/parent/timeline': typeof ParentTimelineRoute
   '/platform-admin/audit': typeof PlatformAdminAuditRoute
   '/platform-admin/communication': typeof PlatformAdminCommunicationRoute
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
@@ -1163,7 +1109,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/match-center': typeof MatchCenterIndexRoute
   '/matches': typeof MatchesIndexRoute
-  '/parent': typeof ParentIndexRoute
   '/platform-admin': typeof PlatformAdminIndexRoute
   '/student': typeof StudentIndexRoute
   '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
@@ -1213,8 +1158,6 @@ export interface FileRoutesById {
   '/match-center': typeof MatchCenterRouteWithChildren
   '/matches': typeof MatchesRouteWithChildren
   '/notifications': typeof NotificationsRoute
-  '/parent': typeof ParentRouteWithChildren
-  '/parent-portal': typeof ParentPortalRoute
   '/platform-admin': typeof PlatformAdminRouteWithChildren
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -1280,10 +1223,6 @@ export interface FileRoutesById {
   '/match-center/website': typeof MatchCenterWebsiteRoute
   '/match/$slug': typeof MatchSlugRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
-  '/parent/billing': typeof ParentBillingRoute
-  '/parent/profile': typeof ParentProfileRoute
-  '/parent/progress': typeof ParentProgressRoute
-  '/parent/timeline': typeof ParentTimelineRoute
   '/platform-admin/audit': typeof PlatformAdminAuditRoute
   '/platform-admin/communication': typeof PlatformAdminCommunicationRoute
   '/platform-admin/flags': typeof PlatformAdminFlagsRoute
@@ -1311,7 +1250,6 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/match-center/': typeof MatchCenterIndexRoute
   '/matches/': typeof MatchesIndexRoute
-  '/parent/': typeof ParentIndexRoute
   '/platform-admin/': typeof PlatformAdminIndexRoute
   '/student/': typeof StudentIndexRoute
   '/api/public/tenant-icon': typeof ApiPublicTenantIconRoute
@@ -1362,8 +1300,6 @@ export interface FileRouteTypes {
     | '/match-center'
     | '/matches'
     | '/notifications'
-    | '/parent'
-    | '/parent-portal'
     | '/platform-admin'
     | '/pricing'
     | '/privacy'
@@ -1429,10 +1365,6 @@ export interface FileRouteTypes {
     | '/match-center/website'
     | '/match/$slug'
     | '/matches/$matchId'
-    | '/parent/billing'
-    | '/parent/profile'
-    | '/parent/progress'
-    | '/parent/timeline'
     | '/platform-admin/audit'
     | '/platform-admin/communication'
     | '/platform-admin/flags'
@@ -1460,7 +1392,6 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/match-center/'
     | '/matches/'
-    | '/parent/'
     | '/platform-admin/'
     | '/student/'
     | '/api/public/tenant-icon'
@@ -1506,7 +1437,6 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/location'
     | '/notifications'
-    | '/parent-portal'
     | '/pricing'
     | '/privacy'
     | '/programs'
@@ -1570,10 +1500,6 @@ export interface FileRouteTypes {
     | '/match-center/website'
     | '/match/$slug'
     | '/matches/$matchId'
-    | '/parent/billing'
-    | '/parent/profile'
-    | '/parent/progress'
-    | '/parent/timeline'
     | '/platform-admin/audit'
     | '/platform-admin/communication'
     | '/platform-admin/flags'
@@ -1601,7 +1527,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/match-center'
     | '/matches'
-    | '/parent'
     | '/platform-admin'
     | '/student'
     | '/api/public/tenant-icon'
@@ -1650,8 +1575,6 @@ export interface FileRouteTypes {
     | '/match-center'
     | '/matches'
     | '/notifications'
-    | '/parent'
-    | '/parent-portal'
     | '/platform-admin'
     | '/pricing'
     | '/privacy'
@@ -1717,10 +1640,6 @@ export interface FileRouteTypes {
     | '/match-center/website'
     | '/match/$slug'
     | '/matches/$matchId'
-    | '/parent/billing'
-    | '/parent/profile'
-    | '/parent/progress'
-    | '/parent/timeline'
     | '/platform-admin/audit'
     | '/platform-admin/communication'
     | '/platform-admin/flags'
@@ -1748,7 +1667,6 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/match-center/'
     | '/matches/'
-    | '/parent/'
     | '/platform-admin/'
     | '/student/'
     | '/api/public/tenant-icon'
@@ -1798,8 +1716,6 @@ export interface RootRouteChildren {
   MatchCenterRoute: typeof MatchCenterRouteWithChildren
   MatchesRoute: typeof MatchesRouteWithChildren
   NotificationsRoute: typeof NotificationsRoute
-  ParentRoute: typeof ParentRouteWithChildren
-  ParentPortalRoute: typeof ParentPortalRoute
   PlatformAdminRoute: typeof PlatformAdminRouteWithChildren
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -1901,20 +1817,6 @@ declare module '@tanstack/react-router' {
       path: '/platform-admin'
       fullPath: '/platform-admin'
       preLoaderRoute: typeof PlatformAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/parent-portal': {
-      id: '/parent-portal'
-      path: '/parent-portal'
-      fullPath: '/parent-portal'
-      preLoaderRoute: typeof ParentPortalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/parent': {
-      id: '/parent'
-      path: '/parent'
-      fullPath: '/parent'
-      preLoaderRoute: typeof ParentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -2063,13 +1965,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/platform-admin/'
       preLoaderRoute: typeof PlatformAdminIndexRouteImport
       parentRoute: typeof PlatformAdminRoute
-    }
-    '/parent/': {
-      id: '/parent/'
-      path: '/'
-      fullPath: '/parent/'
-      preLoaderRoute: typeof ParentIndexRouteImport
-      parentRoute: typeof ParentRoute
     }
     '/matches/': {
       id: '/matches/'
@@ -2259,34 +2154,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/platform-admin/audit'
       preLoaderRoute: typeof PlatformAdminAuditRouteImport
       parentRoute: typeof PlatformAdminRoute
-    }
-    '/parent/timeline': {
-      id: '/parent/timeline'
-      path: '/timeline'
-      fullPath: '/parent/timeline'
-      preLoaderRoute: typeof ParentTimelineRouteImport
-      parentRoute: typeof ParentRoute
-    }
-    '/parent/progress': {
-      id: '/parent/progress'
-      path: '/progress'
-      fullPath: '/parent/progress'
-      preLoaderRoute: typeof ParentProgressRouteImport
-      parentRoute: typeof ParentRoute
-    }
-    '/parent/profile': {
-      id: '/parent/profile'
-      path: '/profile'
-      fullPath: '/parent/profile'
-      preLoaderRoute: typeof ParentProfileRouteImport
-      parentRoute: typeof ParentRoute
-    }
-    '/parent/billing': {
-      id: '/parent/billing'
-      path: '/billing'
-      fullPath: '/parent/billing'
-      preLoaderRoute: typeof ParentBillingRouteImport
-      parentRoute: typeof ParentRoute
     }
     '/matches/$matchId': {
       id: '/matches/$matchId'
@@ -3052,25 +2919,6 @@ const MatchesRouteChildren: MatchesRouteChildren = {
 const MatchesRouteWithChildren =
   MatchesRoute._addFileChildren(MatchesRouteChildren)
 
-interface ParentRouteChildren {
-  ParentBillingRoute: typeof ParentBillingRoute
-  ParentProfileRoute: typeof ParentProfileRoute
-  ParentProgressRoute: typeof ParentProgressRoute
-  ParentTimelineRoute: typeof ParentTimelineRoute
-  ParentIndexRoute: typeof ParentIndexRoute
-}
-
-const ParentRouteChildren: ParentRouteChildren = {
-  ParentBillingRoute: ParentBillingRoute,
-  ParentProfileRoute: ParentProfileRoute,
-  ParentProgressRoute: ParentProgressRoute,
-  ParentTimelineRoute: ParentTimelineRoute,
-  ParentIndexRoute: ParentIndexRoute,
-}
-
-const ParentRouteWithChildren =
-  ParentRoute._addFileChildren(ParentRouteChildren)
-
 interface PlatformAdminRouteChildren {
   PlatformAdminAuditRoute: typeof PlatformAdminAuditRoute
   PlatformAdminCommunicationRoute: typeof PlatformAdminCommunicationRoute
@@ -3162,8 +3010,6 @@ const rootRouteChildren: RootRouteChildren = {
   MatchCenterRoute: MatchCenterRouteWithChildren,
   MatchesRoute: MatchesRouteWithChildren,
   NotificationsRoute: NotificationsRoute,
-  ParentRoute: ParentRouteWithChildren,
-  ParentPortalRoute: ParentPortalRoute,
   PlatformAdminRoute: PlatformAdminRouteWithChildren,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
