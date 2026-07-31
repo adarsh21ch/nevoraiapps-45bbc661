@@ -86,7 +86,6 @@ export const Route = createFileRoute("/dashboard/students")({
 const PRIMARY_STATUS_TABS: { key: string; label: string }[] = [
   { key: "active", label: "Active" },
   { key: "left", label: "Left" },
-  { key: "all", label: "All" },
 ];
 const ADVANCED_STATUSES: PlayerStatus[] = [
   "trial",
@@ -344,19 +343,14 @@ function StudentsPage() {
         </div>
       ) : null}
 
-      {/* Primary status tabs — All / Active / Left. Advanced statuses live inside the Filters panel. */}
+      {/* Primary status tabs — Active / Left. Advanced statuses live inside the Filters panel. */}
       <FilterTabs
-        value={PRIMARY_STATUS_TABS.some((t) => t.key === status) ? status : "all"}
+        value={PRIMARY_STATUS_TABS.some((t) => t.key === status) ? status : ""}
         onChange={(k: string) => setStatus(k)}
         items={PRIMARY_STATUS_TABS.map((t) => ({
           key: t.key,
           label: t.label,
-          count:
-            t.key === "all"
-              ? counts.all
-              : t.key === "left"
-                ? counts.left ?? 0
-                : counts[t.key] ?? 0,
+          count: t.key === "left" ? (counts.left ?? 0) : (counts[t.key] ?? 0),
         }))}
         ariaLabel="Student status"
       />
