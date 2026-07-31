@@ -580,6 +580,84 @@ export type Database = {
           },
         ]
       }
+      attendance_qr_scans: {
+        Row: {
+          accuracy_m: number | null
+          action: string | null
+          created_at: string
+          distance_m: number | null
+          id: string
+          lat: number | null
+          lng: number | null
+          result: string
+          student_id: string | null
+          tenant_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accuracy_m?: number | null
+          action?: string | null
+          created_at?: string
+          distance_m?: number | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          result: string
+          student_id?: string | null
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accuracy_m?: number | null
+          action?: string | null
+          created_at?: string
+          distance_m?: number | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          result?: string
+          student_id?: string | null
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_qr_scans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_qr_scans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_qr_scans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_qr_scans_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_qr_scans_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance_sessions: {
         Row: {
           batch_id: string
@@ -6883,6 +6961,9 @@ export type Database = {
       tenants: {
         Row: {
           address: string | null
+          attendance_qr_enabled: boolean
+          attendance_qr_min_gap_seconds: number
+          attendance_qr_token: string | null
           bank_account_name: string | null
           bank_account_number: string | null
           bank_ifsc: string | null
@@ -6894,6 +6975,9 @@ export type Database = {
           feature_overrides: Json
           features: Json
           fee_cycle: string
+          geo_lat: number | null
+          geo_lng: number | null
+          geo_radius_m: number
           grace_ends_at: string | null
           id: string
           last_paid_date: string | null
@@ -6928,6 +7012,9 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          attendance_qr_enabled?: boolean
+          attendance_qr_min_gap_seconds?: number
+          attendance_qr_token?: string | null
           bank_account_name?: string | null
           bank_account_number?: string | null
           bank_ifsc?: string | null
@@ -6939,6 +7026,9 @@ export type Database = {
           feature_overrides?: Json
           features?: Json
           fee_cycle?: string
+          geo_lat?: number | null
+          geo_lng?: number | null
+          geo_radius_m?: number
           grace_ends_at?: string | null
           id?: string
           last_paid_date?: string | null
@@ -6973,6 +7063,9 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          attendance_qr_enabled?: boolean
+          attendance_qr_min_gap_seconds?: number
+          attendance_qr_token?: string | null
           bank_account_name?: string | null
           bank_account_number?: string | null
           bank_ifsc?: string | null
@@ -6984,6 +7077,9 @@ export type Database = {
           feature_overrides?: Json
           features?: Json
           fee_cycle?: string
+          geo_lat?: number | null
+          geo_lng?: number | null
+          geo_radius_m?: number
           grace_ends_at?: string | null
           id?: string
           last_paid_date?: string | null
@@ -7549,6 +7645,10 @@ export type Database = {
         Args: { _tenant_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      geo_distance_m: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
       get_academy_health: { Args: { _tenant_id: string }; Returns: Json }
       get_academy_records_summary: {
         Args: { _tenant_id: string }
@@ -7556,6 +7656,10 @@ export type Database = {
       }
       get_ai_report_inputs: {
         Args: { _from?: string; _tenant_id: string; _to?: string }
+        Returns: Json
+      }
+      get_attendance_qr_settings: {
+        Args: { _tenant_id: string }
         Returns: Json
       }
       get_attendance_summary: {
@@ -7759,6 +7863,16 @@ export type Database = {
             }
             Returns: string
           }
+      qr_attendance_scan: {
+        Args: {
+          _accuracy?: number
+          _lat: number
+          _lng: number
+          _local_date?: string
+          _token: string
+        }
+        Returns: Json
+      }
       record_billing_payment: {
         Args: {
           _allocations: Json
@@ -7789,6 +7903,17 @@ export type Database = {
         Returns: undefined
       }
       send_campaign: { Args: { _campaign_id: string }; Returns: Json }
+      set_attendance_qr_settings: {
+        Args: {
+          _enabled?: boolean
+          _lat?: number
+          _lng?: number
+          _radius_m?: number
+          _rotate_token?: boolean
+          _tenant_id: string
+        }
+        Returns: Json
+      }
       set_my_username: { Args: { _username: string }; Returns: string }
       set_tenant_feature: {
         Args: { _enabled: boolean; _key: string; _tenant_id: string }
