@@ -426,8 +426,10 @@ export function useScoringSession(
           innings: activeInnings,
           events: priorEvents,
           matchStatus: match?.status ?? null,
+          totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
         },
       );
+
 
       const pos = nextPosition(priorEvents);
       const optimistic: MCBallEvent = {
