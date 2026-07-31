@@ -51,6 +51,7 @@ import { Route as StudentProfileRouteImport } from './routes/student.profile'
 import { Route as StudentPendingRouteImport } from './routes/student.pending'
 import { Route as StudentMatchesRouteImport } from './routes/student.matches'
 import { Route as StudentManageRouteImport } from './routes/student.manage'
+import { Route as StudentFeesRouteImport } from './routes/student.fees'
 import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
 import { Route as PoliciesKindRouteImport } from './routes/policies.$kind'
 import { Route as PlatformAdminUsageRouteImport } from './routes/platform-admin.usage'
@@ -361,6 +362,11 @@ const StudentMatchesRoute = StudentMatchesRouteImport.update({
 const StudentManageRoute = StudentManageRouteImport.update({
   id: '/manage',
   path: '/manage',
+  getParentRoute: () => StudentRoute,
+} as any)
+const StudentFeesRoute = StudentFeesRouteImport.update({
+  id: '/fees',
+  path: '/fees',
   getParentRoute: () => StudentRoute,
 } as any)
 const ScorerMatchIdRoute = ScorerMatchIdRouteImport.update({
@@ -1000,6 +1006,7 @@ export interface FileRoutesByFullPath {
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
   '/student/pending': typeof StudentPendingRoute
@@ -1139,6 +1146,7 @@ export interface FileRoutesByTo {
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
   '/student/pending': typeof StudentPendingRoute
@@ -1285,6 +1293,7 @@ export interface FileRoutesById {
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
   '/student/pending': typeof StudentPendingRoute
@@ -1432,6 +1441,7 @@ export interface FileRouteTypes {
     | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
+    | '/student/fees'
     | '/student/manage'
     | '/student/matches'
     | '/student/pending'
@@ -1571,6 +1581,7 @@ export interface FileRouteTypes {
     | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
+    | '/student/fees'
     | '/student/manage'
     | '/student/matches'
     | '/student/pending'
@@ -1716,6 +1727,7 @@ export interface FileRouteTypes {
     | '/platform-admin/usage'
     | '/policies/$kind'
     | '/scorer/$matchId'
+    | '/student/fees'
     | '/student/manage'
     | '/student/matches'
     | '/student/pending'
@@ -2101,6 +2113,13 @@ declare module '@tanstack/react-router' {
       path: '/manage'
       fullPath: '/student/manage'
       preLoaderRoute: typeof StudentManageRouteImport
+      parentRoute: typeof StudentRoute
+    }
+    '/student/fees': {
+      id: '/student/fees'
+      path: '/fees'
+      fullPath: '/student/fees'
+      preLoaderRoute: typeof StudentFeesRouteImport
       parentRoute: typeof StudentRoute
     }
     '/scorer/$matchId': {
@@ -3080,6 +3099,7 @@ const PlatformAdminRouteWithChildren = PlatformAdminRoute._addFileChildren(
 )
 
 interface StudentRouteChildren {
+  StudentFeesRoute: typeof StudentFeesRoute
   StudentManageRoute: typeof StudentManageRoute
   StudentMatchesRoute: typeof StudentMatchesRoute
   StudentPendingRoute: typeof StudentPendingRoute
@@ -3089,6 +3109,7 @@ interface StudentRouteChildren {
 }
 
 const StudentRouteChildren: StudentRouteChildren = {
+  StudentFeesRoute: StudentFeesRoute,
   StudentManageRoute: StudentManageRoute,
   StudentMatchesRoute: StudentMatchesRoute,
   StudentPendingRoute: StudentPendingRoute,
