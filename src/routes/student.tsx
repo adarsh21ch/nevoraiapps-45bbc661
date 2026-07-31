@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Home, TrendingUp, Trophy, Building2, CreditCard, CalendarDays, UserCircle, LogOut } from "lucide-react";
+import { Home, TrendingUp, Trophy, CreditCard, UserCircle, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyPortalContext, studentKeys } from "@/lib/student-app";
 import { isPendingApproval, needsActivation, isBlocked, LIFECYCLE_LABEL, type LifecycleStatus } from "@/lib/admissions/lifecycle";
