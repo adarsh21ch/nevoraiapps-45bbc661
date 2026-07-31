@@ -79,7 +79,7 @@ export async function listTeamPlayers(teamId: string) {
 
 export async function listStudents(tenantId: string) {
   const { data, error } = await supabase
-    .from("students")
+    .from("students_scoring_directory")
     .select("id, name, photo_url, dob, gender, batch_id, status, player_id, phone")
     .eq("tenant_id", tenantId)
     .eq("status", "active")

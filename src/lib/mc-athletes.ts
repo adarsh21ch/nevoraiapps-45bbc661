@@ -123,7 +123,7 @@ export function ageFromDob(dob: string | null | undefined): number | null {
 
 export async function listStudents(tenantId: string): Promise<StudentLite[]> {
   const { data, error } = await supabase
-    .from("students")
+    .from("students_scoring_directory")
     .select("id, name, photo_url, dob, gender, batch_id, status, player_id, phone")
     .eq("tenant_id", tenantId)
     .eq("status", "active")
@@ -134,7 +134,7 @@ export async function listStudents(tenantId: string): Promise<StudentLite[]> {
 
 export async function getStudent(tenantId: string, studentId: string): Promise<StudentLite | null> {
   const { data, error } = await supabase
-    .from("students")
+    .from("students_scoring_directory")
     .select("id, name, photo_url, dob, gender, batch_id, status, player_id, phone")
     .eq("tenant_id", tenantId)
     .eq("id", studentId)

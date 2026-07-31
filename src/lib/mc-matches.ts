@@ -137,7 +137,7 @@ export type StudentLite = {
 export async function listStudentsByIds(ids: string[]): Promise<StudentLite[]> {
   if (ids.length === 0) return [];
   const { data, error } = await supabase
-    .from("students")
+    .from("students_scoring_directory")
     .select("id, name, photo_url, player_id, dob")
     .in("id", ids);
   if (error) throw error;
