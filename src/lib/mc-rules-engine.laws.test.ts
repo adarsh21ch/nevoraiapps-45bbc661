@@ -339,7 +339,16 @@ describe("validateBallDraft guards", () => {
       validateBallDraft({ ...base, dismissalType: "bowled" }, freeHitState, ctx),
     ).toThrow();
     expect(() =>
-      validateBallDraft({ ...base, dismissalType: "run_out", dismissedName: "A" }, freeHitState, ctx),
+      validateBallDraft(
+        {
+          ...base,
+          dismissalType: "run_out",
+          dismissedName: "A",
+          fielderName: "Fielder 1",
+        },
+        freeHitState,
+        ctx,
+      ),
     ).not.toThrow();
   });
 
