@@ -121,6 +121,24 @@ export function ageFromDob(dob: string | null | undefined): number | null {
 
 /* -------- Students -------- */
 
+// Reads the curated scoring directory (no phone/address/medical/guardian PII
+// for match scorers) instead of the raw students table.
+type ScoringDirRow = {
+  id: string | null;
+  name: string | null;
+  photo_url: string | null;
+  dob: string | null;
+  gender: string | null;
+  batch_id: string | null;
+  status: string | null;
+  player_id: string | null;
+  phone: string | null;
+};
+
+function toStudentLite(r: ScoringDirRow): StudentLite {
+  return { ...r, id: r.id as string, name: r.name ?? "" } as StudentLite;
+}
+
 export async function listStudents(tenantId: string): Promise<StudentLite[]> {
   const { data, error } = await supabase
     .from("students_scoring_directory")
@@ -129,7 +147,7 @@ export async function listStudents(tenantId: string): Promise<StudentLite[]> {
     .eq("status", "active")
     .order("name");
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map(toStudentLite);
 }
 
 export async function getStudent(tenantId: string, studentId: string): Promise<StudentLite | null> {
@@ -140,8 +158,9 @@ export async function getStudent(tenantId: string, studentId: string): Promise<S
     .eq("id", studentId)
     .maybeSingle();
   if (error) throw error;
-  return data;
+  return data ? toStudentLite(data) : null;
 }
+
 
 /* -------- Athlete profile CRUD -------- */
 
