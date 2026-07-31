@@ -4,7 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Home, TrendingUp, Trophy, CreditCard, UserCircle, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyPortalContext, studentKeys } from "@/lib/student-app";
-import { isPendingApproval, needsActivation, isBlocked, LIFECYCLE_LABEL, type LifecycleStatus } from "@/lib/admissions/lifecycle";
+import {
+  isPendingApproval,
+  needsActivation,
+  isBlocked,
+  LIFECYCLE_LABEL,
+  type LifecycleStatus,
+} from "@/lib/admissions/lifecycle";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,7 +37,6 @@ const TABS = [
   { to: "/student/fees", label: "Fees", icon: CreditCard, exact: false },
   { to: "/student/profile", label: "Profile", icon: UserCircle, exact: false },
 ] as const;
-
 
 function StudentLayout() {
   const navigate = useNavigate();
@@ -104,8 +109,8 @@ function StudentLayout() {
     }
   }, [gateQ.data, onPendingRoute, navigate, ctxQ.data]);
 
-
-  const blockedLifecycle = gateQ.data?.lifecycle && isBlocked(gateQ.data.lifecycle) ? gateQ.data.lifecycle : null;
+  const blockedLifecycle =
+    gateQ.data?.lifecycle && isBlocked(gateQ.data.lifecycle) ? gateQ.data.lifecycle : null;
 
   if (!ready) return <PageSkeleton />;
   if (!signedIn) {
@@ -139,7 +144,8 @@ function StudentLayout() {
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">Account {label}</h1>
           <p className="text-sm text-muted-foreground">
-            Your player account is currently marked as <b>{label.toLowerCase()}</b>. Please contact your academy for assistance.
+            Your player account is currently marked as <b>{label.toLowerCase()}</b>. Please contact
+            your academy for assistance.
           </p>
           <Button
             variant="outline"

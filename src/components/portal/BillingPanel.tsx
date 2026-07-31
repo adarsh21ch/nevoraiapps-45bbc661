@@ -15,7 +15,11 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { fetchChildBillingSummary } from "@/lib/parent-app";
 import { studentKeys, type StudentContext } from "@/lib/student-app";
-import { createPaymentOrder, verifyClientPayment, listPaymentTransactions } from "@/lib/payments/service.functions";
+import {
+  createPaymentOrder,
+  verifyClientPayment,
+  listPaymentTransactions,
+} from "@/lib/payments/service.functions";
 import { getTenantPaymentSetup, listMyManualPayments } from "@/lib/payments/manual.functions";
 import { ManualPaymentDialog, type PaymentSetup } from "@/components/payments/ManualPaymentDialog";
 import { formatMoney } from "@/lib/billing";
@@ -68,9 +72,7 @@ export function BillingPanel({ child }: { child: StudentContext | null }) {
     <div className="space-y-4 pb-6">
       <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5">
         <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Outstanding</p>
-        <p className="text-3xl font-bold">
-          {formatMoney(summary.outstanding, summary.currency)}
-        </p>
+        <p className="text-3xl font-bold">{formatMoney(summary.outstanding, summary.currency)}</p>
         <p className="text-xs text-muted-foreground mt-1">
           {summary.invoices.length} open invoice{summary.invoices.length === 1 ? "" : "s"}
         </p>
@@ -303,7 +305,11 @@ function PendingSubmissions({
     needs_reupload: "Needs new screenshot",
   };
   const variant = (s: string): "secondary" | "destructive" | "outline" =>
-    s === "approved" ? "secondary" : s === "rejected" || s === "duplicate" ? "destructive" : "outline";
+    s === "approved"
+      ? "secondary"
+      : s === "rejected" || s === "duplicate"
+        ? "destructive"
+        : "outline";
 
   const fmt = (t?: string | null) =>
     t ? new Date(t).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : null;
@@ -342,9 +348,7 @@ function PendingSubmissions({
                 </p>
                 <Badge variant={variant(r.status)}>{label[r.status] ?? r.status}</Badge>
               </div>
-              {r.utr && (
-                <p className="text-[10px] text-muted-foreground font-mono">UTR {r.utr}</p>
-              )}
+              {r.utr && <p className="text-[10px] text-muted-foreground font-mono">UTR {r.utr}</p>}
               {r.review_reason && (
                 <p className="text-xs text-destructive/80 bg-destructive/5 rounded p-2">
                   {r.review_reason}
@@ -374,7 +378,6 @@ function PendingSubmissions({
     </div>
   );
 }
-
 
 function PaymentHistory({
   rows,
