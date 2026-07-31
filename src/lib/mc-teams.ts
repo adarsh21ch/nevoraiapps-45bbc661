@@ -77,6 +77,8 @@ export async function listTeamPlayers(teamId: string) {
   return data ?? [];
 }
 
+// Reads the curated scoring directory (scorers never see phone/address/
+// guardian/medical columns of the raw students table).
 export async function listStudents(tenantId: string) {
   const { data, error } = await supabase
     .from("students_scoring_directory")
@@ -85,8 +87,13 @@ export async function listStudents(tenantId: string) {
     .eq("status", "active")
     .order("name");
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []).map((r) => ({
+    ...r,
+    id: r.id as string,
+    name: r.name ?? "",
+  }));
 }
+
 
 export type StudentLite = Awaited<ReturnType<typeof listStudents>>[number];
 
