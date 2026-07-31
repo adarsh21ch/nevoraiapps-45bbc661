@@ -43,6 +43,7 @@ export const studentKeys = {
   matches: (sid: string) => ["student", "matches", sid] as const,
   profile: (sid: string) => ["student", "profile", sid] as const,
   timeline: (sid: string) => ["student", "timeline", sid] as const,
+  billing: (sid: string) => ["student", "billing", sid] as const,
 };
 
 export async function fetchMyStudentContext(): Promise<StudentContext | null> {
@@ -51,6 +52,48 @@ export async function fetchMyStudentContext(): Promise<StudentContext | null> {
   const row = Array.isArray(data) ? data[0] : data;
   return (row as StudentContext | undefined) ?? null;
 }
+
+/**
+ * Canonical portal identity for the unified Student/Family portal.
+ *
+ * The student login IS the family login: one account sees progress, matches,
+ * timeline and fees. Legacy parent accounts (linked via `parent_children`)
+ * keep working — when the signed-in user has no student record of their own
+ * we fall back to their first linked child so nothing breaks for them.
+ */
+export async function fetchMyPortalContext(): Promise<StudentContext | null> {
+  const self = await fetchMyStudentContext();
+  if (self) return self;
+
+  const { data } = await supabase.rpc("list_parent_children");
+  const rows = (data ?? []) as Array<{ student_id: string }>;
+  const first = rows[0];
+  if (!first) return null;
+
+  const { data: s } = await supabase
+    .from("students")
+    .select("id, tenant_id, name, player_id, email, photo_url")
+    .eq("id", first.student_id)
+    .maybeSingle();
+  if (!s) return null;
+
+  const { data: ap } = await supabase
+    .from("mc_athlete_profiles")
+    .select("id")
+    .eq("student_id", s.id)
+    .maybeSingle();
+
+  return {
+    student_id: s.id,
+    tenant_id: s.tenant_id,
+    athlete_profile_id: (ap?.id as string | undefined) ?? null,
+    name: s.name,
+    player_id: s.player_id,
+    email: s.email,
+    photo_url: s.photo_url,
+  };
+}
+
 
 // -------------------- Home --------------------
 

@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+/**
+ * Unified family/student timeline panel (shared by the Student portal).
+ */
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
@@ -15,21 +17,16 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchChildTimeline, parentKeys, type TimelineEvent } from "@/lib/parent-app";
+import type { StudentContext } from "@/lib/student-app";
 import { supabase } from "@/integrations/supabase/client";
-import { useParentChild } from "@/hooks/use-parent-child";
 
-export const Route = createFileRoute("/parent/timeline")({
-  component: ParentTimelinePage,
-});
-
-function ParentTimelinePage() {
-  const { child } = useParentChild();
+export function TimelinePanel({ child }: { child: StudentContext | null }) {
   const [q, setQ] = useState("");
 
   const tenantBillingQ = useQuery({
     queryKey: child
-      ? ["parent", "tenant-billing", child.tenant_id]
-      : ["parent", "tenant-billing", "none"],
+      ? ["portal", "tenant-billing", child.tenant_id]
+      : ["portal", "tenant-billing", "none"],
     queryFn: async () => {
       const { data } = await supabase
         .from("tenants")

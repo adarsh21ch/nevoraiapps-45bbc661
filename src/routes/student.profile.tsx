@@ -11,12 +11,14 @@ import {
   Trophy,
   LogOut,
   FileText,
+  CalendarDays,
+  Building2,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMyStudentContext, fetchStudentProfile, studentKeys } from "@/lib/student-app";
+import { fetchMyPortalContext, fetchStudentProfile, studentKeys } from "@/lib/student-app";
 import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
 import { AccountCard } from "@/components/settings/AccountCard";
 
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/student/profile")({
 
 function StudentProfilePage() {
   const navigate = useNavigate();
-  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyStudentContext });
+  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyPortalContext });
   const ctx = ctxQ.data;
   const q = useQuery({
     queryKey: ctx ? studentKeys.profile(ctx.student_id) : ["student", "profile", "none"],
@@ -88,6 +90,24 @@ function StudentProfilePage() {
           {s.playing_role && <p className="text-xs text-muted-foreground">{s.playing_role}</p>}
         </div>
       </Card>
+
+      {/* Quick links */}
+      <div className="grid grid-cols-2 gap-3">
+        <Button
+          variant="outline"
+          className="justify-start"
+          onClick={() => navigate({ to: "/student/timeline" })}
+        >
+          <CalendarDays className="size-4 mr-2" /> Timeline
+        </Button>
+        <Button
+          variant="outline"
+          className="justify-start"
+          onClick={() => navigate({ to: "/student/manage" })}
+        >
+          <Building2 className="size-4 mr-2" /> Manage
+        </Button>
+      </div>
 
       {/* Personal details */}
       <section aria-label="Personal details">

@@ -1,15 +1,9 @@
 /**
- * Parent → Billing / Payments page.
+ * Unified family/student billing panel.
  *
- * Reuses:
- *   - fetchChildBillingSummary (parent-app)
- *   - createPaymentOrder / verifyClientPayment (PaymentService)
- *   - Existing design tokens
- *
- * Loads Razorpay checkout script on demand; other providers fall back to
- * whatever the adapter returns (Stripe/Cashfree/etc. can be plugged in later).
+ * Shared by the Student portal (`/student/fees`). The student login IS the
+ * family login — parents sign in with the student credentials and pay here.
  */
-import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -19,54 +13,46 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useParentChild } from "@/hooks/use-parent-child";
-import { fetchChildBillingSummary, parentKeys } from "@/lib/parent-app";
-import { createPaymentOrder, verifyClientPayment, listPaymentTransactions } from "@/lib/payments/service.functions";
+import { fetchChildBillingSummary } from "@/lib/parent-app";
+import { studentKeys, type StudentContext } from "@/lib/student-app";
+import {
+  createPaymentOrder,
+  verifyClientPayment,
+  listPaymentTransactions,
+} from "@/lib/payments/service.functions";
 import { getTenantPaymentSetup, listMyManualPayments } from "@/lib/payments/manual.functions";
 import { ManualPaymentDialog, type PaymentSetup } from "@/components/payments/ManualPaymentDialog";
 import { formatMoney } from "@/lib/billing";
 
-export const Route = createFileRoute("/parent/billing")({
-  head: () => ({
-    meta: [
-      { title: "Payments — Parent Portal" },
-      { name: "description", content: "View and pay academy invoices." },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
-  component: ParentBillingPage,
-});
-
-function ParentBillingPage() {
-  const { child } = useParentChild();
+export function BillingPanel({ child }: { child: StudentContext | null }) {
   const billQ = useQuery({
-    queryKey: child ? parentKeys.billing(child.student_id) : ["parent", "billing", "none"],
+    queryKey: child ? studentKeys.billing(child.student_id) : ["student", "billing", "none"],
     queryFn: () => fetchChildBillingSummary(child!.student_id, child!.tenant_id),
     enabled: !!child,
   });
 
   const listTx = useServerFn(listPaymentTransactions);
   const txQ = useQuery({
-    queryKey: ["parent", "payment-tx", child?.tenant_id ?? "none"],
+    queryKey: ["portal", "payment-tx", child?.tenant_id ?? "none"],
     queryFn: () => listTx({ data: { scope: "tenant", tenantId: child!.tenant_id, limit: 20 } }),
     enabled: !!child,
   });
 
   const getSetup = useServerFn(getTenantPaymentSetup);
   const setupQ = useQuery({
-    queryKey: ["parent", "payment-setup", child?.tenant_id ?? "none"],
+    queryKey: ["portal", "payment-setup", child?.tenant_id ?? "none"],
     queryFn: () => getSetup({ data: { tenantId: child!.tenant_id } }),
     enabled: !!child,
   });
 
   const listMine = useServerFn(listMyManualPayments);
   const submissionsQ = useQuery({
-    queryKey: ["parent", "manual-payments", child?.student_id ?? "none"],
+    queryKey: ["portal", "manual-payments", child?.student_id ?? "none"],
     queryFn: () => listMine({ data: { studentId: child!.student_id, limit: 20 } }),
     enabled: !!child,
   });
 
-  if (!child) return <p className="text-sm text-muted-foreground">Select a child to view billing.</p>;
+  if (!child) return <Skeleton className="h-40 w-full" />;
   if (billQ.isLoading) return <Skeleton className="h-40 w-full" />;
 
   const summary = billQ.data;
@@ -86,9 +72,7 @@ function ParentBillingPage() {
     <div className="space-y-4 pb-6">
       <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5">
         <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Outstanding</p>
-        <p className="text-3xl font-bold">
-          {formatMoney(summary.outstanding, summary.currency)}
-        </p>
+        <p className="text-3xl font-bold">{formatMoney(summary.outstanding, summary.currency)}</p>
         <p className="text-xs text-muted-foreground mt-1">
           {summary.invoices.length} open invoice{summary.invoices.length === 1 ? "" : "s"}
         </p>
@@ -321,7 +305,11 @@ function PendingSubmissions({
     needs_reupload: "Needs new screenshot",
   };
   const variant = (s: string): "secondary" | "destructive" | "outline" =>
-    s === "approved" ? "secondary" : s === "rejected" || s === "duplicate" ? "destructive" : "outline";
+    s === "approved"
+      ? "secondary"
+      : s === "rejected" || s === "duplicate"
+        ? "destructive"
+        : "outline";
 
   const fmt = (t?: string | null) =>
     t ? new Date(t).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : null;
@@ -360,9 +348,7 @@ function PendingSubmissions({
                 </p>
                 <Badge variant={variant(r.status)}>{label[r.status] ?? r.status}</Badge>
               </div>
-              {r.utr && (
-                <p className="text-[10px] text-muted-foreground font-mono">UTR {r.utr}</p>
-              )}
+              {r.utr && <p className="text-[10px] text-muted-foreground font-mono">UTR {r.utr}</p>}
               {r.review_reason && (
                 <p className="text-xs text-destructive/80 bg-destructive/5 rounded p-2">
                   {r.review_reason}
@@ -392,7 +378,6 @@ function PendingSubmissions({
     </div>
   );
 }
-
 
 function PaymentHistory({
   rows,

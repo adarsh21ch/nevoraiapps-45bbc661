@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { fetchMyStudentContext, studentKeys } from "@/lib/student-app";
+import { fetchMyPortalContext, studentKeys } from "@/lib/student-app";
 
 export const Route = createFileRoute("/student/manage")({
   head: () => ({
@@ -42,7 +42,7 @@ const TILES: Tile[] = [
 ];
 
 function StudentManagePage() {
-  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyStudentContext });
+  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyPortalContext });
 
   return (
     <div className="space-y-5">

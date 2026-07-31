@@ -1,10 +1,16 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Home, TrendingUp, Trophy, Building2, UserCircle, LogOut } from "lucide-react";
+import { Home, TrendingUp, Trophy, CreditCard, UserCircle, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMyStudentContext, studentKeys } from "@/lib/student-app";
-import { isPendingApproval, needsActivation, isBlocked, LIFECYCLE_LABEL, type LifecycleStatus } from "@/lib/admissions/lifecycle";
+import { fetchMyPortalContext, studentKeys } from "@/lib/student-app";
+import {
+  isPendingApproval,
+  needsActivation,
+  isBlocked,
+  LIFECYCLE_LABEL,
+  type LifecycleStatus,
+} from "@/lib/admissions/lifecycle";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,16 +27,16 @@ export const Route = createFileRoute("/student")({
   component: StudentLayout,
 });
 
-// Player nav: Home · Performance · Matches · Manage · Profile.
-// The "Pending" screen is a gate, not a destination — no tab for it.
+// Family nav: one login for student and parents.
+// Home · Performance · Matches · Fees · Profile.
+// Timeline and Manage are reachable from Home/Profile — not tabs.
 const TABS = [
   { to: "/student", label: "Home", icon: Home, exact: true },
   { to: "/student/progress", label: "Performance", icon: TrendingUp, exact: false },
   { to: "/student/matches", label: "Matches", icon: Trophy, exact: false },
-  { to: "/student/manage", label: "Manage", icon: Building2, exact: false },
+  { to: "/student/fees", label: "Fees", icon: CreditCard, exact: false },
   { to: "/student/profile", label: "Profile", icon: UserCircle, exact: false },
 ] as const;
-
 
 function StudentLayout() {
   const navigate = useNavigate();
@@ -51,7 +57,7 @@ function StudentLayout() {
 
   const ctxQ = useQuery({
     queryKey: studentKeys.me,
-    queryFn: fetchMyStudentContext,
+    queryFn: fetchMyPortalContext,
     enabled: signedIn,
   });
 
@@ -103,8 +109,8 @@ function StudentLayout() {
     }
   }, [gateQ.data, onPendingRoute, navigate, ctxQ.data]);
 
-
-  const blockedLifecycle = gateQ.data?.lifecycle && isBlocked(gateQ.data.lifecycle) ? gateQ.data.lifecycle : null;
+  const blockedLifecycle =
+    gateQ.data?.lifecycle && isBlocked(gateQ.data.lifecycle) ? gateQ.data.lifecycle : null;
 
   if (!ready) return <PageSkeleton />;
   if (!signedIn) {
@@ -138,7 +144,8 @@ function StudentLayout() {
         <Card className="p-6 max-w-md text-center space-y-3">
           <h1 className="text-xl font-semibold">Account {label}</h1>
           <p className="text-sm text-muted-foreground">
-            Your player account is currently marked as <b>{label.toLowerCase()}</b>. Please contact your academy for assistance.
+            Your player account is currently marked as <b>{label.toLowerCase()}</b>. Please contact
+            your academy for assistance.
           </p>
           <Button
             variant="outline"
