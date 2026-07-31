@@ -43,8 +43,8 @@ export const Route = createFileRoute("/dashboard/attendance-qr")({
 
 function QrSetupPage() {
   const { tenant } = useDashboard();
-  const { isOwner, isAdmin } = usePermissions() as { isOwner?: boolean; isAdmin?: boolean };
-  const canEdit = isOwner !== false || isAdmin === true;
+  const { isAdmin } = usePermissions();
+  const canEdit = isAdmin;
   const qc = useQueryClient();
 
   const settingsQ = useQuery({
