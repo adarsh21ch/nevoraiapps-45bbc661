@@ -4,7 +4,7 @@ import { Swords, Trophy, Calendar, MapPin, Medal } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchMyStudentContext, fetchStudentMatches, studentKeys } from "@/lib/student-app";
+import { fetchMyPortalContext, fetchStudentMatches, studentKeys } from "@/lib/student-app";
 import type { PlayerMatchAppearance } from "@/lib/player-profile";
 
 export const Route = createFileRoute("/student/matches")({
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/student/matches")({
 });
 
 function StudentMatchesPage() {
-  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyStudentContext });
+  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyPortalContext });
   const ctx = ctxQ.data;
   const q = useQuery({
     queryKey: ctx ? studentKeys.matches(ctx.student_id) : ["student", "matches", "none"],

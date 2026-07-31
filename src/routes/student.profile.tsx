@@ -16,7 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMyStudentContext, fetchStudentProfile, studentKeys } from "@/lib/student-app";
+import { fetchMyPortalContext, fetchStudentProfile, studentKeys } from "@/lib/student-app";
 import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
 import { AccountCard } from "@/components/settings/AccountCard";
 
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/student/profile")({
 
 function StudentProfilePage() {
   const navigate = useNavigate();
-  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyStudentContext });
+  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyPortalContext });
   const ctx = ctxQ.data;
   const q = useQuery({
     queryKey: ctx ? studentKeys.profile(ctx.student_id) : ["student", "profile", "none"],

@@ -18,7 +18,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchMyStudentContext, fetchStudentHome, studentKeys } from "@/lib/student-app";
+import { fetchMyPortalContext, fetchStudentHome, studentKeys } from "@/lib/student-app";
 
 export const Route = createFileRoute("/student/")({
   component: StudentHomePage,
@@ -32,7 +32,7 @@ function greeting() {
 }
 
 function StudentHomePage() {
-  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyStudentContext });
+  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyPortalContext });
   const ctx = ctxQ.data;
   const homeQ = useQuery({
     queryKey: ctx ? studentKeys.home(ctx.student_id) : ["student", "home", "none"],

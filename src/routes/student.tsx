@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Home, TrendingUp, Trophy, Building2, UserCircle, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMyStudentContext, studentKeys } from "@/lib/student-app";
+import { fetchMyPortalContext, studentKeys } from "@/lib/student-app";
 import { isPendingApproval, needsActivation, isBlocked, LIFECYCLE_LABEL, type LifecycleStatus } from "@/lib/admissions/lifecycle";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,7 @@ function StudentLayout() {
 
   const ctxQ = useQuery({
     queryKey: studentKeys.me,
-    queryFn: fetchMyStudentContext,
+    queryFn: fetchMyPortalContext,
     enabled: signedIn,
   });
 

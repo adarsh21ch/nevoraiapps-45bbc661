@@ -6,14 +6,14 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { fetchMyStudentContext, fetchStudentProgress, studentKeys } from "@/lib/student-app";
+import { fetchMyPortalContext, fetchStudentProgress, studentKeys } from "@/lib/student-app";
 
 export const Route = createFileRoute("/student/progress")({
   component: StudentProgressPage,
 });
 
 function StudentProgressPage() {
-  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyStudentContext });
+  const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyPortalContext });
   const ctx = ctxQ.data;
   const q = useQuery({
     queryKey: ctx ? studentKeys.progress(ctx.student_id) : ["student", "progress", "none"],
