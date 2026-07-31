@@ -38,7 +38,6 @@ export const Route = createFileRoute("/auth")({
 type PostLoginRoute =
   | "/platform-admin"
   | "/dashboard"
-  | "/parent"
   | "/student"
   | "/register";
 
@@ -53,7 +52,7 @@ export async function routeAfterLogin(_uid?: string): Promise<PostLoginRoute> {
   switch (data as unknown as string) {
     case "platform_admin": return "/platform-admin";
     case "staff": return "/dashboard";
-    case "parent": return "/parent";
+    case "parent": return "/student"; // parent portal merged into the student portal
     case "student": return "/student";
     default: return "/student"; // Orphan: land on /student (pending empty-state), never blank /register.
   }

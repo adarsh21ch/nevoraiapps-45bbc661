@@ -142,7 +142,7 @@ function RegisterContent() {
       const target =
         route === "platform_admin" ? "/platform-admin"
         : route === "staff" ? "/dashboard"
-        : route === "parent" ? "/parent"
+        : route === "parent" ? "/student"
         : "/student";
       window.location.replace(target);
     })();
