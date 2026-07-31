@@ -229,80 +229,73 @@ export function CollectionsPanel({
   };
 
   return (
-    <div className="space-y-3">
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-        <div className="min-w-0">
-          <h2 className="text-lg font-bold tracking-tight leading-tight truncate">Student Fees</h2>
-          <p className="text-[11px] text-muted-foreground leading-tight truncate">
-            Who's paid, who's pending — collect in one tap.
-          </p>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          {cycle === "calendar_month" && (
-            <div className="flex items-center gap-1 rounded-full bg-card border border-border shadow-sm px-1 py-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-8 w-8"
-                aria-label="Previous month"
-                onClick={() => setMonthOffset((m) => m - 1)}
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-              <div className="text-xs font-semibold w-20 text-center tabular-nums">
-                {format(selectedMonth, "MMM yyyy")}
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-8 w-8"
-                aria-label="Next month"
-                disabled={monthOffset >= 0}
-                onClick={() => setMonthOffset((m) => Math.min(0, m + 1))}
-              >
-                <ChevronRight className="size-4" />
-              </Button>
+    <div className="space-y-2">
+      {/* One line: month + KPIs + actions. No headline, no card, no progress bar. */}
+      <div className="flex items-center gap-1.5">
+        {cycle === "calendar_month" && (
+          <div className="flex shrink-0 items-center rounded-full border border-border bg-card shadow-sm">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 rounded-full"
+              aria-label="Previous month"
+              onClick={() => setMonthOffset((m) => m - 1)}
+            >
+              <ChevronLeft className="size-3.5" />
+            </Button>
+            <div className="w-[52px] text-center text-[11px] font-semibold tabular-nums">
+              {format(selectedMonth, "MMM yy")}
             </div>
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-full h-9 w-9 bg-card border border-border shadow-sm"
-                aria-label="More actions"
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard/fee-plans">Manage Fee Plans</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard/students">Assign to Students</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard/reminders">Send Reminders</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard/reports">Reports &amp; Exports</Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 rounded-full"
+              aria-label="Next month"
+              disabled={monthOffset >= 0}
+              onClick={() => setMonthOffset((m) => Math.min(0, m + 1))}
+            >
+              <ChevronRight className="size-3.5" />
+            </Button>
+          </div>
+        )}
 
-      {/* Compact KPI strip */}
-      <KpiStrip
-        pending={pendingAmount}
-        collected={collectedAmount}
-        overdueCount={overdueRows.length}
-        pct={collectionPct}
-      />
+        <KpiStrip
+          pending={pendingAmount}
+          collected={collectedAmount}
+          overdueCount={overdueRows.length}
+          pct={collectionPct}
+        />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 shrink-0 rounded-full border border-border bg-card shadow-sm"
+              aria-label="More actions"
+            >
+              <MoreHorizontal className="size-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard/fee-plans">Manage Fee Plans</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard/students">Assign to Students</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard/reminders">Send Reminders</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/dashboard/reports">Reports &amp; Exports</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       {/* Sticky search + chip filters */}
-      <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 space-y-2">
+      <div className="sticky top-0 z-20 -mx-4 space-y-1.5 bg-background/95 px-4 py-1.5 backdrop-blur supports-[backdrop-filter]:bg-background/70">
         <DashboardSearch
           value={search}
           onChange={setSearch}
@@ -320,6 +313,7 @@ export function CollectionsPanel({
         />
       </div>
 
+
       <section className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden">
         {loading ? (
           <SkeletonList />
@@ -335,7 +329,7 @@ export function CollectionsPanel({
             items={visible}
             estimateSize={84}
             overscan={8}
-            className="max-h-[calc(100vh-260px)] min-h-[400px]"
+            className="max-h-[calc(100vh-200px)] min-h-[420px]"
             getKey={(r) => r.studentId}
             renderItem={(r) => (
               <div className="border-b border-border">
@@ -418,7 +412,7 @@ function FeesProfileSheet({
   );
 }
 
-/* ---------- Compact KPI strip ---------- */
+/* ---------- Single-line KPI strip ---------- */
 
 function KpiStrip({
   pending,
@@ -432,21 +426,22 @@ function KpiStrip({
   pct: number;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm px-3 py-2">
-      <div className="grid grid-cols-4 gap-2 text-center">
+    <div className="scrollbar-none min-w-0 flex-1 overflow-x-auto">
+      <div className="flex h-7 items-center gap-2.5 whitespace-nowrap rounded-full border border-border bg-card px-3 shadow-sm">
         <KpiCell label="Pending" value={money(pending)} tone="danger" />
+        <Dot />
         <KpiCell label="Collected" value={money(collected)} tone="success" />
+        <Dot />
         <KpiCell label="Overdue" value={String(overdueCount)} tone="danger" />
-        <KpiCell label="Collection" value={`${pct}%`} tone="neutral" />
-      </div>
-      <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
-        <div
-          className="h-full rounded-full bg-foreground transition-all"
-          style={{ width: `${Math.min(100, pct)}%` }}
-        />
+        <Dot />
+        <KpiCell label="Collected %" value={`${pct}%`} tone="neutral" />
       </div>
     </div>
   );
+}
+
+function Dot() {
+  return <span aria-hidden className="h-1 w-1 shrink-0 rounded-full bg-border" />;
 }
 
 function KpiCell({
@@ -465,14 +460,13 @@ function KpiCell({
         ? "text-emerald-600"
         : "text-foreground";
   return (
-    <div className="min-w-0">
-      <div className={cn("text-sm font-bold tabular-nums truncate", color)}>{value}</div>
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground leading-tight">
-        {label}
-      </div>
-    </div>
+    <span className="inline-flex shrink-0 items-baseline gap-1">
+      <span className={cn("text-[12px] font-bold tabular-nums", color)}>{value}</span>
+      <span className="text-[10px] text-muted-foreground">{label}</span>
+    </span>
   );
 }
+
 
 /* ---------- Chip filters ---------- */
 
