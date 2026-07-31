@@ -49,6 +49,8 @@ export interface MobileScorerProps {
   tournamentLabel?: string;
   matchTitle: string;
   isLive?: boolean;
+  /** Next delivery is a free hit (follows a no ball) — only run outs apply. */
+  freeHit?: boolean;
 
   score: string;
   overs: string;
