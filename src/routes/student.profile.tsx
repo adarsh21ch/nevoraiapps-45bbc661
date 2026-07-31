@@ -89,6 +89,17 @@ function StudentProfilePage() {
         </div>
       </Card>
 
+      {/* Quick links */}
+      <div className="grid grid-cols-2 gap-3">
+        <Button variant="outline" className="justify-start" onClick={() => navigate({ to: "/student/timeline" })}>
+          <CalendarDays className="size-4 mr-2" /> Timeline
+        </Button>
+        <Button variant="outline" className="justify-start" onClick={() => navigate({ to: "/student/manage" })}>
+          <Building2 className="size-4 mr-2" /> Manage
+        </Button>
+      </div>
+
+
       {/* Personal details */}
       <section aria-label="Personal details">
         <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
