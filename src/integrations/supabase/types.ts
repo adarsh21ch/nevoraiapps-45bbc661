@@ -87,6 +87,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "admission_timeline_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "admission_timeline_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -534,6 +541,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
             referencedColumns: ["id"]
           },
           {
@@ -1122,6 +1136,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "billing_charges_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "billing_charges_subscription_id_fkey"
             columns: ["subscription_id"]
             isOneToOne: false
@@ -1450,6 +1471,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "billing_invoices_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "billing_invoices_subscription_id_fkey"
             columns: ["subscription_id"]
             isOneToOne: false
@@ -1611,6 +1639,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "billing_payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "billing_payments_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -1716,6 +1751,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
             referencedColumns: ["id"]
           },
           {
@@ -2182,6 +2224,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "leads_converted_student_id_fkey"
+            columns: ["converted_student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "leads_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -2294,6 +2343,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_payment_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
             referencedColumns: ["id"]
           },
           {
@@ -2737,6 +2793,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_athlete_profiles_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_athlete_profiles_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -3083,6 +3146,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_coach_remarks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
             referencedColumns: ["id"]
           },
           {
@@ -3722,6 +3792,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_matches_player_of_match_athlete_id_fkey"
+            columns: ["player_of_match_athlete_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_matches_team_a_id_fkey"
             columns: ["team_a_id"]
             isOneToOne: false
@@ -4283,6 +4360,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_team_players_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_team_players_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
@@ -4397,6 +4481,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mc_teams_captain_student_id_fkey"
+            columns: ["captain_student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mc_teams_keeper_student_id_fkey"
             columns: ["keeper_student_id"]
             isOneToOne: false
@@ -4408,6 +4499,13 @@ export type Database = {
             columns: ["keeper_student_id"]
             isOneToOne: false
             referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_teams_keeper_student_id_fkey"
+            columns: ["keeper_student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
             referencedColumns: ["id"]
           },
           {
@@ -4436,6 +4534,13 @@ export type Database = {
             columns: ["vice_captain_student_id"]
             isOneToOne: false
             referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mc_teams_vice_captain_student_id_fkey"
+            columns: ["vice_captain_student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -5527,6 +5632,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "payments_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -6292,6 +6404,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reminder_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reminder_logs_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -6504,6 +6623,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_status_history_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
             referencedColumns: ["id"]
           },
         ]
@@ -6993,6 +7119,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "attendance_marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "attendance_marks_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
@@ -7053,6 +7186,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students_scorer_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students_scoring_directory"
             referencedColumns: ["id"]
           },
           {
@@ -7142,6 +7282,67 @@ export type Database = {
           tenant_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "students_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants_public_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      students_scoring_directory: {
+        Row: {
+          batch_id: string | null
+          dob: string | null
+          gender: string | null
+          id: string | null
+          name: string | null
+          phone: string | null
+          photo_url: string | null
+          player_id: string | null
+          status: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          dob?: string | null
+          gender?: string | null
+          id?: string | null
+          name?: string | null
+          phone?: never
+          photo_url?: string | null
+          player_id?: string | null
+          status?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          dob?: string | null
+          gender?: string | null
+          id?: string | null
+          name?: string | null
+          phone?: never
+          photo_url?: string | null
+          player_id?: string | null
+          status?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "students_tenant_id_fkey"
             columns: ["tenant_id"]
