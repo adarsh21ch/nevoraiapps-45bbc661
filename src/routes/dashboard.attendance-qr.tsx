@@ -149,9 +149,22 @@ function QrSetupPage() {
       {settingsQ.isLoading ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">Loading…</Card>
       ) : settingsQ.isError ? (
-        <Card className="p-6 text-center text-sm text-muted-foreground">
-          Couldn't load QR settings.
+        <Card className="space-y-3 p-6 text-center text-sm text-muted-foreground">
+          <p>
+            {settingsQ.error instanceof Error
+              ? settingsQ.error.message
+              : "Couldn't load QR settings."}
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="rounded-full"
+            onClick={() => settingsQ.refetch()}
+          >
+            <RefreshCw className="mr-1 size-3.5" /> Try again
+          </Button>
         </Card>
+
       ) : (
         <div className="space-y-3">
           {/* Enable */}
@@ -256,11 +269,29 @@ function QrSetupPage() {
                 </Button>
               </>
             ) : (
-              <div className="py-6 text-sm text-muted-foreground">
-                <QrCode className="mx-auto mb-2 size-6" />
-                Turn on QR check-in to generate the poster.
+              <div className="space-y-3 py-4 text-sm text-muted-foreground">
+                <QrCode className="mx-auto size-6" />
+                <p>No poster generated yet.</p>
+                <Button
+                  disabled={!canEdit || save.isPending}
+                  className="h-11 w-full rounded-xl"
+                  onClick={() =>
+                    save.mutate(
+                      { tenantId: tenant.id, rotateToken: true },
+                      { onSuccess: () => toast.success("QR poster generated") },
+                    )
+                  }
+                >
+                  {save.isPending ? (
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                  ) : (
+                    <QrCode className="mr-2 size-4" />
+                  )}
+                  Generate QR poster
+                </Button>
               </div>
             )}
+
           </Card>
 
           {/* Audit */}
