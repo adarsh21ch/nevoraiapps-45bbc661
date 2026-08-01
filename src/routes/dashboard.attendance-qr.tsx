@@ -149,9 +149,22 @@ function QrSetupPage() {
       {settingsQ.isLoading ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">Loading…</Card>
       ) : settingsQ.isError ? (
-        <Card className="p-6 text-center text-sm text-muted-foreground">
-          Couldn't load QR settings.
+        <Card className="space-y-3 p-6 text-center text-sm text-muted-foreground">
+          <p>
+            {settingsQ.error instanceof Error
+              ? settingsQ.error.message
+              : "Couldn't load QR settings."}
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="rounded-full"
+            onClick={() => settingsQ.refetch()}
+          >
+            <RefreshCw className="mr-1 size-3.5" /> Try again
+          </Button>
         </Card>
+
       ) : (
         <div className="space-y-3">
           {/* Enable */}
