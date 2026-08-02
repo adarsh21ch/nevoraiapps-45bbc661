@@ -57,6 +57,15 @@ export function TenantGate({
     );
   }
 
+  if (chrome === "focus") {
+    return (
+      <div className="flex min-h-dvh flex-col bg-background">
+        {children}
+        <TenantJsonLd tenant={state.tenant} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <SiteHeader />
