@@ -86,7 +86,7 @@ function QrSetupPage() {
   const logQ = useQuery({
     queryKey: qrKeys.scans(tenant.id),
     queryFn: () => fetchQrScanLog(tenant.id),
-    refetchInterval: 30_000,
+    refetchInterval: 15_000,
   });
 
   const s = settingsQ.data;
