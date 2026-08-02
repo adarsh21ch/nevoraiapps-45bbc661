@@ -264,7 +264,9 @@ function RegistrationsInbox() {
         <FilterTabs
           value={filter}
           onChange={(v) => setFilter(v as FilterKey)}
-          items={FILTERS.map((f) => ({
+          items={FILTERS.filter(
+            (f) => !("optional" in f && f.optional) || counts[f.key] || filter === f.key,
+          ).map((f) => ({
             key: f.key,
             label: counts[f.key] ? `${f.label} · ${counts[f.key]}` : f.label,
           }))}
