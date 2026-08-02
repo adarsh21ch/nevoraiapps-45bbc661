@@ -576,28 +576,9 @@ function RegisterContent() {
           </p>
         </div>
 
+        {!done ? (
+          <form onSubmit={submitForm} className="mt-6 space-y-5 sm:mt-8 sm:space-y-6">
 
-      {!done ? (
-        <form onSubmit={submitForm} className="mt-8 space-y-6">
-          {isMobile ? (
-            <div className="rounded-2xl border border-border/60 bg-card/40 p-4">
-              <div
-                className="text-[11px] font-semibold uppercase tracking-widest"
-                style={{ color: "var(--brand)" }}
-              >
-                Step {step} of 4
-              </div>
-              <div className="mt-1 text-base font-semibold text-foreground">
-                {STEP_TITLES[step - 1]}
-              </div>
-              <div className="mt-3 h-1 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full transition-all"
-                  style={{ width: `${step * 25}%`, backgroundColor: "var(--brand)" }}
-                />
-              </div>
-            </div>
-          ) : null}
 
           {/* Step 1 — Account */}
           {showStep(1) ? (
