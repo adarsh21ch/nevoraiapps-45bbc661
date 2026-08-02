@@ -511,12 +511,27 @@ function RegisterContent() {
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-4 py-3 sm:px-6">
           {tenant.logo_url ? (
-            <img
-              src={tenant.logo_url}
-              alt={`${tenant.name} logo`}
-              className="h-9 w-9 shrink-0 rounded-lg object-contain"
+            <StoragedImage
+              path={tenant.logo_url}
+              alt={tenant.name}
+              className="h-9 w-9 shrink-0 rounded-lg object-cover"
+              fallback={
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white"
+                  style={{ backgroundColor: "var(--brand)" }}
+                >
+                  {tenant.name.charAt(0)}
+                </div>
+              }
             />
-          ) : null}
+          ) : (
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white"
+              style={{ backgroundColor: "var(--brand)" }}
+            >
+              {tenant.name.charAt(0)}
+            </div>
+          )}
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold text-foreground">{tenant.name}</div>
             <div
