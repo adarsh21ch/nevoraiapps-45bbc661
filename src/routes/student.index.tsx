@@ -42,8 +42,11 @@ function StudentHomePage() {
     queryFn: () => fetchStudentHome(ctx!),
     enabled: !!ctx,
   });
+  const qc = useQueryClient();
+  const [scanOpen, setScanOpen] = useState(false);
 
   const firstName = useMemo(() => (ctx?.name ?? "").split(" ")[0] || "Player", [ctx?.name]);
+
 
   if (!ctx || homeQ.isLoading) {
     return (
