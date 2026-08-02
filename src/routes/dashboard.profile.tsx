@@ -23,7 +23,7 @@ import {
   ChevronRight,
   KeyRound,
   Zap,
-  HeartPulse,
+  
 } from "lucide-react";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { tenantSiteUrl } from "@/lib/tenant";
@@ -156,16 +156,6 @@ function ProfilePage() {
         hint: "Contact us and get help",
         icon: LifeBuoy,
       },
-      ...(isOwner
-        ? [
-            {
-              to: "/dashboard/nevorai-health",
-              label: "NevorAI Health",
-              hint: "AI service status & diagnostics",
-              icon: HeartPulse,
-            } as Row,
-          ]
-        : []),
     ],
   });
 

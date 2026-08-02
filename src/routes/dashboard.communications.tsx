@@ -120,7 +120,7 @@ function CommunicationsHub() {
           value={tab}
           onChange={setTab}
           items={[
-            { key: "broadcasts", label: "All" },
+            { key: "broadcasts", label: "Campaigns" },
             { key: "announcements", label: "Announcements" },
             { key: "scheduled", label: "Scheduled" },
             { key: "templates", label: "Templates" },

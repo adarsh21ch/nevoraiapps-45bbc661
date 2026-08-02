@@ -64,15 +64,16 @@ export const Route = createFileRoute("/dashboard/registrations")({
 
 const money = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
-// Filter chips shown above the list. "All" and "Pending" cover the common
-// daily flow; the rest are also-ran statuses ported from Admissions Review.
+// Filter chips shown above the list. Pending / Approved / Rejected cover the
+// daily flow and are always visible; Waitlisted and Changes requested only
+// appear once such rows actually exist (no empty, unusable tabs). There is no
+// "All" chip — it only duplicated the other tabs.
 const FILTERS = [
   { key: "pending", label: "Pending" },
   { key: "approved", label: "Approved" },
   { key: "rejected", label: "Rejected" },
-  { key: "waitlisted", label: "Waitlisted" },
-  { key: "changes_requested", label: "Changes requested" },
-  { key: "all", label: "All" },
+  { key: "waitlisted", label: "Waitlisted", optional: true },
+  { key: "changes_requested", label: "Changes requested", optional: true },
 ] as const;
 
 type FilterKey = (typeof FILTERS)[number]["key"];
@@ -235,10 +236,10 @@ function RegistrationsInbox() {
     return c;
   }, [sorted]);
 
-  const filtered = useMemo(() => {
-    if (filter === "all") return sorted;
-    return sorted.filter((r: any) => effectiveReviewStatus(r) === filter);
-  }, [sorted, filter]);
+  const filtered = useMemo(
+    () => sorted.filter((r: any) => effectiveReviewStatus(r) === filter),
+    [sorted, filter],
+  );
 
   const openReg = sorted.find((r: any) => r.id === openId) ?? null;
   const newCount = sorted.filter((r: any) => r.status === "new" || r.status === "reviewed").length;
@@ -263,7 +264,9 @@ function RegistrationsInbox() {
         <FilterTabs
           value={filter}
           onChange={(v) => setFilter(v as FilterKey)}
-          items={FILTERS.map((f) => ({
+          items={FILTERS.filter(
+            (f) => !("optional" in f && f.optional) || counts[f.key] || filter === f.key,
+          ).map((f) => ({
             key: f.key,
             label: counts[f.key] ? `${f.label} · ${counts[f.key]}` : f.label,
           }))}
