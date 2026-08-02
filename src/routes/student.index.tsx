@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import {
   Flame,
   Clock,
@@ -14,15 +14,18 @@ import {
   Megaphone,
   Mail,
   FileText,
+  ScanLine,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchMyPortalContext, fetchStudentHome, studentKeys } from "@/lib/student-app";
+import { ScanAttendanceDialog } from "@/components/attendance/ScanAttendanceDialog";
 
 export const Route = createFileRoute("/student/")({
   component: StudentHomePage,
 });
+
 
 function greeting() {
   const h = new Date().getHours();
