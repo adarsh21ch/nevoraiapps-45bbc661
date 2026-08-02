@@ -102,6 +102,9 @@ function QrSetupPage() {
   }, [checkinUrl]);
 
   const [pinning, setPinning] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualText, setManualText] = useState("");
+
   async function pinHere() {
     setPinning(true);
     try {
