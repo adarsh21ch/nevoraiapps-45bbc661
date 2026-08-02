@@ -48,6 +48,21 @@ export function VirtualList<T>({
     return <>{emptyState}</>;
   }
 
+  // Short lists render in full and scroll with the page. An inner scroll
+  // container on a 5-10 row list makes rows below the fold look "missing".
+  if (items.length <= PLAIN_RENDER_LIMIT) {
+    return (
+      <div>
+        {items.map((item, i) => (
+          <div key={getKey(item, i)} className={containerClassName}>
+            {renderItem(item, i)}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+
   const virtualItems = virtualizer.getVirtualItems();
 
   return (
