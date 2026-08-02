@@ -228,7 +228,10 @@ function AuthPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: "easeOut" }}
       >
-        <h1 className="text-[30px] font-bold leading-tight tracking-tight sm:text-[34px]">
+        <h1
+          className="text-[38px] leading-[1.02] tracking-wide sm:text-[44px]"
+          style={{ fontFamily: "'Bebas Neue', 'Bricolage Grotesque', sans-serif" }}
+        >
           {title}
         </h1>
         <p className="mt-2 text-[14px] leading-relaxed text-auth-muted">{subtitle}</p>
