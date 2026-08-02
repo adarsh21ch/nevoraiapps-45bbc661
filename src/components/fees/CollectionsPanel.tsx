@@ -305,10 +305,8 @@ export function CollectionsPanel({
           value={filter}
           onChange={setFilter}
           counts={{
-            all: rows.length,
             pending: pendingRows.length,
             paid: paidRows.length,
-            overdue: overdueRows.length,
           }}
         />
       </div>
