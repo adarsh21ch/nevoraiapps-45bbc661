@@ -122,6 +122,22 @@ function QrSetupPage() {
       .catch(() => setQrPng(null));
   }, [checkinUrl]);
 
+  const todayStats = useMemo(() => {
+    const rows = logQ.data ?? [];
+    const today = new Date().toDateString();
+    let checkedIn = 0;
+    let checkedOut = 0;
+    let rejected = 0;
+    for (const r of rows) {
+      if (new Date(r.created_at).toDateString() !== today) continue;
+      if (r.result !== "ok") rejected += 1;
+      else if (r.action === "check_in") checkedIn += 1;
+      else checkedOut += 1;
+    }
+    return { checkedIn, checkedOut, rejected };
+  }, [logQ.data]);
+
+
   const [pinning, setPinning] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualText, setManualText] = useState("");
