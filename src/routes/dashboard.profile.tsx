@@ -23,7 +23,7 @@ import {
   ChevronRight,
   KeyRound,
   Zap,
-  HeartPulse,
+  
 } from "lucide-react";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { tenantSiteUrl } from "@/lib/tenant";
