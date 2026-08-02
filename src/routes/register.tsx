@@ -304,7 +304,7 @@ function RegisterContent() {
 
   const batchOptions = useMemo(
     () => [
-      { value: "", label: "No preference", right: "" },
+      { value: "", label: "Select a batch", right: "" },
       ...batches.map((b) => ({
         value: b.id,
         label: b.timing ? `${b.name} — ${b.timing}` : b.name,
@@ -318,10 +318,11 @@ function RegisterContent() {
     e.preventDefault();
     if (
       !form.name.trim() ||
-      !form.guardian_name.trim() ||
       !form.dob ||
       !form.gender ||
-      !form.phone.trim()
+      !form.phone.trim() ||
+      !form.address.trim() ||
+      (batches.length > 0 && !form.batch_id)
     ) {
       toast.error("Please fill all required fields.");
       return;
