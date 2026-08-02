@@ -679,8 +679,17 @@ function RegisterContent() {
                     onChange={(v) => setForm({ ...form, batch_id: v })}
                     options={batchOptions}
                     onInfo={() => setBatchInfoOpen(true)}
+                    error={errors.batch_id}
                   />
                 ) : null}
+                <div className="sm:col-span-2">
+                  <TextArea
+                    label="Full address *"
+                    value={form.address}
+                    onChange={(v) => setForm({ ...form, address: v })}
+                    error={errors.address}
+                  />
+                </div>
               </div>
               {batches.length > 0 ? (
                 <FeeSummary
