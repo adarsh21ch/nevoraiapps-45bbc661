@@ -11,21 +11,32 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, RefreshCw, Printer, QrCode, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, RefreshCw, Printer, QrCode, Loader2, Pencil } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   fetchQrScanLog,
   fetchQrSettings,
   getCurrentPosition,
+  parseLatLng,
   qrKeys,
   saveQrSettings,
 } from "@/lib/attendance/qr";
+
 
 export const Route = createFileRoute("/dashboard/attendance-qr")({
   head: () => ({
@@ -91,6 +102,9 @@ function QrSetupPage() {
   }, [checkinUrl]);
 
   const [pinning, setPinning] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualText, setManualText] = useState("");
+
   async function pinHere() {
     setPinning(true);
     try {
@@ -192,28 +206,51 @@ function QrSetupPage() {
 
           {/* Location */}
           <Card className="space-y-3 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <Label className="text-sm font-medium">Academy location</Label>
-                <p className="text-xs text-muted-foreground">
-                  {s?.lat != null && s?.lng != null
-                    ? `Pinned at ${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}`
-                    : "Not set — stand at your academy and pin it."}
-                </p>
-              </div>
+            <div>
+              <Label className="text-sm font-medium">Academy location</Label>
+              <p className="text-xs text-muted-foreground">
+                {s?.lat != null && s?.lng != null
+                  ? `Pinned at ${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}`
+                  : "Not set — pin it from the academy, or enter the coordinates."}
+              </p>
+              {s?.lat != null && s?.lng != null ? (
+                <a
+                  className="mt-1 inline-block text-xs font-medium text-primary underline"
+                  href={`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View on map
+                </a>
+              ) : null}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"
                 variant="outline"
                 disabled={!canEdit || pinning}
                 onClick={pinHere}
-                className="shrink-0 rounded-full"
+                className="rounded-full"
               >
                 {pinning ? (
                   <Loader2 className="mr-1 size-3.5 animate-spin" />
                 ) : (
                   <MapPin className="mr-1 size-3.5" />
                 )}
-                Pin here
+                {s?.lat != null ? "Use my current location" : "Pin here"}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={!canEdit}
+                onClick={() => {
+                  setManualText(s?.lat != null && s?.lng != null ? `${s.lat}, ${s.lng}` : "");
+                  setManualOpen(true);
+                }}
+                className="rounded-full"
+              >
+                <Pencil className="mr-1 size-3.5" /> Change / enter manually
               </Button>
             </div>
 
@@ -238,6 +275,53 @@ function QrSetupPage() {
               />
             </div>
           </Card>
+
+          <Dialog open={manualOpen} onOpenChange={setManualOpen}>
+            <DialogContent className="rounded-2xl">
+              <DialogHeader>
+                <DialogTitle>Set academy location</DialogTitle>
+                <DialogDescription>
+                  Paste coordinates (e.g. 12.9716, 77.5946) or a Google Maps link for the academy.
+                </DialogDescription>
+              </DialogHeader>
+              <Input
+                value={manualText}
+                onChange={(e) => setManualText(e.target.value)}
+                placeholder="12.9716, 77.5946"
+                inputMode="text"
+                autoFocus
+              />
+              <DialogFooter className="gap-2">
+                <Button variant="ghost" className="rounded-full" onClick={() => setManualOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  className="rounded-full"
+                  disabled={save.isPending}
+                  onClick={() => {
+                    const parsed = parseLatLng(manualText);
+                    if (!parsed) {
+                      toast.error("Couldn't read those coordinates. Use: latitude, longitude");
+                      return;
+                    }
+                    save.mutate(
+                      { tenantId: tenant.id, lat: parsed.lat, lng: parsed.lng },
+                      {
+                        onSuccess: () => {
+                          setManualOpen(false);
+                          toast.success("Academy location updated");
+                        },
+                      },
+                    );
+                  }}
+                >
+                  {save.isPending ? <Loader2 className="mr-1 size-3.5 animate-spin" /> : null}
+                  Save location
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
 
           {/* Poster */}
           <Card className="space-y-3 p-4 text-center">
