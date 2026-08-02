@@ -118,10 +118,58 @@ function QrSetupPage() {
     }
   }
 
+  const [busy, setBusy] = useState<null | "pdf" | "png" | "share">(null);
+
+  async function withPoster(kind: "pdf" | "png" | "share") {
+    if (!checkinUrl) return;
+    setBusy(kind);
+    try {
+      const input = { academyName: tenant.name, checkinUrl };
+      if (kind === "pdf") {
+        downloadBlob(await posterPdfBlob(input), posterFileName(tenant.name, "pdf"));
+        toast.success("Poster PDF downloaded");
+        return;
+      }
+      if (kind === "png") {
+        downloadBlob(await posterPngBlob(input), posterFileName(tenant.name, "png"));
+        toast.success("Poster image downloaded");
+        return;
+      }
+      const blob = await posterPdfBlob(input);
+      const file = new File([blob], posterFileName(tenant.name, "pdf"), {
+        type: "application/pdf",
+      });
+      if (canShareFiles([file])) {
+        await navigator.share({ files: [file], title: `${tenant.name} — Check-in QR` });
+      } else {
+        downloadBlob(blob, posterFileName(tenant.name, "pdf"));
+        toast.success("Poster PDF downloaded — share it from your files");
+      }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      toast.error(e instanceof Error ? e.message : "Couldn't create the poster");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function copyLink() {
+    if (!checkinUrl) return;
+    try {
+      await navigator.clipboard.writeText(checkinUrl);
+      toast.success("Check-in link copied");
+    } catch {
+      toast.error("Couldn't copy the link");
+    }
+  }
+
   function printPoster() {
     if (!qrPng || typeof window === "undefined") return;
     const w = window.open("", "_blank", "width=800,height=1000");
-    if (!w) return;
+    if (!w) {
+      toast.error("Pop-up blocked — use “Download PDF” instead");
+      return;
+    }
     w.document.write(`<!doctype html><html><head><title>${tenant.name} — Check-in QR</title>
       <style>
         body{font-family:ui-sans-serif,system-ui,sans-serif;text-align:center;padding:48px 32px;margin:0}
@@ -146,6 +194,7 @@ function QrSetupPage() {
     w.focus();
     setTimeout(() => w.print(), 400);
   }
+
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-4 md:px-8">
