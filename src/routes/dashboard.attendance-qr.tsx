@@ -11,7 +11,20 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, RefreshCw, Printer, QrCode, Loader2, Pencil } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  RefreshCw,
+  Printer,
+  QrCode,
+  Loader2,
+  Pencil,
+  FileDown,
+  ImageDown,
+  Share2,
+  Link as LinkIcon,
+} from "lucide-react";
+
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Card } from "@/components/ui/card";
