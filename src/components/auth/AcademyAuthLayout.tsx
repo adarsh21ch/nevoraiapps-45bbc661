@@ -1,19 +1,23 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { signedUrl } from "@/lib/storage";
+import { motion } from "framer-motion";
 import { getPageHeroImages } from "@/lib/page-hero-images";
 import { useTenantState } from "@/lib/tenant-context";
+import { HeroCarousel } from "@/components/site/HeroCarousel";
 import { AcademyLogo } from "./AcademyLogo";
 
 export interface AcademyBrand {
   name: string;
   initials: string;
   accent: string;
+  ink: string;
   logoPath: string | null;
   tagline: string | null;
-  heroImage: string | null;
+  heroImages: string[];
   resolved: boolean;
 }
+
+const DISPLAY_FONT = "'Bebas Neue', 'Bricolage Grotesque', sans-serif";
 
 /** Resolves brand identity for the auth surface from the current tenant (hostname-based). */
 export function useAcademyBrand(): AcademyBrand {
@@ -28,80 +32,77 @@ export function useAcademyBrand(): AcademyBrand {
           .slice(0, 2)
           .map((w) => w[0])
           .join("")) ?? "A";
+    // Owner-uploaded login artwork wins; otherwise reuse the homepage hero.
+    const login = getPageHeroImages(tenant, "login");
+    const heroImages = login.length > 0 ? login : getPageHeroImages(tenant, "home");
     return {
       name,
       initials: initials.slice(0, 3).toUpperCase(),
       accent: tenant?.primary_color || "#2563EB",
+      ink: tenant?.secondary_color || "#0B1220",
       logoPath: tenant?.logo_url ?? null,
       tagline: tenant?.tagline ?? null,
-      heroImage: getPageHeroImages(tenant, "home")[0] ?? null,
+      heroImages,
       resolved: !!tenant,
     };
   }, [tenant]);
 }
 
-/** Resolves one storage path (or URL) to a displayable background URL. */
-function useBackgroundUrl(path: string | null): string | null {
-  const [url, setUrl] = useState<string | null>(null);
-  useEffect(() => {
-    if (!path) {
-      setUrl(null);
-      return;
-    }
-    if (path.startsWith("http") || path.startsWith("/")) {
-      setUrl(path);
-      return;
-    }
-    let active = true;
-    signedUrl(path)
-      .then((u) => active && setUrl(u || null))
-      .catch(() => active && setUrl(null));
-    return () => {
-      active = false;
-    };
-  }, [path]);
-  return url;
-}
-
 /**
  * Full-screen member-portal shell.
- * Mobile: single column, safe-area aware, uses 100dvh so the mobile keyboard
- * and browser chrome never trap the CTA. Desktop: brand panel + form panel.
+ * Mobile: single column, safe-area aware, 100dvh so the keyboard never traps the CTA.
+ * Desktop: academy brand panel (owner-uploaded login artwork) + form panel.
  */
 export function AcademyAuthLayout({ children }: { children: ReactNode }) {
   const brand = useAcademyBrand();
-  const bg = useBackgroundUrl(brand.heroImage);
+  const hasArt = brand.heroImages.length > 0;
 
   return (
     <div
       className="relative min-h-dvh w-full overflow-x-hidden bg-auth-bg text-auth-foreground"
-      style={{ "--brand-accent-auth": brand.accent } as React.CSSProperties}
+      style={
+        {
+          "--brand-accent-auth": brand.accent,
+          "--brand-ink-auth": brand.ink,
+        } as React.CSSProperties
+      }
     >
-      {/* Background: academy imagery when available, always behind a heavy navy scrim */}
+      {/* Ambient brand wash behind everything */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        {bg ? (
-          <img
-            src={bg}
-            alt=""
-            aria-hidden
-            fetchPriority="low"
-            className="size-full object-cover"
-          />
-        ) : null}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,10,24,0.86),rgba(4,10,24,0.97))]" />
         <div
-          className="absolute -top-32 left-1/2 h-[420px] w-[420px] -translate-x-1/2 rounded-full opacity-25 blur-[130px]"
-          style={{ backgroundColor: brand.accent }}
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--brand-accent-auth) 22%, transparent), transparent 60%), linear-gradient(180deg, var(--brand-ink-auth), rgba(4,10,24,0.98))`,
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right,#fff 1px,transparent 1px),linear-gradient(to bottom,#fff 1px,transparent 1px)",
+            backgroundSize: "56px 56px",
+            maskImage: "radial-gradient(ellipse at 50% 0%, black 30%, transparent 75%)",
+          }}
         />
       </div>
 
       <div className="mx-auto grid min-h-dvh w-full lg:grid-cols-[1.05fr_1fr]">
-        <BrandPanel brand={brand} />
-        <main
-          className="flex w-full flex-col justify-center px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-8"
-          style={{ minHeight: "100dvh" }}
-        >
-          <div className="mx-auto w-full max-w-[400px]">
+        <BrandPanel brand={brand} hasArt={hasArt} />
+        <main className="relative flex min-h-dvh w-full flex-col justify-center px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-8">
+          {/* Mobile-only academy artwork band, kept behind a heavy scrim */}
+          {hasArt ? (
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[38dvh] overflow-hidden lg:hidden">
+              <HeroCarousel paths={brand.heroImages} scrim={false} intervalMs={6500} />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,10,24,0.55),rgba(4,10,24,0.92)_70%,var(--auth-bg))]" />
+            </div>
+          ) : null}
+
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="relative mx-auto w-full max-w-[420px]"
+          >
             {/* Compact brand lockup — mobile only */}
             <div className="mb-6 flex items-center gap-3 lg:hidden">
               <AcademyLogo
@@ -109,17 +110,26 @@ export function AcademyAuthLayout({ children }: { children: ReactNode }) {
                 name={brand.name}
                 initials={brand.initials}
                 accent={brand.accent}
-                className="size-11"
+                className="size-12"
               />
               <div className="min-w-0">
-                <p className="truncate text-[15px] font-semibold leading-tight">{brand.name}</p>
+                <p
+                  className="truncate text-[19px] leading-tight tracking-wide"
+                  style={{ fontFamily: DISPLAY_FONT }}
+                >
+                  {brand.name}
+                </p>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-auth-subtle">
                   Member portal
                 </p>
               </div>
             </div>
-            {children}
-            <div className="mt-7 text-center">
+
+            <div className="rounded-3xl border border-auth-border bg-[color-mix(in_oklab,var(--auth-surface)_70%,transparent)] p-5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:p-6 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
+              {children}
+            </div>
+
+            <div className="mt-6 text-center">
               <Link
                 to="/"
                 className="text-xs text-auth-subtle transition-colors hover:text-auth-foreground"
@@ -127,17 +137,29 @@ export function AcademyAuthLayout({ children }: { children: ReactNode }) {
                 ← Back to {brand.resolved ? "academy website" : "home"}
               </Link>
             </div>
-          </div>
+          </motion.div>
         </main>
       </div>
     </div>
   );
 }
 
-function BrandPanel({ brand }: { brand: AcademyBrand }) {
+function BrandPanel({ brand, hasArt }: { brand: AcademyBrand; hasArt: boolean }) {
   return (
-    <aside className="relative hidden flex-col justify-between p-12 lg:flex">
-      <Link to="/" className="flex items-center gap-3">
+    <aside className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
+      {hasArt ? (
+        <>
+          <HeroCarousel paths={brand.heroImages} scrim={false} intervalMs={6500} />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(105deg,rgba(4,10,24,0.92),rgba(4,10,24,0.62)_55%,rgba(4,10,24,0.95))]" />
+        </>
+      ) : (
+        <div
+          className="pointer-events-none absolute -left-24 top-1/3 h-[420px] w-[420px] rounded-full opacity-30 blur-[140px]"
+          style={{ backgroundColor: brand.accent }}
+        />
+      )}
+
+      <Link to="/" className="relative flex items-center gap-3">
         <AcademyLogo
           path={brand.logoPath}
           name={brand.name}
@@ -146,32 +168,59 @@ function BrandPanel({ brand }: { brand: AcademyBrand }) {
           className="size-12"
         />
         <span>
-          <span className="block text-[17px] font-semibold leading-tight">{brand.name}</span>
+          <span
+            className="block text-[22px] leading-tight tracking-wide"
+            style={{ fontFamily: DISPLAY_FONT }}
+          >
+            {brand.name}
+          </span>
           <span className="block text-[10px] font-semibold uppercase tracking-[0.28em] text-auth-subtle">
             Member portal
           </span>
         </span>
       </Link>
 
-      <div className="max-w-md">
-        <h2 className="text-5xl font-bold leading-[1.02] tracking-tight">Train. Track. Improve.</h2>
+      <motion.div
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
+        className="relative max-w-md"
+      >
+        <span
+          className="inline-flex items-center gap-2 rounded-full border border-auth-border bg-auth-elevated px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-auth-muted backdrop-blur"
+          style={{ color: brand.accent }}
+        >
+          {brand.tagline ?? "Where champions are made"}
+        </span>
+        <h2
+          className="mt-5 text-[64px] leading-[0.92] tracking-wide"
+          style={{ fontFamily: DISPLAY_FONT }}
+        >
+          Train.
+          <br />
+          Track.
+          <span style={{ color: brand.accent }}> Improve.</span>
+        </h2>
         <p className="mt-4 text-[15px] leading-relaxed text-auth-muted">
           Your academy, performance and progress — all in one place.
         </p>
         <ul className="mt-8 flex flex-wrap gap-2">
-          {["Training", "Attendance", "Matches", "Performance"].map((f) => (
-            <li
+          {["Training", "Attendance", "Matches", "Performance"].map((f, i) => (
+            <motion.li
               key={f}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.15 + i * 0.06 }}
               className="rounded-full border border-auth-border bg-auth-elevated px-3 py-1.5 text-xs font-medium text-auth-muted backdrop-blur"
             >
               {f}
-            </li>
+            </motion.li>
           ))}
         </ul>
-      </div>
+      </motion.div>
 
-      <p className="text-[10px] uppercase tracking-[0.28em] text-auth-subtle">
-        {brand.tagline ?? "Students · Parents · Academy staff"}
+      <p className="relative text-[10px] uppercase tracking-[0.28em] text-auth-subtle">
+        Students · Parents · Academy staff
       </p>
     </aside>
   );
