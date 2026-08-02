@@ -36,6 +36,14 @@ import {
   qrKeys,
   saveQrSettings,
 } from "@/lib/attendance/qr";
+import {
+  canShareFiles,
+  downloadBlob,
+  posterFileName,
+  posterPdfBlob,
+  posterPngBlob,
+} from "@/lib/attendance/poster";
+
 
 
 export const Route = createFileRoute("/dashboard/attendance-qr")({
