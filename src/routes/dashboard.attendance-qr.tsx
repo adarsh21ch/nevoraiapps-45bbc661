@@ -584,3 +584,12 @@ function QrSetupPage() {
     </div>
   );
 }
+
+function StatBox({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-muted/30 p-2">
+      <p className="text-lg font-semibold tabular-nums">{value}</p>
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+    </div>
+  );
+}
