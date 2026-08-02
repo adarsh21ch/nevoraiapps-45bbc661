@@ -891,8 +891,10 @@ function RegisterContent() {
 
               <div
                 className={cn(
-                  "z-10 pt-2",
-                  isMobile ? "sticky bottom-0 bg-background/95 pb-3 backdrop-blur" : "sticky bottom-4",
+                  "z-20 pt-2",
+                  isMobile
+                    ? "sticky bottom-0 -mx-4 border-t border-border bg-background/95 px-4 pb-3 backdrop-blur"
+                    : "sticky bottom-4",
                 )}
                 style={
                   isMobile
