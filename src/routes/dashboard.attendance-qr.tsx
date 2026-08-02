@@ -408,9 +408,62 @@ function QrSetupPage() {
                   alt="Academy check-in QR code"
                   className="mx-auto size-48 rounded-xl border border-border/60 bg-white p-2"
                 />
-                <Button onClick={printPoster} className="h-11 w-full rounded-xl">
-                  <Printer className="mr-2 size-4" /> Print poster
+                <Button
+                  onClick={() => withPoster("pdf")}
+                  disabled={busy !== null}
+                  className="h-12 w-full rounded-xl text-base"
+                >
+                  {busy === "pdf" ? (
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                  ) : (
+                    <FileDown className="mr-2 size-4" />
+                  )}
+                  Download PDF
                 </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => withPoster("png")}
+                    disabled={busy !== null}
+                    className="h-11 rounded-xl"
+                  >
+                    {busy === "png" ? (
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                    ) : (
+                      <ImageDown className="mr-2 size-4" />
+                    )}
+                    Save image
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => withPoster("share")}
+                    disabled={busy !== null}
+                    className="h-11 rounded-xl"
+                  >
+                    {busy === "share" ? (
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                    ) : (
+                      <Share2 className="mr-2 size-4" />
+                    )}
+                    Share
+                  </Button>
+                  <Button variant="ghost" onClick={copyLink} className="h-11 rounded-xl text-xs">
+                    <LinkIcon className="mr-2 size-4" /> Copy link
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={printPoster}
+                    className="h-11 rounded-xl text-xs"
+                  >
+                    <Printer className="mr-2 size-4" /> Print
+                  </Button>
+                </div>
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  Download the PDF and send it to a print shop, or share it straight from your
+                  phone. Print A4 and stick it at every entry point — several copies of the same
+                  poster all work at once.
+                </p>
+
               </>
             ) : (
               <div className="space-y-3 py-4 text-sm text-muted-foreground">
