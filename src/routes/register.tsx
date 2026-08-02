@@ -933,7 +933,7 @@ function RegisterContent() {
           {/* Mobile-only sticky nav (steps 1–3) */}
           {isMobile && step < 4 ? (
             <div
-              className="sticky bottom-0 z-10 -mx-4 flex items-center gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
+              className="sticky bottom-0 z-20 -mx-4 flex items-center gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
               style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
             >
               {step > 1 ? (
