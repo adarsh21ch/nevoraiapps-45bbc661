@@ -1,14 +1,14 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { AtSign, KeyRound, Mail, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { toE164, isLikelyEmail } from "@/lib/phone";
 import { signInWithUsername } from "@/lib/account.functions";
-import { useTenantState } from "@/lib/tenant-context";
-
-
+import { AcademyAuthLayout, useAcademyBrand } from "@/components/auth/AcademyAuthLayout";
+import { AuthInput, PasswordInput } from "@/components/auth/AuthInput";
+import { AuthButton, AuthError } from "@/components/auth/AuthButton";
 
 type AuthSearch = { mode?: "signin" | "forgot" | "reset"; next?: string };
 
@@ -22,15 +22,16 @@ function safeNext(value: unknown): string | undefined {
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): AuthSearch => ({
     mode:
-      s.mode === "forgot" || s.mode === "reset" || s.mode === "signin"
-        ? s.mode
-        : undefined,
+      s.mode === "forgot" || s.mode === "reset" || s.mode === "signin" ? s.mode : undefined,
     next: safeNext(s.next),
   }),
   head: () => ({
     meta: [
-      { title: "Sign in · Academy OS" },
-      { name: "description", content: "Sign in to your academy — students, parents, and staff." },
+      { title: "Member portal sign in · Academy OS" },
+      {
+        name: "description",
+        content: "Sign in to your academy member portal — students, parents and academy staff.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -42,12 +43,8 @@ export const Route = createFileRoute("/auth")({
 //  2) Any tenant role in user_roles (owner/admin/coach/head_coach/assistant_coach/staff)
 //  3) Parent link (mc_parent_links)
 //  4) Student surface (students.user_id or a pending registrations.applicant_user_id)
-//  5) Orphan → /register
-type PostLoginRoute =
-  | "/platform-admin"
-  | "/dashboard"
-  | "/student"
-  | "/register";
+//  5) Orphan → /student (pending empty state)
+type PostLoginRoute = "/platform-admin" | "/dashboard" | "/student" | "/register";
 
 export async function routeAfterLogin(_uid?: string): Promise<PostLoginRoute> {
   // Single authoritative source: SECURITY DEFINER RPC bypasses RLS ambiguity
@@ -58,19 +55,26 @@ export async function routeAfterLogin(_uid?: string): Promise<PostLoginRoute> {
     return "/student"; // Safer than /register for a signed-in user.
   }
   switch (data as unknown as string) {
-    case "platform_admin": return "/platform-admin";
-    case "staff": return "/dashboard";
-    case "parent": return "/student"; // parent portal merged into the student portal
-    case "student": return "/student";
-    default: return "/student"; // Orphan: land on /student (pending empty-state), never blank /register.
+    case "platform_admin":
+      return "/platform-admin";
+    case "staff":
+      return "/dashboard";
+    case "parent":
+      return "/student"; // parent portal merged into the student portal
+    case "student":
+      return "/student";
+    default:
+      return "/student";
   }
 }
 
 function AuthPage() {
   const navigate = useNavigate();
   const { mode: searchMode, next: nextPath } = Route.useSearch();
-  // Post-login destination: honour an explicit same-origin `next` (used by the
-  // QR check-in page), otherwise route by role.
+  const brand = useAcademyBrand();
+
+  // Post-login destination: honour an explicit same-origin `next` (validated in
+  // validateSearch), otherwise route by role.
   const goAfterLogin = async (uid?: string) => {
     if (nextPath) {
       window.location.assign(nextPath);
@@ -78,28 +82,28 @@ function AuthPage() {
     }
     navigate({ to: uid ? await routeAfterLogin(uid) : "/dashboard" });
   };
-  const tenantState = useTenantState();
-  const tenant = tenantState.status === "ready" ? tenantState.tenant : null;
-  const brandName = tenant?.name ?? "AcademyOS";
-  const brandShort =
-    tenant?.short_name || (tenant?.name ? tenant.name.charAt(0).toUpperCase() : "A");
-  const brandLogo = tenant?.logo_url ?? null;
-  const brandColor = tenant?.primary_color ?? "#a3e635";
+
   const [mode, setMode] = useState<"signin" | "forgot" | "reset">(searchMode ?? "signin");
   const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+
+  function switchMode(next: "signin" | "forgot" | "reset") {
+    setFormError(null);
+    setSentTo(null);
+    setMode(next);
+  }
 
   // Handle Supabase password-recovery redirect: URL comes back with
   // #type=recovery&access_token=... → show reset-password form.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const hash = window.location.hash || "";
-    if (hash.includes("type=recovery")) {
-      setMode("reset");
-    }
+    if (hash.includes("type=recovery")) setMode("reset");
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") setMode("reset");
     });
@@ -116,9 +120,11 @@ function AuthPage() {
 
   async function onSignIn(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return; // guard against duplicate submits
+    setFormError(null);
     const id = identifier.trim();
     if (!id || !password) {
-      toast.error("Enter your username, email or phone and password.");
+      setFormError("Enter your username, email or phone and your password.");
       return;
     }
     setLoading(true);
@@ -131,7 +137,7 @@ function AuthPage() {
         const res = await signInWithUsername({ data: { username: id.toLowerCase(), password } });
         if (!res.ok) {
           setLoading(false);
-          toast.error(res.error);
+          setFormError("We couldn't sign you in with those details. Check and try again.");
           return;
         }
         result = await supabase.auth.setSession({
@@ -140,14 +146,14 @@ function AuthPage() {
         });
       } catch {
         setLoading(false);
-        toast.error("Wrong username or password. Please try again.");
+        setFormError("We couldn't sign you in right now. Check your connection and try again.");
         return;
       }
     } else {
       const phone = toE164(id);
       if (!phone) {
         setLoading(false);
-        toast.error("Enter a valid username, email address or phone number.");
+        setFormError("Enter a valid username, email address or phone number.");
         return;
       }
       result = await supabase.auth.signInWithPassword({ phone, password });
@@ -155,384 +161,208 @@ function AuthPage() {
     const { data, error } = result;
     setLoading(false);
     if (error) {
-      toast.error("Wrong username, email/phone or password. Please try again.");
+      // Never surface raw Supabase errors to end users.
+      setFormError("We couldn't sign you in with those details. Check your information and try again.");
       return;
     }
     toast.success("Signed in");
-    const uid = data.user?.id;
-    await goAfterLogin(uid);
+    await goAfterLogin(data.user?.id);
   }
 
   async function onForgot(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim()) {
-      toast.error("Enter your email address first.");
+    if (loading) return;
+    setFormError(null);
+    const target = email.trim();
+    if (!target) {
+      setFormError("Enter your registered email address.");
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+    const { error } = await supabase.auth.resetPasswordForEmail(target, {
       redirectTo: `${window.location.origin}/auth`,
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      console.error("resetPasswordForEmail failed");
+      // Don't leak whether the account exists.
+      setSentTo(target);
       return;
     }
-    toast.success("Check your email for a password-reset link.");
-    setMode("signin");
+    setSentTo(target);
   }
 
   async function onReset(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
+    setFormError(null);
     if (newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters.");
+      setFormError("Password must be at least 8 characters.");
       return;
     }
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      setFormError("We couldn't update your password. Request a fresh reset link and try again.");
       return;
     }
     toast.success("Password updated. Signing you in…");
     const { data } = await supabase.auth.getUser();
-    const uid = data.user?.id;
-    await goAfterLogin(uid);
+    await goAfterLogin(data.user?.id);
   }
 
+  const title =
+    mode === "reset" ? "Set a new password" : mode === "forgot" ? "Forgot password" : "Welcome back";
+  const subtitle =
+    mode === "reset"
+      ? "Choose a new password to finish signing in."
+      : mode === "forgot"
+        ? "Enter your registered email and we'll send reset instructions."
+        : `Sign in to continue to your ${brand.resolved ? brand.name : "academy"} account.`;
+
   return (
-    <div
-      className="grid min-h-dvh w-full lg:grid-cols-2"
-      style={{ fontFamily: "Inter, ui-sans-serif, system-ui" }}
-    >
-      {/* Left — Stadium visual */}
-      <aside className="relative hidden overflow-hidden bg-[#0a0a0a] p-10 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-40 -left-20 h-[500px] w-[500px] rounded-full bg-lime-500/20 blur-[140px]" />
-          <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-blue-500/10 blur-[120px]" />
-          <div
-            className="absolute inset-0 opacity-[0.05]"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right,#fff 1px,transparent 1px),linear-gradient(to bottom,#fff 1px,transparent 1px)",
-              backgroundSize: "60px 60px",
-              maskImage: "radial-gradient(ellipse at center, black 40%, transparent 80%)",
-            }}
-          />
-        </div>
-
-        <Link to="/" className="z-10 flex items-center gap-2.5">
-          {brandLogo ? (
-            <img src={brandLogo} alt={brandName} className="h-9 w-9 rounded object-cover" />
-          ) : (
-            <div
-              className="grid h-9 w-9 place-items-center rounded text-sm font-black text-black"
-              style={{ backgroundColor: brandColor }}
-            >
-              {brandShort}
-            </div>
-          )}
-          <span
-            className="text-lg font-black uppercase tracking-tight"
-            style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: "0.02em" }}
-          >
-            {brandName}
-          </span>
-        </Link>
-
-        <div className="z-10 max-w-md space-y-6">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.25em]"
-            style={{ borderColor: `${brandColor}55`, backgroundColor: `${brandColor}1a`, color: brandColor }}
-          >
-            <span className="relative flex h-2 w-2">
-              <span
-                className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-                style={{ backgroundColor: brandColor }}
-              />
-              <span
-                className="relative inline-flex h-2 w-2 rounded-full"
-                style={{ backgroundColor: brandColor }}
-              />
-            </span>
-            One sign in for everyone
-          </motion.div>
-
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-6xl leading-[0.9] tracking-tighter"
-            style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-          >
-            Welcome <br />
-            <span style={{ color: brandColor }}>back.</span>
-          </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg text-zinc-400"
-          >
-            {tenant
-              ? `Sign in to ${brandName} — students, parents and academy staff use the email or phone you registered with.`
-              : "Students, parents and academy staff — sign in with the email or phone you registered with. We'll take you to the right place."}
-          </motion.p>
-
-          <motion.ul
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="space-y-2 pt-2"
-          >
-            {[
-              "Students — see attendance, fees and progress",
-              "Parents — follow your child's academy journey",
-              "Coaches & admins — run the academy from your phone",
-            ].map((t) => (
-              <li key={t} className="flex items-center gap-3 text-sm text-zinc-300">
-                <span
-                  className="grid h-5 w-5 shrink-0 place-items-center rounded-full"
-                  style={{ backgroundColor: `${brandColor}33`, color: brandColor }}
-                >
-                  ✓
-                </span>
-                {t}
-              </li>
-            ))}
-          </motion.ul>
-        </div>
-
-        <div className="z-10 text-[10px] uppercase tracking-[0.25em] text-white/40">
-          {tenant?.tagline ?? "Simple. On your phone. In your language soon."}
-        </div>
-      </aside>
-
-      {/* Right — form */}
-      <main className="relative flex items-center justify-center bg-white p-6 sm:p-10">
-        <Link to="/" className="absolute left-4 top-4 flex items-center gap-2 lg:hidden">
-          {brandLogo ? (
-            <img src={brandLogo} alt={brandName} className="h-8 w-8 rounded object-cover" />
-          ) : (
-            <div
-              className="grid h-8 w-8 place-items-center rounded text-[13px] font-black text-black"
-              style={{ backgroundColor: brandColor }}
-            >
-              {brandShort}
-            </div>
-          )}
-          <span
-            className="text-base font-black uppercase tracking-tight text-zinc-900"
-            style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-          >
-            {brandName}
-          </span>
-        </Link>
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-sm space-y-6"
-        >
-          <div>
-            <h1
-              className="text-4xl uppercase leading-none tracking-tight text-zinc-900"
-              style={{ fontFamily: "'Bebas Neue', sans-serif" }}
-            >
-              {mode === "reset" ? "Set new password" : mode === "forgot" ? "Reset password" : "Sign in"}
-            </h1>
-            <p className="mt-2 text-sm text-zinc-500">
-              {mode === "reset"
-                ? "Choose a new password to finish signing in."
-                : mode === "forgot"
-                  ? "Enter your email and we'll send a reset link."
-                  : "Students · Parents · Academy staff"}
-            </p>
-          </div>
-
-          {mode === "signin" && (
-            <form onSubmit={onSignIn} className="space-y-5">
-              <Field
-                id="identifier"
-                label="Username, email or phone"
-                type="text"
-                autoComplete="username"
-                value={identifier}
-                onChange={setIdentifier}
-                placeholder="username, you@example.com or 98xxxxxxxx"
-              />
-              <Field
-                id="password"
-                label="Password"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={setPassword}
-                placeholder="Your password"
-              />
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative flex w-full items-center justify-center gap-2 rounded-none bg-[#0a0a0a] px-6 py-4 text-sm font-bold uppercase tracking-wider text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-lime-400 hover:text-black disabled:opacity-60"
-              >
-                {loading ? "Signing in…" : "Sign in →"}
-                <span
-                  aria-hidden
-                  className="absolute -bottom-1 -right-1 h-full w-full border-b-2 border-r-2 border-[#0a0a0a] transition-colors group-hover:border-lime-400"
-                />
-              </button>
-
-              <div className="flex items-center justify-between text-xs text-zinc-500">
-                <button
-                  type="button"
-                  onClick={() => setMode("forgot")}
-                  className="hover:text-zinc-900"
-                >
-                  Forgot password?
-                </button>
-                <Link to="/register" className="font-semibold text-zinc-900 hover:text-lime-600">
-                  New here? Register →
-                </Link>
-              </div>
-              <p className="text-[11px] leading-relaxed text-zinc-400">
-                Password reset works via your email.
-              </p>
-            </form>
-          )}
-
-          {mode === "forgot" && (
-            <form onSubmit={onForgot} className="space-y-5">
-              <Field
-                id="forgot-email"
-                label="Email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={setEmail}
-                placeholder="you@example.com"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-none bg-[#0a0a0a] px-6 py-4 text-sm font-bold uppercase tracking-wider text-white hover:bg-lime-400 hover:text-black disabled:opacity-60"
-              >
-                {loading ? "Sending…" : "Send reset link"}
-              </button>
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setMode("signin")}
-                  className="text-xs text-zinc-500 hover:text-zinc-900"
-                >
-                  ← Back to sign in
-                </button>
-              </div>
-            </form>
-          )}
-
-          {mode === "reset" && (
-            <form onSubmit={onReset} className="space-y-5">
-              <Field
-                id="new-password"
-                label="New password"
-                type="password"
-                autoComplete="new-password"
-                value={newPassword}
-                onChange={setNewPassword}
-                placeholder="At least 8 characters"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-none bg-[#0a0a0a] px-6 py-4 text-sm font-bold uppercase tracking-wider text-white hover:bg-lime-400 hover:text-black disabled:opacity-60"
-              >
-                {loading ? "Updating…" : "Update password"}
-              </button>
-            </form>
-          )}
-
-          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-600">
-            <div className="font-semibold text-zinc-900">First time here?</div>
-            <p className="mt-1 leading-relaxed">
-              Applying to join an academy?{" "}
-              <Link to="/register" className="font-semibold text-zinc-900 underline hover:text-lime-600">
-                Register here
-              </Link>
-              . If your academy isn't set up yet, message us on WhatsApp and we'll help.
-            </p>
-          </div>
-
-          <div className="text-center text-xs text-zinc-500">
-            <Link to="/" className="hover:text-zinc-900">
-              ← Back to home
-            </Link>
-          </div>
-        </motion.div>
-      </main>
-    </div>
-  );
-}
-
-function Field({
-  id,
-  label,
-  type,
-  autoComplete,
-  value,
-  onChange,
-  placeholder,
-}: {
-  id: string;
-  label: string;
-  type: string;
-  autoComplete: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  const isPassword = type === "password";
-  const [show, setShow] = useState(false);
-  const effectiveType = isPassword && show ? "text" : type;
-  return (
-    <div className="space-y-2">
-      <label
-        htmlFor={id}
-        className="block text-[11px] font-bold uppercase tracking-widest text-zinc-500"
+    <AcademyAuthLayout>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: "easeOut" }}
       >
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          id={id}
-          type={effectiveType}
-          required
-          autoComplete={autoComplete}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={`w-full border-0 border-b-2 border-zinc-200 bg-transparent px-0 py-2.5 text-base text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-lime-500 ${isPassword ? "pr-10" : ""}`}
-        />
-        {isPassword && (
-          <button
-            type="button"
-            onClick={() => setShow((s) => !s)}
-            aria-label={show ? "Hide password" : "Show password"}
-            aria-pressed={show}
-            tabIndex={-1}
-            className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-900"
-          >
-            {show ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
+        <h1 className="text-[30px] font-bold leading-tight tracking-tight sm:text-[34px]">
+          {title}
+        </h1>
+        <p className="mt-2 text-[14px] leading-relaxed text-auth-muted">{subtitle}</p>
+
+        {mode === "signin" && (
+          <form onSubmit={onSignIn} className="mt-6 space-y-4" noValidate>
+            <AuthError message={formError} />
+            <AuthInput
+              id="identifier"
+              label="Email, phone or username"
+              type="text"
+              inputMode="text"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="Enter email, phone or username"
+              icon={<AtSign className="size-4" aria-hidden />}
+            />
+            <PasswordInput
+              id="password"
+              label="Password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              icon={<KeyRound className="size-4" aria-hidden />}
+            />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => switchMode("forgot")}
+                className="text-[13px] text-auth-muted transition-colors hover:text-auth-foreground"
+              >
+                Forgot password?
+              </button>
+            </div>
+            <AuthButton type="submit" loading={loading} loadingLabel="Signing in…">
+              Sign in
+            </AuthButton>
+          </form>
         )}
-      </div>
-    </div>
+
+        {mode === "forgot" &&
+          (sentTo ? (
+            <div className="mt-6 space-y-4">
+              <div className="rounded-2xl border border-auth-border bg-auth-elevated p-4 backdrop-blur">
+                <div className="flex items-center gap-2 text-[15px] font-semibold">
+                  <ShieldCheck className="size-4" style={{ color: brand.accent }} aria-hidden />
+                  Check your email
+                </div>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-auth-muted">
+                  If an account exists for {sentTo}, we've sent password reset instructions.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => switchMode("signin")}
+                className="w-full text-center text-[13px] text-auth-muted transition-colors hover:text-auth-foreground"
+              >
+                ← Back to sign in
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={onForgot} className="mt-6 space-y-4" noValidate>
+              <AuthError message={formError} />
+              <AuthInput
+                id="forgot-email"
+                label="Registered email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                icon={<Mail className="size-4" aria-hidden />}
+              />
+              <AuthButton type="submit" loading={loading} loadingLabel="Sending…" showArrow={false}>
+                Send reset link
+              </AuthButton>
+              <button
+                type="button"
+                onClick={() => switchMode("signin")}
+                className="w-full text-center text-[13px] text-auth-muted transition-colors hover:text-auth-foreground"
+              >
+                ← Back to sign in
+              </button>
+            </form>
+          ))}
+
+        {mode === "reset" && (
+          <form onSubmit={onReset} className="mt-6 space-y-4" noValidate>
+            <AuthError message={formError} />
+            <PasswordInput
+              id="new-password"
+              label="New password"
+              autoComplete="new-password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="At least 8 characters"
+              icon={<KeyRound className="size-4" aria-hidden />}
+              hint="Use at least 8 characters."
+            />
+            <AuthButton
+              type="submit"
+              loading={loading}
+              loadingLabel="Updating…"
+              showArrow={false}
+            >
+              Update password
+            </AuthButton>
+          </form>
+        )}
+
+        {mode === "signin" && (
+          <div className="mt-7 border-t border-auth-border pt-5">
+            <p className="text-[13px] text-auth-muted">
+              New to {brand.resolved ? brand.name : "the academy"}?
+            </p>
+            <Link
+              to="/register"
+              className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl border border-auth-border bg-auth-elevated text-[14px] font-semibold text-auth-foreground backdrop-blur transition-colors hover:border-[var(--brand-accent-auth)]"
+            >
+              Register / Apply now →
+            </Link>
+            <p className="mt-3 text-center text-[11px] uppercase tracking-[0.18em] text-auth-subtle">
+              Student · Parent · Academy staff
+            </p>
+          </div>
+        )}
+      </motion.div>
+    </AcademyAuthLayout>
   );
 }
-
