@@ -236,10 +236,10 @@ function RegistrationsInbox() {
     return c;
   }, [sorted]);
 
-  const filtered = useMemo(() => {
-    if (filter === "all") return sorted;
-    return sorted.filter((r: any) => effectiveReviewStatus(r) === filter);
-  }, [sorted, filter]);
+  const filtered = useMemo(
+    () => sorted.filter((r: any) => effectiveReviewStatus(r) === filter),
+    [sorted, filter],
+  );
 
   const openReg = sorted.find((r: any) => r.id === openId) ?? null;
   const newCount = sorted.filter((r: any) => r.status === "new" || r.status === "reviewed").length;
