@@ -999,15 +999,16 @@ function RegisterContent() {
             ) : null}
           </div>
         </div>
-      )}
+        )}
 
-      {batchInfoOpen ? (
-        <BatchInfoDialog
-          batches={batches}
-          fees={fees}
-          onClose={() => setBatchInfoOpen(false)}
-        />
-      ) : null}
+        {batchInfoOpen ? (
+          <BatchInfoDialog
+            batches={batches}
+            fees={fees}
+            onClose={() => setBatchInfoOpen(false)}
+          />
+        ) : null}
+      </main>
     </div>
   );
 }
