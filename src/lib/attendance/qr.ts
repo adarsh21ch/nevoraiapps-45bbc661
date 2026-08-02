@@ -106,6 +106,7 @@ export async function submitQrScan(args: {
 export interface QrScanLogRow {
   id: string;
   student_id: string | null;
+  student_name: string | null;
   action: string | null;
   distance_m: number | null;
   accuracy_m: number | null;
@@ -113,16 +114,28 @@ export interface QrScanLogRow {
   created_at: string;
 }
 
-export async function fetchQrScanLog(tenantId: string, limit = 30): Promise<QrScanLogRow[]> {
+export async function fetchQrScanLog(tenantId: string, limit = 50): Promise<QrScanLogRow[]> {
   const { data, error } = await supabase
     .from("attendance_qr_scans")
-    .select("id, student_id, action, distance_m, accuracy_m, result, created_at")
+    .select("id, student_id, action, distance_m, accuracy_m, result, created_at, students(name)")
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
-  return (data ?? []) as unknown as QrScanLogRow[];
+  return ((data ?? []) as unknown as Array<
+    Omit<QrScanLogRow, "student_name"> & { students?: { name: string | null } | null }
+  >).map((r) => ({
+    id: r.id,
+    student_id: r.student_id,
+    student_name: r.students?.name ?? null,
+    action: r.action,
+    distance_m: r.distance_m,
+    accuracy_m: r.accuracy_m,
+    result: r.result,
+    created_at: r.created_at,
+  }));
 }
+
 
 // ---------------------------------------------------------------------------
 // Browser geolocation helper — one place, so every screen behaves the same.
