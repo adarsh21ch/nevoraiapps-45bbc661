@@ -777,14 +777,6 @@ function RegisterContent() {
                 </div>
               </Section>
 
-              <Section title="Address">
-                <TextArea
-                  label="Full address"
-                  value={form.address}
-                  onChange={(v) => setForm({ ...form, address: v })}
-                />
-              </Section>
-
               <Section title="Medical (optional)">
                 <TextArea
                   label="Allergies, conditions or other notes"
