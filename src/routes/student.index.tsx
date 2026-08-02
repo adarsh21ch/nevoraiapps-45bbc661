@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import {
   Flame,
   Clock,
@@ -14,15 +14,18 @@ import {
   Megaphone,
   Mail,
   FileText,
+  ScanLine,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchMyPortalContext, fetchStudentHome, studentKeys } from "@/lib/student-app";
+import { ScanAttendanceDialog } from "@/components/attendance/ScanAttendanceDialog";
 
 export const Route = createFileRoute("/student/")({
   component: StudentHomePage,
 });
+
 
 function greeting() {
   const h = new Date().getHours();
@@ -39,8 +42,11 @@ function StudentHomePage() {
     queryFn: () => fetchStudentHome(ctx!),
     enabled: !!ctx,
   });
+  const qc = useQueryClient();
+  const [scanOpen, setScanOpen] = useState(false);
 
   const firstName = useMemo(() => (ctx?.name ?? "").split(" ")[0] || "Player", [ctx?.name]);
+
 
   if (!ctx || homeQ.isLoading) {
     return (
@@ -82,8 +88,43 @@ function StudentHomePage() {
         </div>
       </header>
 
+      {/* Primary daily action — scan the academy QR to check in / out */}
+      <button
+        type="button"
+        onClick={() => setScanOpen(true)}
+        className="w-full rounded-2xl bg-primary px-5 py-4 text-left text-primary-foreground shadow-lg shadow-primary/20 active:scale-[0.99] transition-transform"
+      >
+        <div className="flex items-center gap-4">
+          <span className="size-12 rounded-2xl bg-primary-foreground/15 grid place-items-center">
+            <ScanLine className="size-6" />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-base font-semibold leading-tight">
+              {home.todayVisit && !home.todayVisit.check_out_at
+                ? "Scan QR to check out"
+                : "Scan QR for attendance"}
+            </span>
+            <span className="block text-xs opacity-80 mt-0.5">
+              {home.todayVisit && !home.todayVisit.check_out_at
+                ? "You're checked in — scan again when you leave"
+                : "Tap, point at the academy poster, done"}
+            </span>
+          </span>
+          <ChevronRight className="size-5 opacity-80" />
+        </div>
+      </button>
+
+      <ScanAttendanceDialog
+        open={scanOpen}
+        onOpenChange={setScanOpen}
+        onRecorded={() => {
+          void qc.invalidateQueries({ queryKey: studentKeys.home(ctx.student_id) });
+        }}
+      />
+
       {/* Today status */}
       <Card className="p-4 flex items-center gap-3">
+
         <div
           className={`size-2.5 rounded-full ${
             home.todayVisit && !home.todayVisit.check_out_at
