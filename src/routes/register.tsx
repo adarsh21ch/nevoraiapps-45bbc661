@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Info, Loader2, MessageCircle, Eye, EyeOff, Lock } from "lucide-react";
+import { CheckCircle2, Download, Info, Loader2, MessageCircle, Eye, EyeOff, Lock, X } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { useTenant } from "@/lib/tenant-context";
 import {
