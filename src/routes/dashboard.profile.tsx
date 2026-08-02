@@ -156,16 +156,6 @@ function ProfilePage() {
         hint: "Contact us and get help",
         icon: LifeBuoy,
       },
-      ...(isOwner
-        ? [
-            {
-              to: "/dashboard/nevorai-health",
-              label: "NevorAI Health",
-              hint: "AI service status & diagnostics",
-              icon: HeartPulse,
-            } as Row,
-          ]
-        : []),
     ],
   });
 
