@@ -105,7 +105,8 @@ export function CollectionsPanel({
   const selectedPeriod = periodKey(selectedMonth);
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [selectedPeriod];
 
-  const initialFilter = initialFilterProp ?? "pending";
+  // "all" is no longer a visible tab — legacy links fall back to Pending.
+  const initialFilter: Filter = initialFilterProp === "all" ? "pending" : (initialFilterProp ?? "pending");
   const [filter, setFilter] = useState<Filter>(initialFilter);
   const [search, setSearch] = useState("");
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);
@@ -305,10 +306,8 @@ export function CollectionsPanel({
           value={filter}
           onChange={setFilter}
           counts={{
-            all: rows.length,
             pending: pendingRows.length,
             paid: paidRows.length,
-            overdue: overdueRows.length,
           }}
         />
       </div>
@@ -477,16 +476,15 @@ function ChipFilters({
 }: {
   value: Filter;
   onChange: (v: Filter) => void;
-  counts: { all: number; pending: number; paid: number; overdue: number };
+  counts: { pending: number; paid: number };
 }) {
   return (
     <FilterTabs<Filter>
-      value={value}
+      value={value === "pending" || value === "paid" ? value : "pending"}
       onChange={onChange}
       items={[
         { key: "pending", label: "Pending", count: counts.pending },
         { key: "paid", label: "Paid", count: counts.paid },
-        { key: "all", label: "All", count: counts.all },
       ]}
       ariaLabel="Fee status"
     />
