@@ -11,7 +11,20 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, RefreshCw, Printer, QrCode, Loader2, Pencil } from "lucide-react";
+import {
+  ArrowLeft,
+  MapPin,
+  RefreshCw,
+  Printer,
+  QrCode,
+  Loader2,
+  Pencil,
+  FileDown,
+  ImageDown,
+  Share2,
+  Link as LinkIcon,
+} from "lucide-react";
+
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Card } from "@/components/ui/card";
@@ -36,6 +49,14 @@ import {
   qrKeys,
   saveQrSettings,
 } from "@/lib/attendance/qr";
+import {
+  canShareFiles,
+  downloadBlob,
+  posterFileName,
+  posterPdfBlob,
+  posterPngBlob,
+} from "@/lib/attendance/poster";
+
 
 
 export const Route = createFileRoute("/dashboard/attendance-qr")({
@@ -65,7 +86,7 @@ function QrSetupPage() {
   const logQ = useQuery({
     queryKey: qrKeys.scans(tenant.id),
     queryFn: () => fetchQrScanLog(tenant.id),
-    refetchInterval: 30_000,
+    refetchInterval: 15_000,
   });
 
   const s = settingsQ.data;
@@ -101,6 +122,22 @@ function QrSetupPage() {
       .catch(() => setQrPng(null));
   }, [checkinUrl]);
 
+  const todayStats = useMemo(() => {
+    const rows = logQ.data ?? [];
+    const today = new Date().toDateString();
+    let checkedIn = 0;
+    let checkedOut = 0;
+    let rejected = 0;
+    for (const r of rows) {
+      if (new Date(r.created_at).toDateString() !== today) continue;
+      if (r.result !== "ok") rejected += 1;
+      else if (r.action === "check_in") checkedIn += 1;
+      else checkedOut += 1;
+    }
+    return { checkedIn, checkedOut, rejected };
+  }, [logQ.data]);
+
+
   const [pinning, setPinning] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualText, setManualText] = useState("");
@@ -118,10 +155,58 @@ function QrSetupPage() {
     }
   }
 
+  const [busy, setBusy] = useState<null | "pdf" | "png" | "share">(null);
+
+  async function withPoster(kind: "pdf" | "png" | "share") {
+    if (!checkinUrl) return;
+    setBusy(kind);
+    try {
+      const input = { academyName: tenant.name, checkinUrl };
+      if (kind === "pdf") {
+        downloadBlob(await posterPdfBlob(input), posterFileName(tenant.name, "pdf"));
+        toast.success("Poster PDF downloaded");
+        return;
+      }
+      if (kind === "png") {
+        downloadBlob(await posterPngBlob(input), posterFileName(tenant.name, "png"));
+        toast.success("Poster image downloaded");
+        return;
+      }
+      const blob = await posterPdfBlob(input);
+      const file = new File([blob], posterFileName(tenant.name, "pdf"), {
+        type: "application/pdf",
+      });
+      if (canShareFiles([file])) {
+        await navigator.share({ files: [file], title: `${tenant.name} — Check-in QR` });
+      } else {
+        downloadBlob(blob, posterFileName(tenant.name, "pdf"));
+        toast.success("Poster PDF downloaded — share it from your files");
+      }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      toast.error(e instanceof Error ? e.message : "Couldn't create the poster");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function copyLink() {
+    if (!checkinUrl) return;
+    try {
+      await navigator.clipboard.writeText(checkinUrl);
+      toast.success("Check-in link copied");
+    } catch {
+      toast.error("Couldn't copy the link");
+    }
+  }
+
   function printPoster() {
     if (!qrPng || typeof window === "undefined") return;
     const w = window.open("", "_blank", "width=800,height=1000");
-    if (!w) return;
+    if (!w) {
+      toast.error("Pop-up blocked — use “Download PDF” instead");
+      return;
+    }
     w.document.write(`<!doctype html><html><head><title>${tenant.name} — Check-in QR</title>
       <style>
         body{font-family:ui-sans-serif,system-ui,sans-serif;text-align:center;padding:48px 32px;margin:0}
@@ -146,6 +231,7 @@ function QrSetupPage() {
     w.focus();
     setTimeout(() => w.print(), 400);
   }
+
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-4 md:px-8">
@@ -351,9 +437,62 @@ function QrSetupPage() {
                   alt="Academy check-in QR code"
                   className="mx-auto size-48 rounded-xl border border-border/60 bg-white p-2"
                 />
-                <Button onClick={printPoster} className="h-11 w-full rounded-xl">
-                  <Printer className="mr-2 size-4" /> Print poster
+                <Button
+                  onClick={() => withPoster("pdf")}
+                  disabled={busy !== null}
+                  className="h-12 w-full rounded-xl text-base"
+                >
+                  {busy === "pdf" ? (
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                  ) : (
+                    <FileDown className="mr-2 size-4" />
+                  )}
+                  Download PDF
                 </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => withPoster("png")}
+                    disabled={busy !== null}
+                    className="h-11 rounded-xl"
+                  >
+                    {busy === "png" ? (
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                    ) : (
+                      <ImageDown className="mr-2 size-4" />
+                    )}
+                    Save image
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => withPoster("share")}
+                    disabled={busy !== null}
+                    className="h-11 rounded-xl"
+                  >
+                    {busy === "share" ? (
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                    ) : (
+                      <Share2 className="mr-2 size-4" />
+                    )}
+                    Share
+                  </Button>
+                  <Button variant="ghost" onClick={copyLink} className="h-11 rounded-xl text-xs">
+                    <LinkIcon className="mr-2 size-4" /> Copy link
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={printPoster}
+                    className="h-11 rounded-xl text-xs"
+                  >
+                    <Printer className="mr-2 size-4" /> Print
+                  </Button>
+                </div>
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  Download the PDF and send it to a print shop, or share it straight from your
+                  phone. Print A4 and stick it at every entry point — several copies of the same
+                  poster all work at once.
+                </p>
+
               </>
             ) : (
               <div className="space-y-3 py-4 text-sm text-muted-foreground">
@@ -384,12 +523,17 @@ function QrSetupPage() {
           {/* Audit */}
           <Card className="p-4">
             <div className="flex items-center justify-between gap-2">
-              <Label className="text-sm font-medium">Recent scans</Label>
+              <Label className="text-sm font-medium">Today's scans</Label>
               {logQ.isFetching ? (
                 <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
               ) : null}
             </div>
-            <div className="mt-2 divide-y divide-border/60">
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <StatBox label="Checked in" value={todayStats.checkedIn} />
+              <StatBox label="Checked out" value={todayStats.checkedOut} />
+              <StatBox label="Rejected" value={todayStats.rejected} />
+            </div>
+            <div className="mt-3 divide-y divide-border/60">
               {logQ.isError ? (
                 <div className="space-y-2 py-3 text-center text-xs text-muted-foreground">
                   <p>
@@ -405,15 +549,24 @@ function QrSetupPage() {
                 <p className="py-4 text-center text-xs text-muted-foreground">No scans yet.</p>
               ) : (
                 (logQ.data ?? []).map((row) => (
-                  <div key={row.id} className="flex items-center justify-between gap-2 py-2 text-xs">
-                    <span className="font-medium">
-                      {row.result === "ok"
-                        ? row.action === "check_in"
-                          ? "Checked in"
-                          : "Checked out"
-                        : row.result.replace(/_/g, " ")}
-                    </span>
-                    <span className="text-muted-foreground">
+                  <div key={row.id} className="flex items-center justify-between gap-3 py-2 text-xs">
+                    <div className="min-w-0 text-left">
+                      <p className="truncate font-medium">{row.student_name ?? "Unknown student"}</p>
+                      <p
+                        className={
+                          row.result === "ok"
+                            ? "text-muted-foreground"
+                            : "text-destructive/80 capitalize"
+                        }
+                      >
+                        {row.result === "ok"
+                          ? row.action === "check_in"
+                            ? "Checked in"
+                            : "Checked out"
+                          : row.result.replace(/_/g, " ")}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-muted-foreground">
                       {row.distance_m != null ? `${Math.round(row.distance_m)} m · ` : ""}
                       {new Date(row.created_at).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -425,8 +578,18 @@ function QrSetupPage() {
               )}
             </div>
           </Card>
+
         </div>
       )}
+    </div>
+  );
+}
+
+function StatBox({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-muted/30 p-2">
+      <p className="text-lg font-semibold tabular-nums">{value}</p>
+      <p className="text-[11px] text-muted-foreground">{label}</p>
     </div>
   );
 }

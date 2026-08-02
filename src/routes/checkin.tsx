@@ -77,28 +77,46 @@ function CheckinPage() {
   }, [signedIn, locate]);
 
   async function onScan() {
-    if (!token || !pos) return;
+    if (!token || !pos || phase === "sending") return;
     setPhase("sending");
     setMessage(null);
-    try {
-      const r = await submitQrScan({
-        token,
-        lat: pos.lat,
-        lng: pos.lng,
-        accuracy: pos.accuracy,
-      });
-      if (r.ok) {
-        setResult(r);
-        setPhase("done");
-      } else {
-        setMessage(scanErrorMessage(r));
+    // One silent retry: on a busy academy Wi-Fi the first request can drop.
+    // The RPC is safe to retry — it serializes per student and never
+    // double-records a check-in.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const r = await submitQrScan({
+          token,
+          lat: pos.lat,
+          lng: pos.lng,
+          accuracy: pos.accuracy,
+        });
+        if (r.ok) {
+          setResult(r);
+          setPhase("done");
+        } else if (r.result === "not_signed_in") {
+          setSignedIn(false);
+          setPhase("auth");
+        } else {
+          setMessage(scanErrorMessage(r));
+          setPhase("error");
+        }
+        return;
+      } catch (e) {
+        if (attempt === 0) {
+          await new Promise((res) => setTimeout(res, 700));
+          continue;
+        }
+        setMessage(
+          e instanceof Error
+            ? "Network hiccup — please tap Try again."
+            : "Something went wrong. Please try again.",
+        );
         setPhase("error");
       }
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : "Something went wrong. Please try again.");
-      setPhase("error");
     }
   }
+
 
   const brand = tenant?.name ?? "Your academy";
 
