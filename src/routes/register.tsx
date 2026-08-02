@@ -1230,10 +1230,12 @@ function TextArea({
   label,
   value,
   onChange,
+  error,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  error?: string;
 }) {
   return (
     <label className="block">
@@ -1244,8 +1246,13 @@ function TextArea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2"
+        aria-invalid={error ? true : undefined}
+        className={cn(
+          "mt-1.5 block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2",
+          error ? "border-red-500" : "border-border",
+        )}
       />
+      {error ? <span className="mt-1 block text-xs text-red-600">{error}</span> : null}
     </label>
   );
 }
