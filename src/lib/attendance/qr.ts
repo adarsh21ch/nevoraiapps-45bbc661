@@ -133,10 +133,18 @@ export interface Position {
   accuracy: number | null;
 }
 
-export function getCurrentPosition(timeoutMs = 15000): Promise<Position> {
+export function getCurrentPosition(timeoutMs = 20000): Promise<Position> {
   return new Promise((resolve, reject) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       reject(new Error("Location is not supported on this device."));
+      return;
+    }
+    if (typeof window !== "undefined" && window.isSecureContext === false) {
+      reject(
+        new Error(
+          "Location needs a secure (https) page. Open the app on its https address, or set the location manually.",
+        ),
+      );
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -146,18 +154,53 @@ export function getCurrentPosition(timeoutMs = 15000): Promise<Position> {
           lng: pos.coords.longitude,
           accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null,
         }),
-      (err) =>
-        reject(
-          new Error(
-            err.code === err.PERMISSION_DENIED
-              ? "Location permission denied. Allow location access and try again."
-              : "Couldn't get your location. Move to an open area and try again.",
-          ),
-        ),
+      (err) => {
+        const msg =
+          err.code === err.PERMISSION_DENIED
+            ? "Location permission denied. Allow location for this site in your browser settings, or set the location manually."
+            : err.code === err.TIMEOUT
+              ? "Location timed out. Step into an open area and try again, or set the location manually."
+              : "Couldn't get your location on this device. You can set the location manually instead.";
+        reject(new Error(msg));
+      },
       { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 },
     );
   });
 }
+
+/**
+ * Accepts "12.9716, 77.5946", "12.9716 77.5946" or a Google Maps link
+ * (`.../@12.97,77.59,17z`, `?q=12.97,77.59`, `!3d12.97!4d77.59`).
+ * Returns null when nothing usable is found.
+ */
+export function parseLatLng(input: string): { lat: number; lng: number } | null {
+  const text = input.trim();
+  if (!text) return null;
+
+  const valid = (lat: number, lng: number) =>
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    Math.abs(lat) <= 90 &&
+    Math.abs(lng) <= 180 &&
+    !(lat === 0 && lng === 0)
+      ? { lat, lng }
+      : null;
+
+  const dms = text.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+  if (dms) return valid(Number(dms[1]), Number(dms[2]));
+
+  const at = text.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+  if (at) return valid(Number(at[1]), Number(at[2]));
+
+  const q = text.match(/[?&](?:q|ll|center|destination)=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+  if (q) return valid(Number(q[1]), Number(q[2]));
+
+  const pair = text.match(/(-?\d+(?:\.\d+)?)\s*[,\s]\s*(-?\d+(?:\.\d+)?)/);
+  if (pair) return valid(Number(pair[1]), Number(pair[2]));
+
+  return null;
+}
+
 
 /** Metres between two coordinates (haversine) — mirrors `public.geo_distance_m`. */
 export function distanceMeters(
