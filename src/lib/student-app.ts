@@ -138,7 +138,15 @@ export async function fetchStudentHome(ctx: StudentContext): Promise<StudentHome
   const monthVisits = visits.filter((v) => v.session_date >= sinceIso);
   const hoursThisMonth = monthVisits.reduce((s, v) => s + (v.duration_minutes ?? 0), 0) / 60;
   const today = new Date().toISOString().slice(0, 10);
-  const todayVisit = visits.find((v) => v.session_date === today) ?? null;
+  const todayVisits = visits.filter((v) => v.session_date === today && v.status === "present");
+  // Prefer the currently-open visit; otherwise show the latest completed
+  // visit. A student can legitimately check in more than once per day.
+  const todayVisit =
+    todayVisits.find((v) => v.check_in_at && !v.check_out_at) ??
+    [...todayVisits].sort((a, b) =>
+      (b.check_in_at ?? b.created_at).localeCompare(a.check_in_at ?? a.created_at),
+    )[0] ??
+    null;
   const streakDays = computeStreak(visits);
 
   const remarks = ctx.student_id ? await fetchAllRemarks(ctx.student_id) : [];

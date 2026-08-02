@@ -65,8 +65,11 @@ function QrSetupPage() {
 
   const save = useMutation({
     mutationFn: saveQrSettings,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: qrKeys.settings(tenant.id) });
+    onSuccess: (updated) => {
+      // Render the returned token/settings immediately. Waiting for a second
+      // network read made a successful generate look as if nothing happened.
+      qc.setQueryData(qrKeys.settings(tenant.id), updated);
+      qc.invalidateQueries({ queryKey: qrKeys.scans(tenant.id) });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Couldn't save"),
   });
@@ -296,9 +299,25 @@ function QrSetupPage() {
 
           {/* Audit */}
           <Card className="p-4">
-            <Label className="text-sm font-medium">Recent scans</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-sm font-medium">Recent scans</Label>
+              {logQ.isFetching ? (
+                <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
+              ) : null}
+            </div>
             <div className="mt-2 divide-y divide-border/60">
-              {(logQ.data ?? []).length === 0 ? (
+              {logQ.isError ? (
+                <div className="space-y-2 py-3 text-center text-xs text-muted-foreground">
+                  <p>
+                    {logQ.error instanceof Error
+                      ? logQ.error.message
+                      : "Couldn't load recent scans."}
+                  </p>
+                  <Button size="sm" variant="outline" onClick={() => logQ.refetch()}>
+                    <RefreshCw className="mr-1 size-3.5" /> Try again
+                  </Button>
+                </div>
+              ) : (logQ.data ?? []).length === 0 ? (
                 <p className="py-4 text-center text-xs text-muted-foreground">No scans yet.</p>
               ) : (
                 (logQ.data ?? []).map((row) => (

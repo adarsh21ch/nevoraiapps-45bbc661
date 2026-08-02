@@ -203,9 +203,9 @@ function StudentHomePage() {
             label="My Schedule"
           />
           <PlayerQuickAction
-            to="/student/progress"
+            to="/student/timeline"
             icon={<QrCode className="size-5" />}
-            label="QR Check-In"
+            label="Attendance"
           />
           <PlayerQuickAction
             to="/student/matches"
@@ -253,7 +253,8 @@ function PlayerQuickAction({
     | "/student/progress"
     | "/student/matches"
     | "/student/profile"
-    | "/student/manage";
+     | "/student/manage"
+     | "/student/timeline";
   icon: React.ReactNode;
   label: string;
 }) {
