@@ -507,12 +507,17 @@ function QrSetupPage() {
           {/* Audit */}
           <Card className="p-4">
             <div className="flex items-center justify-between gap-2">
-              <Label className="text-sm font-medium">Recent scans</Label>
+              <Label className="text-sm font-medium">Today's scans</Label>
               {logQ.isFetching ? (
                 <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
               ) : null}
             </div>
-            <div className="mt-2 divide-y divide-border/60">
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <StatBox label="Checked in" value={todayStats.checkedIn} />
+              <StatBox label="Checked out" value={todayStats.checkedOut} />
+              <StatBox label="Rejected" value={todayStats.rejected} />
+            </div>
+            <div className="mt-3 divide-y divide-border/60">
               {logQ.isError ? (
                 <div className="space-y-2 py-3 text-center text-xs text-muted-foreground">
                   <p>
@@ -528,15 +533,24 @@ function QrSetupPage() {
                 <p className="py-4 text-center text-xs text-muted-foreground">No scans yet.</p>
               ) : (
                 (logQ.data ?? []).map((row) => (
-                  <div key={row.id} className="flex items-center justify-between gap-2 py-2 text-xs">
-                    <span className="font-medium">
-                      {row.result === "ok"
-                        ? row.action === "check_in"
-                          ? "Checked in"
-                          : "Checked out"
-                        : row.result.replace(/_/g, " ")}
-                    </span>
-                    <span className="text-muted-foreground">
+                  <div key={row.id} className="flex items-center justify-between gap-3 py-2 text-xs">
+                    <div className="min-w-0 text-left">
+                      <p className="truncate font-medium">{row.student_name ?? "Unknown student"}</p>
+                      <p
+                        className={
+                          row.result === "ok"
+                            ? "text-muted-foreground"
+                            : "text-destructive/80 capitalize"
+                        }
+                      >
+                        {row.result === "ok"
+                          ? row.action === "check_in"
+                            ? "Checked in"
+                            : "Checked out"
+                          : row.result.replace(/_/g, " ")}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-muted-foreground">
                       {row.distance_m != null ? `${Math.round(row.distance_m)} m · ` : ""}
                       {new Date(row.created_at).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -548,6 +562,7 @@ function QrSetupPage() {
               )}
             </div>
           </Card>
+
         </div>
       )}
     </div>
