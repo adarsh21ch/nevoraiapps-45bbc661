@@ -477,16 +477,15 @@ function ChipFilters({
 }: {
   value: Filter;
   onChange: (v: Filter) => void;
-  counts: { all: number; pending: number; paid: number; overdue: number };
+  counts: { pending: number; paid: number };
 }) {
   return (
     <FilterTabs<Filter>
-      value={value}
+      value={value === "pending" || value === "paid" ? value : "pending"}
       onChange={onChange}
       items={[
         { key: "pending", label: "Pending", count: counts.pending },
         { key: "paid", label: "Paid", count: counts.paid },
-        { key: "all", label: "All", count: counts.all },
       ]}
       ariaLabel="Fee status"
     />
