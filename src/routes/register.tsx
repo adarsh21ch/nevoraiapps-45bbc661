@@ -639,12 +639,13 @@ function RegisterContent() {
                   error={errors.name}
                 />
                 <Field
-                  label="Parent / guardian name *"
+                  label="Parent / guardian name"
                   value={form.guardian_name}
                   onChange={(v) => setForm({ ...form, guardian_name: v })}
                   autoComplete="off"
                   error={errors.guardian_name}
                 />
+
                 <Field
                   label="Date of birth *"
                   type="date"
