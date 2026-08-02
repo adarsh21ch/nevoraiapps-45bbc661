@@ -58,7 +58,7 @@ export const Route = createFileRoute("/register")({
     ],
   }),
   component: () => (
-    <TenantGate>
+    <TenantGate chrome="focus">
       <RegisterContent />
     </TenantGate>
   ),
