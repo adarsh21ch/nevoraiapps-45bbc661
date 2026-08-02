@@ -1011,13 +1011,14 @@ function BatchSelect({
   onChange,
   options,
   onInfo,
+  error,
 }: {
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string; right: string }[];
   onInfo: () => void;
+  error?: string;
 }) {
-  
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -1036,7 +1037,11 @@ function BatchSelect({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="block w-full appearance-none rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none"
+          aria-invalid={error ? true : undefined}
+          className={cn(
+            "block w-full appearance-none rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none",
+            error ? "border-red-500" : "border-border",
+          )}
         >
           {options.map((o) => (
             <option key={o.value} value={o.value}>
@@ -1045,6 +1050,7 @@ function BatchSelect({
           ))}
         </select>
       </div>
+      {error ? <span className="mt-1 block text-xs text-red-600">{error}</span> : null}
     </div>
   );
 }
