@@ -506,32 +506,76 @@ function RegisterContent() {
   const waHref = wa ? `https://wa.me/${wa}?text=${waMsg}` : null;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-16">
-      <div
-        className="text-xs font-semibold uppercase tracking-widest"
-        style={{ color: "var(--brand)" }}
-      >
-        Join {tenant.name}
-      </div>
-      <div className="mt-3 flex items-start justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Register</h1>
-        {pdfHref ? (
-          <a
-            href={pdfHref}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-xs font-medium text-foreground hover:bg-muted"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Offline PDF form</span>
-            <span className="sm:hidden">PDF</span>
-          </a>
+    <div className="flex min-h-dvh flex-col bg-background">
+      {/* Fixed, distraction-free header — this flow has no site nav/footer */}
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-4 py-3 sm:px-6">
+          {tenant.logo_url ? (
+            <img
+              src={tenant.logo_url}
+              alt={`${tenant.name} logo`}
+              className="h-9 w-9 shrink-0 rounded-lg object-contain"
+            />
+          ) : null}
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-foreground">{tenant.name}</div>
+            <div
+              className="text-[10px] font-semibold uppercase tracking-[0.18em]"
+              style={{ color: "var(--brand)" }}
+            >
+              Registration
+            </div>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            {pdfHref ? (
+              <a
+                href={pdfHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Offline PDF form</span>
+              </a>
+            ) : null}
+            <Link
+              to="/"
+              aria-label="Close registration"
+              className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+        {!done && isMobile ? (
+          <div className="mx-auto w-full max-w-3xl px-4 pb-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-semibold text-foreground">
+                {STEP_TITLES[step - 1]}
+              </span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Step {step} of 4
+              </span>
+            </div>
+            <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full transition-all duration-300"
+                style={{ width: `${step * 25}%`, backgroundColor: "var(--brand)" }}
+              />
+            </div>
+          </div>
         ) : null}
-      </div>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Fill in a few details — no payment needed here. The coach will confirm your spot on
-        WhatsApp.
-      </p>
+      </header>
+
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-6 pt-5 sm:px-6 sm:pt-10">
+        <div className="hidden sm:block">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Register</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Fill in a few details — no payment needed here. The coach will confirm your spot on
+            WhatsApp.
+          </p>
+        </div>
+
 
       {!done ? (
         <form onSubmit={submitForm} className="mt-8 space-y-6">
