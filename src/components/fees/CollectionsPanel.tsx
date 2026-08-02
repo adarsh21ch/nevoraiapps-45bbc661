@@ -105,7 +105,8 @@ export function CollectionsPanel({
   const selectedPeriod = periodKey(selectedMonth);
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [selectedPeriod];
 
-  const initialFilter = initialFilterProp ?? "pending";
+  // "all" is no longer a visible tab — legacy links fall back to Pending.
+  const initialFilter: Filter = initialFilterProp === "all" ? "pending" : (initialFilterProp ?? "pending");
   const [filter, setFilter] = useState<Filter>(initialFilter);
   const [search, setSearch] = useState("");
   const [payRow, setPayRow] = useState<RegisterRow | null>(null);
