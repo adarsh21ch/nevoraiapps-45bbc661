@@ -12,7 +12,19 @@ import { isReservedPlatformHost } from "@/lib/tenant";
  * Wraps public site pages: shows a placeholder when no tenant is resolved,
  * otherwise renders the branded header/footer around the page.
  */
-export function TenantGate({ children }: { children: ReactNode }) {
+export function TenantGate({
+  children,
+  chrome = "full",
+}: {
+  children: ReactNode;
+  /**
+   * "full"  → branded header + footer + WhatsApp bubble (default public pages)
+   * "focus" → distraction-free shell for task flows (register): no footer,
+   *           no floating bubble, no "powered by" strip. The page owns its
+   *           own fixed header / bottom bar.
+   */
+  chrome?: "full" | "focus";
+}) {
   const state = useTenantState();
 
   if (state.status === "loading") {
@@ -41,6 +53,15 @@ export function TenantGate({ children }: { children: ReactNode }) {
             or contact the academy directly.
           </p>
         </div>
+      </div>
+    );
+  }
+
+  if (chrome === "focus") {
+    return (
+      <div className="flex min-h-dvh flex-col bg-background">
+        {children}
+        <TenantJsonLd tenant={state.tenant} />
       </div>
     );
   }

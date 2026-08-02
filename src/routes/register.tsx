@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Info, Loader2, MessageCircle, Eye, EyeOff, Lock } from "lucide-react";
+import { CheckCircle2, Download, Info, Loader2, MessageCircle, Eye, EyeOff, Lock, X } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
+import { StoragedImage } from "@/components/site/StoragedImage";
 import { useTenant } from "@/lib/tenant-context";
 import {
   batchesQuery,
@@ -58,7 +59,7 @@ export const Route = createFileRoute("/register")({
     ],
   }),
   component: () => (
-    <TenantGate>
+    <TenantGate chrome="focus">
       <RegisterContent />
     </TenantGate>
   ),
@@ -248,10 +249,11 @@ function RegisterContent() {
       if (form.password !== form.password2) e.password2 = "Passwords do not match.";
     } else if (n === 2) {
       if (!form.name.trim()) e.name = "Required.";
-      if (!form.guardian_name.trim()) e.guardian_name = "Required.";
       if (!form.dob) e.dob = "Required.";
       if (!form.gender) e.gender = "Required.";
       if (!form.phone.trim()) e.phone = "Required.";
+      if (!form.address.trim()) e.address = "Required.";
+      if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -303,7 +305,7 @@ function RegisterContent() {
 
   const batchOptions = useMemo(
     () => [
-      { value: "", label: "No preference", right: "" },
+      { value: "", label: "Select a batch", right: "" },
       ...batches.map((b) => ({
         value: b.id,
         label: b.timing ? `${b.name} — ${b.timing}` : b.name,
@@ -317,10 +319,11 @@ function RegisterContent() {
     e.preventDefault();
     if (
       !form.name.trim() ||
-      !form.guardian_name.trim() ||
       !form.dob ||
       !form.gender ||
-      !form.phone.trim()
+      !form.phone.trim() ||
+      !form.address.trim() ||
+      (batches.length > 0 && !form.batch_id)
     ) {
       toast.error("Please fill all required fields.");
       return;
@@ -504,54 +507,94 @@ function RegisterContent() {
   const waHref = wa ? `https://wa.me/${wa}?text=${waMsg}` : null;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-16">
-      <div
-        className="text-xs font-semibold uppercase tracking-widest"
-        style={{ color: "var(--brand)" }}
-      >
-        Join {tenant.name}
-      </div>
-      <div className="mt-3 flex items-start justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Register</h1>
-        {pdfHref ? (
-          <a
-            href={pdfHref}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-xs font-medium text-foreground hover:bg-muted"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Offline PDF form</span>
-            <span className="sm:hidden">PDF</span>
-          </a>
-        ) : null}
-      </div>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Fill in a few details — no payment needed here. The coach will confirm your spot on
-        WhatsApp.
-      </p>
-
-      {!done ? (
-        <form onSubmit={submitForm} className="mt-8 space-y-6">
-          {isMobile ? (
-            <div className="rounded-2xl border border-border/60 bg-card/40 p-4">
-              <div
-                className="text-[11px] font-semibold uppercase tracking-widest"
-                style={{ color: "var(--brand)" }}
-              >
-                Step {step} of 4
-              </div>
-              <div className="mt-1 text-base font-semibold text-foreground">
-                {STEP_TITLES[step - 1]}
-              </div>
-              <div className="mt-3 h-1 overflow-hidden rounded-full bg-muted">
+    <div className="flex min-h-dvh flex-col bg-background">
+      {/* Fixed, distraction-free header — this flow has no site nav/footer */}
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-3xl items-center gap-3 px-4 py-3 sm:px-6">
+          {tenant.logo_url ? (
+            <StoragedImage
+              path={tenant.logo_url}
+              alt={tenant.name}
+              className="h-9 w-9 shrink-0 rounded-lg object-cover"
+              fallback={
                 <div
-                  className="h-full transition-all"
-                  style={{ width: `${step * 25}%`, backgroundColor: "var(--brand)" }}
-                />
-              </div>
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white"
+                  style={{ backgroundColor: "var(--brand)" }}
+                >
+                  {tenant.name.charAt(0)}
+                </div>
+              }
+            />
+          ) : (
+            <div
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white"
+              style={{ backgroundColor: "var(--brand)" }}
+            >
+              {tenant.name.charAt(0)}
             </div>
-          ) : null}
+          )}
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-foreground">{tenant.name}</div>
+            <div
+              className="text-[10px] font-semibold uppercase tracking-[0.18em]"
+              style={{ color: "var(--brand)" }}
+            >
+              Registration
+            </div>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            {pdfHref ? (
+              <a
+                href={pdfHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-xs font-medium text-foreground hover:bg-muted"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Offline PDF form</span>
+              </a>
+            ) : null}
+            <Link
+              to="/"
+              aria-label="Close registration"
+              className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+        {!done && isMobile ? (
+          <div className="mx-auto w-full max-w-3xl px-4 pb-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-semibold text-foreground">
+                {STEP_TITLES[step - 1]}
+              </span>
+              <span className="text-[11px] font-medium text-muted-foreground">
+                Step {step} of 4
+              </span>
+            </div>
+            <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full transition-all duration-300"
+                style={{ width: `${step * 25}%`, backgroundColor: "var(--brand)" }}
+              />
+            </div>
+          </div>
+        ) : null}
+      </header>
+
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-6 pt-5 sm:px-6 sm:pt-10">
+        <div className="hidden sm:block">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Register</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Fill in a few details — no payment needed here. The coach will confirm your spot on
+            WhatsApp.
+          </p>
+        </div>
+
+        {!done ? (
+          <form onSubmit={submitForm} className="mt-6 space-y-5 sm:mt-8 sm:space-y-6">
+
 
           {/* Step 1 — Account */}
           {showStep(1) ? (
@@ -637,12 +680,13 @@ function RegisterContent() {
                   error={errors.name}
                 />
                 <Field
-                  label="Parent / guardian name *"
+                  label="Parent / guardian name"
                   value={form.guardian_name}
                   onChange={(v) => setForm({ ...form, guardian_name: v })}
                   autoComplete="off"
                   error={errors.guardian_name}
                 />
+
                 <Field
                   label="Date of birth *"
                   type="date"
@@ -676,8 +720,17 @@ function RegisterContent() {
                     onChange={(v) => setForm({ ...form, batch_id: v })}
                     options={batchOptions}
                     onInfo={() => setBatchInfoOpen(true)}
+                    error={errors.batch_id}
                   />
                 ) : null}
+                <div className="sm:col-span-2">
+                  <TextArea
+                    label="Full address *"
+                    value={form.address}
+                    onChange={(v) => setForm({ ...form, address: v })}
+                    error={errors.address}
+                  />
+                </div>
               </div>
               {batches.length > 0 ? (
                 <FeeSummary
@@ -763,14 +816,6 @@ function RegisterContent() {
                     ]}
                   />
                 </div>
-              </Section>
-
-              <Section title="Address">
-                <TextArea
-                  label="Full address"
-                  value={form.address}
-                  onChange={(v) => setForm({ ...form, address: v })}
-                />
               </Section>
 
               <Section title="Medical (optional)">
@@ -862,8 +907,10 @@ function RegisterContent() {
 
               <div
                 className={cn(
-                  "z-10 pt-2",
-                  isMobile ? "sticky bottom-0 bg-background/95 pb-3 backdrop-blur" : "sticky bottom-4",
+                  "z-20 pt-2",
+                  isMobile
+                    ? "sticky bottom-0 -mx-4 border-t border-border bg-background/95 px-4 pb-3 backdrop-blur"
+                    : "sticky bottom-4",
                 )}
                 style={
                   isMobile
@@ -902,7 +949,7 @@ function RegisterContent() {
           {/* Mobile-only sticky nav (steps 1–3) */}
           {isMobile && step < 4 ? (
             <div
-              className="sticky bottom-0 z-10 -mx-4 flex items-center gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
+              className="sticky bottom-0 z-20 -mx-4 flex items-center gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
               style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
             >
               {step > 1 ? (
@@ -970,15 +1017,16 @@ function RegisterContent() {
             ) : null}
           </div>
         </div>
-      )}
+        )}
 
-      {batchInfoOpen ? (
-        <BatchInfoDialog
-          batches={batches}
-          fees={fees}
-          onClose={() => setBatchInfoOpen(false)}
-        />
-      ) : null}
+        {batchInfoOpen ? (
+          <BatchInfoDialog
+            batches={batches}
+            fees={fees}
+            onClose={() => setBatchInfoOpen(false)}
+          />
+        ) : null}
+      </main>
     </div>
   );
 }
@@ -999,13 +1047,14 @@ function BatchSelect({
   onChange,
   options,
   onInfo,
+  error,
 }: {
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string; right: string }[];
   onInfo: () => void;
+  error?: string;
 }) {
-  
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -1024,7 +1073,11 @@ function BatchSelect({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="block w-full appearance-none rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none"
+          aria-invalid={error ? true : undefined}
+          className={cn(
+            "block w-full appearance-none rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none",
+            error ? "border-red-500" : "border-border",
+          )}
         >
           {options.map((o) => (
             <option key={o.value} value={o.value}>
@@ -1033,6 +1086,7 @@ function BatchSelect({
           ))}
         </select>
       </div>
+      {error ? <span className="mt-1 block text-xs text-red-600">{error}</span> : null}
     </div>
   );
 }
@@ -1218,10 +1272,12 @@ function TextArea({
   label,
   value,
   onChange,
+  error,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  error?: string;
 }) {
   return (
     <label className="block">
@@ -1232,8 +1288,13 @@ function TextArea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="mt-1.5 block w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2"
+        aria-invalid={error ? true : undefined}
+        className={cn(
+          "mt-1.5 block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2",
+          error ? "border-red-500" : "border-border",
+        )}
       />
+      {error ? <span className="mt-1 block text-xs text-red-600">{error}</span> : null}
     </label>
   );
 }
