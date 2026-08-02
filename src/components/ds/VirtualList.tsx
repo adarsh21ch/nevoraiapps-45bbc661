@@ -2,6 +2,9 @@ import { useRef, type ReactNode } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/utils";
 
+/** Below this count we skip virtualization so the page scrolls naturally. */
+const PLAIN_RENDER_LIMIT = 60;
+
 /**
  * Reusable virtualized list. Renders only rows in view + a small overscan
  * buffer, keeping DOM node count constant regardless of dataset size.
@@ -47,6 +50,21 @@ export function VirtualList<T>({
   if (items.length === 0 && emptyState) {
     return <>{emptyState}</>;
   }
+
+  // Short lists render in full and scroll with the page. An inner scroll
+  // container on a 5-10 row list makes rows below the fold look "missing".
+  if (items.length <= PLAIN_RENDER_LIMIT) {
+    return (
+      <div>
+        {items.map((item, i) => (
+          <div key={getKey(item, i)} className={containerClassName}>
+            {renderItem(item, i)}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
 
   const virtualItems = virtualizer.getVirtualItems();
 
