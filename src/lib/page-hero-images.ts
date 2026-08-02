@@ -10,7 +10,8 @@ export type PageHeroKey =
   | "fees"
   | "contact"
   | "coaches"
-  | "achievements";
+  | "achievements"
+  | "login";
 
 export const PAGE_HERO_KEYS: { key: PageHeroKey; label: string }[] = [
   { key: "home", label: "Home" },
@@ -23,6 +24,7 @@ export const PAGE_HERO_KEYS: { key: PageHeroKey; label: string }[] = [
   { key: "contact", label: "Contact" },
   { key: "coaches", label: "Coaches" },
   { key: "achievements", label: "Achievements" },
+  { key: "login", label: "Login / Member portal" },
 ];
 
 export const MAX_HERO_IMAGES_PER_PAGE = 8;
