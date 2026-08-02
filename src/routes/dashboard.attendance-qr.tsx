@@ -11,21 +11,32 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { toast } from "sonner";
-import { ArrowLeft, MapPin, RefreshCw, Printer, QrCode, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, RefreshCw, Printer, QrCode, Loader2, Pencil } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   fetchQrScanLog,
   fetchQrSettings,
   getCurrentPosition,
+  parseLatLng,
   qrKeys,
   saveQrSettings,
 } from "@/lib/attendance/qr";
+
 
 export const Route = createFileRoute("/dashboard/attendance-qr")({
   head: () => ({
