@@ -248,10 +248,11 @@ function RegisterContent() {
       if (form.password !== form.password2) e.password2 = "Passwords do not match.";
     } else if (n === 2) {
       if (!form.name.trim()) e.name = "Required.";
-      if (!form.guardian_name.trim()) e.guardian_name = "Required.";
       if (!form.dob) e.dob = "Required.";
       if (!form.gender) e.gender = "Required.";
       if (!form.phone.trim()) e.phone = "Required.";
+      if (!form.address.trim()) e.address = "Required.";
+      if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
