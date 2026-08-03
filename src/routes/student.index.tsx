@@ -117,10 +117,12 @@ function StudentHomePage() {
       <ScanAttendanceDialog
         open={scanOpen}
         onOpenChange={setScanOpen}
+        mode={home.todayVisit && !home.todayVisit.check_out_at ? "out" : "in"}
         onRecorded={() => {
           void qc.invalidateQueries({ queryKey: studentKeys.home(ctx.student_id) });
         }}
       />
+
 
       {/* Today status */}
       <Card className="p-4 flex items-center gap-3">
