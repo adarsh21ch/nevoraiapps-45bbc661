@@ -63,7 +63,10 @@ export interface AttendanceTodayRow {
   marked_by: string | null;
   current_state: AttendanceState;
   last_visit_type: string | null;
+  /** True when the last check-out was written automatically (student forgot). */
+  auto_checked_out: boolean;
 }
+
 
 /**
  * Today's attendance — derived from the CLIENT's local calendar date.
