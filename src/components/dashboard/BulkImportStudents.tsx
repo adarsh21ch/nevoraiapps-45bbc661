@@ -228,6 +228,25 @@ export function BulkImportStudents() {
       });
       if (eligible.length === 0) throw new Error("Nothing to import after filtering");
 
+      // Auto-create any session/batch named in the sheet that doesn't exist yet,
+      // so attendance and fees are wired up straight after the import.
+      const missingSessions = [
+        ...new Set(
+          eligible
+            .map(({ row: r }) => (r.batch ?? "").trim())
+            .filter((n) => n && !batchByName.has(n.toLowerCase())),
+        ),
+      ];
+      if (missingSessions.length > 0) {
+        const { data: created, error } = await supabase
+          .from("batches")
+          .insert(missingSessions.map((name) => ({ tenant_id: tenant.id, name })))
+          .select("id, name");
+        if (error) throw error;
+        for (const b of created ?? []) batchByName.set(b.name.toLowerCase(), b.id);
+        qc.invalidateQueries({ queryKey: qk.batches(tenant.id) });
+      }
+
       if (markImported) {
         const rowsPayload = eligible.map(({ row: r }) => ({
           name: r.name,
@@ -237,7 +256,18 @@ export function BulkImportStudents() {
           guardian_phone: r.guardian_phone || null,
           dob: r.dob || null,
           address: null,
-          batch_id: r.batch ? (batchByName.get(r.batch.toLowerCase()) ?? null) : null,
+          gender: r.gender ? r.gender.toLowerCase() : null,
+          city: r.city || null,
+          state: r.state || null,
+          school_college: r.school_college || null,
+          blood_group: r.blood_group || null,
+          playing_role: r.playing_role || null,
+          batting_style: r.batting_style || null,
+          bowling_style: r.bowling_style || null,
+          emergency_contact_name: r.emergency_contact_name || null,
+          emergency_contact_phone: r.emergency_contact_phone || null,
+          coach_name: r.coach_name || null,
+          batch_id: r.batch ? (batchByName.get(r.batch.trim().toLowerCase()) ?? null) : null,
           fee_plan_id: r.fee_plan ? (planByName.get(r.fee_plan.toLowerCase()) ?? null) : null,
           roll_number: null,
         }));
@@ -246,6 +276,7 @@ export function BulkImportStudents() {
         });
         return res.success ?? rowsPayload.length;
       }
+
 
       const payload = eligible.map(({ row: r }) => ({
         tenant_id: tenant.id,
