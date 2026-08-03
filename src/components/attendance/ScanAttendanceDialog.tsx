@@ -176,7 +176,13 @@ export function ScanAttendanceDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <QrCode className="size-4 text-primary" />
-            Mark attendance
+            {phase === "done" && result
+              ? result.action === "check_in"
+                ? "Entry recorded"
+                : "Exit recorded"
+              : mode === "out"
+                ? "Scan to check out"
+                : "Scan to check in"}
           </DialogTitle>
         </DialogHeader>
 
@@ -187,10 +193,15 @@ export function ScanAttendanceDialog({
               <div className="pointer-events-none absolute inset-8 rounded-2xl border-2 border-white/80" />
             </div>
             <p className="text-center text-sm text-muted-foreground">
-              Point your camera at the academy QR poster.
+              Point your camera at the academy QR poster to{" "}
+              <span className="font-medium text-foreground">
+                {mode === "out" ? "check out" : "check in"}
+              </span>
+              . The camera closes automatically once it's recorded.
             </p>
           </div>
         ) : (
+
           <div className="py-3 text-center">
             <StatusIcon
               tone={phase === "done" ? "success" : phase === "error" ? "danger" : "neutral"}
