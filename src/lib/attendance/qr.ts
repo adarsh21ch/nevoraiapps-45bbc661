@@ -277,7 +277,7 @@ export function scanErrorMessage(r: Extract<QrScanResult, { ok: false }>): strin
     case "no_location":
       return "We couldn't read your location. Allow location access and try again.";
     case "low_accuracy":
-      return "Your location signal is too weak. Step outside and try again.";
+      return "GPS signal is too weak indoors. Step into the open ground, wait a few seconds and try again.";
     case "too_far":
       return `You're about ${r.distance_m ?? "?"} m away — you must be within ${r.radius_m ?? "?"} m of the academy.`;
     case "rate_limited":
