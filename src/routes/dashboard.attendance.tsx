@@ -1014,6 +1014,7 @@ interface TodayRow {
   check_out_at: string | null;
   duration_minutes: number | null;
   visit_count?: number;
+  auto_checked_out?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -1239,6 +1240,14 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
         {format(new Date(row.check_in_at), "h:mm a")} –{" "}
         {format(new Date(row.check_out_at), "h:mm a")} · {formatDuration(row.duration_minutes)}
         {visits > 1 ? ` · ${visits} visits` : ""}
+        {row.auto_checked_out && (
+          <span
+            className="ml-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400"
+            title="Student forgot to check out — closed automatically at end of day"
+          >
+            Auto
+          </span>
+        )}
       </span>
     );
   }
