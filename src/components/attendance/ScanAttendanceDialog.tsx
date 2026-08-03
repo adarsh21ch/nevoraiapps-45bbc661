@@ -41,15 +41,23 @@ export function ScanAttendanceDialog({
   open,
   onOpenChange,
   onRecorded,
+  mode = "in",
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onRecorded?: () => void;
+  /** What the student is expected to do next — drives the copy only. */
+  mode?: "in" | "out";
 }) {
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
   const busyRef = useRef(false);
+  // Keep the callback in a ref so a parent re-render (e.g. after the query
+  // invalidation we trigger) can never restart the camera mid-result.
+  const onRecordedRef = useRef(onRecorded);
+  onRecordedRef.current = onRecorded;
 
   const [phase, setPhase] = useState<Phase>("scanning");
   const [message, setMessage] = useState<string | null>(null);
@@ -60,6 +68,8 @@ export function ScanAttendanceDialog({
     rafRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    const v = videoRef.current;
+    if (v) v.srcObject = null;
   }, []);
 
   const record = useCallback(
@@ -69,6 +79,7 @@ export function ScanAttendanceDialog({
       stopCamera();
       setPhase("locating");
       setMessage(null);
+
       try {
         const pos = await getCurrentPosition();
         setPhase("sending");
@@ -85,7 +96,7 @@ export function ScanAttendanceDialog({
             if (r.ok) {
               setResult(r);
               setPhase("done");
-              onRecorded?.();
+              onRecordedRef.current?.();
             } else {
               setMessage(scanErrorMessage(r));
               setPhase("error");
@@ -107,7 +118,7 @@ export function ScanAttendanceDialog({
         busyRef.current = false;
       }
     },
-    [onRecorded, stopCamera],
+    [stopCamera],
   );
 
   const startCamera = useCallback(async () => {
@@ -169,7 +180,13 @@ export function ScanAttendanceDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <QrCode className="size-4 text-primary" />
-            Mark attendance
+            {phase === "done" && result
+              ? result.action === "check_in"
+                ? "Entry recorded"
+                : "Exit recorded"
+              : mode === "out"
+                ? "Scan to check out"
+                : "Scan to check in"}
           </DialogTitle>
         </DialogHeader>
 
@@ -180,10 +197,15 @@ export function ScanAttendanceDialog({
               <div className="pointer-events-none absolute inset-8 rounded-2xl border-2 border-white/80" />
             </div>
             <p className="text-center text-sm text-muted-foreground">
-              Point your camera at the academy QR poster.
+              Point your camera at the academy QR poster to{" "}
+              <span className="font-medium text-foreground">
+                {mode === "out" ? "check out" : "check in"}
+              </span>
+              . The camera closes automatically once it's recorded.
             </p>
           </div>
         ) : (
+
           <div className="py-3 text-center">
             <StatusIcon
               tone={phase === "done" ? "success" : phase === "error" ? "danger" : "neutral"}
@@ -215,18 +237,26 @@ export function ScanAttendanceDialog({
             {phase === "done" && result && (
               <>
                 <p className="text-base font-semibold">
-                  {result.action === "check_in" ? "Checked in" : "Checked out"}
+                  {result.action === "check_in"
+                    ? `You're checked in at ${new Date(result.at).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}`
+                    : `You're checked out at ${new Date(result.at).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}`}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {result.student_name} ·{" "}
-                  {new Date(result.at).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                {result.action === "check_out" && (
-                  <p className="mt-1 text-sm font-medium">
-                    Time at academy today: {formatDuration(result.total_minutes_today)}
+                <p className="mt-1 text-sm text-muted-foreground">{result.student_name}</p>
+                {result.action === "check_in" ? (
+                  <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-sm text-muted-foreground">
+                    Camera closed. When you leave the academy, open the app and tap{" "}
+                    <span className="font-medium text-foreground">Scan QR to check out</span>.
+                  </p>
+                ) : (
+                  <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-sm">
+                    <span className="font-medium">Time at academy today:</span>{" "}
+                    {formatDuration(result.total_minutes_today)}
                   </p>
                 )}
                 <Button
@@ -237,6 +267,7 @@ export function ScanAttendanceDialog({
                 </Button>
               </>
             )}
+
             {phase === "error" && (
               <>
                 <p className="text-base font-semibold">Couldn't mark attendance</p>

@@ -63,7 +63,10 @@ export interface AttendanceTodayRow {
   marked_by: string | null;
   current_state: AttendanceState;
   last_visit_type: string | null;
+  /** True when the last check-out was written automatically (student forgot). */
+  auto_checked_out: boolean;
 }
+
 
 /**
  * Today's attendance — derived from the CLIENT's local calendar date.
@@ -105,7 +108,7 @@ export async function fetchAttendanceByDate(
   const { data, error } = await db
     .from("attendance_marks")
     .select(
-      "id, tenant_id, session_id, student_id, status, check_in_at, check_out_at, duration_minutes, source, marked_by, visit_type, superseded_by, created_at, attendance_sessions!inner(id, batch_id, session_date, tenant_id)",
+      "id, tenant_id, session_id, student_id, status, check_in_at, check_out_at, duration_minutes, source, marked_by, visit_type, check_out_meta, superseded_by, created_at, attendance_sessions!inner(id, batch_id, session_date, tenant_id)",
     )
     .eq("tenant_id", tenantId)
     .is("superseded_by", null)
@@ -125,6 +128,7 @@ export async function fetchAttendanceByDate(
     source: AttendanceSource | null;
     marked_by: string | null;
     visit_type: string | null;
+    check_out_meta: { auto?: boolean } | null;
     created_at: string;
     attendance_sessions: { batch_id: string | null; session_date: string } | null;
   };
@@ -182,6 +186,9 @@ export async function fetchAttendanceByDate(
       marked_by: latest.marked_by,
       current_state: currentState,
       last_visit_type: latest.visit_type,
+      auto_checked_out: presentVisits.some(
+        (m) => m.check_out_at === lastOut && m.check_out_meta?.auto === true,
+      ),
     });
   }
   return out;
@@ -485,6 +492,7 @@ export function useCheckIn() {
         marked_by: vars.markedBy ?? null,
         current_state: "in_academy",
         last_visit_type: vars.visitType ?? null,
+        auto_checked_out: false,
       };
       qc.setQueryData<TodayCache>(key, (old) => {
         const rows = old ?? [];

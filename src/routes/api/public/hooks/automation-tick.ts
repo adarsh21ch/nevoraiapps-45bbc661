@@ -24,7 +24,18 @@ export const Route = createFileRoute("/api/public/hooks/automation-tick")({
             processPendingEvents(50),
             processDueRetries(50),
           ]);
-          return Response.json({ ok: true, events, retries });
+          // Close yesterday's forgotten check-outs so a new academy day always
+          // starts clean. The RPC is idempotent — safe on every tick.
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: autoClosed, error: autoCloseError } =
+            await supabaseAdmin.rpc("auto_close_stale_attendance");
+          return Response.json({
+            ok: true,
+            events,
+            retries,
+            auto_closed: autoCloseError ? 0 : (autoClosed ?? 0),
+          });
+
         } catch (e) {
           return Response.json(
             { ok: false, error: e instanceof Error ? e.message : String(e) },
