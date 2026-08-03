@@ -697,7 +697,6 @@ function AttendancePage() {
                   <QrCode className="size-3" /> QR
                 </Link>
               ) : null}
-              <LiveBadge state="live" />
 
             </>
           ) : (
