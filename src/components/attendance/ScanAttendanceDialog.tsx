@@ -237,18 +237,26 @@ export function ScanAttendanceDialog({
             {phase === "done" && result && (
               <>
                 <p className="text-base font-semibold">
-                  {result.action === "check_in" ? "Checked in" : "Checked out"}
+                  {result.action === "check_in"
+                    ? `You're checked in at ${new Date(result.at).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}`
+                    : `You're checked out at ${new Date(result.at).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}`}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {result.student_name} ·{" "}
-                  {new Date(result.at).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-                {result.action === "check_out" && (
-                  <p className="mt-1 text-sm font-medium">
-                    Time at academy today: {formatDuration(result.total_minutes_today)}
+                <p className="mt-1 text-sm text-muted-foreground">{result.student_name}</p>
+                {result.action === "check_in" ? (
+                  <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-sm text-muted-foreground">
+                    Camera closed. When you leave the academy, open the app and tap{" "}
+                    <span className="font-medium text-foreground">Scan QR to check out</span>.
+                  </p>
+                ) : (
+                  <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-sm">
+                    <span className="font-medium">Time at academy today:</span>{" "}
+                    {formatDuration(result.total_minutes_today)}
                   </p>
                 )}
                 <Button
@@ -259,6 +267,7 @@ export function ScanAttendanceDialog({
                 </Button>
               </>
             )}
+
             {phase === "error" && (
               <>
                 <p className="text-base font-semibold">Couldn't mark attendance</p>
