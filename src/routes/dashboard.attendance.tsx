@@ -555,10 +555,13 @@ function AttendancePage() {
 
   return (
     <div className="-mt-4 md:-mt-8">
-      {/* Compact header — flush against DashboardShell top bar. */}
-      <div className="flex items-center justify-between gap-2 pt-2 pb-1">
-        <div className="min-w-0 flex items-center gap-2">
+      {/* Compact header — title row + horizontally scrollable chip row (mobile-safe). */}
+      <div className="pt-2 pb-1">
+        <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-semibold tracking-tight leading-tight">Attendance</h1>
+          {isTodayView ? <LiveBadge state="live" /> : null}
+        </div>
+        <div className="mt-1.5 -mx-4 flex items-center gap-1.5 overflow-x-auto px-4 pb-0.5 md:mx-0 md:flex-wrap md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Popover open={dateOpen} onOpenChange={setDateOpen}>
             <PopoverTrigger asChild>
               <button
