@@ -41,11 +41,15 @@ export function ScanAttendanceDialog({
   open,
   onOpenChange,
   onRecorded,
+  mode = "in",
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onRecorded?: () => void;
+  /** What the student is expected to do next — drives the copy only. */
+  mode?: "in" | "out";
 }) {
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
