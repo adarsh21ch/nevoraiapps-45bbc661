@@ -653,8 +653,6 @@ function AttendancePage() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-        <div className="flex items-center gap-1.5">
           {isTodayView ? (
             <>
               <button
