@@ -114,7 +114,7 @@ export function ScanAttendanceDialog({
         busyRef.current = false;
       }
     },
-    [onRecorded, stopCamera],
+    [stopCamera],
   );
 
   const startCamera = useCallback(async () => {
