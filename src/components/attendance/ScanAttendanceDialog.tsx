@@ -92,7 +92,7 @@ export function ScanAttendanceDialog({
             if (r.ok) {
               setResult(r);
               setPhase("done");
-              onRecorded?.();
+              onRecordedRef.current?.();
             } else {
               setMessage(scanErrorMessage(r));
               setPhase("error");
