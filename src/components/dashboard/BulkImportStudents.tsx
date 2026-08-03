@@ -62,7 +62,7 @@ const FIELD_OPTIONS: { key: FieldKey; label: string; required?: boolean }[] = [
   { key: "blood_group", label: "Blood Group" },
   { key: "emergency_contact_name", label: "Emergency Contact" },
   { key: "emergency_contact_phone", label: "Emergency Phone" },
-  { key: "batch", label: "Batch" },
+  { key: "batch", label: "Session / Batch" },
   { key: "fee_plan", label: "Fee Plan" },
   { key: "coach_name", label: "Coach" },
   { key: "status", label: "Status" },
@@ -85,6 +85,8 @@ const HEADER_ALIASES: Record<string, FieldKey> = {
   "blood group": "blood_group", blood: "blood_group",
   coach: "coach_name", "coach name": "coach_name",
   batch: "batch", "batch name": "batch",
+  session: "batch", "session name": "batch", "batch / session": "batch", "session / batch": "batch",
+  slot: "batch", timing: "batch", program: "batch", "training session": "batch",
   "fee plan": "fee_plan", plan: "fee_plan",
   status: "status",
 };
