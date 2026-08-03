@@ -50,6 +50,10 @@ export function ScanAttendanceDialog({
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
   const busyRef = useRef(false);
+  // Keep the callback in a ref so a parent re-render (e.g. after the query
+  // invalidation we trigger) can never restart the camera mid-result.
+  const onRecordedRef = useRef(onRecorded);
+  onRecordedRef.current = onRecorded;
 
   const [phase, setPhase] = useState<Phase>("scanning");
   const [message, setMessage] = useState<string | null>(null);
@@ -60,6 +64,8 @@ export function ScanAttendanceDialog({
     rafRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    const v = videoRef.current;
+    if (v) v.srcObject = null;
   }, []);
 
   const record = useCallback(
@@ -69,6 +75,7 @@ export function ScanAttendanceDialog({
       stopCamera();
       setPhase("locating");
       setMessage(null);
+
       try {
         const pos = await getCurrentPosition();
         setPhase("sending");
