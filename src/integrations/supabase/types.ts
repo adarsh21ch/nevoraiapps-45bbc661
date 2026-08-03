@@ -7584,6 +7584,11 @@ export type Database = {
         Args: { _payment_ref: string; _registration_id: string }
         Returns: undefined
       }
+      auto_close_stale_attendance: { Args: never; Returns: number }
+      auto_close_student_stale_attendance: {
+        Args: { _student_id: string; _today: string }
+        Returns: number
+      }
       bulk_approve_registrations: {
         Args: { _ids: string[]; _tenant_id: string }
         Returns: number
