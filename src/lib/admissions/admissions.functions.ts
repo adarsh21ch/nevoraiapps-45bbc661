@@ -177,6 +177,17 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
         fee_plan_id?: string | null;
         roll_number?: string | null;
         address?: string | null;
+        gender?: string | null;
+        city?: string | null;
+        state?: string | null;
+        school_college?: string | null;
+        blood_group?: string | null;
+        playing_role?: string | null;
+        batting_style?: string | null;
+        bowling_style?: string | null;
+        emergency_contact_name?: string | null;
+        emergency_contact_phone?: string | null;
+        coach_name?: string | null;
       }>;
     }) => i,
   )
@@ -212,6 +223,17 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
       fee_plan_id: r.fee_plan_id ?? null,
       roll_number: r.roll_number ?? null,
       address: r.address ?? null,
+      gender: r.gender ?? null,
+      city: r.city ?? null,
+      state: r.state ?? null,
+      school_college: r.school_college ?? null,
+      blood_group: r.blood_group ?? null,
+      playing_role: r.playing_role ?? null,
+      batting_style: r.batting_style ?? null,
+      bowling_style: r.bowling_style ?? null,
+      emergency_contact_name: r.emergency_contact_name ?? null,
+      emergency_contact_phone: r.emergency_contact_phone ?? null,
+      coach_name: r.coach_name ?? null,
       lifecycle_status: "imported",
       status: "active",
       import_batch_id: batch.id,
