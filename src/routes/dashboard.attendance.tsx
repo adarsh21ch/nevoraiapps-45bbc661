@@ -555,16 +555,19 @@ function AttendancePage() {
 
   return (
     <div className="-mt-4 md:-mt-8">
-      {/* Compact header — flush against DashboardShell top bar. */}
-      <div className="flex items-center justify-between gap-2 pt-2 pb-1">
-        <div className="min-w-0 flex items-center gap-2">
+      {/* Compact header — title row + horizontally scrollable chip row (mobile-safe). */}
+      <div className="pt-2 pb-1">
+        <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-semibold tracking-tight leading-tight">Attendance</h1>
+          {isTodayView ? <LiveBadge state="live" /> : null}
+        </div>
+        <div className="mt-1.5 -mx-4 flex items-center gap-1.5 overflow-x-auto px-4 pb-0.5 md:mx-0 md:flex-wrap md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Popover open={dateOpen} onOpenChange={setDateOpen}>
             <PopoverTrigger asChild>
               <button
                 type="button"
                 aria-label="Change date"
-                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-1 text-xs font-medium hover:bg-muted min-h-8"
+                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-1 text-xs font-medium hover:bg-muted min-h-8 shrink-0"
               >
                 {isTodayView
                   ? "Today"
@@ -629,7 +632,7 @@ function AttendancePage() {
               <button
                 type="button"
                 aria-label="Filter by session"
-                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-1 text-xs font-medium hover:bg-muted min-h-8"
+                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-1 text-xs font-medium hover:bg-muted min-h-8 shrink-0"
               >
                 {session === "all"
                   ? "All"
@@ -650,8 +653,6 @@ function AttendancePage() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-        <div className="flex items-center gap-1.5">
           {isTodayView ? (
             <>
               <button
@@ -660,7 +661,7 @@ function AttendancePage() {
                 aria-pressed={quickMode}
                 aria-label="Toggle quick attendance mode"
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
+                  "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
                   quickMode
                     ? "border-primary/40 bg-primary/10 text-primary"
                     : "border-border/60 text-muted-foreground hover:text-foreground",
@@ -678,7 +679,7 @@ function AttendancePage() {
                   aria-pressed={selectMode}
                   aria-label="Toggle bulk selection"
                   className={cn(
-                    "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
+                    "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-medium transition-colors min-h-8",
                     selectMode
                       ? "border-primary/40 bg-primary/10 text-primary"
                       : "border-border/60 text-muted-foreground hover:text-foreground",
@@ -691,12 +692,11 @@ function AttendancePage() {
                 <Link
                   to="/dashboard/attendance-qr"
                   aria-label="QR check-in setup"
-                  className="inline-flex items-center gap-1 rounded-full border border-border/60 px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground min-h-8"
+                  className="inline-flex items-center gap-1 rounded-full border border-border/60 px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground min-h-8 shrink-0"
                 >
                   <QrCode className="size-3" /> QR
                 </Link>
               ) : null}
-              <LiveBadge state="live" />
 
             </>
           ) : (
@@ -705,7 +705,7 @@ function AttendancePage() {
                 <button
                   type="button"
                   aria-label="History options"
-                  className="inline-flex items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground min-h-8 min-w-8"
+                  className="inline-flex items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground min-h-8 min-w-8 shrink-0"
                 >
                   <MoreVertical className="size-4" />
                 </button>

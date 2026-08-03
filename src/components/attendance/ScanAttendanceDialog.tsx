@@ -207,7 +207,7 @@ export function ScanAttendanceDialog({
               <>
                 <p className="text-base font-semibold">Checking your location…</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Allow location so we can confirm you're at the academy.
+                  Allow location and hold still for a few seconds — we need a good GPS fix.
                 </p>
               </>
             )}

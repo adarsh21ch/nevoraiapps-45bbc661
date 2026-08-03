@@ -146,7 +146,15 @@ export interface Position {
   accuracy: number | null;
 }
 
-export function getCurrentPosition(timeoutMs = 20000): Promise<Position> {
+/**
+ * Watches the device GPS and returns the BEST fix it can get.
+ *
+ * Phones often deliver a first coarse (network/wifi) fix with 500–2000 m
+ * accuracy, which the server rejects as "signal too weak". We therefore keep
+ * the watch open until either a good fix arrives (<= `goodEnoughM`) or the
+ * timeout elapses, then return the most accurate reading seen.
+ */
+export function getCurrentPosition(timeoutMs = 20000, goodEnoughM = 60): Promise<Position> {
   return new Promise((resolve, reject) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       reject(new Error("Location is not supported on this device."));
@@ -160,26 +168,53 @@ export function getCurrentPosition(timeoutMs = 20000): Promise<Position> {
       );
       return;
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) =>
-        resolve({
+
+    let best: Position | null = null;
+    let done = false;
+    let watchId: number | null = null;
+
+    const finish = (err?: Error) => {
+      if (done) return;
+      done = true;
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      clearTimeout(timer);
+      if (best) resolve(best);
+      else reject(err ?? new Error("Couldn't get your location. Please try again in the open."));
+    };
+
+    const timer = setTimeout(() => finish(), timeoutMs);
+
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const acc = Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null;
+        const next: Position = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
-          accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null,
-        }),
+          accuracy: acc,
+        };
+        if (!best || (acc ?? 9999) < (best.accuracy ?? 9999)) best = next;
+        if ((acc ?? 9999) <= goodEnoughM) finish();
+      },
       (err) => {
+        // Keep waiting on transient failures if we already have something.
         const msg =
           err.code === err.PERMISSION_DENIED
-            ? "Location permission denied. Allow location for this site in your browser settings, or set the location manually."
+            ? "Location permission denied. Allow location for this site in your browser settings, then try again."
             : err.code === err.TIMEOUT
-              ? "Location timed out. Step into an open area and try again, or set the location manually."
-              : "Couldn't get your location on this device. You can set the location manually instead.";
-        reject(new Error(msg));
+              ? "Location timed out. Step into an open area and try again."
+              : "Couldn't get your location on this device. Step outside and try again.";
+        if (err.code === err.PERMISSION_DENIED) {
+          best = null;
+          finish(new Error(msg));
+        } else {
+          finish(new Error(msg));
+        }
       },
       { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 0 },
     );
   });
 }
+
 
 /**
  * Accepts "12.9716, 77.5946", "12.9716 77.5946" or a Google Maps link
@@ -242,7 +277,7 @@ export function scanErrorMessage(r: Extract<QrScanResult, { ok: false }>): strin
     case "no_location":
       return "We couldn't read your location. Allow location access and try again.";
     case "low_accuracy":
-      return "Your location signal is too weak. Step outside and try again.";
+      return "GPS signal is too weak indoors. Step into the open ground, wait a few seconds and try again.";
     case "too_far":
       return `You're about ${r.distance_m ?? "?"} m away — you must be within ${r.radius_m ?? "?"} m of the academy.`;
     case "rate_limited":
