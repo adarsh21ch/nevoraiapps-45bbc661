@@ -265,7 +265,6 @@ export function BulkImportStudents() {
 
   const importer = useMutation({
     mutationFn: async () => {
-      const batchByName = new Map((batches.data ?? []).map((b) => [b.name.toLowerCase(), b.id]));
       const planByName = new Map((plans.data ?? []).map((p) => [p.name.toLowerCase(), p.id]));
       const eligible = parsed.filter((p) => {
         if (p.issues.some((i) => i.startsWith("Missing"))) return false;
@@ -274,24 +273,32 @@ export function BulkImportStudents() {
       });
       if (eligible.length === 0) throw new Error("Nothing to import after filtering");
 
-      // Auto-create any session/batch named in the sheet that doesn't exist yet,
-      // so attendance and fees are wired up straight after the import.
-      const missingSessions = [
-        ...new Set(
-          eligible
-            .map(({ row: r }) => (r.batch ?? "").trim())
-            .filter((n) => n && !batchByName.has(n.toLowerCase())),
-        ),
-      ];
-      if (missingSessions.length > 0) {
+      // Resolve the owner's session choices. Values marked "create new" become real
+      // sessions now, so attendance and fees are wired up straight after the import.
+      const resolved: Record<string, string | null> = {};
+      const toCreate: Array<{ key: string; name: string }> = [];
+      for (const s of sessionValues) {
+        const choice = sessionMap[s.key] ?? "";
+        if (choice === CREATE_SESSION && s.key !== NO_SESSION) toCreate.push({ key: s.key, name: s.label });
+        else resolved[s.key] = choice || null;
+      }
+      if (toCreate.length > 0) {
         const { data: created, error } = await supabase
           .from("batches")
-          .insert(missingSessions.map((name) => ({ tenant_id: tenant.id, name })))
+          .insert(toCreate.map((c) => ({ tenant_id: tenant.id, name: c.name })))
           .select("id, name");
         if (error) throw error;
-        for (const b of created ?? []) batchByName.set(b.name.toLowerCase(), b.id);
+        for (const c of toCreate) {
+          const hit = (created ?? []).find((b: any) => b.name.trim().toLowerCase() === c.key);
+          resolved[c.key] = hit?.id ?? null;
+        }
         qc.invalidateQueries({ queryKey: qk.batches(tenant.id) });
       }
+      const batchFor = (r: Row) => resolved[sessionKeyFor(r)] ?? null;
+      const planFor = (r: Row) =>
+        (r.fee_plan ? planByName.get(r.fee_plan.trim().toLowerCase()) : undefined) ??
+        (planMap[sessionKeyFor(r)] || null);
+
 
       if (markImported) {
         const rowsPayload = eligible.map(({ row: r }) => ({
