@@ -432,10 +432,13 @@ export function BulkImportStudents() {
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <StepChip label="Upload" active={step === "upload"} done={step !== "upload"} />
           <div className="h-px flex-1 bg-border" />
-          <StepChip label="Map columns" active={step === "map"} done={step === "preview"} />
+          <StepChip label="Columns" active={step === "map"} done={step === "assign" || step === "preview"} />
           <div className="h-px flex-1 bg-border" />
-          <StepChip label="Preview & Import" active={step === "preview"} done={false} />
+          <StepChip label="Sessions & fees" active={step === "assign"} done={step === "preview"} />
+          <div className="h-px flex-1 bg-border" />
+          <StepChip label="Import" active={step === "preview"} done={false} />
         </div>
+
 
         <div className="space-y-3">
           {step === "upload" && (
