@@ -171,7 +171,7 @@ export function BulkImportStudents() {
     return rows.map((r) => {
       const issues: string[] = [];
       if (!r.name) issues.push("Missing name");
-      if (!r.phone) issues.push("Missing mobile");
+      if (!r.phone) issues.push("No mobile");
       const phone = (r.phone || "").replace(/\s+/g, "");
       const isDupe = phone.length > 0 && (dupes.phoneDupes.get(phone) ?? 0) > 0;
       if (isDupe) issues.push("Mobile already exists");
