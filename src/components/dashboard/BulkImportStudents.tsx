@@ -678,15 +678,21 @@ export function BulkImportStudents() {
           <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
           {step === "map" && (
             <Button
-              onClick={() => setStep("preview")}
+              onClick={() => setStep("assign")}
               disabled={unmappedRequired.length > 0}
             >
-              Continue to preview
+              Continue
             </Button>
+          )}
+          {step === "assign" && (
+            <>
+              <Button variant="outline" onClick={() => setStep("map")}>Back</Button>
+              <Button onClick={() => setStep("preview")}>Continue to preview</Button>
+            </>
           )}
           {step === "preview" && (
             <>
-              <Button variant="outline" onClick={() => setStep("map")}>Back</Button>
+              <Button variant="outline" onClick={() => setStep("assign")}>Back</Button>
               <Button
                 onClick={() => importer.mutate()}
                 disabled={importer.isPending || importable === 0}
@@ -696,6 +702,7 @@ export function BulkImportStudents() {
               </Button>
             </>
           )}
+
         </DialogFooter>
       </DialogContent>
     </Dialog>
