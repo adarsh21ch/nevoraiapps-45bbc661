@@ -6,8 +6,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { supabase } from "@/integrations/supabase/client";
 import { importedStudentsQuery, importBatchesQuery } from "@/lib/admissions/queries";
 import { sendActivations, rollbackImport } from "@/lib/admissions/admissions.functions";
-import { fetchBatches, fetchFeePlans } from "@/lib/dashboard-queries";
-import { qk } from "@/lib/query-keys";
+import { fetchBatches, fetchFeePlans, qk } from "@/lib/dashboard-queries";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -78,7 +77,7 @@ function ActivationCenter() {
       if (Object.keys(patch).length === 0) throw new Error("Pick a session or a fee plan first");
       const { error } = await supabase
         .from("students")
-        .update(patch)
+        .update(patch as never)
         .in("id", payload.ids)
         .eq("tenant_id", tenantId);
       if (error) throw error;
@@ -95,7 +94,7 @@ function ActivationCenter() {
   });
 
   const patchOne = async (id: string, patch: Record<string, string | null>) => {
-    const { error } = await supabase.from("students").update(patch).eq("id", id).eq("tenant_id", tenantId);
+    const { error } = await supabase.from("students").update(patch as never).eq("id", id).eq("tenant_id", tenantId);
     if (error) { toast.error(error.message); return; }
     qc.invalidateQueries({ queryKey: ["admissions"] });
     qc.invalidateQueries({ queryKey: qk.students(tenantId) });
