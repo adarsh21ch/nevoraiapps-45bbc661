@@ -370,7 +370,13 @@ export function BulkImportStudents() {
   });
 
   const downloadTemplate = () => {
+    // Keep the starter sheet tiny: name is the only must-have. Everything else
+    // (session, fees, profile) can be set after import.
     const ws = XLSX.utils.json_to_sheet([
+      { name: "Rahul Sharma", phone: "9876543210", session: "Morning" },
+      { name: "Aarav Patel", phone: "", session: "Evening" },
+    ]);
+    const full = XLSX.utils.json_to_sheet([
       {
         name: "Rahul Sharma",
         phone: "9876543210",
@@ -388,7 +394,7 @@ export function BulkImportStudents() {
         state: "Maharashtra",
         school_college: "St. Xavier's",
         blood_group: "O+",
-        batch: "Morning",
+        session: "Morning",
         fee_plan: "Monthly",
         coach_name: "Coach Rajesh",
         status: "active",
@@ -396,8 +402,10 @@ export function BulkImportStudents() {
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Players");
+    XLSX.utils.book_append_sheet(wb, full, "All fields (optional)");
     XLSX.writeFile(wb, "players-template.xlsx");
   };
+
 
   const importable = validCount + (skipDupes ? 0 : dupeCount);
 
