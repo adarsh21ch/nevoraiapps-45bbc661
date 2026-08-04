@@ -119,7 +119,10 @@ function applyMapping(
 }
 
 type ParsedRow = { row: Row; issues: string[]; dupe: boolean };
-type Step = "upload" | "map" | "preview";
+type Step = "upload" | "map" | "assign" | "preview";
+
+const NO_SESSION = "__none__";
+const CREATE_SESSION = "__create__";
 
 export function BulkImportStudents() {
   const { tenant } = useDashboard();
@@ -132,7 +135,12 @@ export function BulkImportStudents() {
   const [fileName, setFileName] = useState("");
   const [skipDupes, setSkipDupes] = useState(true);
   const [markImported, setMarkImported] = useState(true);
+  // session value (lowercased, or NO_SESSION) -> batch id | CREATE_SESSION | ""
+  const [sessionMap, setSessionMap] = useState<Record<string, string>>({});
+  // same key -> fee plan id | ""
+  const [planMap, setPlanMap] = useState<Record<string, string>>({});
   const bulkImport = useServerFn(bulkImportStudents);
+
 
   const rows = useMemo(() => applyMapping(raw, mapping), [raw, mapping]);
 
