@@ -47,7 +47,7 @@ type FieldKey = keyof Row;
 
 const FIELD_OPTIONS: { key: FieldKey; label: string; required?: boolean }[] = [
   { key: "name", label: "Name", required: true },
-  { key: "phone", label: "Mobile", required: true },
+  { key: "phone", label: "Mobile" },
   { key: "email", label: "Email" },
   { key: "guardian_name", label: "Guardian Name" },
   { key: "guardian_phone", label: "Guardian Phone" },
