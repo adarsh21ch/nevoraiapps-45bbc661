@@ -185,11 +185,45 @@ export function BulkImportStudents() {
   const dupeCount = parsed.filter((p) => p.dupe).length;
   const invalidCount = parsed.filter((p) => p.issues.some((i) => i.startsWith("Missing"))).length;
 
+  /** Distinct session values found in the sheet (NO_SESSION bucket for blanks). */
+  const sessionValues = useMemo(() => {
+    const map = new Map<string, { label: string; count: number }>();
+    for (const p of parsed) {
+      const rawVal = (p.row.batch ?? "").trim();
+      const key = rawVal ? rawVal.toLowerCase() : NO_SESSION;
+      const label = rawVal || "No session in sheet";
+      const cur = map.get(key);
+      if (cur) cur.count += 1;
+      else map.set(key, { label, count: 1 });
+    }
+    return [...map.entries()].map(([key, v]) => ({ key, ...v }));
+  }, [parsed]);
+
+  // Pre-fill the mapping: exact name match to an existing session, else "create new".
+  useEffect(() => {
+    if (!open || sessionValues.length === 0) return;
+    setSessionMap((prev) => {
+      const next = { ...prev };
+      for (const s of sessionValues) {
+        if (next[s.key] !== undefined) continue;
+        if (s.key === NO_SESSION) next[s.key] = "";
+        else {
+          const hit = (batches.data ?? []).find((b: any) => b.name.trim().toLowerCase() === s.key);
+          next[s.key] = hit ? hit.id : CREATE_SESSION;
+        }
+      }
+      return next;
+    });
+  }, [open, sessionValues, batches.data]);
+
+  const sessionKeyFor = (r: Row) => ((r.batch ?? "").trim() ? (r.batch ?? "").trim().toLowerCase() : NO_SESSION);
+
   const mappedFields = useMemo(
     () => new Set(Object.values(mapping).filter(Boolean)),
     [mapping],
   );
   const unmappedRequired = FIELD_OPTIONS.filter((f) => f.required && !mappedFields.has(f.key));
+
 
   const onFile = async (file: File) => {
     const buf = await file.arrayBuffer();
