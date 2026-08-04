@@ -350,8 +350,8 @@ export function BulkImportStudents() {
         school_college: r.school_college || null,
         blood_group: r.blood_group || null,
         coach_name: r.coach_name || null,
-        batch_id: r.batch ? (batchByName.get(r.batch.trim().toLowerCase()) ?? null) : null,
-        fee_plan_id: r.fee_plan ? (planByName.get(r.fee_plan.toLowerCase()) ?? null) : null,
+        batch_id: batchFor(r),
+        fee_plan_id: planFor(r),
         status: (r.status || "active").toLowerCase(),
       }));
       const { error } = await supabase.from("students").insert(payload);
