@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -47,7 +47,7 @@ type FieldKey = keyof Row;
 
 const FIELD_OPTIONS: { key: FieldKey; label: string; required?: boolean }[] = [
   { key: "name", label: "Name", required: true },
-  { key: "phone", label: "Mobile", required: true },
+  { key: "phone", label: "Mobile" },
   { key: "email", label: "Email" },
   { key: "guardian_name", label: "Guardian Name" },
   { key: "guardian_phone", label: "Guardian Phone" },
@@ -86,6 +86,7 @@ const HEADER_ALIASES: Record<string, FieldKey> = {
   coach: "coach_name", "coach name": "coach_name",
   batch: "batch", "batch name": "batch",
   session: "batch", "session name": "batch", "batch / session": "batch", "session / batch": "batch",
+  "session type": "batch", sessions: "batch", "batch type": "batch", shift: "batch", "time slot": "batch",
   slot: "batch", timing: "batch", program: "batch", "training session": "batch",
   "fee plan": "fee_plan", plan: "fee_plan",
   status: "status",
@@ -118,7 +119,10 @@ function applyMapping(
 }
 
 type ParsedRow = { row: Row; issues: string[]; dupe: boolean };
-type Step = "upload" | "map" | "preview";
+type Step = "upload" | "map" | "assign" | "preview";
+
+const NO_SESSION = "__none__";
+const CREATE_SESSION = "__create__";
 
 export function BulkImportStudents() {
   const { tenant } = useDashboard();
@@ -131,7 +135,12 @@ export function BulkImportStudents() {
   const [fileName, setFileName] = useState("");
   const [skipDupes, setSkipDupes] = useState(true);
   const [markImported, setMarkImported] = useState(true);
+  // session value (lowercased, or NO_SESSION) -> batch id | CREATE_SESSION | ""
+  const [sessionMap, setSessionMap] = useState<Record<string, string>>({});
+  // same key -> fee plan id | ""
+  const [planMap, setPlanMap] = useState<Record<string, string>>({});
   const bulkImport = useServerFn(bulkImportStudents);
+
 
   const rows = useMemo(() => applyMapping(raw, mapping), [raw, mapping]);
 
@@ -162,7 +171,7 @@ export function BulkImportStudents() {
     return rows.map((r) => {
       const issues: string[] = [];
       if (!r.name) issues.push("Missing name");
-      if (!r.phone) issues.push("Missing mobile");
+      if (!r.phone) issues.push("No mobile");
       const phone = (r.phone || "").replace(/\s+/g, "");
       const isDupe = phone.length > 0 && (dupes.phoneDupes.get(phone) ?? 0) > 0;
       if (isDupe) issues.push("Mobile already exists");
@@ -176,11 +185,45 @@ export function BulkImportStudents() {
   const dupeCount = parsed.filter((p) => p.dupe).length;
   const invalidCount = parsed.filter((p) => p.issues.some((i) => i.startsWith("Missing"))).length;
 
+  /** Distinct session values found in the sheet (NO_SESSION bucket for blanks). */
+  const sessionValues = useMemo(() => {
+    const map = new Map<string, { label: string; count: number }>();
+    for (const p of parsed) {
+      const rawVal = (p.row.batch ?? "").trim();
+      const key = rawVal ? rawVal.toLowerCase() : NO_SESSION;
+      const label = rawVal || "No session in sheet";
+      const cur = map.get(key);
+      if (cur) cur.count += 1;
+      else map.set(key, { label, count: 1 });
+    }
+    return [...map.entries()].map(([key, v]) => ({ key, ...v }));
+  }, [parsed]);
+
+  // Pre-fill the mapping: exact name match to an existing session, else "create new".
+  useEffect(() => {
+    if (!open || sessionValues.length === 0) return;
+    setSessionMap((prev) => {
+      const next = { ...prev };
+      for (const s of sessionValues) {
+        if (next[s.key] !== undefined) continue;
+        if (s.key === NO_SESSION) next[s.key] = "";
+        else {
+          const hit = (batches.data ?? []).find((b: any) => b.name.trim().toLowerCase() === s.key);
+          next[s.key] = hit ? hit.id : CREATE_SESSION;
+        }
+      }
+      return next;
+    });
+  }, [open, sessionValues, batches.data]);
+
+  const sessionKeyFor = (r: Row) => ((r.batch ?? "").trim() ? (r.batch ?? "").trim().toLowerCase() : NO_SESSION);
+
   const mappedFields = useMemo(
     () => new Set(Object.values(mapping).filter(Boolean)),
     [mapping],
   );
   const unmappedRequired = FIELD_OPTIONS.filter((f) => f.required && !mappedFields.has(f.key));
+
 
   const onFile = async (file: File) => {
     const buf = await file.arrayBuffer();
@@ -200,8 +243,11 @@ export function BulkImportStudents() {
     setHeaders([]);
     setMapping({});
     setFileName("");
+    setSessionMap({});
+    setPlanMap({});
     setStep("upload");
   };
+
 
   const downloadErrors = () => {
     const bad = parsed.filter((p) => p.issues.length > 0);
@@ -219,7 +265,6 @@ export function BulkImportStudents() {
 
   const importer = useMutation({
     mutationFn: async () => {
-      const batchByName = new Map((batches.data ?? []).map((b) => [b.name.toLowerCase(), b.id]));
       const planByName = new Map((plans.data ?? []).map((p) => [p.name.toLowerCase(), p.id]));
       const eligible = parsed.filter((p) => {
         if (p.issues.some((i) => i.startsWith("Missing"))) return false;
@@ -228,24 +273,32 @@ export function BulkImportStudents() {
       });
       if (eligible.length === 0) throw new Error("Nothing to import after filtering");
 
-      // Auto-create any session/batch named in the sheet that doesn't exist yet,
-      // so attendance and fees are wired up straight after the import.
-      const missingSessions = [
-        ...new Set(
-          eligible
-            .map(({ row: r }) => (r.batch ?? "").trim())
-            .filter((n) => n && !batchByName.has(n.toLowerCase())),
-        ),
-      ];
-      if (missingSessions.length > 0) {
+      // Resolve the owner's session choices. Values marked "create new" become real
+      // sessions now, so attendance and fees are wired up straight after the import.
+      const resolved: Record<string, string | null> = {};
+      const toCreate: Array<{ key: string; name: string }> = [];
+      for (const s of sessionValues) {
+        const choice = sessionMap[s.key] ?? "";
+        if (choice === CREATE_SESSION && s.key !== NO_SESSION) toCreate.push({ key: s.key, name: s.label });
+        else resolved[s.key] = choice || null;
+      }
+      if (toCreate.length > 0) {
         const { data: created, error } = await supabase
           .from("batches")
-          .insert(missingSessions.map((name) => ({ tenant_id: tenant.id, name })))
+          .insert(toCreate.map((c) => ({ tenant_id: tenant.id, name: c.name })))
           .select("id, name");
         if (error) throw error;
-        for (const b of created ?? []) batchByName.set(b.name.toLowerCase(), b.id);
+        for (const c of toCreate) {
+          const hit = (created ?? []).find((b: any) => b.name.trim().toLowerCase() === c.key);
+          resolved[c.key] = hit?.id ?? null;
+        }
         qc.invalidateQueries({ queryKey: qk.batches(tenant.id) });
       }
+      const batchFor = (r: Row) => resolved[sessionKeyFor(r)] ?? null;
+      const planFor = (r: Row) =>
+        (r.fee_plan ? planByName.get(r.fee_plan.trim().toLowerCase()) : undefined) ??
+        (planMap[sessionKeyFor(r)] || null);
+
 
       if (markImported) {
         const rowsPayload = eligible.map(({ row: r }) => ({
@@ -267,8 +320,8 @@ export function BulkImportStudents() {
           emergency_contact_name: r.emergency_contact_name || null,
           emergency_contact_phone: r.emergency_contact_phone || null,
           coach_name: r.coach_name || null,
-          batch_id: r.batch ? (batchByName.get(r.batch.trim().toLowerCase()) ?? null) : null,
-          fee_plan_id: r.fee_plan ? (planByName.get(r.fee_plan.toLowerCase()) ?? null) : null,
+          batch_id: batchFor(r),
+          fee_plan_id: planFor(r),
           roll_number: null,
         }));
         const res: any = await bulkImport({
@@ -297,8 +350,8 @@ export function BulkImportStudents() {
         school_college: r.school_college || null,
         blood_group: r.blood_group || null,
         coach_name: r.coach_name || null,
-        batch_id: r.batch ? (batchByName.get(r.batch.trim().toLowerCase()) ?? null) : null,
-        fee_plan_id: r.fee_plan ? (planByName.get(r.fee_plan.toLowerCase()) ?? null) : null,
+        batch_id: batchFor(r),
+        fee_plan_id: planFor(r),
         status: (r.status || "active").toLowerCase(),
       }));
       const { error } = await supabase.from("students").insert(payload);
@@ -317,7 +370,13 @@ export function BulkImportStudents() {
   });
 
   const downloadTemplate = () => {
+    // Keep the starter sheet tiny: name is the only must-have. Everything else
+    // (session, fees, profile) can be set after import.
     const ws = XLSX.utils.json_to_sheet([
+      { name: "Rahul Sharma", phone: "9876543210", session: "Morning" },
+      { name: "Aarav Patel", phone: "", session: "Evening" },
+    ]);
+    const full = XLSX.utils.json_to_sheet([
       {
         name: "Rahul Sharma",
         phone: "9876543210",
@@ -335,7 +394,7 @@ export function BulkImportStudents() {
         state: "Maharashtra",
         school_college: "St. Xavier's",
         blood_group: "O+",
-        batch: "Morning",
+        session: "Morning",
         fee_plan: "Monthly",
         coach_name: "Coach Rajesh",
         status: "active",
@@ -343,8 +402,10 @@ export function BulkImportStudents() {
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Players");
+    XLSX.utils.book_append_sheet(wb, full, "All fields (optional)");
     XLSX.writeFile(wb, "players-template.xlsx");
   };
+
 
   const importable = validCount + (skipDupes ? 0 : dupeCount);
 
@@ -371,10 +432,13 @@ export function BulkImportStudents() {
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <StepChip label="Upload" active={step === "upload"} done={step !== "upload"} />
           <div className="h-px flex-1 bg-border" />
-          <StepChip label="Map columns" active={step === "map"} done={step === "preview"} />
+          <StepChip label="Columns" active={step === "map"} done={step === "assign" || step === "preview"} />
           <div className="h-px flex-1 bg-border" />
-          <StepChip label="Preview & Import" active={step === "preview"} done={false} />
+          <StepChip label="Sessions & fees" active={step === "assign"} done={step === "preview"} />
+          <div className="h-px flex-1 bg-border" />
+          <StepChip label="Import" active={step === "preview"} done={false} />
         </div>
+
 
         <div className="space-y-3">
           {step === "upload" && (
@@ -469,6 +533,67 @@ export function BulkImportStudents() {
             </>
           )}
 
+          {step === "assign" && (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Pick the session and fee plan for each group. This is what drives attendance lists and
+                fee amounts — students without a session show ₹0.
+              </p>
+              <div className="space-y-2">
+                {sessionValues.map((s) => (
+                  <div key={s.key} className="rounded-xl border p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-sm font-medium">{s.label}</div>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                        {s.count} {s.count === 1 ? "player" : "players"}
+                      </span>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Session</span>
+                        <select
+                          className="mt-1 w-full rounded-lg border bg-background px-2 py-2 text-sm"
+                          value={sessionMap[s.key] ?? ""}
+                          onChange={(e) => setSessionMap({ ...sessionMap, [s.key]: e.target.value })}
+                        >
+                          <option value="">— decide later —</option>
+                          {s.key !== NO_SESSION && (
+                            <option value={CREATE_SESSION}>+ Create session "{s.label}"</option>
+                          )}
+                          {(batches.data ?? []).map((b: any) => (
+                            <option key={b.id} value={b.id}>
+                              {b.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="block">
+                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Fee plan</span>
+                        <select
+                          className="mt-1 w-full rounded-lg border bg-background px-2 py-2 text-sm"
+                          value={planMap[s.key] ?? ""}
+                          onChange={(e) => setPlanMap({ ...planMap, [s.key]: e.target.value })}
+                        >
+                          <option value="">— decide later —</option>
+                          {(plans.data ?? []).map((p: any) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name}
+                              {p.amount ? ` · ₹${Number(p.amount).toLocaleString("en-IN")}` : ""}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                You can also change any player's session and fee plan later from the Activation Center.
+              </p>
+            </>
+          )}
+
+
           {step === "preview" && (
             <>
               <div className="grid grid-cols-3 gap-2 text-xs">
@@ -553,15 +678,21 @@ export function BulkImportStudents() {
           <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
           {step === "map" && (
             <Button
-              onClick={() => setStep("preview")}
+              onClick={() => setStep("assign")}
               disabled={unmappedRequired.length > 0}
             >
-              Continue to preview
+              Continue
             </Button>
+          )}
+          {step === "assign" && (
+            <>
+              <Button variant="outline" onClick={() => setStep("map")}>Back</Button>
+              <Button onClick={() => setStep("preview")}>Continue to preview</Button>
+            </>
           )}
           {step === "preview" && (
             <>
-              <Button variant="outline" onClick={() => setStep("map")}>Back</Button>
+              <Button variant="outline" onClick={() => setStep("assign")}>Back</Button>
               <Button
                 onClick={() => importer.mutate()}
                 disabled={importer.isPending || importable === 0}
@@ -571,6 +702,7 @@ export function BulkImportStudents() {
               </Button>
             </>
           )}
+
         </DialogFooter>
       </DialogContent>
     </Dialog>

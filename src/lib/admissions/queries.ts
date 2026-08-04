@@ -24,7 +24,7 @@ export const importedStudentsQuery = (tenantId: string) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
-        .select("id, name, phone, email, lifecycle_status, activation_sent_at, activated_at, import_batch_id, created_at")
+        .select("id, name, phone, email, lifecycle_status, activation_sent_at, activated_at, import_batch_id, created_at, batch_id, fee_plan_id, activation_token")
         .eq("tenant_id", tenantId)
         .in("lifecycle_status", ["imported", "invitation_sent", "activated", "profile_completed"])
         .order("created_at", { ascending: false })
