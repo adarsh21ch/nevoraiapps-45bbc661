@@ -243,8 +243,11 @@ export function BulkImportStudents() {
     setHeaders([]);
     setMapping({});
     setFileName("");
+    setSessionMap({});
+    setPlanMap({});
     setStep("upload");
   };
+
 
   const downloadErrors = () => {
     const bad = parsed.filter((p) => p.issues.length > 0);
