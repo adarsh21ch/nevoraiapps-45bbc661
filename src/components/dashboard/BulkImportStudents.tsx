@@ -86,6 +86,7 @@ const HEADER_ALIASES: Record<string, FieldKey> = {
   coach: "coach_name", "coach name": "coach_name",
   batch: "batch", "batch name": "batch",
   session: "batch", "session name": "batch", "batch / session": "batch", "session / batch": "batch",
+  "session type": "batch", sessions: "batch", "batch type": "batch", shift: "batch", "time slot": "batch",
   slot: "batch", timing: "batch", program: "batch", "training session": "batch",
   "fee plan": "fee_plan", plan: "fee_plan",
   status: "status",
