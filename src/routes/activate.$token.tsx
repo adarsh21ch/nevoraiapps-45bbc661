@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getActivationDetails, claimActivation } from "@/lib/admissions/activation.functions";
+import { auditStudentIdentity } from "@/lib/admissions/audit.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2, Clock, Eye, EyeOff, ShieldCheck } from "lucide-react";
@@ -36,6 +37,7 @@ function ActivatePage() {
   const navigate = useNavigate();
   const load = useServerFn(getActivationDetails);
   const claim = useServerFn(claimActivation);
+  const auditId = useServerFn(auditStudentIdentity);
 
   const [details, setDetails] = useState<Details | null>(null);
   const [status, setStatus] = useState<"loading" | "ok" | "claimed" | "expired" | "invalid" | "error">("loading");
@@ -154,6 +156,20 @@ function ActivatePage() {
         email: creds.email.trim().toLowerCase(),
         password: creds.password,
       });
+
+      // Audit Identity (ID + Card Token) on successful claim
+      try {
+        await auditId({ 
+          data: { 
+            studentId: details.student.id, 
+            tenantId: details.tenant.id, 
+            prefix: details.tenant.slug?.toUpperCase().slice(0, 3) || "SAI" 
+          } 
+        });
+      } catch (auditErr) {
+        console.error("Post-activation audit failed", auditErr);
+      }
+
       setDone(true);
       setBusy(false);
       setTimeout(() => navigate({ to: error ? "/auth" : "/student" }), 1200);
