@@ -77,7 +77,7 @@ function ProfilePage() {
       },
       {
         to: "/dashboard/settings",
-        label: "Just one thing cross-check, make sure that photo which user is uploading, make sure it not shows URL. It shows-- It should be uploaded directly from the device, right? Second thing, it, it sh-- it must be uploaded. No error should be showing there, right? It must be stored, and the owner of the application can see that particular document, uh, for verification, right? It should be safe and secure, right? It is, uh, uh, important documents, right? And also owner wanted to-- owner can also download that documents, right? In PDF format or any direct photo or not, it's okay. But both the things should be, can be downloaded, right? Or, or the information about the whole particular person can be downloaded in a PDF. In that, the photo also should be visible, right? Or the document, official documents, ID proof also should be visible, right? So we call it ID proof, right?\n\nAlso make sure those student who is not submitted yet or accepted. So on profile, you just edit option there and give them option to up-- edit or upload the document also. So from the profile tab, a student login also they can do it, right?",
+        label: "And also academy owner can able to download the student details, right? Including ID proof and all",
         hint: "Interface preferences",
         icon: Palette,
       },

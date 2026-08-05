@@ -351,6 +351,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               fee: effectiveFee || null,
               joinedAt: s.joined_at,
               photoPath: s.photo_url ?? null,
+              aadhaarFrontPath: s.aadhaar_front_url ?? null,
+              aadhaarBackPath: s.aadhaar_back_url ?? null,
             });
           }}
         >
