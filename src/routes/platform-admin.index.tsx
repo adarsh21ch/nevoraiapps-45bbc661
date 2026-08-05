@@ -44,14 +44,14 @@ function Overview() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Platform control</h1>
           <p className="text-sm text-neutral-400">Everything at a glance.</p>
         </div>
-        <Button asChild className="bg-white text-neutral-900 hover:bg-neutral-100">
+        <Button asChild size="sm" className="bg-white text-neutral-900 hover:bg-neutral-100">
           <Link to="/platform-admin/new">
-            <Plus className="size-4 mr-1" /> Onboard academy
+            <Plus className="size-4 mr-1.5" /> Onboard client
           </Link>
         </Button>
       </header>
