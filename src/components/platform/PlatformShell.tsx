@@ -28,22 +28,15 @@ import { usePlatform } from "@/lib/platform-context";
 
 const nav = [
   { to: "/platform-admin", label: "Overview", icon: LayoutDashboard, exact: true },
-  { to: "/platform-admin/founder", label: "Founder Intelligence", icon: Sparkles },
-  { to: "/platform-admin/nevorai", label: "NevorAI Intelligence", icon: Sparkles },
   { to: "/platform-admin/tenants", label: "Tenants", icon: Building2 },
   { to: "/platform-admin/subscriptions", label: "Subscriptions", icon: Receipt },
-  { to: "/platform-admin/sports", label: "Supported sports", icon: Trophy },
-  { to: "/platform-admin/communication", label: "Communication", icon: Radio },
-  { to: "/platform-admin/push", label: "Push notifications", icon: BellRing },
-  { to: "/platform-admin/flags", label: "Feature flags", icon: Sparkles },
-  { to: "/platform-admin/usage", label: "Usage", icon: BarChart3 },
+  { to: "/platform-admin/usage", label: "Usage metrics", icon: BarChart3 },
+  { to: "/platform-admin/communication", label: "Infrastructure", icon: Radio },
+  { to: "/platform-admin/audit", label: "Audit trail", icon: ScrollText },
   { to: "/platform-admin/health", label: "System health", icon: Activity },
-  { to: "/platform-admin/audit", label: "Audit log", icon: ScrollText },
-  { to: "/platform-admin/support", label: "Support", icon: LifeBuoy },
-  { to: "/platform-admin/search", label: "Search", icon: Search },
+  { to: "/platform-admin/search", label: "Global search", icon: Search },
   { to: "/platform-admin/new", label: "Onboard client", icon: Plus },
-  { to: "/platform-admin/payment-settings", label: "Payments", icon: CreditCard },
-  { to: "/platform-admin/settings", label: "Contact settings", icon: Settings },
+  { to: "/platform-admin/settings", label: "Platform config", icon: Settings },
 
 ];
 
