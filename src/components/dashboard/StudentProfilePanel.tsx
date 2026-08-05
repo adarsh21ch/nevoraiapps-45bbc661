@@ -232,18 +232,24 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
         className="rounded-2xl p-4 border shadow-sm bg-card flex items-center justify-between gap-3"
         style={{ borderColor: "color-mix(in oklab, var(--brand) 40%, var(--border))" }}
       >
-        <div>
+        <div className="flex-1">
           <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
             Monthly fee
           </div>
-          <div className="text-2xl font-bold tabular-nums">
-            ₹{effectiveFee.toLocaleString("en-IN")}
+          <div className="flex items-baseline gap-2">
+            <div className="text-2xl font-bold tabular-nums">
+              ₹{effectiveFee.toLocaleString("en-IN")}
+            </div>
+            {s.custom_fee != null && (
+              <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium uppercase tracking-wider">
+                Manual Edit
+              </span>
+            )}
           </div>
           <div className="text-xs text-muted-foreground">
             {s.custom_fee != null
-              ? `Custom · plan is ₹${baseAmount.toLocaleString("en-IN")}`
+              ? `Plan is ₹${baseAmount.toLocaleString("en-IN")}`
               : plan?.name || "No plan"}
-
           </div>
         </div>
         <Button
@@ -265,7 +271,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           onSave={async (val) => {
             await patch.mutateAsync({ custom_fee: val });
             setEditFeeOpen(false);
-            toast.success(val == null ? "Reset to plan amount" : "Custom fee saved");
+            toast.success(val == null ? "Synced to system price" : "Manual fee saved");
           }}
         />
       )}
@@ -614,8 +620,8 @@ function EditFeeInline({
 
   const submit = async () => {
     const n = Number(value);
-    if (!Number.isFinite(n) || n <= 0) {
-      setErr("Enter a positive amount");
+    if (!Number.isFinite(n) || n < 0) {
+      setErr("Enter a valid amount (0 or more)");
       return;
     }
     if (n > 10_000_000) {
@@ -623,12 +629,13 @@ function EditFeeInline({
       return;
     }
     setErr(null);
-    await commit(n);
+    // If entered amount is exactly the system price, store as null (synced)
+    await commit(n === planAmount ? null : n);
   };
 
   return (
     <div className="rounded-2xl border border-border shadow-sm bg-card p-4 space-y-3">
-      <div className="text-sm font-semibold">Custom fee for this student</div>
+      <div className="text-sm font-semibold">Manual fee edit</div>
       <div className="flex gap-2">
         <div className="relative flex-1">
           <span className="absolute inset-y-0 left-3 flex items-center text-neutral-500 font-semibold">
@@ -662,7 +669,7 @@ function EditFeeInline({
               disabled={saving}
               onClick={() => commit(null)}
             >
-              Reset to plan
+              Sync to system price
             </button>
           )}
           <button type="button" className="hover:text-foreground" onClick={onClose}>
@@ -699,8 +706,18 @@ function CoreEditor({
     address: student.address ?? "",
     batch_id: student.batch_id ?? "",
     fee_plan_id: student.fee_plan_id ?? "",
-    custom_fee: student.custom_fee,
+    custom_fee: student.custom_fee as number | null,
   });
+
+  const selectedBatch = batches.find((b) => b.id === f.batch_id);
+  const selectedPlan = feePlans.find((p) => p.id === (selectedBatch?.fee_plan_id || f.fee_plan_id));
+  
+  let systemPrice = Number(selectedPlan?.amount ?? 0);
+  if (isGenderPricingEnabled && f.gender === "female" && selectedPlan?.female_amount != null) {
+    systemPrice = Number(selectedPlan.female_amount);
+  }
+
+  const isManualDiff = f.custom_fee != null && Number(f.custom_fee) !== systemPrice;
 
   const [saving, setSaving] = useState(false);
   return (
@@ -772,16 +789,16 @@ function CoreEditor({
         />
       </div>
 
-      {isGenderPricingEnabled && f.gender === "female" && f.custom_fee != null && (
+      {isGenderPricingEnabled && f.gender === "female" && isManualDiff && (
         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex gap-2">
           <p>
-            <strong>Custom fee active:</strong> This student is billed ₹{Number(f.custom_fee).toLocaleString("en-IN")} instead of the girl's discount price. 
+            <strong>Manual edit active:</strong> This student is billed ₹{Number(f.custom_fee).toLocaleString("en-IN")} instead of the girl's discount price. 
             <button 
               type="button" 
               className="ml-1 underline font-bold"
               onClick={() => setF({ ...f, custom_fee: null })}
             >
-              Reset to system price
+              Sync to system price
             </button>
           </p>
         </div>
