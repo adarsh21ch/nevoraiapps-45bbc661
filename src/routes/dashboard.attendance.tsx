@@ -1254,18 +1254,20 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
   }
   if (state === "checked_out" && row?.check_in_at && row?.check_out_at) {
     const visits = row.visit_count ?? 1;
+    const isAuto = row.auto_checked_out;
+    const duration = isAuto ? 0 : (row.duration_minutes ?? 0);
     return (
       <span className={cn("inline-flex items-center gap-1 text-sm", toneClass)}>
-        <Clock className="size-3" />
+        <Clock className={cn("size-3", isAuto && "text-muted-foreground")} />
         {format(new Date(row.check_in_at), "h:mm a")} –{" "}
-        {format(new Date(row.check_out_at), "h:mm a")} · {formatDuration(row.duration_minutes)}
+        {format(new Date(row.check_out_at), "h:mm a")} · {formatDuration(duration)}
         {visits > 1 ? ` · ${visits} visits` : ""}
-        {row.auto_checked_out && (
+        {isAuto && (
           <span
             className="ml-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400"
             title="Student forgot to check out — closed automatically at end of day"
           >
-            Auto
+            Auto (0h)
           </span>
         )}
       </span>
