@@ -159,7 +159,7 @@ function TenantDetail() {
             <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest px-3 py-2">
               Recent Activity
             </h2>
-            <div className="max-h-64 overflow-y-auto">
+            <div className="max-h-64 overflow-y-auto px-1">
               <AuditFeed tenantId={tenant.id} limit={10} />
             </div>
           </div>
