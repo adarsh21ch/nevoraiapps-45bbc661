@@ -15,7 +15,9 @@ import {
   Mail,
   FileText,
   ScanLine,
+  LogIn,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -92,22 +94,36 @@ function StudentHomePage() {
       <button
         type="button"
         onClick={() => setScanOpen(true)}
-        className="w-full rounded-2xl bg-primary px-5 py-4 text-left text-primary-foreground shadow-lg shadow-primary/20 active:scale-[0.99] transition-transform"
+        className={cn(
+          "w-full rounded-2xl px-5 py-4 text-left transition-all active:scale-[0.99] shadow-lg",
+          home.todayVisit && !home.todayVisit.check_out_at
+            ? "bg-emerald-600 text-white shadow-emerald-500/20"
+            : "bg-primary text-primary-foreground shadow-primary/20"
+        )}
       >
         <div className="flex items-center gap-4">
-          <span className="size-12 rounded-2xl bg-primary-foreground/15 grid place-items-center">
-            <ScanLine className="size-6" />
+          <span className={cn(
+            "size-12 rounded-2xl grid place-items-center shrink-0",
+            home.todayVisit && !home.todayVisit.check_out_at
+              ? "bg-white/20"
+              : "bg-primary-foreground/15"
+          )}>
+            {home.todayVisit && !home.todayVisit.check_out_at ? (
+              <LogIn className="size-6" />
+            ) : (
+              <ScanLine className="size-6" />
+            )}
           </span>
           <span className="flex-1 min-w-0">
             <span className="block text-base font-semibold leading-tight">
               {home.todayVisit && !home.todayVisit.check_out_at
-                ? "Scan QR to check out"
-                : "Scan QR for attendance"}
+                ? "You are checked in"
+                : "Scan for Attendance"}
             </span>
-            <span className="block text-xs opacity-80 mt-0.5">
+            <span className="block text-xs opacity-80 mt-1">
               {home.todayVisit && !home.todayVisit.check_out_at
-                ? "You're checked in — scan again when you leave"
-                : "Tap, point at the academy poster, done"}
+                ? "Click here to scan & check out"
+                : "Point at the academy QR to check in"}
             </span>
           </span>
           <ChevronRight className="size-5 opacity-80" />
