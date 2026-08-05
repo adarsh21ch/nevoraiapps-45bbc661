@@ -252,34 +252,75 @@ function TenantDangerZone({ tenant }: { tenant: Tenant }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [deleteStep, setDeleteStep] = useState(1);
+  const isArchived = tenant.status === "archived";
+
+  if (isArchived) {
+    return (
+      <DangerZone
+        description="This academy is currently archived. All data is preserved and billing is paused."
+        actions={[
+          {
+            label: "Reactivate academy",
+            description: "Move this academy back to active status to resume operations.",
+            onClick: async () => {
+              try {
+                await setTenantStatus(tenant.id, "active");
+                toast.success("Academy reactivated");
+                qc.invalidateQueries({ queryKey: pqk.tenants });
+                qc.invalidateQueries({ queryKey: pqk.tenant(tenant.id) });
+              } catch (e: any) {
+                toast.error(e.message || "Failed to reactivate");
+              }
+            },
+          },
+        ]}
+      />
+    );
+  }
+
   return (
     <>
       <DangerZone
-        description="Archive this academy to stop billing and hide it from the main list. Data is preserved."
+        description="Safely manage this academy's lifecycle. Archiving preserves all data for future recovery."
         actions={[
           {
-            label: "Archive tenant",
+            label: "Archive academy",
             description:
-              "Moves the academy to previous/archived status. You can reactivate it later.",
-            onClick: () => setOpen(true),
+              "Moves the academy to archived status. Data is kept safe and can be recovered anytime.",
+            onClick: () => {
+              setDeleteStep(1);
+              setOpen(true);
+            },
           },
         ]}
       />
       <ConfirmDeleteDialog
         open={open}
-        onOpenChange={setOpen}
-        title="Archive tenant"
-        description={`This will move "${tenant.name}" to the archives. No data will be permanently deleted, but the tenant will no longer be active.`}
+        onOpenChange={(val) => {
+          setOpen(val);
+          if (!val) setDeleteStep(1);
+        }}
+        title={deleteStep === 1 ? "Archive academy" : "Final Confirmation"}
+        description={
+          deleteStep === 1
+            ? `Are you sure you want to archive "${tenant.name}"? This preserves all data so you can recover it later if needed.`
+            : `You are about to move "${tenant.name}" to archives. This is a safe action and can be undone. Proceed?`
+        }
         confirmText={tenant.name}
-        confirmLabel="Archive tenant"
+        confirmLabel={deleteStep === 1 ? "Yes, continue" : "Archive Academy"}
         onConfirm={async () => {
+          if (deleteStep === 1) {
+            setDeleteStep(2);
+            return;
+          }
           try {
             await setTenantStatus(tenant.id, "archived");
-            toast.success("Tenant archived");
+            toast.success("Academy moved to archives");
             qc.invalidateQueries({ queryKey: pqk.tenants });
             navigate({ to: "/platform-admin" });
           } catch (e: any) {
-            toast.error(e.message ?? "Failed to remove tenant");
+            toast.error(e.message ?? "Failed to archive tenant");
             throw e;
           }
         }}
@@ -287,6 +328,7 @@ function TenantDangerZone({ tenant }: { tenant: Tenant }) {
     </>
   );
 }
+
 
 function PlatformActions({ tenant, onSaved }: { tenant: Tenant; onSaved: () => void }) {
   const { session } = usePlatform();
