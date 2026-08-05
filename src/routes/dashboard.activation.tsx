@@ -6,6 +6,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { supabase } from "@/integrations/supabase/client";
 import { importedStudentsQuery, importBatchesQuery } from "@/lib/admissions/queries";
 import { sendActivations, rollbackImport } from "@/lib/admissions/admissions.functions";
+import { auditStudentIdentity } from "@/lib/admissions/audit.functions";
 import { fetchBatches, fetchFeePlans, qk } from "@/lib/dashboard-queries";
 import { findAdmissionPlan, type FeePlanLite } from "@/lib/billing-enrollment";
 import { Button } from "@/components/ui/button";
@@ -45,13 +46,18 @@ function ActivationCenter() {
   const planList = (plans.data ?? []) as unknown as FeePlanLite[];
   const planById = new Map(planList.map((p) => [p.id, p]));
   const admissionPlan = findAdmissionPlan(planList);
+  
+  // Single source of truth: fee plan comes from the batch
   const feePlanForBatch = (batchId: string) =>
     (sessionList.find((b) => b.id === batchId)?.fee_plan_id as string | null) ?? null;
+
   const monthlyFor = (batchId?: string | null) => {
     const id = batchId ? feePlanForBatch(batchId) : null;
     const plan = id ? planById.get(id) : null;
     return plan ? Number(plan.amount ?? 0) : null;
   };
+
+  const auditId = useServerFn(auditStudentIdentity);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
@@ -65,8 +71,16 @@ function ActivationCenter() {
 
   const sendMut = useMutation({
     mutationFn: (studentIds: string[]) => send({ data: { tenantId, studentIds } }),
-    onSuccess: (res: any) => {
+    onSuccess: async (res: any) => {
       toast.success(`Marked ${res.results.length} as invited`);
+      
+      // Audit identity for everyone being invited to ensure ID cards work immediately
+      for (const result of res.results) {
+        if (result.studentId) {
+          auditId({ data: { studentId: result.studentId, tenantId, prefix: tenant.slug?.toUpperCase().slice(0, 3) || "SAI" } }).catch(console.error);
+        }
+      }
+
       setSelected(new Set());
       qc.invalidateQueries({ queryKey: ["admissions"] });
     },
