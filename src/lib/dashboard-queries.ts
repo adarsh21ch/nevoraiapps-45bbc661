@@ -134,6 +134,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .from("payments")
       .select("amount")
       .eq("tenant_id", tenantId)
+      .eq("type", "monthly") // Only count actual fee revenue, not registration/others
       .gte("created_at", startOfMonth),
     db
       .from("students")
