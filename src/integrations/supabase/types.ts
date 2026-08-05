@@ -519,6 +519,13 @@ export type Database = {
             foreignKeyName: "attendance_marks_corrects_id_fkey"
             columns: ["corrects_id"]
             isOneToOne: false
+            referencedRelation: "attendance_today"
+            referencedColumns: ["mark_id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_corrects_id_fkey"
+            columns: ["corrects_id"]
+            isOneToOne: false
             referencedRelation: "attendance_visits"
             referencedColumns: ["mark_id"]
           },
@@ -556,6 +563,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "attendance_marks"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marks_superseded_by_fkey"
+            columns: ["superseded_by"]
+            isOneToOne: false
+            referencedRelation: "attendance_today"
+            referencedColumns: ["mark_id"]
           },
           {
             foreignKeyName: "attendance_marks_superseded_by_fkey"
@@ -7208,21 +7222,20 @@ export type Database = {
     Views: {
       attendance_today: {
         Row: {
+          auto_checked_out: boolean | null
           batch_id: string | null
           check_in_at: string | null
           check_out_at: string | null
           current_state: string | null
           duration_minutes: number | null
-          last_visit_type: string | null
           mark_id: string | null
           marked_by: string | null
           session_date: string | null
           session_id: string | null
-          source: string | null
+          source: Database["public"]["Enums"]["attendance_source"] | null
           status: Database["public"]["Enums"]["attendance_status"] | null
           student_id: string | null
           tenant_id: string | null
-          visit_count: number | null
         }
         Relationships: [
           {
@@ -7870,6 +7883,7 @@ export type Database = {
         Args: { _confirm_name: string; _tenant_id: string }
         Returns: undefined
       }
+      process_daily_attendance_cleanup: { Args: never; Returns: undefined }
       publish_notification:
         | {
             Args: {

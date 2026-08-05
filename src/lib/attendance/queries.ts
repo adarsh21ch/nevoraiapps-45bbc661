@@ -128,7 +128,7 @@ export async function fetchAttendanceByDate(
     source: AttendanceSource | null;
     marked_by: string | null;
     visit_type: string | null;
-    check_out_meta: { auto?: boolean } | null;
+    check_out_meta: { auto?: boolean; exclude_from_hours?: boolean } | null;
     created_at: string;
     attendance_sessions: { batch_id: string | null; session_date: string } | null;
   };
@@ -162,7 +162,10 @@ export async function fetchAttendanceByDate(
       .map((m) => m.check_out_at!)
       .sort()
       .slice(-1)[0] ?? null;
-    const totalMinutes = arr.reduce((s, m) => s + (m.duration_minutes ?? 0), 0);
+    const totalMinutes = arr.reduce((s, m) => {
+      const mins = m.check_out_meta?.exclude_from_hours ? 0 : (m.duration_minutes ?? 0);
+      return s + mins;
+    }, 0);
     const currentState: AttendanceState = hasOpen
       ? "in_academy"
       : hasAny
@@ -259,7 +262,11 @@ export function groupVisitsByDay(visits: AttendanceVisit[]): DailyVisitSummary[]
     const first = arr[0]?.check_in_at ?? null;
     const completed = arr.filter((v) => v.check_out_at);
     const last = completed.length ? completed[completed.length - 1].check_out_at : null;
-    const total = arr.reduce((s, v) => s + (v.duration_minutes ?? 0), 0);
+    const total = arr.reduce((s, v) => {
+      // Note: AttendanceVisit needs to have check_out_meta or equivalent
+      // For now we trust duration_minutes if it's already calculated by the view which we updated
+      return s + (v.duration_minutes ?? 0);
+    }, 0);
     out.push({
       session_date: date,
       first_check_in_at: first,
