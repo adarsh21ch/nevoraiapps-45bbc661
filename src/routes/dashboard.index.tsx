@@ -592,12 +592,20 @@ function QuickActionsGrid({
   tenant: { slug: string; name: string; custom_domain: string | null };
 }) {
   const [shareOpen, setShareOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
 
   const shareAction: QAItem = {
     key: "share",
     onClick: () => setShareOpen(true),
     label: "Share Website",
     icon: <Share2 className="size-5" />,
+  };
+
+  const scanAction: QAItem = {
+    key: "scan",
+    onClick: () => setScanOpen(true),
+    label: "Scan QR",
+    icon: <QrCode className="size-5" />,
   };
 
   const createMatch: QAItem[] = canScoreMatch
@@ -612,27 +620,17 @@ function QuickActionsGrid({
     : [];
 
   const ownerActions: QAItem[] = [
+    scanAction,
     { key: "add-player", to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
     ...createMatch,
-    {
-      key: "announce",
-      to: "/dashboard/communications",
-      label: "Send Announcement",
-      icon: <Megaphone className="size-5" />,
-    },
     { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     shareAction,
   ];
 
   const adminActions: QAItem[] = [
+    scanAction,
     { key: "add-player", to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
     ...createMatch,
-    {
-      key: "announce",
-      to: "/dashboard/communications",
-      label: "Send Announcement",
-      icon: <Megaphone className="size-5" />,
-    },
     { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     shareAction,
   ];
@@ -647,6 +645,7 @@ function QuickActionsGrid({
         ))}
       </div>
       <ShareWebsiteDialog open={shareOpen} onOpenChange={setShareOpen} tenant={tenant} />
+      <ScanStudentCardDialog open={scanOpen} onOpenChange={setScanOpen} />
     </>
   );
 }

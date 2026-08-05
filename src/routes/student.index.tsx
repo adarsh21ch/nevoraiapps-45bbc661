@@ -257,13 +257,19 @@ function StudentHomePage() {
         </p>
         <div className="grid grid-cols-4 grid-rows-2 gap-2">
           <PlayerQuickAction
+            onClick={() => setScanOpen(true)}
+            icon={<QrCode className="size-5" />}
+            label={home.todayVisit && !home.todayVisit.check_out_at ? "Check Out" : "Scan QR"}
+            highlight={home.todayVisit && !home.todayVisit.check_out_at}
+          />
+          <PlayerQuickAction
             to="/student/progress"
             icon={<CalendarCheck2 className="size-5" />}
             label="My Schedule"
           />
           <PlayerQuickAction
             to="/student/timeline"
-            icon={<QrCode className="size-5" />}
+            icon={<Clock className="size-5" />}
             label="Attendance"
           />
           <PlayerQuickAction
@@ -279,22 +285,17 @@ function StudentHomePage() {
           <PlayerQuickAction
             to="/student/progress"
             icon={<MessageSquareQuote className="size-5" />}
-            label="Coach Feedback"
-          />
-          <PlayerQuickAction
-            to="/student/manage"
-            icon={<Megaphone className="size-5" />}
-            label="Announcements"
+            label="Feedback"
           />
           <PlayerQuickAction
             to="/student/manage"
             icon={<Mail className="size-5" />}
-            label="Contact Academy"
+            label="Contact"
           />
           <PlayerQuickAction
             to="/student/profile"
             icon={<FileText className="size-5" />}
-            label="My Documents"
+            label="My Docs"
           />
         </div>
       </section>
@@ -304,25 +305,46 @@ function StudentHomePage() {
 
 function PlayerQuickAction({
   to,
+  onClick,
   icon,
   label,
+  highlight,
 }: {
-  to:
+  to?:
     | "/student"
     | "/student/progress"
     | "/student/matches"
     | "/student/profile"
-     | "/student/manage"
-     | "/student/timeline";
+    | "/student/manage"
+    | "/student/timeline";
+  onClick?: () => void;
   icon: React.ReactNode;
   label: string;
+  highlight?: boolean;
 }) {
+  const content = (
+    <Card className={cn(
+      "p-2 flex flex-col items-center justify-center gap-1 h-full min-h-[76px] transition-colors",
+      highlight 
+        ? "bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-700" 
+        : "hover:bg-muted/40"
+    )}>
+      <span className={cn(highlight ? "text-white" : "text-primary")}>{icon}</span>
+      <span className="text-[10px] font-medium text-center leading-tight">{label}</span>
+    </Card>
+  );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className="w-full h-full text-left">
+        {content}
+      </button>
+    );
+  }
+
   return (
-    <Link to={to}>
-      <Card className="p-2 flex flex-col items-center justify-center gap-1 h-full min-h-[76px] hover:bg-muted/40 transition-colors">
-        <span className="text-primary">{icon}</span>
-        <span className="text-[11px] font-medium text-center leading-tight">{label}</span>
-      </Card>
+    <Link to={to!}>
+      {content}
     </Link>
   );
 }
