@@ -620,8 +620,8 @@ function EditFeeInline({
 
   const submit = async () => {
     const n = Number(value);
-    if (!Number.isFinite(n) || n <= 0) {
-      setErr("Enter a positive amount");
+    if (!Number.isFinite(n) || n < 0) {
+      setErr("Enter a valid amount (0 or more)");
       return;
     }
     if (n > 10_000_000) {
@@ -629,7 +629,8 @@ function EditFeeInline({
       return;
     }
     setErr(null);
-    await commit(n);
+    // If entered amount is exactly the system price, store as null (synced)
+    await commit(n === planAmount ? null : n);
   };
 
   return (
@@ -705,8 +706,18 @@ function CoreEditor({
     address: student.address ?? "",
     batch_id: student.batch_id ?? "",
     fee_plan_id: student.fee_plan_id ?? "",
-    custom_fee: student.custom_fee,
+    custom_fee: student.custom_fee as number | null,
   });
+
+  const selectedBatch = batches.find((b) => b.id === f.batch_id);
+  const selectedPlan = feePlans.find((p) => p.id === (selectedBatch?.fee_plan_id || f.fee_plan_id));
+  
+  let systemPrice = Number(selectedPlan?.amount ?? 0);
+  if (isGenderPricingEnabled && f.gender === "female" && selectedPlan?.female_amount != null) {
+    systemPrice = Number(selectedPlan.female_amount);
+  }
+
+  const isManualDiff = f.custom_fee != null && Number(f.custom_fee) !== systemPrice;
 
   const [saving, setSaving] = useState(false);
   return (
@@ -778,7 +789,7 @@ function CoreEditor({
         />
       </div>
 
-      {isGenderPricingEnabled && f.gender === "female" && f.custom_fee != null && (
+      {isGenderPricingEnabled && f.gender === "female" && isManualDiff && (
         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex gap-2">
           <p>
             <strong>Manual edit active:</strong> This student is billed ₹{Number(f.custom_fee).toLocaleString("en-IN")} instead of the girl's discount price. 
