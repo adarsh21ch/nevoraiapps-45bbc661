@@ -299,7 +299,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               setEditingCore(false);
               toast.success("Details updated");
             }}
+            isGenderPricingEnabled={isGenderPricingEnabled}
           />
+
         ) : (
           <dl className="divide-y divide-border text-sm">
             <Row label="Guardian" value={s.guardian_name || "—"} />
@@ -465,7 +467,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           batches={batches.data ?? []}
           feePlans={feePlans.data ?? []}
           onClose={() => setConfirmReactivate(false)}
+          isGenderPricingEnabled={isGenderPricingEnabled}
           onConfirm={async ({ batch_id, fee_plan_id }) => {
+
             await patch.mutateAsync({ status: "active", batch_id, fee_plan_id });
             setConfirmReactivate(false);
             toast.success(`${s.name} is active again`);
@@ -675,12 +679,16 @@ function CoreEditor({
   batches,
   feePlans,
   onSave,
+  isGenderPricingEnabled,
 }: {
+
   student: any;
   batches: any[];
   feePlans: any[];
   onSave: (payload: Record<string, any>) => Promise<void>;
+  isGenderPricingEnabled?: boolean;
 }) {
+
   const [f, setF] = useState({
     name: student.name ?? "",
     phone: student.phone ?? "",
@@ -920,13 +928,16 @@ function ReactivateDialog({
   feePlans,
   onClose,
   onConfirm,
+  isGenderPricingEnabled,
 }: {
   student: any;
   batches: any[];
   feePlans: any[];
   onClose: () => void;
   onConfirm: (v: { batch_id: string | null; fee_plan_id: string | null }) => Promise<void>;
+  isGenderPricingEnabled?: boolean;
 }) {
+
   const [batch_id, setBatchId] = useState<string>(student.batch_id ?? "");
   const [fee_plan_id, setFeePlanId] = useState<string>(student.fee_plan_id ?? "");
   const [saving, setSaving] = useState(false);
@@ -954,7 +965,12 @@ function ReactivateDialog({
               </SelectTrigger>
               <SelectContent>
                 {batches.map((b) => {
-                  const amt = feePlans.find((p) => p.id === b.fee_plan_id)?.amount;
+                  const p = feePlans.find((x) => x.id === b.fee_plan_id);
+                  let amt = p?.amount;
+                  if (isGenderPricingEnabled && student.gender === "female" && p?.female_amount != null) {
+                    amt = p.female_amount;
+                  }
+
                   return (
                     <SelectItem key={b.id} value={b.id}>
                       {b.name}
