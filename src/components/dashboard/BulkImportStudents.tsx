@@ -122,7 +122,7 @@ type ParsedRow = { row: Row; issues: string[]; dupe: boolean };
 type Step = "upload" | "map" | "assign" | "preview";
 
 const NO_SESSION = "__none__";
-const CREATE_SESSION = "__create__";
+
 
 export function BulkImportStudents() {
   const { tenant } = useDashboard();
