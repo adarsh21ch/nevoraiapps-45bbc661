@@ -172,26 +172,30 @@ export function ScanAttendanceDialog({
       };
       rafRef.current = requestAnimationFrame(tick);
     } catch (e: any) {
-      // If error name is NotAllowedError or it's a security error, it's a permission issue.
-      // We also check for common strings in browsers.
+      console.error("Camera access error:", e);
+      
       const isPermissionError = 
         e?.name === 'NotAllowedError' || 
         e?.name === 'PermissionDeniedError' ||
-        String(e).includes('denied') ||
-        String(e).includes('blocked');
+        String(e).toLowerCase().includes('denied') ||
+        String(e).toLowerCase().includes('blocked');
 
       if (isPermissionError) {
         setMessage(
-          "Camera access is blocked. Please go to your browser settings, ensure 'Camera' is set to 'Allow' for this website, and refresh the page. Sometimes browsers need a fresh start after permission changes.",
+          "Camera access is blocked. Please ensure 'Camera' is allowed for this site in your browser settings. If it's already allowed, try refreshing the page or restarting your browser to reset the permission.",
+        );
+      } else if (e?.name === 'NotReadableError' || e?.name === 'TrackStartError') {
+        setMessage(
+          "Camera is already in use by another app or browser tab. Please close other apps and try again.",
         );
       } else {
         setMessage(
-          e?.message || "Couldn't open camera. Please ensure no other app is using it and try again.",
+          e?.message || "Couldn't open camera. Please ensure you have a working camera and try again.",
         );
       }
       setPhase("error");
     }
-  }, [record]);
+  }, [record, stopCamera]);
 
   useEffect(() => {
     if (open) void startCamera();
