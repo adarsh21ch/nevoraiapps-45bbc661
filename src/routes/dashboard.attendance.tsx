@@ -25,6 +25,7 @@ import {
   MoreVertical,
   ArrowLeft,
   QrCode,
+  IdCard,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
@@ -709,6 +710,13 @@ function AttendancePage() {
                   <QrCode className="size-3" /> QR
                 </Link>
               ) : null}
+              <ScanStudentCardDialog
+                open={scanCards}
+                onOpenChange={setScanCards}
+                onRecorded={() => {
+                  qc.invalidateQueries({ queryKey: attendanceKeys.today(tenant.id) });
+                }}
+              />
 
             </>
           ) : (
