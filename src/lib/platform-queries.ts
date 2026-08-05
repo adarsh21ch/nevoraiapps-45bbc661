@@ -4,6 +4,7 @@ import type { Tenant } from "./tenant";
 export const pqk = {
   tenants: ["platform", "tenants"] as const,
   tenant: (id: string) => ["platform", "tenant", id] as const,
+  archivedTenants: ["platform", "tenants", "archived"] as const,
   priceLog: (id: string) => ["platform", "price-log", id] as const,
   mrr: ["platform", "mrr"] as const,
   isAdmin: (uid: string) => ["platform", "is-admin", uid] as const,
