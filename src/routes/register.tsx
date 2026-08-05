@@ -1454,3 +1454,63 @@ function SelectField({
   );
 }
 
+function DocumentUpload({
+  label,
+  value,
+  onUpload,
+  tenantId,
+  folder,
+  error,
+}: {
+  label: string;
+  value: string;
+  onUpload: (url: string) => void;
+  tenantId: string;
+  folder: string;
+  error?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const path = await uploadTenantFile(tenantId, folder, file);
+      onUpload(path);
+      toast.success(`${label} uploaded`);
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="text-[11px] font-medium text-muted-foreground uppercase">{label}</div>
+      <label
+        className={cn(
+          "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-colors cursor-pointer",
+          value ? "border-emerald-500/50 bg-emerald-50/30" : "border-border bg-muted/20 hover:bg-muted/40",
+          error && !value && "border-red-500 bg-red-50/30",
+        )}
+      >
+        <input type="file" className="hidden" accept="image/*" onChange={handleFile} disabled={uploading} />
+        {uploading ? (
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        ) : value ? (
+          <FileCheck className="h-6 w-6 text-emerald-600" />
+        ) : (
+          <Upload className="h-6 w-6 text-muted-foreground" />
+        )}
+        <span className={cn("text-[10px] font-medium", value ? "text-emerald-700" : "text-muted-foreground")}>
+          {uploading ? "Uploading..." : value ? "Photo selected" : "Tap to upload"}
+        </span>
+      </label>
+      {error && !value ? <span className="text-[10px] text-red-600 font-medium">{error}</span> : null}
+    </div>
+  );
+}
+
+
