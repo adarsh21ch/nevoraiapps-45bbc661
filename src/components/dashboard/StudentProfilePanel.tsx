@@ -833,7 +833,7 @@ function CoreEditor({
           </SelectContent>
         </Select>
         <p className="text-[11px] text-muted-foreground">
-          The monthly fee comes from the session — change it under Sessions &amp; fees.
+          The monthly fee is automatically set based on the session and gender.
         </p>
       </div>
 
