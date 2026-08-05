@@ -628,35 +628,34 @@ function CoreEditor({
         />
       </div>
       <div className="space-y-1.5">
-        <Label>Batch</Label>
-        <Select value={f.batch_id} onValueChange={(v) => setF({ ...f, batch_id: v })}>
+        <Label>Session</Label>
+        <Select
+          value={f.batch_id}
+          onValueChange={(v) => {
+            const b = batches.find((x) => x.id === v);
+            setF({ ...f, batch_id: v, fee_plan_id: b?.fee_plan_id ?? "" });
+          }}
+        >
           <SelectTrigger>
-            <SelectValue placeholder="Select batch" />
+            <SelectValue placeholder="Select session" />
           </SelectTrigger>
           <SelectContent>
-            {batches.map((b) => (
-              <SelectItem key={b.id} value={b.id}>
-                {b.name}
-              </SelectItem>
-            ))}
+            {batches.map((b) => {
+              const amt = feePlans.find((p) => p.id === b.fee_plan_id)?.amount;
+              return (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.name}
+                  {amt ? ` · ₹${Number(amt).toLocaleString("en-IN")}/mo` : " · fee not set"}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
+        <p className="text-[11px] text-muted-foreground">
+          The monthly fee comes from the session — change it under Sessions &amp; fees.
+        </p>
       </div>
-      <div className="space-y-1.5">
-        <Label>Fee plan</Label>
-        <Select value={f.fee_plan_id} onValueChange={(v) => setF({ ...f, fee_plan_id: v })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select fee plan" />
-          </SelectTrigger>
-          <SelectContent>
-            {feePlans.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.name} · ₹{p.amount}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+
       <Button
         type="submit"
         disabled={saving}
