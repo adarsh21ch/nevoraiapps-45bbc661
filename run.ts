@@ -5,6 +5,6 @@ const r:any={playerId:"SAI0042",name:"Mohit Kumar Sharma",guardianName:"Ramesh S
 const orig=(globalThis as any).Blob;
 // patch save
 const jsp:any=jsPDF;
-jsp.prototype.save=function(name:string){ const ab=this.output("arraybuffer"); require("fs").writeFileSync("/tmp/qa/out.pdf", Buffer.from(ab)); };
+jsp.API.save=function(name:string){ const ab=this.output("arraybuffer"); require("fs").writeFileSync("/tmp/qa/out.pdf", Buffer.from(ab)); };
 try{await mod.generateIdCardPdf(t,r);}catch(e){console.error("ERR",e);}
 console.log("ok");
