@@ -33,6 +33,17 @@ export function BottomNav({
     (n: NavItem) => !n.requiresFeature || features[n.requiresFeature] !== false,
   );
 
+  const itemsWithGap = [...items];
+  // For 5 nav items, we insert the gap at index 3 to shift items to the right
+  // [Home, Attendance, Fees, GAP, Manage, Profile]
+  // This aligns the gap with a center-weighted FAB layout.
+  const gapIndex = 3;
+  itemsWithGap.splice(gapIndex, 0, { to: "fab-gap", label: "", icon: () => null });
+
+
+
+
+
   return (
     <nav
       aria-label="Primary"
@@ -44,9 +55,13 @@ export function BottomNav({
     >
       <ul
         className="grid"
-        style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${itemsWithGap.length}, minmax(0, 1fr))` }}
       >
-        {items.map((item) => {
+        {itemsWithGap.map((item) => {
+          if (item.to === "fab-gap") {
+            return <li key="fab-gap" className="w-full" aria-hidden="true" />;
+          }
+
           const active =
             item.to === "/dashboard"
               ? location.pathname === "/dashboard"
@@ -59,6 +74,7 @@ export function BottomNav({
             : badge > 0
               ? `${item.label}, ${badge} pending`
               : item.label;
+
           return (
             <li key={`${item.to}-${item.label}`}>
               <Link
