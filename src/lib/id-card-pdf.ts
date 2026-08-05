@@ -72,6 +72,7 @@ const mix = (a: string, b: string, t: number): [number, number, number] => {
 };
 
 /** Fakes a linear gradient with thin vertical strips (jsPDF has no gradients). */
+/** Rounded gradient panel — jsPDF has no gradients, so we paint thin strips. */
 function gradientRect(
   doc: jsPDF,
   x: number,
@@ -80,13 +81,23 @@ function gradientRect(
   h: number,
   from: string,
   to: string,
-  steps = 90,
+  steps = 80,
 ) {
-  const sw = w / steps;
+  const rad = Math.min(R, h / 2);
+  // Rounded caps first, so the strips never square off the corners.
+  doc.setFillColor(...hexToRgb(from));
+  doc.roundedRect(x, y, w, h, rad, rad, "F");
+  doc.setFillColor(...hexToRgb(to));
+  doc.roundedRect(x + w - 2 * rad, y, 2 * rad, h, rad, rad, "F");
+
+  const gx = x + rad;
+  const gw = w - 3 * rad;
+  const sw = gw / steps;
   for (let i = 0; i < steps; i++) {
-    const [r, g, b] = mix(from, to, i / (steps - 1));
+    const t = (rad + i * sw) / w;
+    const [r, g, b] = mix(from, to, t);
     doc.setFillColor(r, g, b);
-    doc.rect(x + i * sw, y, sw + 0.15, h, "F");
+    doc.rect(gx + i * sw, y, sw + 0.15, h, "F");
   }
 }
 
