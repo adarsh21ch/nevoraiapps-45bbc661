@@ -912,16 +912,34 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
         .select("id, player_id")
         .single();
       if (error) throw error;
-      return data as { id: string; player_id: string };
+
+      // Money follows the session: subscribe them to the session's fee plan and
+      // raise the first bill (admission fee + first month) right away.
+      let billed = { skipped: true } as { skipped: boolean };
+      try {
+        billed = await enrollStudentInBilling({
+          tenantId: tenant.id,
+          studentId: data.id,
+          feePlanId: f.fee_plan_id || null,
+          plans: (feePlans.data ?? []) as FeePlanLite[],
+          startDate: f.joined_at,
+        });
+      } catch {
+        /* never block adding a player on billing */
+      }
+      return { ...(data as { id: string; player_id: string }), billed: !billed.skipped };
     },
     onSuccess: (row) => {
-      toast.success(`Added — Player ID ${row.player_id}`);
+      toast.success(`Added — Player ID ${row.player_id}`, {
+        description: row.billed ? "First invoice created in Fees." : undefined,
+      });
       qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
       qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <form
