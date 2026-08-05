@@ -6,6 +6,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { supabase } from "@/integrations/supabase/client";
 import { importedStudentsQuery, importBatchesQuery } from "@/lib/admissions/queries";
 import { sendActivations, rollbackImport } from "@/lib/admissions/admissions.functions";
+import { auditStudentIdentity } from "@/lib/admissions/audit.functions";
 import { fetchBatches, fetchFeePlans, qk } from "@/lib/dashboard-queries";
 import { findAdmissionPlan, type FeePlanLite } from "@/lib/billing-enrollment";
 import { Button } from "@/components/ui/button";
