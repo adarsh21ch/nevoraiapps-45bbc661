@@ -6,5 +6,5 @@ const orig=(globalThis as any).Blob;
 // patch save
 const jsp:any=jsPDF;
 jsp.prototype.save=function(name:string){ const ab=this.output("arraybuffer"); require("fs").writeFileSync("/tmp/qa/out.pdf", Buffer.from(ab)); };
-await mod.generateIdCardPdf(t,r);
+try{await mod.generateIdCardPdf(t,r);}catch(e){console.error("ERR",e);}
 console.log("ok");
