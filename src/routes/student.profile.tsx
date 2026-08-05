@@ -21,6 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchMyPortalContext, fetchStudentProfile, studentKeys } from "@/lib/student-app";
 import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
 import { AccountCard } from "@/components/settings/AccountCard";
+import { EditMyProfileDialog } from "@/components/portal/EditMyProfileDialog";
+
 
 export const Route = createFileRoute("/student/profile")({
   component: StudentProfilePage,
@@ -111,10 +113,12 @@ function StudentProfilePage() {
 
       {/* Personal details */}
       <section aria-label="Personal details">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-          Personal Details
-        </p>
+        <div className="mb-2 flex items-center justify-between px-1">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Personal Details</p>
+          <EditMyProfileDialog student={s} onSaved={() => q.refetch()} />
+        </div>
         <Card className="divide-y">
+
           {items
             .filter((i) => i.value)
             .map((i) => (

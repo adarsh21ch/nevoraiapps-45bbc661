@@ -7975,6 +7975,7 @@ export type Database = {
         Returns: undefined
       }
       unread_notification_count: { Args: never; Returns: number }
+      update_my_student_profile: { Args: { _patch: Json }; Returns: string }
       void_billing_invoice: {
         Args: { _invoice_id: string; _reason: string }
         Returns: string

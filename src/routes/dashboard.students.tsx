@@ -62,6 +62,14 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { BulkImportStudents } from "@/components/dashboard/BulkImportStudents";
+import { ShareRegistrationLink } from "@/components/dashboard/ShareRegistrationLink";
+import {
+  enrollStudentInBilling,
+  previewEnrollmentCharges,
+  recurringPlans,
+  type FeePlanLite,
+} from "@/lib/billing-enrollment";
+
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -301,7 +309,9 @@ function StudentsPage() {
               <DropdownMenuItem onClick={() => doExport("xlsx")}>Excel (.xlsx)</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <ShareRegistrationLink />
           <BulkImportStudents />
+
           <Button
             onClick={() => setAddOpen(true)}
             className="rounded-full h-9 sm:h-10 px-3 sm:px-5 font-semibold"
@@ -902,16 +912,34 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
         .select("id, player_id")
         .single();
       if (error) throw error;
-      return data as { id: string; player_id: string };
+
+      // Money follows the session: subscribe them to the session's fee plan and
+      // raise the first bill (admission fee + first month) right away.
+      let billed = { skipped: true } as { skipped: boolean };
+      try {
+        billed = await enrollStudentInBilling({
+          tenantId: tenant.id,
+          studentId: data.id,
+          feePlanId: f.fee_plan_id || null,
+          plans: (feePlans.data ?? []) as FeePlanLite[],
+          startDate: f.joined_at,
+        });
+      } catch {
+        /* never block adding a player on billing */
+      }
+      return { ...(data as { id: string; player_id: string }), billed: !billed.skipped };
     },
     onSuccess: (row) => {
-      toast.success(`Added — Player ID ${row.player_id}`);
+      toast.success(`Added — Player ID ${row.player_id}`, {
+        description: row.billed ? "First invoice created in Fees." : undefined,
+      });
       qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
       qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
       onDone();
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <form
@@ -1012,7 +1040,7 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
-              <Label>Batch</Label>
+              <Label>Session</Label>
               <Select value={f.batch_id} onValueChange={(v) => setF({ ...f, batch_id: v })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select" />
@@ -1033,7 +1061,7 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(feePlans.data ?? []).map((p: any) => (
+                  {recurringPlans((feePlans.data ?? []) as FeePlanLite[]).map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name} · ₹{p.amount}
                     </SelectItem>
@@ -1042,6 +1070,8 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
               </Select>
             </div>
           </div>
+          <FeePreview plans={(feePlans.data ?? []) as FeePlanLite[]} feePlanId={f.fee_plan_id} />
+
           <div className="grid grid-cols-2 gap-2">
             <FormField
               label="Joining date"
@@ -1237,6 +1267,36 @@ function SelectField({
           ))}
         </SelectContent>
       </Select>
+    </div>
+  );
+}
+
+/** Live "what will this player be charged" summary under the fee plan picker. */
+function FeePreview({ plans, feePlanId }: { plans: FeePlanLite[]; feePlanId: string }) {
+  const { plan, admission, recurring, oneTime, total } = previewEnrollmentCharges(
+    plans,
+    feePlanId || null,
+    true,
+  );
+  if (!plan) return null;
+  const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+  return (
+    <div className="rounded-xl border bg-muted/30 p-3 text-sm space-y-1">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">First bill</div>
+      {admission && oneTime > 0 ? (
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">{admission.name} (one-time)</span>
+          <span className="font-medium">{inr(oneTime)}</span>
+        </div>
+      ) : null}
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">{plan.name}</span>
+        <span className="font-medium">{inr(recurring)}</span>
+      </div>
+      <div className="flex justify-between border-t pt-1 font-semibold">
+        <span>Total due now</span>
+        <span>{inr(total)}</span>
+      </div>
     </div>
   );
 }
