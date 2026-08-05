@@ -405,7 +405,9 @@ function StudentsPage() {
             size="sm"
             className="h-11 rounded-full px-4 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200"
             onClick={async () => {
-              if (confirm(`Permanently delete ALL ${counts.left} archived students? This will erase all their historical data and cannot be undone.`)) {
+              if (confirm(`Are you absolutely sure? Permanently delete ALL ${counts.left} archived students? This will erase ALL their historical data and cannot be undone.`)) {
+                if (confirm(`FINAL CONFIRMATION: Are you really sure you want to completely erase ${counts.left} profiles? This action is irreversible.`)) {
+
                 try {
                   const res = await deleteArchived({ data: { tenantId: tenant.id } });
                   toast.success(`Successfully deleted ${res.count} students`);
@@ -414,8 +416,10 @@ function StudentsPage() {
                 } catch (err: any) {
                   toast.error(err.message || "Failed to delete students");
                 }
+                }
               }
             }}
+
           >
             <X className="size-4 mr-2" />
             Delete All

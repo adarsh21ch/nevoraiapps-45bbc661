@@ -77,8 +77,8 @@ function ProfilePage() {
       },
       {
         to: "/dashboard/settings",
-        label: "And also academy owner can able to download the student details, right? Including ID proof and all",
-        hint: "Interface preferences",
+        label: "And also they can move, uh, from active tab to the, uh, left tab, right? Active players and those players who left it, right? Who left. And also there should be a double confirmation to delete, uh, the player, completely delete the profile, right? And I guess, uh, we can also put a complete delete profile inside, uh, some kind of recovery data, kind of in-inside a profile tab. So at least a particular person or profile data or number should not get permanently deleted, right? It should be stored in some other way, so it can be archived or sen-- uh, it can be again restore kind of thing. If so, for example, after a one year or two year, that player come back, so at least we have that particular data. So in this way, we can save and store whole data. Develop-- In, in short, I don't want to delete the any kind of data from the applications, right?",
+        hint: "Student lifecycle and data retention management",
         icon: Palette,
       },
     ],
