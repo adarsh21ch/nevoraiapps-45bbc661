@@ -103,6 +103,84 @@ export async function submitQrScan(args: {
   return data as unknown as QrScanResult;
 }
 
+// ---------------------------------------------------------------------------
+// Player ID card scanning (staff side) — the owner/coach scans the QR printed
+// on a player's ID card. Same canonical append-only attendance write, no GPS
+// (the staff phone IS at the academy), toggling check-in -> check-out.
+// ---------------------------------------------------------------------------
+
+export type CardScanResult =
+  | {
+      ok: true;
+      result: "ok";
+      action: "check_in" | "check_out";
+      student_name: string;
+      player_id: string | null;
+      academy_name: string;
+      at: string;
+      total_minutes_today: number;
+    }
+  | {
+      ok: false;
+      result:
+        | "not_signed_in"
+        | "invalid_card"
+        | "not_staff"
+        | "inactive_student"
+        | "no_batch"
+        | "rate_limited";
+      student_name?: string;
+      retry_after_seconds?: number;
+    };
+
+/** Accepts `https://…/checkin?card=<uuid>`, `card=<uuid>` or a bare UUID. */
+export function extractCardToken(text: string): string | null {
+  const raw = (text || "").trim();
+  if (!raw) return null;
+  const uuid = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+  try {
+    const url = new URL(raw);
+    const c = url.searchParams.get("card");
+    if (c && uuid.test(c)) return c.toLowerCase();
+  } catch {
+    /* not a URL */
+  }
+  const m = raw.match(uuid);
+  return m ? m[0].toLowerCase() : null;
+}
+
+export async function submitCardScan(cardToken: string): Promise<CardScanResult> {
+  const now = new Date();
+  const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+    now.getDate(),
+  ).padStart(2, "0")}`;
+  const { data, error } = await supabase.rpc("staff_scan_student_card" as never, {
+    _card_token: cardToken,
+    _local_date: localDate,
+  } as never);
+  if (error) throw error;
+  return data as unknown as CardScanResult;
+}
+
+export function cardScanErrorMessage(r: Extract<CardScanResult, { ok: false }>): string {
+  switch (r.result) {
+    case "not_signed_in":
+      return "Please sign in again and retry.";
+    case "invalid_card":
+      return "This isn't a valid player ID card. Print a fresh card from the player's profile.";
+    case "not_staff":
+      return "Only the academy owner, admins and coaches can scan player cards.";
+    case "inactive_student":
+      return "This player has left the academy.";
+    case "no_batch":
+      return `${r.student_name ?? "This player"} isn't assigned to a session yet.`;
+    case "rate_limited":
+      return `Already scanned just now. Try again in ${r.retry_after_seconds ?? 60}s.`;
+    default:
+      return "Couldn't record attendance. Please try again.";
+  }
+}
+
 export interface QrScanLogRow {
   id: string;
   student_id: string | null;
