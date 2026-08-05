@@ -7778,14 +7778,22 @@ export type Database = {
         Args: { _role: string; _uid: string }
         Returns: boolean
       }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _tenant_id: string
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      has_role:
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _tenant_id: string
+              _user_id: string
+            }
+            Returns: boolean
+          }
       increment_feature_usage: {
         Args: { _delta?: number; _feature_id: string; _tenant_id: string }
         Returns: undefined
