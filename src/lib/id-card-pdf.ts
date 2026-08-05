@@ -71,7 +71,6 @@ const mix = (a: string, b: string, t: number): [number, number, number] => {
   ];
 };
 
-/** Fakes a linear gradient with thin vertical strips (jsPDF has no gradients). */
 /** Rounded gradient panel — jsPDF has no gradients, so we paint thin strips. */
 function gradientRect(
   doc: jsPDF,
