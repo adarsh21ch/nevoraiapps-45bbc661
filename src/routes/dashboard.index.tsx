@@ -267,7 +267,6 @@ function DashboardHome() {
                   : pendingFees > 0
                     ? money(kpis?.pendingFeeAmount ?? 0)
                     : "₹0"
-                : "₹0"
               }
               hint={
                 pendingFees > 0
