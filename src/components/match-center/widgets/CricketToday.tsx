@@ -108,7 +108,7 @@ function LiveMatchTile({ match, extra }: { match: MatchWithTeams; extra: number 
           {extra > 0 && <span className="text-[10px] text-muted-foreground">+{extra} more</span>}
         </div>
         <div>
-          <div className="text-sm font-semibold tracking-tight truncate">{teamsLabel(match)}</div>
+          <div className="text-[12px] font-semibold tracking-tight truncate leading-tight">{teamsLabel(match)}</div>
           <div className="text-[11px] text-muted-foreground truncate">
             {match.match_format ?? match.match_type ?? "Match"}
             {match.ground_name ? ` · ${match.ground_name}` : ""}
@@ -132,7 +132,7 @@ function MatchHistoryTile({ count, latest }: { count: number; latest?: MatchWith
           </span>
         </div>
         <div>
-          <div className="text-sm font-semibold tracking-tight truncate">
+          <div className="text-[12px] font-semibold tracking-tight truncate leading-tight">
             {count} completed {count === 1 ? "match" : "matches"}
           </div>
           <div className="text-[11px] text-muted-foreground truncate">
@@ -157,7 +157,7 @@ function PlayersTile({ count }: { count: number }) {
           </span>
         </div>
         <div>
-          <div className="text-sm font-semibold tracking-tight truncate">
+          <div className="text-[12px] font-semibold tracking-tight truncate leading-tight">
             {count} {count === 1 ? "player" : "players"}
           </div>
           <div className="text-[11px] text-muted-foreground truncate">
