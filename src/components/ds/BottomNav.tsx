@@ -34,9 +34,12 @@ export function BottomNav({
   );
 
   const itemsWithGap = [...items];
-  // Calculate gap index to be middle (rounded down)
-  const gapIndex = Math.floor(items.length / 2);
+  // For 5 nav items, we insert the gap at index 3 to shift items to the right
+  // [Home, Attendance, Fees, GAP, Manage, Profile]
+  // This aligns the gap with a center-weighted FAB layout.
+  const gapIndex = 3;
   itemsWithGap.splice(gapIndex, 0, { to: "fab-gap", label: "", icon: () => null });
+
 
 
 

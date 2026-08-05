@@ -86,8 +86,9 @@ export function GlobalBottomNav() {
         {/* Floating Action Button (QR Scanner) */}
         <div 
           className="absolute left-1/2 -translate-x-1/2 -top-7 pointer-events-auto"
-          style={{ width: 'calc(100% / 6)' }}
+          style={{ width: 'calc(100% / 6)', marginLeft: '-2px' }}
         >
+
           <div className="flex justify-center w-full">
             <button
               onClick={handleFabClick}
