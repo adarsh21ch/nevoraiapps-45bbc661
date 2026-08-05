@@ -1270,3 +1270,33 @@ function SelectField({
     </div>
   );
 }
+
+/** Live "what will this player be charged" summary under the fee plan picker. */
+function FeePreview({ plans, feePlanId }: { plans: FeePlanLite[]; feePlanId: string }) {
+  const { plan, admission, recurring, oneTime, total } = previewEnrollmentCharges(
+    plans,
+    feePlanId || null,
+    true,
+  );
+  if (!plan) return null;
+  const inr = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+  return (
+    <div className="rounded-xl border bg-muted/30 p-3 text-sm space-y-1">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">First bill</div>
+      {admission && oneTime > 0 ? (
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">{admission.name} (one-time)</span>
+          <span className="font-medium">{inr(oneTime)}</span>
+        </div>
+      ) : null}
+      <div className="flex justify-between">
+        <span className="text-muted-foreground">{plan.name}</span>
+        <span className="font-medium">{inr(recurring)}</span>
+      </div>
+      <div className="flex justify-between border-t pt-1 font-semibold">
+        <span>Total due now</span>
+        <span>{inr(total)}</span>
+      </div>
+    </div>
+  );
+}
