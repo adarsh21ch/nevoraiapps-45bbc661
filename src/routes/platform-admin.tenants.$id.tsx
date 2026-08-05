@@ -122,7 +122,7 @@ function TenantDetail() {
         </div>
       </div>
 
-      <div className="flex gap-6 h-[calc(100vh-10rem)]">
+      <div className="flex gap-6 h-[calc(100vh-12rem)]">
         {/* Tenant Sub-navigation Sidebar */}
         <aside className="w-56 shrink-0 flex flex-col gap-1 border-r border-white/10 pr-4 overflow-y-auto">
           <div className="mb-4">
