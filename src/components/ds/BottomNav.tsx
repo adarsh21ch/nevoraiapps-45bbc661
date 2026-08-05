@@ -37,7 +37,6 @@ export function BottomNav({
   const itemsWithGap = [...items];
   itemsWithGap.splice(middleIndex, 0, { to: "fab-gap", label: "", icon: () => null });
 
-
   return (
     <nav
       aria-label="Primary"
@@ -68,6 +67,7 @@ export function BottomNav({
             : badge > 0
               ? `${item.label}, ${badge} pending`
               : item.label;
+
           return (
             <li key={`${item.to}-${item.label}`}>
               <Link
@@ -110,7 +110,6 @@ export function BottomNav({
             </li>
           );
         })}
-
       </ul>
     </nav>
   );
