@@ -99,6 +99,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [confirmReactivate, setConfirmReactivate] = useState(false);
   const [editingCore, setEditingCore] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteStep, setDeleteStep] = useState(1);
+
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: qk.student(studentId) });
@@ -399,21 +402,14 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             <Button
               variant="outline"
               className="rounded-xl h-12 justify-start text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-              onClick={async () => {
-                if (confirm(`Completely delete ${s.name}'s data? This will remove all their records (attendance, payments, etc.) and cannot be undone.`)) {
-                  try {
-                    await deleteStudent({ data: { studentId } });
-                    toast.success("Student permanently deleted");
-                    qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
-                    invalidate();
-                  } catch (err: any) {
-                    toast.error(err.message || "Failed to delete student");
-                  }
-                }
+              onClick={() => {
+                setDeleteStep(1);
+                setConfirmDelete(true);
               }}
             >
               <X className="size-4 mr-2" /> Delete Permanently
             </Button>
+
           </div>
         ) : (
           <Button
@@ -465,7 +461,59 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           }}
         />
       )}
+      {/* Double confirmation delete */}
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deleteStep === 1 ? "Permanent Deletion" : "Final Confirmation"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteStep === 1 ? (
+                <>
+                  Are you absolutely sure you want to delete <strong>{s.name}</strong>?
+                  This will erase all historical data, payments, and attendance.
+                  <br /><br />
+                  <em>Note: You can keep them in the "Left" tab if you want to store their data for future reference.</em>
+                </>
+              ) : (
+                "This is the last step. Once deleted, this student's profile and all related records cannot be recovered. Are you really sure?"
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteStep(1)}>Cancel</AlertDialogCancel>
+            {deleteStep === 1 ? (
+              <Button
+                variant="destructive"
+                className="rounded-xl"
+                onClick={() => setDeleteStep(2)}
+              >
+                Yes, continue
+              </Button>
+            ) : (
+              <AlertDialogAction
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white"
+                onClick={async () => {
+                  try {
+                    await deleteStudent({ data: { studentId } });
+                    toast.success("Student profile deleted permanently");
+                    qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
+                    invalidate();
+                    setConfirmDelete(false);
+                  } catch (err: any) {
+                    toast.error(err.message || "Deletion failed");
+                  }
+                }}
+              >
+                Confirm Permanent Delete
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
   );
 }
 
