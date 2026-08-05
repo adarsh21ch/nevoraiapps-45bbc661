@@ -373,13 +373,30 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           <Download className="size-4 mr-2" /> Download ID card
         </Button>
         {isLeft ? (
-          <Button
-            className="rounded-xl h-12 justify-start"
-            style={{ backgroundColor: "var(--brand)", color: "white" }}
-            onClick={() => setConfirmReactivate(true)}
-          >
-            <UserRoundCheck className="size-4 mr-2" /> Reactivate
-          </Button>
+          <div className="sm:col-span-2 grid grid-cols-2 gap-2">
+            <Button
+              className="rounded-xl h-12 justify-start"
+              style={{ backgroundColor: "var(--brand)", color: "white" }}
+              onClick={() => setConfirmReactivate(true)}
+            >
+              <UserRoundCheck className="size-4 mr-2" /> Reactivate
+            </Button>
+            <Button
+              variant="outline"
+              className="rounded-xl h-12 justify-start text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+              onClick={async () => {
+                if (confirm(`Completely delete ${s.name}'s data? This cannot be undone.`)) {
+                  const { error } = await supabase.from("students").delete().eq("id", studentId);
+                  if (error) return toast.error(error.message);
+                  toast.success("Student permanently deleted");
+                  qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
+                  invalidate();
+                }
+              }}
+            >
+              <X className="size-4 mr-2" /> Delete Permanently
+            </Button>
+          </div>
         ) : (
           <Button
             variant="outline"

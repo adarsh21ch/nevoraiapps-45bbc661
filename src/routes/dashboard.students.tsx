@@ -57,10 +57,12 @@ import {
   SlidersHorizontal,
   ArchiveRestore,
   Archive,
+  ExternalLink,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { tenantSiteUrl } from "@/lib/tenant";
 import { BulkImportStudents } from "@/components/dashboard/BulkImportStudents";
 import { ShareRegistrationLink } from "@/components/dashboard/ShareRegistrationLink";
 import {
@@ -310,6 +312,25 @@ function StudentsPage() {
           </DropdownMenu>
           <ShareRegistrationLink />
           <BulkImportStudents />
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="rounded-full h-9"
+            onClick={async () => {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (!user) return;
+              const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+              if (profile?.role === "owner" && confirm("View public /fees page as a visitor?")) {
+                window.open(tenantSiteUrl(tenant) + "/fees", "_blank");
+              }
+            }}
+          >
+            <Link to="/fees" target="_blank" className="flex items-center">
+              <ExternalLink className="size-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">View Fees</span>
+            </Link>
+          </Button>
 
           <Button
             onClick={() => setAddOpen(true)}
