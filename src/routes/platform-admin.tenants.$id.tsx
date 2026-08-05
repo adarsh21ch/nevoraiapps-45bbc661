@@ -121,58 +121,126 @@ function TenantDetail() {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          <BasicsEditor
-            tenant={tenant}
-            onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
-          />
-          <BrandingEditor
-            tenant={tenant}
-            onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
-          />
-          <Panel title="Site content — landing page">
-            <p className="text-xs text-neutral-400 mb-3">
-              Hero background image/video, founder photo, coaches, gallery, star players, CTA
-              banner, Google Map — everything that shows on the public site.
-            </p>
-            <SiteContentTabs tenantId={tenant.id} />
-          </Panel>
-          <FeaturesEditor
-            tenant={tenant}
-            onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
-          />
-          <DomainEditor
-            tenant={tenant}
-            onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
-          />
-          <TenantDangerZone tenant={tenant} />
-        </div>
-        <div className="space-y-4">
-          <PlatformActions
-            tenant={tenant}
-            onSaved={() => {
-              qc.invalidateQueries({ queryKey: pqk.tenant(id) });
-              qc.invalidateQueries({ queryKey: pqk.tenants });
-            }}
-          />
-          <SubscriptionCard
-            tenant={tenant}
-            priceLog={priceLog}
-            onSaved={() => {
-              qc.invalidateQueries({ queryKey: pqk.tenant(id) });
-              qc.invalidateQueries({ queryKey: pqk.priceLog(id) });
-              qc.invalidateQueries({ queryKey: pqk.tenants });
-            }}
-          />
-          <SuspendCard
-            tenant={tenant}
-            onSaved={() => {
-              qc.invalidateQueries({ queryKey: pqk.tenant(id) });
-              qc.invalidateQueries({ queryKey: pqk.tenants });
-            }}
-          />
-          <AuditFeed tenantId={tenant.id} limit={30} />
+      <div className="flex gap-6 h-[calc(100vh-10rem)]">
+        {/* Tenant Sub-navigation Sidebar */}
+        <aside className="w-56 shrink-0 flex flex-col gap-1 border-r border-white/10 pr-4 overflow-y-auto">
+          <div className="mb-4">
+            <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest px-3 py-2">
+              Academy Settings
+            </h2>
+          </div>
+          {[
+            { id: "basics", label: "Business details", icon: Info },
+            { id: "branding", label: "Branding & assets", icon: Play },
+            { id: "content", label: "Site content", icon: Globe },
+            { id: "features", label: "Features", icon: ShieldAlert },
+            { id: "domain", label: "Academy URL & DNS", icon: ExternalLink },
+            { id: "subscription", label: "Your subscription", icon: UserCog },
+            { id: "access", label: "Access control", icon: Pause },
+            { id: "danger", label: "Danger zone", icon: ShieldAlert },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  const el = document.getElementById(item.id);
+                  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all text-neutral-400 hover:text-white hover:bg-white/5 group"
+              >
+                <Icon className="h-4 w-4 text-neutral-500 group-hover:text-neutral-300" />
+                {item.label}
+              </button>
+            );
+          })}
+          <div className="mt-8 pt-4 border-t border-white/5">
+            <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest px-3 py-2">
+              Recent Activity
+            </h2>
+            <div className="max-h-64 overflow-y-auto">
+              <AuditFeed tenantId={tenant.id} limit={10} />
+            </div>
+          </div>
+        </aside>
+
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto pr-2 space-y-8 scroll-smooth">
+          <section id="basics" className="scroll-mt-6">
+            <BasicsEditor
+              tenant={tenant}
+              onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
+            />
+          </section>
+
+          <section id="branding" className="scroll-mt-6">
+            <BrandingEditor
+              tenant={tenant}
+              onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
+            />
+          </section>
+
+          <section id="content" className="scroll-mt-6">
+            <Panel title="Site content — landing page">
+              <p className="text-xs text-neutral-400 mb-3">
+                Hero background image/video, founder photo, coaches, gallery, star players, CTA
+                banner, Google Map — everything that shows on the public site.
+              </p>
+              <SiteContentTabs tenantId={tenant.id} />
+            </Panel>
+          </section>
+
+          <section id="features" className="scroll-mt-6">
+            <FeaturesEditor
+              tenant={tenant}
+              onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
+            />
+          </section>
+
+          <section id="domain" className="scroll-mt-6">
+            <DomainEditor
+              tenant={tenant}
+              onSaved={() => qc.invalidateQueries({ queryKey: pqk.tenant(id) })}
+            />
+          </section>
+
+          <section id="subscription" className="scroll-mt-6">
+            <SubscriptionCard
+              tenant={tenant}
+              priceLog={priceLog}
+              onSaved={() => {
+                qc.invalidateQueries({ queryKey: pqk.tenant(id) });
+                qc.invalidateQueries({ queryKey: pqk.priceLog(id) });
+                qc.invalidateQueries({ queryKey: pqk.tenants });
+              }}
+            />
+          </section>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <section id="access" className="scroll-mt-6">
+              <SuspendCard
+                tenant={tenant}
+                onSaved={() => {
+                  qc.invalidateQueries({ queryKey: pqk.tenant(id) });
+                  qc.invalidateQueries({ queryKey: pqk.tenants });
+                }}
+              />
+            </section>
+            
+            <section className="scroll-mt-6">
+              <PlatformActions
+                tenant={tenant}
+                onSaved={() => {
+                  qc.invalidateQueries({ queryKey: pqk.tenant(id) });
+                  qc.invalidateQueries({ queryKey: pqk.tenants });
+                }}
+              />
+            </section>
+          </div>
+
+          <section id="danger" className="scroll-mt-6 pb-20">
+            <TenantDangerZone tenant={tenant} />
+          </section>
         </div>
       </div>
     </div>
@@ -186,12 +254,12 @@ function TenantDangerZone({ tenant }: { tenant: Tenant }) {
   return (
     <>
       <DangerZone
-        description="Permanently remove this academy and all of its data. This cannot be undone."
+        description="Archive this academy to stop billing and hide it from the main list. Data is preserved."
         actions={[
           {
-            label: "Remove tenant",
+            label: "Archive tenant",
             description:
-              "Deletes the academy, its members, players, fees, attendance and match records.",
+              "Moves the academy to previous/archived status. You can reactivate it later.",
             onClick: () => setOpen(true),
           },
         ]}
@@ -199,14 +267,14 @@ function TenantDangerZone({ tenant }: { tenant: Tenant }) {
       <ConfirmDeleteDialog
         open={open}
         onOpenChange={setOpen}
-        title="Remove tenant permanently"
-        description={`This permanently removes "${tenant.name}" and every academy record — members, players, attendance, fees, matches and site content. This cannot be undone.`}
+        title="Archive tenant"
+        description={`This will move "${tenant.name}" to the archives. No data will be permanently deleted, but the tenant will no longer be active.`}
         confirmText={tenant.name}
-        confirmLabel="Remove tenant"
+        confirmLabel="Archive tenant"
         onConfirm={async () => {
           try {
-            await removeTenant(tenant.id, tenant.name);
-            toast.success("Tenant removed");
+            await setTenantStatus(tenant.id, "archived");
+            toast.success("Tenant archived");
             qc.invalidateQueries({ queryKey: pqk.tenants });
             navigate({ to: "/platform-admin" });
           } catch (e: any) {
