@@ -1,7 +1,7 @@
 /**
  * Fees — single money hub.
  *
- * Every fees surface (Collections, Approvals, Fee Plans, Setup, Reminders)
+ * Every fees surface (Collections, Approvals, Sessions & Fees, Setup, Reminders)
  * lives inside THIS route as an in-page tab panel. No route hops means:
  *   - the header + tab bar never move between tabs (uniform hierarchy)
  *   - switching tabs is instant (no network round trip, React Query cache)
@@ -20,7 +20,7 @@ import { useDashboard } from "@/lib/dashboard-context";
 import { listPendingManualPayments } from "@/lib/payments/manual.functions";
 import { CollectionsPanel } from "@/components/fees/CollectionsPanel";
 import { ApprovalsPanel } from "@/components/fees/ApprovalsPanel";
-import { FeePlansPanel } from "@/components/fees/FeePlansPanel";
+import { SessionFeesPanel } from "@/components/fees/SessionFeesPanel";
 import { SetupPanel } from "@/components/fees/SetupPanel";
 import { RemindersPanel } from "@/components/fees/RemindersPanel";
 import { cn } from "@/lib/utils";
@@ -32,7 +32,7 @@ type Filter = "all" | "pending" | "paid" | "overdue";
 const TABS: { key: FeesTab; label: string }[] = [
   { key: "collections", label: "Collections" },
   { key: "approvals", label: "Approvals" },
-  { key: "plans", label: "Fee Plans" },
+  { key: "plans", label: "Sessions & Fees" },
   { key: "setup", label: "Setup" },
   { key: "reminders", label: "Reminders" },
 ];
@@ -154,7 +154,7 @@ function FeesHub() {
           </>
         )}
         {tab === "approvals" && <ApprovalsPanel />}
-        {tab === "plans" && <FeePlansPanel />}
+        {tab === "plans" && <SessionFeesPanel showCoaches={false} />}
         {tab === "setup" && <SetupPanel />}
         {tab === "reminders" && <RemindersPanel />}
       </div>

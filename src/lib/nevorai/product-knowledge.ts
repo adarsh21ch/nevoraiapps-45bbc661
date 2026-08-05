@@ -102,9 +102,9 @@ export const PRODUCT_KNOWLEDGE: ProductKnowledgeTopic[] = [
     screens: ["/dashboard/fee-plans"],
     keywords: ["fee plan", "plans", "monthly plan", "amount", "cycle"],
     summary:
-      "Fee Plans define the amount and cycle (monthly/quarterly/one-time) each student is billed. Assign a plan to a student from the student profile.",
+      "Fees belong to sessions: each session (batch) carries its own monthly fee, plus one academy-wide one-time admission fee. A student inherits the fee of the session they are in.",
     steps: [
-      "Open Fee Plans from Dashboard → Fees → Plans.",
+      "Open Dashboard → Fees → Sessions & Fees (same as Dashboard → Sessions).",
       "Add a new plan with name, amount and cycle.",
       "Assign the plan on the student's profile under Students.",
     ],

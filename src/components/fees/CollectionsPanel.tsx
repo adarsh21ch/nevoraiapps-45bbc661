@@ -290,7 +290,7 @@ export function CollectionsPanel({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuItem asChild>
-                <Link to="/dashboard/fee-plans">Manage Fee Plans</Link>
+                <Link to="/dashboard/fees" search={{ tab: "plans" }}>Manage sessions &amp; fees</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/dashboard/students">Assign to Students</Link>
