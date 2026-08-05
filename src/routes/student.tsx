@@ -112,20 +112,14 @@ function StudentLayout() {
   const blockedLifecycle =
     gateQ.data?.lifecycle && isBlocked(gateQ.data.lifecycle) ? gateQ.data.lifecycle : null;
 
-  if (!ready) return <PageSkeleton />;
+  if (!ready) return null; // Root pendingComponent handles the splash
   if (!signedIn) {
-    return (
-      <div className="min-h-dvh grid place-items-center p-6 bg-background">
-        <Card className="p-6 max-w-md text-center space-y-3">
-          <h1 className="text-xl font-semibold">Sign in required</h1>
-          <p className="text-sm text-muted-foreground">
-            Please sign in with the email registered with your academy.
-          </p>
-          <Button onClick={() => navigate({ to: "/auth" })}>Go to sign in</Button>
-        </Card>
-      </div>
-    );
+    if (typeof window !== "undefined") {
+      navigate({ to: "/auth", replace: true });
+    }
+    return null;
   }
+
   if (ctxQ.isLoading || gateQ.isLoading) return <PageSkeleton />;
 
   // Allow /student/pending to render even without a student record.

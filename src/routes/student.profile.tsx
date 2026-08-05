@@ -198,10 +198,10 @@ function StudentProfilePage() {
 
       <AccountCard />
 
-      <div className="pt-2">
+      <div className="pt-4 pb-12">
         <Button
           variant="outline"
-          className="w-full"
+          className="w-full h-12 text-destructive border-destructive/20 hover:bg-destructive/5"
           onClick={async () => {
             await supabase.auth.signOut();
             navigate({ to: "/auth" });
@@ -210,6 +210,7 @@ function StudentProfilePage() {
           <LogOut className="size-4 mr-2" /> Sign out
         </Button>
       </div>
+
     </div>
   );
 }
