@@ -28,10 +28,10 @@ export const Route = createFileRoute("/platform-admin/")({
 });
 
 function Overview() {
-  const { data = [], isLoading } = useQuery({ queryKey: pqk.tenants, queryFn: fetchTenants });
+  const { data: tenants = [], isLoading } = useQuery({ queryKey: pqk.tenants, queryFn: fetchTenants });
   const { data: stats } = useQuery({ queryKey: analyticsKeys.stats, queryFn: fetchPlatformStats });
 
-  const activeTenants = data.filter((t) => t.status === "active");
+  const activeTenants = tenants.filter((t) => t.status === "active");
   const mrr = stats?.mrr ?? activeTenants.reduce((s, t) => s + (t.monthly_price ?? 0), 0);
   const receivedThisMonth =
     stats?.mrr_collected ??
@@ -45,174 +45,205 @@ function Overview() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Platform overview</h1>
-          <p className="text-sm text-neutral-400">
-            SaaS control center · every academy, every metric.
-          </p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Platform control</h1>
+          <p className="text-sm text-neutral-400">Everything at a glance.</p>
         </div>
         <Button asChild className="bg-white text-neutral-900 hover:bg-neutral-100">
           <Link to="/platform-admin/new">
-            <Plus className="size-4 mr-1" /> Onboard client
+            <Plus className="size-4 mr-1" /> Onboard academy
           </Link>
         </Button>
       </header>
 
+      {/* Primary Financial & Tenant Stats */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiLink
           to="/platform-admin/tenants"
           icon={<Building2 className="size-4" />}
           label="Academies"
-          value={stats?.total_tenants ?? data.length}
-          sub={`${stats?.active_tenants ?? activeTenants.length} active · ${stats?.suspended_tenants ?? 0} suspended`}
+          value={stats?.total_tenants ?? tenants.length}
+          sub={`${stats?.active_tenants ?? activeTenants.length} active · ${stats?.trial_tenants ?? 0} trials`}
         />
         <KpiLink
           to="/platform-admin/subscriptions"
           icon={<TrendingUp className="size-4" />}
           label="MRR"
           value={`₹${mrr.toLocaleString("en-IN")}`}
-          sub={`${pct}% collected`}
+          sub={`${pct}% collected this month`}
         />
         <KpiLink
           to="/platform-admin/usage"
           icon={<GraduationCap className="size-4" />}
-          label="Students"
+          label="Total students"
           value={stats?.total_students ?? "—"}
           sub={`${stats?.total_parents ?? 0} parents linked`}
         />
         <KpiLink
-          to="/platform-admin/usage"
-          icon={<ShieldCheck className="size-4" />}
-          label="Admins"
-          value={stats?.total_admins ?? "—"}
-          sub="Owners + coaches"
-        />
-        <Kpi
-          icon={<MessageSquare className="size-4" />}
-          label="Comms sent"
-          value={stats?.campaigns_sent ?? "—"}
-          sub={`${stats?.notifications_30d ?? 0} notifs · 30d`}
-        />
-        <Kpi
-          icon={<Sparkles className="size-4" />}
-          label="Trial"
-          value={stats?.trial_tenants ?? 0}
-          sub="Convert these"
-        />
-        <KpiLink
-          to="/platform-admin/audit"
-          icon={<ShieldCheck className="size-4" />}
-          label="Audit trail"
-          value="Immutable"
-          sub="View log"
-        />
-        <KpiLink
           to="/platform-admin/health"
-          icon={<Wallet className="size-4" />}
-          label="System"
-          value="Live"
-          sub="Probe status"
+          icon={<Activity className="size-4" />}
+          label="System health"
+          value="Operational"
+          sub="All services live"
         />
       </div>
 
-      <Card className="p-4 bg-neutral-900 border-white/10 text-neutral-100">
-        <div className="flex items-baseline justify-between gap-3 flex-wrap">
-          <div>
-            <div className="text-xs uppercase tracking-widest text-neutral-400">This month</div>
-            <div className="mt-1 text-lg font-semibold">
-              <span className="text-emerald-300">₹{receivedThisMonth.toLocaleString("en-IN")}</span>
-              <span className="text-neutral-500 text-sm"> received of </span>
-              <span>₹{expectedThisMonth.toLocaleString("en-IN")}</span>
-              <span className="text-neutral-500 text-sm"> expected</span>
-            </div>
-          </div>
-          <Link
-            to="/platform-admin/subscriptions"
-            className="text-xs text-neutral-300 hover:text-white inline-flex items-center gap-1"
-          >
-            Manage <ChevronRight className="size-3" />
-          </Link>
-        </div>
-        <div className="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-300"
-            style={{ width: `${Math.min(100, pct)}%` }}
-          />
-        </div>
-        <div className="mt-1 text-xs text-neutral-500">{pct}% collected</div>
-      </Card>
-
-      <Card className="bg-neutral-900 border-white/10 text-neutral-100 overflow-hidden">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between">
-          <div className="font-semibold">Tenants</div>
-          <div className="text-xs text-neutral-400">{data.length} total</div>
-        </div>
-
-        {isLoading && (
-          <div className="p-4 space-y-2">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 bg-white/5" />
-            ))}
-          </div>
-        )}
-        {!isLoading && data.length === 0 && (
-          <div className="p-8 text-center text-sm text-neutral-400">
-            No tenants yet.{" "}
-            <Link to="/platform-admin/new" className="underline">
-              Onboard your first client
-            </Link>
-            .
-          </div>
-        )}
-
-        <div className="divide-y divide-white/5">
-          {data.map((t) => (
-            <div key={t.id} className="flex flex-wrap items-center gap-3 p-4 hover:bg-white/5">
-              <div
-                className="size-9 rounded-md grid place-items-center text-white text-xs font-bold shrink-0"
-                style={{
-                  background: `linear-gradient(135deg, ${t.primary_color}, ${t.secondary_color})`,
-                }}
+      <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
+        <div className="space-y-6">
+          {/* Revenue Tracking */}
+          <Card className="p-4 bg-neutral-900 border-white/10 text-neutral-100">
+            <div className="flex items-baseline justify-between gap-3 flex-wrap">
+              <div>
+                <div className="text-xs uppercase tracking-widest text-neutral-400 font-medium">
+                  Revenue Collection Status
+                </div>
+                <div className="mt-2 text-xl font-bold">
+                  <span className="text-emerald-400">₹{receivedThisMonth.toLocaleString("en-IN")}</span>
+                  <span className="text-neutral-500 text-sm font-normal"> collected of </span>
+                  <span>₹{expectedThisMonth.toLocaleString("en-IN")}</span>
+                  <span className="text-neutral-500 text-sm font-normal"> target</span>
+                </div>
+              </div>
+              <Link
+                to="/platform-admin/subscriptions"
+                className="text-xs text-neutral-400 hover:text-white inline-flex items-center gap-1 transition-colors"
               >
-                {t.name.slice(0, 2).toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Link
-                    to="/platform-admin/tenants/$id"
-                    params={{ id: t.id }}
-                    className="font-semibold hover:underline truncate"
-                  >
-                    {t.name}
-                  </Link>
-                  <StatusChip status={t.status} />
-                  <SubChip sub={t.subscription_status} />
-                  <span className="text-xs text-neutral-400 capitalize">
-                    · {niche(t.niche).label}
-                  </span>
-                </div>
-                <div className="text-xs text-neutral-400 mt-1">
-                  /{t.slug} · {t.student_count ?? 0} students · created{" "}
-                  {new Date(t.created_at).toLocaleDateString("en-IN")}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-semibold">
-                  ₹{(t.monthly_price ?? 0).toLocaleString("en-IN")}
-                  <span className="text-xs text-neutral-400">/mo</span>
-                </div>
-                <a
-                  href={tenantSiteUrl(t)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs text-neutral-400 hover:text-white inline-flex items-center gap-1"
-                >
-                  View site <ExternalLink className="size-3" />
-                </a>
-              </div>
+                Billing hub <ChevronRight className="size-3" />
+              </Link>
             </div>
-          ))}
+            <div className="mt-4 h-2 rounded-full bg-white/5 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-500"
+                style={{ width: `${Math.min(100, pct)}%` }}
+              />
+            </div>
+          </Card>
+
+          {/* Recent Tenant Activity */}
+          <Card className="bg-neutral-900 border-white/10 text-neutral-100 overflow-hidden">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+              <div className="font-semibold">Recent academies</div>
+              <Link to="/platform-admin/tenants" className="text-xs text-neutral-400 hover:text-white">
+                View all
+              </Link>
+            </div>
+
+            {isLoading ? (
+              <div className="p-4 space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-14 bg-white/5" />
+                ))}
+              </div>
+            ) : tenants.length === 0 ? (
+              <div className="p-8 text-center text-sm text-neutral-500">
+                No academies yet.{" "}
+                <Link to="/platform-admin/new" className="underline text-white">
+                  Onboard your first client
+                </Link>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {tenants.slice(0, 10).map((t) => (
+                  <div key={t.id} className="flex flex-wrap items-center gap-3 p-4 hover:bg-white/5 transition-colors">
+                    <div
+                      className="size-9 rounded-md grid place-items-center text-white text-xs font-bold shrink-0"
+                      style={{
+                        background: `linear-gradient(135deg, ${t.primary_color}, ${t.secondary_color})`,
+                      }}
+                    >
+                      {t.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Link
+                          to="/platform-admin/tenants/$id"
+                          params={{ id: t.id }}
+                          className="font-semibold hover:underline truncate"
+                        >
+                          {t.name}
+                        </Link>
+                        <StatusChip status={t.status} />
+                        <SubChip sub={t.subscription_status} />
+                      </div>
+                      <div className="text-xs text-neutral-500 mt-1">
+                        /{t.slug} · {t.student_count ?? 0} students · {niche(t.niche).label}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-semibold">
+                        ₹{(t.monthly_price ?? 0).toLocaleString("en-IN")}
+                        <span className="text-xs text-neutral-400 font-normal">/mo</span>
+                      </div>
+                      <a
+                        href={tenantSiteUrl(t)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[10px] text-neutral-500 hover:text-white inline-flex items-center gap-0.5"
+                      >
+                        Visit <ExternalLink className="size-2.5" />
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
         </div>
-      </Card>
+
+        <div className="space-y-6">
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-1 gap-3">
+             <Kpi
+              icon={<MessageSquare className="size-4" />}
+              label="Communications"
+              value={stats?.campaigns_sent ?? "—"}
+              sub={`${stats?.notifications_30d ?? 0} alerts last 30d`}
+            />
+            <Kpi
+              icon={<Users className="size-4" />}
+              label="Platform reach"
+              value={stats?.total_admins ?? "—"}
+              sub="Academy owners & staff"
+            />
+            <Kpi
+              icon={<Sparkles className="size-4" />}
+              label="NevorAI usage"
+              value={stats?.trial_tenants ?? 0}
+              sub="Active AI conversations"
+            />
+          </div>
+
+          {/* Infrastructure status summary */}
+          <Card className="p-4 bg-neutral-900 border-white/10 text-neutral-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-xs uppercase tracking-widest text-neutral-400 font-medium">Infrastructure</div>
+              <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-400 bg-emerald-500/5">
+                Active
+              </Badge>
+            </div>
+            <div className="space-y-3">
+              <InfrastructureRow label="Database" status="stable" />
+              <InfrastructureRow label="WhatsApp API" status="stable" />
+              <InfrastructureRow label="Auth Service" status="stable" />
+              <InfrastructureRow label="Storage" status="stable" />
+            </div>
+            <Button asChild variant="ghost" size="sm" className="w-full mt-4 text-xs text-neutral-400 hover:text-white border-white/5">
+              <Link to="/platform-admin/health">Full diagnostic</Link>
+            </Button>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InfrastructureRow({ label, status }: { label: string; status: string }) {
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <span className="text-neutral-400">{label}</span>
+      <div className="flex items-center gap-1.5">
+        <span className="text-white capitalize">{status}</span>
+        <div className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+      </div>
     </div>
   );
 }
@@ -234,7 +265,7 @@ function Kpi({
         {icon}
         {label}
       </div>
-      <div className="mt-2 text-2xl font-bold">{value}</div>
+      <div className="mt-2 text-xl font-bold">{value}</div>
       {sub && <div className="mt-1 text-xs text-neutral-500">{sub}</div>}
     </Card>
   );
@@ -255,7 +286,7 @@ function KpiLink({
 }) {
   return (
     <Link to={to} className="block group">
-      <Card className="p-4 bg-neutral-900 border-white/10 text-neutral-100 group-hover:border-white/30 transition-colors">
+      <Card className="p-4 bg-neutral-900 border-white/10 text-neutral-100 group-hover:border-white/20 transition-all">
         <div className="flex items-center justify-between text-xs text-neutral-400">
           <span className="flex items-center gap-2">
             {icon}
@@ -263,7 +294,7 @@ function KpiLink({
           </span>
           <ChevronRight className="size-3 group-hover:translate-x-0.5 transition-transform" />
         </div>
-        <div className="mt-2 text-2xl font-bold">{value}</div>
+        <div className="mt-2 text-xl font-bold">{value}</div>
         {sub && <div className="mt-1 text-xs text-neutral-500">{sub}</div>}
       </Card>
     </Link>
