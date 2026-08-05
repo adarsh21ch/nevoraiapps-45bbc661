@@ -62,6 +62,14 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { BulkImportStudents } from "@/components/dashboard/BulkImportStudents";
+import { ShareRegistrationLink } from "@/components/dashboard/ShareRegistrationLink";
+import {
+  enrollStudentInBilling,
+  previewEnrollmentCharges,
+  recurringPlans,
+  type FeePlanLite,
+} from "@/lib/billing-enrollment";
+
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { StudentProfilePanel } from "@/components/dashboard/StudentProfilePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
