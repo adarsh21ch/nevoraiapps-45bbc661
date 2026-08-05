@@ -27,6 +27,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 export function TimelinePanel({ child }: { child: StudentContext | null }) {
   const [q, setQ] = useState("");
+  const [scanOpen, setScanOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  // We need current status to show the right button state
+  const homeQ = useQuery({
+    queryKey: child ? studentKeys.home(child.student_id) : ["student", "home", "none"],
+    queryFn: () => fetchStudentHome(child!),
+    enabled: !!child,
+  });
+
+  const home = homeQ.data;
+  const isCheckedIn = !!(home?.todayVisit && !home.todayVisit.check_out_at);
 
   const tenantBillingQ = useQuery({
     queryKey: child
