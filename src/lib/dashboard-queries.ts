@@ -137,9 +137,10 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .gte("created_at", weekAgo),
     db
       .from("payments")
-      .select("amount, student_id")
+      .select("amount, student_id, students!inner(status)")
       .eq("tenant_id", tenantId)
       .eq("type", "monthly")
+      .eq("students.status", "active")
       .gte("created_at", startOfMonth),
     db
       .from("students")
