@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Loader2 } from "lucide-react";
+import { Pencil, Loader2, Upload, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { uploadTenantFile } from "@/lib/storage";
+import { cn } from "@/lib/utils";
 
 type S = Record<string, string | null | undefined>;
 
@@ -44,11 +46,14 @@ const FIELDS: Array<{ key: string; label: string; type?: string; long?: boolean 
   { key: "batting_style", label: "Batting style" },
   { key: "bowling_style", label: "Bowling style" },
   { key: "medical_notes", label: "Medical notes", long: true },
+  { key: "aadhaar_front_url", label: "Aadhaar Front (ID Proof)", type: "file" },
+  { key: "aadhaar_back_url", label: "Aadhaar Back (ID Proof)", type: "file" },
 ];
 
 export function EditMyProfileDialog({ student, onSaved }: { student: S; onSaved: () => void }) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
   const start = (v: boolean) => {
     if (v) {
@@ -59,12 +64,27 @@ export function EditMyProfileDialog({ student, onSaved }: { student: S; onSaved:
     setOpen(v);
   };
 
+  const handleUpload = async (key: string, file: File) => {
+    if (!file) return;
+    setUploading((prev) => ({ ...prev, [key]: true }));
+    try {
+      const tenantId = (student as any).tenant_id || (window as any).__TENANT_ID__;
+      const path = await uploadTenantFile(tenantId, "id_proofs", file);
+      setForm((prev) => ({ ...prev, [key]: path }));
+      toast.success("Document uploaded");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
   const save = useMutation({
     mutationFn: async () => {
       const patch: Record<string, string> = {};
       for (const f of FIELDS) {
         const v = (form[f.key] ?? "").trim();
-        if (v && v !== ((student[f.key] as string | null) ?? "")) patch[f.key] = v;
+        if (v !== ((student[f.key] as string | null) ?? "")) patch[f.key] = v;
       }
       if (Object.keys(patch).length === 0) return "unchanged";
       const { error } = await supabase.rpc("update_my_student_profile", { _patch: patch as never });
@@ -93,11 +113,18 @@ export function EditMyProfileDialog({ student, onSaved }: { student: S; onSaved:
         <p className="text-xs text-muted-foreground">
           Session, fee plan and player ID are managed by the academy.
         </p>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {FIELDS.map((f) => (
             <div key={f.key} className="space-y-1.5">
               <Label className="text-xs">{f.label}</Label>
-              {f.long ? (
+              {f.type === "file" ? (
+                <DocumentUploadField
+                  label={f.label}
+                  value={form[f.key]}
+                  uploading={uploading[f.key]}
+                  onFile={(file) => handleUpload(f.key, file)}
+                />
+              ) : f.long ? (
                 <Textarea
                   rows={2}
                   value={form[f.key] ?? ""}
@@ -125,5 +152,48 @@ export function EditMyProfileDialog({ student, onSaved }: { student: S; onSaved:
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function DocumentUploadField({
+  label,
+  value,
+  uploading,
+  onFile,
+}: {
+  label: string;
+  value?: string;
+  uploading?: boolean;
+  onFile: (file: File) => void;
+}) {
+  return (
+    <label
+      className={cn(
+        "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-colors cursor-pointer",
+        value ? "border-emerald-500/50 bg-emerald-50/30" : "border-border bg-muted/20 hover:bg-muted/40",
+      )}
+    >
+      <input
+        type="file"
+        className="hidden"
+        accept="image/*"
+        disabled={uploading}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onFile(file);
+          e.target.value = "";
+        }}
+      />
+      {uploading ? (
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      ) : value ? (
+        <FileCheck className="h-6 w-6 text-emerald-600" />
+      ) : (
+        <Upload className="h-6 w-6 text-muted-foreground" />
+      )}
+      <span className={cn("text-[10px] font-medium", value ? "text-emerald-700" : "text-muted-foreground")}>
+        {uploading ? "Uploading..." : value ? "Photo selected" : "Tap to upload"}
+      </span>
+    </label>
   );
 }
