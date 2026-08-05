@@ -111,10 +111,12 @@ function StudentProfilePage() {
 
       {/* Personal details */}
       <section aria-label="Personal details">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
-          Personal Details
-        </p>
+        <div className="mb-2 flex items-center justify-between px-1">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Personal Details</p>
+          <EditMyProfileDialog student={s} onSaved={() => q.refetch()} />
+        </div>
         <Card className="divide-y">
+
           {items
             .filter((i) => i.value)
             .map((i) => (
