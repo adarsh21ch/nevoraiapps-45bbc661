@@ -85,20 +85,18 @@ export function GlobalBottomNav() {
       >
         {/* Floating Action Button (QR Scanner) */}
         <div 
-          className="absolute left-1/2 -translate-x-1/2 -top-7 pointer-events-auto"
-          style={{ width: 'calc(100% / 6)', marginLeft: '-2px' }}
+          className="absolute left-1/2 -translate-x-1/2 -top-7 pointer-events-auto flex justify-center"
+          style={{ width: 'calc(100% / 6)', transform: 'translateX(-50%)' }}
         >
-
-          <div className="flex justify-center w-full">
-            <button
-              onClick={handleFabClick}
-              className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background active:scale-90 transition-transform"
-              aria-label="Scan QR for attendance"
-            >
-              <QrCode className="size-6" />
-            </button>
-          </div>
+          <button
+            onClick={handleFabClick}
+            className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background active:scale-90 transition-transform"
+            aria-label="Scan QR for attendance"
+          >
+            <QrCode className="size-6" />
+          </button>
         </div>
+
 
 
 
