@@ -8,6 +8,7 @@ export type ReportCardData = {
   guardianName: string | null;
   dob: string | null;
   address: string | null;
+  currentAddress?: string | null;
   phone: string;
   guardianPhone: string | null;
   batchName: string | null;
@@ -15,6 +16,8 @@ export type ReportCardData = {
   fee: number | null;
   joinedAt: string;
   photoPath: string | null;
+  aadhaarFrontPath?: string | null;
+  aadhaarBackPath?: string | null;
 };
 
 async function loadImageDataUrl(
@@ -173,9 +176,52 @@ export async function generateReportCardPdf(tenant: Tenant, r: ReportCardData) {
   drawRow("Date of birth", fmtDate(r.dob));
   drawRow("Phone", r.phone);
   if (r.guardianPhone) drawRow("Guardian phone", r.guardianPhone);
-  drawRow("Address", r.address ?? "—");
+  drawRow("Permanent Address", r.address ?? "—");
+  const currentAddress = (r as any).currentAddress;
+  if (currentAddress) drawRow("Current Address", currentAddress);
   drawRow("Batch", r.batchName ?? "—");
   drawRow("Monthly fee", r.fee != null ? `Rs. ${Number(r.fee).toLocaleString("en-IN")}` : "—");
+
+  // ID Proofs in PDF
+  if (r.aadhaarFrontPath || r.aadhaarBackPath) {
+    y += 20;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(brandHex);
+    doc.text("ID PROOFS", margin, y);
+    y += 20;
+
+    const proofW = 220;
+    const proofH = 140;
+
+    const addProof = async (path: string, label: string, x: number) => {
+      try {
+        const url = path.startsWith("http") ? path : await signedUrl(path);
+        if (url) {
+          const img = await loadImageDataUrl(url);
+          if (img) {
+            doc.setFillColor(245, 245, 247);
+            doc.roundedRect(x, y, proofW, proofH, 8, 8, "F");
+            const fmt = img.dataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
+            doc.addImage(img.dataUrl, fmt, x, y, proofW, proofH);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(label, x, y + proofH + 12);
+          }
+        }
+      } catch {}
+    };
+
+    if (r.aadhaarFrontPath) {
+      await addProof(r.aadhaarFrontPath, "Aadhaar Front", margin);
+    }
+    if (r.aadhaarBackPath) {
+      const x = r.aadhaarFrontPath ? margin + proofW + 20 : margin;
+      await addProof(r.aadhaarBackPath, "Aadhaar Back", x);
+    }
+    y += proofH + 30;
+  }
 
   // Footer
   const footerY = h - 40;

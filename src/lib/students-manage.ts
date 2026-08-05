@@ -132,6 +132,10 @@ const EXPORT_COLUMNS = [
   ["blood_group", "Blood group"],
   ["city", "City"],
   ["state", "State"],
+  ["address", "Address"],
+  ["current_address", "Current Address"],
+  ["aadhaar_front_url", "Aadhaar Front URL"],
+  ["aadhaar_back_url", "Aadhaar Back URL"],
 ] as const;
 
 export function exportStudents(
