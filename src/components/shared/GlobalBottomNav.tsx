@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "@tanstack/react-router";
 import { useState } from "react";
-import { QrCode } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboardOptional } from "@/lib/dashboard-context";
 import { useNewRegistrationsCount } from "@/hooks/use-new-registrations";
