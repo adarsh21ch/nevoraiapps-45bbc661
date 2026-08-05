@@ -1251,6 +1251,10 @@ function ReviewSummary({
     dob: string;
     gender: string;
     batch_id: string;
+    address: string;
+    current_address: string;
+    aadhaar_front_url: string;
+    aadhaar_back_url: string;
   };
   batches: Batch[];
   fees: FeePlan[];
