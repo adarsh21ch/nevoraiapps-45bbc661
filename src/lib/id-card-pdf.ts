@@ -2,8 +2,9 @@
  * AcademyOS — printable player ID card.
  *
  * Renders a colourful, credit-card sized (ISO/IEC 7810 ID-1, 85.6 x 54 mm)
- * badge — front + back — on a single A4 page with cut guides, so an academy
- * can print, cut and laminate it.
+ * single-sided badge on an A4 page with cut guides, so an academy can print,
+ * cut and laminate it.
+
  *
  * The QR printed on the card encodes the player's private card token. An
  * owner / admin / coach scans it from the dashboard ("Scan ID card") and the
