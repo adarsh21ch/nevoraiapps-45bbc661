@@ -162,7 +162,10 @@ export async function fetchAttendanceByDate(
       .map((m) => m.check_out_at!)
       .sort()
       .slice(-1)[0] ?? null;
-    const totalMinutes = arr.reduce((s, m) => s + (m.duration_minutes ?? 0), 0);
+    const totalMinutes = arr.reduce((s, m) => {
+      const mins = m.check_out_meta?.exclude_from_hours ? 0 : (m.duration_minutes ?? 0);
+      return s + mins;
+    }, 0);
     const currentState: AttendanceState = hasOpen
       ? "in_academy"
       : hasAny
