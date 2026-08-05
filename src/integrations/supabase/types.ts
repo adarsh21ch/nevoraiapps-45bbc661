@@ -6974,6 +6974,7 @@ export type Database = {
       tenants: {
         Row: {
           address: string | null
+          admission_fee_enabled: boolean | null
           attendance_qr_enabled: boolean
           attendance_qr_min_gap_seconds: number
           attendance_qr_token: string | null
@@ -7025,6 +7026,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          admission_fee_enabled?: boolean | null
           attendance_qr_enabled?: boolean
           attendance_qr_min_gap_seconds?: number
           attendance_qr_token?: string | null
@@ -7076,6 +7078,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          admission_fee_enabled?: boolean | null
           attendance_qr_enabled?: boolean
           attendance_qr_min_gap_seconds?: number
           attendance_qr_token?: string | null
@@ -7662,6 +7665,14 @@ export type Database = {
       current_role: {
         Args: { _tenant_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      delete_all_archived_students_v2: {
+        Args: { _tenant_id: string }
+        Returns: number
+      }
+      delete_student_data_v2: {
+        Args: { _student_id: string }
+        Returns: undefined
       }
       geo_distance_m: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }

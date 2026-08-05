@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -54,6 +55,27 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
 
   const [editing, setEditing] = useState<SessionForm | null>(null);
   const [admissionOpen, setAdmissionOpen] = useState(false);
+  const [isUpdatingAdmission, setIsUpdatingAdmission] = useState(false);
+
+  const toggleAdmission = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      setIsUpdatingAdmission(true);
+      const { error } = await supabase
+        .from("tenants")
+        .update({ admission_fee_enabled: enabled })
+        .eq("id", tenant.id);
+      if (error) throw error;
+    },
+    onSuccess: (_, enabled) => {
+      toast.success(`Admission fee ${enabled ? "enabled" : "disabled"}`);
+      // Update tenant context or refetch
+      window.location.reload(); // Simple way to refresh tenant state in context
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => setIsUpdatingAdmission(false),
+  });
+
+  const isAdmissionEnabled = (tenant as any).admission_fee_enabled !== false;
   const [coachBatch, setCoachBatch] = useState<{ id: string; name: string } | null>(null);
 
   const del = useMutation({
@@ -104,16 +126,37 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
             One-time admission fee
           </div>
           <p className="text-xs text-muted-foreground">
-            Charged once, on a new player's first invoice — on top of their session fee.
+            {isAdmissionEnabled 
+              ? "Charged once, on a new player's first invoice — on top of their session fee."
+              : "Currently disabled. Existing students and new approvals will not be charged admission fees."}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="text-lg font-bold">
-            {admission ? inr(Number(admission.amount ?? 0)) : "Not set"}
-          </span>
-          <Button size="icon" variant="ghost" aria-label="Edit admission fee" onClick={() => setAdmissionOpen(true)}>
-            <Edit className="size-4" />
-          </Button>
+        <div className="flex shrink-0 items-center gap-3">
+          <div className="flex flex-col items-end gap-1">
+            <Switch 
+              checked={isAdmissionEnabled} 
+              onCheckedChange={(v) => toggleAdmission.mutate(v)}
+              disabled={isUpdatingAdmission}
+            />
+            <span className="text-[10px] font-medium text-muted-foreground">
+              {isAdmissionEnabled ? "Enabled" : "Disabled"}
+            </span>
+          </div>
+          <div className="h-8 w-px bg-border mx-1" />
+          <div className="flex items-center gap-2">
+            <span className={cn("text-lg font-bold", !isAdmissionEnabled && "text-muted-foreground line-through")}>
+              {admission ? inr(Number(admission.amount ?? 0)) : "Not set"}
+            </span>
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              aria-label="Edit admission fee" 
+              onClick={() => setAdmissionOpen(true)}
+              disabled={!isAdmissionEnabled}
+            >
+              <Edit className="size-4" />
+            </Button>
+          </div>
         </div>
       </Card>
 

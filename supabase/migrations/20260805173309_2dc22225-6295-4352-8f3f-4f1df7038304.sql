@@ -1,0 +1,2 @@
+ALTER TABLE public.tenants ADD COLUMN IF NOT EXISTS admission_fee_enabled BOOLEAN DEFAULT true;
+COMMENT ON COLUMN public.tenants.admission_fee_enabled IS 'Toggle to enable or disable one-time admission fee for new registrations';

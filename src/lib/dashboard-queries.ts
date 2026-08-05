@@ -109,6 +109,7 @@ export type Kpis = {
   collectionThisMonth: number;
   pendingFeeCount: number;
   pendingFeeAmount: number;
+  admissionFeeEnabled: boolean;
 };
 
 export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis> {
@@ -123,7 +124,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
   // For pending checks, we only care about periods that could be active now
   const periods = cycle === "joining_date" ? candidatePeriods(now) : [periodKey(now)];
 
-  const [activeRes, regsRes, paysRes, studentsRes, paidRowsRes] = await Promise.all([
+  const [activeRes, regsRes, paysRes, studentsRes, paidRowsRes, tenantRes] = await Promise.all([
     db
       .from("students")
       .select("id", { count: "exact", head: true })
@@ -136,13 +137,14 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .gte("created_at", weekAgo),
     db
       .from("payments")
-      .select("amount, student_id")
+      .select("amount, student_id, students!inner(status)")
       .eq("tenant_id", tenantId)
       .eq("type", "monthly")
+      .eq("students.status", "active")
       .gte("created_at", startOfMonth),
     db
       .from("students")
-      .select("id, joined_at, fee_plans!inner(type, amount)")
+      .select("id, joined_at, custom_fee, fee_plans!inner(type, amount)")
       .eq("tenant_id", tenantId)
       .eq("status", "active")
       .eq("fee_plans.type", "monthly"),
@@ -152,6 +154,11 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .eq("tenant_id", tenantId)
       .eq("type", "monthly")
       .in("period", periods),
+    db
+      .from("tenants")
+      .select("admission_fee_enabled")
+      .eq("id", tenantId)
+      .single(),
   ]);
 
   const paidByStudent = new Map<string, Set<string>>();
@@ -162,8 +169,8 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     paidByStudent.set(p.student_id, set);
   }
 
-  // Count all payments for the month, including those from students who might have archived (Left)
-  // after paying, but before the month ended.
+  // Sum valid monthly payments for the current month.
+  // Note: We use 'monthly' type for the collection KPI to exclude one-time admission fees from this specific metric.
   const collection = (paysRes.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
 
   let pendingCount = 0;
@@ -173,6 +180,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
   const activeStudents = (studentsRes.data ?? []) as Array<{
     id: string;
     joined_at: string | null;
+    custom_fee: number | null;
     fee_plans: { amount: number | null; type: string | null } | Array<{ amount: number | null; type: string | null }> | null;
   }>;
 
@@ -190,7 +198,8 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     if (due.state === "pending") {
       pendingCount++;
       const plan = Array.isArray(s.fee_plans) ? s.fee_plans[0] : s.fee_plans;
-      pendingAmount += Number(plan?.amount ?? 0);
+      const amount = s.custom_fee != null ? Number(s.custom_fee) : Number(plan?.amount ?? 0);
+      pendingAmount += amount;
     }
   }
 
@@ -200,6 +209,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     collectionThisMonth: collection,
     pendingFeeCount: pendingCount,
     pendingFeeAmount: pendingAmount,
+    admissionFeeEnabled: (tenantRes.data as any)?.admission_fee_enabled !== false,
   };
 }
 

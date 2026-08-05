@@ -270,7 +270,7 @@ function DashboardHome() {
               }
               hint={
                 pendingFees > 0
-                  ? `${pendingFees} student${pendingFees === 1 ? "" : "s"}`
+                  ? `${pendingFees} student${pendingFees === 1 ? "" : "s"} · Genuine`
                   : "All caught up"
               }
               icon={<IndianRupee className="size-4" />}
