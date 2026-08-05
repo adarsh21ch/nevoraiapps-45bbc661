@@ -48,15 +48,14 @@ export function BottomNav({
       style={{ paddingBottom: safeArea.bottom }}
     >
       <ul
-        className="grid relative"
-        style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+        className="grid"
+        style={{ gridTemplateColumns: `repeat(${itemsWithGap.length}, minmax(0, 1fr))` }}
       >
-        {/* Placeholder for FAB if it exists (middle item) */}
-        {items.length % 2 === 0 && (
-          <div className="absolute left-1/2 -translate-x-1/2 inset-y-0 w-14" />
-        )}
+        {itemsWithGap.map((item) => {
+          if (item.to === "fab-gap") {
+            return <li key="fab-gap" className="w-full" aria-hidden="true" />;
+          }
 
-        {items.map((item) => {
           const active =
             item.to === "/dashboard"
               ? location.pathname === "/dashboard"
