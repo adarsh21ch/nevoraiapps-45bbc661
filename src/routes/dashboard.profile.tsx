@@ -231,11 +231,6 @@ function ProfilePage() {
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm">
-            <a href={tenantSiteUrl(tenant)} target="_blank" rel="noreferrer">
-              View public site <ExternalLink className="size-3 ml-1" />
-            </a>
-          </Button>
         </div>
 
       </Card>

@@ -310,6 +310,25 @@ function StudentsPage() {
           </DropdownMenu>
           <ShareRegistrationLink />
           <BulkImportStudents />
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="rounded-full h-9"
+            onClick={async () => {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (!user) return;
+              const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+              if (profile?.role === "owner" && confirm("View public /fees page as a visitor?")) {
+                window.open(tenantSiteUrl(tenant) + "/fees", "_blank");
+              }
+            }}
+          >
+            <Link to="/fees" target="_blank" className="flex items-center">
+              <ExternalLink className="size-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">View Fees</span>
+            </Link>
+          </Button>
 
           <Button
             onClick={() => setAddOpen(true)}
