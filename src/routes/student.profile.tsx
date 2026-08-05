@@ -21,6 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchMyPortalContext, fetchStudentProfile, studentKeys } from "@/lib/student-app";
 import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
 import { AccountCard } from "@/components/settings/AccountCard";
+import { EditMyProfileDialog } from "@/components/portal/EditMyProfileDialog";
+
 
 export const Route = createFileRoute("/student/profile")({
   component: StudentProfilePage,
