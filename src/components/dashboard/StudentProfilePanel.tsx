@@ -248,7 +248,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           </div>
           <div className="text-xs text-muted-foreground">
             {s.custom_fee != null
-              ? `Plan is ₹${baseAmount.toLocaleString("en-IN")}`
+              ? `Manual edit active (System price: ₹${baseAmount.toLocaleString("en-IN")})`
               : plan?.name || "No plan"}
           </div>
         </div>
@@ -792,7 +792,7 @@ function CoreEditor({
       {isGenderPricingEnabled && f.gender === "female" && isManualDiff && (
         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex gap-2">
           <p>
-            <strong>Manual edit active:</strong> This student is billed ₹{Number(f.custom_fee).toLocaleString("en-IN")} instead of the girl's discount price. 
+            <strong>Price mismatch:</strong> This student has a manual price of ₹{Number(f.custom_fee).toLocaleString("en-IN")}. The system price is ₹{systemPrice.toLocaleString("en-IN")}. 
             <button 
               type="button" 
               className="ml-1 underline font-bold"
