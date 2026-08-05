@@ -149,6 +149,50 @@ export function TimelinePanel({ child }: { child: StudentContext | null }) {
           ))}
         </div>
       )}
+
+      {/* Quick Scan Action for Students in Timeline */}
+      <div className="sticky bottom-4 left-0 right-0 z-10 px-1 pt-4 pb-2">
+        <button
+          type="button"
+          onClick={() => setScanOpen(true)}
+          className={cn(
+            "w-full rounded-2xl px-5 py-4 text-left transition-all active:scale-[0.99] shadow-xl border border-white/10",
+            isCheckedIn
+              ? "bg-emerald-600 text-white shadow-emerald-500/30"
+              : "bg-primary text-primary-foreground shadow-primary/30"
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <span className={cn(
+              "size-10 rounded-xl grid place-items-center shrink-0",
+              isCheckedIn ? "bg-white/20" : "bg-primary-foreground/15"
+            )}>
+              {isCheckedIn ? <LogIn className="size-5" /> : <ScanLine className="size-5" />}
+            </span>
+            <div className="flex-1 min-w-0">
+              <span className="block text-sm font-semibold leading-tight">
+                {isCheckedIn ? "You are checked in" : "Sign In / Out"}
+              </span>
+              <span className="block text-[10px] opacity-80 mt-1 uppercase tracking-wider font-bold">
+                {isCheckedIn ? "Tap to scan & check out" : "Tap to scan QR"}
+              </span>
+            </div>
+            <ScanLine className="size-4 opacity-50 shrink-0" />
+          </div>
+        </button>
+      </div>
+
+      <ScanAttendanceDialog
+        open={scanOpen}
+        onOpenChange={setScanOpen}
+        mode={isCheckedIn ? "out" : "in"}
+        onRecorded={() => {
+          if (child) {
+            void queryClient.invalidateQueries({ queryKey: studentKeys.home(child.student_id) });
+            void queryClient.invalidateQueries({ queryKey: parentKeys.timeline(child.student_id) });
+          }
+        }}
+      />
     </div>
   );
 }
