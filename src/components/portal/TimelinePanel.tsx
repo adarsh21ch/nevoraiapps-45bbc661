@@ -12,12 +12,17 @@ import {
   MessageSquareQuote,
   IndianRupee,
   Search,
+  ScanLine,
+  LogIn,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchChildTimeline, parentKeys, type TimelineEvent } from "@/lib/parent-app";
 import type { StudentContext } from "@/lib/student-app";
+import { fetchStudentHome, studentKeys } from "@/lib/student-app";
+import { ScanAttendanceDialog } from "@/components/attendance/ScanAttendanceDialog";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 export function TimelinePanel({ child }: { child: StudentContext | null }) {
