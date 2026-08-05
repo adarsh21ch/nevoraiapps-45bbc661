@@ -231,16 +231,14 @@ function ActivatePage() {
       {/* Sticky branded header */}
       <header className="sticky top-0 z-20 border-b border-border/60 bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-xl items-center gap-3 px-4 py-3">
-          {t.logo_url ? (
-            <img src={t.logo_url} alt={`${t.name} logo`} className="size-9 rounded-lg object-cover" />
-          ) : (
-            <div
-              className="grid size-9 place-items-center rounded-lg text-sm font-bold text-white"
-              style={{ backgroundColor: brand ?? "hsl(var(--primary))" }}
-            >
-              {t.name.slice(0, 1)}
-            </div>
-          )}
+          <AcademyLogo
+            path={t.logo_url}
+            name={t.name}
+            initials={t.name.slice(0, 1)}
+            accent={brand ?? "hsl(var(--primary))"}
+            className="size-9"
+          />
+
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">{t.name}</div>
             <div className="text-[11px] text-muted-foreground">Student account activation</div>
