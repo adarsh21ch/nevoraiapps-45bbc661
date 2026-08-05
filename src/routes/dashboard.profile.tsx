@@ -77,8 +77,9 @@ function ProfilePage() {
       },
       {
         to: "/dashboard/settings",
-        label: "And also academy owner can able to download the student details, right? Including ID proof and all",
-        hint: "Interface preferences",
+        label: "Interface & Language",
+        hint: "See, the academy owner, uh, the owner of the academy wanted that, uh, the student while doing registration, no, while doing submitting, create their account registration, one more thing they can submit, and that is, uh, the documents photo, uh, whether it's Aadhaar card or PAN card, right? Let's suppose Aadhaar card is by default, so simply we can ask for Aadhaar card, and they upload their front and back end photo of the Aadhaar card, right? Front photo and the back photo. So what we can use for our storage, uh, Cloudflare R2 or Supabase. It is just the photographs, just photo of the Aadhaar card. So it is necessary, and we have to make it, uh, live today. So while user submitting, so at least they can do, right? So they can click the Aadhaar card photos, front end, upload front photo and back photo, and then we continue. So we have to make it compulsory for that too, right? In personal details, we can use this, uh, upload your Aadhaar card details, right? And also one more thing I have to add on, that is your permanent address and current address, right? So, uh, user write permanent address. For current address, uh, we can give a checkbox option that your permanent address is your current address. So when he click check on it, automatically that address filled. So, but if permanent address different and, uh, current address is different, so current address they can fill, right?",
+
         icon: Palette,
       },
     ],
