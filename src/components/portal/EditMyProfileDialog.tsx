@@ -8,7 +8,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pencil, Loader2, Upload, FileCheck, MapPin } from "lucide-react";
+import { Pencil, Loader2, Upload, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { uploadTenantFile, signedUrl } from "@/lib/storage";
+import { uploadTenantFile } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 
 type S = Record<string, string | null | undefined>;
@@ -46,6 +46,8 @@ const FIELDS: Array<{ key: string; label: string; type?: string; long?: boolean 
   { key: "batting_style", label: "Batting style" },
   { key: "bowling_style", label: "Bowling style" },
   { key: "medical_notes", label: "Medical notes", long: true },
+  { key: "aadhaar_front_url", label: "Aadhaar Front (ID Proof)", type: "file" },
+  { key: "aadhaar_back_url", label: "Aadhaar Back (ID Proof)", type: "file" },
 ];
 
 export function EditMyProfileDialog({ student, onSaved }: { student: S; onSaved: () => void }) {
@@ -62,26 +64,6 @@ export function EditMyProfileDialog({ student, onSaved }: { student: S; onSaved:
     setOpen(v);
   };
 
-  const save = useMutation({
-    mutationFn: async () => {
-      const patch: Record<string, string> = {};
-      for (const f of FIELDS) {
-        const v = (form[f.key] ?? "").trim();
-        if (v && v !== ((student[f.key] as string | null) ?? "")) patch[f.key] = v;
-      }
-      if (Object.keys(patch).length === 0) return "unchanged";
-      const { error } = await supabase.rpc("update_my_student_profile", { _patch: patch as never });
-      if (error) throw error;
-      return "saved";
-    },
-    onSuccess: (r) => {
-      toast.success(r === "saved" ? "Profile updated" : "Nothing to update");
-      onSaved();
-      setOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   const handleUpload = async (key: string, file: File) => {
     if (!file) return;
     setUploading((prev) => ({ ...prev, [key]: true }));
@@ -96,6 +78,26 @@ export function EditMyProfileDialog({ student, onSaved }: { student: S; onSaved:
       setUploading((prev) => ({ ...prev, [key]: false }));
     }
   };
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const patch: Record<string, string> = {};
+      for (const f of FIELDS) {
+        const v = (form[f.key] ?? "").trim();
+        if (v !== ((student[f.key] as string | null) ?? "")) patch[f.key] = v;
+      }
+      if (Object.keys(patch).length === 0) return "unchanged";
+      const { error } = await supabase.rpc("update_my_student_profile", { _patch: patch as never });
+      if (error) throw error;
+      return "saved";
+    },
+    onSuccess: (r) => {
+      toast.success(r === "saved" ? "Profile updated" : "Nothing to update");
+      onSaved();
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <Dialog open={open} onOpenChange={start}>
