@@ -34,11 +34,12 @@ export function BottomNav({
   );
 
   const itemsWithGap = [...items];
-  // We want the gap to be visually centered. With 5 items, it goes at index 2 (between 2 and 3).
-  // items: [0, 1, 2, 3, 4] -> itemsWithGap: [0, 1, 2, GAP, 3, 4]
-  // This pushes items [3, 4] to the right.
-  const gapIndex = 2; 
+  // We want the gap to be exactly centered. For 5 items, middle index is 2 (3rd slot).
+  // 5 items + 1 gap = 6 columns. left: [0, 1, 2], right: [3, 4, 5].
+  // Actually 6 columns grid. [Item, Item, Item, Gap, Item, Item]
+  const gapIndex = 3;
   itemsWithGap.splice(gapIndex, 0, { to: "fab-gap", label: "", icon: () => null });
+
 
 
   return (

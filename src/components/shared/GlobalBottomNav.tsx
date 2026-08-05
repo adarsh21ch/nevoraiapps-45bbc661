@@ -84,7 +84,7 @@ export function GlobalBottomNav() {
         aria-hidden={hidden}
       >
         {/* Floating Action Button (QR Scanner) */}
-        <div className="absolute left-[41.6%] -translate-x-1/2 -top-6">
+        <div className="absolute left-[50%] -translate-x-1/2 -top-6">
           <button
             onClick={handleFabClick}
             className="flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-background active:scale-90 transition-transform"
