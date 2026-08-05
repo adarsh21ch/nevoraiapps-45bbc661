@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Info, Loader2, MessageCircle, Eye, EyeOff, Lock, X } from "lucide-react";
+import { CheckCircle2, Download, Info, Loader2, MessageCircle, Eye, EyeOff, Lock, X, Upload, FileCheck, MapPin } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { useTenant } from "@/lib/tenant-context";
@@ -17,7 +17,7 @@ import {
 import type { Batch, FeePlan } from "@/lib/tenant";
 import { supabase } from "@/integrations/supabase/client";
 import { checkRateLimit } from "@/lib/bulk-ops";
-import { signedUrl } from "@/lib/storage";
+import { signedUrl, uploadTenantFile } from "@/lib/storage";
 import { toE164 } from "@/lib/phone";
 import { attachPhoneToApplicant } from "@/lib/registration/attach-phone.functions";
 import { cn } from "@/lib/utils";
@@ -191,6 +191,9 @@ function RegisterContent() {
     batch_id: "",
     dob: "",
     address: "",
+    current_address: "",
+    aadhaar_front_url: "",
+    aadhaar_back_url: "",
     gender: "",
     height_cm: "",
     weight_kg: "",
@@ -254,6 +257,9 @@ function RegisterContent() {
       if (!form.gender) e.gender = "Required.";
       if (!form.phone.trim()) e.phone = "Required.";
       if (!form.address.trim()) e.address = "Required.";
+      if (!form.current_address.trim()) e.current_address = "Required.";
+      if (!form.aadhaar_front_url) e.aadhaar_front = "Aadhaar Front photo is required.";
+      if (!form.aadhaar_back_url) e.aadhaar_back = "Aadhaar Back photo is required.";
       if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     }
     setErrors(e);
@@ -324,6 +330,9 @@ function RegisterContent() {
       !form.gender ||
       !form.phone.trim() ||
       !form.address.trim() ||
+      !form.current_address.trim() ||
+      !form.aadhaar_front_url ||
+      !form.aadhaar_back_url ||
       (batches.length > 0 && !form.batch_id)
     ) {
       toast.error("Please fill all required fields.");
@@ -436,6 +445,9 @@ function RegisterContent() {
     profile.terms_accepted = true;
     profile.terms_accepted_at = now;
     profile.sport = "cricket";
+    profile.aadhaar_front_url = form.aadhaar_front_url;
+    profile.aadhaar_back_url = form.aadhaar_back_url;
+    profile.current_address = form.current_address.trim();
     const documents = Object.keys(profile).length > 0 ? { profile } : null;
 
     if (!error && data && applicantUserId) {
@@ -726,11 +738,60 @@ function RegisterContent() {
                 ) : null}
                 <div className="sm:col-span-2">
                   <TextArea
-                    label="Full address *"
+                    label="Permanent address *"
                     value={form.address}
                     onChange={(v) => setForm({ ...form, address: v })}
                     error={errors.address}
                   />
+                </div>
+                <div className="sm:col-span-2">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Current address *
+                    </span>
+                    <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 rounded border-border"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setForm({ ...form, current_address: form.address });
+                          }
+                        }}
+                      />
+                      Same as permanent
+                    </label>
+                  </div>
+                  <TextArea
+                    value={form.current_address}
+                    onChange={(v) => setForm({ ...form, current_address: v })}
+                    error={errors.current_address}
+                    hideLabel
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                    Aadhaar Card Verification *
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <DocumentUpload
+                      label="Front photo"
+                      value={form.aadhaar_front_url}
+                      onUpload={(url) => setForm({ ...form, aadhaar_front_url: url })}
+                      tenantId={tenant.id}
+                      folder="aadhaar"
+                      error={errors.aadhaar_front}
+                    />
+                    <DocumentUpload
+                      label="Back photo"
+                      value={form.aadhaar_back_url}
+                      onUpload={(url) => setForm({ ...form, aadhaar_back_url: url })}
+                      tenantId={tenant.id}
+                      folder="aadhaar"
+                      error={errors.aadhaar_back}
+                    />
+                  </div>
                 </div>
               </div>
               {batches.length > 0 ? (
@@ -1190,6 +1251,10 @@ function ReviewSummary({
     dob: string;
     gender: string;
     batch_id: string;
+    address: string;
+    current_address: string;
+    aadhaar_front_url: string;
+    aadhaar_back_url: string;
   };
   batches: Batch[];
   fees: FeePlan[];
@@ -1203,6 +1268,10 @@ function ReviewSummary({
     ["Date of birth", form.dob || "—"],
     ["Gender", form.gender || "—"],
     ["Contact number", form.phone || "—"],
+    ["Permanent address", form.address || "—"],
+    ["Current address", form.current_address || "—"],
+    ["Aadhaar front", form.aadhaar_front_url ? "Uploaded ✓" : "Missing"],
+    ["Aadhaar back", form.aadhaar_back_url ? "Uploaded ✓" : "Missing"],
     ["Preferred batch", batch ? (batch.timing ? `${batch.name} — ${batch.timing}` : batch.name) : "No preference"],
     ["Monthly fee", batch ? batchFeeText(batch, fees) : "—"],
   ];
@@ -1317,17 +1386,21 @@ function TextArea({
   value,
   onChange,
   error,
+  hideLabel = false,
 }: {
-  label: string;
+  label?: string;
   value: string;
   onChange: (v: string) => void;
   error?: string;
+  hideLabel?: boolean;
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-        {label}
-      </span>
+      {!hideLabel && label ? (
+        <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </span>
+      ) : null}
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -1380,4 +1453,64 @@ function SelectField({
     </label>
   );
 }
+
+function DocumentUpload({
+  label,
+  value,
+  onUpload,
+  tenantId,
+  folder,
+  error,
+}: {
+  label: string;
+  value: string;
+  onUpload: (url: string) => void;
+  tenantId: string;
+  folder: string;
+  error?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const path = await uploadTenantFile(tenantId, folder, file);
+      onUpload(path);
+      toast.success(`${label} uploaded`);
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="text-[11px] font-medium text-muted-foreground uppercase">{label}</div>
+      <label
+        className={cn(
+          "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-colors cursor-pointer",
+          value ? "border-emerald-500/50 bg-emerald-50/30" : "border-border bg-muted/20 hover:bg-muted/40",
+          error && !value && "border-red-500 bg-red-50/30",
+        )}
+      >
+        <input type="file" className="hidden" accept="image/*" onChange={handleFile} disabled={uploading} />
+        {uploading ? (
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        ) : value ? (
+          <FileCheck className="h-6 w-6 text-emerald-600" />
+        ) : (
+          <Upload className="h-6 w-6 text-muted-foreground" />
+        )}
+        <span className={cn("text-[10px] font-medium", value ? "text-emerald-700" : "text-muted-foreground")}>
+          {uploading ? "Uploading..." : value ? "Photo selected" : "Tap to upload"}
+        </span>
+      </label>
+      {error && !value ? <span className="text-[10px] text-red-600 font-medium">{error}</span> : null}
+    </div>
+  );
+}
+
 
