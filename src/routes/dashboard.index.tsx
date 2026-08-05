@@ -319,12 +319,7 @@ function DashboardHome() {
         </div>
       </section>
 
-      {/* ─── Section 2 · Cricket today (moved up — daily priority) ────── */}
-      {canScoreMatch && (
-        <CricketToday tenantId={tenant.id} playerCount={(studentsQ.data ?? []).length} />
-      )}
-
-      {/* ─── Section 3 · Quick actions ─────────── */}
+      {/* ─── Section 2 · Quick actions ─────────── */}
       <section aria-label="Quick actions">
         <SectionLabel>Quick actions</SectionLabel>
         <QuickActionsGrid
@@ -333,6 +328,11 @@ function DashboardHome() {
           tenant={tenant}
         />
       </section>
+
+      {/* ─── Section 3 · Cricket today (moved below Quick actions) ────── */}
+      {canScoreMatch && (
+        <CricketToday tenantId={tenant.id} playerCount={(studentsQ.data ?? []).length} />
+      )}
 
       {/* ─── Section 4 · Today's activity (compact, scrollable) ───────── */}
       <section aria-label="Today's activity">

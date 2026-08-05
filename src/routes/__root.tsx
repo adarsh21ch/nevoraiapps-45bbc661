@@ -106,7 +106,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Academy OS — the white-label operating system for sports academies, gyms and coaching centres.",
       },
-      { name: "author", content: "Lovable" },
+      { name: "author", content: "AcademyOS" },
       // PWA / standalone app hints so installed app launches without browser chrome.
       { name: "theme-color", content: "#0a0a0a" },
       { name: "mobile-web-app-capable", content: "yes" },
@@ -123,7 +123,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@AcademyOS" },
       { name: "twitter:title", content: "Academy OS" },
       {
         name: "twitter:description",
@@ -180,9 +180,9 @@ function AppSplash() {
       <div className="flex flex-col items-center gap-6">
         <div
           className="grid h-20 w-20 place-items-center rounded-3xl text-4xl shadow-2xl animate-pulse"
-          style={{ backgroundColor: "var(--brand, #E8873C)" }}
+          style={{ backgroundColor: "transparent" }}
         >
-          <img src="/api/public/tenant-icon" alt="" className="size-14 object-contain" onError={(e) => {
+          <img src="/api/public/tenant-icon" alt="" className="size-20 object-contain" onError={(e) => {
             e.currentTarget.style.display = 'none';
             if (e.currentTarget.parentElement) e.currentTarget.parentElement.innerText = '🏏';
           }} />
