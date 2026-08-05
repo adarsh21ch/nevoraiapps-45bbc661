@@ -159,6 +159,7 @@ function RegisterContent() {
   const [done, setDone] = useState(false);
   const [accepted, setAccepted] = useState<Record<string, boolean>>({});
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showConsentErrors, setShowConsentErrors] = useState(false);
   const [batchInfoOpen, setBatchInfoOpen] = useState(false);
   const [pdfHref, setPdfHref] = useState<string>("");
 
@@ -842,11 +843,28 @@ function RegisterContent() {
               ) : null}
 
               {requiredPolicies.length > 0 ? (
-                <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <div
+                  className={cn(
+                    "rounded-2xl border p-4 transition-colors",
+                    showConsentErrors && !allRequiredAccepted
+                      ? "border-red-500 bg-red-50"
+                      : "border-border/60 bg-muted/20",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "text-xs font-semibold uppercase tracking-wider",
+                      showConsentErrors && !allRequiredAccepted ? "text-red-700" : "text-muted-foreground",
+                    )}
+                  >
                     Academy policies
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p
+                    className={cn(
+                      "mt-1 text-xs",
+                      showConsentErrors && !allRequiredAccepted ? "text-red-600" : "text-muted-foreground",
+                    )}
+                  >
                     Please read and accept the following before submitting.
                   </p>
                   <ul className="mt-3 space-y-2">
@@ -855,13 +873,22 @@ function RegisterContent() {
                         <input
                           id={`acc-${p.id}`}
                           type="checkbox"
-                          className="mt-1 h-4 w-4 rounded border-border"
+                          className={cn(
+                            "mt-1 h-4 w-4 rounded border-border",
+                            showConsentErrors && !accepted[p.id] && "ring-2 ring-red-500 ring-offset-2",
+                          )}
                           checked={!!accepted[p.id]}
                           onChange={(e) =>
                             setAccepted((prev) => ({ ...prev, [p.id]: e.target.checked }))
                           }
                         />
-                        <label htmlFor={`acc-${p.id}`} className="text-sm text-foreground">
+                        <label
+                          htmlFor={`acc-${p.id}`}
+                          className={cn(
+                            "text-sm",
+                            showConsentErrors && !accepted[p.id] ? "font-medium text-red-700" : "text-foreground",
+                          )}
+                        >
                           I accept the{" "}
                           <Link
                             to="/policies/$kind"
@@ -880,15 +907,30 @@ function RegisterContent() {
                 </div>
               ) : null}
 
-              <div className="rounded-2xl border border-border/60 bg-muted/20 p-4">
+              <div
+                className={cn(
+                  "rounded-2xl border p-4 transition-colors",
+                  showConsentErrors && !termsAccepted
+                    ? "border-red-500 bg-red-50"
+                    : "border-border/60 bg-muted/20",
+                )}
+              >
                 <label className="flex items-start gap-2">
                   <input
                     type="checkbox"
-                    className="mt-1 h-4 w-4 rounded border-border"
+                    className={cn(
+                      "mt-1 h-4 w-4 rounded border-border",
+                      showConsentErrors && !termsAccepted && "ring-2 ring-red-500 ring-offset-2",
+                    )}
                     checked={termsAccepted}
                     onChange={(e) => setTermsAccepted(e.target.checked)}
                   />
-                  <span className="text-sm text-foreground">
+                  <span
+                    className={cn(
+                      "text-sm",
+                      showConsentErrors && !termsAccepted ? "font-medium text-red-700" : "text-foreground",
+                    )}
+                  >
                     I / We accept the{" "}
                     <Link
                       to="/policies/$kind"
@@ -930,11 +972,13 @@ function RegisterContent() {
                   ) : null}
                   <button
                     type="submit"
-                    disabled={
-                      saving ||
-                      !termsAccepted ||
-                      (requiredPolicies.length > 0 && !allRequiredAccepted)
-                    }
+                    disabled={saving}
+                    onClick={() => {
+                      if (!termsAccepted || (requiredPolicies.length > 0 && !allRequiredAccepted)) {
+                        setShowConsentErrors(true);
+                        toast.error("Please accept the required policies and terms to continue.");
+                      }
+                    }}
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-lg disabled:opacity-60"
                     style={{ backgroundColor: "var(--brand)" }}
                   >
