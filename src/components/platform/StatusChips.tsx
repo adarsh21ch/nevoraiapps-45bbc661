@@ -5,6 +5,7 @@ export function StatusChip({ status }: { status: string }) {
     active: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
     suspended: "bg-rose-500/15 text-rose-300 border-rose-500/30",
     trial: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+    archived: "bg-neutral-500/15 text-neutral-400 border-neutral-500/30",
   };
   return (
     <Badge
