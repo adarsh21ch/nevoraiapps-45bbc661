@@ -177,17 +177,19 @@ async function drawCardPair(doc: jsPDF, tenant: Tenant, r: IdCardData) {
   const fx = marginX;
   const fy = frontY;
 
-  gradientRect(doc, fx, fy, CW, CH, brand, `#${dark.map((n) => n.toString(16).padStart(2, "0")).join("")}`);
-  // Rounded mask corners (white A4 background)
-  maskCorners(doc, fx, fy);
+  gradientRect(
+    doc,
+    fx,
+    fy,
+    CW,
+    CH,
+    brand,
+    `#${dark.map((n) => n.toString(16).padStart(2, "0")).join("")}`,
+  );
 
-  // Decorative diagonal accent bar
+  // Accent rule under the header
   doc.setFillColor(...hexToRgb(accent));
-  doc.triangle(fx + CW - 30, fy + CH, fx + CW, fy + CH - 22, fx + CW, fy + CH, "F");
-  doc.setFillColor(255, 255, 255);
-  doc.setGState(new (doc as unknown as { GState: new (o: object) => unknown }).GState({ opacity: 0.08 }));
-  doc.circle(fx + 12, fy + 8, 16, "F");
-  doc.setGState(new (doc as unknown as { GState: new (o: object) => unknown }).GState({ opacity: 1 }));
+  doc.roundedRect(fx + 6, fy + 14.2, 22, 1.1, 0.55, 0.55, "F");
 
   // Header — logo + academy name
   let hx = fx + 6;
