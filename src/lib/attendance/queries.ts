@@ -262,7 +262,11 @@ export function groupVisitsByDay(visits: AttendanceVisit[]): DailyVisitSummary[]
     const first = arr[0]?.check_in_at ?? null;
     const completed = arr.filter((v) => v.check_out_at);
     const last = completed.length ? completed[completed.length - 1].check_out_at : null;
-    const total = arr.reduce((s, v) => s + (v.duration_minutes ?? 0), 0);
+    const total = arr.reduce((s, v) => {
+      // Note: AttendanceVisit needs to have check_out_meta or equivalent
+      // For now we trust duration_minutes if it's already calculated by the view which we updated
+      return s + (v.duration_minutes ?? 0);
+    }, 0);
     out.push({
       session_date: date,
       first_check_in_at: first,
