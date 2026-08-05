@@ -17,7 +17,7 @@ import {
   UserPlus,
   Zap,
   Link2 as LinkIcon,
-
+  Sparkles,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { useCurrentRole } from "@/hooks/use-current-role";
