@@ -128,7 +128,7 @@ export async function fetchAttendanceByDate(
     source: AttendanceSource | null;
     marked_by: string | null;
     visit_type: string | null;
-    check_out_meta: { auto?: boolean } | null;
+    check_out_meta: { auto?: boolean; exclude_from_hours?: boolean } | null;
     created_at: string;
     attendance_sessions: { batch_id: string | null; session_date: string } | null;
   };
