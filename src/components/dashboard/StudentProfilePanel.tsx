@@ -48,6 +48,7 @@ import {
   UserRoundX,
   UserRoundCheck,
   Eye,
+  Loader2,
 } from "lucide-react";
 
 type Props = {
@@ -476,7 +477,7 @@ function IdProofRow({ label, path }: { label: string; path?: string | null }) {
     if (!path) return;
     setLoading(true);
     try {
-      const { signedUrl: url } = await import("@/lib/storage").then((m) => m.signedUrl(path));
+      const url = await import("@/lib/storage").then((m) => m.signedUrl(path));
       if (url) window.open(url, "_blank");
       else toast.error("Could not generate view link");
     } catch (err: any) {
