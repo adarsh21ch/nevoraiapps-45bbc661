@@ -37,17 +37,47 @@ function responseHeaders(contentType: string) {
 async function getTenant(request: Request): Promise<TenantIconRow | null> {
   const url = new URL(request.url);
   const hostname = (request.headers.get("host") ?? url.hostname).split(":")[0].toLowerCase();
-  const tenantParam = url.searchParams.get("tenant")?.trim().toLowerCase() ?? "";
-  if (tenantParam && !isSafeSlug(tenantParam)) return null;
-
+  
+  // 1. Try resolving by custom domain first (highest priority)
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const query = supabaseAdmin.from("tenants_public_directory" as never).select(PUBLIC_COLS);
-  const result = tenantParam
-    ? await (query as any).eq("slug", tenantParam).eq("status", "active").maybeSingle()
-    : await (query as any).eq("custom_domain", hostname).eq("status", "active").maybeSingle();
+  const { data: byDomain } = await (supabaseAdmin.from("tenants_public_directory" as never)
+    .select(PUBLIC_COLS)
+    .eq("custom_domain", hostname)
+    .eq("status", "active")
+    .maybeSingle() as any);
+  
+  if (byDomain) return byDomain as TenantIconRow;
 
-  return (result.data as TenantIconRow | null) ?? null;
+  // 2. Try resolving by subdomain if it's a nevorai.com or lovable.app link
+  if (hostname.includes(".nevorai.com") || hostname.includes(".lovable.app")) {
+    const parts = hostname.split(".");
+    if (parts.length >= 3) {
+      const slug = parts[0];
+      if (isSafeSlug(slug)) {
+        const { data: bySlug } = await (supabaseAdmin.from("tenants_public_directory" as never)
+          .select(PUBLIC_COLS)
+          .eq("slug", slug)
+          .eq("status", "active")
+          .maybeSingle() as any);
+        if (bySlug) return bySlug as TenantIconRow;
+      }
+    }
+  }
+
+  // 3. Fallback to explicit ?tenant parameter
+  const tenantParam = url.searchParams.get("tenant")?.trim().toLowerCase() ?? "";
+  if (tenantParam && isSafeSlug(tenantParam)) {
+    const { data: byParam } = await (supabaseAdmin.from("tenants_public_directory" as never)
+      .select(PUBLIC_COLS)
+      .eq("slug", tenantParam)
+      .eq("status", "active")
+      .maybeSingle() as any);
+    return (byParam as TenantIconRow | null) ?? null;
+  }
+
+  return null;
 }
+
 
 export const Route = createFileRoute("/api/public/tenant-icon")({
   server: {
