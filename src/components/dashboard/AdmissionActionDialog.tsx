@@ -43,7 +43,7 @@ export function AdmissionActionDialog({ registrationId, tenantId, mode, onClose 
     queryKey: ["batches", tenantId],
     enabled: open && mode === "approve",
     queryFn: async () => {
-      const { data } = await supabase.from("batches").select("id, name").eq("tenant_id", tenantId);
+      const { data } = await supabase.from("batches").select("id, name, fee_plan_id").eq("tenant_id", tenantId);
       return data ?? [];
     },
   });

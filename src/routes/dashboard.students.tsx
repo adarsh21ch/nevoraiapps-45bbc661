@@ -66,7 +66,6 @@ import { ShareRegistrationLink } from "@/components/dashboard/ShareRegistrationL
 import {
   enrollStudentInBilling,
   previewEnrollmentCharges,
-  recurringPlans,
   type FeePlanLite,
 } from "@/lib/billing-enrollment";
 
