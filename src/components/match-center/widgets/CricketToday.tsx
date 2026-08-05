@@ -75,12 +75,12 @@ export function CricketToday({
         Cricket today
       </SectionLabel>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+      <div className="grid grid-cols-3 gap-2">
         {/* Live */}
         {live.length > 0 ? (
           <LiveMatchTile match={live[0]} extra={live.length - 1} />
         ) : (
-          <EmptyTile icon={<Radio className="size-4" />} label="Live now" hint="No live matches" />
+          <EmptyTile icon={<Radio className="size-4" />} label="Live" hint="None" />
         )}
 
         {/* Match History */}
@@ -96,7 +96,7 @@ export function CricketToday({
 function LiveMatchTile({ match, extra }: { match: MatchWithTeams; extra: number }) {
   return (
     <Link to="/scorer/$matchId" params={{ matchId: match.id }} className="group">
-      <Card className="p-3.5 min-h-[96px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
+      <Card className="p-2.5 min-h-[80px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
         <div className="flex items-center justify-between">
           <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
             <span className="relative inline-flex size-1.5">
@@ -122,7 +122,7 @@ function LiveMatchTile({ match, extra }: { match: MatchWithTeams; extra: number 
 function MatchHistoryTile({ count, latest }: { count: number; latest?: MatchWithTeams }) {
   return (
     <Link to="/match-center/matches" className="group">
-      <Card className="p-3.5 min-h-[96px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
+      <Card className="p-2.5 min-h-[80px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
         <div className="flex items-center justify-between">
           <span className="grid size-7 place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
             <History className="size-4" />
@@ -147,7 +147,7 @@ function MatchHistoryTile({ count, latest }: { count: number; latest?: MatchWith
 function PlayersTile({ count }: { count: number }) {
   return (
     <Link to="/match-center/players" className="group">
-      <Card className="p-3.5 min-h-[96px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
+      <Card className="p-2.5 min-h-[80px] flex flex-col justify-between transition-all hover:border-[color:var(--brand)]/40 hover:-translate-y-[1px]">
         <div className="flex items-center justify-between">
           <span className="grid size-7 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#E8873C)_14%,transparent)] text-[color:var(--brand,#E8873C)]">
             <Users className="size-4" />
@@ -171,7 +171,7 @@ function PlayersTile({ count }: { count: number }) {
 
 function EmptyTile({ icon, label, hint }: { icon: React.ReactNode; label: string; hint: string }) {
   return (
-    <Card className="p-3.5 min-h-[96px] flex flex-col justify-between opacity-70">
+    <Card className="p-2.5 min-h-[80px] flex flex-col justify-between opacity-70">
       <div className="flex items-center justify-between">
         <span className="grid size-7 place-items-center rounded-lg bg-muted text-muted-foreground">
           {icon}

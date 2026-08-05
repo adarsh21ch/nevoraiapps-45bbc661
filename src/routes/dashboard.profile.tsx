@@ -77,7 +77,7 @@ function ProfilePage() {
       },
       {
         to: "/dashboard/settings",
-        label: "Need to solve this thing. And also I focused that why this particular error is happening. Camera access block, allow camera for this site in browser setting, then try again. And, uh, plus he allow-- also allow it, but still it is blocking. Please fix this thing. I also observe this thing. Why this error is appearing? Please fix this thing. Camera scan should be open correctly.",
+        label: "And also why on lo-loading state it is showing the lovable icon there? Use the tenant application app logo should lo-- icon should be logo there and the favicon kind of thing, everything, because it's dedicated to that particular application loading, no? While lovable item is showing there and why it is loading state should be there. First thing, the first issue is there, why there is a loading state? There should be no loading state. Then the application should open instantly, right?",
         hint: "Interface preferences",
         icon: Palette,
       },
