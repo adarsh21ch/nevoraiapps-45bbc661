@@ -75,9 +75,9 @@ function AppLaunch() {
       <div className="flex flex-col items-center gap-6">
         <div
           className="grid h-20 w-20 place-items-center rounded-3xl text-4xl shadow-2xl animate-pulse"
-          style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
+          style={{ backgroundColor: "transparent" }}
         >
-          <img src="/api/public/tenant-icon" alt="" className="size-14 object-contain" onError={(e) => {
+          <img src="/api/public/tenant-icon" alt="" className="size-20 object-contain" onError={(e) => {
             e.currentTarget.style.display = 'none';
             if (e.currentTarget.parentElement) e.currentTarget.parentElement.innerText = '🏏';
           }} />
