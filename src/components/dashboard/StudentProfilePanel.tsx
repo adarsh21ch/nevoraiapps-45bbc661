@@ -121,16 +121,25 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const isGenderPricingEnabled = (tenant as any).gender_pricing_enabled === true;
+
   if (studentQ.isLoading) {
     return <div className="p-8 text-sm text-muted-foreground text-center">Loading…</div>;
   }
   const s: any = studentQ.data;
   if (!s) return <div className="p-8 text-sm text-muted-foreground text-center">Not found.</div>;
 
-  const plan = s.fee_plans as { id: string; name: string; amount: number } | null;
+  const plan = s.fee_plans as { id: string; name: string; amount: number; female_amount: number | null } | null;
   const batch = s.batches as { id: string; name: string } | null;
-  const effectiveFee = s.custom_fee != null ? Number(s.custom_fee) : Number(plan?.amount ?? 0);
+
+  let baseAmount = Number(plan?.amount ?? 0);
+  if (isGenderPricingEnabled && s.gender === "female" && plan?.female_amount != null) {
+    baseAmount = Number(plan.female_amount);
+  }
+
+  const effectiveFee = s.custom_fee != null ? Number(s.custom_fee) : baseAmount;
   const paidCurrent = (paymentsQ.data ?? []).length > 0;
+
   const waPhone = (s.phone || "").replace(/\D/g, "");
   const isLeft = s.status === "left";
 
@@ -232,8 +241,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           </div>
           <div className="text-xs text-muted-foreground">
             {s.custom_fee != null
-              ? `Custom · plan is ₹${Number(plan?.amount ?? 0).toLocaleString("en-IN")}`
+              ? `Custom · plan is ₹${baseAmount.toLocaleString("en-IN")}`
               : plan?.name || "No plan"}
+
           </div>
         </div>
         <Button
@@ -249,7 +259,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
       {editFeeOpen && (
         <EditFeeInline
           currentCustom={s.custom_fee}
-          planAmount={Number(plan?.amount ?? 0)}
+          planAmount={baseAmount}
+
           onClose={() => setEditFeeOpen(false)}
           onSave={async (val) => {
             await patch.mutateAsync({ custom_fee: val });
@@ -288,7 +299,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               setEditingCore(false);
               toast.success("Details updated");
             }}
+            isGenderPricingEnabled={isGenderPricingEnabled}
           />
+
         ) : (
           <dl className="divide-y divide-border text-sm">
             <Row label="Guardian" value={s.guardian_name || "—"} />
@@ -454,7 +467,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           batches={batches.data ?? []}
           feePlans={feePlans.data ?? []}
           onClose={() => setConfirmReactivate(false)}
+          isGenderPricingEnabled={isGenderPricingEnabled}
           onConfirm={async ({ batch_id, fee_plan_id }) => {
+
             await patch.mutateAsync({ status: "active", batch_id, fee_plan_id });
             setConfirmReactivate(false);
             toast.success(`${s.name} is active again`);
@@ -664,12 +679,16 @@ function CoreEditor({
   batches,
   feePlans,
   onSave,
+  isGenderPricingEnabled,
 }: {
+
   student: any;
   batches: any[];
   feePlans: any[];
   onSave: (payload: Record<string, any>) => Promise<void>;
+  isGenderPricingEnabled?: boolean;
 }) {
+
   const [f, setF] = useState({
     name: student.name ?? "",
     phone: student.phone ?? "",
@@ -680,7 +699,9 @@ function CoreEditor({
     address: student.address ?? "",
     batch_id: student.batch_id ?? "",
     fee_plan_id: student.fee_plan_id ?? "",
+    custom_fee: student.custom_fee,
   });
+
   const [saving, setSaving] = useState(false);
   return (
     <form
@@ -699,7 +720,9 @@ function CoreEditor({
             address: f.address || null,
             batch_id: f.batch_id || null,
             fee_plan_id: f.fee_plan_id || null,
+            custom_fee: f.custom_fee,
           });
+
         } finally {
           setSaving(false);
         }
@@ -748,6 +771,22 @@ function CoreEditor({
           rows={2}
         />
       </div>
+
+      {isGenderPricingEnabled && f.gender === "female" && f.custom_fee != null && (
+        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex gap-2">
+          <p>
+            <strong>Custom fee active:</strong> This student is billed ₹{Number(f.custom_fee).toLocaleString("en-IN")} instead of the girl's discount price. 
+            <button 
+              type="button" 
+              className="ml-1 underline font-bold"
+              onClick={() => setF({ ...f, custom_fee: null })}
+            >
+              Reset to system price
+            </button>
+          </p>
+        </div>
+      )}
+
       <div className="space-y-1.5">
         <Label>Session</Label>
         <Select
@@ -762,7 +801,11 @@ function CoreEditor({
           </SelectTrigger>
           <SelectContent>
             {batches.map((b) => {
-              const amt = feePlans.find((p) => p.id === b.fee_plan_id)?.amount;
+              const p = feePlans.find((x) => x.id === b.fee_plan_id);
+              let amt = p?.amount;
+              if (isGenderPricingEnabled && f.gender === "female" && p?.female_amount != null) {
+                amt = p.female_amount;
+              }
               return (
                 <SelectItem key={b.id} value={b.id}>
                   {b.name}
@@ -776,6 +819,7 @@ function CoreEditor({
           The monthly fee comes from the session — change it under Sessions &amp; fees.
         </p>
       </div>
+
 
       <Button
         type="submit"
@@ -884,13 +928,16 @@ function ReactivateDialog({
   feePlans,
   onClose,
   onConfirm,
+  isGenderPricingEnabled,
 }: {
   student: any;
   batches: any[];
   feePlans: any[];
   onClose: () => void;
   onConfirm: (v: { batch_id: string | null; fee_plan_id: string | null }) => Promise<void>;
+  isGenderPricingEnabled?: boolean;
 }) {
+
   const [batch_id, setBatchId] = useState<string>(student.batch_id ?? "");
   const [fee_plan_id, setFeePlanId] = useState<string>(student.fee_plan_id ?? "");
   const [saving, setSaving] = useState(false);
@@ -918,7 +965,12 @@ function ReactivateDialog({
               </SelectTrigger>
               <SelectContent>
                 {batches.map((b) => {
-                  const amt = feePlans.find((p) => p.id === b.fee_plan_id)?.amount;
+                  const p = feePlans.find((x) => x.id === b.fee_plan_id);
+                  let amt = p?.amount;
+                  if (isGenderPricingEnabled && student.gender === "female" && p?.female_amount != null) {
+                    amt = p.female_amount;
+                  }
+
                   return (
                     <SelectItem key={b.id} value={b.id}>
                       {b.name}

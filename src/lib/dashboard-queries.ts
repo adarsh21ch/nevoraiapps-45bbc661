@@ -156,9 +156,10 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .in("period", periods),
     db
       .from("tenants")
-      .select("admission_fee_enabled")
+      .select("admission_fee_enabled, gender_pricing_enabled")
       .eq("id", tenantId)
       .single(),
+
   ]);
 
   const paidByStudent = new Map<string, Set<string>>();
@@ -199,21 +200,22 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     if (due.state === "pending") {
       pendingCount++;
       const plan = Array.isArray(s.fee_plans) ? s.fee_plans[0] : s.fee_plans;
-      let amount = Number(plan?.amount ?? 0);
+      const isGenderPricingEnabled = (tenantRes.data as any)?.gender_pricing_enabled === true;
       
-      // Apply female override if gender matches
-      if (s.gender === "female" && plan?.female_amount != null) {
-        amount = Number(plan.female_amount);
+      let baseAmount = Number(plan?.amount ?? 0);
+      
+      // Apply female override if enabled and gender matches
+      if (isGenderPricingEnabled && s.gender === "female" && plan?.female_amount != null) {
+        baseAmount = Number(plan.female_amount);
       }
       
       // custom_fee override wins if set
-      if (s.custom_fee != null) {
-        amount = Number(s.custom_fee);
-      }
+      const amount = s.custom_fee != null ? Number(s.custom_fee) : baseAmount;
       
       pendingAmount += amount;
     }
   }
+
 
   return {
     activeStudents: activeRes.count ?? 0,
