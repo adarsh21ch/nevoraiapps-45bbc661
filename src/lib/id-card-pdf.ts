@@ -316,7 +316,6 @@ async function drawCardPair(doc: jsPDF, tenant: Tenant, r: IdCardData) {
   doc.setFillColor(248, 250, 252);
   doc.roundedRect(bx, by, CW, CH, R, R, "F");
   gradientRect(doc, bx, by, CW, 7, accent, brand);
-  maskCorners(doc, bx, by, true);
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
@@ -391,29 +390,4 @@ async function drawCardPair(doc: jsPDF, tenant: Tenant, r: IdCardData) {
   doc.setFontSize(5.6);
   doc.text("FRONT — cut along the dotted line", fx, fy - 2.5);
   doc.text("BACK — print on the reverse side", bx, by - 2.5);
-}
-
-/** Paints the four corners white so the gradient reads as a rounded card. */
-function maskCorners(doc: jsPDF, x: number, y: number, skipTop = false) {
-  doc.setFillColor(255, 255, 255);
-  const c = R;
-  const corners: Array<[number, number]> = [
-    [x, y],
-    [x + CW - c, y],
-    [x, y + CH - c],
-    [x + CW - c, y + CH - c],
-  ];
-  for (const [cx, cy] of corners) {
-    if (skipTop && cy === y) {
-      doc.rect(cx, cy, c, c, "F");
-      continue;
-    }
-    doc.rect(cx, cy, c, c, "F");
-  }
-  // Redraw the rounded card outline area by clipping is unavailable in jsPDF,
-  // so we re-stroke a rounded rect in the card colour edge instead.
-  doc.setDrawColor(255, 255, 255);
-  doc.setLineWidth(0.6);
-  doc.roundedRect(x, y, CW, CH, R, R, "S");
-  doc.setLineWidth(0.2);
 }
