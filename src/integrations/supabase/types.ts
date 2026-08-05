@@ -6974,6 +6974,7 @@ export type Database = {
       tenants: {
         Row: {
           address: string | null
+          admission_fee_enabled: boolean | null
           attendance_qr_enabled: boolean
           attendance_qr_min_gap_seconds: number
           attendance_qr_token: string | null
@@ -7025,6 +7026,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          admission_fee_enabled?: boolean | null
           attendance_qr_enabled?: boolean
           attendance_qr_min_gap_seconds?: number
           attendance_qr_token?: string | null
@@ -7076,6 +7078,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          admission_fee_enabled?: boolean | null
           attendance_qr_enabled?: boolean
           attendance_qr_min_gap_seconds?: number
           attendance_qr_token?: string | null
