@@ -195,7 +195,8 @@ function NevorAIPage() {
     <div
       data-nevorai-workspace
       className={cn(
-        // Mobile: fullscreen fixed overlay above everything, incl. shell header.
+        // Mobile: fullscreen fixed overlay ABOVE the shell.
+        // We use z-[60] to ensure it covers the bottom nav (z-40) and header (z-40).
         "fixed inset-0 z-[60] flex bg-background text-foreground",
         // Desktop: normal flow inside dashboard main, negate main padding.
         "md:static md:z-auto md:-mx-8 md:-mt-8 md:-mb-8 md:h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]",
@@ -218,9 +219,9 @@ function NevorAIPage() {
         >
 
           <Link
-            to="/dashboard"
+            to="/dashboard/academy"
             className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
-            aria-label="Back to dashboard"
+            aria-label="Back to Manage"
           >
             <ArrowLeft className="size-4" />
           </Link>

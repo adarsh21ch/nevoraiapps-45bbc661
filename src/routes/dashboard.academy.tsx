@@ -17,7 +17,7 @@ import {
   UserPlus,
   Zap,
   Link2 as LinkIcon,
-
+  Sparkles,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { useCurrentRole } from "@/hooks/use-current-role";
@@ -179,6 +179,13 @@ const OWNER_GROUPS: Group[] = [
         hint: "Decision center, insights & AI signals",
         icon: BarChart3,
         keywords: ["insights", "ai", "decision", "analytics"],
+      },
+      {
+        to: "/dashboard/nevorai",
+        label: "NevorAI Assistant",
+        hint: "AI manager for attendance, fees & insights",
+        icon: Sparkles,
+        keywords: ["ai", "assistant", "nevorai", "help", "insights", "chat"],
       },
     ],
   },
