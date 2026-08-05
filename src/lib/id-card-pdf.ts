@@ -101,8 +101,6 @@ function gradientRect(
   // End cap last, so it covers the strip edge and keeps the right corners round.
   doc.setFillColor(...hexToRgb(to));
   doc.roundedRect(x + w - 2 * rad, y, 2 * rad, h, rad, rad, "F");
-  doc.setFillColor(...hexToRgb(to));
-  doc.rect(x + w - 2 * rad, y + rad, rad, Math.max(0, h - 2 * rad), "F");
 }
 
 const fmtDate = (iso?: string | null) =>
