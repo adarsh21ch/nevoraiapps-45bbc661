@@ -309,7 +309,9 @@ function StudentsPage() {
               <DropdownMenuItem onClick={() => doExport("xlsx")}>Excel (.xlsx)</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <ShareRegistrationLink />
           <BulkImportStudents />
+
           <Button
             onClick={() => setAddOpen(true)}
             className="rounded-full h-9 sm:h-10 px-3 sm:px-5 font-semibold"
