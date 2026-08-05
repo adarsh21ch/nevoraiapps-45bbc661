@@ -50,6 +50,7 @@ function ProfilePage() {
   const role = useCurrentRole();
   const wa = tenant.whatsapp?.replace(/[^\d]/g, "");
   const isOwner = role === "owner";
+  const [shareOpen, setShareOpen] = useState(false);
 
   const sections: Section[] = [];
 
@@ -164,9 +165,29 @@ function ProfilePage() {
 
   return (
     <div className="space-y-5 pb-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
-        <p className="text-sm text-muted-foreground">Your account and academy configuration.</p>
+      <header className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
+          <p className="text-sm text-muted-foreground">Your account and academy configuration.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full size-10 bg-muted/50 hover:bg-muted text-muted-foreground"
+            onClick={() => setShareOpen(true)}
+          >
+            <Share2 className="size-5" />
+          </Button>
+          <a
+            href={tenantSiteUrl(tenant)}
+            target="_blank"
+            rel="noreferrer"
+            className="grid place-items-center size-10 rounded-full bg-muted/50 hover:bg-muted text-muted-foreground transition-colors"
+          >
+            <ExternalLink className="size-5" />
+          </a>
+        </div>
       </header>
 
       {/* Identity card */}
@@ -283,6 +304,73 @@ function ProfilePage() {
           </Card>
         </section>
       ))}
+
+      <ShareWebsiteDialog open={shareOpen} onOpenChange={setShareOpen} tenant={tenant} />
     </div>
+  );
+}
+
+function ShareWebsiteDialog({
+  open,
+  onOpenChange,
+  tenant,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  tenant: { slug: string; name: string; custom_domain: string | null };
+}) {
+  const url = tenantSiteUrl(tenant);
+  const message = `Check out ${tenant.name} — ${url}`;
+  const waHref = `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied", { description: url });
+    } catch {
+      toast.error("Couldn't copy link");
+    }
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Share your website</DialogTitle>
+          <DialogDescription className="truncate">{url}</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-2">
+          <button
+            type="button"
+            onClick={copyLink}
+            className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left hover:bg-accent/40 active:scale-[0.99] transition-all"
+          >
+            <span className="grid size-9 place-items-center rounded-lg bg-[color-mix(in_oklab,var(--brand,#E8873C)_14%,transparent)] text-[color:var(--brand,#E8873C)]">
+              <Copy className="size-4" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">Copy link</div>
+              <div className="text-[11px] text-muted-foreground truncate">Copy the public site URL</div>
+            </div>
+          </button>
+          <a
+            href={waHref}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => onOpenChange(false)}
+            className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:bg-accent/40 active:scale-[0.99] transition-all"
+          >
+            <span className="grid size-9 place-items-center rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+              <MessageCircle className="size-4" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">Share on WhatsApp</div>
+              <div className="text-[11px] text-muted-foreground truncate">Send with a pre-filled message</div>
+            </div>
+          </a>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

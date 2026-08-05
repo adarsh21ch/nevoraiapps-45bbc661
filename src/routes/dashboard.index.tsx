@@ -626,7 +626,6 @@ function QuickActionsGrid({
     { key: "students", to: "/dashboard/students", label: "Students", icon: <Users className="size-5" /> },
     ...createMatch,
     { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
-    shareAction,
   ];
 
   const adminActions: QAItem[] = [
@@ -634,14 +633,13 @@ function QuickActionsGrid({
     { key: "students", to: "/dashboard/students", label: "Students", icon: <Users className="size-5" /> },
     ...createMatch,
     { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
-    shareAction,
   ];
 
-  const items = (role === "owner" ? ownerActions : adminActions).slice(0, 5);
+  const items = (role === "owner" ? ownerActions : adminActions).slice(0, 4);
 
   return (
     <>
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         {items.map((a) => (
           <QuickAction key={a.key} to={a.to} onClick={a.onClick} label={a.label} icon={a.icon} />
         ))}
