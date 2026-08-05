@@ -123,6 +123,8 @@ function DashboardHome() {
   const studentsQ = useQuery({
     queryKey: qk.students(tenant.id),
     queryFn: () => fetchStudents(tenant.id),
+    // Only calculate using students that are NOT left/archived
+    select: (data) => (data ?? []).filter((s: any) => s.status !== "left"),
   });
   const activityQ = useQuery({
     queryKey: qk.activity(tenant.id),
