@@ -207,7 +207,15 @@ function AttendancePage() {
     } catch {
       /* ignore */
     }
-  }, []);
+
+    // Trigger daily cleanup once per dashboard load for administrators.
+    // This ensures yesterday's open sessions are closed and marked as Auto (0h).
+    if (canMark) {
+      supabase.rpc("process_daily_attendance_cleanup").then(({ error }) => {
+        if (error) console.error("Cleanup error:", error);
+      });
+    }
+  }, [canMark]);
 
   // Daily lifecycle: when the local calendar date rolls over (tab left open
   // across midnight), advance `selectedDate` so the roster resets to today's
