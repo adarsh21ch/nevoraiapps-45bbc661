@@ -7666,6 +7666,14 @@ export type Database = {
         Args: { _tenant_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      delete_all_archived_students_v2: {
+        Args: { _tenant_id: string }
+        Returns: number
+      }
+      delete_student_data_v2: {
+        Args: { _student_id: string }
+        Returns: undefined
+      }
       geo_distance_m: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
