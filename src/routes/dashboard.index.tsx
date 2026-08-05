@@ -623,7 +623,7 @@ function QuickActionsGrid({
 
   const ownerActions: QAItem[] = [
     scanAction,
-    { key: "add-player", to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
+    { key: "students", to: "/dashboard/students", label: "Students", icon: <Users className="size-5" /> },
     ...createMatch,
     { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     shareAction,
@@ -631,7 +631,7 @@ function QuickActionsGrid({
 
   const adminActions: QAItem[] = [
     scanAction,
-    { key: "add-player", to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
+    { key: "students", to: "/dashboard/students", label: "Students", icon: <Users className="size-5" /> },
     ...createMatch,
     { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     shareAction,
