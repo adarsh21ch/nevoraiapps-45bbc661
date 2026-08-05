@@ -546,9 +546,7 @@ export function BulkImportStudents() {
                           onChange={(e) => setSessionMap({ ...sessionMap, [s.key]: e.target.value })}
                         >
                           <option value="">— decide later —</option>
-                          {s.key !== NO_SESSION && (
-                            <option value={CREATE_SESSION}>+ Create session "{s.label}"</option>
-                          )}
+
                           {(batches.data ?? []).map((b: any) => (
                             <option key={b.id} value={b.id}>
                               {b.name}
