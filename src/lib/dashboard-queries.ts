@@ -144,7 +144,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .gte("created_at", startOfMonth),
     db
       .from("students")
-      .select("id, joined_at, custom_fee, fee_plans!inner(type, amount)")
+      .select("id, joined_at, custom_fee, gender, fee_plans!inner(type, amount, female_amount)")
       .eq("tenant_id", tenantId)
       .eq("status", "active")
       .eq("fee_plans.type", "monthly"),
@@ -181,7 +181,8 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     id: string;
     joined_at: string | null;
     custom_fee: number | null;
-    fee_plans: { amount: number | null; type: string | null } | Array<{ amount: number | null; type: string | null }> | null;
+    gender: string | null;
+    fee_plans: { amount: number | null; female_amount: number | null; type: string | null } | Array<{ amount: number | null; female_amount: number | null; type: string | null }> | null;
   }>;
 
   for (const s of activeStudents) {
@@ -198,7 +199,18 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     if (due.state === "pending") {
       pendingCount++;
       const plan = Array.isArray(s.fee_plans) ? s.fee_plans[0] : s.fee_plans;
-      const amount = s.custom_fee != null ? Number(s.custom_fee) : Number(plan?.amount ?? 0);
+      let amount = Number(plan?.amount ?? 0);
+      
+      // Apply female override if gender matches
+      if (s.gender === "female" && plan?.female_amount != null) {
+        amount = Number(plan.female_amount);
+      }
+      
+      // custom_fee override wins if set
+      if (s.custom_fee != null) {
+        amount = Number(s.custom_fee);
+      }
+      
       pendingAmount += amount;
     }
   }
