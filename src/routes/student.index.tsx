@@ -255,48 +255,56 @@ function StudentHomePage() {
         <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
           Quick Actions
         </p>
-        <div className="grid grid-cols-4 grid-rows-2 gap-2">
+        <div className="space-y-2">
           <PlayerQuickAction
             onClick={() => setScanOpen(true)}
             icon={<QrCode className="size-5" />}
-            label={home.todayVisit && !home.todayVisit.check_out_at ? "Check Out" : "Scan QR"}
+            label={home.todayVisit && !home.todayVisit.check_out_at ? "Check Out Attendance" : "Scan QR Code for Attendance"}
             highlight={!!(home.todayVisit && !home.todayVisit.check_out_at)}
+            isWide
           />
-          <PlayerQuickAction
-            to="/student/progress"
-            icon={<CalendarCheck2 className="size-5" />}
-            label="My Schedule"
-          />
-          <PlayerQuickAction
-            to="/student/timeline"
-            icon={<Clock className="size-5" />}
-            label="Attendance"
-          />
-          <PlayerQuickAction
-            to="/student/matches"
-            icon={<Swords className="size-5" />}
-            label="My Matches"
-          />
-          <PlayerQuickAction
-            to="/student/progress"
-            icon={<TrendingUp className="size-5" />}
-            label="Performance"
-          />
-          <PlayerQuickAction
-            to="/student/progress"
-            icon={<MessageSquareQuote className="size-5" />}
-            label="Feedback"
-          />
-          <PlayerQuickAction
-            to="/student/manage"
-            icon={<Mail className="size-5" />}
-            label="Contact"
-          />
-          <PlayerQuickAction
-            to="/student/profile"
-            icon={<FileText className="size-5" />}
-            label="My Docs"
-          />
+          <div className="grid grid-cols-4 gap-2">
+            <PlayerQuickAction
+              to="/student/progress"
+              icon={<CalendarCheck2 className="size-5" />}
+              label="Schedule"
+            />
+            <PlayerQuickAction
+              to="/student/timeline"
+              icon={<Clock className="size-5" />}
+              label="History"
+            />
+            <PlayerQuickAction
+              to="/student/matches"
+              icon={<Swords className="size-5" />}
+              label="Matches"
+            />
+            <PlayerQuickAction
+              to="/student/progress"
+              icon={<TrendingUp className="size-5" />}
+              label="Growth"
+            />
+            <PlayerQuickAction
+              to="/student/progress"
+              icon={<MessageSquareQuote className="size-5" />}
+              label="Feedback"
+            />
+            <PlayerQuickAction
+              to="/student/manage"
+              icon={<Mail className="size-5" />}
+              label="Contact"
+            />
+            <PlayerQuickAction
+              to="/student/profile"
+              icon={<FileText className="size-5" />}
+              label="My Docs"
+            />
+            <PlayerQuickAction
+              to="/student/manage"
+              icon={<Megaphone className="size-5" />}
+              label="Notices"
+            />
+          </div>
         </div>
       </section>
     </div>
@@ -309,6 +317,7 @@ function PlayerQuickAction({
   icon,
   label,
   highlight,
+  isWide,
 }: {
   to?:
     | "/student"
@@ -321,29 +330,36 @@ function PlayerQuickAction({
   icon: React.ReactNode;
   label: string;
   highlight?: boolean;
+  isWide?: boolean;
 }) {
   const content = (
     <Card className={cn(
-      "p-2 flex flex-col items-center justify-center gap-1 h-full min-h-[76px] transition-colors",
+      "p-2 flex items-center justify-center gap-2 transition-colors",
+      isWide ? "min-h-[56px] flex-row px-4" : "flex-col min-h-[76px]",
       highlight 
-        ? "bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-700" 
+        ? "bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-700 shadow-md" 
         : "hover:bg-muted/40"
     )}>
       <span className={cn(highlight ? "text-white" : "text-primary")}>{icon}</span>
-      <span className="text-[10px] font-medium text-center leading-tight">{label}</span>
+      <span className={cn(
+        "font-semibold text-center leading-tight",
+        isWide ? "text-sm" : "text-[10px]"
+      )}>
+        {label}
+      </span>
     </Card>
   );
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className="w-full h-full text-left">
+      <button type="button" onClick={onClick} className="w-full text-left active:scale-[0.98] transition-transform">
         {content}
       </button>
     );
   }
 
   return (
-    <Link to={to!}>
+    <Link to={to!} className="active:scale-[0.98] transition-transform">
       {content}
     </Link>
   );
