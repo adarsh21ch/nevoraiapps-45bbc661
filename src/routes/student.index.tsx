@@ -260,7 +260,7 @@ function StudentHomePage() {
             onClick={() => setScanOpen(true)}
             icon={<QrCode className="size-5" />}
             label={home.todayVisit && !home.todayVisit.check_out_at ? "Check Out" : "Scan QR"}
-            highlight={home.todayVisit && !home.todayVisit.check_out_at}
+            highlight={!!(home.todayVisit && !home.todayVisit.check_out_at)}
           />
           <PlayerQuickAction
             to="/student/progress"
