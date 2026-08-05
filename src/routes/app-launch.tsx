@@ -36,7 +36,7 @@ function AppLaunch() {
           return;
         }
 
-        setMessage("Signing you in…");
+        //setMessage("Signing you in…");
         // Platform admins land on the admin console; everyone else on the
         // owner dashboard. Falls back to /dashboard if the lookup errors.
         let target: "/platform-admin" | "/dashboard" = "/dashboard";
