@@ -57,10 +57,12 @@ import {
   SlidersHorizontal,
   ArchiveRestore,
   Archive,
+  ExternalLink,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { tenantSiteUrl } from "@/lib/tenant";
 import { BulkImportStudents } from "@/components/dashboard/BulkImportStudents";
 import { ShareRegistrationLink } from "@/components/dashboard/ShareRegistrationLink";
 import {
