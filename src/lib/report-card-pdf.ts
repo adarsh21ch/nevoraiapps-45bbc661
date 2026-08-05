@@ -175,7 +175,9 @@ export async function generateReportCardPdf(tenant: Tenant, r: ReportCardData) {
   drawRow("Date of birth", fmtDate(r.dob));
   drawRow("Phone", r.phone);
   if (r.guardianPhone) drawRow("Guardian phone", r.guardianPhone);
-  drawRow("Address", r.address ?? "—");
+  drawRow("Permanent Address", r.address ?? "—");
+  const currentAddress = (r as any).currentAddress;
+  if (currentAddress) drawRow("Current Address", currentAddress);
   drawRow("Batch", r.batchName ?? "—");
   drawRow("Monthly fee", r.fee != null ? `Rs. ${Number(r.fee).toLocaleString("en-IN")}` : "—");
 

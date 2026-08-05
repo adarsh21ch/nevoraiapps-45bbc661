@@ -306,6 +306,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               }
             />
             <Row label="Address" value={s.address || "—"} multiline />
+            {s.current_address && (
+              <Row label="Current Address" value={s.current_address} multiline />
+            )}
             <Row label="Phone" value={s.phone} />
             <IdProofRow label="Aadhaar Front" path={s.aadhaar_front_url} />
             <IdProofRow label="Aadhaar Back" path={s.aadhaar_back_url} />
@@ -346,6 +349,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               address: s.address,
               phone: s.phone,
               guardianPhone: s.guardian_phone,
+              address: s.address,
+              currentAddress: s.current_address,
               batchName: batch?.name ?? null,
               planName: plan?.name ?? null,
               fee: effectiveFee || null,
