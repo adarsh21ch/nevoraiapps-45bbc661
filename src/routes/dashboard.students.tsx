@@ -1040,7 +1040,7 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1.5">
-              <Label>Batch</Label>
+              <Label>Session</Label>
               <Select value={f.batch_id} onValueChange={(v) => setF({ ...f, batch_id: v })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select" />
@@ -1061,7 +1061,7 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  {(feePlans.data ?? []).map((p: any) => (
+                  {recurringPlans((feePlans.data ?? []) as FeePlanLite[]).map((p) => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.name} · ₹{p.amount}
                     </SelectItem>
@@ -1070,6 +1070,8 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
               </Select>
             </div>
           </div>
+          <FeePreview plans={(feePlans.data ?? []) as FeePlanLite[]} feePlanId={f.fee_plan_id} />
+
           <div className="grid grid-cols-2 gap-2">
             <FormField
               label="Joining date"
