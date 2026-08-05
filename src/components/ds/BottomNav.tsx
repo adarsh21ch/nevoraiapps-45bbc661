@@ -43,9 +43,14 @@ export function BottomNav({
       style={{ paddingBottom: safeArea.bottom }}
     >
       <ul
-        className="grid"
+        className="grid relative"
         style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
       >
+        {/* Placeholder for FAB if it exists (middle item) */}
+        {items.length % 2 === 0 && (
+          <div className="absolute left-1/2 -translate-x-1/2 inset-y-0 w-14" />
+        )}
+
         {items.map((item) => {
           const active =
             item.to === "/dashboard"
