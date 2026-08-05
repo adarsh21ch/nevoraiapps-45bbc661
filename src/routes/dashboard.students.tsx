@@ -50,6 +50,16 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Plus,
   Search,
   Camera,
@@ -126,6 +136,8 @@ function StudentsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
+  const [deleteStep, setDeleteStep] = useState(1);
 
   // Coach "My batches only" toggle. Owners/admins default OFF; coaches default ON.
   const perms = usePermissions();
@@ -404,27 +416,71 @@ function StudentsPage() {
             variant="ghost"
             size="sm"
             className="h-11 rounded-full px-4 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200"
-            onClick={async () => {
-              if (confirm(`Are you absolutely sure? Permanently delete ALL ${counts.left} archived students? This will erase ALL their historical data and cannot be undone.`)) {
-                if (confirm(`FINAL CONFIRMATION: Are you really sure you want to completely erase ${counts.left} profiles? This action is irreversible.`)) {
-
-                try {
-                  const res = await deleteArchived({ data: { tenantId: tenant.id } });
-                  toast.success(`Successfully deleted ${res.count} students`);
-                  qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
-                  qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
-                } catch (err: any) {
-                  toast.error(err.message || "Failed to delete students");
-                }
-                }
-              }
+            onClick={() => {
+              setDeleteStep(1);
+              setConfirmDeleteAll(true);
             }}
-
           >
             <X className="size-4 mr-2" />
             Delete All
           </Button>
         )}
+
+        <AlertDialog open={confirmDeleteAll} onOpenChange={setConfirmDeleteAll}>
+          <AlertDialogContent className="rounded-3xl max-w-[400px]">
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {deleteStep === 1 ? "Permanent Deletion" : "Final Confirmation"}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm">
+                {deleteStep === 1 ? (
+                  <>
+                    Are you absolutely sure? Permanently delete ALL <strong>{counts.left}</strong> archived students?
+                    <br /><br />
+                    This will erase ALL their historical data and cannot be undone.
+                  </>
+                ) : (
+                  <>
+                    FINAL CONFIRMATION: Are you really sure you want to completely erase <strong>{counts.left}</strong> profiles?
+                    <br /><br />
+                    This action is irreversible.
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+              <AlertDialogCancel className="rounded-xl flex-1" onClick={() => setDeleteStep(1)}>
+                Cancel
+              </AlertDialogCancel>
+              {deleteStep === 1 ? (
+                <Button
+                  variant="destructive"
+                  className="rounded-xl flex-1"
+                  onClick={() => setDeleteStep(2)}
+                >
+                  Yes, continue
+                </Button>
+              ) : (
+                <AlertDialogAction
+                  className="rounded-xl flex-1 bg-rose-600 hover:bg-rose-700 text-white"
+                  onClick={async () => {
+                    try {
+                      const res = await deleteArchived({ data: { tenantId: tenant.id } });
+                      toast.success(`Successfully deleted ${res.count} students`);
+                      qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
+                      qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
+                      setConfirmDeleteAll(false);
+                    } catch (err: any) {
+                      toast.error(err.message || "Failed to delete students");
+                    }
+                  }}
+                >
+                  Confirm Delete All
+                </AlertDialogAction>
+              )}
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <Button
 
           type="button"
