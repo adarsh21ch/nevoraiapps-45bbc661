@@ -77,7 +77,7 @@ function ProfilePage() {
       },
       {
         to: "/dashboard/settings",
-        label: "Language & Theme",
+        label: "I mean, in short, anybody who do add to home screen or install the application, whether he-- student login he do. So when he click on that icon, native, it's directly open the dashboard, whether it's admin, whether it's student, or whether it's owner of the application, right? They open their application directly. Simple as that, right?",
         hint: "Interface preferences",
         icon: Palette,
       },
