@@ -33,6 +33,11 @@ export function BottomNav({
     (n: NavItem) => !n.requiresFeature || features[n.requiresFeature] !== false,
   );
 
+  const middleIndex = Math.floor(items.length / 2);
+  const itemsWithGap = [...items];
+  itemsWithGap.splice(middleIndex, 0, { to: "fab-gap", label: "", icon: () => null });
+
+
   return (
     <nav
       aria-label="Primary"
