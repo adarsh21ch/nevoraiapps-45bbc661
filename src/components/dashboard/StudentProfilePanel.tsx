@@ -47,6 +47,7 @@ import {
   X,
   UserRoundX,
   UserRoundCheck,
+  Eye,
 } from "lucide-react";
 
 type Props = {
@@ -305,6 +306,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             />
             <Row label="Address" value={s.address || "—"} multiline />
             <Row label="Phone" value={s.phone} />
+            <IdProofRow label="Aadhaar Front" path={s.aadhaar_front_url} />
+            <IdProofRow label="Aadhaar Back" path={s.aadhaar_back_url} />
             <Row label="Batch" value={batch?.name || "—"} />
             <Row label="Fee plan" value={plan?.name || "—"} />
             <Row
@@ -462,6 +465,44 @@ function Row({ label, value, multiline }: { label: string; value: string; multil
         )}
       >
         {value}
+      </dd>
+    </div>
+  );
+}
+
+function IdProofRow({ label, path }: { label: string; path?: string | null }) {
+  const [loading, setLoading] = useState(false);
+  const view = async () => {
+    if (!path) return;
+    setLoading(true);
+    try {
+      const { signedUrl: url } = await import("@/lib/storage").then((m) => m.signedUrl(path));
+      if (url) window.open(url, "_blank");
+      else toast.error("Could not generate view link");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to open");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="px-4 py-3 grid grid-cols-[110px_minmax(0,1fr)] gap-3 items-center">
+      <dt className="text-xs uppercase tracking-wide text-muted-foreground font-medium">{label}</dt>
+      <dd className="font-medium text-foreground flex items-center justify-between">
+        {path ? (
+          <>
+            <span className="text-emerald-600 flex items-center gap-1.5">
+              <Check className="size-3.5" /> Uploaded
+            </span>
+            <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={view} disabled={loading}>
+              {loading ? <Loader2 className="size-3 animate-spin mr-1" /> : <Eye className="size-3 mr-1" />}
+              View
+            </Button>
+          </>
+        ) : (
+          <span className="text-muted-foreground italic">Not provided</span>
+        )}
       </dd>
     </div>
   );
