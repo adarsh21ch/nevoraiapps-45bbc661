@@ -25,6 +25,7 @@ import {
   MoreVertical,
   ArrowLeft,
   QrCode,
+  IdCard,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchStudents, qk } from "@/lib/dashboard-queries";
@@ -40,6 +41,7 @@ import {
   LiveBadge,
 } from "@/components/ds";
 import { FilterTabs } from "@/components/shared/FilterTabs";
+import { ScanStudentCardDialog } from "@/components/attendance/ScanStudentCardDialog";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -183,6 +185,7 @@ function AttendancePage() {
   const { can } = usePermissions();
   const canMark = can("canMarkAttendance");
 
+  const [scanCards, setScanCards] = useState(false);
   const [session, setSession] = useState<SessionFilter>("all");
   const [query, setQuery] = useState("");
   const [quickMode, setQuickMode] = useState<boolean>(false);
@@ -689,6 +692,16 @@ function AttendancePage() {
                 </button>
               ) : null}
               {canMark ? (
+                <button
+                  type="button"
+                  onClick={() => setScanCards(true)}
+                  aria-label="Scan player ID cards"
+                  className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border/60 px-2 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground min-h-8"
+                >
+                  <IdCard className="size-3" /> Cards
+                </button>
+              ) : null}
+              {canMark ? (
                 <Link
                   to="/dashboard/attendance-qr"
                   aria-label="QR check-in setup"
@@ -697,6 +710,13 @@ function AttendancePage() {
                   <QrCode className="size-3" /> QR
                 </Link>
               ) : null}
+              <ScanStudentCardDialog
+                open={scanCards}
+                onOpenChange={setScanCards}
+                onRecorded={() => {
+                  qc.invalidateQueries({ queryKey: attendanceKeys.today(tenant.id) });
+                }}
+              />
 
             </>
           ) : (

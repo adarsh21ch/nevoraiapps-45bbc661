@@ -6737,6 +6737,7 @@ export type Database = {
           blood_group: string | null
           bowling_arm: string | null
           bowling_style: string | null
+          card_token: string
           city: string | null
           coach_name: string | null
           created_at: string
@@ -6790,6 +6791,7 @@ export type Database = {
           blood_group?: string | null
           bowling_arm?: string | null
           bowling_style?: string | null
+          card_token?: string
           city?: string | null
           coach_name?: string | null
           created_at?: string
@@ -6843,6 +6845,7 @@ export type Database = {
           blood_group?: string | null
           bowling_arm?: string | null
           bowling_style?: string | null
+          card_token?: string
           city?: string | null
           coach_name?: string | null
           created_at?: string
@@ -7925,6 +7928,10 @@ export type Database = {
         Returns: undefined
       }
       slugify: { Args: { _input: string }; Returns: string }
+      staff_scan_student_card: {
+        Args: { _card_token: string; _local_date?: string }
+        Returns: Json
+      }
       student_can_read_session: {
         Args: { _session_id: string }
         Returns: boolean

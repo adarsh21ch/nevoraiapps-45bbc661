@@ -366,6 +366,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               batchName: batch?.name ?? null,
               joinedAt: s.joined_at,
               photoPath: s.photo_url ?? null,
+              cardToken: (s as { card_token?: string | null }).card_token ?? null,
             });
           }}
         >
