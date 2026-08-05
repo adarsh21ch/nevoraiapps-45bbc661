@@ -415,7 +415,7 @@ function FeesProfileSheet({
   );
 }
 
-/* ---------- Single-line KPI strip ---------- */
+/* ---------- Full-width KPI strip ---------- */
 
 function KpiStrip({
   pending,
@@ -429,22 +429,13 @@ function KpiStrip({
   pct: number;
 }) {
   return (
-    <div className="scrollbar-none min-w-0 flex-1 overflow-x-auto">
-      <div className="flex h-7 items-center gap-2.5 whitespace-nowrap rounded-full border border-border bg-card px-3 shadow-sm">
-        <KpiCell label="Pending" value={money(pending)} tone="danger" />
-        <Dot />
-        <KpiCell label="Collected" value={money(collected)} tone="success" />
-        <Dot />
-        <KpiCell label="Overdue" value={String(overdueCount)} tone="danger" />
-        <Dot />
-        <KpiCell label="Collected %" value={`${pct}%`} tone="neutral" />
-      </div>
+    <div className="grid grid-cols-4 divide-x divide-border rounded-2xl border border-border bg-card shadow-sm">
+      <KpiCell label="Pending" value={money(pending)} tone="danger" />
+      <KpiCell label="Collected" value={money(collected)} tone="success" />
+      <KpiCell label="Overdue" value={String(overdueCount)} tone="danger" />
+      <KpiCell label="Collected" value={`${pct}%`} tone="neutral" />
     </div>
   );
-}
-
-function Dot() {
-  return <span aria-hidden className="h-1 w-1 shrink-0 rounded-full bg-border" />;
 }
 
 function KpiCell({
@@ -463,12 +454,22 @@ function KpiCell({
         ? "text-emerald-600"
         : "text-foreground";
   return (
-    <span className="inline-flex shrink-0 items-baseline gap-1">
-      <span className={cn("text-[12px] font-bold tabular-nums", color)}>{value}</span>
-      <span className="text-[10px] text-muted-foreground">{label}</span>
-    </span>
+    <div className="min-w-0 px-2 py-2 text-center">
+      <div
+        className={cn(
+          "truncate text-[13px] font-bold tabular-nums sm:text-sm",
+          color,
+        )}
+      >
+        {value}
+      </div>
+      <div className="truncate text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
+    </div>
   );
 }
+
 
 
 /* ---------- Chip filters ---------- */
