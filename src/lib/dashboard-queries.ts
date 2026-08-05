@@ -162,14 +162,9 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     paidByStudent.set(p.student_id, set);
   }
 
-  // Only count payments from students that currently exist and are not archived?
-  // Actually, if a student left but paid this month, it should count.
-  // BUT the user says they have 0 payments, so let's filter by currently active students to be safe
-  // as they want to "erase" old data.
-  const activeStudentIds = new Set((studentsRes.data ?? []).map(s => s.id));
-  const collection = (paysRes.data ?? [])
-    .filter(p => p.student_id && activeStudentIds.has(p.student_id))
-    .reduce((s, p) => s + Number(p.amount || 0), 0);
+  // Count all payments for the month, including those from students who might have archived (Left)
+  // after paying, but before the month ended.
+  const collection = (paysRes.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
 
   let pendingCount = 0;
   let pendingAmount = 0;
