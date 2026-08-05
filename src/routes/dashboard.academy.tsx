@@ -180,6 +180,13 @@ const OWNER_GROUPS: Group[] = [
         icon: BarChart3,
         keywords: ["insights", "ai", "decision", "analytics"],
       },
+      {
+        to: "/dashboard/nevorai",
+        label: "NevorAI Assistant",
+        hint: "AI manager for attendance, fees & insights",
+        icon: Sparkles,
+        keywords: ["ai", "assistant", "nevorai", "help", "insights", "chat"],
+      },
     ],
   },
   {

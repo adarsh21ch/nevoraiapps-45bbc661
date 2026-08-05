@@ -49,7 +49,7 @@ export function GlobalBottomNav() {
   // Hide the mobile bottom nav when the keyboard is open (so it never floats
   // halfway up the screen) and while on NevorAI (chat composer owns the
   // bottom edge). It returns automatically when the keyboard closes.
-  const hidden = keyboardOpen || location.pathname.startsWith("/dashboard/nevorai");
+  const hidden = keyboardOpen || location.pathname === "/dashboard/nevorai";
 
   return (
     <div

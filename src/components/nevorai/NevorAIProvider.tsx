@@ -76,7 +76,7 @@ function NevorAIInner({ children }: { children: ReactNode }) {
   );
 
   const close = useCallback(() => {
-    if (isOpen) navigate({ to: "/dashboard" });
+    if (isOpen) navigate({ to: "/dashboard/academy" });
   }, [isOpen, navigate]);
 
   const state = useMemo<NevorAIState>(() => ({ open, close, isOpen }), [open, close, isOpen]);
