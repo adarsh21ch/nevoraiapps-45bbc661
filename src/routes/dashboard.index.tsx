@@ -106,7 +106,7 @@ function DashboardHome() {
   // it. One channel per tenant, refcounted.
   useAttendanceRealtime(tenant.id, qc);
 
-  const kpisQ = useQuery({ queryKey: qk.kpis(tenant.id), queryFn: () => fetchKpis(tenant) });
+  const kpisQ = useQuery({ queryKey: qk.kpis(tenant.id), queryFn: () => fetchKpis(tenant), refetchOnWindowFocus: true });
   const insightsQ = useQuery({
     queryKey: qk.insights(tenant.id),
     queryFn: () => fetchDashboardInsights(tenant.id),

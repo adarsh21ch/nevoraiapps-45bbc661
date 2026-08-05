@@ -70,9 +70,7 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
     },
     onSuccess: (_, enabled) => {
       toast.success(`Admission fee ${enabled ? "enabled" : "disabled"}`);
-      // Manually update the local tenant object in the dashboard context
-      // to avoid a full page reload which loses state/dialogs
-      qc.setQueryData(["tenant", tenant.id], (old: any) => ({
+      qc.setQueryData(["dashboard-tenant", tenant.id], (old: any) => ({
         ...old,
         admission_fee_enabled: enabled,
       }));
@@ -93,7 +91,7 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
     },
     onSuccess: (_, enabled) => {
       toast.success(`Gender-based pricing ${enabled ? "enabled" : "disabled"}`);
-      qc.setQueryData(["tenant", tenant.id], (old: any) => ({
+      qc.setQueryData(["dashboard-tenant", tenant.id], (old: any) => ({
         ...old,
         gender_pricing_enabled: enabled,
       }));

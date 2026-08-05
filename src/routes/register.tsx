@@ -118,12 +118,14 @@ function batchFeePlan(batch: Batch, fees: FeePlan[]): FeePlan | undefined {
   return monthly[0];
 }
 
-function batchFeeText(batch: Batch, fees: FeePlan[], gender?: string): string {
+function batchFeeText(batch: Batch, fees: FeePlan[], gender?: string, tenant?: any): string {
   const plan = batchFeePlan(batch, fees);
   if (!plan) return "Contact academy";
   
-  // Use gender-specific amount if available and requested
-  const amount = (gender === "female" && (plan as any).female_amount) 
+  const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
+  
+  // Use gender-specific amount if gender pricing is enabled AND it's a female student
+  const amount = (isGenderPricingEnabled && gender === "female" && (plan as any).female_amount != null) 
     ? (plan as any).female_amount 
     : plan.amount;
     
@@ -323,7 +325,7 @@ function RegisterContent() {
       ...batches.map((b) => ({
         value: b.id,
         label: b.timing ? `${b.name} — ${b.timing}` : b.name,
-        right: batchFeeText(b, fees, form.gender),
+        right: batchFeeText(b, fees, form.gender, tenant),
       })),
     ],
     [batches, fees],
