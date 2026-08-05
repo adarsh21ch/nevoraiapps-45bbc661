@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSuspenseQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useDashboard } from "@/lib/dashboard-context";
@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { importedStudentsQuery, importBatchesQuery } from "@/lib/admissions/queries";
 import { sendActivations, rollbackImport } from "@/lib/admissions/admissions.functions";
 import { fetchBatches, fetchFeePlans, qk } from "@/lib/dashboard-queries";
+import { findAdmissionPlan, type FeePlanLite } from "@/lib/billing-enrollment";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,6 +41,18 @@ function ActivationCenter() {
   const sessions = useQuery({ queryKey: qk.batches(tenantId), queryFn: () => fetchBatches(tenantId) });
   const plans = useQuery({ queryKey: qk.feePlans(tenantId), queryFn: () => fetchFeePlans(tenantId) });
 
+  const sessionList = (sessions.data ?? []) as any[];
+  const planList = (plans.data ?? []) as unknown as FeePlanLite[];
+  const planById = new Map(planList.map((p) => [p.id, p]));
+  const admissionPlan = findAdmissionPlan(planList);
+  const feePlanForBatch = (batchId: string) =>
+    (sessionList.find((b) => b.id === batchId)?.fee_plan_id as string | null) ?? null;
+  const monthlyFor = (batchId?: string | null) => {
+    const id = batchId ? feePlanForBatch(batchId) : null;
+    const plan = id ? planById.get(id) : null;
+    return plan ? Number(plan.amount ?? 0) : null;
+  };
+
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -70,11 +83,12 @@ function ActivationCenter() {
   });
 
   const assignMut = useMutation({
-    mutationFn: async (payload: { ids: string[]; batchId: string; feePlanId: string }) => {
-      const patch: Record<string, string> = {};
-      if (payload.batchId) patch.batch_id = payload.batchId;
-      if (payload.feePlanId) patch.fee_plan_id = payload.feePlanId;
-      if (Object.keys(patch).length === 0) throw new Error("Pick a session or a fee plan first");
+    mutationFn: async (payload: { ids: string[]; batchId: string }) => {
+      if (!payload.batchId) throw new Error("Pick a session first");
+      const patch: Record<string, string | null> = {
+        batch_id: payload.batchId,
+        fee_plan_id: feePlanForBatch(payload.batchId),
+      };
       const { error } = await supabase
         .from("students")
         .update(patch as never)
@@ -295,31 +309,43 @@ function ActivationCenter() {
                           : ""}
                       </div>
 
-                      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <div className="mt-2 space-y-1.5">
                         <select
                           aria-label={`Session for ${s.name}`}
-                          className="w-full rounded-lg border bg-background px-2 py-1.5 text-xs"
+                          className="w-full rounded-lg border bg-background px-2 py-2 text-xs"
                           value={s.batch_id ?? ""}
-                          onChange={(e) => patchOne(s.id, { batch_id: e.target.value || null })}
+                          onChange={(e) =>
+                            patchOne(s.id, {
+                              batch_id: e.target.value || null,
+                              fee_plan_id: e.target.value ? feePlanForBatch(e.target.value) : null,
+                            })
+                          }
                         >
                           <option value="">Select session…</option>
-                          {(sessions.data ?? []).map((b: any) => (
-                            <option key={b.id} value={b.id}>{b.name}</option>
-                          ))}
+                          {sessionList.map((b: any) => {
+                            const amt = monthlyFor(b.id);
+                            return (
+                              <option key={b.id} value={b.id}>
+                                {b.name}
+                                {amt ? ` · ₹${amt.toLocaleString("en-IN")}/mo` : " · fee not set"}
+                              </option>
+                            );
+                          })}
                         </select>
-                        <select
-                          aria-label={`Fee plan for ${s.name}`}
-                          className="w-full rounded-lg border bg-background px-2 py-1.5 text-xs"
-                          value={s.fee_plan_id ?? ""}
-                          onChange={(e) => patchOne(s.id, { fee_plan_id: e.target.value || null })}
-                        >
-                          <option value="">Select fee plan…</option>
-                          {(plans.data ?? []).map((p: any) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name}{p.amount ? ` · ₹${Number(p.amount).toLocaleString("en-IN")}` : ""}
-                            </option>
-                          ))}
-                        </select>
+                        {s.batch_id ? (
+                          monthlyFor(s.batch_id) ? (
+                            <p className="text-[11px] text-muted-foreground">
+                              ₹{monthlyFor(s.batch_id)!.toLocaleString("en-IN")}/month
+                              {admissionPlan && Number(admissionPlan.amount ?? 0) > 0
+                                ? ` + one-time admission ₹${Number(admissionPlan.amount).toLocaleString("en-IN")}`
+                                : ""}
+                            </p>
+                          ) : (
+                            <p className="text-[11px] text-amber-700">
+                              This session has no fee yet — set it once in Batches and it applies to everyone.
+                            </p>
+                          )
+                        ) : null}
                       </div>
 
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -410,11 +436,11 @@ function ActivationCenter() {
       <AssignDialog
         open={assignOpen}
         count={selected.size}
-        sessions={sessions.data ?? []}
-        plans={plans.data ?? []}
+        sessions={sessionList}
+        priceFor={monthlyFor}
         pending={assignMut.isPending}
         onClose={() => setAssignOpen(false)}
-        onSave={(batchId, feePlanId) => assignMut.mutate({ ids: [...selected], batchId, feePlanId })}
+        onSave={(batchId) => assignMut.mutate({ ids: [...selected], batchId })}
       />
       <QrDialog data={qrFor} onClose={() => setQrFor(null)} />
     </div>
@@ -434,7 +460,7 @@ function AssignDialog({
   open,
   count,
   sessions,
-  plans,
+  priceFor,
   pending,
   onClose,
   onSave,
@@ -442,56 +468,48 @@ function AssignDialog({
   open: boolean;
   count: number;
   sessions: any[];
-  plans: any[];
+  priceFor: (batchId: string) => number | null;
   pending: boolean;
   onClose: () => void;
-  onSave: (batchId: string, feePlanId: string) => void;
+  onSave: (batchId: string) => void;
 }) {
   const [batchId, setBatchId] = useState("");
-  const [feePlanId, setFeePlanId] = useState("");
   useEffect(() => {
-    if (!open) { setBatchId(""); setFeePlanId(""); }
+    if (!open) setBatchId("");
   }, [open]);
-  const planOptions = useMemo(() => plans ?? [], [plans]);
+  const amount = batchId ? priceFor(batchId) : null;
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Set session for {count} {count === 1 ? "player" : "players"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <label className="block">
-            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Session</span>
-            <select
-              className="mt-1 w-full rounded-lg border bg-background px-2 py-2 text-sm"
-              value={batchId}
-              onChange={(e) => setBatchId(e.target.value)}
-            >
-              <option value="">— leave unchanged —</option>
-              {sessions.map((b: any) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Fee plan</span>
-            <select
-              className="mt-1 w-full rounded-lg border bg-background px-2 py-2 text-sm"
-              value={feePlanId}
-              onChange={(e) => setFeePlanId(e.target.value)}
-            >
-              <option value="">— leave unchanged —</option>
-              {planOptions.map((p: any) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}{p.amount ? ` · ₹${Number(p.amount).toLocaleString("en-IN")}` : ""}
+        <div className="space-y-2">
+          <select
+            className="w-full rounded-lg border bg-background px-2 py-2 text-sm"
+            value={batchId}
+            onChange={(e) => setBatchId(e.target.value)}
+          >
+            <option value="">Select session…</option>
+            {sessions.map((b: any) => {
+              const amt = priceFor(b.id);
+              return (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                  {amt ? ` · ₹${amt.toLocaleString("en-IN")}/mo` : " · fee not set"}
                 </option>
-              ))}
-            </select>
-          </label>
+              );
+            })}
+          </select>
+          <p className="text-[11px] text-muted-foreground">
+            {amount
+              ? `Each player will be billed ₹${amount.toLocaleString("en-IN")} per month.`
+              : "Fees come from the session — set a session fee in Batches if it's missing."}
+          </p>
         </div>
         <DialogFooter className="gap-2">
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button disabled={pending} onClick={() => onSave(batchId, feePlanId)}>
+          <Button disabled={pending || !batchId} onClick={() => onSave(batchId)}>
             {pending ? "Saving…" : "Apply"}
           </Button>
         </DialogFooter>
