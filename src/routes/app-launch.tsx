@@ -20,7 +20,7 @@ export const Route = createFileRoute("/app-launch")({
 
 function AppLaunch() {
   const navigate = useNavigate();
-  const [message, setMessage] = useState("Loading your academy…");
+  const [message, setMessage] = useState("AcademyOS");
 
   useEffect(() => {
     let cancelled = false;
