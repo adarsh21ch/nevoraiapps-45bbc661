@@ -116,30 +116,32 @@ export function AdmissionActionDialog({ registrationId, tenantId, mode, onClose 
         {mode === "approve" ? (
           <div className="space-y-3">
             <div>
-              <Label>Assign Batch</Label>
+              <Label>Assign session</Label>
               <select
                 className="w-full rounded border bg-background px-2 py-2 text-sm"
                 value={batchId}
-                onChange={(e) => setBatchId(e.target.value)}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  setBatchId(id);
+                  // The fee belongs to the session — never picked separately.
+                  const b = ((batches.data ?? []) as any[]).find((x) => x.id === id);
+                  setFeePlanId(b?.fee_plan_id ?? "");
+                }}
               >
                 <option value="">— none —</option>
-                {(batches.data ?? []).map((b: any) => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
+                {((batches.data ?? []) as any[]).map((b: any) => {
+                  const amt = ((plans.data ?? []) as any[]).find((p: any) => p.id === b.fee_plan_id)?.amount;
+                  return (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                      {amt ? ` · ₹${Number(amt).toLocaleString("en-IN")}/mo` : " · fee not set"}
+                    </option>
+                  );
+                })}
               </select>
-            </div>
-            <div>
-              <Label>Assign Fee Plan</Label>
-              <select
-                className="w-full rounded border bg-background px-2 py-2 text-sm"
-                value={feePlanId}
-                onChange={(e) => setFeePlanId(e.target.value)}
-              >
-                <option value="">— none —</option>
-                {(plans.data ?? []).map((p: any) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                The monthly fee comes from the session, plus the one-time admission fee for new players.
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
