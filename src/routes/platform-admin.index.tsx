@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   MessageSquare,
   Sparkles,
+  Activity,
 } from "lucide-react";
 import { niche } from "@/lib/niche";
 import { tenantSiteUrl } from "@/lib/tenant";
