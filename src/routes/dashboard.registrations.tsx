@@ -9,10 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { bulkApproveRegistrations } from "@/lib/bulk-ops";
 import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
 import { markRegistrationsReviewed, newRegsQueryKey } from "@/hooks/use-new-registrations";
+import { enrollStudentInBilling } from "@/lib/billing-enrollment";
+import { fetchFeePlans } from "@/lib/dashboard-queries";
 import {
   rejectRegistration,
   waitlistRegistration,
 } from "@/lib/admissions/admissions.functions";
+import { auditStudentIdentity } from "@/lib/admissions/audit.functions";
 
 import { PersonAvatar } from "@/components/site/PersonAvatar";
 import { Button } from "@/components/ui/button";
@@ -100,6 +103,11 @@ function RegistrationsInbox() {
   });
 
   const [openId, setOpenId] = useState<string | null>(null);
+  const { data: allPlans = [] } = useQuery({
+    queryKey: qk.feePlans(tenantId),
+    queryFn: () => fetchFeePlans(tenantId),
+  });
+  const auditId = useServerFn(auditStudentIdentity);
   const [filter, setFilter] = useState<FilterKey>("pending");
   const [dialog, setDialog] = useState<{ id: string; mode: "approve" | "changes" } | null>(null);
   const [rejectReasonFor, setRejectReasonFor] = useState<string | null>(null);
@@ -156,8 +164,35 @@ function RegistrationsInbox() {
       );
       return { prev };
     },
-    onSuccess: () => {
+    onSuccess: async (newStudentId, regId) => {
       toast.success("Accepted — student added");
+      
+      // 1. Audit Identity (ID + Card Token)
+      try {
+        await auditId({ data: { studentId: newStudentId, tenantId, prefix: tenant.slug?.toUpperCase().slice(0, 3) || "SAI" } });
+      } catch (e) {
+        console.error("Audit failed", e);
+      }
+
+      // 2. Automate Billing
+      const reg = data.find(r => r.id === regId);
+      if (reg && reg.fee_plan_id) {
+        try {
+          await enrollStudentInBilling({
+            tenantId,
+            studentId: newStudentId,
+            feePlanId: reg.fee_plan_id,
+            plans: allPlans as any,
+            chargeAdmission: true,
+            issue: true
+          });
+          toast.success("Billing enrolled automatically");
+        } catch (billingErr) {
+          console.error("Auto-billing failed", billingErr);
+          toast.error("Student added but billing enrollment failed. Please check Fees section.");
+        }
+      }
+
       invalidate();
       setOpenId(null);
     },
