@@ -83,21 +83,26 @@ function gradientRect(
   steps = 80,
 ) {
   const rad = Math.min(R, h / 2);
-  // Rounded caps first, so the strips never square off the corners.
+  // Base in the start colour so the left rounded corners are clean.
   doc.setFillColor(...hexToRgb(from));
   doc.roundedRect(x, y, w, h, rad, rad, "F");
-  doc.setFillColor(...hexToRgb(to));
-  doc.roundedRect(x + w - 2 * rad, y, 2 * rad, h, rad, rad, "F");
 
+  // Strips across the straight middle section.
   const gx = x + rad;
-  const gw = w - 3 * rad;
+  const gw = w - 2 * rad;
   const sw = gw / steps;
   for (let i = 0; i < steps; i++) {
-    const t = (rad + i * sw) / w;
+    const t = Math.min(1, (rad + i * sw) / w);
     const [r, g, b] = mix(from, to, t);
     doc.setFillColor(r, g, b);
     doc.rect(gx + i * sw, y, sw + 0.15, h, "F");
   }
+
+  // End cap last, so it covers the strip edge and keeps the right corners round.
+  doc.setFillColor(...hexToRgb(to));
+  doc.roundedRect(x + w - 2 * rad, y, 2 * rad, h, rad, rad, "F");
+  doc.setFillColor(...hexToRgb(to));
+  doc.rect(x + w - 2 * rad, y + rad, rad, Math.max(0, h - 2 * rad), "F");
 }
 
 const fmtDate = (iso?: string | null) =>
