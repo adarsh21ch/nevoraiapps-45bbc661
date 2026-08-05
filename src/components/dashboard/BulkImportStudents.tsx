@@ -208,12 +208,15 @@ export function BulkImportStudents() {
         if (next[s.key] !== undefined) continue;
         if (s.key === NO_SESSION) next[s.key] = "";
         else {
+          // Only ever link to sessions the academy already created — imports
+          // must never invent batches.
           const hit = (batches.data ?? []).find((b: any) => b.name.trim().toLowerCase() === s.key);
-          next[s.key] = hit ? hit.id : CREATE_SESSION;
+          next[s.key] = hit ? hit.id : "";
         }
       }
       return next;
     });
+
   }, [open, sessionValues, batches.data]);
 
   const sessionKeyFor = (r: Row) => ((r.batch ?? "").trim() ? (r.batch ?? "").trim().toLowerCase() : NO_SESSION);
