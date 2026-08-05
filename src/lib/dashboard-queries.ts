@@ -150,7 +150,6 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
   ]);
 
 
-  const collection = (pays.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
   const paidByStudent = new Map<string, Set<string>>();
   for (const p of paidRows.data ?? []) {
     if (!p.student_id || !p.period) continue;
@@ -158,13 +157,19 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     set.add(p.period);
     paidByStudent.set(p.student_id, set);
   }
-  let pending = 0;
-  let pendingAmount = 0;
-  for (const s of (studentsMonthly.data ?? []) as Array<{
+
+  // Active student list for fee calculation
+  const students = (studentsMonthly.data ?? []) as Array<{
     id: string;
     joined_at: string | null;
-    fee_plans: { amount: number | null } | Array<{ amount: number | null }> | null;
-  }>) {
+    fee_plans: { amount: number | null; type: string | null } | Array<{ amount: number | null; type: string | null }> | null;
+  }>;
+
+  const collection = (pays.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
+
+  let pending = 0;
+  let pendingAmount = 0;
+  for (const s of students) {
     if (!s.joined_at) continue;
     const due = studentDue({
       cycle,
