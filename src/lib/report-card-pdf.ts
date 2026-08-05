@@ -8,6 +8,7 @@ export type ReportCardData = {
   guardianName: string | null;
   dob: string | null;
   address: string | null;
+  currentAddress?: string | null;
   phone: string;
   guardianPhone: string | null;
   batchName: string | null;
