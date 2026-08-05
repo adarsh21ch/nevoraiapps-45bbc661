@@ -44,7 +44,6 @@ function BatchesPage() {
   const plans = useQuery({ queryKey: qk.feePlans(tenant.id), queryFn: () => fetchFeePlans(tenant.id) });
   const planList = (plans.data ?? []) as unknown as FeePlanLite[];
   const planById = new Map(planList.map((p) => [p.id, p]));
-  const admission = findAdmissionPlan(planList);
 
 
   const del = useMutation({
