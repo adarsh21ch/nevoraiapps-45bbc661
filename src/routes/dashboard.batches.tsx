@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDashboard } from "@/lib/dashboard-context";
-import { fetchBatches, qk } from "@/lib/dashboard-queries";
+import { fetchBatches, fetchFeePlans, qk } from "@/lib/dashboard-queries";
+import { recurringPlans, findAdmissionPlan, type FeePlanLite } from "@/lib/billing-enrollment";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,9 @@ export const Route = createFileRoute("/dashboard/batches")({
   component: BatchesPage,
 });
 
-type BatchForm = { id?: string; name: string; timing: string; active: boolean };
+type BatchForm = { id?: string; name: string; timing: string; active: boolean; feePlanId: string };
+
+const inr = (n: number) => `₹${Number(n).toLocaleString("en-IN")}`;
 
 function BatchesPage() {
   const { tenant } = useDashboard();
@@ -38,6 +41,10 @@ function BatchesPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BatchForm | null>(null);
   const [coachBatch, setCoachBatch] = useState<{ id: string; name: string } | null>(null);
+  const plans = useQuery({ queryKey: qk.feePlans(tenant.id), queryFn: () => fetchFeePlans(tenant.id) });
+  const planList = (plans.data ?? []) as unknown as FeePlanLite[];
+  const planById = new Map(planList.map((p) => [p.id, p]));
+  const admission = findAdmissionPlan(planList);
 
 
   const del = useMutation({
@@ -69,13 +76,14 @@ function BatchesPage() {
           <DialogTrigger asChild>
             <Button
               style={{ backgroundColor: "var(--brand)", color: "white" }}
-              onClick={() => setEditing({ name: "", timing: "", active: true })}
+              onClick={() => setEditing({ name: "", timing: "", active: true, feePlanId: "" })}
             >
               <Plus className="size-4 mr-1" /> New batch
             </Button>
           </DialogTrigger>
           {editing && (
             <BatchDialog
+              plans={planList}
               initial={editing}
               onClose={() => {
                 setOpen(false);
@@ -98,6 +106,15 @@ function BatchesPage() {
                   {count} student{count === 1 ? "" : "s"}
                   {b.active ? "" : " · inactive"}
                 </div>
+                <div className="mt-1 text-xs">
+                  {(b as any).fee_plan_id && planById.get((b as any).fee_plan_id) ? (
+                    <span className="rounded bg-muted px-2 py-0.5">
+                      {inr(Number(planById.get((b as any).fee_plan_id)!.amount ?? 0))} / month
+                    </span>
+                  ) : (
+                    <span className="rounded bg-amber-100 px-2 py-0.5 text-amber-800">No fee set</span>
+                  )}
+                </div>
               </div>
               <div className="flex gap-1">
                 <Button
@@ -119,6 +136,7 @@ function BatchesPage() {
                       name: b.name,
                       timing: b.timing ?? "",
                       active: b.active,
+                      feePlanId: (b as any).fee_plan_id ?? "",
                     });
                     setOpen(true);
                   }}
@@ -160,7 +178,7 @@ function BatchesPage() {
 }
 
 
-function BatchDialog({ initial, onClose }: { initial: BatchForm; onClose: () => void }) {
+function BatchDialog({ initial, plans, onClose }: { initial: BatchForm; plans: FeePlanLite[]; onClose: () => void }) {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
   const [form, setForm] = useState(initial);
@@ -171,6 +189,7 @@ function BatchDialog({ initial, onClose }: { initial: BatchForm; onClose: () => 
         name: form.name,
         timing: form.timing || null,
         active: form.active,
+        fee_plan_id: form.feePlanId || null,
       };
       if (form.id) {
         const { error } = await supabase.from("batches").update(payload).eq("id", form.id);
@@ -214,6 +233,29 @@ function BatchDialog({ initial, onClose }: { initial: BatchForm; onClose: () => 
             value={form.timing}
             onChange={(e) => setForm({ ...form, timing: e.target.value })}
           />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Monthly fee for this session</Label>
+          <select
+            className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+            value={form.feePlanId}
+            onChange={(e) => setForm({ ...form, feePlanId: e.target.value })}
+          >
+            <option value="">No fee</option>
+            {recurringPlans(plans).map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+                {p.amount ? ` · ₹${Number(p.amount).toLocaleString("en-IN")}` : ""}
+              </option>
+            ))}
+          </select>
+          <p className="text-[11px] text-muted-foreground">
+            Every player added to this session is billed this amount automatically
+            {findAdmissionPlan(plans)
+              ? `, plus the one-time ₹${Number(findAdmissionPlan(plans)!.amount ?? 0).toLocaleString("en-IN")} admission fee for new joiners`
+              : ""}
+            .
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />{" "}
