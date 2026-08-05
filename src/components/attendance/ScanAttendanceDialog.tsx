@@ -122,15 +122,31 @@ export function ScanAttendanceDialog({
   );
 
   const startCamera = useCallback(async () => {
+    // Crucial: Clear everything first to avoid "NotReadableError" or "Source unavailable"
+    // which happens if a previous stream isn't fully released by the browser/OS.
+    stopCamera();
+    
     busyRef.current = false;
     setResult(null);
     setMessage(null);
     setPhase("scanning");
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      });
+      // First attempt with ideal environment (back) camera
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
+      } catch (e) {
+        // Fallback to any camera if environment camera fails
+        console.warn("Preferred environment camera failed, falling back to any camera:", e);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
       streamRef.current = stream;
       const video = videoRef.current;
       if (!video) return;
