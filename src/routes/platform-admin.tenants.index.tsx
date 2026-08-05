@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -14,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetchTenants, pqk } from "@/lib/platform-queries";
 import { StatusChip, SubChip } from "@/components/platform/StatusChips";
 import { niche, nicheOptions } from "@/lib/niche";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, Search, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/platform-admin/tenants/")({
   component: List,
@@ -40,15 +41,22 @@ function List() {
 
   return (
     <div className="space-y-4">
-      <header className="flex flex-wrap items-end justify-between gap-3">
+      <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Tenants</h1>
           <p className="text-sm text-neutral-400">
             Click a tenant to manage branding, features, pricing and domain.
           </p>
         </div>
-        <div className="text-xs text-neutral-500">
-          {filtered.length} of {data.length}
+        <div className="flex items-center gap-4">
+          <div className="text-xs text-neutral-500 hidden sm:block">
+            {filtered.length} of {data.length}
+          </div>
+          <Button asChild size="sm" className="bg-white text-neutral-900 hover:bg-neutral-100">
+            <Link to="/platform-admin/new">
+              <Plus className="size-4 mr-1.5" /> Onboard client
+            </Link>
+          </Button>
         </div>
       </header>
 
