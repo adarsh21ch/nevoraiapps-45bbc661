@@ -219,9 +219,9 @@ function NevorAIPage() {
         >
 
           <Link
-            to="/dashboard"
+            to="/dashboard/academy"
             className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
-            aria-label="Back to dashboard"
+            aria-label="Back to Manage"
           >
             <ArrowLeft className="size-4" />
           </Link>
