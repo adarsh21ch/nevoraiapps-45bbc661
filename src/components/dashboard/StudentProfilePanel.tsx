@@ -232,18 +232,24 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
         className="rounded-2xl p-4 border shadow-sm bg-card flex items-center justify-between gap-3"
         style={{ borderColor: "color-mix(in oklab, var(--brand) 40%, var(--border))" }}
       >
-        <div>
+        <div className="flex-1">
           <div className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
             Monthly fee
           </div>
-          <div className="text-2xl font-bold tabular-nums">
-            ₹{effectiveFee.toLocaleString("en-IN")}
+          <div className="flex items-baseline gap-2">
+            <div className="text-2xl font-bold tabular-nums">
+              ₹{effectiveFee.toLocaleString("en-IN")}
+            </div>
+            {s.custom_fee != null && (
+              <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium uppercase tracking-wider">
+                Manual Edit
+              </span>
+            )}
           </div>
           <div className="text-xs text-muted-foreground">
             {s.custom_fee != null
-              ? `Custom · plan is ₹${baseAmount.toLocaleString("en-IN")}`
+              ? `Plan is ₹${baseAmount.toLocaleString("en-IN")}`
               : plan?.name || "No plan"}
-
           </div>
         </div>
         <Button
@@ -628,7 +634,7 @@ function EditFeeInline({
 
   return (
     <div className="rounded-2xl border border-border shadow-sm bg-card p-4 space-y-3">
-      <div className="text-sm font-semibold">Custom fee for this student</div>
+      <div className="text-sm font-semibold">Manual fee edit</div>
       <div className="flex gap-2">
         <div className="relative flex-1">
           <span className="absolute inset-y-0 left-3 flex items-center text-neutral-500 font-semibold">
@@ -775,13 +781,13 @@ function CoreEditor({
       {isGenderPricingEnabled && f.gender === "female" && f.custom_fee != null && (
         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex gap-2">
           <p>
-            <strong>Custom fee active:</strong> This student is billed ₹{Number(f.custom_fee).toLocaleString("en-IN")} instead of the girl's discount price. 
+            <strong>Manual edit active:</strong> This student is billed ₹{Number(f.custom_fee).toLocaleString("en-IN")} instead of the girl's discount price. 
             <button 
               type="button" 
               className="ml-1 underline font-bold"
               onClick={() => setF({ ...f, custom_fee: null })}
             >
-              Reset to system price
+              Sync to system price
             </button>
           </p>
         </div>
