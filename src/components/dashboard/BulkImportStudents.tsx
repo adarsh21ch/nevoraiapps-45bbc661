@@ -546,45 +546,32 @@ export function BulkImportStudents() {
                         {s.count} {s.count === 1 ? "player" : "players"}
                       </span>
                     </div>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      <label className="block">
-                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Session</span>
-                        <select
-                          className="mt-1 w-full rounded-lg border bg-background px-2 py-2 text-sm"
-                          value={sessionMap[s.key] ?? ""}
-                          onChange={(e) => setSessionMap({ ...sessionMap, [s.key]: e.target.value })}
-                        >
-                          <option value="">— decide later —</option>
-
-                          {(batches.data ?? []).map((b: any) => (
+                    <div>
+                      <select
+                        aria-label={`Session for ${s.label}`}
+                        className="w-full rounded-lg border bg-background px-2 py-2 text-sm"
+                        value={sessionMap[s.key] ?? ""}
+                        onChange={(e) => setSessionMap({ ...sessionMap, [s.key]: e.target.value })}
+                      >
+                        <option value="">— decide later —</option>
+                        {(batches.data ?? []).map((b: any) => {
+                          const amt = Number(
+                            (plans.data ?? []).find((p: any) => p.id === b.fee_plan_id)?.amount ?? 0,
+                          );
+                          return (
                             <option key={b.id} value={b.id}>
                               {b.name}
+                              {amt ? ` · ₹${amt.toLocaleString("en-IN")}/mo` : " · fee not set"}
                             </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="block">
-                        <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Fee plan</span>
-                        <select
-                          className="mt-1 w-full rounded-lg border bg-background px-2 py-2 text-sm"
-                          value={planMap[s.key] ?? ""}
-                          onChange={(e) => setPlanMap({ ...planMap, [s.key]: e.target.value })}
-                        >
-                          <option value="">— decide later —</option>
-                          {(plans.data ?? []).map((p: any) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name}
-                              {p.amount ? ` · ₹${Number(p.amount).toLocaleString("en-IN")}` : ""}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                          );
+                        })}
+                      </select>
                     </div>
                   </div>
                 ))}
               </div>
               <p className="text-[11px] text-muted-foreground">
-                You can also change any player's session and fee plan later from the Activation Center.
+                Fees follow the session automatically. You can change a player's session later from the Activation Center.
               </p>
             </>
           )}
