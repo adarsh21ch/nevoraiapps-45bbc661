@@ -110,6 +110,7 @@ export function BottomNav({
             </li>
           );
         })}
+
       </ul>
     </nav>
   );
