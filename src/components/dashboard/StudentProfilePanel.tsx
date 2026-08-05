@@ -271,7 +271,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           onSave={async (val) => {
             await patch.mutateAsync({ custom_fee: val });
             setEditFeeOpen(false);
-            toast.success(val == null ? "Reset to plan amount" : "Custom fee saved");
+            toast.success(val == null ? "Synced to system price" : "Manual fee saved");
           }}
         />
       )}
@@ -669,7 +669,7 @@ function EditFeeInline({
               disabled={saving}
               onClick={() => commit(null)}
             >
-              Reset to plan
+              Sync to system price
             </button>
           )}
           <button type="button" className="hover:text-foreground" onClick={onClose}>
