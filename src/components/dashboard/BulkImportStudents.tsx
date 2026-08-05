@@ -284,9 +284,18 @@ export function BulkImportStudents() {
       }
 
       const batchFor = (r: Row) => resolved[sessionKeyFor(r)] ?? null;
-      const planFor = (r: Row) =>
-        (r.fee_plan ? planByName.get(r.fee_plan.trim().toLowerCase()) : undefined) ??
-        (planMap[sessionKeyFor(r)] || null);
+      // Fee always follows the session by default; sheet/mapping overrides stay supported.
+      const batchPlan = new Map(
+        ((sessions.data ?? []) as any[]).map((b) => [b.id as string, (b.fee_plan_id as string | null) ?? null]),
+      );
+      const planFor = (r: Row) => {
+        const explicit =
+          (r.fee_plan ? planByName.get(r.fee_plan.trim().toLowerCase()) : undefined) ??
+          (planMap[sessionKeyFor(r)] || null);
+        if (explicit) return explicit;
+        const b = batchFor(r);
+        return b ? batchPlan.get(b) ?? null : null;
+      };
 
 
       if (markImported) {
