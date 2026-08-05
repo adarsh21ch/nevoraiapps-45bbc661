@@ -115,7 +115,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }
 
 
-  if (profileQ.isLoading || tenantQ.isLoading) return <FullPage>Loading your academy…</FullPage>;
+  if (profileQ.isLoading || tenantQ.isLoading) return null;
   if (!profileQ.data) {
     // When a platform admin is impersonating, synthesize a "viewer" profile
     // scoped to the impersonated tenant so the dashboard can render.
