@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2, Clock, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AcademyLogo } from "@/components/auth/AcademyLogo";
+
 
 export const Route = createFileRoute("/activate/$token")({
   head: () => ({
