@@ -89,6 +89,7 @@ function List() {
               { value: "active", label: "Active" },
               { value: "suspended", label: "Suspended" },
               { value: "trial", label: "Trial" },
+              { value: "archived", label: "Archived" },
             ]}
           />
           <FilterSelect
