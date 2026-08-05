@@ -207,8 +207,7 @@ function DashboardHome() {
       <LiveBadge state="live" />
       </div>
 
-      {/* ─── Primary Quick Action · Scan QR for Attendance ────────────── */}
-      <ScanAttendanceSection />
+      {/* ─── Live match jump-in · single most time-sensitive action ─── */}
 
       {/* ─── Live match jump-in · single most time-sensitive action ─── */}
       {canScoreMatch && liveMatch ? <LiveMatchBanner match={liveMatch} /> : null}
@@ -358,54 +357,6 @@ function DashboardHome() {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Scan Attendance Section — high-visibility action for staff to check players in/out.
-// ---------------------------------------------------------------------------
-
-function ScanAttendanceSection() {
-  const [open, setOpen] = useState(false);
-  const role = useCurrentRole();
-  const { can } = usePermissions();
-
-  // Only show to staff who can mark attendance
-  if (role === "student" || !can("canMarkAttendance")) return null;
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={cn(
-          "w-full rounded-2xl p-4 text-left border border-border bg-card",
-          "shadow-[var(--shadow-soft)] transition-all active:scale-[0.99]",
-          "hover:border-[color:var(--brand)]/40",
-          "flex items-center gap-4"
-        )}
-      >
-        <span
-          className="size-12 rounded-xl grid place-items-center shrink-0"
-          style={{
-            backgroundColor: "color-mix(in oklab, var(--brand) 14%, transparent)",
-            color: "var(--brand)",
-          }}
-        >
-          <QrCode className="size-6" />
-        </span>
-        <div className="flex-1 min-w-0">
-          <div className="text-base font-semibold tracking-tight">Scan Attendance</div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Check-in or out by scanning player ID cards
-          </div>
-        </div>
-        <div className="size-8 rounded-full bg-muted/50 grid place-items-center shrink-0">
-          <ArrowRight className="size-4 text-muted-foreground" />
-        </div>
-      </button>
-
-      <ScanStudentCardDialog open={open} onOpenChange={setOpen} />
-    </>
-  );
-}
 
 // ---------------------------------------------------------------------------
 
@@ -641,12 +592,20 @@ function QuickActionsGrid({
   tenant: { slug: string; name: string; custom_domain: string | null };
 }) {
   const [shareOpen, setShareOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
 
   const shareAction: QAItem = {
     key: "share",
     onClick: () => setShareOpen(true),
     label: "Share Website",
     icon: <Share2 className="size-5" />,
+  };
+
+  const scanAction: QAItem = {
+    key: "scan",
+    onClick: () => setScanOpen(true),
+    label: "Scan QR",
+    icon: <QrCode className="size-5" />,
   };
 
   const createMatch: QAItem[] = canScoreMatch
@@ -661,27 +620,17 @@ function QuickActionsGrid({
     : [];
 
   const ownerActions: QAItem[] = [
+    scanAction,
     { key: "add-player", to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
     ...createMatch,
-    {
-      key: "announce",
-      to: "/dashboard/communications",
-      label: "Send Announcement",
-      icon: <Megaphone className="size-5" />,
-    },
     { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     shareAction,
   ];
 
   const adminActions: QAItem[] = [
+    scanAction,
     { key: "add-player", to: "/dashboard/students", label: "Add Player", icon: <UserPlus className="size-5" /> },
     ...createMatch,
-    {
-      key: "announce",
-      to: "/dashboard/communications",
-      label: "Send Announcement",
-      icon: <Megaphone className="size-5" />,
-    },
     { key: "reports", to: "/dashboard/reports", label: "Reports", icon: <BarChart3 className="size-5" /> },
     shareAction,
   ];
@@ -696,6 +645,7 @@ function QuickActionsGrid({
         ))}
       </div>
       <ShareWebsiteDialog open={shareOpen} onOpenChange={setShareOpen} tenant={tenant} />
+      <ScanStudentCardDialog open={scanOpen} onOpenChange={setScanOpen} />
     </>
   );
 }
