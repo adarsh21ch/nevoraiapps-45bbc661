@@ -51,6 +51,7 @@ import {
   Server,
   SlidersHorizontal,
   Send,
+  ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -178,34 +179,53 @@ function CommunicationInfrastructurePage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold text-white">Communication Infrastructure</h1>
-        <p className="text-sm text-neutral-400">
-          Platform-wide message routing. Tenants never see providers, adapters, or credentials.
-        </p>
-      </header>
-
-      <div className="flex flex-wrap gap-1 border-b border-white/10">
+    <div className="flex gap-6 h-[calc(100vh-8rem)]">
+      {/* Infrastructure Sidebar */}
+      <aside className="w-48 shrink-0 flex flex-col gap-1 border-r border-white/10 pr-4 overflow-y-auto">
+        <div className="mb-4">
+          <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest px-3 py-2">
+            Infrastructure
+          </h2>
+        </div>
         {TABS.map((t) => {
           const Icon = t.icon;
+          const active = tab === t.key;
           return (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
               className={cn(
-                "flex items-center gap-2 px-3 py-2 text-sm border-b-2 -mb-px transition-colors",
-                tab === t.key
-                  ? "border-primary text-white"
-                  : "border-transparent text-neutral-400 hover:text-white",
+                "flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-all group",
+                active
+                  ? "bg-white/10 text-white font-medium shadow-sm"
+                  : "text-neutral-400 hover:text-white hover:bg-white/5",
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className={cn("h-4 w-4 transition-colors", active ? "text-indigo-400" : "text-neutral-500 group-hover:text-neutral-300")} />
               {t.label}
             </button>
           );
         })}
-      </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto pr-2 space-y-6">
+        <header className="flex flex-col gap-1">
+          <div className="flex items-center gap-2 text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">
+            <Radio className="size-3" />
+            <span>Infrastructure</span>
+            <ChevronRight className="size-3" />
+            <span className="text-neutral-300">{TABS.find(t => t.key === tab)?.label}</span>
+          </div>
+          <h1 className="text-2xl font-bold text-white">
+            {TABS.find(t => t.key === tab)?.label}
+          </h1>
+          <p className="text-sm text-neutral-400">
+            {tab === "dashboard" 
+              ? "Platform-wide message routing. Tenants never see providers, adapters, or credentials."
+              : `Configure and manage ${TABS.find(t => t.key === tab)?.label.toLowerCase()} settings.`}
+          </p>
+        </header>
 
       {tab === "dashboard" && (
         <DashboardTab
@@ -263,6 +283,7 @@ function CommunicationInfrastructurePage() {
       )}
       {tab === "meta" && <MetaWhatsAppTab />}
       {tab === "costs" && <CostsTab />}
+      </div>
     </div>
   );
 }

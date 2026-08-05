@@ -35,7 +35,7 @@ const nav = [
   { to: "/platform-admin/audit", label: "Audit trail", icon: ScrollText },
   { to: "/platform-admin/health", label: "System health", icon: Activity },
   { to: "/platform-admin/search", label: "Global search", icon: Search },
-  { to: "/platform-admin/new", label: "Onboard client", icon: Plus },
+  
   { to: "/platform-admin/settings", label: "Platform config", icon: Settings },
 
 ];
