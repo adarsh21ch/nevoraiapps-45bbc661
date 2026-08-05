@@ -76,12 +76,20 @@ const OWNER_GROUPS: Group[] = [
         keywords: ["groups", "schedule", "timings", "sessions"],
       },
       {
+        to: "/dashboard/activation",
+        label: "Activation Center",
+        hint: "Share magic links & QR so players create their own login",
+        icon: LinkIcon,
+        keywords: ["magic link", "invite", "activate", "login", "qr", "whatsapp", "onboarding"],
+      },
+      {
         to: "/dashboard/leads",
         label: "Leads & Enquiries",
         hint: "Prospects, follow-ups & conversion",
         icon: UserPlus,
         keywords: ["enquiry", "inquiry", "prospects", "follow-up", "conversion"],
       },
+
     ],
   },
   {
