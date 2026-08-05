@@ -1038,39 +1038,36 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
               ]}
             />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1.5">
-              <Label>Session</Label>
-              <Select value={f.batch_id} onValueChange={(v) => setF({ ...f, batch_id: v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(batches.data ?? []).map((b: any) => (
+          <div className="space-y-1.5">
+            <Label>Session</Label>
+            <Select
+              value={f.batch_id}
+              onValueChange={(v) => {
+                // Money follows the session — a session owns its monthly fee.
+                const b = ((batches.data ?? []) as any[]).find((x) => x.id === v);
+                setF({ ...f, batch_id: v, fee_plan_id: b?.fee_plan_id ?? "" });
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                {((batches.data ?? []) as any[]).map((b) => {
+                  const amt = ((feePlans.data ?? []) as FeePlanLite[]).find(
+                    (p) => p.id === b.fee_plan_id,
+                  )?.amount;
+                  return (
                     <SelectItem key={b.id} value={b.id}>
                       {b.name}
+                      {amt ? ` · ₹${Number(amt).toLocaleString("en-IN")}/mo` : " · fee not set"}
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Fee plan</Label>
-              <Select value={f.fee_plan_id} onValueChange={(v) => setF({ ...f, fee_plan_id: v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  {recurringPlans((feePlans.data ?? []) as FeePlanLite[]).map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name} · ₹{p.amount}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </div>
           <FeePreview plans={(feePlans.data ?? []) as FeePlanLite[]} feePlanId={f.fee_plan_id} />
+
 
           <div className="grid grid-cols-2 gap-2">
             <FormField
