@@ -8,6 +8,9 @@ import {
   fetchPaymentsForPeriods,
   qk,
 } from "@/lib/dashboard-queries";
+import { useServerFn } from "@tanstack/react-start";
+import { deleteStudentPermanently } from "@/lib/students-manage.functions";
+
 import { useDashboard } from "@/lib/dashboard-context";
 import { uploadTenantFile } from "@/lib/storage";
 import { generateReportCardPdf } from "@/lib/report-card-pdf";
@@ -60,6 +63,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
   const cycle = tenantFeeCycle(tenant);
+  const deleteStudent = useServerFn(deleteStudentPermanently);
+
 
   const studentQ = useQuery({
     queryKey: qk.student(studentId),
@@ -396,11 +401,14 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               className="rounded-xl h-12 justify-start text-rose-600 hover:text-rose-700 hover:bg-rose-50"
               onClick={async () => {
                 if (confirm(`Completely delete ${s.name}'s data? This will remove all their records (attendance, payments, etc.) and cannot be undone.`)) {
-                  const { error } = await supabase.rpc("delete_student_with_cleanup", { _student_id: studentId });
-                  if (error) return toast.error(error.message);
-                  toast.success("Student permanently deleted");
-                  qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
-                  invalidate();
+                  try {
+                    await deleteStudent({ data: { studentId } });
+                    toast.success("Student permanently deleted");
+                    qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
+                    invalidate();
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to delete student");
+                  }
                 }
               }}
             >
