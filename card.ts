@@ -288,7 +288,7 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData) {
 
   // Emergency line only when it still fits inside the white panel.
   const panelBottom = fy + 16 + (CH - 21);
-  if ((r.guardianPhone || r.phone) && y + 7.4 <= panelBottom - 1.5) {
+  if ((r.guardianPhone || r.phone) && y + 7.4 <= panelBottom) {
     y += 4.2;
     doc.setTextColor(140, 146, 158);
     doc.setFont("helvetica", "normal");
