@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -29,6 +29,7 @@ import {
   Play,
   ShieldAlert,
   UserCog,
+  ChevronRight,
 } from "lucide-react";
 import { uploadTenantFile, signedUrl } from "@/lib/storage";
 import { SiteContentTabs } from "@/components/dashboard/SiteContentTabs";
@@ -39,7 +40,7 @@ import { usePlatform } from "@/lib/platform-context";
 import { DangerZone } from "@/components/shared/DangerZone";
 import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
 import { removeTenant } from "@/lib/removal";
-import { useNavigate } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/platform-admin/tenants/$id")({
   component: TenantDetail,
