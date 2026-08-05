@@ -141,7 +141,6 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
             <div className="flex items-center gap-2">
               <Label className="text-xs text-muted-foreground">Girls discount</Label>
               <Switch 
-                size="sm"
                 checked={isGenderPricingEnabled} 
                 onCheckedChange={(v) => toggleGenderPricing.mutate(v)}
               />
