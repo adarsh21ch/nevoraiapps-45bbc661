@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useDashboard } from "@/lib/dashboard-context";
 import { useCurrentRole } from "@/hooks/use-current-role";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,10 +24,13 @@ import {
   ChevronRight,
   KeyRound,
   Zap,
-  
+  Share2,
+  Copy,
 } from "lucide-react";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { tenantSiteUrl } from "@/lib/tenant";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/profile")({
   head: () => ({
