@@ -77,7 +77,7 @@ function ProfilePage() {
       },
       {
         to: "/dashboard/settings",
-        label: "I mean, in short, anybody who do add to home screen or install the application, whether he-- student login he do. So when he click on that icon, native, it's directly open the dashboard, whether it's admin, whether it's student, or whether it's owner of the application, right? They open their application directly. Simple as that, right?",
+        label: "Need to solve this thing. And also I focused that why this particular error is happening. Camera access block, allow camera for this site in browser setting, then try again. And, uh, plus he allow-- also allow it, but still it is blocking. Please fix this thing. I also observe this thing. Why this error is appearing? Please fix this thing. Camera scan should be open correctly.",
         hint: "Interface preferences",
         icon: Palette,
       },

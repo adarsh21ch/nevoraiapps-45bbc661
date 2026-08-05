@@ -155,10 +155,24 @@ export function ScanAttendanceDialog({
         if (token) void record(token);
       };
       rafRef.current = requestAnimationFrame(tick);
-    } catch {
-      setMessage(
-        "Camera access is blocked. Allow camera for this site in your browser settings, then try again.",
-      );
+    } catch (e: any) {
+      // If error name is NotAllowedError or it's a security error, it's a permission issue.
+      // We also check for common strings in browsers.
+      const isPermissionError = 
+        e?.name === 'NotAllowedError' || 
+        e?.name === 'PermissionDeniedError' ||
+        String(e).includes('denied') ||
+        String(e).includes('blocked');
+
+      if (isPermissionError) {
+        setMessage(
+          "Camera access is blocked. Please go to your browser settings, ensure 'Camera' is set to 'Allow' for this website, and refresh the page. Sometimes browsers need a fresh start after permission changes.",
+        );
+      } else {
+        setMessage(
+          e?.message || "Couldn't open camera. Please ensure no other app is using it and try again.",
+        );
+      }
       setPhase("error");
     }
   }, [record]);

@@ -275,9 +275,10 @@ export function getCurrentPosition(timeoutMs = 20000, goodEnoughM = 60): Promise
       },
       (err) => {
         // Keep waiting on transient failures if we already have something.
+        const isPermission = err.code === err.PERMISSION_DENIED || String(err.message).toLowerCase().includes("denied");
         const msg =
-          err.code === err.PERMISSION_DENIED
-            ? "Location permission denied. Allow location for this site in your browser settings, then try again."
+          isPermission
+            ? "Location permission denied. Please allow 'Location' for this website in your browser settings and refresh. GPS is required to verify you are at the academy."
             : err.code === err.TIMEOUT
               ? "Location timed out. Step into an open area and try again."
               : "Couldn't get your location on this device. Step outside and try again.";
