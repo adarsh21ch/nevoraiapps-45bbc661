@@ -69,3 +69,35 @@ FROM public.attendance_marks m
 JOIN public.attendance_sessions s ON s.id = m.session_id
 WHERE s.session_date = CURRENT_DATE
   AND m.superseded_by IS NULL;
+
+-- Update attendance_visits view to also respect the exclude_from_hours flag
+CREATE OR REPLACE VIEW public.attendance_visits AS
+SELECT
+  m.id           AS mark_id,
+  m.tenant_id,
+  m.student_id,
+  m.session_id,
+  s.session_date,
+  s.batch_id,
+  m.status,
+  m.check_in_at,
+  m.check_out_at,
+  CASE 
+    WHEN m.check_out_meta->>'exclude_from_hours' = 'true' THEN 0
+    ELSE m.duration_minutes
+  END AS duration_minutes,
+  m.source,
+  m.marked_by,
+  m.visit_type,
+  m.note,
+  m.created_at
+FROM public.attendance_marks m
+JOIN public.attendance_sessions s ON s.id = m.session_id
+WHERE m.superseded_by IS NULL
+  AND m.status = 'present';
+
+-- Apply security invoker for the view
+ALTER VIEW public.attendance_visits SET (security_invoker = on);
+
+GRANT SELECT ON public.attendance_visits TO authenticated;
+GRANT ALL    ON public.attendance_visits TO service_role;
