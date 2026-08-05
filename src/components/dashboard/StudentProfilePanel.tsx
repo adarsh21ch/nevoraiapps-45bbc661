@@ -395,8 +395,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               variant="outline"
               className="rounded-xl h-12 justify-start text-rose-600 hover:text-rose-700 hover:bg-rose-50"
               onClick={async () => {
-                if (confirm(`Completely delete ${s.name}'s data? This cannot be undone.`)) {
-                  const { error } = await supabase.from("students").delete().eq("id", studentId);
+                if (confirm(`Completely delete ${s.name}'s data? This will remove all their records (attendance, payments, etc.) and cannot be undone.`)) {
+                  const { error } = await supabase.rpc("delete_student_with_cleanup", { _student_id: studentId });
                   if (error) return toast.error(error.message);
                   toast.success("Student permanently deleted");
                   qc.invalidateQueries({ queryKey: qk.students(tenant.id) });

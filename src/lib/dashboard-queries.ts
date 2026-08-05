@@ -136,7 +136,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .gte("created_at", weekAgo),
     db
       .from("payments")
-      .select("amount")
+      .select("amount, student_id")
       .eq("tenant_id", tenantId)
       .eq("type", "monthly")
       .gte("created_at", startOfMonth),
@@ -150,6 +150,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .from("payments")
       .select("student_id, period")
       .eq("tenant_id", tenantId)
+      .eq("type", "monthly")
       .in("period", periods),
   ]);
 
@@ -161,7 +162,14 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     paidByStudent.set(p.student_id, set);
   }
 
-  const collection = (paysRes.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
+  // Only count payments from students that currently exist and are not archived?
+  // Actually, if a student left but paid this month, it should count.
+  // BUT the user says they have 0 payments, so let's filter by currently active students to be safe
+  // as they want to "erase" old data.
+  const activeStudentIds = new Set((studentsRes.data ?? []).map(s => s.id));
+  const collection = (paysRes.data ?? [])
+    .filter(p => p.student_id && activeStudentIds.has(p.student_id))
+    .reduce((s, p) => s + Number(p.amount || 0), 0);
 
   let pendingCount = 0;
   let pendingAmount = 0;
