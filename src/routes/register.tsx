@@ -118,9 +118,16 @@ function batchFeePlan(batch: Batch, fees: FeePlan[]): FeePlan | undefined {
   return monthly[0];
 }
 
-function batchFeeText(batch: Batch, fees: FeePlan[]): string {
+function batchFeeText(batch: Batch, fees: FeePlan[], gender?: string): string {
   const plan = batchFeePlan(batch, fees);
-  return formatFeeLabel(plan) || "Contact academy";
+  if (!plan) return "Contact academy";
+  
+  // Use gender-specific amount if available and requested
+  const amount = (gender === "female" && (plan as any).female_amount) 
+    ? (plan as any).female_amount 
+    : plan.amount;
+    
+  return formatFeeLabel({ ...plan, amount }) || "Contact academy";
 }
 
 function RegisterContent() {
@@ -316,7 +323,7 @@ function RegisterContent() {
       ...batches.map((b) => ({
         value: b.id,
         label: b.timing ? `${b.name} — ${b.timing}` : b.name,
-        right: batchFeeText(b, fees),
+        right: batchFeeText(b, fees, form.gender),
       })),
     ],
     [batches, fees],

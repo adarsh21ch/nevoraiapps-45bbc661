@@ -2180,6 +2180,7 @@ export type Database = {
           currency: string
           cycle_anchor_day: number | null
           description: string | null
+          female_amount: number | null
           id: string
           name: string
           tenant_id: string
@@ -2193,6 +2194,7 @@ export type Database = {
           currency?: string
           cycle_anchor_day?: number | null
           description?: string | null
+          female_amount?: number | null
           id?: string
           name: string
           tenant_id: string
@@ -2206,6 +2208,7 @@ export type Database = {
           currency?: string
           cycle_anchor_day?: number | null
           description?: string | null
+          female_amount?: number | null
           id?: string
           name?: string
           tenant_id?: string
@@ -6989,6 +6992,7 @@ export type Database = {
           feature_overrides: Json
           features: Json
           fee_cycle: string
+          gender_pricing_enabled: boolean | null
           geo_lat: number | null
           geo_lng: number | null
           geo_radius_m: number
@@ -7041,6 +7045,7 @@ export type Database = {
           feature_overrides?: Json
           features?: Json
           fee_cycle?: string
+          gender_pricing_enabled?: boolean | null
           geo_lat?: number | null
           geo_lng?: number | null
           geo_radius_m?: number
@@ -7093,6 +7098,7 @@ export type Database = {
           feature_overrides?: Json
           features?: Json
           fee_cycle?: string
+          gender_pricing_enabled?: boolean | null
           geo_lat?: number | null
           geo_lng?: number | null
           geo_radius_m?: number

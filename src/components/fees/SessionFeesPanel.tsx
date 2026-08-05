@@ -39,6 +39,8 @@ type SessionForm = {
   active: boolean;
   /** Monthly fee as typed by the owner — "" means this session has no fee yet. */
   amount: string;
+  /** Optional override for girls */
+  femaleAmount: string;
   description: string;
   feePlanId: string | null;
 };
@@ -68,14 +70,40 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
     },
     onSuccess: (_, enabled) => {
       toast.success(`Admission fee ${enabled ? "enabled" : "disabled"}`);
-      // Update tenant context or refetch
-      window.location.reload(); // Simple way to refresh tenant state in context
+      // Manually update the local tenant object in the dashboard context
+      // to avoid a full page reload which loses state/dialogs
+      qc.setQueryData(["tenant", tenant.id], (old: any) => ({
+        ...old,
+        admission_fee_enabled: enabled,
+      }));
+      // Invalidate dashboard queries to update KPIs
+      qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
     },
     onError: (e: Error) => toast.error(e.message),
     onSettled: () => setIsUpdatingAdmission(false),
   });
 
+  const toggleGenderPricing = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const { error } = await supabase
+        .from("tenants")
+        .update({ gender_pricing_enabled: enabled })
+        .eq("id", tenant.id);
+      if (error) throw error;
+    },
+    onSuccess: (_, enabled) => {
+      toast.success(`Gender-based pricing ${enabled ? "enabled" : "disabled"}`);
+      qc.setQueryData(["tenant", tenant.id], (old: any) => ({
+        ...old,
+        gender_pricing_enabled: enabled,
+      }));
+      qc.invalidateQueries({ queryKey: qk.feePlans(tenant.id) });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const isAdmissionEnabled = (tenant as any).admission_fee_enabled !== false;
+  const isGenderPricingEnabled = (tenant as any).gender_pricing_enabled === true;
   const [coachBatch, setCoachBatch] = useState<{ id: string; name: string } | null>(null);
 
   const del = useMutation({
@@ -108,14 +136,25 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
             public /fees page shows.
           </p>
         </div>
-        <Button
-          style={{ backgroundColor: "var(--brand)", color: "white" }}
-          onClick={() =>
-            setEditing({ name: "", timing: "", active: true, amount: "", description: "", feePlanId: null })
-          }
-        >
-          <Plus className="size-4 mr-1" /> New session
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col items-end mr-4">
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground">Girls discount</Label>
+              <Switch 
+                checked={isGenderPricingEnabled} 
+                onCheckedChange={(v) => toggleGenderPricing.mutate(v)}
+              />
+            </div>
+          </div>
+          <Button
+            style={{ backgroundColor: "var(--brand)", color: "white" }}
+            onClick={() =>
+              setEditing({ name: "", timing: "", active: true, amount: "", femaleAmount: "", description: "", feePlanId: null })
+            }
+          >
+            <Plus className="size-4 mr-1" /> New session
+          </Button>
+        </div>
       </header>
 
       {/* One-time admission fee — academy-wide, charged on a player's first invoice. */}
@@ -175,13 +214,28 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
                 </div>
                 <div className="mt-2">
                   {plan ? (
-                    <span className="text-lg font-bold">{inr(Number(plan.amount ?? 0))}</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold">{inr(Number(plan.amount ?? 0))}</span>
+                        {isGenderPricingEnabled && (
+                          <span className="text-[10px] font-medium bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded uppercase">Boys</span>
+                        )}
+                      </div>
+                      {isGenderPricingEnabled && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold text-rose-600">
+                            {inr(Number((plan as any).female_amount ?? plan.amount ?? 0))}
+                          </span>
+                          <span className="text-[10px] font-medium bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded uppercase">Girls</span>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <span className="rounded bg-amber-100 px-2 py-0.5 text-xs text-amber-800">
                       No fee set
                     </span>
                   )}
-                  {plan && <span className="ml-1 text-xs text-muted-foreground">/ month</span>}
+                  {plan && <span className="text-xs text-muted-foreground">/ month</span>}
                 </div>
               </div>
               <div className="flex shrink-0 gap-1">
@@ -207,6 +261,7 @@ export function SessionFeesPanel({ showCoaches = true }: { showCoaches?: boolean
                       timing: b.timing ?? "",
                       active: b.active,
                       amount: plan?.amount != null ? String(plan.amount) : "",
+                      femaleAmount: (plan as any)?.female_amount != null ? String((plan as any).female_amount) : "",
                       description: (plan as any)?.description ?? "",
                       feePlanId: b.fee_plan_id ?? null,
                     })
@@ -302,7 +357,10 @@ function SessionDialog({ initial, onClose }: { initial: SessionForm; onClose: ()
   const save = useMutation({
     mutationFn: async () => {
       const amount = form.amount.trim() === "" ? null : Number(form.amount);
+      const femaleAmount = form.femaleAmount.trim() === "" ? null : Number(form.femaleAmount);
+      
       if (amount != null && (!Number.isFinite(amount) || amount < 0)) throw new Error("Enter a valid fee");
+      if (femaleAmount != null && (!Number.isFinite(femaleAmount) || femaleAmount < 0)) throw new Error("Enter a valid female fee");
 
       // 1. The fee plan mirrors the session: same name, same active state.
       let feePlanId = form.feePlanId;
@@ -312,6 +370,7 @@ function SessionDialog({ initial, onClose }: { initial: SessionForm; onClose: ()
           name: form.name,
           description: form.description || null,
           amount,
+          female_amount: femaleAmount,
           type: "monthly",
           active: form.active,
         };
@@ -388,21 +447,36 @@ function SessionDialog({ initial, onClose }: { initial: SessionForm; onClose: ()
               onChange={(e) => setForm({ ...form, timing: e.target.value })}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label>Monthly fee ₹</Label>
-            <Input
-              type="number"
-              min={0}
-              inputMode="numeric"
-              placeholder="e.g. 1500"
-              value={form.amount}
-              onChange={(e) => setForm({ ...form, amount: e.target.value })}
-            />
-            <p className="text-[11px] text-muted-foreground">
-              Every player in this session is billed this amount each month. Leave blank for a free
-              session.
-            </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Boys Fee ₹</Label>
+              <Input
+                type="number"
+                min={0}
+                inputMode="numeric"
+                placeholder="e.g. 1500"
+                value={form.amount}
+                onChange={(e) => setForm({ ...form, amount: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Girls Fee ₹</Label>
+              <Input
+                type="number"
+                min={0}
+                inputMode="numeric"
+                placeholder="e.g. 1200"
+                value={form.femaleAmount}
+                onChange={(e) => setForm({ ...form, femaleAmount: e.target.value })}
+              />
+            </div>
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            { (tenant as any).gender_pricing_enabled 
+              ? "Every player is billed based on their gender. Leave girls fee blank to use the standard fee."
+              : "Every player in this session is billed the standard fee. Enable girls discount in the header to set separate pricing."
+            }
+          </p>
           <div className="space-y-1.5">
             <Label>Public description</Label>
             <Input
