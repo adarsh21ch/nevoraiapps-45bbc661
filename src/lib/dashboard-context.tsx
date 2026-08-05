@@ -108,14 +108,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   }, [tenantQ.data]);
 
-  if (session === undefined) return <FullPage>Loading…</FullPage>;
+  if (session === undefined) return null; // Root pendingComponent handles the splash
   if (session === null) {
-    // redirect happens via effect; render nothing meaningful
-    if (typeof window !== "undefined") {
-      window.location.href = "/auth";
-    }
-    return <FullPage>Redirecting…</FullPage>;
+    // redirect happens via effect; we return null to avoid flashing content
+    return null;
   }
+
 
   if (profileQ.isLoading || tenantQ.isLoading) return <FullPage>Loading your academy…</FullPage>;
   if (!profileQ.data) {

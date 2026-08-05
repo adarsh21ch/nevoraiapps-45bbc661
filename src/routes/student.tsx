@@ -1,7 +1,7 @@
-import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Home, TrendingUp, Trophy, CreditCard, UserCircle, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyPortalContext, studentKeys } from "@/lib/student-app";
 import {
@@ -14,7 +14,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
+
 
 export const Route = createFileRoute("/student")({
   head: () => ({
@@ -27,16 +28,8 @@ export const Route = createFileRoute("/student")({
   component: StudentLayout,
 });
 
-// Family nav: one login for student and parents.
-// Home · Performance · Matches · Fees · Profile.
-// Timeline and Manage are reachable from Home/Profile — not tabs.
-const TABS = [
-  { to: "/student", label: "Home", icon: Home, exact: true },
-  { to: "/student/progress", label: "Performance", icon: TrendingUp, exact: false },
-  { to: "/student/matches", label: "Matches", icon: Trophy, exact: false },
-  { to: "/student/fees", label: "Fees", icon: CreditCard, exact: false },
-  { to: "/student/profile", label: "Profile", icon: UserCircle, exact: false },
-] as const;
+// Lifecycle gate: fetch student's lifecycle_status and pending registration status.
+
 
 function StudentLayout() {
   const navigate = useNavigate();
@@ -112,20 +105,14 @@ function StudentLayout() {
   const blockedLifecycle =
     gateQ.data?.lifecycle && isBlocked(gateQ.data.lifecycle) ? gateQ.data.lifecycle : null;
 
-  if (!ready) return <PageSkeleton />;
+  if (!ready) return null; // Root pendingComponent handles the splash
   if (!signedIn) {
-    return (
-      <div className="min-h-dvh grid place-items-center p-6 bg-background">
-        <Card className="p-6 max-w-md text-center space-y-3">
-          <h1 className="text-xl font-semibold">Sign in required</h1>
-          <p className="text-sm text-muted-foreground">
-            Please sign in with the email registered with your academy.
-          </p>
-          <Button onClick={() => navigate({ to: "/auth" })}>Go to sign in</Button>
-        </Card>
-      </div>
-    );
+    if (typeof window !== "undefined") {
+      navigate({ to: "/auth", replace: true });
+    }
+    return null;
   }
+
   if (ctxQ.isLoading || gateQ.isLoading) return <PageSkeleton />;
 
   // Allow /student/pending to render even without a student record.
@@ -192,30 +179,8 @@ function StudentLayout() {
       </div>
 
       {/* Bottom nav */}
-      <nav
-        aria-label="Primary"
-        className="fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70 pb-[env(safe-area-inset-bottom)]"
-      >
-        <div className="max-w-3xl mx-auto grid grid-cols-5">
-          {TABS.map((t) => {
-            const active = t.exact ? pathname === t.to : pathname.startsWith(t.to);
-            const Icon = t.icon;
-            return (
-              <Link
-                key={t.to}
-                to={t.to}
-                className={cn(
-                  "flex flex-col items-center justify-center py-3 gap-1 text-[10px] transition-colors",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <Icon className={cn("size-5", active && "scale-110")} />
-                <span className={cn(active && "font-medium")}>{t.label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      <GlobalBottomNav />
+
     </div>
   );
 }

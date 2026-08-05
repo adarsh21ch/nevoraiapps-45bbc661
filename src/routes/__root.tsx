@@ -98,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "viewport",
         content:
-          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no",
       },
       { title: "Academy OS" },
       {
@@ -169,9 +169,37 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
   shellComponent: RootShell,
   component: RootComponent,
+  pendingComponent: AppSplash,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
+
+function AppSplash() {
+  return (
+    <div className="fixed inset-0 grid place-items-center bg-background text-foreground animate-in fade-in duration-500">
+      <div className="flex flex-col items-center gap-6">
+        <div
+          className="grid h-20 w-20 place-items-center rounded-3xl text-4xl shadow-2xl animate-pulse"
+          style={{ backgroundColor: "var(--brand, #E8873C)" }}
+        >
+          <img src="/api/public/tenant-icon" alt="" className="size-14 object-contain" onError={(e) => {
+            e.currentTarget.style.display = 'none';
+            if (e.currentTarget.parentElement) e.currentTarget.parentElement.innerText = '🏏';
+          }} />
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-1 w-32 overflow-hidden rounded-full bg-muted">
+            <div className="h-full w-full origin-left animate-progress bg-primary" />
+          </div>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-semibold">
+            AcademyOS
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function RootShell({ children }: { children: ReactNode }) {
   // Pre-hydration theme boot — supports "light" | "dark" | "system" (default: system).

@@ -1,5 +1,16 @@
 @import "tailwindcss" source(none);
 @source "../src";
+
+@utility animate-progress {
+  animation: progress 2s ease-in-out infinite;
+}
+
+@keyframes progress {
+  0% { transform: scaleX(0); }
+  50% { transform: scaleX(1); }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));

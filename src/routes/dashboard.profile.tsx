@@ -136,18 +136,6 @@ function ProfilePage() {
   }
 
   sections.push({
-    title: "Security",
-    rows: [
-      {
-        to: "/dashboard/staff",
-        label: "Team & Access",
-        hint: "Members, invitations & role assignments",
-        icon: ShieldCheck,
-      },
-    ],
-  });
-
-  sections.push({
     title: "Support",
     rows: [
       {
@@ -158,6 +146,20 @@ function ProfilePage() {
       },
     ],
   });
+
+  sections.push({
+    title: "Account Control",
+    rows: [
+      {
+        to: "/dashboard/profile",
+        label: "Sign out",
+        hint: "Safely sign out of your account",
+        icon: LogOut,
+        danger: true,
+      },
+    ],
+  });
+
 
 
   return (
@@ -234,10 +236,8 @@ function ProfilePage() {
               View public site <ExternalLink className="size-3 ml-1" />
             </a>
           </Button>
-          <Button variant="outline" size="sm" onClick={signOut}>
-            <LogOut className="size-4 mr-1" /> Sign out
-          </Button>
         </div>
+
       </Card>
 
       {/* Grouped settings sections */}
@@ -253,6 +253,10 @@ function ProfilePage() {
                 <Link
                   key={section.title + row.label}
                   to={row.to}
+                  onClick={row.label === "Sign out" ? (e) => {
+                    e.preventDefault();
+                    signOut();
+                  } : undefined}
                   className="flex items-center gap-3 px-4 py-3.5 hover:bg-muted/60 active:bg-muted/80 transition-colors"
                 >
                   <span
@@ -278,6 +282,7 @@ function ProfilePage() {
                   </div>
                   <ChevronRight className="size-4 text-muted-foreground" />
                 </Link>
+
               );
             })}
           </Card>

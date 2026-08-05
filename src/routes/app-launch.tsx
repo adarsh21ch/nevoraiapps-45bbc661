@@ -72,16 +72,26 @@ function AppLaunch() {
       role="status"
       aria-live="polite"
     >
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-6">
         <div
-          className="grid h-16 w-16 place-items-center rounded-2xl text-3xl shadow-lg"
+          className="grid h-20 w-20 place-items-center rounded-3xl text-4xl shadow-2xl animate-pulse"
           style={{ backgroundColor: "var(--tenant-brand, var(--brand, #E8873C))" }}
         >
-          🏏
+          <img src="/api/public/tenant-icon" alt="" className="size-14 object-contain" onError={(e) => {
+            e.currentTarget.style.display = 'none';
+            if (e.currentTarget.parentElement) e.currentTarget.parentElement.innerText = '🏏';
+          }} />
         </div>
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
-        <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">{message}</p>
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-1 w-32 overflow-hidden rounded-full bg-muted">
+            <div className="h-full w-full origin-left animate-progress bg-primary" />
+          </div>
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground font-semibold">
+            {message}
+          </p>
+        </div>
       </div>
+
     </div>
   );
 }
