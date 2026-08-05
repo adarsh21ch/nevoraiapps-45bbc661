@@ -115,11 +115,15 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
   const tenantId = tenant.id;
   const cycle = tenantFeeCycle(tenant);
   const now = new Date();
+  
+  // Start of current calendar month for "Collection This Month"
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const weekAgo = new Date(Date.now() - 7 * 86400 * 1000).toISOString();
+  
+  // For pending checks, we only care about periods that could be active now
   const periods = cycle === "joining_date" ? candidatePeriods(now) : [periodKey(now)];
 
-  const [active, regs, pays, studentsMonthly, paidRows] = await Promise.all([
+  const [activeRes, regsRes, paysRes, studentsRes, paidRowsRes] = await Promise.all([
     db
       .from("students")
       .select("id", { count: "exact", head: true })
@@ -134,11 +138,11 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .from("payments")
       .select("amount")
       .eq("tenant_id", tenantId)
-      .eq("type", "monthly") // Only count actual fee revenue, not registration/others
+      .eq("type", "monthly")
       .gte("created_at", startOfMonth),
     db
       .from("students")
-      .select("id, joined_at, fee_plan_id, fee_plans!inner(type, amount)")
+      .select("id, joined_at, fee_plans!inner(type, amount)")
       .eq("tenant_id", tenantId)
       .eq("status", "active")
       .eq("fee_plans.type", "monthly"),
@@ -149,28 +153,29 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .in("period", periods),
   ]);
 
-
   const paidByStudent = new Map<string, Set<string>>();
-  for (const p of paidRows.data ?? []) {
+  for (const p of paidRowsRes.data ?? []) {
     if (!p.student_id || !p.period) continue;
     const set = paidByStudent.get(p.student_id) ?? new Set<string>();
     set.add(p.period);
     paidByStudent.set(p.student_id, set);
   }
 
-  // Active student list for fee calculation
-  const students = (studentsMonthly.data ?? []) as Array<{
+  const collection = (paysRes.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
+
+  let pendingCount = 0;
+  let pendingAmount = 0;
+
+  // IMPORTANT: We only iterate over "active" students retrieved in studentsRes
+  const activeStudents = (studentsRes.data ?? []) as Array<{
     id: string;
     joined_at: string | null;
     fee_plans: { amount: number | null; type: string | null } | Array<{ amount: number | null; type: string | null }> | null;
   }>;
 
-  const collection = (pays.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
-
-  let pending = 0;
-  let pendingAmount = 0;
-  for (const s of students) {
+  for (const s of activeStudents) {
     if (!s.joined_at) continue;
+    
     const due = studentDue({
       cycle,
       joinedAt: s.joined_at,
@@ -178,20 +183,23 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       paidPeriods: paidByStudent.get(s.id) ?? new Set(),
       today: now,
     });
-    if (due.state !== "pending") continue;
-    pending++;
-    const plan = Array.isArray(s.fee_plans) ? s.fee_plans[0] : s.fee_plans;
-    pendingAmount += Number(plan?.amount ?? 0);
+
+    if (due.state === "pending") {
+      pendingCount++;
+      const plan = Array.isArray(s.fee_plans) ? s.fee_plans[0] : s.fee_plans;
+      pendingAmount += Number(plan?.amount ?? 0);
+    }
   }
 
   return {
-    activeStudents: active.count ?? 0,
-    newRegsThisWeek: regs.count ?? 0,
+    activeStudents: activeRes.count ?? 0,
+    newRegsThisWeek: regsRes.count ?? 0,
     collectionThisMonth: collection,
-    pendingFeeCount: pending,
+    pendingFeeCount: pendingCount,
     pendingFeeAmount: pendingAmount,
   };
 }
+
 
 
 /** Payments carrying any of the given period keys (fee register paid-lookup). */
