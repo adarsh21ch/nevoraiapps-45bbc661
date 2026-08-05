@@ -286,7 +286,7 @@ export function BulkImportStudents() {
       const batchFor = (r: Row) => resolved[sessionKeyFor(r)] ?? null;
       // Fee always follows the session by default; sheet/mapping overrides stay supported.
       const batchPlan = new Map(
-        ((sessions.data ?? []) as any[]).map((b) => [b.id as string, (b.fee_plan_id as string | null) ?? null]),
+        ((batches.data ?? []) as any[]).map((b) => [b.id as string, (b.fee_plan_id as string | null) ?? null]),
       );
       const planFor = (r: Row) => {
         const explicit =
