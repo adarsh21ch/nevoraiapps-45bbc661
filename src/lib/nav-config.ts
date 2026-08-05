@@ -5,6 +5,8 @@ import {
   UserCircle,
   TrendingUp,
   Building2,
+  Trophy,
+  CreditCard,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import type { AppRole } from "@/hooks/use-current-role";
@@ -40,7 +42,8 @@ export const navByRole: Record<AppRole, NavItem[]> = {
   student: [
     { to: "/student", label: "Home", icon: LayoutDashboard },
     { to: "/student/progress", label: "Performance", icon: TrendingUp },
-    { to: "/student/manage", label: "Manage", icon: Building2 },
+    { to: "/student/matches", label: "Matches", icon: Trophy },
+    { to: "/student/fees", label: "Fees", icon: CreditCard },
     { to: "/student/profile", label: "Profile", icon: UserCircle },
   ],
 };
