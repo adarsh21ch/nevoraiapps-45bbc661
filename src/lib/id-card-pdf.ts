@@ -260,39 +260,42 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData) {
   y += 3.6;
   doc.setTextColor(17, 24, 39);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  const nameLines = doc.splitTextToSize(r.name, dw) as string[];
-  doc.text(nameLines.slice(0, 2), dx, y);
-  y += nameLines.length > 1 ? 8.4 : 4.6;
+  doc.setFontSize(9.5);
+  const nameLines = (doc.splitTextToSize(r.name, dw) as string[]).slice(0, 2);
+  doc.text(nameLines, dx, y);
+  y += nameLines.length > 1 ? 8 : 4.4;
 
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("PLAYER ID", dx, y);
-  y += 3.4;
+  y += 3.2;
   doc.setTextColor(...hexToRgb(brand));
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
   doc.text(r.playerId || "—", dx, y);
 
-  y += 4.6;
+  y += 4.3;
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("SESSION", dx, y);
-  y += 3.3;
+  y += 3.2;
   doc.setTextColor(17, 24, 39);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(7.6);
+  doc.setFontSize(7.4);
   doc.text((r.batchName || "—").slice(0, 22), dx, y);
 
-  if (r.guardianPhone || r.phone) {
-    y += 4.4;
+  // Emergency line only when it still fits inside the white panel.
+  const panelBottom = fy + 16 + (CH - 21);
+  if ((r.guardianPhone || r.phone) && y + 7.4 <= panelBottom - 1.5) {
+    y += 4.2;
     doc.setTextColor(140, 146, 158);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(5.4);
     doc.text("EMERGENCY", dx, y);
     y += 3.2;
+
     doc.setTextColor(17, 24, 39);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.2);
