@@ -276,27 +276,13 @@ export function BulkImportStudents() {
       });
       if (eligible.length === 0) throw new Error("Nothing to import after filtering");
 
-      // Resolve the owner's session choices. Values marked "create new" become real
-      // sessions now, so attendance and fees are wired up straight after the import.
+      // Map each sheet value onto a session the academy already created.
+      // Imports never create sessions — only the owner does, from Sessions.
       const resolved: Record<string, string | null> = {};
-      const toCreate: Array<{ key: string; name: string }> = [];
       for (const s of sessionValues) {
-        const choice = sessionMap[s.key] ?? "";
-        if (choice === CREATE_SESSION && s.key !== NO_SESSION) toCreate.push({ key: s.key, name: s.label });
-        else resolved[s.key] = choice || null;
+        resolved[s.key] = (sessionMap[s.key] ?? "") || null;
       }
-      if (toCreate.length > 0) {
-        const { data: created, error } = await supabase
-          .from("batches")
-          .insert(toCreate.map((c) => ({ tenant_id: tenant.id, name: c.name })))
-          .select("id, name");
-        if (error) throw error;
-        for (const c of toCreate) {
-          const hit = (created ?? []).find((b: any) => b.name.trim().toLowerCase() === c.key);
-          resolved[c.key] = hit?.id ?? null;
-        }
-        qc.invalidateQueries({ queryKey: qk.batches(tenant.id) });
-      }
+
       const batchFor = (r: Row) => resolved[sessionKeyFor(r)] ?? null;
       const planFor = (r: Row) =>
         (r.fee_plan ? planByName.get(r.fee_plan.trim().toLowerCase()) : undefined) ??
