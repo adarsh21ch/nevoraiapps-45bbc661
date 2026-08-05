@@ -1,7 +1,7 @@
 /**
  * Unified family/student timeline panel (shared by the Student portal).
  */
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
   CalendarDays,
@@ -12,16 +12,33 @@ import {
   MessageSquareQuote,
   IndianRupee,
   Search,
+  ScanLine,
+  LogIn,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchChildTimeline, parentKeys, type TimelineEvent } from "@/lib/parent-app";
 import type { StudentContext } from "@/lib/student-app";
+import { fetchStudentHome, studentKeys } from "@/lib/student-app";
+import { ScanAttendanceDialog } from "@/components/attendance/ScanAttendanceDialog";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
 export function TimelinePanel({ child }: { child: StudentContext | null }) {
   const [q, setQ] = useState("");
+  const [scanOpen, setScanOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  // We need current status to show the right button state
+  const homeQ = useQuery({
+    queryKey: child ? studentKeys.home(child.student_id) : ["student", "home", "none"],
+    queryFn: () => fetchStudentHome(child!),
+    enabled: !!child,
+  });
+
+  const home = homeQ.data;
+  const isCheckedIn = !!(home?.todayVisit && !home.todayVisit.check_out_at);
 
   const tenantBillingQ = useQuery({
     queryKey: child
@@ -132,6 +149,50 @@ export function TimelinePanel({ child }: { child: StudentContext | null }) {
           ))}
         </div>
       )}
+
+      {/* Quick Scan Action for Students in Timeline */}
+      <div className="sticky bottom-4 left-0 right-0 z-10 px-1 pt-4 pb-2">
+        <button
+          type="button"
+          onClick={() => setScanOpen(true)}
+          className={cn(
+            "w-full rounded-2xl px-5 py-4 text-left transition-all active:scale-[0.99] shadow-xl border border-white/10",
+            isCheckedIn
+              ? "bg-emerald-600 text-white shadow-emerald-500/30"
+              : "bg-primary text-primary-foreground shadow-primary/30"
+          )}
+        >
+          <div className="flex items-center gap-4">
+            <span className={cn(
+              "size-10 rounded-xl grid place-items-center shrink-0",
+              isCheckedIn ? "bg-white/20" : "bg-primary-foreground/15"
+            )}>
+              {isCheckedIn ? <LogIn className="size-5" /> : <ScanLine className="size-5" />}
+            </span>
+            <div className="flex-1 min-w-0">
+              <span className="block text-sm font-semibold leading-tight">
+                {isCheckedIn ? "You are checked in" : "Sign In / Out"}
+              </span>
+              <span className="block text-[10px] opacity-80 mt-1 uppercase tracking-wider font-bold">
+                {isCheckedIn ? "Tap to scan & check out" : "Tap to scan QR"}
+              </span>
+            </div>
+            <ScanLine className="size-4 opacity-50 shrink-0" />
+          </div>
+        </button>
+      </div>
+
+      <ScanAttendanceDialog
+        open={scanOpen}
+        onOpenChange={setScanOpen}
+        mode={isCheckedIn ? "out" : "in"}
+        onRecorded={() => {
+          if (child) {
+            void queryClient.invalidateQueries({ queryKey: studentKeys.home(child.student_id) });
+            void queryClient.invalidateQueries({ queryKey: parentKeys.timeline(child.student_id) });
+          }
+        }}
+      />
     </div>
   );
 }
