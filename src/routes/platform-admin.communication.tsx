@@ -285,6 +285,8 @@ function CommunicationInfrastructurePage() {
       {tab === "costs" && <CostsTab />}
       </div>
     </div>
+  );
+}
 
 function StatCard({
   label,
