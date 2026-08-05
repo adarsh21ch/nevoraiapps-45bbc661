@@ -136,7 +136,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .gte("created_at", weekAgo),
     db
       .from("payments")
-      .select("amount")
+      .select("amount, student_id")
       .eq("tenant_id", tenantId)
       .eq("type", "monthly")
       .gte("created_at", startOfMonth),
@@ -150,6 +150,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .from("payments")
       .select("student_id, period")
       .eq("tenant_id", tenantId)
+      .eq("type", "monthly")
       .in("period", periods),
   ]);
 
@@ -161,6 +162,8 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
     paidByStudent.set(p.student_id, set);
   }
 
+  // Count all payments for the month, including those from students who might have archived (Left)
+  // after paying, but before the month ended.
   const collection = (paysRes.data ?? []).reduce((s, p) => s + Number(p.amount || 0), 0);
 
   let pendingCount = 0;

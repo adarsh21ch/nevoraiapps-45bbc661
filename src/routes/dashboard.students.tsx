@@ -9,6 +9,9 @@ import {
   fetchStudents,
   qk,
 } from "@/lib/dashboard-queries";
+import { useServerFn } from "@tanstack/react-start";
+import { deleteAllArchivedStudents } from "@/lib/students-manage.functions";
+
 import { supabase } from "@/integrations/supabase/client";
 import { uploadTenantFile } from "@/lib/storage";
 import { candidatePeriods, periodKey, tenantFeeCycle } from "@/lib/fees";
@@ -110,6 +113,8 @@ function StudentsPage() {
   const cycle = tenantFeeCycle(tenant);
 
   const initialStatus = Route.useSearch().status ?? "active";
+  const deleteArchived = useServerFn(deleteAllArchivedStudents);
+
 
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>(initialStatus);
@@ -387,12 +392,37 @@ function StudentsPage() {
 
       {/* Search + filters toggle */}
       <div className="flex items-center gap-2">
-        <DashboardSearch
-          value={q}
-          onChange={setQ}
-          placeholder="Search name, phone, Player ID, parent, city"
-        />
+        <div className="min-w-0 flex-1">
+          <DashboardSearch
+            value={q}
+            onChange={setQ}
+            placeholder="Search name, phone, Player ID, parent, city"
+          />
+        </div>
+        {status === "left" && counts.left > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-11 rounded-full px-4 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200"
+            onClick={async () => {
+              if (confirm(`Permanently delete ALL ${counts.left} archived students? This will erase all their historical data and cannot be undone.`)) {
+                try {
+                  const res = await deleteArchived({ data: { tenantId: tenant.id } });
+                  toast.success(`Successfully deleted ${res.count} students`);
+                  qc.invalidateQueries({ queryKey: qk.students(tenant.id) });
+                  qc.invalidateQueries({ queryKey: qk.kpis(tenant.id) });
+                } catch (err: any) {
+                  toast.error(err.message || "Failed to delete students");
+                }
+              }
+            }}
+          >
+            <X className="size-4 mr-2" />
+            Delete All
+          </Button>
+        )}
         <Button
+
           type="button"
           variant="outline"
           onClick={() => setShowFilters((v) => !v)}
