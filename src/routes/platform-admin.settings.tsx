@@ -13,11 +13,25 @@ import {
   savePlatformSettings,
   waHref,
 } from "@/lib/platform-settings";
-import { ExternalLink, Mail, MessageCircle, Save } from "lucide-react";
+import { 
+  ExternalLink, 
+  Mail, 
+  MessageCircle, 
+  Save,
+  Database,
+  ChevronRight,
+  ShieldCheck,
+  KeyRound,
+  UserCircle
+} from "lucide-react";
 
 export const Route = createFileRoute("/platform-admin/settings")({
+  head: () => ({
+    meta: [{ title: "Platform Settings · AcademyOS" }, { name: "robots", content: "noindex" }],
+  }),
   component: SettingsPage,
 });
+
 
 function SettingsPage() {
   const qc = useQueryClient();
@@ -140,6 +154,56 @@ function SettingsPage() {
           </>
         )}
       </Card>
+
+      <section className="space-y-2 mt-8 max-w-2xl">
+        <h2 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500 px-1">
+          Admin Governance
+        </h2>
+        <Card className="overflow-hidden p-0 divide-y divide-white/5 bg-neutral-900 border-white/10">
+          {[
+            {
+              label: "My Profile",
+              hint: "Name and personal details",
+              icon: UserCircle,
+            },
+            {
+              label: "Password",
+              hint: "Change your password",
+              icon: KeyRound,
+            },
+            {
+              label: "And also as a platform admin, also give a recovery options kind of thing for me also for if a particular academy, if I delete it by mistakenly, it should not-- data should be erased completely, and I should have archive kind of option there so I can again recover that particular academy. So by mistakenly I pause or delete or kind of happened. Also, at least I have recovered that data or again put that academy again. I don't need to create a new tenant for that. So at least I have also a safer kind of option there, right?",
+              hint: "Tenant lifecycle and data retention management",
+              icon: Database,
+            },
+            {
+              label: "Security & Access Control",
+              hint: "Login methods and session security",
+              icon: ShieldCheck,
+            },
+          ].map((row) => {
+            const Icon = row.icon;
+            return (
+              <button
+                key={row.label}
+                className="w-full flex items-center gap-3 px-4 py-4 hover:bg-white/5 active:bg-white/10 transition-colors text-left"
+              >
+                <span className="inline-flex size-9 items-center justify-center rounded-lg bg-white/5 text-white">
+                  <Icon className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[15px] font-medium leading-tight text-white">
+                    {row.label}
+                  </div>
+                  <div className="text-xs text-neutral-500 truncate mt-1">{row.hint}</div>
+                </div>
+                <ChevronRight className="size-4 text-neutral-600" />
+              </button>
+            );
+          })}
+        </Card>
+      </section>
     </div>
   );
 }
+
