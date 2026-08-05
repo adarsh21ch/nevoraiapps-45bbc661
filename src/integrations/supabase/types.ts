@@ -1054,6 +1054,7 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          fee_plan_id: string | null
           id: string
           name: string
           tenant_id: string
@@ -1062,6 +1063,7 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          fee_plan_id?: string | null
           id?: string
           name: string
           tenant_id: string
@@ -1070,12 +1072,20 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          fee_plan_id?: string | null
           id?: string
           name?: string
           tenant_id?: string
           timing?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "batches_fee_plan_id_fkey"
+            columns: ["fee_plan_id"]
+            isOneToOne: false
+            referencedRelation: "fee_plans"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "batches_tenant_id_fkey"
             columns: ["tenant_id"]
