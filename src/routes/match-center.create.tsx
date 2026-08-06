@@ -737,6 +737,7 @@ function CreateMatchPage() {
                 teamsLoading={teamsQ.isLoading && !demo}
                 studentPool={studentPool}
                 studentsLoading={studentsQ.isLoading && !demo}
+                validationError={validationError}
               />
             )}
 
@@ -750,6 +751,7 @@ function CreateMatchPage() {
                 teamsLoading={teamsQ.isLoading && !demo}
                 studentPool={studentPool}
                 studentsLoading={studentsQ.isLoading && !demo}
+                validationError={validationError}
               />
             )}
 
@@ -1277,6 +1279,9 @@ function TeamPanel({
   teamsLoading,
   studentPool,
   studentsLoading,
+  studentPool,
+  studentsLoading,
+  validationError,
 }: {
   side: "A" | "B";
   state: TeamPanelState;
@@ -1286,6 +1291,7 @@ function TeamPanel({
   teamsLoading?: boolean;
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
+  validationError: string | null;
 }) {
   const setMode = (mode: TeamMode) => {
     onChange({ ...emptyPanel(mode) });
@@ -1333,6 +1339,7 @@ function TeamPanel({
           onRemove={removePlayer}
           studentPool={studentPool}
           studentsLoading={studentsLoading}
+          validationError={validationError}
         />
       )}
 
@@ -1467,6 +1474,7 @@ function NewTeamBody({
   onRemove,
   studentPool,
   studentsLoading,
+  validationError,
 }: {
   name: string;
   onName: (v: string) => void;
@@ -1476,6 +1484,7 @@ function NewTeamBody({
   onRemove: (key: string) => void;
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
+  validationError: string | null;
 }) {
   const [q, setQ] = useState("");
   const selectedKeys = useMemo(() => new Set(players.map((p) => p.key)), [players]);
