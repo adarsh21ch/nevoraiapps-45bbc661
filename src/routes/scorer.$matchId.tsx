@@ -507,7 +507,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       if (totalRuns > 1) {
         setPendingNoBallRuns(totalRuns);
         setNbClassificationOpen(true);
-      } else {
+      } else if (totalRuns === 1) {
         requestSubmit(ballHelpers.noBall(0, 0));
       }
     } else if (kind === "Bye") {
@@ -1718,7 +1718,7 @@ function DemoScorerBody({
       if (totalRuns > 1) {
         setPendingNoBallRuns(totalRuns);
         setNbClassificationOpen(true);
-      } else {
+      } else if (totalRuns === 1) {
         requestSubmit(ballHelpers.noBall(0, 0));
       }
     } else if (kind === "Bye") {
