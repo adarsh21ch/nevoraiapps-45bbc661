@@ -97,11 +97,11 @@ export function resolveTenantHint(input: {
   // Subdomain: {slug}.platform.tld (only when the base host is a known platform host)
   const isPlatformHost = platformHosts.some((h) => 
     hostname === h || 
-    (hostname.endsWith("." + h) && !hostname.endsWith(".nevorai.com"))
+    (hostname.endsWith("." + h) && !hostname.endsWith(".nevorai.com") && !hostname.endsWith(".lovableproject.com"))
   );
   if (isPlatformHost) {
     const parts = hostname.split(".");
-    if (parts.length > 2 && !parts[0].includes("--") && !parts[0].startsWith("id-preview")) {
+    if (parts.length > 2 && !parts[0].includes("--") && !parts[0].startsWith("id-preview") && parts[0].length !== 36) {
       const first = parts[0];
       if (first && !RESERVED_HOSTS.has(first) && first !== "www") {
         return { mode: "slug", value: first };
