@@ -251,56 +251,51 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData) {
 
   // Details
   const dx = px + pw + 4;
-  const dw = CW - (dx - fx) - 30;
-  let y = py + 3;
+  const dw = CW - (dx - fx) - 7; // Increased width
+  let y = py + 5;
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("PLAYER", dx, y);
-  y += 3.6;
+  y += 3.8;
   doc.setTextColor(17, 24, 39);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
   const nameLines = (doc.splitTextToSize(r.name, dw) as string[]).slice(0, 2);
   doc.text(nameLines, dx, y);
-  y += nameLines.length > 1 ? 8 : 4.4;
+  y += nameLines.length > 1 ? 8.2 : 4.6;
 
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("PLAYER ID", dx, y);
-  y += 3.2;
+  y += 3.5;
   doc.setTextColor(...hexToRgb(brand));
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
   doc.text(r.playerId || "—", dx, y);
 
-  y += 4.3;
+  y += 4.5;
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("SESSION", dx, y);
-  y += 3.2;
+  y += 3.5;
   doc.setTextColor(17, 24, 39);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.4);
   doc.text((r.batchName || "—").slice(0, 22), dx, y);
 
-  // Emergency line only when it still fits inside the white panel.
-  const panelBottom = fy + 16 + (CH - 21);
-  if ((r.guardianPhone || r.phone) && y + 7.4 <= panelBottom) {
-    y += 4.2;
-    doc.setTextColor(140, 146, 158);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(5.4);
-    doc.text("EMERGENCY", dx, y);
-    y += 3.2;
-
-    doc.setTextColor(17, 24, 39);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.2);
-    doc.text((r.guardianPhone || r.phone).slice(0, 20), dx, y);
-  }
+  y += 4.5;
+  doc.setTextColor(140, 146, 158);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(5.4);
+  doc.text("CONTACT", dx, y);
+  y += 3.5;
+  doc.setTextColor(17, 24, 39);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.2);
+  doc.text((r.phone || "").slice(0, 20), dx, y);
 
   // The only QR — check-in / check-out at the gate.
   if (qrDataUrl) {
