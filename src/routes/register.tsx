@@ -124,12 +124,13 @@ function batchFeeText(batch: Batch, fees: FeePlan[], gender?: string, tenant?: a
   
   const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
   
-  // Use gender-specific amount if gender pricing is enabled AND it's a female student
-  // In the registration form, gender is saved as "boy" or "girl" via the RadioGroup
-  const isFemale = typeof gender === "string" && (gender.toLowerCase() === "female" || gender.toLowerCase() === "girl");
+  // Normalize gender values to check for female discount
+  const g = typeof gender === "string" ? gender.toLowerCase() : "";
+  const isFemale = g === "female" || g === "girl";
+  
   const amount = (isGenderPricingEnabled && isFemale && (plan as any).female_amount != null) 
-    ? (plan as any).female_amount 
-    : plan.amount;
+    ? Number((plan as any).female_amount) 
+    : Number(plan.amount);
     
   return formatFeeLabel({ ...plan, amount }) || "Contact academy";
 }
