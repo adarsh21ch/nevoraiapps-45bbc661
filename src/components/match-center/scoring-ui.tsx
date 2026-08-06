@@ -804,47 +804,41 @@ export function ExtraRunsModal({
   // No Ball is 1..7 (penalty is always included; 1 = NB only).
   // Wide is 0..5 batsmen-runs (0 = plain wide; total = 1 penalty + batsmen runs).
   // Bye/Leg Bye are 0..6 batsmen-runs.
-  const options: number[] =
-    k === "No Ball" ? [1, 2, 3, 4, 5, 6, 7]
-    : k === "Wide" ? [0, 1, 2, 3, 4, 5]
-    : [0, 1, 2, 3, 4, 5, 6];
+  // All extra types now use a 0-7 runs scroller (total runs including penalty if any)
+  const options = [0, 1, 2, 3, 4, 5, 6, 7];
 
-  const isBoundaryHit = (r: number): "four" | "six" | null => {
+  const sublabelFor = (r: number): string | null => {
     if (k === "No Ball") {
-      if (r === 5) return "four";
-      if (r === 7) return "six";
-      return null;
+      if (r === 1) return "NB only";
+      return `NB + ${r - 1}`;
     }
     if (k === "Wide") {
-      // total = 1 + r; boundary hit at r=3 (WD+3=4) or r=5 (WD+5=6)
-      if (r === 3) return "four";
-      if (r === 5) return "six";
-      return null;
+      if (r === 1) return "WD only";
+      return `WD + ${r - 1}`;
     }
+    if (k === "Bye") {
+      if (r === 0) return "0 runs";
+      return `${r} Byes`;
+    }
+    if (k === "Leg Bye") {
+      if (r === 0) return "0 runs";
+      return `${r} Leg Byes`;
+    }
+    return null;
+  };
+
+  const isBoundaryHit = (r: number): "four" | "six" | null => {
+    // If total runs is 4 or 6, highlight it
     if (r === 4) return "four";
     if (r === 6) return "six";
     return null;
   };
 
-  const sublabelFor = (r: number): string | null => {
-    if (k === "No Ball") {
-      if (r === 1) return "NB only";
-      if (r === 5) return "NB + 4";
-      if (r === 7) return "NB + 6";
-      return `NB + ${r - 1}`;
-    }
-    if (k === "Wide") {
-      if (r === 0) return "WD only";
-      return `WD + ${r}`;
-    }
-    return null;
-  };
-
   const hint =
     k === "No Ball"
-      ? "Total runs on this delivery (includes the 1-run no-ball penalty)."
+      ? "Total runs (1 penalty + off-bat/extras). e.g. 5 = NB+4."
       : k === "Wide"
-        ? "Runs the batsmen physically ran (the wide penalty is added automatically)."
+        ? "Total runs (1 penalty + extras). e.g. 1 = WD only."
         : `Total ${k.toLowerCase()} runs on this delivery.`;
 
 
