@@ -66,7 +66,7 @@ export const Route = createFileRoute("/register")({
 });
 
 // Formats a fee plan amount inline next to a batch label.
-function formatFeeLabel(plan: FeePlan | undefined): string {
+function formatFeeLabel(plan: (Partial<FeePlan> & { amount: number }) | undefined): string {
   if (!plan) return "";
   const cur = (plan.currency || "INR").toUpperCase();
   const sym = cur === "INR" ? "₹" : cur + " ";
@@ -80,8 +80,8 @@ function formatFeeLabel(plan: FeePlan | undefined): string {
           : "/month";
   const amount = Number(plan.amount) || 0;
   return `${sym}${amount}${cycle}`;
-
 }
+
 
 // Best-effort mapping: given a batch, find the fee plan that represents its
 // monthly (or recurring) fee. Uses keyword matching against active recurring plans.
@@ -1220,9 +1220,12 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   const registration = fees.find((f) => f.type === "registration");
   const monthly = batch ? batchFeePlan(batch, fees) : undefined;
   const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
-  const resolvedMonthlyAmount = isGenderPricingEnabled && monthly 
-    ? resolveMonthlyFee(monthly as any, gender)
-    : monthly?.amount;
+  const resolvedMonthlyAmount =
+    isGenderPricingEnabled && monthly
+      ? resolveMonthlyFee(monthly as any, gender)
+      : monthly
+        ? Number(monthly.amount)
+        : undefined;
 
 
   const cur = (registration?.currency || monthly?.currency || "INR").toUpperCase();
