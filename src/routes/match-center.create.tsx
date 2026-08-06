@@ -121,6 +121,8 @@ type WizardDraft = {
   streamingUrl: string;
   ballType: string;
   savedAt: number;
+  // Track if a match is actually "Live" (started) so we can resume scoring
+  activeMatchId?: string;
 };
 function readDraft(tenantId: string): WizardDraft | null {
   if (typeof window === "undefined") return null;
@@ -153,6 +155,16 @@ function clearDraft(tenantId: string) {
 function CreateMatchPage() {
   const { tenant, profile } = useDashboard();
   const navigate = useNavigate();
+
+  // Check for active match on mount to support persistence
+  useEffect(() => {
+    const draft = readDraft(tenant.id);
+    if (draft?.activeMatchId) {
+      toast.info("Resuming active match scoring...", { duration: 2000 });
+      navigate({ to: "/scorer/$matchId", params: { matchId: draft.activeMatchId } });
+    }
+  }, [tenant.id, navigate]);
+
   const qc = useQueryClient();
   const demoOn = useDemoMode(tenant.id);
   const demo = useDemoData(tenant.id);
@@ -477,8 +489,13 @@ function CreateMatchPage() {
 
       return { id: match.id, demo: false } as const;
     },
-    onSuccess: async (res) => {
-      clearDraft(tenant.id);
+      onSuccess: async (res) => {
+      // Don't clear draft yet, mark it with the active match ID so we can resume
+      const currentDraft = readDraft(tenant.id);
+      if (currentDraft) {
+        writeDraft(tenant.id, { ...currentDraft, activeMatchId: res.id });
+      }
+      
       qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] });
       qc.invalidateQueries({ queryKey: ["mc-all-teams", tenant.id] });
 
@@ -1513,8 +1530,8 @@ function NewTeamBody({
   const hasRoles = players.some(p => p.is_captain) && players.some(p => p.is_keeper);
 
   return (
-    <div className="space-y-4">
-      <div>
+    <div className="flex flex-col h-full max-h-[75vh]">
+      <div className="flex-none p-4 pb-2 border-b bg-card sm:rounded-t-3xl">
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Team name</Label>
         <Input
           value={name}
@@ -1524,42 +1541,46 @@ function NewTeamBody({
         />
       </div>
 
-      {players.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Playing XI · {players.length}/11
-            </Label>
+      <div className="flex-1 overflow-y-auto min-h-0 bg-muted/5 p-4">
+        {players.length > 0 ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Playing XI · {players.length}/11
+              </Label>
+            </div>
+            <SquadList players={players} onPlayers={onPlayers} onRemove={onRemove} />
+            
+            <div className="flex flex-wrap gap-3 rounded-2xl border border-border bg-muted/30 p-3">
+              <div className="flex items-center gap-1.5 text-[11px]">
+                {players.some(p => p.is_captain) ? (
+                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
+                ) : (
+                  <span className="text-muted-foreground">Captain required</span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px]">
+                {players.some(p => p.is_keeper) ? (
+                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Wicketkeeper</span>
+                ) : (
+                  <span className="text-muted-foreground">Wicketkeeper required</span>
+                )}
+              </div>
+            </div>
           </div>
-          <SquadList players={players} onPlayers={onPlayers} onRemove={onRemove} />
-          
-          <div className="flex flex-wrap gap-3 rounded-2xl border border-border bg-muted/30 p-3">
-            <div className="flex items-center gap-1.5 text-[11px]">
-              {players.some(p => p.is_captain) ? (
-                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
-              ) : (
-                <span className="text-muted-foreground">Captain required</span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px]">
-              {players.some(p => p.is_keeper) ? (
-                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Wicketkeeper</span>
-              ) : (
-                <span className="text-muted-foreground">Wicketkeeper required</span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              VC optional
-            </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full py-8 text-center text-muted-foreground">
+            <Plus className="size-8 mb-2 opacity-20" />
+            <p className="text-sm">Add players to start building your XI</p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      <div>
-        <div className="flex items-center gap-1.5">
+      <div className="flex-none p-4 pt-2 border-t bg-card sm:rounded-b-3xl">
+        <div className="flex items-center gap-1.5 mb-1.5">
           <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Add player</Label>
         </div>
-        <div className="relative mt-1.5">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
@@ -1633,6 +1654,14 @@ function SquadList({
   onPlayers: (v: PlayerRef[]) => void;
   onRemove: (key: string) => void;
 }) {
+  useEffect(() => {
+    // When a player is added (length increases), scroll to the bottom to show the recent addition
+    const container = document.getElementById("squad-scroll-container");
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [players.length]);
+
   const setRole = (key: string, role: "C" | "VC" | "WK") => {
     const next = players.map((p) => {
       if (role === "C") {
@@ -1650,7 +1679,7 @@ function SquadList({
   };
 
   return (
-    <ol className="space-y-1.5 max-h-[40vh] overflow-y-auto pr-1">
+    <ol id="squad-scroll-container" className="space-y-1.5 max-h-[40vh] overflow-y-auto pr-1 scroll-smooth">
       {players.map((p, idx) => (
         <li
           key={p.key}
