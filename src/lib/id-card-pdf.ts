@@ -187,9 +187,7 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData) {
     `#${dark.map((n) => n.toString(16).padStart(2, "0")).join("")}`,
   );
 
-  // Accent rule under the header
-  doc.setFillColor(...hexToRgb(accent));
-  doc.roundedRect(fx + 6, fy + 14.2, 22, 1.1, 0.55, 0.55, "F");
+  // Accent rule removed as requested
 
   // Header — logo + academy name
   let hx = fx + 6;
