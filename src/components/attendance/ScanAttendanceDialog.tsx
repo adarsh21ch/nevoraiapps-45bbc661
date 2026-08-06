@@ -184,9 +184,13 @@ export function ScanAttendanceDialog({
         setMessage(
           "Camera access is blocked. Please ensure 'Camera' is allowed for this site in your browser settings. If it's already allowed, try refreshing the page or restarting your browser to reset the permission.",
         );
-      } else if (e?.name === 'NotReadableError' || e?.name === 'TrackStartError') {
+      } else if (e?.name === 'NotReadableError' || e?.name === 'TrackStartError' || e?.name === 'AbortError') {
         setMessage(
           "Camera is already in use by another app or browser tab. Please close other apps and try again.",
+        );
+      } else if (e?.name === 'NotFoundError' || e?.name === 'DevicesNotFoundError') {
+        setMessage(
+          "No camera found on this device. Please ensure your camera is connected and enabled.",
         );
       } else {
         setMessage(
