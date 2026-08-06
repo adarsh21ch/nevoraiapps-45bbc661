@@ -415,6 +415,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               phone: s.phone,
               city: s.city || null,
               state: s.state || null,
+              villageLocality: s.village_locality || null,
               guardianPhone: s.guardian_phone,
               batchName: batch?.name ?? null,
               batchTiming: batch?.timing ?? null,
