@@ -33,7 +33,7 @@ async function fetchTenant(): Promise<Tenant | null> {
   // `getManualPaymentSetup` server fn instead, so they never sit in an
   // anonymously readable payload where they could be scraped for fraud.
   const PUBLIC_COLS =
-    "id, slug, name, short_name, tagline, custom_domain, logo_url, primary_color, secondary_color, niche, features, phone, whatsapp, email, address, status, fee_cycle, player_prefix, registration_pdf_url, page_hero_images, show_fees_tab";
+    "id, slug, name, short_name, tagline, custom_domain, logo_url, primary_color, secondary_color, niche, features, phone, whatsapp, email, address, status, fee_cycle, player_prefix, registration_pdf_url, page_hero_images, show_fees_tab, gender_pricing_enabled";
 
   const from = supabase.from("tenants_public_directory" as never);
   const query =
