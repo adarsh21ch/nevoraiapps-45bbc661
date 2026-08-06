@@ -134,8 +134,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
 
   let baseAmount = Number(plan?.amount ?? 0);
   const isFemale = typeof s.gender === "string" && (s.gender.toLowerCase() === "female" || s.gender.toLowerCase() === "girl");
-  if (isGenderPricingEnabled && isFemale && plan?.female_amount != null) {
-    baseAmount = Number(plan.female_amount);
+  if (isGenderPricingEnabled && isFemale && (plan as any)?.female_amount != null) {
+    baseAmount = Number((plan as any).female_amount);
   }
 
   const effectiveFee = s.custom_fee != null ? Number(s.custom_fee) : baseAmount;

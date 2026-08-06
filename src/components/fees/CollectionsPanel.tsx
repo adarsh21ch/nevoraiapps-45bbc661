@@ -161,8 +161,8 @@ export function CollectionsPanel({
         const isFemale = typeof s.gender === "string" && (s.gender.toLowerCase() === "female" || s.gender.toLowerCase() === "girl");
         
         let baseAmount = Number(plan?.amount ?? 0);
-        if (isGenderPricingEnabled && isFemale && plan?.female_amount != null) {
-          baseAmount = Number(plan.female_amount);
+        if (isGenderPricingEnabled && isFemale && (plan as any)?.female_amount != null) {
+          baseAmount = Number((plan as any).female_amount);
         }
 
         const custom = s.custom_fee == null ? null : Number(s.custom_fee);
