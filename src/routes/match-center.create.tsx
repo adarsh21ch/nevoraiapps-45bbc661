@@ -652,14 +652,28 @@ function CreateMatchPage() {
   const step3Valid = readyB && panelB.players.length >= 2 && hasRolesB;
   const canStart = !validationError;
 
-  const goBack = () => {
+  const goBack = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (step === 1) {
       navigate({ to: "/match-center/matches" });
       return;
     }
     setStep(((step - 1) as 1 | 2 | 3 | 4 | 5));
   };
-  const goNext = () => setStep(((Math.min(5, step + 1)) as 1 | 2 | 3 | 4 | 5));
+
+  const goNext = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (canContinue) {
+      setStep(((Math.min(5, step + 1)) as 1 | 2 | 3 | 4 | 5));
+    }
+  };
+
 
   const stepTitle =
     step === 1
@@ -739,6 +753,9 @@ function CreateMatchPage() {
                 studentPool={studentPool}
                 studentsLoading={studentsQ.isLoading && !demo}
                 validationError={validationError}
+                goBack={goBack}
+                goNext={goNext}
+                canContinue={canContinue}
               />
             )}
 
@@ -753,8 +770,12 @@ function CreateMatchPage() {
                 studentPool={studentPool}
                 studentsLoading={studentsQ.isLoading && !demo}
                 validationError={validationError}
+                goBack={goBack}
+                goNext={goNext}
+                canContinue={canContinue}
               />
             )}
+
 
             {step === 4 && (
               <StepAdvanced
@@ -816,6 +837,7 @@ function CreateMatchPage() {
             </Button>
           {step < 5 ? (
             <Button
+              type="button"
               className="h-11 flex-1 text-sm font-semibold"
               disabled={!canContinue}
               onClick={goNext}
@@ -826,9 +848,14 @@ function CreateMatchPage() {
             </Button>
           ) : (
             <Button
+              type="button"
               className="h-11 flex-1 text-sm font-semibold"
               disabled={!canStart || createM.isPending}
-              onClick={() => createM.mutate()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                createM.mutate();
+              }}
               data-step-nav="start"
             >
               {createM.isPending ? (
@@ -840,6 +867,7 @@ function CreateMatchPage() {
             </Button>
           )}
           </div>
+
         )}
       </div>
     </div>
@@ -1286,6 +1314,9 @@ function TeamPanel({
   studentPool,
   studentsLoading,
   validationError,
+  goBack,
+  goNext,
+  canContinue,
 }: {
   side: "A" | "B";
   state: TeamPanelState;
@@ -1296,10 +1327,14 @@ function TeamPanel({
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
   validationError: string | null;
+  goBack: (e?: React.MouseEvent) => void;
+  goNext: (e?: React.MouseEvent) => void;
+  canContinue: boolean;
 }) {
   const setMode = (mode: TeamMode) => {
-    onChange({ ...emptyPanel(mode) });
+    onChange({ ...emptyPanel(mode), draftName: state.draftName });
   };
+
 
   const setPlayers = (players: PlayerRef[]) => onChange({ ...state, players });
   const addPlayer = (p: PlayerRef) => {
@@ -1310,7 +1345,7 @@ function TeamPanel({
     onChange({ ...state, players: state.players.filter((p) => p.key !== key) });
 
   return (
-    <div>
+    <div className="relative">
       <div className="mb-3 flex items-center justify-end">
         <button
           type="button"
@@ -1322,15 +1357,40 @@ function TeamPanel({
       </div>
 
 
+
       {/* Body */}
       {state.mode === "existing" && (
-        <ExistingTeamBody
-          teams={teams}
-          excludeTeamId={excludeTeamId}
-          selectedTeamId={state.selectedTeamId}
-          onSelect={(id) => onChange({ ...state, selectedTeamId: id })}
-          loading={teamsLoading}
-        />
+        <div className="space-y-4">
+          <ExistingTeamBody
+            teams={teams}
+            excludeTeamId={excludeTeamId}
+            selectedTeamId={state.selectedTeamId}
+            onSelect={(id) => onChange({ ...state, selectedTeamId: id })}
+            loading={teamsLoading}
+          />
+          
+          {/* Fixed footer for Existing mode to match New mode layout/behavior */}
+          <div className="flex items-center gap-3 mt-6">
+             <Button 
+               type="button"
+               variant="outline" 
+               className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted" 
+               onClick={goBack}
+             >
+               <ArrowLeft className="mr-2 size-4" />
+               Back
+             </Button>
+             <Button 
+               type="button"
+               className="h-12 flex-[2] text-sm font-bold rounded-2xl shadow-lg shadow-primary/10" 
+               disabled={!state.selectedTeamId}
+               onClick={goNext}
+             >
+               Continue
+               <ChevronRight className="ml-2 size-4" />
+             </Button>
+          </div>
+        </div>
       )}
 
       {state.mode === "new" && (
@@ -1344,8 +1404,13 @@ function TeamPanel({
           studentPool={studentPool}
           studentsLoading={studentsLoading}
           validationError={validationError}
+          goBack={goBack}
+          goNext={goNext}
+          canContinue={canContinue}
         />
       )}
+
+
 
 
     </div>
@@ -1479,6 +1544,9 @@ function NewTeamBody({
   studentPool,
   studentsLoading,
   validationError,
+  goBack,
+  goNext,
+  canContinue,
 }: {
   name: string;
   onName: (v: string) => void;
@@ -1489,7 +1557,11 @@ function NewTeamBody({
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
   validationError: string | null;
+  goBack: (e?: React.MouseEvent) => void;
+  goNext: (e?: React.MouseEvent) => void;
+  canContinue: boolean;
 }) {
+
   const [q, setQ] = useState("");
   const selectedKeys = useMemo(() => new Set(players.map((p) => p.key)), [players]);
 
@@ -1686,15 +1758,17 @@ function NewTeamBody({
         {/* Navigation Column (Horizontal) */}
         <div className="flex items-center gap-3 p-4 pt-1 pb-6 md:pb-4">
            <Button 
+             type="button"
              variant="outline" 
              className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted" 
-             onClick={() => {
+             onClick={(e) => {
+               e.preventDefault();
+               e.stopPropagation();
                const btn = document.querySelector('[data-step-nav="back"]') as HTMLButtonElement;
                if (btn) {
                  btn.click();
                } else {
-                 // Fallback if the button is somehow not in DOM (shouldn't happen with Step 2/3)
-                 window.history.back();
+                 goBack(e);
                }
              }}
            >
@@ -1702,12 +1776,17 @@ function NewTeamBody({
              Back
            </Button>
            <Button 
+             type="button"
              className="h-12 flex-[2] text-sm font-bold rounded-2xl shadow-lg shadow-primary/10" 
-             disabled={!!validationError}
-             onClick={() => {
+             disabled={!canContinue}
+             onClick={(e) => {
+               e.preventDefault();
+               e.stopPropagation();
                const btn = document.querySelector('[data-step-nav="next"]') as HTMLButtonElement;
                if (btn) {
                  btn.click();
+               } else {
+                 goNext(e);
                }
              }}
            >
@@ -1715,6 +1794,7 @@ function NewTeamBody({
              <ChevronRight className="ml-2 size-4" />
            </Button>
         </div>
+
       </div>
     </div>
   );
