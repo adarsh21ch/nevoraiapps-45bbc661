@@ -799,23 +799,26 @@ function CreateMatchPage() {
           </div>
         </div>
 
-        {/* Action bar — inside the card, equally distributed Back / Continue */}
-        <div className="flex items-center gap-3 border-t border-border/60 bg-card px-4 py-4 sm:rounded-b-3xl sm:px-6">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 flex-1 text-sm font-semibold"
-            onClick={goBack}
-            disabled={createM.isPending}
-          >
-            <ArrowLeft className="mr-1 size-4" />
-            Back
-          </Button>
+        {/* Global action bar — hidden on Team steps (2 and 3) as they have their own fixed bar */}
+        {step !== 2 && step !== 3 && (
+          <div className="flex items-center gap-3 border-t border-border/60 bg-card px-4 py-4 sm:rounded-b-3xl sm:px-6">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 flex-1 text-sm font-semibold"
+              onClick={goBack}
+              disabled={createM.isPending}
+              data-step-nav="back"
+            >
+              <ArrowLeft className="mr-1 size-4" />
+              Back
+            </Button>
           {step < 5 ? (
             <Button
               className="h-11 flex-1 text-sm font-semibold"
               disabled={!canContinue}
               onClick={goNext}
+              data-step-nav="next"
             >
               Continue
               <ChevronRight className="ml-1 size-4" />
@@ -825,6 +828,7 @@ function CreateMatchPage() {
               className="h-11 flex-1 text-sm font-semibold"
               disabled={!canStart || createM.isPending}
               onClick={() => createM.mutate()}
+              data-step-nav="start"
             >
               {createM.isPending ? (
                 <Loader2 className="mr-1.5 size-4 animate-spin" />
@@ -834,7 +838,8 @@ function CreateMatchPage() {
               Start match
             </Button>
           )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1543,16 +1548,15 @@ function NewTeamBody({
   return (
     <div 
       className={cn(
-        "flex flex-col bg-background overflow-hidden transition-all duration-200",
-        // On mobile, try to fill the visual viewport exactly to prevent document scrolling
-        "fixed inset-0 z-50 md:relative md:inset-auto md:h-full md:max-h-[75vh]"
+        "flex flex-col bg-background overflow-hidden",
+        "fixed inset-0 z-50 md:relative md:inset-auto md:h-full md:max-h-[85vh] md:rounded-3xl md:border md:shadow-xl"
       )}
       style={{ 
         height: vh > 0 ? `${vh}px` : '100dvh'
       }}
     >
-      {/* HEADER: Context & Team Name */}
-      <div className="flex-none p-4 pb-2 border-b bg-card sm:rounded-t-3xl">
+      {/* HEADER: Team Name (Fixed) */}
+      <div className="flex-none p-4 pb-2 border-b bg-card">
         <div className="flex items-center justify-between mb-2">
           <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Team name</Label>
           <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground">
@@ -1567,11 +1571,11 @@ function NewTeamBody({
         />
       </div>
 
-      {/* ROSTER: Scrollable list of players */}
-      <div className="flex-1 overflow-y-auto min-h-0 bg-muted/5 p-3 space-y-3">
+      {/* ROSTER: Scrollable list of players (reversed to show latest at top) */}
+      <div className="flex-1 overflow-y-auto min-h-0 bg-muted/5 p-3">
         {players.length > 0 ? (
-          <>
-            <SquadList players={players} onPlayers={onPlayers} onRemove={onRemove} />
+          <div className="flex flex-col gap-3">
+            <SquadList players={[...players].reverse()} onPlayers={(p) => onPlayers([...p].reverse())} onRemove={onRemove} />
             
             <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-muted/30 p-2.5">
               <div className="flex items-center gap-1.5 text-[10px]">
@@ -1592,17 +1596,17 @@ function NewTeamBody({
                  <span className={cn(players.some(p => p.is_vice_captain) ? "text-sky-600 font-bold" : "text-muted-foreground")}>VC optional</span>
               </div>
             </div>
-          </>
+          </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-32 text-center text-muted-foreground">
-            <Plus className="size-8 mb-2 opacity-20" />
-            <p className="text-sm">Add players to start building your XI</p>
+          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground opacity-40">
+            <Plus className="size-10 mb-2" />
+            <p className="text-sm">Add players below</p>
           </div>
         )}
       </div>
 
-      {/* COMPOSER: Add Player anchored above keyboard */}
-      <div className="flex-none p-3 border-t bg-card sm:rounded-b-3xl relative">
+      {/* COMPOSER & FOOTER (Fixed) */}
+      <div className="flex-none border-t bg-card relative">
         {/* Search suggestions anchored upward from composer */}
         {trimmed && (
           <div className="absolute bottom-full left-0 right-0 mx-3 mb-2 max-h-48 space-y-1 overflow-y-auto rounded-xl border border-border bg-popover shadow-xl p-1 z-50">
@@ -1649,38 +1653,47 @@ function NewTeamBody({
           </div>
         )}
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Search or type a name…"
-            className="pl-9 h-11 text-base focus-visible:ring-primary/20"
-            autoComplete="off"
-            autoCorrect="off"
-          />
+        <div className="p-3 pb-0">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="Search or type a name…"
+              className="pl-9 h-11 text-base focus-visible:ring-primary/20"
+              autoComplete="off"
+              autoCorrect="off"
+            />
+          </div>
         </div>
 
-        {/* Action buttons only visible when keyboard is closed */}
-        {!keyboardOpen && (
-          <div className="flex items-center gap-3 mt-3 pt-1">
-             <Button variant="outline" size="sm" className="flex-1 h-10 text-sm font-semibold rounded-xl" onClick={() => window.history.back()}>
-               Back
-             </Button>
-             <Button 
-               disabled={!!validationError}
-               className="flex-1 h-10 text-sm font-semibold rounded-xl"
-               onClick={() => {
-                 // The parent component handles step navigation
-                 const btn = document.querySelector('[data-step-nav="next"]') as HTMLButtonElement;
-                 btn?.click();
-               }}
-             >
-               Continue
-             </Button>
-          </div>
-        )}
+        {/* Global-style action bar (Believable bottom position) */}
+        <div className="flex items-center gap-3 p-4">
+           <Button 
+             variant="outline" 
+             className="h-11 flex-1 text-sm font-semibold rounded-xl" 
+             onClick={() => {
+               const btn = document.querySelector('[data-step-nav="back"]') as HTMLButtonElement;
+               if (btn) btn.click();
+               else window.history.back();
+             }}
+           >
+             <ArrowLeft className="mr-1 size-4" />
+             Back
+           </Button>
+           <Button 
+             disabled={!!validationError}
+             className="h-11 flex-1 text-sm font-semibold rounded-xl"
+             onClick={() => {
+               const btn = document.querySelector('[data-step-nav="next"]') as HTMLButtonElement;
+               btn?.click();
+             }}
+           >
+             Continue
+             <ChevronRight className="ml-1 size-4" />
+           </Button>
+        </div>
       </div>
     </div>
   );
