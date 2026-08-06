@@ -236,6 +236,7 @@ export interface BowlingStat {
   bestBowlingRuns: number;
   bestBowlingWickets: number;
   bestBowlingDisplay: string; // "3/22"
+  legalOvers: number; // float for calculations
 }
 
 export interface BowlingTable {
@@ -300,7 +301,7 @@ export function computeBowling(events: MCBallEvent[]): BowlingTable {
     if (!ref) continue;
     const row = ensure(ref);
     const legal = isLegalDelivery(e.extra_type as ExtraType | null);
-    const conceded = bowlerRunsFor(e);
+    const conceded = bowlerRunsForBall(e);
     row.runsConceded += conceded;
 
     if (legal) row.legalBalls += 1;

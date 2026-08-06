@@ -32,6 +32,33 @@ export function isLegalDelivery(extra: ExtraType | null | undefined): boolean {
   return (LEGAL_EXTRAS as readonly string[]).includes(extra);
 }
 
+/**
+ * Standardizes a ball notation label (e.g. "NB4" -> "NB+3", "0" -> "•").
+ * Used for consistent rendering across both live scoring and history.
+ */
+export function formatBallNotation(label: string): string {
+  let upper = label.toUpperCase();
+  // Standardize notation if it's purely a number and not 0
+  if (/^[1-6]$/.test(upper)) {
+    // Keep as is
+  } else if (upper === "0" || upper === "DOT" || upper === "•") {
+    upper = "•";
+  } else if (/^WD\d+$/.test(upper)) {
+    const runs = parseInt(upper.slice(2));
+    upper = runs > 1 ? `WD+${runs - 1}` : "WD";
+  } else if (/^NB\d+$/.test(upper)) {
+    const runs = parseInt(upper.slice(2));
+    upper = runs > 1 ? `NB+${runs - 1}` : "NB";
+  } else if (/^B\d+$/.test(upper)) {
+    const runs = parseInt(upper.slice(1));
+    upper = runs > 0 ? `B${runs}` : "•";
+  } else if (/^LB\d+$/.test(upper)) {
+    const runs = parseInt(upper.slice(2));
+    upper = runs > 0 ? `LB${runs}` : "•";
+  }
+  return upper;
+}
+
 export class BallEventError extends Error {
   code: string;
   constructor(code: string, message: string) {
