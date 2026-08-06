@@ -894,8 +894,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             session.activeInnings?.target != null ? String(session.activeInnings.target) : undefined
           }
           chase={chase}
-          striker={{ ...strikerStat, isKeeper: session.striker.athleteId ? session.playingXI.find(p => p.student_id === session.striker.athleteId)?.is_keeper : false }}
-          nonStriker={{ ...nonStrikerStat, isKeeper: session.nonStriker.athleteId ? session.playingXI.find(p => p.student_id === session.nonStriker.athleteId)?.is_keeper : false }}
+          striker={{ ...strikerStat, isKeeper: session.striker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.striker.athleteId)?.is_keeper : false }}
+          nonStriker={{ ...nonStrikerStat, isKeeper: session.nonStriker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.nonStriker.athleteId)?.is_keeper : false }}
           bowler={bowlerStat}
           partnership={
             stats.team.currentPartnership
