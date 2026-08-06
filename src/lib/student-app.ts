@@ -55,16 +55,18 @@ export async function fetchMyStudentContext(): Promise<StudentContext | null> {
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) return null;
   
-  // Fetch tenant name separately since RPC return type is fixed in DB
+  // Fetch tenant info separately since RPC return type is fixed in DB
   const { data: t } = await supabase
     .from("tenants")
-    .select("name")
+    .select("name, logo_url, phone")
     .eq("id", (row as any).tenant_id)
     .maybeSingle();
 
   return {
     ...(row as StudentContext),
     tenant_name: t?.name,
+    tenant_logo: t?.logo_url,
+    tenant_phone: t?.phone,
   };
 }
 
