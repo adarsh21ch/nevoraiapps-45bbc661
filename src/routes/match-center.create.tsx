@@ -753,6 +753,9 @@ function CreateMatchPage() {
                 studentPool={studentPool}
                 studentsLoading={studentsQ.isLoading && !demo}
                 validationError={validationError}
+                goBack={goBack}
+                goNext={goNext}
+                canContinue={canContinue}
               />
             )}
 
@@ -767,8 +770,12 @@ function CreateMatchPage() {
                 studentPool={studentPool}
                 studentsLoading={studentsQ.isLoading && !demo}
                 validationError={validationError}
+                goBack={goBack}
+                goNext={goNext}
+                canContinue={canContinue}
               />
             )}
+
 
             {step === 4 && (
               <StepAdvanced
