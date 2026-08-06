@@ -23,6 +23,7 @@ export type IdCardData = {
   academyPhone: string | null;
   academyName: string | null;
   academyLogo: string | null;
+  academyAddress?: string | null;
   cardToken?: string | null;
 };
 
