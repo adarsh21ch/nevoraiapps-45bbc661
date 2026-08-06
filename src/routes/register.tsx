@@ -206,6 +206,7 @@ function RegisterContent() {
     current_address: "",
     aadhaar_front_url: "",
     aadhaar_back_url: "",
+    photo_url: "",
     gender: "",
     height_cm: "",
     weight_kg: "",
@@ -272,6 +273,7 @@ function RegisterContent() {
       if (!form.current_address.trim()) e.current_address = "Required.";
       if (!form.aadhaar_front_url) e.aadhaar_front = "Aadhaar Front photo is required.";
       if (!form.aadhaar_back_url) e.aadhaar_back = "Aadhaar Back photo is required.";
+      if (!form.photo_url) e.photo = "Passport photo is required.";
       if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     }
     setErrors(e);
@@ -345,6 +347,7 @@ function RegisterContent() {
       !form.current_address.trim() ||
       !form.aadhaar_front_url ||
       !form.aadhaar_back_url ||
+      !form.photo_url ||
       (batches.length > 0 && !form.batch_id)
     ) {
       toast.error("Please fill all required fields.");
@@ -459,6 +462,7 @@ function RegisterContent() {
     profile.sport = "cricket";
     profile.aadhaar_front_url = form.aadhaar_front_url;
     profile.aadhaar_back_url = form.aadhaar_back_url;
+    profile.photo_url = form.photo_url;
     profile.current_address = form.current_address.trim();
     const documents = Object.keys(profile).length > 0 ? { profile } : null;
 
@@ -814,6 +818,23 @@ function RegisterContent() {
                       error={errors.aadhaar_back}
                     />
                   </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                    Passport Sized Photo *
+                  </div>
+                  <DocumentUpload
+                    label="Student Photo (Upload or Selfie)"
+                    value={form.photo_url}
+                    onUpload={(url) => setForm({ ...form, photo_url: url })}
+                    tenantId={tenant.id}
+                    folder="student_photos"
+                    error={errors.photo}
+                  />
+                  <p className="mt-2 text-[10px] text-muted-foreground">
+                    This photo will be used for your digital Player ID Card.
+                  </p>
                 </div>
               </div>
             </Section>
@@ -1305,6 +1326,7 @@ function ReviewSummary({
     current_address: string;
     aadhaar_front_url: string;
     aadhaar_back_url: string;
+    photo_url: string;
   };
   batches: Batch[];
   fees: FeePlan[];
@@ -1313,9 +1335,14 @@ function ReviewSummary({
   const genderNormalized = normalizeGender(form.gender) || undefined;
   const batch = batches.find((b) => b.id === form.batch_id);
 
-  const [previews, setPreviews] = useState<{ front?: string; back?: string }>({});
+  const [previews, setPreviews] = useState<{ front?: string; back?: string; photo?: string }>({});
 
   useEffect(() => {
+    if (form.photo_url) {
+      signedUrl(form.photo_url).then((url) =>
+        setPreviews((prev) => ({ ...prev, photo: url })),
+      );
+    }
     if (form.aadhaar_front_url) {
       signedUrl(form.aadhaar_front_url).then((url) =>
         setPreviews((prev) => ({ ...prev, front: url })),
@@ -1338,6 +1365,23 @@ function ReviewSummary({
     ["Contact number", form.phone || "—"],
     ["Permanent address", form.address || "—"],
     ["Current address", form.current_address || "—"],
+    [
+      "Student Photo",
+      form.photo_url ? (
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-emerald-600 font-medium">Uploaded ✓</span>
+          {previews.photo && (
+            <img
+              src={previews.photo}
+              alt="Photo"
+              className="h-10 w-10 rounded border border-border object-cover"
+            />
+          )}
+        </div>
+      ) : (
+        "Missing"
+      ),
+    ],
     [
       "Aadhaar front",
       form.aadhaar_front_url ? (
