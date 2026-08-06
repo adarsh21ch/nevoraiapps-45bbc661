@@ -132,19 +132,16 @@ export async function generateIdCardsPdf(tenant: Tenant, rows: IdCardData[]) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   for (let i = 0; i < rows.length; i++) {
     if (i > 0) doc.addPage();
-    await drawCard(doc, tenant, rows[i]);
+    await drawCard(doc, tenant, rows[i], 20, 30);
   }
   doc.save(`id-cards-${tenant.slug || "academy"}.pdf`);
 }
 
 /** Single-sided card: everything the gate needs lives on the front. */
-async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData) {
+async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, fy: number) {
   const brand = safeHex(tenant.primary_color, "#0f172a");
   const accent = safeHex(tenant.secondary_color, "#f59e0b");
   const dark = mix(brand, "#000000", 0.35);
-
-  const fx = 20;
-  const fy = 30;
 
   // QR payload — private card token; falls back to a verify link.
   const site = tenantSiteUrl(tenant);
