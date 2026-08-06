@@ -1266,34 +1266,25 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   if (!batch) return null;
 
   return (
-    <div className="mt-3 flex flex-col gap-2 rounded-lg border border-border bg-muted/30 p-3 text-sm">
-      <div className="flex items-center justify-between border-b border-border/40 pb-2">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Fee summary
+    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-2.5 text-[11px] sm:h-[42px]">
+      <div className="flex shrink-0 items-center gap-1.5 border-r border-border/60 pr-2.5">
+        <span className="font-medium uppercase tracking-wider text-muted-foreground">
+          Due
         </span>
-        {total != null ? (
-          <span className="flex items-baseline gap-1.5">
-            <span className="text-[11px] font-medium uppercase text-muted-foreground">Total first month</span>
-            <span className="text-base font-bold text-foreground" style={{ color: "var(--brand)" }}>{fmt(total)}</span>
-          </span>
-        ) : (
-          <span className="flex items-baseline gap-1.5">
-            <span className="text-[11px] font-medium uppercase text-muted-foreground">Monthly fee</span>
-            <span className="text-base font-bold text-foreground" style={{ color: "var(--brand)" }}>{monthlyText}</span>
-          </span>
-        )}
+        <span className="font-bold text-foreground" style={{ color: "var(--brand)" }}>
+          {fmt(total ?? (resolvedMonthlyAmount ? Number(resolvedMonthlyAmount) : 0))}
+        </span>
       </div>
       
-      <div className="text-xs leading-relaxed text-muted-foreground">
+      <div className="min-w-0 flex-1 truncate text-muted-foreground">
         {showRegistration ? (
-          <p>
-            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span> and admission fee is <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>. 
-            This time you have to pay <span className="font-semibold text-foreground">{fmt(total ?? 0)}</span>.
-          </p>
+          <span>
+            Monthly <span className="font-semibold text-foreground">{monthlyText}</span> + Admission <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>.
+          </span>
         ) : (
-          <p>
-            Your monthly fee for {batch.name} will be <span className="font-semibold text-foreground">{monthlyText}</span>.
-          </p>
+          <span>
+            Monthly fee: <span className="font-semibold text-foreground">{monthlyText}</span>.
+          </span>
         )}
       </div>
     </div>
