@@ -739,28 +739,24 @@ function RegisterContent() {
                   autoComplete="tel"
                   error={errors.phone}
                 />
+                <div className="sm:col-start-2 sm:row-start-3">
+                  <BatchSelect
+                    value={form.batch_id}
+                    onChange={(v) => setForm({ ...form, batch_id: v })}
+                    options={batchOptions}
+                    onInfo={() => setBatchInfoOpen(true)}
+                    error={errors.batch_id}
+                    tenant={tenant}
+                    fees={fees}
+                  />
+                </div>
                 <div className="sm:col-span-2">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                    <div className="flex-1">
-                      <BatchSelect
-                        value={form.batch_id}
-                        onChange={(v) => setForm({ ...form, batch_id: v })}
-                        options={batchOptions}
-                        onInfo={() => setBatchInfoOpen(true)}
-                        error={errors.batch_id}
-                        tenant={tenant}
-                        fees={fees}
-                      />
-                    </div>
-                    <div className="sm:mt-[22px] sm:min-w-[280px]">
-                      <FeeSummary
-                        batch={batches.find((b) => b.id === form.batch_id)}
-                        fees={fees}
-                        gender={normalizeGender(form.gender) || undefined}
-                        tenant={tenant}
-                      />
-                    </div>
-                  </div>
+                  <FeeSummary
+                    batch={batches.find((b) => b.id === form.batch_id)}
+                    fees={fees}
+                    gender={normalizeGender(form.gender) || undefined}
+                    tenant={tenant}
+                  />
                 </div>
                 <div className="sm:col-span-2">
                   <TextArea
@@ -1266,24 +1262,24 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   if (!batch) return null;
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-2.5 text-[11px] sm:h-[42px]">
-      <div className="flex shrink-0 items-center gap-1.5 border-r border-border/60 pr-2.5">
-        <span className="font-medium uppercase tracking-wider text-muted-foreground">
-          Due
+    <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-muted/30 p-3 text-xs sm:flex-row sm:items-center sm:gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:border-r sm:border-border/60 sm:pr-3">
+        <span className="font-semibold uppercase tracking-wider text-muted-foreground text-[10px]">
+          Total Due
         </span>
-        <span className="font-bold text-foreground" style={{ color: "var(--brand)" }}>
+        <span className="text-sm font-bold text-foreground" style={{ color: "var(--brand)" }}>
           {fmt(total ?? (resolvedMonthlyAmount ? Number(resolvedMonthlyAmount) : 0))}
         </span>
       </div>
       
-      <div className="min-w-0 flex-1 truncate text-muted-foreground">
+      <div className="flex-1 text-muted-foreground leading-relaxed">
         {showRegistration ? (
           <span>
-            Monthly <span className="font-semibold text-foreground">{monthlyText}</span> + Admission <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>.
+            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span> and admission fee is <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>. This time you have to pay <span className="font-semibold text-foreground">{fmt(total ?? 0)}</span>.
           </span>
         ) : (
           <span>
-            Monthly fee: <span className="font-semibold text-foreground">{monthlyText}</span>.
+            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span>. This time you have to pay <span className="font-semibold text-foreground">{fmt(resolvedMonthlyAmount)}</span>.
           </span>
         )}
       </div>
