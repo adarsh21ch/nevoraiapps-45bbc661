@@ -1707,15 +1707,17 @@ function NewTeamBody({
         {/* Navigation Column (Horizontal) */}
         <div className="flex items-center gap-3 p-4 pt-1 pb-6 md:pb-4">
            <Button 
+             type="button"
              variant="outline" 
              className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted" 
-             onClick={() => {
+             onClick={(e) => {
+               e.preventDefault();
+               e.stopPropagation();
                const btn = document.querySelector('[data-step-nav="back"]') as HTMLButtonElement;
                if (btn) {
                  btn.click();
                } else {
-                 // Fallback if the button is somehow not in DOM (shouldn't happen with Step 2/3)
-                 window.history.back();
+                 goBack(e);
                }
              }}
            >
@@ -1723,12 +1725,17 @@ function NewTeamBody({
              Back
            </Button>
            <Button 
+             type="button"
              className="h-12 flex-[2] text-sm font-bold rounded-2xl shadow-lg shadow-primary/10" 
-             disabled={!!validationError}
-             onClick={() => {
+             disabled={!canContinue}
+             onClick={(e) => {
+               e.preventDefault();
+               e.stopPropagation();
                const btn = document.querySelector('[data-step-nav="next"]') as HTMLButtonElement;
                if (btn) {
                  btn.click();
+               } else {
+                 goNext(e);
                }
              }}
            >
@@ -1736,6 +1743,7 @@ function NewTeamBody({
              <ChevronRight className="ml-2 size-4" />
            </Button>
         </div>
+
       </div>
     </div>
   );
