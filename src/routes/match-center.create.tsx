@@ -652,14 +652,28 @@ function CreateMatchPage() {
   const step3Valid = readyB && panelB.players.length >= 2 && hasRolesB;
   const canStart = !validationError;
 
-  const goBack = () => {
+  const goBack = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (step === 1) {
       navigate({ to: "/match-center/matches" });
       return;
     }
     setStep(((step - 1) as 1 | 2 | 3 | 4 | 5));
   };
-  const goNext = () => setStep(((Math.min(5, step + 1)) as 1 | 2 | 3 | 4 | 5));
+
+  const goNext = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (canContinue) {
+      setStep(((Math.min(5, step + 1)) as 1 | 2 | 3 | 4 | 5));
+    }
+  };
+
 
   const stepTitle =
     step === 1
