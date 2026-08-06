@@ -462,6 +462,9 @@ function RegisterContent() {
     }
     const applicantUserId = authData.user?.id ?? null;
 
+    const [dd, mm, yyyy] = (form.dob || "").split("/");
+    const isoDob = dd && mm && yyyy ? `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}` : null;
+
     const { data, error } = await supabase.rpc(
       "submit_registration" as never,
       {
@@ -470,7 +473,7 @@ function RegisterContent() {
         _phone: form.phone.trim(),
         _fee_plan_id: defaultPlan.id,
         _batch_id: form.batch_id || null,
-        _dob: form.dob || null,
+        _dob: isoDob,
         _guardian_name: form.guardian_name.trim() || null,
         _guardian_phone: null,
         _whatsapp: null,
