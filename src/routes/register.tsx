@@ -78,7 +78,9 @@ function formatFeeLabel(plan: FeePlan | undefined): string {
         : plan.type === "registration"
           ? " (one-time)"
           : "/month";
-  return `${sym}${plan.amount}${cycle}`;
+  const amount = Number(plan.amount) || 0;
+  return `${sym}${amount}${cycle}`;
+
 }
 
 // Best-effort mapping: given a batch, find the fee plan that represents its
@@ -1234,10 +1236,13 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
     : isPersonal && !monthly
       ? "Contact academy"
       : monthly
-        ? fmt(resolvedMonthlyAmount)
+        ? fmt(Number(resolvedMonthlyAmount))
         : "Contact academy";
   const total =
-    !isPersonal && resolvedMonthlyAmount != null && registration ? resolvedMonthlyAmount + registration.amount : null;
+    !isPersonal && resolvedMonthlyAmount != null && registration 
+      ? Number(resolvedMonthlyAmount) + Number(registration.amount) 
+      : null;
+
   return (
     <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
       <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
