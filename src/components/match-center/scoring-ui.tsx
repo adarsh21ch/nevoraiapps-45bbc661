@@ -614,12 +614,7 @@ export function DismissalModal({
   );
 }
 
-export interface BatterStats {
-  name: string;
-  runs: number;
-  balls: number;
-  isKeeper?: boolean;
-}
+>>>> (hidden)
 
 export interface PlayerOption {
   id: string;
