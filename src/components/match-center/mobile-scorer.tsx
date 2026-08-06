@@ -609,24 +609,14 @@ function BatterLine({
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-1.5">
-          {order ? (
-            <span className="grid size-[18px] shrink-0 place-items-center rounded-full border border-border/70 bg-muted/60 text-[10px] font-black leading-none text-muted-foreground tabular-nums">
-              {order}
-            </span>
-          ) : (
-            <span className="size-[18px] shrink-0" aria-hidden />
-          )}
           <span className="truncate text-[14px] font-bold leading-tight">{name}</span>
           {striker && batter?.name && (
-            <span
-              aria-label="on strike"
-              className="ml-0.5 shrink-0 text-[13px] leading-none text-[var(--score-striker-dot)]"
-            >
-              ★
-            </span>
+              <span className="ml-0.5 shrink-0 text-[10px] font-black uppercase tracking-tighter text-[var(--score-striker-dot)] border border-[var(--score-striker-dot)]/30 px-1 rounded bg-[var(--score-striker-dot)]/10">
+                STRIKER
+              </span>
           )}
         </div>
-        <div className="mt-1 pl-[26px] truncate text-[11px] leading-tight text-muted-foreground tabular-nums">
+        <div className="mt-1 pl-1 truncate text-[11px] leading-tight text-muted-foreground tabular-nums">
           4s {batter?.fours ?? 0} · 6s {batter?.sixes ?? 0} · SR {sr}
         </div>
       </div>
@@ -791,6 +781,7 @@ function LiveInsights({
       )}
     >
       <div className="grid shrink-0 grid-cols-4 gap-1.5">
+        <InfoTile label="CRR" value={crr ?? "0.00"} />
         <InfoTile
           label="P'ship"
           value={
@@ -798,55 +789,10 @@ function LiveInsights({
             (partnership ? `${partnership.runs}(${partnership.balls})` : "0(0)")
           }
         />
-        <InfoTile
-          label={chase ? "Need" : "Proj"}
-          value={chase ? `${chase.runsNeeded}` : (insights?.projected ?? "–")}
-          accent={Boolean(chase)}
-        />
-        <InfoTile
-          label={chase ? "Balls" : "Extras"}
-          value={chase ? `${chase.ballsLeft}` : (insights?.extras ?? "0")}
-        />
-        <InfoTile label="FOW" value={insights?.lastWicket ?? "–"} />
+        <InfoTile label="Extras" value={insights?.extras ?? "0"} />
+        <InfoTile label="FOW" value={insights?.lastWicket ?? "—"} />
       </div>
 
-      <div className="min-h-0 flex-1 rounded-lg bg-card/55 px-2 py-1.5">
-        <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-          Recent overs
-        </div>
-        {recentOvers.length === 0 ? (
-          <div className="text-[11.5px] text-muted-foreground">Ball-by-ball data appears here.</div>
-        ) : (
-          <div className="flex flex-col gap-1">
-            {recentOvers.slice(-3).map((over) => {
-              const pct = Math.min(100, Math.round((over.runs / 36) * 100));
-              return (
-                <div
-                  key={over.label}
-                  className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-2"
-                >
-                  <span className="text-[10.5px] font-black tabular-nums text-muted-foreground">
-                    {over.label}
-                  </span>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted/70">
-                    <div
-                      className={cn(
-                        "h-full rounded-full",
-                        over.wickets > 0 ? "bg-destructive/70" : "bg-primary/70",
-                      )}
-                      style={{ width: `${Math.max(6, pct)}%` }}
-                    />
-                  </div>
-                  <span className="text-[11px] font-black tabular-nums text-foreground">
-                    {over.runs}
-                    {over.wickets ? `/${over.wickets}` : ""}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
     </section>
   );
 }
@@ -926,7 +872,7 @@ function ScoringDock({
           disabled={disabled}
           onClick={() => onExtra("Leg Bye")}
         />
-        <ExtraKey label="OUT" tone="out" disabled={disabled} onClick={onOut} />
+        <ExtraKey label="WKT" tone="out" disabled={disabled} onClick={onOut} />
       </div>
     </div>
   );
