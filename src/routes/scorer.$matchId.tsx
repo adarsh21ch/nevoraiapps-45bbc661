@@ -1948,8 +1948,8 @@ function DemoScorerBody({
           rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={activeInnings?.target != null ? String(activeInnings.target) : undefined}
           chase={chase}
-          striker={strikerStat}
-          nonStriker={nonStrikerStat}
+          striker={{ ...strikerStat, isKeeper: session.striker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.striker.athleteId)?.is_keeper : false }}
+          nonStriker={{ ...nonStrikerStat, isKeeper: session.nonStriker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.nonStriker.athleteId)?.is_keeper : false }}
           bowler={bowlerStat}
           partnership={
             stats.team.currentPartnership

@@ -617,6 +617,7 @@ export interface PlayerOption {
   id: string;
   name: string;
   role?: string;
+  isKeeper?: boolean;
 }
 
 export function PlayerPickerModal({
