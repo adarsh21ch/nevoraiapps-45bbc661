@@ -47,15 +47,15 @@ export function EditMyProfileDialog({ student, onSaved }: EditMyProfileDialogPro
         .from("students")
         .update({
           name: f.name,
-          guardian_name: f.guardian_name,
-          village_locality: f.village_locality,
-          city: f.city,
-          state: f.state,
-          current_address: f.current_address,
-          permanent_address: f.permanent_address,
+          guardian_name: f.guardian_name || null,
+          village_locality: f.village_locality || null,
+          city: f.city || null,
+          state: f.state || null,
+          current_address: f.current_address || null,
+          permanent_address: f.permanent_address || null,
           // Legacy field sync
-          address: f.permanent_address || f.current_address,
-        })
+          address: f.permanent_address || f.current_address || null,
+        } as any)
         .eq("id", student.id);
 
       if (error) throw error;
