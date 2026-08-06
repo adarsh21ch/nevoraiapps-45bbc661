@@ -1317,6 +1317,8 @@ function ReviewSummary({
 function BatchInfoDialog({
   batches,
   fees,
+  gender,
+  tenant,
   onClose,
 }: {
   batches: Batch[];
@@ -1325,6 +1327,7 @@ function BatchInfoDialog({
   tenant: any;
   onClose: () => void;
 }) {
+
 
   return (
     <div
