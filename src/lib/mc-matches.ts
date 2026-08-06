@@ -542,7 +542,15 @@ export function writeMatchDefaults(tenantId: string, patch: Defaults) {
   if (typeof window === "undefined") return;
   try {
     const current = readMatchDefaults(tenantId);
-    window.localStorage.setItem(key(tenantId), JSON.stringify({ ...current, ...patch }));
+    const updated = {
+      ...current,
+      ...patch,
+      playing_xi: { ...(current.playing_xi || {}), ...(patch.playing_xi || {}) },
+      captains: { ...(current.captains || {}), ...(patch.captains || {}) },
+      keepers: { ...(current.keepers || {}), ...(patch.keepers || {}) },
+      vice_captains: { ...(current.vice_captains || {}), ...(patch.vice_captains || {}) },
+    };
+    window.localStorage.setItem(key(tenantId), JSON.stringify(updated));
   } catch {
     /* ignore */
   }
