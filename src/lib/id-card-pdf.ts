@@ -69,8 +69,8 @@ const fmtMonthYear = (iso?: string | null) =>
     ? new Date(iso).toLocaleDateString("en-IN", { month: "short", year: "numeric" }).toUpperCase()
     : "—";
 
-const CW = 85.6;
-const CH = 54;
+const CW = 54;
+const CH = 86;
 const R = 3.2;
 
 export async function generateIdCardPdf(tenant: Tenant, r: IdCardData) {
@@ -78,10 +78,9 @@ export async function generateIdCardPdf(tenant: Tenant, r: IdCardData) {
   await new Promise(resolve => setTimeout(resolve, 50));
   
   const doc = new jsPDF({ 
-
     unit: "mm", 
     format: [CW + 40, CH + 60], 
-    orientation: "landscape"
+    orientation: "portrait"
   });
 
   const fx = 20;
