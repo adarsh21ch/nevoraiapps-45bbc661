@@ -33,6 +33,7 @@ export type StudentContext = {
   tenant_logo?: string;
   tenant_phone?: string;
   tenant_address?: string;
+  tenant_primary_color?: string;
   athlete_profile_id: string | null;
   name: string;
   player_id: string | null;
@@ -59,7 +60,7 @@ export async function fetchMyStudentContext(): Promise<StudentContext | null> {
   // Fetch tenant info separately since RPC return type is fixed in DB
   const { data: t } = await supabase
     .from("tenants")
-    .select("name, logo_url, phone, address")
+    .select("name, logo_url, phone, address, primary_color")
     .eq("id", (row as any).tenant_id)
     .maybeSingle();
 
@@ -69,6 +70,7 @@ export async function fetchMyStudentContext(): Promise<StudentContext | null> {
     tenant_logo: t?.logo_url ?? undefined,
     tenant_phone: t?.phone ?? undefined,
     tenant_address: t?.address ?? undefined,
+    tenant_primary_color: t?.primary_color ?? undefined,
   };
 }
 
@@ -91,7 +93,7 @@ export async function fetchMyPortalContext(): Promise<StudentContext | null> {
 
   const { data: s } = await supabase
     .from("students")
-    .select("id, tenant_id, name, player_id, email, photo_url, tenants(name, logo_url, phone, address)")
+    .select("id, tenant_id, name, player_id, email, photo_url, tenants(name, logo_url, phone, address, primary_color)")
     .eq("id", first.student_id)
     .maybeSingle();
   if (!s) return null;
@@ -109,6 +111,7 @@ export async function fetchMyPortalContext(): Promise<StudentContext | null> {
     tenant_logo: (s.tenants as any)?.logo_url,
     tenant_phone: (s.tenants as any)?.phone,
     tenant_address: (s.tenants as any)?.address,
+    tenant_primary_color: (s.tenants as any)?.primary_color,
     athlete_profile_id: (ap?.id as string | undefined) ?? null,
     name: s.name,
     player_id: s.player_id,
