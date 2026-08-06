@@ -10,6 +10,7 @@ import {
 } from "@/lib/dashboard-queries";
 import { useServerFn } from "@tanstack/react-start";
 import { deleteStudentPermanently } from "@/lib/students-manage.functions";
+import { normalizeGender, resolveMonthlyFee } from "@/lib/gender";
 
 import { useDashboard } from "@/lib/dashboard-context";
 import { uploadTenantFile } from "@/lib/storage";

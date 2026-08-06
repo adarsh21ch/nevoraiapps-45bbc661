@@ -24,6 +24,7 @@ import {
   tenantFeeCycle,
   type DueStatus,
 } from "@/lib/fees";
+import { resolveMonthlyFee } from "@/lib/gender";
 import { getFeatures } from "@/lib/tenant";
 import { generateReceiptPdf } from "@/lib/receipt-pdf";
 import { Button } from "@/components/ui/button";
