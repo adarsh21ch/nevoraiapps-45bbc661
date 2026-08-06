@@ -48,6 +48,12 @@ function StudentProfilePage() {
     enabled: !!ctx,
   });
 
+  const athleteQ = useQuery({
+    queryKey: playerKeys.athlete(ctx?.tenant_id || "", ctx?.student_id || ""),
+    queryFn: () => fetchAthleteByStudent(ctx!.tenant_id, ctx!.student_id),
+    enabled: !!ctx?.student_id,
+  });
+
   const handleDownloadIDCard = async () => {
     if (!ctx) return;
     setIsDownloading(true);
@@ -63,13 +69,14 @@ function StudentProfilePage() {
       await generateIdCardPdf(tenant as any, {
         playerId: s.player_id ?? null,
         name: (s.name as string) || "Student",
-        guardianName: (s.emergency_contact_name as string) || null,
+        guardianName: (s.guardian_name as string) || (s.emergency_contact_name as string) || null,
         dob: (s.dob as string) || null,
         phone: (s.phone as string) || "",
         city: (s.city as string) || null,
         state: (s.state as string) || null,
-        guardianPhone: (s.emergency_contact_phone as string) || null,
+        guardianPhone: (s.guardian_phone as string) || (s.emergency_contact_phone as string) || null,
         batchName: (s.batch_name as string) || (s.playing_role as string) || "Student",
+        sport: (athleteQ.data?.primary_sport as string) || "Cricket",
         joinedAt: (s.joined_at as string) || new Date().toISOString(),
         photoPath: (s.photo_url as string) || null,
         cardToken: (s.card_token as string) || null,
