@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { bulkApproveRegistrations } from "@/lib/bulk-ops";
 import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
 import { markRegistrationsReviewed, newRegsQueryKey } from "@/hooks/use-new-registrations";
-import { enrollStudentInBilling } from "@/lib/billing-enrollment";
+import { enrollStudentInBilling, enrollManyInBilling } from "@/lib/billing-enrollment";
 import { fetchFeePlans } from "@/lib/dashboard-queries";
 import {
   rejectRegistration,
@@ -205,7 +205,7 @@ function RegistrationsInbox() {
 
   const bulkApprove = useMutation({
     mutationFn: async (ids: string[]) => {
-      const { data: results, error } = await supabase.rpc("bulk_approve_registrations_v2", {
+      const { data: results, error } = await (supabase as any).rpc("bulk_approve_registrations_v2", {
         _tenant_id: tenantId,
         _ids: ids
       });
