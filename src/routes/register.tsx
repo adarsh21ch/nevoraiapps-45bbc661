@@ -847,8 +847,7 @@ function RegisterContent() {
                       </label>
                     </div>
                     <TextArea
-                      label=""
-                      placeholder="If different from current address"
+                      label="Permanent address (optional)"
                       value={form.permanent_address}
                       onChange={(v) => setForm({ ...form, permanent_address: v })}
                       error={errors.permanent_address}
