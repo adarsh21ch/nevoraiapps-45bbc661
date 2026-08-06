@@ -201,14 +201,9 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       pendingCount++;
       const plan = Array.isArray(s.fee_plans) ? s.fee_plans[0] : s.fee_plans;
       const isGenderPricingEnabled = (tenantRes.data as any)?.gender_pricing_enabled === true;
-      
-      let baseAmount = Number(plan?.amount ?? 0);
-      
-      // Apply female override if enabled and gender matches
-      const isFemale = s.gender === "female" || (typeof s.gender === "string" && s.gender.toLowerCase() === "girl");
-      if (isGenderPricingEnabled && isFemale && (plan as any)?.female_amount != null) {
-        baseAmount = Number((plan as any).female_amount);
-      }
+      const baseAmount = isGenderPricingEnabled 
+        ? resolveMonthlyFee(plan as any, s.gender)
+        : Number(plan?.amount ?? 0);
       
       // custom_fee override wins if set
       const amount = s.custom_fee != null ? Number(s.custom_fee) : baseAmount;
