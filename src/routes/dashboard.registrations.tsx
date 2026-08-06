@@ -682,8 +682,8 @@ function RegistrationsTable({
                   </td>
                   <td className="px-3 py-3 text-muted-foreground tabular-nums">{r.phone}</td>
                   <td className="px-3 py-3 text-xs text-muted-foreground">
-                    <div className="truncate max-w-[180px]">{batch?.name ?? "—"}</div>
-                    <div className="truncate max-w-[180px] opacity-70">{plan?.name ?? ""}</div>
+                    <div className="truncate max-w-[180px] font-medium text-foreground">{batch?.name ?? "—"}</div>
+                    <div className="truncate max-w-[180px] opacity-70 text-[10px]">{plan?.name ?? ""}</div>
                   </td>
                   <td className="px-3 py-3 text-xs text-muted-foreground whitespace-nowrap">
                     {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
