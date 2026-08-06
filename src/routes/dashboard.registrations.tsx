@@ -639,7 +639,8 @@ function RegistrationsTable({
   onWaitlist,
   accepting,
   rejecting,
-}: RowActions) {
+  tenant,
+}: RowActions & { tenant: any }) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [confirmAcceptId, setConfirmAcceptId] = useState<string | null>(null);
   const deleteTarget = rows.find((r) => r.id === confirmDeleteId);
