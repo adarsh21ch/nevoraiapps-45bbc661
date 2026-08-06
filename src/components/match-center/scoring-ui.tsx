@@ -613,6 +613,13 @@ export function DismissalModal({
   );
 }
 
+export interface BatterStats {
+  name: string;
+  runs: number;
+  balls: number;
+  isKeeper?: boolean;
+}
+
 export interface PlayerOption {
   id: string;
   name: string;
