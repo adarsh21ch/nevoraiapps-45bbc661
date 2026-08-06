@@ -33,6 +33,7 @@ const DEFAULT_PLATFORM_HOSTS = [
   "lovable.app",
   "lovable.dev",
   "lovableproject.com",
+  "lovable-preview.com",
 ];
 
 function getPlatformHosts(extra?: string[]): string[] {
