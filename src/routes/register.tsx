@@ -1061,7 +1061,7 @@ function RegisterContent() {
                     style={{ backgroundColor: "var(--brand)" }}
                   >
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    Submit registration
+                    Confirm & Submit
                   </button>
                 </div>
               </div>
