@@ -82,7 +82,6 @@ function formatFeeLabel(plan: (Partial<FeePlan> & { amount: number }) | undefine
   return `${sym}${amount}${cycle}`;
 }
 
-}
 
 // Best-effort mapping: given a batch, find the fee plan that represents its
 // monthly (or recurring) fee. Uses keyword matching against active recurring plans.
