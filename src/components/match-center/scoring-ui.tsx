@@ -274,14 +274,15 @@ function Avatar({ name }: { name?: string }) {
 
 export interface BatterStats {
   name?: string;
-  runs: number;
-  balls: number;
+  runs?: number;
+  balls?: number;
   fours?: number;
   sixes?: number;
   strikeRate?: string;
   last5?: string[];
   onStrike?: boolean;
   order?: number;
+  isKeeper?: boolean;
 }
 
 export function PlayerPanel({
