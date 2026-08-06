@@ -11,6 +11,7 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { deleteStudentPermanently } from "@/lib/students-manage.functions";
 import { normalizeGender, resolveMonthlyFee } from "@/lib/gender";
+import { INDIAN_STATES } from "@/lib/location";
 
 import { useDashboard } from "@/lib/dashboard-context";
 import { uploadTenantFile } from "@/lib/storage";
@@ -344,10 +345,11 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
                 s.gender === "male" ? "Boy" : s.gender === "female" ? "Girl" : s.gender ? String(s.gender).charAt(0).toUpperCase() + String(s.gender).slice(1) : "—"
               }
             />
-            <Row label="Address" value={s.address || "—"} multiline />
-            {s.current_address && (
-              <Row label="Current Address" value={s.current_address} multiline />
-            )}
+            <Row label="Village / Locality" value={s.village_locality || "—"} />
+            <Row label="City / District" value={s.city || "—"} />
+            <Row label="State" value={s.state || "—"} />
+            <Row label="Current Address" value={s.current_address || "—"} multiline />
+            <Row label="Permanent Address" value={s.permanent_address || s.address || "—"} multiline />
             <Row label="Phone" value={s.phone} />
             <IdProofRow label="Aadhaar Front" path={s.aadhaar_front_url} />
             <IdProofRow label="Aadhaar Back" path={s.aadhaar_back_url} />
@@ -722,7 +724,11 @@ function CoreEditor({
     guardian_phone: student.guardian_phone ?? "",
     dob: student.dob ?? "",
     gender: student.gender ?? "",
-    address: student.address ?? "",
+    village_locality: student.village_locality ?? "",
+    city: student.city ?? "",
+    state: student.state ?? "",
+    current_address: student.current_address ?? "",
+    permanent_address: student.permanent_address ?? student.address ?? "",
     batch_id: student.batch_id ?? "",
     fee_plan_id: student.fee_plan_id ?? "",
     custom_fee: student.custom_fee as number | null,
@@ -752,7 +758,13 @@ function CoreEditor({
             guardian_phone: f.guardian_phone || null,
             dob: f.dob || null,
             gender: f.gender || null,
-            address: f.address || null,
+            village_locality: f.village_locality || null,
+            city: f.city || null,
+            state: f.state || null,
+            current_address: f.current_address || null,
+            permanent_address: f.permanent_address || null,
+            // Keep legacy address field in sync for now for historical compatibility
+            address: f.permanent_address || f.current_address || null,
             batch_id: f.batch_id || null,
             fee_plan_id: f.fee_plan_id || null,
             custom_fee: f.custom_fee,
@@ -798,11 +810,36 @@ function CoreEditor({
           </SelectContent>
         </Select>
       </div>
+      <div className="grid grid-cols-2 gap-2">
+        <FormField label="Village / Locality" value={f.village_locality} onChange={(v) => setF({ ...f, village_locality: v })} />
+        <FormField label="City / District" value={f.city} onChange={(v) => setF({ ...f, city: v })} />
+      </div>
       <div className="space-y-1.5">
-        <Label>Address</Label>
+        <Label>State</Label>
+        <Select value={f.state} onValueChange={(v) => setF({ ...f, state: v })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select State" />
+          </SelectTrigger>
+          <SelectContent>
+            {INDIAN_STATES.map(s => (
+              <SelectItem key={s} value={s}>{s}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Current Address</Label>
         <Textarea
-          value={f.address}
-          onChange={(e) => setF({ ...f, address: e.target.value })}
+          value={f.current_address}
+          onChange={(e) => setF({ ...f, current_address: e.target.value })}
+          rows={2}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Permanent Address</Label>
+        <Textarea
+          value={f.permanent_address}
+          onChange={(e) => setF({ ...f, permanent_address: e.target.value })}
           rows={2}
         />
       </div>
