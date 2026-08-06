@@ -7503,10 +7503,12 @@ export type Database = {
       tenants_public_directory: {
         Row: {
           address: string | null
+          admission_fee_enabled: boolean | null
           custom_domain: string | null
           email: string | null
           features: Json | null
           fee_cycle: string | null
+          gender_pricing_enabled: boolean | null
           id: string | null
           logo_url: string | null
           name: string | null
@@ -7528,10 +7530,12 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          admission_fee_enabled?: boolean | null
           custom_domain?: string | null
           email?: string | null
           features?: Json | null
           fee_cycle?: string | null
+          gender_pricing_enabled?: boolean | null
           id?: string | null
           logo_url?: string | null
           name?: string | null
@@ -7553,10 +7557,12 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          admission_fee_enabled?: boolean | null
           custom_domain?: string | null
           email?: string | null
           features?: Json | null
           fee_cycle?: string | null
+          gender_pricing_enabled?: boolean | null
           id?: string | null
           logo_url?: string | null
           name?: string | null
