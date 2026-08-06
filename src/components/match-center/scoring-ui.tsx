@@ -862,7 +862,7 @@ export function ExtraRunsModal({
 
   // Adjust options for Bye/Leg Bye (they include 0)
   const isExtraPenalty = k === "Wide" || k === "No Ball";
-  const displayOptions = isExtraPenalty ? options : [0, 1, 2, 3, 4, 5, 6, 7];
+  const displayOptions = isExtraPenalty ? options : [0, 1, 2, 3, 4, 5, 6];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
