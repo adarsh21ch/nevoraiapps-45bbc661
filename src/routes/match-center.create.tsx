@@ -1307,6 +1307,9 @@ function TeamPanel({
   studentPool,
   studentsLoading,
   validationError,
+  goBack,
+  goNext,
+  canContinue,
 }: {
   side: "A" | "B";
   state: TeamPanelState;
@@ -1317,10 +1320,14 @@ function TeamPanel({
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
   validationError: string | null;
+  goBack: (e?: React.MouseEvent) => void;
+  goNext: (e?: React.MouseEvent) => void;
+  canContinue: boolean;
 }) {
   const setMode = (mode: TeamMode) => {
-    onChange({ ...emptyPanel(mode) });
+    onChange({ ...emptyPanel(mode), draftName: state.draftName });
   };
+
 
   const setPlayers = (players: PlayerRef[]) => onChange({ ...state, players });
   const addPlayer = (p: PlayerRef) => {
