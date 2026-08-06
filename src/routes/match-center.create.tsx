@@ -1068,6 +1068,7 @@ function StepReview({
           players={playersA}
           captain={captainA}
           viceCaptain={vcA}
+          keeper={keeperA}
           onEdit={() => onEditStep(2)}
         />
         <div className="grid place-items-center sm:px-1">
@@ -1081,6 +1082,7 @@ function StepReview({
           players={playersB}
           captain={captainB}
           viceCaptain={vcB}
+          keeper={keeperB}
           onEdit={() => onEditStep(3)}
         />
       </div>
