@@ -1334,6 +1334,8 @@ function BatchInfoDialog({
   tenant: any;
   onClose: () => void;
 }) {
+  const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
+
 
 
   return (
