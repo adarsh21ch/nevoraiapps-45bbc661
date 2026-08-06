@@ -1530,8 +1530,8 @@ function NewTeamBody({
   const hasRoles = players.some(p => p.is_captain) && players.some(p => p.is_keeper);
 
   return (
-    <div className="space-y-4">
-      <div>
+    <div className="flex flex-col h-full max-h-[75vh]">
+      <div className="flex-none p-4 pb-2 border-b bg-card sm:rounded-t-3xl">
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Team name</Label>
         <Input
           value={name}
@@ -1541,42 +1541,46 @@ function NewTeamBody({
         />
       </div>
 
-      {players.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Playing XI · {players.length}/11
-            </Label>
+      <div className="flex-1 overflow-y-auto min-h-0 bg-muted/5 p-4">
+        {players.length > 0 ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Playing XI · {players.length}/11
+              </Label>
+            </div>
+            <SquadList players={players} onPlayers={onPlayers} onRemove={onRemove} />
+            
+            <div className="flex flex-wrap gap-3 rounded-2xl border border-border bg-muted/30 p-3">
+              <div className="flex items-center gap-1.5 text-[11px]">
+                {players.some(p => p.is_captain) ? (
+                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
+                ) : (
+                  <span className="text-muted-foreground">Captain required</span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px]">
+                {players.some(p => p.is_keeper) ? (
+                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Wicketkeeper</span>
+                ) : (
+                  <span className="text-muted-foreground">Wicketkeeper required</span>
+                )}
+              </div>
+            </div>
           </div>
-          <SquadList players={players} onPlayers={onPlayers} onRemove={onRemove} />
-          
-          <div className="flex flex-wrap gap-3 rounded-2xl border border-border bg-muted/30 p-3">
-            <div className="flex items-center gap-1.5 text-[11px]">
-              {players.some(p => p.is_captain) ? (
-                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
-              ) : (
-                <span className="text-muted-foreground">Captain required</span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px]">
-              {players.some(p => p.is_keeper) ? (
-                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Wicketkeeper</span>
-              ) : (
-                <span className="text-muted-foreground">Wicketkeeper required</span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              VC optional
-            </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full py-8 text-center text-muted-foreground">
+            <Plus className="size-8 mb-2 opacity-20" />
+            <p className="text-sm">Add players to start building your XI</p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      <div>
-        <div className="flex items-center gap-1.5">
+      <div className="flex-none p-4 pt-2 border-t bg-card sm:rounded-b-3xl">
+        <div className="flex items-center gap-1.5 mb-1.5">
           <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Add player</Label>
         </div>
-        <div className="relative mt-1.5">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
