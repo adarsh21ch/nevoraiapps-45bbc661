@@ -1,5 +1,4 @@
 import React from "react";
-import { Card } from "@/components/ui/card";
 import { User, QrCode } from "lucide-react";
 
 interface StudentIDCardProps {
@@ -11,6 +10,8 @@ interface StudentIDCardProps {
     playing_role?: string | null;
     academy_name?: string;
     academy_logo?: string;
+    phone?: string;
+    session?: string;
   };
 }
 
@@ -20,29 +21,32 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
       <div className="p-4 bg-background overflow-hidden flex items-center justify-center">
         <div
           ref={ref}
-          className="w-[350px] h-[520px] bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden relative border border-slate-200"
+          className="w-[350px] h-[220px] bg-[#0f172a] text-white shadow-2xl rounded-2xl overflow-hidden relative border border-slate-800"
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
-          {/* Header/Academy Branding */}
-          <div className="h-28 bg-primary p-6 flex flex-col items-center justify-center text-primary-foreground relative">
-            <div className="absolute top-0 right-0 p-2 opacity-10">
-               <QrCode className="size-16" />
-            </div>
+          {/* Header */}
+          <div className="px-5 pt-4 pb-2 flex items-center gap-3 border-b border-white/10">
             {student.academy_logo ? (
-              <img src={student.academy_logo} alt="Logo" className="h-10 mb-1 object-contain brightness-0 invert" />
+              <img src={student.academy_logo} alt="Logo" className="h-8 object-contain brightness-0 invert" />
             ) : (
-              <div className="font-bold tracking-tight text-lg uppercase italic">
-                {student.academy_name || "AcademyOS"}
+              <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-xs font-black italic">
+                {student.academy_name?.slice(0, 2).toUpperCase() || "AO"}
               </div>
             )}
-            <div className="text-[10px] uppercase tracking-[0.2em] font-medium opacity-80">
-              Official Identity Card
+            <div className="flex-1 min-w-0">
+              <div className="font-black tracking-tight text-xs uppercase truncate">
+                {student.academy_name || "AcademyOS"}
+              </div>
+              <div className="text-[8px] uppercase tracking-[0.2em] font-bold text-white/50">
+                Player Identity Card
+              </div>
             </div>
           </div>
 
-          {/* Photo Section */}
-          <div className="flex justify-center -mt-12 mb-4 relative z-10">
-            <div className="size-32 rounded-2xl border-4 border-white bg-slate-100 shadow-lg overflow-hidden flex items-center justify-center">
+          {/* Body */}
+          <div className="p-4 flex gap-4">
+            {/* Photo */}
+            <div className="size-24 rounded-xl border-2 border-primary bg-slate-800 overflow-hidden flex items-center justify-center shrink-0">
               {student.photo_url ? (
                 <img
                   src={student.photo_url}
@@ -50,46 +54,58 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
                   className="size-full object-cover"
                 />
               ) : (
-                <User className="size-16 text-slate-300" />
+                <User className="size-12 text-slate-700" />
               )}
             </div>
-          </div>
 
-          {/* Info Section */}
-          <div className="px-8 text-center space-y-4">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900 uppercase tracking-tight">
-                {student.name}
-              </h2>
-              <div className="inline-block px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded-full mt-1">
-                {student.playing_role || "Student"}
+            {/* Info */}
+            <div className="flex-1 space-y-2 min-w-0">
+              <div>
+                <p className="text-[7px] font-bold text-white/40 uppercase tracking-widest">Player</p>
+                <h2 className="text-sm font-black uppercase truncate leading-tight">
+                  {student.name}
+                </h2>
               </div>
-            </div>
+              
+              <div className="flex gap-4">
+                <div>
+                  <p className="text-[7px] font-bold text-white/40 uppercase tracking-widest">ID</p>
+                  <p className="text-[11px] font-black text-primary leading-tight">
+                    {student.player_id || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[7px] font-bold text-white/40 uppercase tracking-widest">Session</p>
+                  <p className="text-[10px] font-bold leading-tight truncate max-w-[80px]">
+                    {student.session || student.playing_role || "—"}
+                  </p>
+                </div>
+              </div>
 
-            <div className="grid grid-cols-2 gap-4 text-left pt-2 border-t border-slate-100">
-              <div className="space-y-0.5">
-                <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Member ID</p>
-                <p className="text-sm font-semibold text-slate-700">{student.player_id || "N/A"}</p>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Joined Since</p>
-                <p className="text-sm font-semibold text-slate-700">
-                  {student.joined_at ? new Date(student.joined_at).getFullYear() : "N/A"}
+              <div>
+                <p className="text-[7px] font-bold text-white/40 uppercase tracking-widest">Contact</p>
+                <p className="text-[10px] font-bold leading-tight">
+                  {student.phone || "—"}
                 </p>
               </div>
             </div>
-
-            <div className="pt-4 flex justify-center opacity-20">
-               <QrCode className="size-20" />
-            </div>
           </div>
 
-          {/* Footer Decoration */}
-          <div className="absolute bottom-0 left-0 right-0 h-2 bg-primary" />
-          <div className="absolute bottom-4 left-0 right-0 text-center">
-             <p className="text-[8px] uppercase font-bold text-slate-300 tracking-[0.3em]">
-               AcademyOS Platform
+          {/* QR Overlay (Centered Bottom) */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex flex-col items-center">
+             <div className="bg-white p-1 rounded-md shadow-lg">
+                <QrCode className="size-10 text-slate-900" />
+             </div>
+             <p className="text-[6px] font-black uppercase tracking-tighter text-white/30 mt-1">
+               Scan: In / Out
              </p>
+          </div>
+
+          {/* Footer Dates */}
+          <div className="absolute bottom-3 left-4">
+            <p className="text-[7px] font-bold text-white/30 uppercase tracking-widest">
+              Joined {student.joined_at ? new Date(student.joined_at).getFullYear() : "—"}
+            </p>
           </div>
         </div>
       </div>

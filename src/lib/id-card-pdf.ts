@@ -114,8 +114,16 @@ const CH = 54;
 const R = 3.2;
 
 export async function generateIdCardPdf(tenant: Tenant, r: IdCardData) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  await drawCard(doc, tenant, r);
+  // Use a custom card size instead of A4 to avoid white space and small corner rendering
+  const doc = new jsPDF({ 
+    unit: "mm", 
+    format: [CW + 40, CH + 60], // Add margins but focus on the card
+    orientation: "landscape"
+  });
+  // Adjust fx/fy to center on the smaller canvas
+  const canvasW = CW + 40;
+  const canvasH = CH + 60;
+  await drawCard(doc, tenant, r, (canvasW - CW) / 2, (canvasH - CH) / 2);
   doc.save(`id-card-${r.playerId || r.name.replace(/\s+/g, "-")}.pdf`);
 }
 
@@ -124,19 +132,16 @@ export async function generateIdCardsPdf(tenant: Tenant, rows: IdCardData[]) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   for (let i = 0; i < rows.length; i++) {
     if (i > 0) doc.addPage();
-    await drawCard(doc, tenant, rows[i]);
+    await drawCard(doc, tenant, rows[i], 20, 30);
   }
   doc.save(`id-cards-${tenant.slug || "academy"}.pdf`);
 }
 
 /** Single-sided card: everything the gate needs lives on the front. */
-async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData) {
+async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, fy: number) {
   const brand = safeHex(tenant.primary_color, "#0f172a");
   const accent = safeHex(tenant.secondary_color, "#f59e0b");
   const dark = mix(brand, "#000000", 0.35);
-
-  const fx = 20;
-  const fy = 30;
 
   // QR payload — private card token; falls back to a verify link.
   const site = tenantSiteUrl(tenant);
@@ -187,9 +192,7 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData) {
     `#${dark.map((n) => n.toString(16).padStart(2, "0")).join("")}`,
   );
 
-  // Accent rule under the header
-  doc.setFillColor(...hexToRgb(accent));
-  doc.roundedRect(fx + 6, fy + 14.2, 22, 1.1, 0.55, 0.55, "F");
+  // Accent rule removed as requested
 
   // Header — logo + academy name
   let hx = fx + 6;
@@ -251,71 +254,75 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData) {
 
   // Details
   const dx = px + pw + 4;
-  const dw = CW - (dx - fx) - 30;
-  let y = py + 3;
+  const dw = CW - (dx - fx) - 7; // Increased width
+  let y = py + 5;
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("PLAYER", dx, y);
-  y += 3.6;
+  y += 3.8;
   doc.setTextColor(17, 24, 39);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
   const nameLines = (doc.splitTextToSize(r.name, dw) as string[]).slice(0, 2);
   doc.text(nameLines, dx, y);
-  y += nameLines.length > 1 ? 8 : 4.4;
+  y += nameLines.length > 1 ? 8.2 : 4.6;
 
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("PLAYER ID", dx, y);
-  y += 3.2;
+  y += 3.5;
   doc.setTextColor(...hexToRgb(brand));
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
   doc.text(r.playerId || "—", dx, y);
 
-  y += 4.3;
+  y += 4.5;
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("SESSION", dx, y);
-  y += 3.2;
+  y += 3.5;
   doc.setTextColor(17, 24, 39);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.4);
   doc.text((r.batchName || "—").slice(0, 22), dx, y);
 
-  // Emergency line only when it still fits inside the white panel.
-  const panelBottom = fy + 16 + (CH - 21);
-  if ((r.guardianPhone || r.phone) && y + 7.4 <= panelBottom) {
-    y += 4.2;
-    doc.setTextColor(140, 146, 158);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(5.4);
-    doc.text("EMERGENCY", dx, y);
-    y += 3.2;
-
-    doc.setTextColor(17, 24, 39);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.2);
-    doc.text((r.guardianPhone || r.phone).slice(0, 20), dx, y);
-  }
+  y += 4.5;
+  doc.setTextColor(140, 146, 158);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(5.4);
+  doc.text("CONTACT", dx, y);
+  y += 3.5;
+  doc.setTextColor(17, 24, 39);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.2);
+  doc.text((r.phone || "").slice(0, 20), dx, y);
 
   // The only QR — check-in / check-out at the gate.
   if (qrDataUrl) {
-    const qs = 21;
-    const qx = fx + CW - qs - 7;
-    const qy = fy + 19;
+    const qs = 24; // Larger QR
+    const qx = fx + (CW / 2) - (qs / 2); // Center horizontally
+    const qy = fy + CH - 15; // Position relative to bottom
+    
+    // We need to make space for the QR if it overlaps the white panel
+    // Or we just place it below everything in a white rounded box
+    const boxW = qs + 4;
+    const boxH = qs + 4;
+    const boxX = qx - 2;
+    const boxY = qy - 2;
+    
     doc.setFillColor(255, 255, 255);
-    doc.roundedRect(qx - 1.4, qy - 1.4, qs + 2.8, qs + 2.8, 1.6, 1.6, "F");
+    doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "F");
     doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(qx - 1.4, qy - 1.4, qs + 2.8, qs + 2.8, 1.6, 1.6, "S");
+    doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "S");
     doc.addImage(qrDataUrl, "PNG", qx, qy, qs, qs);
+    
     doc.setTextColor(120, 126, 138);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(4.4);
-    doc.text("SCAN: IN / OUT", qx + qs / 2, qy + qs + 2.8, { align: "center" });
+    doc.text("SCAN: IN / OUT", qx + qs / 2, qy + qs + 3, { align: "center" });
   }
 
   // Bottom strip
