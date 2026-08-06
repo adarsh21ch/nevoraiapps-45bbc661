@@ -722,8 +722,8 @@ function RegisterContent() {
                   onChange={(v) => setForm({ ...form, gender: v })}
                   options={[
                     { value: "", label: "Select gender" },
-                    { value: "male", label: "Male" },
-                    { value: "female", label: "Female" },
+                    { value: "male", label: "Boy" },
+                    { value: "female", label: "Girl" },
                   ]}
                   error={errors.gender}
                 />
