@@ -27,6 +27,7 @@ import { AccountCard } from "@/components/settings/AccountCard";
 import { EditMyProfileDialog } from "@/components/portal/EditMyProfileDialog";
 import { StudentIDCard } from "@/components/portal/StudentIDCard";
 import { generateIdCardPdf } from "@/lib/id-card-pdf";
+import { playerKeys, fetchAthleteByStudent } from "@/lib/player-profile";
 import { toast } from "sonner";
 
 
