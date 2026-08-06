@@ -1084,6 +1084,54 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         onSelect={onExtraRuns}
       />
 
+      <Sheet open={nbClassificationOpen} onOpenChange={setNbClassificationOpen}>
+        <SheetContent side="bottom" className="rounded-t-[28px] border-t-0 p-6 pb-10 shadow-2xl">
+          <SheetHeader className="mb-6 text-center">
+            <SheetTitle className="text-xl font-black">No Ball classification</SheetTitle>
+            <SheetDescription className="text-sm">
+              Additional {pendingNoBallRuns ? pendingNoBallRuns - 1 : 0} runs were:
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-3">
+            <Button
+              size="lg"
+              className="h-14 rounded-2xl text-lg font-bold"
+              onClick={() => onNbClassify("bat")}
+            >
+              Off Bat
+            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-14 rounded-2xl text-lg font-bold"
+                onClick={() => onNbClassify("bye")}
+              >
+                Byes
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-14 rounded-2xl text-lg font-bold"
+                onClick={() => onNbClassify("leg_bye")}
+              >
+                Leg Byes
+              </Button>
+            </div>
+            <Button
+              variant="ghost"
+              className="mt-2 h-10 rounded-full text-sm font-semibold"
+              onClick={() => {
+                setNbClassificationOpen(false);
+                setPendingNoBallRuns(null);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Scorecard sheet */}
       <Sheet open={scorecardOpen} onOpenChange={setScorecardOpen}>
         <SheetContent
@@ -2065,6 +2113,54 @@ function DemoScorerBody({
         kind={extraKind ?? ""}
         onSelect={onExtraRuns}
       />
+
+      <Sheet open={nbClassificationOpen} onOpenChange={setNbClassificationOpen}>
+        <SheetContent side="bottom" className="rounded-t-[28px] border-t-0 p-6 pb-10 shadow-2xl">
+          <SheetHeader className="mb-6 text-center">
+            <SheetTitle className="text-xl font-black">No Ball classification</SheetTitle>
+            <SheetDescription className="text-sm">
+              Additional {pendingNoBallRuns ? pendingNoBallRuns - 1 : 0} runs were:
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-3">
+            <Button
+              size="lg"
+              className="h-14 rounded-2xl text-lg font-bold"
+              onClick={() => onNbClassify("bat")}
+            >
+              Off Bat
+            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-14 rounded-2xl text-lg font-bold"
+                onClick={() => onNbClassify("bye")}
+              >
+                Byes
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-14 rounded-2xl text-lg font-bold"
+                onClick={() => onNbClassify("leg_bye")}
+              >
+                Leg Byes
+              </Button>
+            </div>
+            <Button
+              variant="ghost"
+              className="mt-2 h-10 rounded-full text-sm font-semibold"
+              onClick={() => {
+                setNbClassificationOpen(false);
+                setPendingNoBallRuns(null);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Scorecard sheet */}
       <Sheet open={scorecardOpen} onOpenChange={setScorecardOpen}>
