@@ -493,11 +493,21 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     if (!extraKind) return;
     const kind = extraKind;
     setExtraKind(null);
-    if (kind === "Wide") requestSubmit(ballHelpers.wide(1 + Math.max(0, runs)));
 
-    else if (kind === "No Ball") requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
-    else if (kind === "Bye") requestSubmit(ballHelpers.bye(runs));
-    else if (kind === "Leg Bye") requestSubmit(ballHelpers.legBye(runs));
+    if (kind === "Wide") {
+      // In Wide scroller, total runs includes the 1-run wide penalty
+      // 1 = WD only, 5 = WD+4
+      requestSubmit(ballHelpers.wide(runs));
+    } else if (kind === "No Ball") {
+      // In No Ball scroller, total runs includes the 1-run penalty
+      // 1 = NB only, 5 = NB+4
+      // ballHelpers.noBall expects BATSMAN runs (total - 1)
+      requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
+    } else if (kind === "Bye") {
+      requestSubmit(ballHelpers.bye(runs));
+    } else if (kind === "Leg Bye") {
+      requestSubmit(ballHelpers.legBye(runs));
+    }
   };
 
   const finalizeWicket = async (
