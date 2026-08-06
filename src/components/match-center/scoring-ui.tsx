@@ -519,16 +519,20 @@ export function ScoreButton({
   );
 }
 
-export function RunsButton(props: { value: 0 | 1 | 2 | 3 | 4 | 6; onClick?: () => void }) {
-  const tone: Tone = props.value === 4 ? "boundary" : props.value === 6 ? "six" : "run";
-  const sublabel = props.value === 4 ? "Four" : props.value === 6 ? "Six" : undefined;
+export function RunsButton({ value, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 5 | 6; onClick?: () => void }) {
+  const isDot = value === 0;
+  const tone: Tone = value === 4 ? "boundary" : value === 6 ? "six" : "run";
+  const label = isDot ? "•" : value;
+  const sublabel = isDot ? "Dot" : value === 4 ? "Four" : value === 6 ? "Six" : undefined;
+  
   return (
-    <ScoreButton label={props.value} tone={tone} sublabel={sublabel} onClick={props.onClick} />
+    <ScoreButton label={label} tone={tone} sublabel={sublabel} onClick={onClick} />
   );
 }
 
 export function ExtraButton({ label, onClick }: { label: string; onClick?: () => void }) {
-  return <ScoreButton label={label} tone="extra" size="lg" onClick={onClick} />;
+  const shortLabel = label === "Wide" ? "WD" : label === "No Ball" ? "NB" : label === "Bye" ? "B" : "LB";
+  return <ScoreButton label={shortLabel} tone="extra" size="lg" onClick={onClick} />;
 }
 
 export function UndoButton({ onClick }: { onClick?: () => void }) {
@@ -801,27 +805,26 @@ export function ExtraRunsModal({
   }, [open, kind]);
   const k = open ? (kind || frozenKind) : frozenKind;
 
-  // No Ball is 1..7 (penalty is always included; 1 = NB only).
-  // Wide is 0..5 batsmen-runs (0 = plain wide; total = 1 penalty + batsmen runs).
-  // Bye/Leg Bye are 0..6 batsmen-runs.
-  // All extra types now use a 0-7 runs scroller (total runs including penalty if any)
+  // 0-7 runs scroller (total team runs including penalty if any)
   const options = [0, 1, 2, 3, 4, 5, 6, 7];
 
   const sublabelFor = (r: number): string | null => {
     if (k === "No Ball") {
+      if (r === 0) return "Invalid";
       if (r === 1) return "NB only";
       return `NB + ${r - 1}`;
     }
     if (k === "Wide") {
+      if (r === 0) return "Invalid";
       if (r === 1) return "WD only";
       return `WD + ${r - 1}`;
     }
     if (k === "Bye") {
-      if (r === 0) return "0 runs";
+      if (r === 0) return "Dot";
       return `${r} Byes`;
     }
     if (k === "Leg Bye") {
-      if (r === 0) return "0 runs";
+      if (r === 0) return "Dot";
       return `${r} Leg Byes`;
     }
     return null;
@@ -889,7 +892,7 @@ export function ExtraRunsModal({
                           : "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
                     )}
                   >
-                    {r}
+                    {r === 7 ? "7+" : r}
                   </span>
                   <span className="text-[9px] font-bold uppercase tracking-tight leading-none text-muted-foreground whitespace-nowrap min-h-[10px]">
                     {sub ?? ""}

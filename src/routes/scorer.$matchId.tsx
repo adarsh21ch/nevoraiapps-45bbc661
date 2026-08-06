@@ -195,7 +195,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
-
   const [caughtOpen, setCaughtOpen] = useState(false);
   const [runOutOpen, setRunOutOpen] = useState(false);
   const [newBatterOpen, setNewBatterOpen] = useState(false);
@@ -204,6 +203,11 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const [pickNonStrikerOpen, setPickNonStrikerOpen] = useState(false);
   const [pickBowlerOpen, setPickBowlerOpen] = useState(false);
   const [extraKind, setExtraKind] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
+  
+  // No-ball classification state
+  const [nbClassificationOpen, setNbClassificationOpen] = useState(false);
+  const [pendingNoBallRuns, setPendingNoBallRuns] = useState<number | null>(null);
+
   const [rightDrawer, setRightDrawer] = useState(false);
   const [leftDrawer, setLeftDrawer] = useState(false);
   const [scorecardOpen, setScorecardOpen] = useState(false);
@@ -489,7 +493,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
 
-  const onExtraRuns = (runs: number) => {
+  const onExtraRuns = (totalRuns: number) => {
     if (!extraKind) return;
     const kind = extraKind;
     setExtraKind(null);
@@ -497,17 +501,36 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     if (kind === "Wide") {
       // In Wide scroller, total runs includes the 1-run wide penalty
       // 1 = WD only, 5 = WD+4
-      requestSubmit(ballHelpers.wide(runs));
+      requestSubmit(ballHelpers.wide(totalRuns));
     } else if (kind === "No Ball") {
-      // In No Ball scroller, total runs includes the 1-run penalty
-      // 1 = NB only, 5 = NB+4
-      // ballHelpers.noBall expects BATSMAN runs (total - 1)
-      requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
+      // If total runs > 1, we need to know if additional runs came from bat or extras
+      if (totalRuns > 1) {
+        setPendingNoBallRuns(totalRuns);
+        setNbClassificationOpen(true);
+      } else if (totalRuns === 1) {
+        requestSubmit(ballHelpers.noBall(0, 0));
+      }
     } else if (kind === "Bye") {
-      requestSubmit(ballHelpers.bye(runs));
+      requestSubmit(ballHelpers.bye(totalRuns));
     } else if (kind === "Leg Bye") {
-      requestSubmit(ballHelpers.legBye(runs));
+      requestSubmit(ballHelpers.legBye(totalRuns));
     }
+  };
+
+  const onNbClassify = (mode: "bat" | "bye" | "leg_bye") => {
+    if (pendingNoBallRuns === null) return;
+    const additional = pendingNoBallRuns - 1;
+    if (mode === "bat") {
+      requestSubmit(ballHelpers.noBall(additional, 0));
+    } else if (mode === "bye") {
+      requestSubmit(ballHelpers.noBall(0, additional));
+    } else if (mode === "leg_bye") {
+      // In the rules engine, extra_runs on a no_ball stores ALL non-penalty extras.
+      // Distinct leg-bye tracking on NB is a bonus; for now mapping to general extras.
+      requestSubmit(ballHelpers.noBall(0, additional));
+    }
+    setNbClassificationOpen(false);
+    setPendingNoBallRuns(null);
   };
 
   const finalizeWicket = async (
@@ -1061,6 +1084,54 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         onSelect={onExtraRuns}
       />
 
+      <Sheet open={nbClassificationOpen} onOpenChange={setNbClassificationOpen}>
+        <SheetContent side="bottom" className="rounded-t-[28px] border-t-0 p-6 pb-10 shadow-2xl">
+          <SheetHeader className="mb-6 text-center">
+            <SheetTitle className="text-xl font-black">No Ball classification</SheetTitle>
+            <SheetDescription className="text-sm">
+              Additional {pendingNoBallRuns ? pendingNoBallRuns - 1 : 0} runs were:
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-3">
+            <Button
+              size="lg"
+              className="h-14 rounded-2xl text-lg font-bold"
+              onClick={() => onNbClassify("bat")}
+            >
+              Off Bat
+            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-14 rounded-2xl text-lg font-bold"
+                onClick={() => onNbClassify("bye")}
+              >
+                Byes
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-14 rounded-2xl text-lg font-bold"
+                onClick={() => onNbClassify("leg_bye")}
+              >
+                Leg Byes
+              </Button>
+            </div>
+            <Button
+              variant="ghost"
+              className="mt-2 h-10 rounded-full text-sm font-semibold"
+              onClick={() => {
+                setNbClassificationOpen(false);
+                setPendingNoBallRuns(null);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Scorecard sheet */}
       <Sheet open={scorecardOpen} onOpenChange={setScorecardOpen}>
         <SheetContent
@@ -1215,6 +1286,98 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           />
         </>
       )}
+
+      {/* No-ball classification sheet */}
+      <Sheet open={nbClassificationOpen} onOpenChange={setNbClassificationOpen}>
+        <SheetContent side="bottom" className="rounded-t-3xl bg-card p-0">
+          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
+          <SheetHeader className="px-5 pb-2 pt-4 text-left">
+            <SheetTitle className="text-base">No Ball — Additional runs were:</SheetTitle>
+            <SheetDescription className="text-xs">
+              Selected total {pendingNoBallRuns}. One run is the penalty.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-2 p-4 pb-8">
+            <Button
+              variant="outline"
+              className="h-12 text-sm font-semibold justify-start px-6"
+              onClick={() => onNbClassify("bat")}
+            >
+              Runs off the bat
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 text-sm font-semibold justify-start px-6"
+              onClick={() => onNbClassify("bye")}
+            >
+              Byes
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 text-sm font-semibold justify-start px-6"
+              onClick={() => onNbClassify("leg_bye")}
+            >
+              Leg Byes
+            </Button>
+            <Button
+              variant="ghost"
+              className="mt-2 h-10 text-xs text-muted-foreground"
+              onClick={() => {
+                setNbClassificationOpen(false);
+                setPendingNoBallRuns(null);
+              }}
+            >
+              Cancel ball
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* No-ball classification sheet for demo */}
+      <Sheet open={nbClassificationOpen} onOpenChange={setNbClassificationOpen}>
+        <SheetContent side="bottom" className="rounded-t-3xl bg-card p-0">
+          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
+          <SheetHeader className="px-5 pb-2 pt-4 text-left">
+            <SheetTitle className="text-base">No Ball — Additional runs were:</SheetTitle>
+            <SheetDescription className="text-xs">
+              Selected total {pendingNoBallRuns}. One run is the penalty.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-2 p-4 pb-8">
+            <Button
+              variant="outline"
+              className="h-12 text-sm font-semibold justify-start px-6"
+              onClick={() => onNbClassify("bat")}
+            >
+              Runs off the bat
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 text-sm font-semibold justify-start px-6"
+              onClick={() => onNbClassify("bye")}
+            >
+              Byes
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 text-sm font-semibold justify-start px-6"
+              onClick={() => onNbClassify("leg_bye")}
+            >
+              Leg Byes
+            </Button>
+            <Button
+              variant="ghost"
+              className="mt-2 h-10 text-xs text-muted-foreground"
+              onClick={() => {
+                setNbClassificationOpen(false);
+                setPendingNoBallRuns(null);
+              }}
+            >
+              Cancel ball
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
@@ -1325,6 +1488,10 @@ function DemoScorerBody({
   const [newBowlerOpen, setNewBowlerOpen] = useState(false);
   const [pickStrikerOpen, setPickStrikerOpen] = useState(false);
   const [pickNonStrikerOpen, setPickNonStrikerOpen] = useState(false);
+
+  // No-ball classification state for demo
+  const [nbClassificationOpen, setNbClassificationOpen] = useState(false);
+  const [pendingNoBallRuns, setPendingNoBallRuns] = useState<number | null>(null);
   const [pickBowlerOpen, setPickBowlerOpen] = useState(false);
   const [extraKind, setExtraKind] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
   const [scorecardOpen, setScorecardOpen] = useState(false);
@@ -1588,14 +1755,39 @@ function DemoScorerBody({
     }
   };
   const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
-  const onExtraRuns = (runs: number) => {
+  const onExtraRuns = (totalRuns: number) => {
     if (!extraKind) return;
     const kind = extraKind;
     setExtraKind(null);
-    if (kind === "Wide") requestSubmit(ballHelpers.wide(1 + Math.max(0, runs)));
-    else if (kind === "No Ball") requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
-    else if (kind === "Bye") requestSubmit(ballHelpers.bye(runs));
-    else if (kind === "Leg Bye") requestSubmit(ballHelpers.legBye(runs));
+
+    if (kind === "Wide") {
+      requestSubmit(ballHelpers.wide(totalRuns));
+    } else if (kind === "No Ball") {
+      if (totalRuns > 1) {
+        setPendingNoBallRuns(totalRuns);
+        setNbClassificationOpen(true);
+      } else if (totalRuns === 1) {
+        requestSubmit(ballHelpers.noBall(0, 0));
+      }
+    } else if (kind === "Bye") {
+      requestSubmit(ballHelpers.bye(totalRuns));
+    } else if (kind === "Leg Bye") {
+      requestSubmit(ballHelpers.legBye(totalRuns));
+    }
+  };
+
+  const onNbClassify = (mode: "bat" | "bye" | "leg_bye") => {
+    if (pendingNoBallRuns === null) return;
+    const additional = pendingNoBallRuns - 1;
+    if (mode === "bat") {
+      requestSubmit(ballHelpers.noBall(additional, 0));
+    } else if (mode === "bye") {
+      requestSubmit(ballHelpers.noBall(0, additional));
+    } else if (mode === "leg_bye") {
+      requestSubmit(ballHelpers.noBall(0, additional));
+    }
+    setNbClassificationOpen(false);
+    setPendingNoBallRuns(null);
   };
   const finalizeWicket = async (
     kind: DismissalType,
@@ -1921,6 +2113,54 @@ function DemoScorerBody({
         kind={extraKind ?? ""}
         onSelect={onExtraRuns}
       />
+
+      <Sheet open={nbClassificationOpen} onOpenChange={setNbClassificationOpen}>
+        <SheetContent side="bottom" className="rounded-t-[28px] border-t-0 p-6 pb-10 shadow-2xl">
+          <SheetHeader className="mb-6 text-center">
+            <SheetTitle className="text-xl font-black">No Ball classification</SheetTitle>
+            <SheetDescription className="text-sm">
+              Additional {pendingNoBallRuns ? pendingNoBallRuns - 1 : 0} runs were:
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-3">
+            <Button
+              size="lg"
+              className="h-14 rounded-2xl text-lg font-bold"
+              onClick={() => onNbClassify("bat")}
+            >
+              Off Bat
+            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-14 rounded-2xl text-lg font-bold"
+                onClick={() => onNbClassify("bye")}
+              >
+                Byes
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-14 rounded-2xl text-lg font-bold"
+                onClick={() => onNbClassify("leg_bye")}
+              >
+                Leg Byes
+              </Button>
+            </div>
+            <Button
+              variant="ghost"
+              className="mt-2 h-10 rounded-full text-sm font-semibold"
+              onClick={() => {
+                setNbClassificationOpen(false);
+                setPendingNoBallRuns(null);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Scorecard sheet */}
       <Sheet open={scorecardOpen} onOpenChange={setScorecardOpen}>
