@@ -826,6 +826,8 @@ function StepSetup({
   setMatchType,
   matchFormat,
   setMatchFormat,
+  playingRules,
+  setPlayingRules,
   overs,
   setOvers,
 }: {
@@ -833,6 +835,8 @@ function StepSetup({
   setMatchType: (v: string) => void;
   matchFormat: string;
   setMatchFormat: (v: string) => void;
+  playingRules: string;
+  setPlayingRules: (v: string) => void;
   overs: number;
   setOvers: (v: number) => void;
 }) {
