@@ -121,6 +121,8 @@ type WizardDraft = {
   streamingUrl: string;
   ballType: string;
   savedAt: number;
+  // Track if a match is actually "Live" (started) so we can resume scoring
+  activeMatchId?: string;
 };
 function readDraft(tenantId: string): WizardDraft | null {
   if (typeof window === "undefined") return null;
@@ -153,6 +155,16 @@ function clearDraft(tenantId: string) {
 function CreateMatchPage() {
   const { tenant, profile } = useDashboard();
   const navigate = useNavigate();
+
+  // Check for active match on mount to support persistence
+  useEffect(() => {
+    const draft = readDraft(tenant.id);
+    if (draft?.activeMatchId) {
+      toast.info("Resuming active match scoring...", { duration: 2000 });
+      navigate({ to: "/scorer/$matchId", params: { matchId: draft.activeMatchId } });
+    }
+  }, [tenant.id, navigate]);
+
   const qc = useQueryClient();
   const demoOn = useDemoMode(tenant.id);
   const demo = useDemoData(tenant.id);
@@ -477,8 +489,13 @@ function CreateMatchPage() {
 
       return { id: match.id, demo: false } as const;
     },
-    onSuccess: async (res) => {
-      clearDraft(tenant.id);
+      onSuccess: async (res) => {
+      // Don't clear draft yet, mark it with the active match ID so we can resume
+      const currentDraft = readDraft(tenant.id);
+      if (currentDraft) {
+        writeDraft(tenant.id, { ...currentDraft, activeMatchId: res.id });
+      }
+      
       qc.invalidateQueries({ queryKey: ["mc-matches", tenant.id] });
       qc.invalidateQueries({ queryKey: ["mc-all-teams", tenant.id] });
 
