@@ -40,6 +40,15 @@ type Member = {
   created_at: string;
 };
 
+const assignableMemberRoles = [
+  "student",
+  "coach",
+  "head_coach",
+  "assistant_coach",
+  "admin",
+  "staff",
+] as const;
+
 export const Route = createFileRoute("/dashboard/staff")({
   head: () => ({
     meta: [{ title: "Admins · Academy" }, { name: "robots", content: "noindex" }],
@@ -87,7 +96,7 @@ function AdminsPage() {
   );
   const admins = members.filter(
     (m) =>
-      m.roles.includes("admin") &&
+      m.roles.some((r) => ["admin", "staff", "coach", "head_coach", "assistant_coach"].includes(r)) &&
       !m.roles.includes("owner") &&
       m.profile_role !== "owner",
   );
@@ -208,7 +217,30 @@ function AdminRow({
   onChanged: () => void;
 }) {
   const setRole = useServerFn(setStaffRole);
+  const [editing, setEditing] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(
+    member.roles.find(r => ["admin", "staff", "coach", "head_coach", "assistant_coach"].includes(r)) || "admin"
+  );
+
   const m = useMutation({
+    mutationFn: (newRole: string) =>
+      setRole({
+        data: {
+          tenantId,
+          userId: member.user_id,
+          newRole: newRole as any,
+          oldRole: (member.roles[0] || "staff") as any,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Role updated");
+      setEditing(false);
+      onChanged();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const removeM = useMutation({
     mutationFn: () =>
       setRole({
         data: { tenantId, userId: member.user_id, newRole: "student", oldRole: "admin" },
@@ -230,7 +262,32 @@ function AdminRow({
           <span className="font-medium text-sm truncate">
             {member.name ?? member.email ?? `${member.user_id.slice(0, 8)}…`}
           </span>
-          <Badge variant="secondary">Admin</Badge>
+          {editing ? (
+            <select
+              className="text-xs bg-muted border-none rounded px-1 h-6 focus:ring-0"
+              value={selectedRole}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedRole(val);
+                m.mutate(val);
+              }}
+              disabled={m.isPending}
+            >
+              {assignableMemberRoles.filter(r => r !== 'student').map((r) => (
+                <option key={r} value={r}>
+                  {r.charAt(0).toUpperCase() + r.slice(1).replace("_", " ")}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <Badge
+              variant="secondary"
+              className="cursor-pointer hover:bg-secondary/80 capitalize"
+              onClick={() => setEditing(true)}
+            >
+              {selectedRole.replace("_", " ")}
+            </Badge>
+          )}
         </div>
         <div className="text-xs text-muted-foreground mt-0.5 truncate">
           {member.email ?? "—"}
@@ -239,11 +296,11 @@ function AdminRow({
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => m.mutate()}
-        disabled={m.isPending}
+        onClick={() => removeM.mutate()}
+        disabled={removeM.isPending}
         aria-label="Remove admin"
       >
-        {m.isPending ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
+        {removeM.isPending ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
       </Button>
     </Card>
   );
@@ -272,7 +329,7 @@ function AdminPicker({
         m.source === "student" &&
         !m.roles.includes("owner") &&
         m.profile_role !== "owner" &&
-        !m.roles.includes("admin"),
+        !m.roles.some(r => ["admin", "staff", "coach", "head_coach", "assistant_coach"].includes(r)),
     );
   }, [members]);
 
