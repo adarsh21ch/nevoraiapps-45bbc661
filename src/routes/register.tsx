@@ -1366,8 +1366,18 @@ function ReviewSummary({
       "Preferred batch",
       batch ? (batch.timing ? `${batch.name} — ${batch.timing}` : batch.name) : "No preference",
     ],
-    ["Monthly fee", batch ? batchFeeText(batch, fees, genderNormalized, tenant) : "—"],
   ];
+
+  if (tenant?.admission_fee_enabled !== false) {
+    const reg = fees.find((f) => f.type === "registration");
+    if (reg) {
+      const cur = (reg.currency || "INR").toUpperCase();
+      const sym = cur === "INR" ? "₹" : cur + " ";
+      rows.push(["Admission fee", `${sym}${reg.amount}`]);
+    }
+  }
+
+  rows.push(["Monthly fee", batch ? batchFeeText(batch, fees, genderNormalized, tenant) : "—"]);
   return (
     <dl className="divide-y divide-border/60">
       {rows.map(([k, v]) => (
