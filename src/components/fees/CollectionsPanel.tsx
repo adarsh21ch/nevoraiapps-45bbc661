@@ -526,7 +526,7 @@ function FeeRow({
 
   const secondaryLine = isPending
     ? isOverdue
-      ? `Overdue · ${due.overdueDays} ${due.overdueDays === 1 ? "day" : "days"}`
+      ? "Overdue"
       : `Pending · ${periodLabel(due.period)}`
     : "Paid";
   const secondaryClass = isPending
@@ -549,7 +549,7 @@ function FeeRow({
             {isOverdue && (
               <span
                 className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-card bg-rose-500"
-                title={`Overdue ${due.overdueDays}d`}
+                title="Overdue"
               />
             )}
           </div>
