@@ -676,7 +676,7 @@ function CreateMatchPage() {
     step === 1 ? step1Valid : step === 2 ? step2Valid : step === 3 ? step3Valid : true;
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-0 pb-6 sm:px-4 sm:pt-3">
+    <div className="mx-auto w-full max-w-2xl px-0 pb-32 sm:px-4 sm:pt-3 md:pb-6">
       {showResumedToast && (
         <div className="mx-3 mb-2 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs sm:mx-0 sm:mb-3">
           <span className="text-foreground">
