@@ -82,7 +82,7 @@ export function totalRunsForBall(e: MCBallEvent): number {
   const ex = e.extra_runs ?? 0;
   const type = e.extra_type as ExtraType | null;
   if (type === "wide") return ex; // extraRuns already accounts for the 1
-  if (type === "no_ball") return 1 + off + ex;
+  if (type === "no_ball") return 1 + off + Math.max(0, ex);
   if (type === "bye" || type === "leg_bye" || type === "penalty") return off + ex;
   return off;
 }

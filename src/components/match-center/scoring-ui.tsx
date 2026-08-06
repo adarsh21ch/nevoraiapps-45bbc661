@@ -828,11 +828,11 @@ export function ExtraRunsModal({
   const sublabelFor = (r: number): string | null => {
     if (k === "No Ball") {
       if (r === 1) return "NB";
-      return `NB + ${r - 1}`;
+      return `NB ${r - 1}`;
     }
     if (k === "Wide") {
       if (r === 1) return "WD";
-      return `WD + ${r - 1}`;
+      return `WD ${r - 1}`;
     }
     if (k === "Bye") {
       if (r === 0) return "Dot";

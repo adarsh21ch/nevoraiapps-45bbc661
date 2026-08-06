@@ -93,10 +93,13 @@ export function ballChipLabel(e: MCBallEvent): string {
   const off = e.runs_off_bat ?? 0;
   const ex = e.extra_runs ?? 0;
   if (dt) return "W";
-  if (extra === "wide") return ex > 1 ? `WD+${ex - 1}` : "WD";
-  if (extra === "no_ball") return off > 0 ? `NB${off}` : "NB";
-  if (extra === "bye") return `B${ex}`;
-  if (extra === "leg_bye") return `LB${ex}`;
+  if (extra === "wide") return ex > 1 ? `WD ${ex - 1}` : "WD";
+  if (extra === "no_ball") {
+    const totalExtra = ex + off;
+    return totalExtra > 0 ? `NB ${totalExtra}` : "NB";
+  }
+  if (extra === "bye") return `B ${ex}`;
+  if (extra === "leg_bye") return `LB ${ex}`;
   if (extra === "penalty") return `P${ex}`;
   return off === 0 ? "•" : String(off);
 }

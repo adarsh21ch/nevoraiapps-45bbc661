@@ -45,16 +45,16 @@ export function formatBallNotation(label: string): string {
     upper = "•";
   } else if (/^WD\d+$/.test(upper)) {
     const runs = parseInt(upper.slice(2));
-    upper = runs > 1 ? `WD+${runs - 1}` : "WD";
+    upper = runs > 1 ? `WD ${runs - 1}` : "WD";
   } else if (/^NB\d+$/.test(upper)) {
     const runs = parseInt(upper.slice(2));
-    upper = runs > 1 ? `NB+${runs - 1}` : "NB";
+    upper = runs > 1 ? `NB ${runs - 1}` : "NB";
   } else if (/^B\d+$/.test(upper)) {
     const runs = parseInt(upper.slice(1));
-    upper = runs > 0 ? `B${runs}` : "•";
+    upper = runs > 0 ? `B ${runs}` : "•";
   } else if (/^LB\d+$/.test(upper)) {
     const runs = parseInt(upper.slice(2));
-    upper = runs > 0 ? `LB${runs}` : "•";
+    upper = runs > 0 ? `LB ${runs}` : "•";
   }
   return upper;
 }

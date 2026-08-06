@@ -1294,92 +1294,61 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         <SheetContent side="bottom" className="rounded-t-3xl bg-card p-0">
           <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
           <SheetHeader className="px-5 pb-2 pt-4 text-left">
-            <SheetTitle className="text-base">No Ball — Additional runs were:</SheetTitle>
+            <SheetTitle className="text-base">
+              How were the other {pendingNoBallRuns ? pendingNoBallRuns - 1 : 0} runs scored?
+            </SheetTitle>
             <SheetDescription className="text-xs">
-              Selected total {pendingNoBallRuns}. One run is the penalty.
+              No Ball = 1 penalty run · Total = {pendingNoBallRuns}
             </SheetDescription>
           </SheetHeader>
           <div className="flex flex-col gap-2 p-4 pb-8">
             <Button
               variant="outline"
-              className="h-12 text-sm font-semibold justify-start px-6"
+              className="h-14 text-sm font-semibold justify-between px-6 rounded-2xl"
               onClick={() => onNbClassify("bat")}
             >
-              Runs off the bat
+              <span>Off the Bat</span>
+              <span className="text-[10px] text-muted-foreground uppercase font-bold">
+                Batter scored {pendingNoBallRuns ? pendingNoBallRuns - 1 : 0} runs
+              </span>
             </Button>
-            <Button
-              variant="outline"
-              className="h-12 text-sm font-semibold justify-start px-6"
-              onClick={() => onNbClassify("bye")}
-            >
-              Byes
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 text-sm font-semibold justify-start px-6"
-              onClick={() => onNbClassify("leg_bye")}
-            >
-              Leg Byes
-            </Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                className="h-14 text-sm font-semibold justify-between px-4 rounded-2xl flex-col items-start py-2"
+                onClick={() => onNbClassify("bye")}
+              >
+                <span>Byes</span>
+                <span className="text-[10px] text-muted-foreground uppercase font-bold">
+                  {pendingNoBallRuns ? pendingNoBallRuns - 1 : 0} Bye runs
+                </span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-14 text-sm font-semibold justify-between px-4 rounded-2xl flex-col items-start py-2"
+                onClick={() => onNbClassify("leg_bye")}
+              >
+                <span>Leg Byes</span>
+                <span className="text-[10px] text-muted-foreground uppercase font-bold">
+                  {pendingNoBallRuns ? pendingNoBallRuns - 1 : 0} Leg Bye runs
+                </span>
+              </Button>
+            </div>
             <Button
               variant="ghost"
-              className="mt-2 h-10 text-xs text-muted-foreground"
+              className="mt-2 h-10 rounded-full text-sm font-semibold text-muted-foreground"
               onClick={() => {
                 setNbClassificationOpen(false);
                 setPendingNoBallRuns(null);
               }}
             >
-              Cancel ball
+              Cancel
             </Button>
           </div>
         </SheetContent>
       </Sheet>
 
       {/* No-ball classification sheet for demo */}
-      <Sheet open={nbClassificationOpen} onOpenChange={setNbClassificationOpen}>
-        <SheetContent side="bottom" className="rounded-t-3xl bg-card p-0">
-          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
-          <SheetHeader className="px-5 pb-2 pt-4 text-left">
-            <SheetTitle className="text-base">No Ball — Additional runs were:</SheetTitle>
-            <SheetDescription className="text-xs">
-              Selected total {pendingNoBallRuns}. One run is the penalty.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="flex flex-col gap-2 p-4 pb-8">
-            <Button
-              variant="outline"
-              className="h-12 text-sm font-semibold justify-start px-6"
-              onClick={() => onNbClassify("bat")}
-            >
-              Runs off the bat
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 text-sm font-semibold justify-start px-6"
-              onClick={() => onNbClassify("bye")}
-            >
-              Byes
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 text-sm font-semibold justify-start px-6"
-              onClick={() => onNbClassify("leg_bye")}
-            >
-              Leg Byes
-            </Button>
-            <Button
-              variant="ghost"
-              className="mt-2 h-10 text-xs text-muted-foreground"
-              onClick={() => {
-                setNbClassificationOpen(false);
-                setPendingNoBallRuns(null);
-              }}
-            >
-              Cancel ball
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
