@@ -202,7 +202,7 @@ function RegisterContent() {
     password: "",
     password2: "",
     batch_id: "",
-    dob: "",
+    dob: "", // Expected format: DD/MM/YYYY
     address: "",
     current_address: "",
     permanent_address: "",
@@ -271,7 +271,17 @@ function RegisterContent() {
       if (form.password !== form.password2) e.password2 = "Passwords do not match.";
     } else if (n === 2) {
       if (!form.name.trim()) e.name = "Required.";
-      if (!form.dob) e.dob = "Required.";
+      if (!form.dob) {
+        e.dob = "Required.";
+      } else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(form.dob)) {
+        e.dob = "Use DD/MM/YYYY.";
+      } else {
+        const [d, m, y] = form.dob.split("/").map(Number);
+        const date = new Date(y, m - 1, d);
+        if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) {
+          e.dob = "Invalid date.";
+        }
+      }
       if (!form.gender) e.gender = "Required.";
       if (!form.phone.trim()) e.phone = "Required.";
       if (!form.city.trim()) e.city = "Required.";
