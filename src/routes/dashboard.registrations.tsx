@@ -321,7 +321,7 @@ function RegistrationsInbox() {
     <div className="space-y-4">
       <ModuleHeader
         overline="Academy"
-        title="Registrations / Admissions"
+        title="I'm little confused here because in batch session it is showing double, double kind of thing, like evening session below morning, evening, morning, both session, both session. I mean, little confusing it is. Please solve this partic-- what issue? I don't know what to say. Please solve this so I have a clear-- know exactly which batch it is"
         backTo="/dashboard/academy"
         action={<ShareLinkButton tenant={tenant} />}
       />
@@ -682,8 +682,8 @@ function RegistrationsTable({
                   </td>
                   <td className="px-3 py-3 text-muted-foreground tabular-nums">{r.phone}</td>
                   <td className="px-3 py-3 text-xs text-muted-foreground">
-                    <div className="truncate max-w-[180px]">{batch?.name ?? "—"}</div>
-                    <div className="truncate max-w-[180px] opacity-70">{plan?.name ?? ""}</div>
+                    <div className="truncate max-w-[180px] font-medium text-foreground">{batch?.name ?? "—"}</div>
+                    <div className="truncate max-w-[180px] opacity-70 text-[10px]">{plan?.name ?? ""}</div>
                   </td>
                   <td className="px-3 py-3 text-xs text-muted-foreground whitespace-nowrap">
                     {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
