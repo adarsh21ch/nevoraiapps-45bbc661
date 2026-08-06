@@ -171,7 +171,7 @@ function StudentProfilePage() {
               photo_url: (s.photo_url as string) || null,
               joined_at: s.joined_at,
               playing_role: (s.playing_role as string) || "Student",
-              academy_name: "AcademyOS" // Could be fetched from tenant context if available
+              academy_name: ctx.tenant_name || "AcademyOS",
             }} 
           />
         </div>
@@ -185,7 +185,7 @@ function StudentProfilePage() {
               photo_url: (s.photo_url as string) || null,
               joined_at: s.joined_at,
               playing_role: (s.playing_role as string) || "Student",
-              academy_name: "AcademyOS"
+              academy_name: ctx.tenant_name || "AcademyOS",
             }} 
           />
         </div>
