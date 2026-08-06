@@ -746,6 +746,8 @@ function RegisterContent() {
                     options={batchOptions}
                     onInfo={() => setBatchInfoOpen(true)}
                     error={errors.batch_id}
+                    tenant={tenant}
+                    fees={fees}
                   />
                 ) : null}
                 <div className="sm:col-span-2">
@@ -1173,12 +1175,16 @@ function BatchSelect({
   options,
   onInfo,
   error,
+  tenant,
+  fees,
 }: {
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string; right: string }[];
   onInfo: () => void;
   error?: string;
+  tenant: any;
+  fees: FeePlan[];
 }) {
   return (
     <div>
@@ -1206,7 +1212,7 @@ function BatchSelect({
         >
           {options.map((o) => {
             const isAdmissionFeeEnabled = tenant?.admission_fee_enabled !== false;
-            const regFee = isAdmissionFeeEnabled ? fees.find(f => f.type === 'registration') : null;
+            const regFee = isAdmissionFeeEnabled ? fees.find((f: any) => f.type === 'registration') : null;
             const regText = regFee ? ` + ₹${regFee.amount} adm.` : '';
             return (
               <option key={o.value} value={o.value}>
