@@ -1733,7 +1733,9 @@ function DemoScorerBody({
     const additional = pendingNoBallRuns - 1;
     if (mode === "bat") {
       requestSubmit(ballHelpers.noBall(additional, 0));
-    } else {
+    } else if (mode === "bye") {
+      requestSubmit(ballHelpers.noBall(0, additional));
+    } else if (mode === "leg_bye") {
       requestSubmit(ballHelpers.noBall(0, additional));
     }
     setNbClassificationOpen(false);
