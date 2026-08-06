@@ -1360,13 +1360,37 @@ function TeamPanel({
 
       {/* Body */}
       {state.mode === "existing" && (
-        <ExistingTeamBody
-          teams={teams}
-          excludeTeamId={excludeTeamId}
-          selectedTeamId={state.selectedTeamId}
-          onSelect={(id) => onChange({ ...state, selectedTeamId: id })}
-          loading={teamsLoading}
-        />
+        <div className="space-y-4">
+          <ExistingTeamBody
+            teams={teams}
+            excludeTeamId={excludeTeamId}
+            selectedTeamId={state.selectedTeamId}
+            onSelect={(id) => onChange({ ...state, selectedTeamId: id })}
+            loading={teamsLoading}
+          />
+          
+          {/* Fixed footer for Existing mode to match New mode layout/behavior */}
+          <div className="flex items-center gap-3 mt-6">
+             <Button 
+               type="button"
+               variant="outline" 
+               className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted" 
+               onClick={goBack}
+             >
+               <ArrowLeft className="mr-2 size-4" />
+               Back
+             </Button>
+             <Button 
+               type="button"
+               className="h-12 flex-[2] text-sm font-bold rounded-2xl shadow-lg shadow-primary/10" 
+               disabled={!state.selectedTeamId}
+               onClick={goNext}
+             >
+               Continue
+               <ChevronRight className="ml-2 size-4" />
+             </Button>
+          </div>
+        </div>
       )}
 
       {state.mode === "new" && (
@@ -1385,6 +1409,7 @@ function TeamPanel({
           canContinue={canContinue}
         />
       )}
+
 
 
 
