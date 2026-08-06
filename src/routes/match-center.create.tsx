@@ -45,6 +45,7 @@ import { listStudents, createTeam, addPlayersToTeam } from "@/lib/mc-teams";
 import { useDemoData, useDemoMode, updateDemoData } from "@/lib/mc-demo/store";
 import type { TeamWithCount } from "@/lib/mc-teams";
 import { toast } from "sonner";
+import { useKeyboardOpen, useVisualViewportHeight } from "@/hooks/use-visual-viewport";
 
 export const Route = createFileRoute("/match-center/create")({
   head: () => ({
@@ -153,6 +154,7 @@ function clearDraft(tenantId: string) {
 /* ==================== PAGE ==================== */
 
 function CreateMatchPage() {
+  const keyboardOpen = useKeyboardOpen();
   const { tenant, profile } = useDashboard();
   const navigate = useNavigate();
 
@@ -1529,57 +1531,117 @@ function NewTeamBody({
 
   const hasRoles = players.some(p => p.is_captain) && players.some(p => p.is_keeper);
 
+  const vh = useVisualViewportHeight();
+
   return (
-    <div className="flex flex-col h-full max-h-[75vh]">
+    <div 
+      className={cn(
+        "flex flex-col bg-background overflow-hidden transition-all duration-200",
+        // On mobile, try to fill the visual viewport exactly to prevent document scrolling
+        "fixed inset-0 z-50 md:relative md:inset-auto md:h-full md:max-h-[75vh]"
+      )}
+      style={{ 
+        height: vh > 0 ? `${vh}px` : '100dvh'
+      }}
+    >
+      {/* HEADER: Context & Team Name */}
       <div className="flex-none p-4 pb-2 border-b bg-card sm:rounded-t-3xl">
-        <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Team name</Label>
+        <div className="flex items-center justify-between mb-2">
+          <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Team name</Label>
+          <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground">
+             Playing XI · {players.length}/11
+          </div>
+        </div>
         <Input
           value={name}
           onChange={(e) => onName(e.target.value)}
           placeholder="e.g. Team A · U16"
-          className="mt-1.5 h-11 text-base"
+          className="h-10 text-base"
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto min-h-0 bg-muted/5 p-4">
+      {/* ROSTER: Scrollable list of players */}
+      <div className="flex-1 overflow-y-auto min-h-0 bg-muted/5 p-3 space-y-3">
         {players.length > 0 ? (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Playing XI · {players.length}/11
-              </Label>
-            </div>
+          <>
             <SquadList players={players} onPlayers={onPlayers} onRemove={onRemove} />
             
-            <div className="flex flex-wrap gap-3 rounded-2xl border border-border bg-muted/30 p-3">
-              <div className="flex items-center gap-1.5 text-[11px]">
+            <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-muted/30 p-2.5">
+              <div className="flex items-center gap-1.5 text-[10px]">
                 {players.some(p => p.is_captain) ? (
                   <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
                 ) : (
                   <span className="text-muted-foreground">Captain required</span>
                 )}
               </div>
-              <div className="flex items-center gap-1.5 text-[11px]">
+              <div className="flex items-center gap-1.5 text-[10px]">
                 {players.some(p => p.is_keeper) ? (
-                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Wicketkeeper</span>
+                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> WK</span>
                 ) : (
-                  <span className="text-muted-foreground">Wicketkeeper required</span>
+                  <span className="text-muted-foreground">WK required</span>
                 )}
               </div>
+              <div className="flex items-center gap-1.5 text-[10px] ml-auto">
+                 <span className={cn(players.some(p => p.is_vice_captain) ? "text-sky-600 font-bold" : "text-muted-foreground")}>VC optional</span>
+              </div>
             </div>
-          </div>
+          </>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full py-8 text-center text-muted-foreground">
+          <div className="flex flex-col items-center justify-center h-32 text-center text-muted-foreground">
             <Plus className="size-8 mb-2 opacity-20" />
             <p className="text-sm">Add players to start building your XI</p>
           </div>
         )}
       </div>
 
-      <div className="flex-none p-4 pt-2 border-t bg-card sm:rounded-b-3xl">
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Add player</Label>
-        </div>
+      {/* COMPOSER: Add Player anchored above keyboard */}
+      <div className="flex-none p-3 border-t bg-card sm:rounded-b-3xl relative">
+        {/* Search suggestions anchored upward from composer */}
+        {trimmed && (
+          <div className="absolute bottom-full left-0 right-0 mx-3 mb-2 max-h-48 space-y-1 overflow-y-auto rounded-xl border border-border bg-popover shadow-xl p-1 z-50">
+            {studentsLoading ? (
+              <div className="p-3 text-sm text-muted-foreground animate-pulse">Searching academy...</div>
+            ) : (
+              <>
+                {results.map((p) => (
+                  <button
+                    key={p.key}
+                    type="button"
+                    onClick={() => {
+                      onAdd(p);
+                      setQ("");
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent transition-colors"
+                  >
+                    <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full shrink-0" />
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary shrink-0">
+                      ACADEMY
+                    </span>
+                  </button>
+                ))}
+                {!exactAcademyMatch && (
+                  <button
+                    type="button"
+                    onClick={addGuest}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent transition-colors"
+                  >
+                    <span className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground shrink-0">
+                      <Plus className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm">
+                      Add <span className="font-semibold">{trimmed}</span> as guest
+                    </span>
+                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-bold text-amber-700 dark:text-amber-400 shrink-0">
+                      GUEST
+                    </span>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -1587,53 +1649,31 @@ function NewTeamBody({
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Search or type a name…"
-            className="pl-9 h-11 text-base"
+            className="pl-9 h-11 text-base focus-visible:ring-primary/20"
+            autoComplete="off"
+            autoCorrect="off"
           />
-          {trimmed && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg p-1 z-50">
-              {studentsLoading ? (
-                <div className="p-3 text-sm text-muted-foreground">Loading…</div>
-              ) : (
-                <>
-                  {results.map((p) => (
-                    <button
-                      key={p.key}
-                      type="button"
-                      onClick={() => {
-                        onAdd(p);
-                        setQ("");
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
-                    >
-                      <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full" />
-                      <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                        Academy
-                      </span>
-                    </button>
-                  ))}
-                  {!exactAcademyMatch && (
-                    <button
-                      type="button"
-                      onClick={addGuest}
-                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
-                    >
-                      <span className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground">
-                        <Plus className="size-4" />
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-sm">
-                        Add <span className="font-semibold">{trimmed}</span> as guest
-                      </span>
-                      <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
-                        Guest
-                      </span>
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-          )}
         </div>
+
+        {/* Action buttons only visible when keyboard is closed */}
+        {!keyboardOpen && (
+          <div className="flex items-center gap-3 mt-3 pt-1">
+             <Button variant="outline" size="sm" className="flex-1 h-10 text-sm font-semibold rounded-xl" onClick={() => window.history.back()}>
+               Back
+             </Button>
+             <Button 
+               disabled={!!validationError}
+               className="flex-1 h-10 text-sm font-semibold rounded-xl"
+               onClick={() => {
+                 // The parent component handles step navigation
+                 const btn = document.querySelector('[data-step-nav="next"]') as HTMLButtonElement;
+                 btn?.click();
+               }}
+             >
+               Continue
+             </Button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1679,18 +1719,18 @@ function SquadList({
   };
 
   return (
-    <ol id="squad-scroll-container" className="space-y-1.5 max-h-[40vh] overflow-y-auto pr-1 scroll-smooth">
+    <ol id="squad-scroll-container" className="space-y-1 overflow-y-auto pr-1 scroll-smooth">
       {players.map((p, idx) => (
         <li
           key={p.key}
-          className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2 py-1.5"
+          className="flex items-center gap-1.5 rounded-xl border border-border bg-background/60 px-2 py-1.5 shadow-sm"
         >
-          <span className="w-5 text-right text-[11px] font-mono text-muted-foreground">
+          <span className="w-4 text-right text-[10px] font-mono text-muted-foreground opacity-50 shrink-0">
             {idx + 1}
           </span>
-          <Avatar src={p.photo_url} name={p.name} size={28} className="rounded-full" />
-          <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
-          <div className="flex gap-1 shrink-0">
+          <Avatar src={p.photo_url} name={p.name} size={24} className="rounded-full shrink-0" />
+          <span className="min-w-0 flex-1 truncate text-xs font-semibold text-foreground tracking-tight">{p.name}</span>
+          <div className="flex gap-0.5 shrink-0">
             <RoleButton active={!!p.is_captain} onClick={() => setRole(p.key, "C")} label="C" color="amber" />
             <RoleButton active={!!p.is_vice_captain} onClick={() => setRole(p.key, "VC")} label="VC" color="sky" />
             <RoleButton active={!!p.is_keeper} onClick={() => setRole(p.key, "WK")} label="WK" color="emerald" />
@@ -1698,7 +1738,7 @@ function SquadList({
           <button
             type="button"
             onClick={() => onRemove(p.key)}
-            className="rounded-md p-1 text-muted-foreground hover:bg-accent"
+            className="rounded-md p-1 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/5 transition-colors"
             aria-label="Remove"
           >
             <X className="size-3.5" />
@@ -1720,7 +1760,7 @@ function RoleButton({ active, onClick, label, color }: { active: boolean; onClic
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-md border px-1.5 py-0.5 text-[10px] font-bold transition-colors",
+        "rounded-lg border px-1 py-0.5 text-[9px] font-black transition-all active:scale-95 shrink-0 min-w-[24px] text-center",
         colors[color]
       )}
     >

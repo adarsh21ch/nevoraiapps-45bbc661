@@ -64,7 +64,7 @@ export function GlobalBottomNav() {
   }
   const liveKeys: string[] = (liveMatches.data ?? 0) > 0 ? ["/match-center"] : [];
 
-  const hidden = keyboardOpen || location.pathname === "/dashboard/nevorai";
+  const hidden = keyboardOpen || location.pathname === "/dashboard/nevorai" || location.pathname.startsWith("/match-center/create");
 
   const handleFabClick = () => {
     if (role === "student") {
