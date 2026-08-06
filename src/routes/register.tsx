@@ -741,13 +741,37 @@ function RegisterContent() {
                   error={errors.guardian_name}
                 />
 
-                <Field
-                  label="Date of birth *"
-                  type="date"
-                  value={form.dob}
-                  onChange={(v) => setForm({ ...form, dob: v })}
-                  error={errors.dob}
-                />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Date of birth (DD/MM/YYYY) *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="DD/MM/YYYY"
+                    value={form.dob}
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, "");
+                      if (val.length > 8) val = val.slice(0, 8);
+                      
+                      let formatted = val;
+                      if (val.length > 2) formatted = val.slice(0, 2) + "/" + val.slice(2);
+                      if (val.length > 4) formatted = formatted.slice(0, 5) + "/" + val.slice(4);
+                      
+                      setForm({ ...form, dob: formatted });
+                    }}
+                    className={cn(
+                      "w-full px-4 py-3 rounded-xl border-2 transition-all outline-none text-base",
+                      errors.dob
+                        ? "border-red-100 bg-red-50/30 text-red-900 focus:border-red-200"
+                        : "border-slate-100 bg-slate-50/50 focus:border-amber-200 focus:bg-white",
+                    )}
+                  />
+                  {errors.dob && (
+                    <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1">
+                      {errors.dob}
+                    </p>
+                  )}
+                </div>
                 <SelectField
                   label="Gender *"
                   value={form.gender}
