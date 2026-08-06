@@ -1515,10 +1515,23 @@ function DocumentUpload({
   error?: string;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Sync preview when value changes (e.g. from draft persistence)
+  useEffect(() => {
+    if (value && !previewUrl) {
+      signedUrl(value).then(setPreviewUrl);
+    }
+  }, [value, previewUrl]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    // Create local preview immediately
+    const localUrl = URL.createObjectURL(file);
+    setPreviewUrl(localUrl);
+    
     setUploading(true);
     try {
       const path = await uploadTenantFile(tenantId, folder, file);
@@ -1526,6 +1539,7 @@ function DocumentUpload({
       toast.success(`${label} uploaded`);
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
+      setPreviewUrl(null); // Clear preview on error
     } finally {
       setUploading(false);
     }
@@ -1536,22 +1550,36 @@ function DocumentUpload({
       <div className="text-[11px] font-medium text-muted-foreground uppercase">{label}</div>
       <label
         className={cn(
-          "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-colors cursor-pointer",
+          "relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden",
           value ? "border-emerald-500/50 bg-emerald-50/30" : "border-border bg-muted/20 hover:bg-muted/40",
           error && !value && "border-red-500 bg-red-50/30",
+          "h-32", // Fixed height for preview
         )}
       >
         <input type="file" className="hidden" accept="image/*" onChange={handleFile} disabled={uploading} />
-        {uploading ? (
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        ) : value ? (
-          <FileCheck className="h-6 w-6 text-emerald-600" />
+        
+        {previewUrl ? (
+          <>
+            <img src={previewUrl} alt={label} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+            <div className="relative z-10 flex flex-col items-center gap-1.5">
+              <FileCheck className="h-6 w-6 text-emerald-600" />
+              <span className="text-[10px] font-bold text-emerald-700 bg-white/80 px-2 py-0.5 rounded-full">
+                {uploading ? "Updating..." : "Tap to change"}
+              </span>
+            </div>
+          </>
         ) : (
-          <Upload className="h-6 w-6 text-muted-foreground" />
+          <div className="flex flex-col items-center gap-2">
+            {uploading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : (
+              <Upload className="h-6 w-6 text-muted-foreground" />
+            )}
+            <span className={cn("text-[10px] font-medium", value ? "text-emerald-700" : "text-muted-foreground")}>
+              {uploading ? "Uploading..." : "Tap to upload"}
+            </span>
+          </div>
         )}
-        <span className={cn("text-[10px] font-medium", value ? "text-emerald-700" : "text-muted-foreground")}>
-          {uploading ? "Uploading..." : value ? "Photo selected" : "Tap to upload"}
-        </span>
       </label>
       {error && !value ? <span className="text-[10px] text-red-600 font-medium">{error}</span> : null}
     </div>
