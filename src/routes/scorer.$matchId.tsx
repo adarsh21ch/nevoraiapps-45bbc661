@@ -503,13 +503,15 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       // 1 = WD only, 5 = WD+4
       requestSubmit(ballHelpers.wide(totalRuns));
     } else if (kind === "No Ball") {
-      // If total runs > 1, we need to know if additional runs came from bat or extras
+      // In No Ball scroller, total runs includes the 1-run penalty.
+      // 1 = NB only, 7 = NB+6.
       if (totalRuns > 1) {
         setPendingNoBallRuns(totalRuns);
         setNbClassificationOpen(true);
       } else if (totalRuns === 1) {
         requestSubmit(ballHelpers.noBall(0, 0));
       }
+
     } else if (kind === "Bye") {
       requestSubmit(ballHelpers.bye(totalRuns));
     } else if (kind === "Leg Bye") {
@@ -1763,12 +1765,15 @@ function DemoScorerBody({
     if (kind === "Wide") {
       requestSubmit(ballHelpers.wide(totalRuns));
     } else if (kind === "No Ball") {
+      // For No Ball, 1 means NB only (1 penalty run).
+      // Higher numbers mean NB + additional runs.
       if (totalRuns > 1) {
         setPendingNoBallRuns(totalRuns);
         setNbClassificationOpen(true);
       } else if (totalRuns === 1) {
         requestSubmit(ballHelpers.noBall(0, 0));
       }
+
     } else if (kind === "Bye") {
       requestSubmit(ballHelpers.bye(totalRuns));
     } else if (kind === "Leg Bye") {
