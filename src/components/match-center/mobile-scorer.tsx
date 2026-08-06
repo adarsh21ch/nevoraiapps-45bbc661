@@ -31,6 +31,21 @@ import {
   UserPlus,
   Share2,
 } from "lucide-react";
+
+const CricketBatIcon = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L7 20l-4.5 1.5L4 17l14.5-14.5Z" />
+    <path d="M6 15l4 4" />
+  </svg>
+);
 import { OverHistorySheet } from "./over-history-sheet";
 import type { OverHistoryRow } from "@/lib/mc-statistics-engine";
 import { formatBallNotation } from "@/lib/mc-ball-events-core";
@@ -612,9 +627,9 @@ function BatterLine({
         <div className="flex min-w-0 items-center gap-1.5">
           <span className="truncate text-[14px] font-bold leading-tight">{name}</span>
           {striker && batter?.name && (
-              <span className="ml-0.5 shrink-0 text-[10px] font-black uppercase tracking-tighter text-[var(--score-striker-dot)] border border-[var(--score-striker-dot)]/30 px-1 rounded bg-[var(--score-striker-dot)]/10">
-                STRIKER
-              </span>
+            <span className="ml-1" title="Striker">
+              <CricketBatIcon className="size-3.5 text-primary" />
+            </span>
           )}
         </div>
         <div className="mt-1 pl-1 truncate text-[11px] leading-tight text-muted-foreground tabular-nums">
@@ -777,7 +792,7 @@ function LiveInsights({
   return (
     <section
       className={cn(
-        "flex flex-col gap-1.5 overflow-hidden rounded-xl border bg-muted/25 p-1.5",
+        "flex flex-col gap-1.5 overflow-hidden rounded-xl border bg-muted/20 p-1.5",
         className,
       )}
     >
@@ -793,7 +808,6 @@ function LiveInsights({
         <InfoTile label="Extras" value={insights?.extras ?? "0"} />
         <InfoTile label="FOW" value={insights?.lastWicket ?? "—"} />
       </div>
-
     </section>
   );
 }
@@ -890,7 +904,7 @@ function RunKey({
   disabled?: boolean;
   onClick: () => void;
 }) {
-  const tone = value === 4 ? "four" : value === 6 ? "six" : "neutral";
+  const tone = "neutral";
   return (
     <button
       type="button"
@@ -905,7 +919,7 @@ function RunKey({
         tone === "neutral" && "border-border/80 bg-background text-foreground active:bg-muted",
       )}
     >
-      {value === 0 ? "• DOT" : value}
+      {value === 0 ? "•" : value}
     </button>
   );
 }
@@ -927,7 +941,7 @@ function ExtraKey({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "grid h-11 w-full place-items-center rounded-xl border px-1 text-[10px] font-black uppercase leading-none tracking-wide transition duration-100 active:scale-[0.95] disabled:opacity-40",
+        "grid h-11 w-full place-items-center rounded-xl border px-1 text-[13px] font-black uppercase leading-none tracking-wide transition duration-100 active:scale-[0.95] disabled:opacity-40",
         tone === "wide" &&
           "border-[var(--score-wide-border)] bg-[var(--score-wide-bg)] text-[var(--score-wide-fg)]",
         tone === "nb" &&
