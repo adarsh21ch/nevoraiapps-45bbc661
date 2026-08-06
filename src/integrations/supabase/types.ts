@@ -7628,6 +7628,10 @@ export type Database = {
         Args: { _ids: string[]; _tenant_id: string }
         Returns: number
       }
+      bulk_approve_registrations_v2: {
+        Args: { _ids: string[]; _tenant_id: string }
+        Returns: Json
+      }
       bulk_enqueue_notification_recipients: {
         Args: { _campaign_id: string; _recipient_ids: string[] }
         Returns: number
