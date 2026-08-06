@@ -1555,17 +1555,12 @@ function NewTeamBody({
       <div className="mt-3 space-y-2">
         {!players.some(p => p.is_captain) && (
           <div className="text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-            Select a captain (C)
-          </div>
-        )}
-        {!players.some(p => p.is_vice_captain) && (
-          <div className="text-[10px] font-medium text-sky-600 bg-sky-50 px-2 py-1 rounded border border-sky-200">
-            Select a vice-captain (VC)
+            Captain is required
           </div>
         )}
         {!players.some(p => p.is_keeper) && (
           <div className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-            Select a wicketkeeper (WK)
+            Wicketkeeper is required
           </div>
         )}
       </div>
