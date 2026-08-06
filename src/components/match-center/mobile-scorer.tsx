@@ -858,16 +858,16 @@ function ScoringDock({
         ))}
       </div>
       <div className="mt-2 grid grid-cols-5 gap-2">
-        <ExtraKey label="Wide" tone="wide" disabled={disabled} onClick={() => onExtra("Wide")} />
+        <ExtraKey label="WD" tone="wide" disabled={disabled} onClick={() => onExtra("Wide")} />
         <ExtraKey
-          label="No Ball"
+          label="NB"
           tone="nb"
           disabled={disabled}
           onClick={() => onExtra("No Ball")}
         />
-        <ExtraKey label="Bye" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
+        <ExtraKey label="B" tone="bye" disabled={disabled} onClick={() => onExtra("Bye")} />
         <ExtraKey
-          label="Leg Bye"
+          label="LB"
           tone="lb"
           disabled={disabled}
           onClick={() => onExtra("Leg Bye")}
