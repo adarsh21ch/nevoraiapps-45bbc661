@@ -1248,7 +1248,7 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   const isPersonal =
     bn.includes("personal") || bn.includes("1-on-1") || bn.includes("one-on-one");
   const monthlyText = !batch
-    ? "not showing ???"
+    ? "Select a batch"
     : isPersonal && !monthly
       ? "Contact academy"
       : monthly
@@ -1261,34 +1261,38 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
       ? Number(resolvedMonthlyAmount) + Number(registration.amount) 
       : null;
 
+  if (!batch) return null;
+
   return (
     <div className="mt-3 flex flex-col gap-2 rounded-lg border border-border bg-muted/30 p-3 text-sm">
       <div className="flex items-center justify-between border-b border-border/40 pb-2">
         <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Fee breakdown
+          Fee summary
         </span>
         {total != null ? (
           <span className="flex items-baseline gap-1.5">
-            <span className="text-[11px] font-medium uppercase text-muted-foreground">Total due</span>
+            <span className="text-[11px] font-medium uppercase text-muted-foreground">Total first month</span>
             <span className="text-base font-bold text-foreground" style={{ color: "var(--brand)" }}>{fmt(total)}</span>
           </span>
-        ) : null}
+        ) : (
+          <span className="flex items-baseline gap-1.5">
+            <span className="text-[11px] font-medium uppercase text-muted-foreground">Monthly fee</span>
+            <span className="text-base font-bold text-foreground" style={{ color: "var(--brand)" }}>{monthlyText}</span>
+          </span>
+        )}
       </div>
       
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+      <div className="text-xs leading-relaxed text-muted-foreground">
         {showRegistration ? (
-          <>
-            <span className="flex items-baseline gap-1.5">
-              <span className="text-muted-foreground">Admission</span>
-              <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>
-            </span>
-            <span className="text-border">•</span>
-          </>
-        ) : null}
-        <span className="flex items-baseline gap-1.5">
-          <span className="text-muted-foreground">Monthly</span>
-          <span className="font-semibold text-foreground">{monthlyText}</span>
-        </span>
+          <p>
+            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span> and admission fee is <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>. 
+            This time you have to pay <span className="font-semibold text-foreground">{fmt(total ?? 0)}</span>.
+          </p>
+        ) : (
+          <p>
+            Your monthly fee for {batch.name} will be <span className="font-semibold text-foreground">{monthlyText}</span>.
+          </p>
+        )}
       </div>
     </div>
   );
