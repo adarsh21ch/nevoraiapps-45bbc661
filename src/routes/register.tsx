@@ -1293,11 +1293,25 @@ function ReviewSummary({
   fees: FeePlan[];
   tenant: any;
 }) {
-
   const genderNormalized = normalizeGender(form.gender) || undefined;
   const batch = batches.find((b) => b.id === form.batch_id);
 
-  const rows: [string, string][] = [
+  const [previews, setPreviews] = useState<{ front?: string; back?: string }>({});
+
+  useEffect(() => {
+    if (form.aadhaar_front_url) {
+      signedUrl(form.aadhaar_front_url).then((url) =>
+        setPreviews((prev) => ({ ...prev, front: url })),
+      );
+    }
+    if (form.aadhaar_back_url) {
+      signedUrl(form.aadhaar_back_url).then((url) =>
+        setPreviews((prev) => ({ ...prev, back: url })),
+      );
+    }
+  }, [form.aadhaar_front_url, form.aadhaar_back_url]);
+
+  const rows: [string, React.ReactNode][] = [
     ["Email", form.email || "—"],
     ["Password", "••••••••"],
     ["Student name", form.name || "—"],
@@ -1307,16 +1321,51 @@ function ReviewSummary({
     ["Contact number", form.phone || "—"],
     ["Permanent address", form.address || "—"],
     ["Current address", form.current_address || "—"],
-    ["Aadhaar front", form.aadhaar_front_url ? "Uploaded ✓" : "Missing"],
-    ["Aadhaar back", form.aadhaar_back_url ? "Uploaded ✓" : "Missing"],
-    ["Preferred batch", batch ? (batch.timing ? `${batch.name} — ${batch.timing}` : batch.name) : "No preference"],
+    [
+      "Aadhaar front",
+      form.aadhaar_front_url ? (
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-emerald-600 font-medium">Uploaded ✓</span>
+          {previews.front && (
+            <img
+              src={previews.front}
+              alt="Front"
+              className="h-10 w-16 rounded border border-border object-cover"
+            />
+          )}
+        </div>
+      ) : (
+        "Missing"
+      ),
+    ],
+    [
+      "Aadhaar back",
+      form.aadhaar_back_url ? (
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-emerald-600 font-medium">Uploaded ✓</span>
+          {previews.back && (
+            <img
+              src={previews.back}
+              alt="Back"
+              className="h-10 w-16 rounded border border-border object-cover"
+            />
+          )}
+        </div>
+      ) : (
+        "Missing"
+      ),
+    ],
+    [
+      "Preferred batch",
+      batch ? (batch.timing ? `${batch.name} — ${batch.timing}` : batch.name) : "No preference",
+    ],
     ["Monthly fee", batch ? batchFeeText(batch, fees, genderNormalized, tenant) : "—"],
   ];
   return (
     <dl className="divide-y divide-border/60">
       {rows.map(([k, v]) => (
-        <div key={k} className="flex items-baseline justify-between gap-4 py-2">
-          <dt className="text-xs text-muted-foreground">{k}</dt>
+        <div key={k} className="flex items-start justify-between gap-4 py-2">
+          <dt className="text-xs text-muted-foreground pt-0.5">{k}</dt>
           <dd className="text-right text-sm font-medium text-foreground">{v}</dd>
         </div>
       ))}
