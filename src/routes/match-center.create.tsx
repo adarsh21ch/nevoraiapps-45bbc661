@@ -1530,7 +1530,7 @@ function NewTeamBody({
   };
 
   const hasRoles = players.some(p => p.is_captain) && players.some(p => p.is_keeper);
-
+  const keyboardOpen = useKeyboardOpen();
   const vh = useVisualViewportHeight();
 
   return (
