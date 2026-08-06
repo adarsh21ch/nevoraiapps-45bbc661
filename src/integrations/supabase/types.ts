@@ -3768,6 +3768,7 @@ export type Database = {
           overs: number
           pitch: string | null
           player_of_match_athlete_id: string | null
+          playing_rules: string | null
           public_slug: string | null
           result: string | null
           round_id: string | null
@@ -3812,6 +3813,7 @@ export type Database = {
           overs?: number
           pitch?: string | null
           player_of_match_athlete_id?: string | null
+          playing_rules?: string | null
           public_slug?: string | null
           result?: string | null
           round_id?: string | null
@@ -3856,6 +3858,7 @@ export type Database = {
           overs?: number
           pitch?: string | null
           player_of_match_athlete_id?: string | null
+          playing_rules?: string | null
           public_slug?: string | null
           result?: string | null
           round_id?: string | null

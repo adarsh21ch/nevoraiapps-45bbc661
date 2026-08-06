@@ -282,9 +282,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     () =>
       calculateInningsStatistics(session.events, {
         totalOvers: session.match?.overs ?? null,
+        playingRules: session.match?.playing_rules ?? null,
         target: session.activeInnings?.target ?? null,
       }),
-    [session.events, session.match?.overs, session.activeInnings?.target],
+    [session.events, session.match?.overs, session.match?.playing_rules, session.activeInnings?.target],
   );
 
   const overHistory = useMemo(

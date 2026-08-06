@@ -719,6 +719,7 @@ export function computePartnerships(events: MCBallEvent[]): {
 
 export interface TeamStatsOptions {
   totalOvers?: number | null;
+  playingRules?: string | null;
   target?: number | null;
 }
 

@@ -272,6 +272,8 @@ export function maxOversPerBowler(totalOvers: number | null | undefined): number
 export interface ReplayOptions {
   /** Total overs in the innings, if known (limited-overs). */
   totalOvers?: number | null;
+  /** Playing rules profile (T20, ODI, Test). Defaults to T20 for compatibility. */
+  playingRules?: string | null;
   /** Wickets before "all out" (default 10). */
   maxWickets?: number;
   /** Target for a chase. */
@@ -286,6 +288,8 @@ export interface ReplayOptions {
 export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): MatchState {
   const maxWickets = opts.maxWickets ?? 10;
   const totalOvers = opts.totalOvers ?? null;
+  const rulesProfile = opts.playingRules ?? "T20";
+  const isLimitedOversRules = rulesProfile === "T20" || rulesProfile === "ODI";
 
   let runs = 0;
   let wickets = 0;
@@ -385,7 +389,7 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
 
     // Free hit (Law 21.18): the delivery after ANY no ball is a free hit, and
     // it is not consumed by a delivery that is itself nullified (wide/no ball).
-    if (e.extra_type === "no_ball") freeHit = true;
+    if (isLimitedOversRules && e.extra_type === "no_ball") freeHit = true;
     else if (freeHit && !legal) freeHit = true;
     else freeHit = false;
 
