@@ -321,7 +321,7 @@ function RegistrationsInbox() {
     <div className="space-y-4">
       <ModuleHeader
         overline="Academy"
-        title="Registrations / Admissions"
+        title="I'm little confused here because in batch session it is showing double, double kind of thing, like evening session below morning, evening, morning, both session, both session. I mean, little confusing it is. Please solve this partic-- what issue? I don't know what to say. Please solve this so I have a clear-- know exactly which batch it is"
         backTo="/dashboard/academy"
         action={<ShareLinkButton tenant={tenant} />}
       />
