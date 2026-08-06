@@ -135,10 +135,29 @@ export function ScanStudentCardDialog({
         if (token) void record(token);
       };
       rafRef.current = requestAnimationFrame(tick);
-    } catch {
-      setCameraError(
-        "Camera access is blocked. Allow camera for this site in your browser settings, then try again.",
-      );
+    } catch (e: any) {
+      console.error("Camera access error (staff):", e);
+      const isPermissionError = 
+        e?.name === 'NotAllowedError' || 
+        e?.name === 'PermissionDeniedError' ||
+        String(e).toLowerCase().includes('denied') ||
+        String(e).toLowerCase().includes('blocked');
+
+      if (isPermissionError) {
+        setCameraError(
+          "Camera access is blocked. Allow camera for this site in your browser settings, then try again.",
+        );
+      } else if (e?.name === 'NotReadableError' || e?.name === 'TrackStartError' || e?.name === 'AbortError') {
+        setCameraError(
+          "Camera is already in use by another app or browser tab. Please close other apps.",
+        );
+      } else if (e?.name === 'NotFoundError' || e?.name === 'DevicesNotFoundError') {
+        setCameraError(
+          "No camera found on this device.",
+        );
+      } else {
+        setCameraError(e?.message || "Couldn't open camera.");
+      }
     }
   }, [record]);
 

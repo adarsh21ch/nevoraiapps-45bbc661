@@ -354,7 +354,7 @@ export function scanErrorMessage(r: Extract<QrScanResult, { ok: false }>): strin
     case "no_location_set":
       return "Your academy hasn't pinned its location yet. Ask them to set it up.";
     case "no_location":
-      return "We couldn't read your location. Allow location access and try again.";
+      return "Location access is blocked or unavailable. Please ensure 'Location' is allowed for this site in your browser settings and your GPS is turned on.";
     case "low_accuracy":
       return "GPS signal is too weak indoors. Step into the open ground, wait a few seconds and try again.";
     case "too_far":
