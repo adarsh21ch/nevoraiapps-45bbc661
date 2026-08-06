@@ -891,16 +891,21 @@ export function ExtraRunsModal({
                       <span
                         className={cn(
                           "flex aspect-square w-full items-center justify-center rounded-full border-2 font-black tabular-nums text-xl shadow-sm transition group-active:scale-[0.92]",
-                          boundary === "four"
-                            ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-600"
-                            : boundary === "six"
-                              ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-600"
-                              : "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
+                          "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
                         )}
                       >
                         {r}
                       </span>
-                      <span className="text-[9px] font-bold uppercase tracking-tight leading-none text-muted-foreground whitespace-nowrap min-h-[10px]">
+                      <span
+                        className={cn(
+                          "flex items-center justify-center rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-tight tabular-nums leading-none transition",
+                          boundary === "four"
+                            ? "bg-blue-500 text-white"
+                            : boundary === "six"
+                              ? "bg-purple-500 text-white"
+                              : "text-muted-foreground",
+                        )}
+                      >
                         {sub ?? ""}
                       </span>
                     </button>
