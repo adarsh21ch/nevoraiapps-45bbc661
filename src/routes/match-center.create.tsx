@@ -1107,6 +1107,7 @@ function ReviewTeamCard({
   players,
   captain,
   viceCaptain,
+  keeper,
   onEdit,
 }: {
   title: string;
