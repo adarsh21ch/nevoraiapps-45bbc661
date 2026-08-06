@@ -1248,7 +1248,7 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   const isPersonal =
     bn.includes("personal") || bn.includes("1-on-1") || bn.includes("one-on-one");
   const monthlyText = !batch
-    ? "Select a batch to see monthly fee"
+    ? "But still you see earlier when I select any batch, so below there, there is a certain section showing there, right? Due monthly fees kind of thing. This is or, uh, you select your batch, then you can show your monthly fees and admission fee kind of thing. That particular section is not visible below there. Why?"
     : isPersonal && !monthly
       ? "Contact academy"
       : monthly
