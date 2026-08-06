@@ -1763,12 +1763,15 @@ function DemoScorerBody({
     if (kind === "Wide") {
       requestSubmit(ballHelpers.wide(totalRuns));
     } else if (kind === "No Ball") {
+      // For No Ball, 1 means NB only (1 penalty run).
+      // Higher numbers mean NB + additional runs.
       if (totalRuns > 1) {
         setPendingNoBallRuns(totalRuns);
         setNbClassificationOpen(true);
       } else if (totalRuns === 1) {
         requestSubmit(ballHelpers.noBall(0, 0));
       }
+
     } else if (kind === "Bye") {
       requestSubmit(ballHelpers.bye(totalRuns));
     } else if (kind === "Leg Bye") {
