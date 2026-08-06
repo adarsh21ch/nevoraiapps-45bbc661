@@ -812,29 +812,31 @@ function CreateMatchPage() {
               <ArrowLeft className="mr-1 size-4" />
               Back
             </Button>
-            {step < 5 ? (
-              <Button
-                className="h-11 flex-1 text-sm font-semibold"
-                disabled={!canContinue}
-                onClick={goNext}
-              >
-                Continue
-                <ChevronRight className="ml-1 size-4" />
-              </Button>
-            ) : (
-              <Button
-                className="h-11 flex-1 text-sm font-semibold"
-                disabled={!canStart || createM.isPending}
-                onClick={() => createM.mutate()}
-              >
-                {createM.isPending ? (
-                  <Loader2 className="mr-1.5 size-4 animate-spin" />
-                ) : (
-                  <Swords className="mr-1.5 size-4" />
-                )}
-                Start match
-              </Button>
-            )}
+          {step < 5 ? (
+            <Button
+              className="h-11 flex-1 text-sm font-semibold"
+              disabled={!canContinue}
+              onClick={goNext}
+              data-step-nav="next"
+            >
+              Continue
+              <ChevronRight className="ml-1 size-4" />
+            </Button>
+          ) : (
+            <Button
+              className="h-11 flex-1 text-sm font-semibold"
+              disabled={!canStart || createM.isPending}
+              onClick={() => createM.mutate()}
+              data-step-nav="start"
+            >
+              {createM.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" />
+              ) : (
+                <Swords className="mr-1.5 size-4" />
+              )}
+              Start match
+            </Button>
+          )}
           </div>
         )}
       </div>
