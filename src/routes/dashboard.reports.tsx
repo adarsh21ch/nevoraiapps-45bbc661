@@ -335,11 +335,11 @@ function OverviewReport({
     queryFn: () => fetchAttendanceReport(tenantId, pr),
   });
   const admQ = useQuery({
-    queryKey: rqk.admissions(tenantId, range),
+    queryKey: rqk.registrations(tenantId, range),
     queryFn: () => fetchAdmissionsReport(tenantId, range),
   });
   const admPQ = useQuery({
-    queryKey: rqk.admissions(tenantId, pr),
+    queryKey: rqk.registrations(tenantId, pr),
     queryFn: () => fetchAdmissionsReport(tenantId, pr),
   });
   const billQ = useQuery({
@@ -1071,11 +1071,11 @@ function FinanceReport({ tenantId, range }: { tenantId: string; range: Range }) 
 function AdmissionsReport({ tenantId, range }: { tenantId: string; range: Range }) {
   const pr = useMemo(() => prevRange(range), [range]);
   const q = useQuery({
-    queryKey: rqk.admissions(tenantId, range),
+    queryKey: rqk.registrations(tenantId, range),
     queryFn: () => fetchAdmissionsReport(tenantId, range),
   });
   const pq = useQuery({
-    queryKey: rqk.admissions(tenantId, pr),
+    queryKey: rqk.registrations(tenantId, pr),
     queryFn: () => fetchAdmissionsReport(tenantId, pr),
   });
   const d = q.data;
