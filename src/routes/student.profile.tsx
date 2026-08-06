@@ -31,18 +31,6 @@ import { generateIdCardPdf } from "@/lib/id-card-pdf";
 import { playerKeys, fetchAthleteByStudent } from "@/lib/player-profile";
 import { toast } from "sonner";
 import { formatShortLocation } from "@/lib/location";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { supabase } from "@/integrations/supabase/client";
-import { fetchMyPortalContext, fetchStudentProfile, studentKeys } from "@/lib/student-app";
-import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
-import { AccountCard } from "@/components/settings/AccountCard";
-import { EditMyProfileDialog } from "@/components/portal/EditMyProfileDialog";
-import { StudentIDCard } from "@/components/portal/StudentIDCard";
-import { generateIdCardPdf } from "@/lib/id-card-pdf";
-import { playerKeys, fetchAthleteByStudent } from "@/lib/player-profile";
-import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/student/profile")({
