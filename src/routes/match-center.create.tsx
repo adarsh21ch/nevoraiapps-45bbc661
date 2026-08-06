@@ -605,10 +605,8 @@ function CreateMatchPage() {
   const step1Valid = !!matchType && !!matchFormat && overs > 0;
   
   const hasRolesA = panelA.players.some(p => p.is_captain) && 
-                    panelA.players.some(p => p.is_vice_captain) && 
                     panelA.players.some(p => p.is_keeper);
   const hasRolesB = panelB.players.some(p => p.is_captain) && 
-                    panelB.players.some(p => p.is_vice_captain) && 
                     panelB.players.some(p => p.is_keeper);
 
   const step2Valid = readyA && panelA.players.length >= 2 && hasRolesA;
@@ -1557,17 +1555,12 @@ function NewTeamBody({
       <div className="mt-3 space-y-2">
         {!players.some(p => p.is_captain) && (
           <div className="text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-            Select a captain (C)
-          </div>
-        )}
-        {!players.some(p => p.is_vice_captain) && (
-          <div className="text-[10px] font-medium text-sky-600 bg-sky-50 px-2 py-1 rounded border border-sky-200">
-            Select a vice-captain (VC)
+            Captain is required
           </div>
         )}
         {!players.some(p => p.is_keeper) && (
           <div className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-            Select a wicketkeeper (WK)
+            Wicketkeeper is required
           </div>
         )}
       </div>
@@ -1600,7 +1593,6 @@ function SquadFooter({
         return {
           ...p,
           is_captain: willBeCap,
-          is_vice_captain: willBeCap ? false : p.is_vice_captain,
         };
       }
       if (role === "VC") {
@@ -1608,7 +1600,6 @@ function SquadFooter({
         return {
           ...p,
           is_vice_captain: willBeVc,
-          is_captain: willBeVc ? false : p.is_captain,
         };
       }
       // role === "WK"
@@ -1632,7 +1623,7 @@ function SquadFooter({
         )}
       </div>
       <div className="mb-2 text-[11px] text-muted-foreground">
-        Tap C / VC / WK to set captain, vice-captain, and wicketkeeper (optional).
+        Set Captain (C) and Wicketkeeper (WK) – both required. Vice-Captain (VC) is optional.
       </div>
       <ol className="space-y-1.5">
         {players.map((p, idx) => (
