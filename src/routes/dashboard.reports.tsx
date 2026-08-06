@@ -80,7 +80,7 @@ type Category =
   | "overview"
   | "attendance"
   | "finance"
-  | "admissions"
+  | "registrations"
   | "students"
   | "cricket"
   | "communication";
@@ -138,7 +138,7 @@ function ReportsHub() {
     { value: "overview", label: "Overview" },
     { value: "attendance", label: "Attendance" },
     { value: "finance", label: "Finance", ownerOnly: true },
-    { value: "admissions", label: "Admissions" },
+    { value: "registrations", label: "Registrations" },
     { value: "students", label: "Students" },
     { value: "cricket", label: "Cricket" },
     { value: "communication", label: "Communication" },
@@ -186,7 +186,7 @@ function ReportsHub() {
       )}
       {category === "attendance" && <AttendanceReport tenantId={tenant.id} range={range} />}
       {category === "finance" && owner && <FinanceReport tenantId={tenant.id} range={range} />}
-      {category === "admissions" && <AdmissionsReport tenantId={tenant.id} range={range} />}
+      {category === "registrations" && <AdmissionsReport tenantId={tenant.id} range={range} />}
       {category === "students" && <StudentsReport tenantId={tenant.id} range={range} />}
       {category === "cricket" && <CricketReport tenantId={tenant.id} range={range} />}
       {category === "communication" && <CommunicationReport tenantId={tenant.id} range={range} />}
@@ -423,10 +423,10 @@ function OverviewReport({
             hint={`${attQ.data?.sessions ?? 0} sessions`}
           />
           <KpiTile
-            label="Admissions"
+            label="Registrations"
             value={String(admQ.data?.converted ?? 0)}
             trend={pctChange(admQ.data?.converted ?? 0, admPQ.data?.converted ?? 0)}
-            hint={`${admQ.data?.conversion ?? 0}% conversion`}
+              hint={`${admQ.data?.conversion ?? 0}% conversion`}
           />
           <KpiTile
             label="Retention %"
