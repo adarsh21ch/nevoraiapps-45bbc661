@@ -521,9 +521,9 @@ export function ScoreButton({
 
 export function RunsButton({ value, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 5 | 6; onClick?: () => void }) {
   const isDot = value === 0;
-  const tone: Tone = value === 4 ? "boundary" : value === 6 ? "six" : "run";
+  const tone: Tone = "run";
   const label = isDot ? "•" : value;
-  const sublabel = isDot ? "Dot" : value === 4 ? "Four" : value === 6 ? "Six" : undefined;
+  const sublabel = isDot ? undefined : value === 4 ? "Four" : value === 6 ? "Six" : undefined;
   
   return (
     <ScoreButton label={label} tone={tone} sublabel={sublabel} onClick={onClick} />
