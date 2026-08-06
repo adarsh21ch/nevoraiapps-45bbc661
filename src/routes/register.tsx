@@ -66,7 +66,7 @@ export const Route = createFileRoute("/register")({
 });
 
 // Formats a fee plan amount inline next to a batch label.
-function formatFeeLabel(plan: FeePlan | undefined): string {
+function formatFeeLabel(plan: (Partial<FeePlan> & { amount: number }) | undefined): string {
   if (!plan) return "";
   const cur = (plan.currency || "INR").toUpperCase();
   const sym = cur === "INR" ? "₹" : cur + " ";
@@ -80,6 +80,7 @@ function formatFeeLabel(plan: FeePlan | undefined): string {
           : "/month";
   const amount = Number(plan.amount) || 0;
   return `${sym}${amount}${cycle}`;
+}
 
 }
 
