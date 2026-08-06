@@ -1261,29 +1261,34 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
       : null;
 
   return (
-    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
-      <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-        Fees
-      </span>
-      {showRegistration ? (
-        <>
-          <span className="flex items-baseline gap-1.5">
-            <span className="text-muted-foreground">Admission</span>
-            <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>
-          </span>
-          <span className="text-border">•</span>
-        </>
-      ) : null}
-      <span className="flex items-baseline gap-1.5">
-        <span className="text-muted-foreground">Monthly</span>
-        <span className="font-semibold text-foreground">{monthlyText}</span>
-      </span>
-      {total != null ? (
-        <span className="ml-auto flex items-baseline gap-1.5">
-          <span className="text-muted-foreground">Due at joining</span>
-          <span className="font-semibold text-foreground">{fmt(total)}</span>
+    <div className="mt-3 flex flex-col gap-2 rounded-lg border border-border bg-muted/30 p-3 text-sm">
+      <div className="flex items-center justify-between border-b border-border/40 pb-2">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          Fee breakdown
         </span>
-      ) : null}
+        {total != null ? (
+          <span className="flex items-baseline gap-1.5">
+            <span className="text-[11px] font-medium uppercase text-muted-foreground">Total due</span>
+            <span className="text-base font-bold text-foreground" style={{ color: "var(--brand)" }}>{fmt(total)}</span>
+          </span>
+        ) : null}
+      </div>
+      
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+        {showRegistration ? (
+          <>
+            <span className="flex items-baseline gap-1.5">
+              <span className="text-muted-foreground">Admission</span>
+              <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>
+            </span>
+            <span className="text-border">•</span>
+          </>
+        ) : null}
+        <span className="flex items-baseline gap-1.5">
+          <span className="text-muted-foreground">Monthly</span>
+          <span className="font-semibold text-foreground">{monthlyText}</span>
+        </span>
+      </div>
     </div>
   );
 }
