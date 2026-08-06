@@ -265,6 +265,7 @@ function emptyBowling(player: PlayerRef): BowlingStat {
     bestBowlingRuns: 0,
     bestBowlingWickets: 0,
     bestBowlingDisplay: "0/0",
+    legalOvers: 0,
   };
 }
 
