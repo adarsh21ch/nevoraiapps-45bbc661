@@ -710,10 +710,9 @@ function CoreEditor({
   const selectedBatch = batches.find((b) => b.id === f.batch_id);
   const selectedPlan = feePlans.find((p) => p.id === (selectedBatch?.fee_plan_id || f.fee_plan_id));
   
-  let systemPrice = Number(selectedPlan?.amount ?? 0);
-  if (isGenderPricingEnabled && f.gender === "female" && selectedPlan?.female_amount != null) {
-    systemPrice = Number(selectedPlan.female_amount);
-  }
+  const systemPrice = isGenderPricingEnabled 
+    ? resolveMonthlyFee(selectedPlan as any, f.gender)
+    : Number(selectedPlan?.amount ?? 0);
 
   const isManualDiff = f.custom_fee != null && Number(f.custom_fee) !== systemPrice;
 
@@ -787,7 +786,7 @@ function CoreEditor({
         />
       </div>
 
-      {isGenderPricingEnabled && f.gender === "female" && isManualDiff && (
+      {isGenderPricingEnabled && normalizeGender(f.gender) === "female" && isManualDiff && (
         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex gap-2">
           <p>
             <strong>Price mismatch:</strong> This student has a manual price of ₹{Number(f.custom_fee).toLocaleString("en-IN")}. The system price is ₹{systemPrice.toLocaleString("en-IN")}. 
@@ -817,10 +816,9 @@ function CoreEditor({
           <SelectContent>
             {batches.map((b) => {
               const p = feePlans.find((x) => x.id === b.fee_plan_id);
-              let amt = p?.amount;
-              if (isGenderPricingEnabled && f.gender === "female" && p?.female_amount != null) {
-                amt = p.female_amount;
-              }
+              const amt = isGenderPricingEnabled 
+                ? resolveMonthlyFee(p as any, f.gender)
+                : Number(p?.amount ?? 0);
               return (
                 <SelectItem key={b.id} value={b.id}>
                   {b.name}
@@ -981,10 +979,9 @@ function ReactivateDialog({
               <SelectContent>
                 {batches.map((b) => {
                   const p = feePlans.find((x) => x.id === b.fee_plan_id);
-                  let amt = p?.amount;
-                  if (isGenderPricingEnabled && student.gender === "female" && p?.female_amount != null) {
-                    amt = p.female_amount;
-                  }
+                  const amt = isGenderPricingEnabled 
+                    ? resolveMonthlyFee(p as any, student.gender)
+                    : Number(p?.amount ?? 0);
 
                   return (
                     <SelectItem key={b.id} value={b.id}>
