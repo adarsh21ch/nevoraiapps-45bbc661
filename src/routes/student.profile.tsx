@@ -59,16 +59,26 @@ function StudentProfilePage() {
 
   const handleDownloadIDCard = async () => {
     if (!ctx) return;
+    if (isDownloading) return; // Prevent multiple clicks during generation
+    
     setIsDownloading(true);
+    const downloadToast = toast.loading("Preparing your ID card...");
+    
     try {
-      const { data: tenant } = await supabase
-        .from("tenants")
-        .select("*")
-        .eq("id", ctx.tenant_id)
-        .single();
+      // 1. Fetch tenant data in parallel with a small delay for UI responsiveness
+      const [tenantRes] = await Promise.all([
+        supabase
+          .from("tenants")
+          .select("*")
+          .eq("id", ctx.tenant_id)
+          .single(),
+        new Promise(resolve => setTimeout(resolve, 100))
+      ]);
       
+      const { data: tenant } = tenantRes;
       if (!tenant) throw new Error("Tenant not found");
 
+      // 2. Generate PDF
       await generateIdCardPdf(tenant as any, {
         playerId: s.player_id ?? null,
         name: (s.name as string) || "Student",
@@ -90,10 +100,11 @@ function StudentProfilePage() {
         photoPath: (s.photo_url as string) || null,
         cardToken: (s.card_token as string) || null,
       });
-      toast.success("ID Card download started");
+      
+      toast.success("ID Card downloaded successfully", { id: downloadToast });
     } catch (err) {
       console.error("Failed to download ID card", err);
-      toast.error("Failed to generate ID card");
+      toast.error("Failed to generate ID card", { id: downloadToast });
     } finally {
       setIsDownloading(false);
     }
