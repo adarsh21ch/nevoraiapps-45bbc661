@@ -80,7 +80,7 @@ type Category =
   | "overview"
   | "attendance"
   | "finance"
-  | "admissions"
+  | "registrations"
   | "students"
   | "cricket"
   | "communication";
@@ -138,7 +138,7 @@ function ReportsHub() {
     { value: "overview", label: "Overview" },
     { value: "attendance", label: "Attendance" },
     { value: "finance", label: "Finance", ownerOnly: true },
-    { value: "admissions", label: "Admissions" },
+    { value: "registrations", label: "Registrations" },
     { value: "students", label: "Students" },
     { value: "cricket", label: "Cricket" },
     { value: "communication", label: "Communication" },
@@ -186,7 +186,7 @@ function ReportsHub() {
       )}
       {category === "attendance" && <AttendanceReport tenantId={tenant.id} range={range} />}
       {category === "finance" && owner && <FinanceReport tenantId={tenant.id} range={range} />}
-      {category === "admissions" && <AdmissionsReport tenantId={tenant.id} range={range} />}
+      {category === "registrations" && <AdmissionsReport tenantId={tenant.id} range={range} />}
       {category === "students" && <StudentsReport tenantId={tenant.id} range={range} />}
       {category === "cricket" && <CricketReport tenantId={tenant.id} range={range} />}
       {category === "communication" && <CommunicationReport tenantId={tenant.id} range={range} />}
@@ -335,11 +335,11 @@ function OverviewReport({
     queryFn: () => fetchAttendanceReport(tenantId, pr),
   });
   const admQ = useQuery({
-    queryKey: rqk.admissions(tenantId, range),
+    queryKey: rqk.registrations(tenantId, range),
     queryFn: () => fetchAdmissionsReport(tenantId, range),
   });
   const admPQ = useQuery({
-    queryKey: rqk.admissions(tenantId, pr),
+    queryKey: rqk.registrations(tenantId, pr),
     queryFn: () => fetchAdmissionsReport(tenantId, pr),
   });
   const billQ = useQuery({
@@ -368,21 +368,21 @@ function OverviewReport({
   const health = computeHealthScore({
     att: attQ.data,
     bill: billQ.data,
-    adm: admQ.data,
+    reg: admQ.data,
     ply: plyQ.data,
     comm: commQ.data,
   });
 
   const highlights = buildHighlights({
-    curr: { att: attQ.data, bill: billQ.data, adm: admQ.data, ply: plyQ.data },
-    prev: { att: attPQ.data, bill: billPQ.data, adm: admPQ.data },
+    curr: { att: attQ.data, bill: billQ.data, reg: admQ.data, ply: plyQ.data },
+    prev: { att: attPQ.data, bill: billPQ.data, reg: admPQ.data },
   });
 
   const actions = buildActions({
     tenantId,
     att: attQ.data,
     bill: billQ.data,
-    adm: admQ.data,
+    reg: admQ.data,
     ply: plyQ.data,
     owner,
   });
@@ -423,10 +423,10 @@ function OverviewReport({
             hint={`${attQ.data?.sessions ?? 0} sessions`}
           />
           <KpiTile
-            label="Admissions"
+            label="Registrations"
             value={String(admQ.data?.converted ?? 0)}
             trend={pctChange(admQ.data?.converted ?? 0, admPQ.data?.converted ?? 0)}
-            hint={`${admQ.data?.conversion ?? 0}% conversion`}
+              hint={`${admQ.data?.conversion ?? 0}% conversion`}
           />
           <KpiTile
             label="Retention %"
@@ -578,13 +578,13 @@ type Health = { total: number; status: string; breakdown: HealthBreakdown[] };
 function computeHealthScore(x: {
   att?: AttendanceReport;
   bill?: BillingReport;
-  adm?: AdmissionsReport;
+  reg?: AdmissionsReport;
   ply?: PlayersReport;
   comm?: CommsReport;
 }): Health {
   const attendance = clamp(x.att?.percent ?? 0);
   const finance = clamp(x.bill?.collectionRate ?? 0);
-  const growthRaw = (x.ply?.newInRange ?? 0) * 8 + (x.adm?.conversion ?? 0);
+  const growthRaw = (x.ply?.newInRange ?? 0) * 8 + (x.reg?.conversion ?? 0);
   const growth = clamp(growthRaw);
   const engagementBase =
     x.comm && x.comm.sent > 0 ? Math.round((x.comm.delivered / x.comm.sent) * 100) : 60;
@@ -730,7 +730,7 @@ function buildActions(x: {
   tenantId: string;
   att?: AttendanceReport;
   bill?: BillingReport;
-  adm?: AdmissionsReport;
+  reg?: AdmissionsReport;
   ply?: PlayersReport;
   owner: boolean;
 }): ActionItem[] {
@@ -760,7 +760,7 @@ function buildActions(x: {
       to: "/dashboard/students",
       tone: "info",
     });
-  const newLeads = (x.adm?.byStage ?? []).find((s) => s.stage === "new")?.count ?? 0;
+  const newLeads = (x.reg?.byStage ?? []).find((s) => s.stage === "new")?.count ?? 0;
   if (newLeads > 0)
     items.push({
       label: "Unanswered enquiries",
@@ -1071,11 +1071,11 @@ function FinanceReport({ tenantId, range }: { tenantId: string; range: Range }) 
 function AdmissionsReport({ tenantId, range }: { tenantId: string; range: Range }) {
   const pr = useMemo(() => prevRange(range), [range]);
   const q = useQuery({
-    queryKey: rqk.admissions(tenantId, range),
+    queryKey: rqk.registrations(tenantId, range),
     queryFn: () => fetchAdmissionsReport(tenantId, range),
   });
   const pq = useQuery({
-    queryKey: rqk.admissions(tenantId, pr),
+    queryKey: rqk.registrations(tenantId, pr),
     queryFn: () => fetchAdmissionsReport(tenantId, pr),
   });
   const d = q.data;
@@ -1086,7 +1086,7 @@ function AdmissionsReport({ tenantId, range }: { tenantId: string; range: Range 
     <div className="space-y-5">
       <KpiGrid>
         <KpiTile
-          label="Leads"
+          label="Registrations"
           value={String(d?.totalLeads ?? 0)}
           trend={pctChange(d?.totalLeads ?? 0, pq.data?.totalLeads ?? 0)}
         />
@@ -1096,7 +1096,7 @@ function AdmissionsReport({ tenantId, range }: { tenantId: string; range: Range 
           trend={pctChange(d?.trials ?? 0, pq.data?.trials ?? 0)}
         />
         <KpiTile
-          label="Admissions"
+          label="Registrations"
           value={String(d?.converted ?? 0)}
           trend={pctChange(d?.converted ?? 0, pq.data?.converted ?? 0)}
         />
@@ -1112,7 +1112,7 @@ function AdmissionsReport({ tenantId, range }: { tenantId: string; range: Range 
       </KpiGrid>
       <Suspense fallback={<ChartSkeleton />}>
         <Charts
-          view="admissions"
+          view="registrations"
           data={{ admissionsByStage: d?.byStage ?? [], bySource: d?.bySource ?? [] }}
         />
       </Suspense>
@@ -1526,10 +1526,10 @@ function buildHighlights(x: {
   curr: {
     att?: AttendanceReport;
     bill?: BillingReport;
-    adm?: AdmissionsReport;
+    reg?: AdmissionsReport;
     ply?: PlayersReport;
   };
-  prev: { att?: AttendanceReport; bill?: BillingReport; adm?: AdmissionsReport };
+  prev: { att?: AttendanceReport; bill?: BillingReport; reg?: AdmissionsReport };
 }): { text: string; tone: "good" | "warn" }[] {
   const out: { text: string; tone: "good" | "warn" }[] = [];
   const revC = pctChange(x.curr.bill?.revenue ?? 0, x.prev.bill?.revenue ?? 0);
@@ -1552,11 +1552,11 @@ function buildHighlights(x: {
       tone: "warn",
     });
   }
-  const convC = pctChange(x.curr.adm?.conversion ?? 0, x.prev.adm?.conversion ?? 0);
+  const convC = pctChange(x.curr.reg?.conversion ?? 0, x.prev.reg?.conversion ?? 0);
   if (
     convC !== undefined &&
-    x.curr.adm &&
-    (x.curr.adm.totalLeads > 0 || (x.prev.adm?.totalLeads ?? 0) > 0)
+    x.curr.reg &&
+    (x.curr.reg.totalLeads > 0 || (x.prev.reg?.totalLeads ?? 0) > 0)
   ) {
     out.push({
       text: `Trial conversion ${convC >= 0 ? "up" : "down"} ${Math.abs(convC)}% vs previous`,
@@ -1566,8 +1566,8 @@ function buildHighlights(x: {
   const topBatch = x.curr.att?.perBatch?.[0];
   if (topBatch)
     out.push({ text: `${topBatch.batch} leads attendance at ${topBatch.percent}%`, tone: "good" });
-  if ((x.curr.adm?.converted ?? 0) > 0) {
-    out.push({ text: `${x.curr.adm!.converted} new admissions this period`, tone: "good" });
+  if ((x.curr.reg?.converted ?? 0) > 0) {
+    out.push({ text: `${x.curr.reg!.converted} new admissions this period`, tone: "good" });
   }
   return out.slice(0, 6);
 }
@@ -1624,7 +1624,7 @@ function buildRecommendations(x: {
     out.push(`Send fee reminders to ${x.pendingStudents} students with pending balances.`);
   if (x.lowAttendance > 0)
     out.push(`Schedule a check-in with the ${x.lowAttendance} students below 60% attendance.`);
-  if (x.newLeads > 0) out.push(`Follow up with ${x.newLeads} unanswered enquiries this week.`);
+  if (x.newLeads > 0) out.push(`Follow up with ${x.newLeads} unanswered registrations this week.`);
   out.push("Run a weekend trial camp to lift conversion.");
   return out.slice(0, 5);
 }

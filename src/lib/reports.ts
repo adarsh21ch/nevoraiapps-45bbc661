@@ -61,7 +61,7 @@ export function presetRange(preset: Preset, custom?: Range): Range {
 export const rqk = {
   attendance: (t: string, r: Range) => ["r", "att", t, r.from, r.to] as const,
   billing: (t: string, r: Range) => ["r", "bill", t, r.from, r.to] as const,
-  admissions: (t: string, r: Range) => ["r", "adm", t, r.from, r.to] as const,
+  registrations: (t: string, r: Range) => ["r", "reg", t, r.from, r.to] as const,
   players: (t: string, r: Range) => ["r", "ply", t, r.from, r.to] as const,
   matches: (t: string, r: Range) => ["r", "mch", t, r.from, r.to] as const,
   comms: (t: string, r: Range) => ["r", "cmm", t, r.from, r.to] as const,
