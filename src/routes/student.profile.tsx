@@ -84,6 +84,7 @@ function StudentProfilePage() {
         academyPhone: tenant.phone || null,
         academyName: tenant.name || null,
         academyLogo: tenant.logo_url || null,
+        academyAddress: tenant.address || null,
         sport: (athleteQ.data?.primary_sport as string) || "Cricket",
         joinedAt: (s.joined_at as string) || new Date().toISOString(),
         photoPath: (s.photo_url as string) || null,
