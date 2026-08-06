@@ -1509,37 +1509,56 @@ function NewTeamBody({
   };
 
   return (
-    <div className="space-y-3">
+  const hasRoles = players.some(p => p.is_captain) && players.some(p => p.is_keeper);
+
+  return (
+    <div className="space-y-4">
       <div>
-        <Label>Team name</Label>
+        <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Team name</Label>
         <Input
           value={name}
           onChange={(e) => onName(e.target.value)}
-          placeholder="e.g. Team A · U16 · Weekend Warriors"
-          className="mt-1 h-11 text-base"
+          placeholder="e.g. Team A · U16"
+          className="mt-1.5 h-11 text-base"
         />
       </div>
 
+      {players.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Playing XI · {players.length}/11
+            </Label>
+          </div>
+          <SquadList players={players} onPlayers={onPlayers} onRemove={onRemove} />
+          
+          <div className="flex flex-wrap gap-3 rounded-2xl border border-border bg-muted/30 p-3">
+            <div className="flex items-center gap-1.5 text-[11px]">
+              {players.some(p => p.is_captain) ? (
+                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
+              ) : (
+                <span className="text-muted-foreground">Captain required</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px]">
+              {players.some(p => p.is_keeper) ? (
+                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Wicketkeeper</span>
+              ) : (
+                <span className="text-muted-foreground">Wicketkeeper required</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              VC optional
+            </div>
+          </div>
+        </div>
+      )}
+
       <div>
         <div className="flex items-center gap-1.5">
-          <Label>Add player</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                aria-label="How to add players"
-                className="grid size-4 place-items-center rounded-full text-muted-foreground hover:text-foreground"
-              >
-                <Info className="size-3.5" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent side="top" align="start" className="w-64 text-xs leading-relaxed">
-              Search to pick an academy player, or type any name and add them as a guest — no
-              registration needed.
-            </PopoverContent>
-          </Popover>
+          <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Add player</Label>
         </div>
-        <div className="relative mt-1">
+        <div className="relative mt-1.5">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
@@ -1548,65 +1567,55 @@ function NewTeamBody({
             placeholder="Search or type a name…"
             className="pl-9 h-11 text-base"
           />
+          {trimmed && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg p-1 z-50">
+              {studentsLoading ? (
+                <div className="p-3 text-sm text-muted-foreground">Loading…</div>
+              ) : (
+                <>
+                  {results.map((p) => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => {
+                        onAdd(p);
+                        setQ("");
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
+                    >
+                      <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full" />
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        Academy
+                      </span>
+                    </button>
+                  ))}
+                  {!exactAcademyMatch && (
+                    <button
+                      type="button"
+                      onClick={addGuest}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
+                    >
+                      <span className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground">
+                        <Plus className="size-4" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm">
+                        Add <span className="font-semibold">{trimmed}</span> as guest
+                      </span>
+                      <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                        Guest
+                      </span>
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
-        {trimmed && (
-          <div className="mt-2 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border bg-background/60 p-1">
-            {studentsLoading ? (
-              <div className="p-3 text-sm text-muted-foreground">Loading…</div>
-            ) : (
-              <>
-                {results.map((p) => (
-                  <button
-                    key={p.key}
-                    type="button"
-                    onClick={() => {
-                      onAdd(p);
-                      setQ("");
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
-                  >
-                    <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full" />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                      Academy
-                    </span>
-                  </button>
-                ))}
-                {!exactAcademyMatch && (
-                  <button
-                    type="button"
-                    onClick={addGuest}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
-                  >
-                    <span className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground">
-                      <Plus className="size-4" />
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm">
-                      Add <span className="font-semibold">{trimmed}</span> as guest
-                    </span>
-                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
-                      Guest
-                    </span>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="mt-3 space-y-2">
-        {!players.some(p => p.is_captain) && (
-          <div className="text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-            Captain is required
-          </div>
-        )}
-        {!players.some(p => p.is_keeper) && (
-          <div className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-            Wicketkeeper is required
-          </div>
-        )}
       </div>
     </div>
+  );
+}
   );
 }
 
