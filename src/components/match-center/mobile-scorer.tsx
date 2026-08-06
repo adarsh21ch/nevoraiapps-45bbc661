@@ -904,20 +904,12 @@ function RunKey({
   disabled?: boolean;
   onClick: () => void;
 }) {
-  const tone = "neutral";
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={cn(
-        "grid h-11 w-full place-items-center rounded-xl border text-[20px] font-black tabular-nums transition duration-100 active:scale-[0.95] disabled:opacity-40",
-        tone === "four" &&
-          "border-transparent bg-[var(--score-four)] text-[var(--score-action-foreground)]",
-        tone === "six" &&
-          "border-transparent bg-[var(--score-six)] text-[var(--score-action-foreground)]",
-        tone === "neutral" && "border-border/80 bg-background text-foreground active:bg-muted",
-      )}
+      className="grid h-11 w-full place-items-center rounded-xl border border-border/80 bg-background text-[20px] font-black tabular-nums text-foreground transition duration-100 active:bg-muted active:scale-[0.95] disabled:opacity-40"
     >
       {value === 0 ? "•" : value}
     </button>
