@@ -811,7 +811,7 @@ export function ExtraRunsModal({
 
   const k = open ? (kind || frozenKind) : frozenKind;
 
-  // ROW 1: 1 2 3 4 | ROW 2: 5 6 7 More
+  // Wide/NB: 1-4, 5-7 + More | Bye/LB: 0-3, 4-6 + More
   const options = [1, 2, 3, 4, 5, 6, 7];
 
   const sublabelFor = (r: number): string | null => {
@@ -862,7 +862,7 @@ export function ExtraRunsModal({
 
   // Adjust options for Bye/Leg Bye (they include 0)
   const isExtraPenalty = k === "Wide" || k === "No Ball";
-  const displayOptions = isExtraPenalty ? options : [0, 1, 2, 3, 4, 5, 6, 7];
+  const displayOptions = isExtraPenalty ? options : [0, 1, 2, 3, 4, 5, 6];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
