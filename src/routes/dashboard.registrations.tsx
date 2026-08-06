@@ -182,6 +182,7 @@ function RegistrationsInbox() {
             tenantId,
             studentId: newStudentId,
             feePlanId: reg.fee_plan_id,
+            gender: reg.gender,
             plans: allPlans as any,
             chargeAdmission: true,
             issue: true
