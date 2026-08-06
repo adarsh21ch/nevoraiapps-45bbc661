@@ -808,7 +808,10 @@ function RegisterContent() {
                 <FeeSummary
                   batch={batches.find((b) => b.id === form.batch_id)}
                   fees={fees}
+                  gender={normalizeGender(form.gender) || undefined}
+                  tenant={tenant}
                 />
+
               ) : null}
             </Section>
           ) : null}
@@ -909,6 +912,8 @@ function RegisterContent() {
                     form={form}
                     batches={batches}
                     fees={fees}
+                    tenant={tenant}
+
                   />
                 </Section>
               ) : null}
@@ -1138,7 +1143,10 @@ function RegisterContent() {
           <BatchInfoDialog
             batches={batches}
             fees={fees}
+            gender={normalizeGender(form.gender) || undefined}
+            tenant={tenant}
             onClose={() => setBatchInfoOpen(false)}
+
           />
         ) : null}
       </main>
@@ -1206,9 +1214,15 @@ function BatchSelect({
   );
 }
 
-function FeeSummary({ batch, fees }: { batch: Batch | undefined; fees: FeePlan[] }) {
+function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined; fees: FeePlan[]; gender?: string; tenant?: any }) {
   const registration = fees.find((f) => f.type === "registration");
   const monthly = batch ? batchFeePlan(batch, fees) : undefined;
+  const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
+  const resolvedMonthlyAmount = isGenderPricingEnabled && monthly 
+    ? resolveMonthlyFee(monthly as any, gender)
+    : monthly?.amount;
+
+
   const cur = (registration?.currency || monthly?.currency || "INR").toUpperCase();
   const sym = cur === "INR" ? "₹" : cur + " ";
   const fmt = (n: number | undefined) => (n == null ? "—" : `${sym}${n}`);
@@ -1220,10 +1234,10 @@ function FeeSummary({ batch, fees }: { batch: Batch | undefined; fees: FeePlan[]
     : isPersonal && !monthly
       ? "Contact academy"
       : monthly
-        ? fmt(monthly.amount)
+        ? fmt(resolvedMonthlyAmount)
         : "Contact academy";
   const total =
-    !isPersonal && monthly && registration ? monthly.amount + registration.amount : null;
+    !isPersonal && resolvedMonthlyAmount != null && registration ? resolvedMonthlyAmount + registration.amount : null;
   return (
     <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
       <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -1268,8 +1282,11 @@ function ReviewSummary({
   };
   batches: Batch[];
   fees: FeePlan[];
+  tenant: any;
 }) {
+  const genderNormalized = normalizeGender(form.gender) || undefined;
   const batch = batches.find((b) => b.id === form.batch_id);
+
   const rows: [string, string][] = [
     ["Email", form.email || "—"],
     ["Password", "••••••••"],
@@ -1283,7 +1300,7 @@ function ReviewSummary({
     ["Aadhaar front", form.aadhaar_front_url ? "Uploaded ✓" : "Missing"],
     ["Aadhaar back", form.aadhaar_back_url ? "Uploaded ✓" : "Missing"],
     ["Preferred batch", batch ? (batch.timing ? `${batch.name} — ${batch.timing}` : batch.name) : "No preference"],
-    ["Monthly fee", batch ? batchFeeText(batch, fees) : "—"],
+    ["Monthly fee", batch ? batchFeeText(batch, fees, genderNormalized, tenant) : "—"],
   ];
   return (
     <dl className="divide-y divide-border/60">
@@ -1304,8 +1321,11 @@ function BatchInfoDialog({
 }: {
   batches: Batch[];
   fees: FeePlan[];
+  gender: string | undefined;
+  tenant: any;
   onClose: () => void;
 }) {
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
@@ -1329,7 +1349,7 @@ function BatchInfoDialog({
                 className="shrink-0 text-sm font-semibold"
                 style={{ color: "var(--brand)" }}
               >
-                {batchFeeText(b, fees)}
+                {batchFeeText(b, fees, gender, tenant)}
               </div>
             </li>
           ))}
