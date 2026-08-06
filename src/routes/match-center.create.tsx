@@ -605,10 +605,8 @@ function CreateMatchPage() {
   const step1Valid = !!matchType && !!matchFormat && overs > 0;
   
   const hasRolesA = panelA.players.some(p => p.is_captain) && 
-                    panelA.players.some(p => p.is_vice_captain) && 
                     panelA.players.some(p => p.is_keeper);
   const hasRolesB = panelB.players.some(p => p.is_captain) && 
-                    panelB.players.some(p => p.is_vice_captain) && 
                     panelB.players.some(p => p.is_keeper);
 
   const step2Valid = readyA && panelA.players.length >= 2 && hasRolesA;
