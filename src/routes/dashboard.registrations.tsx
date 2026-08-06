@@ -98,6 +98,7 @@ function effectiveReviewStatus(r: any): string {
 function RegistrationsInbox() {
   const { tenant } = useDashboard();
   const tenantId = tenant.id!;
+  const { tenant: dashboardTenant } = useDashboard(); // Re-binding or ensuring it's accessible
   const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({
     queryKey: qk.regs(tenant.id),
