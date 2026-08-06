@@ -1,0 +1,3 @@
+ls: cannot access 'src/routes/_authenticated/dashboard.player*': No such file or directory
+ls: cannot access 'src/routes/_authenticated/student*': No such file or directory
+ls: cannot access 'src/routes/_authenticated/profile*': No such file or directory
