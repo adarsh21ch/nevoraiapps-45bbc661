@@ -114,8 +114,16 @@ const CH = 54;
 const R = 3.2;
 
 export async function generateIdCardPdf(tenant: Tenant, r: IdCardData) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  await drawCard(doc, tenant, r);
+  // Use a custom card size instead of A4 to avoid white space and small corner rendering
+  const doc = new jsPDF({ 
+    unit: "mm", 
+    format: [CW + 40, CH + 60], // Add margins but focus on the card
+    orientation: "landscape"
+  });
+  // Adjust fx/fy to center on the smaller canvas
+  const canvasW = CW + 40;
+  const canvasH = CH + 60;
+  await drawCard(doc, tenant, r, (canvasW - CW) / 2, (canvasH - CH) / 2);
   doc.save(`id-card-${r.playerId || r.name.replace(/\s+/g, "-")}.pdf`);
 }
 
