@@ -835,8 +835,15 @@ export function ExtraRunsModal({
   };
 
   const isBoundaryHit = (r: number): "four" | "six" | null => {
-    if (r === 4) return "four";
-    if (r === 6) return "six";
+    // For Wide/No Ball, total 5 means extra + 4 runs, total 7 means extra + 6 runs
+    if (k === "Wide" || k === "No Ball") {
+      if (r === 5) return "four";
+      if (r === 7) return "six";
+    } else {
+      // For Bye/Leg Bye, standard boundary totals
+      if (r === 4) return "four";
+      if (r === 6) return "six";
+    }
     return null;
   };
 
