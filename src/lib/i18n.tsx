@@ -24,7 +24,7 @@ const hi: Dict = {
   Dashboard: "डैशबोर्ड",
   "Sign out": "साइन आउट",
   "View site": "वेबसाइट देखें",
-  Language: "??? fix this",
+  Language: "भाषा",
 
   // Home / KPIs
   "Welcome back": "वापसी पर स्वागत है",

@@ -95,7 +95,7 @@ export function resolveTenantHint(input: {
   if (isReservedPlatformHost(hostname, input.platformHosts)) return null;
 
   // Subdomain: {slug}.platform.tld (only when the base host is a known platform host)
-  const isPlatformHost = platformHosts.some((h) => hostname === h || hostname.endsWith("." + h));
+  const isPlatformHost = platformHosts.some((h) => hostname === h || (hostname.endsWith("." + h) && h !== "nevorai.com"));
   if (isPlatformHost) {
     const parts = hostname.split(".");
     if (parts.length > 2 && !parts[0].includes("--") && !parts[0].startsWith("id-preview")) {
