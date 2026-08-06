@@ -855,13 +855,6 @@ function RegisterContent() {
                     />
                   </div>
                 </div>
-                  <TextArea
-                    value={form.current_address}
-                    onChange={(v) => setForm({ ...form, current_address: v })}
-                    error={errors.current_address}
-                    hideLabel
-                  />
-                </div>
 
                 <div className="sm:col-span-2">
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
