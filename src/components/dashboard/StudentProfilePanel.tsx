@@ -327,9 +327,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             <Row
               label="Gender"
               value={
-                s.gender
-                  ? String(s.gender).charAt(0).toUpperCase() + String(s.gender).slice(1)
-                  : "—"
+                s.gender === "male" ? "Boy" : s.gender === "female" ? "Girl" : s.gender ? String(s.gender).charAt(0).toUpperCase() + String(s.gender).slice(1) : "—"
               }
             />
             <Row label="Address" value={s.address || "—"} multiline />
@@ -774,8 +772,8 @@ function CoreEditor({
             <SelectValue placeholder="Select" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="male">Male</SelectItem>
-            <SelectItem value="female">Female</SelectItem>
+            <SelectItem value="male">Boy</SelectItem>
+            <SelectItem value="female">Girl</SelectItem>
             <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
