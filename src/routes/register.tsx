@@ -1282,7 +1282,8 @@ function ReviewSummary({
   };
   batches: Batch[];
   fees: FeePlan[];
-  tenant: any;
+    tenant: any;
+
 }) {
   const genderNormalized = normalizeGender(form.gender) || undefined;
   const batch = batches.find((b) => b.id === form.batch_id);
