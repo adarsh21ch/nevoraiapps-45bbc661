@@ -9,6 +9,7 @@
 
 import { createFileRoute } from "@tanstack/react-router";
 import { generateBriefsForAllTenants, type BriefPeriod } from "@/lib/nevorai/reports.functions";
+import { requireCronAuth } from "@/lib/cron-auth.server";
 
 type Body = { period?: BriefPeriod };
 
@@ -16,11 +17,8 @@ export const Route = createFileRoute("/api/public/hooks/nevorai-brief")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apikey = request.headers.get("apikey");
-        const expected = process.env.SUPABASE_PUBLISHABLE_KEY;
-        if (!apikey || !expected || apikey !== expected) {
-          return new Response("Unauthorized", { status: 401 });
-        }
+        const unauthorized = requireCronAuth(request);
+        if (unauthorized) return unauthorized;
         let period: BriefPeriod = "daily";
         try {
           const body = (await request.json()) as Body;
