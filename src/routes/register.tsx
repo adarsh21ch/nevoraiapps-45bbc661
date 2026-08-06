@@ -808,15 +808,16 @@ function RegisterContent() {
                   </div>
                 </div>
               </div>
-              {batches.length > 0 ? (
-                <FeeSummary
-                  batch={batches.find((b) => b.id === form.batch_id)}
-                  fees={fees}
-                  gender={normalizeGender(form.gender) || undefined}
-                  tenant={tenant}
-                />
-
-              ) : null}
+              <div className="sm:col-span-2">
+                {batches.length > 0 ? (
+                  <FeeSummary
+                    batch={batches.find((b) => b.id === form.batch_id)}
+                    fees={fees}
+                    gender={normalizeGender(form.gender) || undefined}
+                    tenant={tenant}
+                  />
+                ) : null}
+              </div>
             </Section>
           ) : null}
 
