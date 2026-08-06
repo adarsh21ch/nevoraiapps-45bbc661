@@ -204,6 +204,10 @@ function RegisterContent() {
     dob: "",
     address: "",
     current_address: "",
+    permanent_address: "",
+    village_locality: "",
+    city: "",
+    state: "",
     aadhaar_front_url: "",
     aadhaar_back_url: "",
     photo_url: "",
@@ -269,7 +273,8 @@ function RegisterContent() {
       if (!form.dob) e.dob = "Required.";
       if (!form.gender) e.gender = "Required.";
       if (!form.phone.trim()) e.phone = "Required.";
-      if (!form.address.trim()) e.address = "Required.";
+      if (!form.city.trim()) e.city = "Required.";
+      if (!form.state.trim()) e.state = "Required.";
       if (!form.current_address.trim()) e.current_address = "Required.";
       if (!form.aadhaar_front_url) e.aadhaar_front = "Aadhaar Front photo is required.";
       if (!form.aadhaar_back_url) e.aadhaar_back = "Aadhaar Back photo is required.";
@@ -343,7 +348,8 @@ function RegisterContent() {
       !form.dob ||
       !form.gender ||
       !form.phone.trim() ||
-      !form.address.trim() ||
+      !form.city.trim() ||
+      !form.state.trim() ||
       !form.current_address.trim() ||
       !form.aadhaar_front_url ||
       !form.aadhaar_back_url ||
@@ -464,6 +470,10 @@ function RegisterContent() {
     profile.aadhaar_back_url = form.aadhaar_back_url;
     profile.photo_url = form.photo_url;
     profile.current_address = form.current_address.trim();
+    profile.permanent_address = form.permanent_address.trim();
+    profile.village_locality = form.village_locality.trim();
+    profile.city = form.city.trim();
+    profile.state = form.state.trim();
     const documents = Object.keys(profile).length > 0 ? { profile } : null;
 
     if (!error && data && applicantUserId) {
@@ -472,7 +482,7 @@ function RegisterContent() {
         {
           _registration_id: data as unknown as string,
           _email: emailTrim,
-          _address: form.address.trim() || null,
+          _address: form.address.trim() || form.current_address.trim() || null,
           _gender: normalizeGender(form.gender),
           _medical_notes: form.medical_notes.trim() || null,
           _documents: documents as unknown as never,
