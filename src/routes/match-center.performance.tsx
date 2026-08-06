@@ -110,6 +110,7 @@ function PerformancePage() {
         description="Understand who's improving, who's consistent, and who needs attention."
         breadcrumbs={[
           { label: "Match Center", to: "/match-center/dashboard" },
+          { label: "Insights", to: "/match-center/leaderboards" },
           { label: "Performance" },
         ]}
         actions={

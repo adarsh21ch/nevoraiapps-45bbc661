@@ -146,6 +146,7 @@ function RecordsPage() {
         description="Automatically aggregated from every finalized match."
         breadcrumbs={[
           { label: "Match Center", to: "/match-center/dashboard" },
+          { label: "Insights", to: "/match-center/leaderboards" },
           { label: "Records" },
         ]}
         actions={
