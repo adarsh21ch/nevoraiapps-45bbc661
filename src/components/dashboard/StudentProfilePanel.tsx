@@ -133,7 +133,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
   const batch = s.batches as { id: string; name: string } | null;
 
   let baseAmount = Number(plan?.amount ?? 0);
-  const isFemale = s.gender === "female" || (typeof s.gender === "string" && s.gender.toLowerCase() === "girl");
+  const isFemale = typeof s.gender === "string" && (s.gender.toLowerCase() === "female" || s.gender.toLowerCase() === "girl");
   if (isGenderPricingEnabled && isFemale && plan?.female_amount != null) {
     baseAmount = Number(plan.female_amount);
   }
