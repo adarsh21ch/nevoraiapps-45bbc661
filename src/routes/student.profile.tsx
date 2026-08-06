@@ -27,6 +27,7 @@ import { AccountCard } from "@/components/settings/AccountCard";
 import { EditMyProfileDialog } from "@/components/portal/EditMyProfileDialog";
 import { StudentIDCard } from "@/components/portal/StudentIDCard";
 import { generateIdCardPdf } from "@/lib/id-card-pdf";
+import { playerKeys, fetchAthleteByStudent } from "@/lib/player-profile";
 import { toast } from "sonner";
 
 
@@ -38,6 +39,7 @@ function StudentProfilePage() {
   const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [side, setSide] = useState<"front" | "back">("front");
 
   const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyPortalContext });
   const ctx = ctxQ.data;
@@ -45,6 +47,12 @@ function StudentProfilePage() {
     queryKey: ctx ? studentKeys.profile(ctx.student_id) : ["student", "profile", "none"],
     queryFn: () => fetchStudentProfile(ctx!),
     enabled: !!ctx,
+  });
+
+  const athleteQ = useQuery({
+    queryKey: playerKeys.athlete(ctx?.tenant_id || "", ctx?.student_id || ""),
+    queryFn: () => fetchAthleteByStudent(ctx!.tenant_id, ctx!.student_id),
+    enabled: !!ctx?.student_id,
   });
 
   const handleDownloadIDCard = async () => {
@@ -62,11 +70,14 @@ function StudentProfilePage() {
       await generateIdCardPdf(tenant as any, {
         playerId: s.player_id ?? null,
         name: (s.name as string) || "Student",
-        guardianName: (s.emergency_contact_name as string) || null,
+        guardianName: (s.guardian_name as string) || (s.emergency_contact_name as string) || null,
         dob: (s.dob as string) || null,
         phone: (s.phone as string) || "",
-        guardianPhone: (s.emergency_contact_phone as string) || null,
+        city: (s.city as string) || null,
+        state: (s.state as string) || null,
+        guardianPhone: (s.guardian_phone as string) || (s.emergency_contact_phone as string) || null,
         batchName: (s.batch_name as string) || (s.playing_role as string) || "Student",
+        sport: (athleteQ.data?.primary_sport as string) || "Cricket",
         joinedAt: (s.joined_at as string) || new Date().toISOString(),
         photoPath: (s.photo_url as string) || null,
         cardToken: (s.card_token as string) || null,
@@ -178,33 +189,65 @@ function StudentProfilePage() {
           Carry your official digital ID for attendance and academy access.
         </p>
         
-        {/* Hidden preview for capture */}
-        <div className="fixed -left-[9999px] top-0 pointer-events-none">
-          <StudentIDCard 
-            ref={cardRef}
-            student={{
-              name: (s.name as string) || "Student",
-              player_id: s.player_id,
-              photo_url: (s.photo_url as string) || null,
-              joined_at: s.joined_at,
-              playing_role: (s.playing_role as string) || "Student",
-              academy_name: ctx.tenant_name || "AcademyOS",
-            }} 
-          />
-        </div>
-        
-        {/* Visible preview */}
-        <div className="scale-[0.5] origin-top -mb-[260px] pointer-events-none select-none grayscale-[0.5] opacity-80 border rounded-2xl shadow-sm">
-           <StudentIDCard 
-            student={{
-              name: (s.name as string) || "Student",
-              player_id: s.player_id,
-              photo_url: (s.photo_url as string) || null,
-              joined_at: s.joined_at,
-              playing_role: (s.playing_role as string) || "Student",
-              academy_name: ctx.tenant_name || "AcademyOS",
-            }} 
-          />
+        {/* Interactive preview with Front/Back toggle */}
+        <div className="w-full flex flex-col items-center gap-4">
+          <div className="flex bg-muted p-1 rounded-lg">
+            <Button 
+              size="sm" 
+              variant={side === "front" ? "secondary" : "ghost"}
+              className="h-8 px-4 text-xs"
+              onClick={() => setSide("front")}
+            >
+              Front
+            </Button>
+            <Button 
+              size="sm" 
+              variant={side === "back" ? "secondary" : "ghost"}
+              className="h-8 px-4 text-xs"
+              onClick={() => setSide("back")}
+            >
+              Back
+            </Button>
+          </div>
+
+          {/* Hidden containers for PDF capture */}
+          <div className="fixed -left-[9999px] top-0 pointer-events-none">
+            <StudentIDCard 
+              ref={cardRef}
+              side="front"
+              student={{
+                name: (s.name as string) || "Student",
+                player_id: s.player_id,
+                photo_url: (s.photo_url as string) || null,
+                joined_at: s.joined_at,
+                dob: s.dob,
+                city: s.city,
+                state: s.state,
+                playing_role: (s.playing_role as string) || "Student",
+                academy_name: ctx.tenant_name || "AcademyOS",
+                gender: s.gender,
+              }} 
+            />
+          </div>
+          
+          {/* Visible preview */}
+          <div className="scale-[0.8] sm:scale-100 origin-top pointer-events-none select-none border rounded-2xl shadow-xl bg-background overflow-hidden">
+             <StudentIDCard 
+              side={side}
+              student={{
+                name: (s.name as string) || "Student",
+                player_id: s.player_id,
+                photo_url: (s.photo_url as string) || null,
+                joined_at: s.joined_at,
+                dob: s.dob,
+                city: s.city,
+                state: s.state,
+                playing_role: (s.playing_role as string) || "Student",
+                academy_name: ctx.tenant_name || "AcademyOS",
+                gender: s.gender,
+              }} 
+            />
+          </div>
         </div>
       </Card>
 

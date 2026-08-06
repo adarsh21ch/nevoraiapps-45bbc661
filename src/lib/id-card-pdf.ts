@@ -23,8 +23,11 @@ export type IdCardData = {
   guardianName: string | null;
   dob: string | null;
   phone: string;
+  city: string | null;
+  state: string | null;
   guardianPhone: string | null;
   batchName: string | null;
+  sport: string | null;
   joinedAt: string;
   photoPath: string | null;
   /** students.card_token — what the attendance QR encodes. */
@@ -273,7 +276,7 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, f
   doc.setFontSize(5.4);
   doc.text("PLAYER ID", dx, y);
   y += 3.5;
-  doc.setTextColor(...hexToRgb(brand));
+  doc.setTextColor(...hexToRgb(accent));
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
   doc.text(r.playerId || "—", dx, y);
@@ -282,48 +285,39 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, f
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
-  doc.text("SESSION", dx, y);
+  doc.text("DOB", dx, y);
   y += 3.5;
   doc.setTextColor(17, 24, 39);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.4);
-  doc.text((r.batchName || "—").slice(0, 22), dx, y);
+  doc.text(fmtDate(r.dob), dx, y);
 
   y += 4.5;
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
-  doc.text("CONTACT", dx, y);
+  doc.text("CATEGORY", dx, y);
   y += 3.5;
   doc.setTextColor(17, 24, 39);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7.2);
-  doc.text((r.phone || "").slice(0, 20), dx, y);
+  doc.text(`CRICKET • ${r.batchName || "JUNIOR"}`.toUpperCase(), dx, y);
 
-  // The only QR — check-in / check-out at the gate.
-  if (qrDataUrl) {
-    const qs = 24; // Larger QR
-    const qx = fx + (CW / 2) - (qs / 2); // Center horizontally
-    const qy = fy + CH - 15; // Position relative to bottom
-    
-    // We need to make space for the QR if it overlaps the white panel
-    // Or we just place it below everything in a white rounded box
-    const boxW = qs + 4;
-    const boxH = qs + 4;
-    const boxX = qx - 2;
-    const boxY = qy - 2;
-    
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "F");
-    doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "S");
-    doc.addImage(qrDataUrl, "PNG", qx, qy, qs, qs);
-    
-    doc.setTextColor(120, 126, 138);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(4.4);
-    doc.text("SCAN: IN / OUT", qx + qs / 2, qy + qs + 3, { align: "center" });
+  const location = [r.city, r.state].filter(Boolean).join(", ");
+  if (location) {
+    y += 4.5;
+    doc.setTextColor(140, 146, 158);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5.4);
+    doc.text(location.toUpperCase(), dx, y);
   }
+
+  // No QR on Front in Phase 1
+  /*
+  if (qrDataUrl) {
+    ...
+  }
+  */
 
   // Bottom strip
   doc.setTextColor(255, 255, 255);

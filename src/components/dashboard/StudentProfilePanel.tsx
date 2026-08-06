@@ -79,6 +79,20 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
     queryKey: qk.feePlans(tenant.id),
     queryFn: () => fetchFeePlans(tenant.id),
   });
+  const athleteQ = useQuery({
+    queryKey: ["athlete", tenant.id, studentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mc_athlete_profiles")
+        .select("primary_sport")
+        .eq("tenant_id", tenant.id)
+        .eq("student_id", studentId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!studentId,
+  });
 
   const today = new Date();
   const periods = cycle === "joining_date" ? candidatePeriods(today) : [periodKey(today)];
@@ -397,8 +411,11 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               guardianName: s.guardian_name,
               dob: s.dob,
               phone: s.phone,
+              city: s.city || null,
+              state: s.state || null,
               guardianPhone: s.guardian_phone,
               batchName: batch?.name ?? null,
+              sport: athleteQ.data?.primary_sport || "Cricket",
               joinedAt: s.joined_at,
               photoPath: s.photo_url ?? null,
               cardToken: (s as { card_token?: string | null }).card_token ?? null,
