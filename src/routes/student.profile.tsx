@@ -29,6 +29,7 @@ import { StudentIDCard } from "@/components/portal/StudentIDCard";
 import { toPng } from "html-to-image";
 import saveAs from "file-saver";
 import { toast } from "sonner";
+import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/student/profile")({
