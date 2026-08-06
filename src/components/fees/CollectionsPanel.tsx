@@ -176,7 +176,7 @@ export function CollectionsPanel({
           playerId: s.player_id ?? null,
 
           amount,
-          planAmount,
+          planAmount: baseAmount,
           hasCustomFee: custom != null,
           phone: s.phone,
           guardianName: s.guardian_name,
