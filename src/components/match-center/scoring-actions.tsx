@@ -39,7 +39,7 @@ import {
  */
 export interface ScoringActionsProps {
   disabled?: boolean;
-  onRun: (r: 0 | 1 | 2 | 3 | 4 | 6) => void;
+  onRun: (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => void;
   onExtra: (kind: "Wide" | "No Ball" | "Bye" | "Leg Bye") => void;
   onOut: () => void;
   onUndo: () => void;
@@ -108,7 +108,7 @@ export function ScoringActions(props: ScoringActionsProps) {
       <div className="flex flex-col gap-2.5">
         {/* Runs 3x2 */}
         <div className="grid grid-cols-3 gap-2">
-          {([0, 1, 2, 3, 4, 6] as const).map((r) => (
+          {([0, 1, 2, 3, 4, 5, 6] as const).map((r) => (
             <RunsButton key={r} value={r} onClick={() => !props.disabled && props.onRun(r)} />
           ))}
         </div>
