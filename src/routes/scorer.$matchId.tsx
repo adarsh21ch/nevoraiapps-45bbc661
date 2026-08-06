@@ -1524,6 +1524,7 @@ function DemoScorerBody({
   /* ---------- stats & headers ---------- */
   const stats = calculateInningsStatistics(session.events, {
     totalOvers: match.overs ?? null,
+    playingRules: match.playing_rules ?? null,
     target: activeInnings?.target ?? null,
   });
   const striker = session.striker;
