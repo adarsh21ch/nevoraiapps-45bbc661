@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useRef, useState } from "react";
 import {
   UserCircle,
   Phone,
@@ -13,6 +14,8 @@ import {
   FileText,
   CalendarDays,
   Building2,
+  Download,
+  Loader2,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,10 @@ import { fetchMyPortalContext, fetchStudentProfile, studentKeys } from "@/lib/st
 import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
 import { AccountCard } from "@/components/settings/AccountCard";
 import { EditMyProfileDialog } from "@/components/portal/EditMyProfileDialog";
+import { StudentIDCard } from "@/components/portal/StudentIDCard";
+import { toPng } from "html-to-image";
+import saveAs from "file-saver";
+import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/student/profile")({
@@ -30,6 +37,9 @@ export const Route = createFileRoute("/student/profile")({
 
 function StudentProfilePage() {
   const navigate = useNavigate();
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
   const ctxQ = useQuery({ queryKey: studentKeys.me, queryFn: fetchMyPortalContext });
   const ctx = ctxQ.data;
   const q = useQuery({
@@ -37,6 +47,21 @@ function StudentProfilePage() {
     queryFn: () => fetchStudentProfile(ctx!),
     enabled: !!ctx,
   });
+
+  const handleDownloadIDCard = async () => {
+    if (!cardRef.current) return;
+    setIsDownloading(true);
+    try {
+      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
+      saveAs(dataUrl, `ID_Card_${s.name?.replace(/\s+/g, "_")}.png`);
+      toast.success("ID Card downloaded successfully");
+    } catch (err) {
+      console.error("Failed to download ID card", err);
+      toast.error("Failed to generate ID card");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   if (!ctx || q.isLoading) {
     return (
@@ -110,6 +135,61 @@ function StudentProfilePage() {
           <Building2 className="size-4 mr-2" /> Manage
         </Button>
       </div>
+
+      {/* ID Card Download */}
+      <Card className="p-4 flex flex-col items-center gap-4">
+        <div className="w-full flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <IdCard className="size-5 text-primary" />
+            <h3 className="font-medium">Identity Card</h3>
+          </div>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={handleDownloadIDCard}
+            disabled={isDownloading}
+          >
+            {isDownloading ? (
+              <Loader2 className="size-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="size-4 mr-2" />
+            )}
+            Download
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground text-center mb-4">
+          Carry your official digital ID for attendance and academy access.
+        </p>
+        
+        {/* Hidden preview for capture */}
+        <div className="fixed -left-[9999px] top-0 pointer-events-none">
+          <StudentIDCard 
+            ref={cardRef}
+            student={{
+              name: (s.name as string) || "Student",
+              player_id: s.player_id,
+              photo_url: (s.photo_url as string) || null,
+              joined_at: s.joined_at,
+              playing_role: (s.playing_role as string) || "Student",
+              academy_name: "AcademyOS" // Could be fetched from tenant context if available
+            }} 
+          />
+        </div>
+        
+        {/* Visible preview */}
+        <div className="scale-[0.5] origin-top -mb-[260px] pointer-events-none select-none grayscale-[0.5] opacity-80 border rounded-2xl shadow-sm">
+           <StudentIDCard 
+            student={{
+              name: (s.name as string) || "Student",
+              player_id: s.player_id,
+              photo_url: (s.photo_url as string) || null,
+              joined_at: s.joined_at,
+              playing_role: (s.playing_role as string) || "Student",
+              academy_name: "AcademyOS"
+            }} 
+          />
+        </div>
+      </Card>
 
       {/* Personal details */}
       <section aria-label="Personal details">
