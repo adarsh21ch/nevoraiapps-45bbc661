@@ -10,7 +10,9 @@ import { bulkApproveRegistrations } from "@/lib/bulk-ops";
 import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
 import { markRegistrationsReviewed, newRegsQueryKey } from "@/hooks/use-new-registrations";
 import { enrollStudentInBilling, enrollManyInBilling } from "@/lib/billing-enrollment";
+import { resolveMonthlyFee } from "@/lib/gender";
 import { fetchFeePlans } from "@/lib/dashboard-queries";
+
 import {
   rejectRegistration,
   waitlistRegistration,
