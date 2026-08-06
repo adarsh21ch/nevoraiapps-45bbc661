@@ -1334,24 +1334,15 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
                 </span>
               </Button>
             </div>
-              Byes
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 text-sm font-semibold justify-start px-6"
-              onClick={() => onNbClassify("leg_bye")}
-            >
-              Leg Byes
-            </Button>
             <Button
               variant="ghost"
-              className="mt-2 h-10 text-xs text-muted-foreground"
+              className="mt-2 h-10 rounded-full text-sm font-semibold text-muted-foreground"
               onClick={() => {
                 setNbClassificationOpen(false);
                 setPendingNoBallRuns(null);
               }}
             >
-              Cancel ball
+              Cancel
             </Button>
           </div>
         </SheetContent>
