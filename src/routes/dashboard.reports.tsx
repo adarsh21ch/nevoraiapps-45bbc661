@@ -1096,7 +1096,7 @@ function AdmissionsReport({ tenantId, range }: { tenantId: string; range: Range 
           trend={pctChange(d?.trials ?? 0, pq.data?.trials ?? 0)}
         />
         <KpiTile
-          label="Admissions"
+          label="Registrations"
           value={String(d?.converted ?? 0)}
           trend={pctChange(d?.converted ?? 0, pq.data?.converted ?? 0)}
         />
@@ -1112,7 +1112,7 @@ function AdmissionsReport({ tenantId, range }: { tenantId: string; range: Range 
       </KpiGrid>
       <Suspense fallback={<ChartSkeleton />}>
         <Charts
-          view="admissions"
+          view="registrations"
           data={{ admissionsByStage: d?.byStage ?? [], bySource: d?.bySource ?? [] }}
         />
       </Suspense>
