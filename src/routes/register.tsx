@@ -1061,7 +1061,7 @@ function RegisterContent() {
                     style={{ backgroundColor: "var(--brand)" }}
                   >
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    Submit registration
+                    Confirm & Submit
                   </button>
                 </div>
               </div>
@@ -1069,7 +1069,7 @@ function RegisterContent() {
           ) : null}
 
           {/* Mobile-only sticky nav (steps 1–3) */}
-          {isMobile && step < 4 ? (
+          {isMobile && step < 4 && !saving ? (
             <div
               className="sticky bottom-0 z-20 -mx-4 flex items-center gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
               style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
@@ -1100,7 +1100,7 @@ function RegisterContent() {
                 className="ml-auto inline-flex flex-1 items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-white shadow-md disabled:opacity-60"
                 style={{ backgroundColor: "var(--brand)" }}
               >
-                Next
+                {step === 3 ? "Review" : "Next"}
               </button>
             </div>
           ) : null}
@@ -1293,11 +1293,25 @@ function ReviewSummary({
   fees: FeePlan[];
   tenant: any;
 }) {
-
   const genderNormalized = normalizeGender(form.gender) || undefined;
   const batch = batches.find((b) => b.id === form.batch_id);
 
-  const rows: [string, string][] = [
+  const [previews, setPreviews] = useState<{ front?: string; back?: string }>({});
+
+  useEffect(() => {
+    if (form.aadhaar_front_url) {
+      signedUrl(form.aadhaar_front_url).then((url) =>
+        setPreviews((prev) => ({ ...prev, front: url })),
+      );
+    }
+    if (form.aadhaar_back_url) {
+      signedUrl(form.aadhaar_back_url).then((url) =>
+        setPreviews((prev) => ({ ...prev, back: url })),
+      );
+    }
+  }, [form.aadhaar_front_url, form.aadhaar_back_url]);
+
+  const rows: [string, React.ReactNode][] = [
     ["Email", form.email || "—"],
     ["Password", "••••••••"],
     ["Student name", form.name || "—"],
@@ -1307,16 +1321,51 @@ function ReviewSummary({
     ["Contact number", form.phone || "—"],
     ["Permanent address", form.address || "—"],
     ["Current address", form.current_address || "—"],
-    ["Aadhaar front", form.aadhaar_front_url ? "Uploaded ✓" : "Missing"],
-    ["Aadhaar back", form.aadhaar_back_url ? "Uploaded ✓" : "Missing"],
-    ["Preferred batch", batch ? (batch.timing ? `${batch.name} — ${batch.timing}` : batch.name) : "No preference"],
+    [
+      "Aadhaar front",
+      form.aadhaar_front_url ? (
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-emerald-600 font-medium">Uploaded ✓</span>
+          {previews.front && (
+            <img
+              src={previews.front}
+              alt="Front"
+              className="h-10 w-16 rounded border border-border object-cover"
+            />
+          )}
+        </div>
+      ) : (
+        "Missing"
+      ),
+    ],
+    [
+      "Aadhaar back",
+      form.aadhaar_back_url ? (
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-emerald-600 font-medium">Uploaded ✓</span>
+          {previews.back && (
+            <img
+              src={previews.back}
+              alt="Back"
+              className="h-10 w-16 rounded border border-border object-cover"
+            />
+          )}
+        </div>
+      ) : (
+        "Missing"
+      ),
+    ],
+    [
+      "Preferred batch",
+      batch ? (batch.timing ? `${batch.name} — ${batch.timing}` : batch.name) : "No preference",
+    ],
     ["Monthly fee", batch ? batchFeeText(batch, fees, genderNormalized, tenant) : "—"],
   ];
   return (
     <dl className="divide-y divide-border/60">
       {rows.map(([k, v]) => (
-        <div key={k} className="flex items-baseline justify-between gap-4 py-2">
-          <dt className="text-xs text-muted-foreground">{k}</dt>
+        <div key={k} className="flex items-start justify-between gap-4 py-2">
+          <dt className="text-xs text-muted-foreground pt-0.5">{k}</dt>
           <dd className="text-right text-sm font-medium text-foreground">{v}</dd>
         </div>
       ))}
@@ -1515,10 +1564,23 @@ function DocumentUpload({
   error?: string;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Sync preview when value changes (e.g. from draft persistence)
+  useEffect(() => {
+    if (value && !previewUrl) {
+      signedUrl(value).then(setPreviewUrl);
+    }
+  }, [value, previewUrl]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    // Create local preview immediately
+    const localUrl = URL.createObjectURL(file);
+    setPreviewUrl(localUrl);
+    
     setUploading(true);
     try {
       const path = await uploadTenantFile(tenantId, folder, file);
@@ -1526,6 +1588,7 @@ function DocumentUpload({
       toast.success(`${label} uploaded`);
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
+      setPreviewUrl(null); // Clear preview on error
     } finally {
       setUploading(false);
     }
@@ -1536,22 +1599,36 @@ function DocumentUpload({
       <div className="text-[11px] font-medium text-muted-foreground uppercase">{label}</div>
       <label
         className={cn(
-          "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-colors cursor-pointer",
+          "relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden",
           value ? "border-emerald-500/50 bg-emerald-50/30" : "border-border bg-muted/20 hover:bg-muted/40",
           error && !value && "border-red-500 bg-red-50/30",
+          "h-32", // Fixed height for preview
         )}
       >
         <input type="file" className="hidden" accept="image/*" onChange={handleFile} disabled={uploading} />
-        {uploading ? (
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        ) : value ? (
-          <FileCheck className="h-6 w-6 text-emerald-600" />
+        
+        {previewUrl ? (
+          <>
+            <img src={previewUrl} alt={label} className="absolute inset-0 h-full w-full object-cover opacity-40" />
+            <div className="relative z-10 flex flex-col items-center gap-1.5">
+              <FileCheck className="h-6 w-6 text-emerald-600" />
+              <span className="text-[10px] font-bold text-emerald-700 bg-white/80 px-2 py-0.5 rounded-full">
+                {uploading ? "Updating..." : "Tap to change"}
+              </span>
+            </div>
+          </>
         ) : (
-          <Upload className="h-6 w-6 text-muted-foreground" />
+          <div className="flex flex-col items-center gap-2">
+            {uploading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            ) : (
+              <Upload className="h-6 w-6 text-muted-foreground" />
+            )}
+            <span className={cn("text-[10px] font-medium", value ? "text-emerald-700" : "text-muted-foreground")}>
+              {uploading ? "Uploading..." : "Tap to upload"}
+            </span>
+          </div>
         )}
-        <span className={cn("text-[10px] font-medium", value ? "text-emerald-700" : "text-muted-foreground")}>
-          {uploading ? "Uploading..." : value ? "Photo selected" : "Tap to upload"}
-        </span>
       </label>
       {error && !value ? <span className="text-[10px] text-red-600 font-medium">{error}</span> : null}
     </div>
