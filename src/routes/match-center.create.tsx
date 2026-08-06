@@ -799,42 +799,44 @@ function CreateMatchPage() {
           </div>
         </div>
 
-        {/* Action bar — inside the card, equally distributed Back / Continue */}
-        <div className="flex items-center gap-3 border-t border-border/60 bg-card px-4 py-4 sm:rounded-b-3xl sm:px-6">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-11 flex-1 text-sm font-semibold"
-            onClick={goBack}
-            disabled={createM.isPending}
-          >
-            <ArrowLeft className="mr-1 size-4" />
-            Back
-          </Button>
-          {step < 5 ? (
+        {/* Global action bar — hidden on Team steps (2 and 3) as they have their own fixed bar */}
+        {step !== 2 && step !== 3 && (
+          <div className="flex items-center gap-3 border-t border-border/60 bg-card px-4 py-4 sm:rounded-b-3xl sm:px-6">
             <Button
+              type="button"
+              variant="outline"
               className="h-11 flex-1 text-sm font-semibold"
-              disabled={!canContinue}
-              onClick={goNext}
+              onClick={goBack}
+              disabled={createM.isPending}
             >
-              Continue
-              <ChevronRight className="ml-1 size-4" />
+              <ArrowLeft className="mr-1 size-4" />
+              Back
             </Button>
-          ) : (
-            <Button
-              className="h-11 flex-1 text-sm font-semibold"
-              disabled={!canStart || createM.isPending}
-              onClick={() => createM.mutate()}
-            >
-              {createM.isPending ? (
-                <Loader2 className="mr-1.5 size-4 animate-spin" />
-              ) : (
-                <Swords className="mr-1.5 size-4" />
-              )}
-              Start match
-            </Button>
-          )}
-        </div>
+            {step < 5 ? (
+              <Button
+                className="h-11 flex-1 text-sm font-semibold"
+                disabled={!canContinue}
+                onClick={goNext}
+              >
+                Continue
+                <ChevronRight className="ml-1 size-4" />
+              </Button>
+            ) : (
+              <Button
+                className="h-11 flex-1 text-sm font-semibold"
+                disabled={!canStart || createM.isPending}
+                onClick={() => createM.mutate()}
+              >
+                {createM.isPending ? (
+                  <Loader2 className="mr-1.5 size-4 animate-spin" />
+                ) : (
+                  <Swords className="mr-1.5 size-4" />
+                )}
+                Start match
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
