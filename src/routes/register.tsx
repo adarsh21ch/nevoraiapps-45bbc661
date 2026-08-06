@@ -1220,9 +1220,12 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   const registration = fees.find((f) => f.type === "registration");
   const monthly = batch ? batchFeePlan(batch, fees) : undefined;
   const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
-  const resolvedMonthlyAmount = isGenderPricingEnabled && monthly 
-    ? resolveMonthlyFee(monthly as any, gender)
-    : monthly?.amount;
+  const resolvedMonthlyAmount =
+    isGenderPricingEnabled && monthly
+      ? resolveMonthlyFee(monthly as any, gender)
+      : monthly
+        ? Number(monthly.amount)
+        : undefined;
 
 
   const cur = (registration?.currency || monthly?.currency || "INR").toUpperCase();
