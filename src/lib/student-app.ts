@@ -30,6 +30,8 @@ export type StudentContext = {
   student_id: string;
   tenant_id: string;
   tenant_name?: string;
+  tenant_logo?: string;
+  tenant_phone?: string;
   athlete_profile_id: string | null;
   name: string;
   player_id: string | null;
