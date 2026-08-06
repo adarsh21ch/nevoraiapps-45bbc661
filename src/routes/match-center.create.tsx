@@ -1372,8 +1372,12 @@ function TeamPanel({
           studentPool={studentPool}
           studentsLoading={studentsLoading}
           validationError={validationError}
+          goBack={goBack}
+          goNext={goNext}
+          canContinue={canContinue}
         />
       )}
+
 
 
     </div>
