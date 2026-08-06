@@ -121,27 +121,71 @@ const CH = 54;
 const R = 3.2;
 
 export async function generateIdCardPdf(tenant: Tenant, r: IdCardData) {
-  // Use a custom card size instead of A4 to avoid white space and small corner rendering
+  // ISO/IEC 7810 ID-1 is 85.6 x 54 mm
   const doc = new jsPDF({ 
     unit: "mm", 
-    format: [CW + 40, CH + 60], // Add margins but focus on the card
+    format: [CW + 40, CH + 60], 
     orientation: "landscape"
   });
-  // Adjust fx/fy to center on the smaller canvas
+
   const canvasW = CW + 40;
   const canvasH = CH + 60;
-  await drawCard(doc, tenant, r, (canvasW - CW) / 2, (canvasH - CH) / 2);
+  const fx = (canvasW - CW) / 2;
+  const fy = (canvasH - CH) / 2;
+
+  // Page 1: FRONT
+  await drawCardFront(doc, tenant, r, fx, fy);
+  
+  // Cut guide and label for Front
+  drawPrintUtilities(doc, fx, fy, "FRONT SIDE");
+
+  // Page 2: BACK
+  doc.addPage([CW + 40, CH + 60], "landscape");
+  await drawCardBack(doc, tenant, r, fx, fy);
+
+  // Cut guide and label for Back
+  drawPrintUtilities(doc, fx, fy, "BACK SIDE");
+
   doc.save(`id-card-${r.playerId || r.name.replace(/\s+/g, "-")}.pdf`);
 }
 
-/** Many players, one single-sided card per A4 page. */
+function drawPrintUtilities(doc: jsPDF, fx: number, fy: number, label: string) {
+  // Cut guide
+  doc.setDrawColor(205, 210, 218);
+  doc.setLineWidth(0.15);
+  doc.setLineDashPattern([1, 1], 0);
+  doc.roundedRect(fx, fy, CW, CH, R, R, "S");
+  doc.setLineDashPattern([], 0);
+
+  // Label
+  doc.setTextColor(185, 190, 198);
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "bold");
+  doc.text(label, fx, fy - 4);
+  doc.setFontSize(5);
+  doc.setFont("helvetica", "normal");
+  doc.text("Cut along the dotted line after printing", fx, fy - 1.5);
+}
+
+/** Many players, two-sided cards. */
 export async function generateIdCardsPdf(tenant: Tenant, rows: IdCardData[]) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const canvasW = CW + 40;
+  const canvasH = CH + 60;
+  const doc = new jsPDF({ unit: "mm", format: [canvasW, canvasH], orientation: "landscape" });
+  
   for (let i = 0; i < rows.length; i++) {
-    if (i > 0) doc.addPage();
-    await drawCard(doc, tenant, rows[i], 20, 30);
+    if (i > 0) doc.addPage([canvasW, canvasH], "landscape");
+    const fx = (canvasW - CW) / 2;
+    const fy = (canvasH - CH) / 2;
+    
+    await drawCardFront(doc, tenant, rows[i], fx, fy);
+    drawPrintUtilities(doc, fx, fy, `PLAYER: ${rows[i].name} (FRONT)`);
+    
+    doc.addPage([canvasW, canvasH], "landscape");
+    await drawCardBack(doc, tenant, rows[i], fx, fy);
+    drawPrintUtilities(doc, fx, fy, `PLAYER: ${rows[i].name} (BACK)`);
   }
-  doc.save(`id-cards-${tenant.slug || "academy"}.pdf`);
+  doc.save(`id-cards-batch-${tenant.slug || "academy"}.pdf`);
 }
 
 /** Single-sided card: everything the gate needs lives on the front. */
