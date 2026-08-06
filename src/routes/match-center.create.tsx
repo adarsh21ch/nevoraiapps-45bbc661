@@ -1593,7 +1593,6 @@ function SquadFooter({
         return {
           ...p,
           is_captain: willBeCap,
-          is_vice_captain: willBeCap ? false : p.is_vice_captain,
         };
       }
       if (role === "VC") {
@@ -1601,7 +1600,6 @@ function SquadFooter({
         return {
           ...p,
           is_vice_captain: willBeVc,
-          is_captain: willBeVc ? false : p.is_captain,
         };
       }
       // role === "WK"
