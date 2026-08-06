@@ -14,6 +14,7 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { createSubscription, createDraftInvoice, issueInvoice, type BillingCycle } from "@/lib/billing";
+import { resolveMonthlyFee } from "@/lib/gender";
 
 export type FeePlanLite = {
   id: string;
@@ -46,10 +47,14 @@ export function previewEnrollmentCharges(
   plans: FeePlanLite[],
   feePlanId: string | null | undefined,
   includeAdmission: boolean,
+  gender?: string | null,
+  isGenderPricingEnabled?: boolean,
 ) {
   const plan = feePlanId ? plans.find((p) => p.id === feePlanId) ?? null : null;
   const admission = includeAdmission ? findAdmissionPlan(plans) : null;
-  const recurring = Number(plan?.amount ?? 0);
+  const recurring = isGenderPricingEnabled 
+    ? resolveMonthlyFee(plan as any, gender)
+    : Number(plan?.amount ?? 0);
   const oneTime = Number(admission?.amount ?? 0);
   return { plan, admission, recurring, oneTime, total: recurring + oneTime };
 }
@@ -80,6 +85,7 @@ export async function enrollStudentInBilling(input: {
   chargeAdmission?: boolean;
   startDate?: string;
   issue?: boolean;
+  gender?: string | null;
 }): Promise<EnrollResult> {
   const plan = input.feePlanId ? input.plans.find((p) => p.id === input.feePlanId) : null;
   if (!plan) return { skipped: true, reason: "no_fee_plan" };
@@ -95,11 +101,17 @@ export async function enrollStudentInBilling(input: {
   const start = input.startDate ? new Date(input.startDate) : new Date();
   const periodEnd = endOfCycle(start, cycle);
 
+  const { data: tenantData } = await supabase.from('tenants').select('gender_pricing_enabled').eq('id', input.tenantId).single();
+  const isGenderPricingEnabled = tenantData?.gender_pricing_enabled === true;
+  const resolvedAmount = isGenderPricingEnabled 
+    ? resolveMonthlyFee(plan as any, input.gender)
+    : Number(plan.amount ?? 0);
+
   const sub = await createSubscription({
     tenant_id: input.tenantId,
     student_id: input.studentId,
     fee_plan_id: plan.id,
-    unit_amount: Number(plan.amount ?? 0),
+    unit_amount: resolvedAmount,
     billing_cycle: cycle,
     cycle_anchor_day: plan.cycle_anchor_day ?? start.getDate(),
     start_date: iso(start),
@@ -127,7 +139,7 @@ export async function enrollStudentInBilling(input: {
   lines.push({
     line_type: "charge",
     description: plan.name,
-    unit_amount: Number(plan.amount ?? 0),
+    unit_amount: resolvedAmount,
     period_start: iso(start),
     period_end: iso(periodEnd),
   });
@@ -155,7 +167,7 @@ export async function enrollStudentInBilling(input: {
 
 /** Enrol many students, one at a time so a single failure never blocks the rest. */
 export async function enrollManyInBilling(
-  inputs: Array<{ studentId: string; feePlanId: string | null | undefined; startDate?: string }>,
+  inputs: Array<{ studentId: string; feePlanId: string | null | undefined; gender?: string | null; startDate?: string }>,
   shared: { tenantId: string; plans: FeePlanLite[]; chargeAdmission?: boolean },
 ) {
   let enrolled = 0;

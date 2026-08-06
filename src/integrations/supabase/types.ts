@@ -7628,6 +7628,10 @@ export type Database = {
         Args: { _ids: string[]; _tenant_id: string }
         Returns: number
       }
+      bulk_approve_registrations_v2: {
+        Args: { _ids: string[]; _tenant_id: string }
+        Returns: Json
+      }
       bulk_enqueue_notification_recipients: {
         Args: { _campaign_id: string; _recipient_ids: string[] }
         Returns: number
@@ -7870,6 +7874,7 @@ export type Database = {
       mc_match_has_my_student: { Args: { _match_id: string }; Returns: boolean }
       mc_match_scorer_of: { Args: { _match_id: string }; Returns: boolean }
       my_post_login_route: { Args: never; Returns: string }
+      normalize_gender_db: { Args: { g: string }; Returns: string }
       owner_delete_member: { Args: { _profile_id: string }; Returns: undefined }
       owner_delete_student: {
         Args: { _confirm_name: string; _student_id: string }
@@ -7954,6 +7959,10 @@ export type Database = {
       render_template_preview: {
         Args: { _body: string; _title: string; _vars: Json }
         Returns: Json
+      }
+      resolve_student_monthly_fee: {
+        Args: { p_fee_plan_id: string; p_gender: string; p_tenant_id: string }
+        Returns: number
       }
       schedule_campaign: {
         Args: { _campaign_id: string; _when: string }

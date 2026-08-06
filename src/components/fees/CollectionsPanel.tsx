@@ -24,6 +24,7 @@ import {
   tenantFeeCycle,
   type DueStatus,
 } from "@/lib/fees";
+import { resolveMonthlyFee } from "@/lib/gender";
 import { getFeatures } from "@/lib/tenant";
 import { generateReceiptPdf } from "@/lib/receipt-pdf";
 import { Button } from "@/components/ui/button";
@@ -158,12 +159,9 @@ export function CollectionsPanel({
             : null;
         const plan = s.fee_plans;
         const isGenderPricingEnabled = (tenant as any).gender_pricing_enabled === true;
-        const isFemale = typeof s.gender === "string" && (s.gender.toLowerCase() === "female" || s.gender.toLowerCase() === "girl");
-        
-        let baseAmount = Number(plan?.amount ?? 0);
-        if (isGenderPricingEnabled && isFemale && (plan as any)?.female_amount != null) {
-          baseAmount = Number((plan as any).female_amount);
-        }
+        const baseAmount = isGenderPricingEnabled 
+          ? resolveMonthlyFee(plan as any, s.gender)
+          : Number(plan?.amount ?? 0);
 
         const custom = s.custom_fee == null ? null : Number(s.custom_fee);
         const amount = custom != null && !Number.isNaN(custom) ? custom : baseAmount;

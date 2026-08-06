@@ -118,18 +118,15 @@ function batchFeePlan(batch: Batch, fees: FeePlan[]): FeePlan | undefined {
   return monthly[0];
 }
 
+import { normalizeGender, resolveMonthlyFee } from "@/lib/gender";
+
 function batchFeeText(batch: Batch, fees: FeePlan[], gender?: string, tenant?: any): string {
   const plan = batchFeePlan(batch, fees);
   if (!plan) return "Contact academy";
   
   const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
-  
-  // Normalize gender values to check for female discount
-  const g = typeof gender === "string" ? gender.toLowerCase() : "";
-  const isFemale = g === "female" || g === "girl";
-  
-  const amount = (isGenderPricingEnabled && isFemale && (plan as any).female_amount != null) 
-    ? Number((plan as any).female_amount) 
+  const amount = isGenderPricingEnabled 
+    ? resolveMonthlyFee(plan as any, gender)
     : Number(plan.amount);
     
   return formatFeeLabel({ ...plan, amount }) || "Contact academy";
@@ -328,7 +325,7 @@ function RegisterContent() {
       ...batches.map((b) => ({
         value: b.id,
         label: b.timing ? `${b.name} — ${b.timing}` : b.name,
-        right: batchFeeText(b, fees, form.gender, tenant),
+        right: batchFeeText(b, fees, normalizeGender(form.gender) || undefined, tenant),
       })),
     ],
     [batches, fees, form.gender, tenant],
@@ -469,7 +466,7 @@ function RegisterContent() {
           _registration_id: data as unknown as string,
           _email: emailTrim,
           _address: form.address.trim() || null,
-          _gender: form.gender || null,
+          _gender: normalizeGender(form.gender),
           _medical_notes: form.medical_notes.trim() || null,
           _documents: documents as unknown as never,
         } as never,

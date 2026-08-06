@@ -3,6 +3,7 @@ import * as XLSX from "xlsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeGender } from "@/lib/gender";
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchBatches, fetchFeePlans, fetchStudents, qk } from "@/lib/dashboard-queries";
 import { detectDuplicates } from "@/lib/students-manage";
@@ -307,7 +308,7 @@ export function BulkImportStudents() {
           guardian_phone: r.guardian_phone || null,
           dob: r.dob || null,
           address: null,
-          gender: r.gender ? r.gender.toLowerCase() : null,
+          gender: normalizeGender(r.gender),
           city: r.city || null,
           state: r.state || null,
           school_college: r.school_college || null,
@@ -339,7 +340,7 @@ export function BulkImportStudents() {
         emergency_contact_name: r.emergency_contact_name || null,
         emergency_contact_phone: r.emergency_contact_phone || null,
         dob: r.dob || null,
-        gender: r.gender ? r.gender.toLowerCase() : null,
+        gender: normalizeGender(r.gender),
         playing_role: r.playing_role || null,
         batting_style: r.batting_style || null,
         bowling_style: r.bowling_style || null,

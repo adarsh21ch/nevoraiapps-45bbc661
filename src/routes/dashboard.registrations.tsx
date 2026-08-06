@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { bulkApproveRegistrations } from "@/lib/bulk-ops";
 import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
 import { markRegistrationsReviewed, newRegsQueryKey } from "@/hooks/use-new-registrations";
-import { enrollStudentInBilling } from "@/lib/billing-enrollment";
+import { enrollStudentInBilling, enrollManyInBilling } from "@/lib/billing-enrollment";
 import { fetchFeePlans } from "@/lib/dashboard-queries";
 import {
   rejectRegistration,
@@ -182,6 +182,7 @@ function RegistrationsInbox() {
             tenantId,
             studentId: newStudentId,
             feePlanId: reg.fee_plan_id,
+            gender: reg.gender,
             plans: allPlans as any,
             chargeAdmission: true,
             issue: true
@@ -203,9 +204,44 @@ function RegistrationsInbox() {
   });
 
   const bulkApprove = useMutation({
-    mutationFn: async (ids: string[]) => bulkApproveRegistrations(tenant.id, ids),
-    onSuccess: (count) => {
+    mutationFn: async (ids: string[]) => {
+      const { data: results, error } = await (supabase as any).rpc("bulk_approve_registrations_v2", {
+        _tenant_id: tenantId,
+        _ids: ids
+      });
+      if (error) throw error;
+      return results as Array<{ registration_id: string; student_id: string }>;
+    },
+    onSuccess: async (results) => {
+      const count = results.length;
       toast.success(`Approved ${count} registration${count === 1 ? "" : "s"}`);
+      
+      // Automate billing for all newly approved students
+      const enrollments = results.map(res => {
+        const reg = data.find(r => r.id === res.registration_id);
+        if (!reg || !reg.fee_plan_id) return null;
+        return {
+          studentId: res.student_id,
+          feePlanId: reg.fee_plan_id,
+          gender: reg.gender,
+        };
+      }).filter(Boolean) as any[];
+
+      if (enrollments.length > 0) {
+        try {
+          const { enrolled } = await enrollManyInBilling(enrollments, {
+            tenantId,
+            plans: allPlans as any,
+            chargeAdmission: true
+          });
+          if (enrolled > 0) {
+            toast.success(`Enrolled ${enrolled} students in billing`);
+          }
+        } catch (err) {
+          console.error("Bulk auto-billing failed", err);
+        }
+      }
+      
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
