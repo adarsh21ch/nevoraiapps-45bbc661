@@ -91,32 +91,32 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
                  Scan for Attendance
                </p>
 
-               <div className="w-full grid grid-cols-2 gap-x-4 gap-y-3 px-2">
+                <div className="w-full grid grid-cols-2 gap-x-4 gap-y-3 px-4">
                   <div>
                     <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Player ID</p>
-                    <p className="text-[10px] font-black text-slate-700 leading-tight">
+                    <p className="text-[10px] font-black text-slate-700 leading-none">
                       {student.player_id || "—"}
                     </p>
                   </div>
-                  <div>
+                  <div className="text-right">
                     <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Academy Contact</p>
-                    <p className="text-[10px] font-black text-slate-700 leading-tight">
+                    <p className="text-[10px] font-black text-slate-700 leading-none">
                       {student.academy_phone || "—"}
                     </p>
                   </div>
                   <div>
                     <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Session / Batch</p>
-                    <p className="text-[10px] font-black text-slate-700 leading-tight truncate uppercase">
+                    <p className="text-[10px] font-black text-amber-600 leading-none truncate uppercase">
                       {student.session || student.age_group || "General"}
                     </p>
                   </div>
-                  <div>
+                  <div className="text-right">
                     <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Training Time</p>
-                    <p className="text-[10px] font-black text-slate-700 leading-tight">
+                    <p className="text-[10px] font-black text-slate-700 leading-none truncate uppercase">
                       {student.batch_timing || "Regular"}
                     </p>
                   </div>
-               </div>
+                </div>
             </div>
 
             {/* Footer - Subtle Branding */}
