@@ -1,14 +1,4 @@
-/**
- * Student self-service profile editor.
- *
- * Players fill in whatever the academy left blank (contacts, address, medical,
- * playing style). Academy-owned fields — session, fee plan, status, player ID —
- * are deliberately not editable here; only the owner can change those.
- */
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Pencil, Loader2, Upload, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,184 +6,144 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Pencil, Save, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { uploadTenantFile } from "@/lib/storage";
-import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { INDIAN_STATES } from "@/lib/location";
 
-type S = Record<string, string | null | undefined>;
-
-const FIELDS: Array<{ key: string; label: string; type?: string; long?: boolean }> = [
-  { key: "phone", label: "Mobile", type: "tel" },
-  { key: "email", label: "Email", type: "email" },
-  { key: "dob", label: "Date of birth", type: "date" },
-  { key: "gender", label: "Gender" },
-  { key: "guardian_name", label: "Parent / guardian name" },
-  { key: "guardian_phone", label: "Parent / guardian mobile", type: "tel" },
-  { key: "emergency_contact_name", label: "Emergency contact name" },
-  { key: "emergency_contact_phone", label: "Emergency contact mobile", type: "tel" },
-  { key: "address", label: "Address", long: true },
-  { key: "city", label: "City" },
-  { key: "state", label: "State" },
-  { key: "pincode", label: "Pincode" },
-  { key: "school_college", label: "School / college" },
-  { key: "blood_group", label: "Blood group" },
-  { key: "playing_role", label: "Playing role" },
-  { key: "batting_style", label: "Batting style" },
-  { key: "bowling_style", label: "Bowling style" },
-  { key: "medical_notes", label: "Medical notes", long: true },
-  { key: "aadhaar_front_url", label: "Aadhaar Front (ID Proof)", type: "file" },
-  { key: "aadhaar_back_url", label: "Aadhaar Back (ID Proof)", type: "file" },
-];
-
-export function EditMyProfileDialog({ student, onSaved }: { student: S; onSaved: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<Record<string, string>>({});
-  const [uploading, setUploading] = useState<Record<string, boolean>>({});
-
-  const start = (v: boolean) => {
-    if (v) {
-      const init: Record<string, string> = {};
-      for (const f of FIELDS) init[f.key] = (student[f.key] as string | null) ?? "";
-      setForm(init);
-    }
-    setOpen(v);
-  };
-
-  const handleUpload = async (key: string, file: File) => {
-    if (!file) return;
-    setUploading((prev) => ({ ...prev, [key]: true }));
-    try {
-      const tenantId = (student as any).tenant_id || (window as any).__TENANT_ID__;
-      const path = await uploadTenantFile(tenantId, "id_proofs", file);
-      setForm((prev) => ({ ...prev, [key]: path }));
-      toast.success("Document uploaded");
-    } catch (err: any) {
-      toast.error(err.message || "Upload failed");
-    } finally {
-      setUploading((prev) => ({ ...prev, [key]: false }));
-    }
-  };
-
-  const save = useMutation({
-    mutationFn: async () => {
-      const patch: Record<string, string> = {};
-      for (const f of FIELDS) {
-        const v = (form[f.key] ?? "").trim();
-        if (v !== ((student[f.key] as string | null) ?? "")) patch[f.key] = v;
-      }
-      if (Object.keys(patch).length === 0) return "unchanged";
-      const { error } = await supabase.rpc("update_my_student_profile", { _patch: patch as never });
-      if (error) throw error;
-      return "saved";
-    },
-    onSuccess: (r) => {
-      toast.success(r === "saved" ? "Profile updated" : "Nothing to update");
-      onSaved();
-      setOpen(false);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={start}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="rounded-full">
-          <Pencil className="size-3.5 mr-1.5" /> Edit details
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit my details</DialogTitle>
-        </DialogHeader>
-        <p className="text-xs text-muted-foreground">
-          Session, fee plan and player ID are managed by the academy.
-        </p>
-        <div className="space-y-4">
-          {FIELDS.map((f) => (
-            <div key={f.key} className="space-y-1.5">
-              <Label className="text-xs">{f.label}</Label>
-              {f.type === "file" ? (
-                <DocumentUploadField
-                  label={f.label}
-                  value={form[f.key]}
-                  uploading={uploading[f.key]}
-                  onFile={(file) => handleUpload(f.key, file)}
-                />
-              ) : f.long ? (
-                <Textarea
-                  rows={2}
-                  value={form[f.key] ?? ""}
-                  onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                />
-              ) : (
-                <Input
-                  type={f.type ?? "text"}
-                  value={form[f.key] ?? ""}
-                  onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        <DialogFooter>
-          <Button
-            className="w-full rounded-xl h-11"
-            disabled={save.isPending}
-            onClick={() => save.mutate()}
-          >
-            {save.isPending ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
-            Save changes
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+interface EditMyProfileDialogProps {
+  student: any;
+  onSaved: () => void;
 }
 
-function DocumentUploadField({
-  label,
-  value,
-  uploading,
-  onFile,
-}: {
-  label: string;
-  value?: string;
-  uploading?: boolean;
-  onFile: (file: File) => void;
-}) {
+export function EditMyProfileDialog({ student, onSaved }: EditMyProfileDialogProps) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [f, setF] = useState({
+    name: student.name || "",
+    guardian_name: student.guardian_name || "",
+    village_locality: student.village_locality || "",
+    city: student.city || "",
+    state: student.state || "",
+    current_address: student.current_address || "",
+    permanent_address: student.permanent_address || student.address || "",
+  });
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("students")
+        .update({
+          name: f.name,
+          guardian_name: f.guardian_name,
+          village_locality: f.village_locality,
+          city: f.city,
+          state: f.state,
+          current_address: f.current_address,
+          permanent_address: f.permanent_address,
+          // Legacy field sync
+          address: f.permanent_address || f.current_address,
+        })
+        .eq("id", student.id);
+
+      if (error) throw error;
+      toast.success("Profile updated");
+      onSaved();
+      setOpen(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update profile";
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <label
-      className={cn(
-        "flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-colors cursor-pointer",
-        value ? "border-emerald-500/50 bg-emerald-50/30" : "border-border bg-muted/20 hover:bg-muted/40",
-      )}
-    >
-      <input
-        type="file"
-        className="hidden"
-        accept="image/*"
-        disabled={uploading}
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) onFile(file);
-          e.target.value = "";
-        }}
-      />
-      {uploading ? (
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      ) : value ? (
-        <FileCheck className="h-6 w-6 text-emerald-600" />
-      ) : (
-        <Upload className="h-6 w-6 text-muted-foreground" />
-      )}
-      <span className={cn("text-[10px] font-medium", value ? "text-emerald-700" : "text-muted-foreground")}>
-        {uploading ? "Uploading..." : value ? "Photo selected" : "Tap to upload"}
-      </span>
-    </label>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-7 text-[10px] px-2 font-bold uppercase tracking-wider bg-muted/50 hover:bg-muted">
+          <Pencil className="size-3 mr-1" /> Edit Profile
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Edit Profile</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Full Name</Label>
+            <Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Guardian Name</Label>
+            <Input value={f.guardian_name} onChange={(e) => setF({ ...f, guardian_name: e.target.value })} />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Village / Locality</Label>
+              <Input value={f.village_locality} onChange={(e) => setF({ ...f, village_locality: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>City / District</Label>
+              <Input value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>State</Label>
+            <Select value={f.state} onValueChange={(v) => setF({ ...f, state: v })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select State" />
+              </SelectTrigger>
+              <SelectContent>
+                {INDIAN_STATES.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Current Address</Label>
+            <Textarea 
+              value={f.current_address} 
+              onChange={(e) => setF({ ...f, current_address: e.target.value })} 
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Permanent Address</Label>
+            <Textarea 
+              value={f.permanent_address} 
+              onChange={(e) => setF({ ...f, permanent_address: e.target.value })} 
+              rows={2}
+            />
+          </div>
+
+          <Button 
+            className="w-full h-11" 
+            onClick={handleSave} 
+            disabled={saving}
+          >
+            {saving ? <Loader2 className="size-4 animate-spin mr-2" /> : <Save className="size-4 mr-2" />}
+            Save Changes
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

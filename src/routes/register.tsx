@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Info, Loader2, MessageCircle, Eye, EyeOff, Lock, X, Upload, FileCheck, MapPin } from "lucide-react";
+import { CheckCircle2, Download, Info, Loader2, MessageCircle, Eye, EyeOff, Lock, X, Upload, FileCheck, MapPin, Building2, Map as MapIcon } from "lucide-react";
 import { TenantGate } from "@/components/site/TenantGate";
 import { StoragedImage } from "@/components/site/StoragedImage";
 import { useTenant } from "@/lib/tenant-context";
@@ -21,6 +21,7 @@ import { signedUrl, uploadTenantFile } from "@/lib/storage";
 import { toE164 } from "@/lib/phone";
 import { attachPhoneToApplicant } from "@/lib/registration/attach-phone.functions";
 import { cn } from "@/lib/utils";
+import { INDIAN_STATES } from "@/lib/location";
 
 // Policies that must be accepted before registration submits (if the academy
 // has published them). Missing policies are silently skipped — never block
@@ -204,6 +205,10 @@ function RegisterContent() {
     dob: "",
     address: "",
     current_address: "",
+    permanent_address: "",
+    village_locality: "",
+    city: "",
+    state: "",
     aadhaar_front_url: "",
     aadhaar_back_url: "",
     photo_url: "",
@@ -269,7 +274,8 @@ function RegisterContent() {
       if (!form.dob) e.dob = "Required.";
       if (!form.gender) e.gender = "Required.";
       if (!form.phone.trim()) e.phone = "Required.";
-      if (!form.address.trim()) e.address = "Required.";
+      if (!form.city.trim()) e.city = "Required.";
+      if (!form.state.trim()) e.state = "Required.";
       if (!form.current_address.trim()) e.current_address = "Required.";
       if (!form.aadhaar_front_url) e.aadhaar_front = "Aadhaar Front photo is required.";
       if (!form.aadhaar_back_url) e.aadhaar_back = "Aadhaar Back photo is required.";
@@ -335,6 +341,20 @@ function RegisterContent() {
     ],
     [batches, fees, form.gender, tenant],
   );
+  
+  // Set defaults from tenant location
+  useEffect(() => {
+    if (tenant.address) {
+      const addr = tenant.address.toLowerCase();
+      // Heuristic: check if Chhatarpur is in the address
+      if (addr.includes("chhatarpur")) {
+        setForm(f => ({ ...f, city: f.city || "Chhatarpur", state: f.state || "Madhya Pradesh" }));
+      }
+    } else {
+      // Global fallback for Academy OS current context
+      setForm(f => ({ ...f, city: f.city || "Chhatarpur", state: f.state || "Madhya Pradesh" }));
+    }
+  }, [tenant.address]);
 
   async function submitForm(e: React.FormEvent) {
     e.preventDefault();
@@ -343,7 +363,8 @@ function RegisterContent() {
       !form.dob ||
       !form.gender ||
       !form.phone.trim() ||
-      !form.address.trim() ||
+      !form.city.trim() ||
+      !form.state.trim() ||
       !form.current_address.trim() ||
       !form.aadhaar_front_url ||
       !form.aadhaar_back_url ||
@@ -464,6 +485,10 @@ function RegisterContent() {
     profile.aadhaar_back_url = form.aadhaar_back_url;
     profile.photo_url = form.photo_url;
     profile.current_address = form.current_address.trim();
+    profile.permanent_address = form.permanent_address.trim();
+    profile.village_locality = form.village_locality.trim();
+    profile.city = form.city.trim();
+    profile.state = form.state.trim();
     const documents = Object.keys(profile).length > 0 ? { profile } : null;
 
     if (!error && data && applicantUserId) {
@@ -472,7 +497,7 @@ function RegisterContent() {
         {
           _registration_id: data as unknown as string,
           _email: emailTrim,
-          _address: form.address.trim() || null,
+          _address: form.address.trim() || form.current_address.trim() || null,
           _gender: normalizeGender(form.gender),
           _medical_notes: form.medical_notes.trim() || null,
           _documents: documents as unknown as never,
@@ -762,38 +787,72 @@ function RegisterContent() {
                     tenant={tenant}
                   />
                 </div>
-                <div className="sm:col-span-2">
-                  <TextArea
-                    label="Permanent address *"
-                    value={form.address}
-                    onChange={(v) => setForm({ ...form, address: v })}
-                    error={errors.address}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Current address *
-                    </span>
-                    <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
-                      <input
-                        type="checkbox"
-                        className="h-3.5 w-3.5 rounded border-border"
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setForm({ ...form, current_address: form.address });
-                          }
-                        }}
+                <div className="sm:col-span-2 space-y-4">
+                  <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-4">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <MapPin className="size-3.5" />
+                      Location
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <Field
+                        label="Village / Locality"
+                        value={form.village_locality}
+                        onChange={(v) => setForm({ ...form, village_locality: v })}
+                        placeholder="e.g. Maharajpur"
+                        error={errors.village_locality}
                       />
-                      Same as permanent
-                    </label>
+                      <Field
+                        label="City / District *"
+                        value={form.city}
+                        onChange={(v) => setForm({ ...form, city: v })}
+                        placeholder="e.g. Chhatarpur"
+                        error={errors.city}
+                      />
+                      <SelectField
+                        label="State *"
+                        value={form.state}
+                        onChange={(v) => setForm({ ...form, state: v })}
+                        options={[
+                          { value: "", label: "Select State" },
+                          ...INDIAN_STATES.map((s) => ({ value: s, label: s })),
+                        ]}
+                        error={errors.state}
+                      />
+                    </div>
                   </div>
+
                   <TextArea
+                    label="Current address (House/Street/Colony/Landmark) *"
                     value={form.current_address}
                     onChange={(v) => setForm({ ...form, current_address: v })}
                     error={errors.current_address}
-                    hideLabel
                   />
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Permanent address
+                      </span>
+                      <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
+                        <input
+                          type="checkbox"
+                          className="h-3.5 w-3.5 rounded border-border"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setForm({ ...form, permanent_address: form.current_address });
+                            }
+                          }}
+                        />
+                        Same as current
+                      </label>
+                    </div>
+                    <TextArea
+                      label="Permanent address (optional)"
+                      value={form.permanent_address}
+                      onChange={(v) => setForm({ ...form, permanent_address: v })}
+                      error={errors.permanent_address}
+                    />
+                  </div>
                 </div>
 
                 <div className="sm:col-span-2">

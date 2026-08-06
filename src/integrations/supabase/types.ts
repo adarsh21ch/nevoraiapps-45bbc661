@@ -6791,6 +6791,7 @@ export type Database = {
           parent_mobile: string | null
           parent_name: string | null
           parent_whatsapp: string | null
+          permanent_address: string | null
           phone: string
           photo_url: string | null
           pincode: string | null
@@ -6806,6 +6807,7 @@ export type Database = {
           status: string
           tenant_id: string
           user_id: string | null
+          village_locality: string | null
         }
         Insert: {
           activated_at?: string | null
@@ -6845,6 +6847,7 @@ export type Database = {
           parent_mobile?: string | null
           parent_name?: string | null
           parent_whatsapp?: string | null
+          permanent_address?: string | null
           phone: string
           photo_url?: string | null
           pincode?: string | null
@@ -6860,6 +6863,7 @@ export type Database = {
           status?: string
           tenant_id: string
           user_id?: string | null
+          village_locality?: string | null
         }
         Update: {
           activated_at?: string | null
@@ -6899,6 +6903,7 @@ export type Database = {
           parent_mobile?: string | null
           parent_name?: string | null
           parent_whatsapp?: string | null
+          permanent_address?: string | null
           phone?: string
           photo_url?: string | null
           pincode?: string | null
@@ -6914,6 +6919,7 @@ export type Database = {
           status?: string
           tenant_id?: string
           user_id?: string | null
+          village_locality?: string | null
         }
         Relationships: [
           {

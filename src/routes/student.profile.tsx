@@ -16,6 +16,7 @@ import {
   Building2,
   Download,
   Loader2,
+  MapPin,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import { StudentIDCard } from "@/components/portal/StudentIDCard";
 import { generateIdCardPdf } from "@/lib/id-card-pdf";
 import { playerKeys, fetchAthleteByStudent } from "@/lib/player-profile";
 import { toast } from "sonner";
+import { formatShortLocation } from "@/lib/location";
 
 
 export const Route = createFileRoute("/student/profile")({
@@ -75,6 +77,7 @@ function StudentProfilePage() {
         phone: (s.phone as string) || "",
         city: (s.city as string) || null,
         state: (s.state as string) || null,
+        villageLocality: (s.village_locality as string) || null,
         guardianPhone: (s.guardian_phone as string) || (s.emergency_contact_phone as string) || null,
         batchName: (s.batches as any)?.name || (s.batch_name as string) || (s.playing_role as string) || "Student",
         batchTiming: (s.batches as any)?.timing || (s.batch_timing as string) || null,
@@ -227,6 +230,7 @@ function StudentProfilePage() {
                 dob: s.dob,
                 city: s.city,
                 state: s.state,
+                village_locality: s.village_locality,
                 playing_role: (s.playing_role as string) || "Student",
                 academy_name: ctx.tenant_name || "AcademyOS",
                 gender: s.gender,
@@ -246,6 +250,7 @@ function StudentProfilePage() {
                 dob: s.dob,
                 city: s.city,
                 state: s.state,
+                village_locality: s.village_locality,
                 playing_role: (s.playing_role as string) || "Student",
                 academy_name: ctx.tenant_name || "AcademyOS",
                 gender: s.gender,

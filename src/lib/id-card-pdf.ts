@@ -16,6 +16,7 @@ import QRCode from "qrcode";
 import type { Tenant } from "./tenant";
 import { tenantSiteUrl } from "./tenant";
 import { signedUrl } from "./storage";
+import { formatShortLocation } from "./location";
 
 export type IdCardData = {
   playerId: string | null;
@@ -28,6 +29,7 @@ export type IdCardData = {
   guardianPhone: string | null;
   batchName: string | null;
   sport: string | null;
+  villageLocality?: string | null;
   joinedAt: string;
   photoPath: string | null;
   batchTiming: string | null;
@@ -319,8 +321,8 @@ async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numb
   doc.setTextColor(17, 24, 39);
   doc.setFontSize(7.2);
   doc.text(`${r.sport || "CRICKET"} • ${r.batchName || "JUNIOR"}`.toUpperCase(), dx, y);
-
-  const location = [r.city, r.state].filter(Boolean).join(", ");
+  
+  const location = formatShortLocation(r.villageLocality, r.city, r.state);
   if (location) {
     y += 4.5;
     doc.setTextColor(140, 146, 158);

@@ -1,6 +1,7 @@
 import React from "react";
 import { User, QrCode, Shield, Building2, MapPin, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatShortLocation } from "@/lib/location";
 
 interface StudentIDCardProps {
   student: {
@@ -21,6 +22,7 @@ interface StudentIDCardProps {
     sport?: string | null;
     batch_timing?: string | null;
     academy_phone?: string | null;
+    village_locality?: string | null;
   };
   side?: "front" | "back";
 }
@@ -57,7 +59,7 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
       }
     };
 
-    const location = [student.city, student.state].filter(Boolean).join(", ");
+    const location = formatShortLocation(student.village_locality, student.city, student.state);
 
     if (side === "back") {
       return (
