@@ -9,7 +9,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { createMatch } from "@/lib/mc-matches";
+import { createMatch, getDefaultPlayingRules } from "@/lib/mc-matches";
 
 export type MCTournament = Database["public"]["Tables"]["mc_tournaments"]["Row"];
 export type MCTournamentInsert = Database["public"]["Tables"]["mc_tournaments"]["Insert"];

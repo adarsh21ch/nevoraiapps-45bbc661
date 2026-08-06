@@ -24,7 +24,7 @@
  * ================================================================ */
 
 import { supabase } from "@/integrations/supabase/client";
-import { createMatch } from "@/lib/mc-matches";
+import { createMatch, getDefaultPlayingRules } from "@/lib/mc-matches";
 import type { Database } from "@/integrations/supabase/types";
 import type { MCTournament } from "@/lib/mc-tournaments";
 import type {
