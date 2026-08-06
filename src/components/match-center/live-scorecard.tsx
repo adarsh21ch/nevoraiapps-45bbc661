@@ -80,7 +80,7 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
   // Separate stats derived from the OTHER innings so a team that hasn't batted
   // still shows correct Bowling figures.
   const bowlingStats = bowlingStatsEvents && bowlingStatsEvents.length > 0
-    ? calculateInningsStatistics(bowlingStatsEvents, { totalOvers: null, target: null })
+    ? calculateInningsStatistics(bowlingStatsEvents, { totalOvers: null, playingRules: matchInfo?.playingRules ?? null, target: null })
     : stats;
 
   // When embedded in a page that scrolls (hideHero=true, e.g. public match view),
