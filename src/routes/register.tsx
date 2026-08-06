@@ -125,7 +125,9 @@ function batchFeeText(batch: Batch, fees: FeePlan[], gender?: string, tenant?: a
   const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
   
   // Use gender-specific amount if gender pricing is enabled AND it's a female student
-  const amount = (isGenderPricingEnabled && gender === "female" && (plan as any).female_amount != null) 
+  // Check for both "female" (database/legacy) and "girl" (UI labels)
+  const isFemale = gender === "female" || (typeof gender === "string" && gender.toLowerCase() === "girl");
+  const amount = (isGenderPricingEnabled && isFemale && (plan as any).female_amount != null) 
     ? (plan as any).female_amount 
     : plan.amount;
     

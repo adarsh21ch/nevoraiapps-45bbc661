@@ -205,7 +205,8 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       let baseAmount = Number(plan?.amount ?? 0);
       
       // Apply female override if enabled and gender matches
-      if (isGenderPricingEnabled && s.gender === "female" && plan?.female_amount != null) {
+      const isFemale = s.gender === "female" || (typeof s.gender === "string" && s.gender.toLowerCase() === "girl");
+      if (isGenderPricingEnabled && isFemale && plan?.female_amount != null) {
         baseAmount = Number(plan.female_amount);
       }
       
