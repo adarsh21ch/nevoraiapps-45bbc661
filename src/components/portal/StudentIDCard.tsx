@@ -164,9 +164,9 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
           </div>
 
           {/* Front Body */}
-          <div className="flex-1 p-4 flex gap-4 relative">
+          <div className="flex-1 px-5 pt-3 pb-2 flex gap-5 relative bg-white">
             {/* Player Photo */}
-            <div className="w-[80px] h-[105px] rounded-lg border-2 border-slate-100 bg-slate-50 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-[85px] h-[110px] rounded-xl border-2 border-slate-50 bg-slate-50 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
               {student.photo_url ? (
                 <img
                   src={student.photo_url}
@@ -189,33 +189,30 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
                <div className="mb-2">
                   <h2 className={cn(
                     "font-black uppercase leading-[1.1] text-slate-900",
-                    student.name.length > 15 ? "text-sm" : "text-base"
+                    student.name.length > 15 ? "text-[13px]" : "text-[15px]"
                   )}>
                     {student.name}
                   </h2>
                </div>
 
-               <div className="space-y-2">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-0.5">DOB</p>
-                      <p className="text-[10px] font-black text-slate-700 leading-none">
-                        {formatDate(student.dob)}
-                      </p>
-                    </div>
+               <div className="space-y-3">
+                  <div>
+                    <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Date of Birth</p>
+                    <p className="text-[11px] font-black text-slate-700 leading-none">
+                      {formatDate(student.dob)}
+                    </p>
                   </div>
 
                   <div>
-                    <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-0.5">Category</p>
-                    <p className="text-[10px] font-black text-amber-600 leading-none uppercase truncate">
+                    <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Category</p>
+                    <p className="text-[11px] font-black text-amber-600 leading-none uppercase truncate">
                       {student.sport || "Cricket"} • {student.session || student.age_group || "General"}
                     </p>
                   </div>
 
                   {location && (
-                    <div className="pt-1">
-                       <p className="text-[9px] font-bold text-slate-500 leading-none flex items-center gap-1 truncate">
-                          <MapPin className="size-2 text-slate-300 shrink-0" />
+                    <div className="pt-0.5">
+                       <p className="text-[10px] font-bold text-slate-500 leading-none flex items-center gap-1 truncate uppercase">
                           {location}
                        </p>
                     </div>
