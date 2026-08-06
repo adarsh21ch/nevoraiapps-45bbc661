@@ -104,6 +104,8 @@ export async function fetchMyPortalContext(): Promise<StudentContext | null> {
     student_id: s.id,
     tenant_id: s.tenant_id,
     tenant_name: (s.tenants as any)?.name,
+    tenant_logo: (s.tenants as any)?.logo_url,
+    tenant_phone: (s.tenants as any)?.phone,
     athlete_profile_id: (ap?.id as string | undefined) ?? null,
     name: s.name,
     player_id: s.player_id,
