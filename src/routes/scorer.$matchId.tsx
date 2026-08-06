@@ -1349,50 +1349,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       </Sheet>
 
       {/* No-ball classification sheet for demo */}
-      <Sheet open={nbClassificationOpen} onOpenChange={setNbClassificationOpen}>
-        <SheetContent side="bottom" className="rounded-t-3xl bg-card p-0">
-          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
-          <SheetHeader className="px-5 pb-2 pt-4 text-left">
-            <SheetTitle className="text-base">No Ball — Additional runs were:</SheetTitle>
-            <SheetDescription className="text-xs">
-              Selected total {pendingNoBallRuns}. One run is the penalty.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="flex flex-col gap-2 p-4 pb-8">
-            <Button
-              variant="outline"
-              className="h-12 text-sm font-semibold justify-start px-6"
-              onClick={() => onNbClassify("bat")}
-            >
-              Runs off the bat
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 text-sm font-semibold justify-start px-6"
-              onClick={() => onNbClassify("bye")}
-            >
-              Byes
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 text-sm font-semibold justify-start px-6"
-              onClick={() => onNbClassify("leg_bye")}
-            >
-              Leg Byes
-            </Button>
-            <Button
-              variant="ghost"
-              className="mt-2 h-10 text-xs text-muted-foreground"
-              onClick={() => {
-                setNbClassificationOpen(false);
-                setPendingNoBallRuns(null);
-              }}
-            >
-              Cancel ball
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
