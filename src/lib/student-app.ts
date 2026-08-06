@@ -64,9 +64,9 @@ export async function fetchMyStudentContext(): Promise<StudentContext | null> {
 
   return {
     ...(row as StudentContext),
-    tenant_name: t?.name,
-    tenant_logo: t?.logo_url,
-    tenant_phone: t?.phone,
+    tenant_name: t?.name ?? undefined,
+    tenant_logo: t?.logo_url ?? undefined,
+    tenant_phone: t?.phone ?? undefined,
   };
 }
 
