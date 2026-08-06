@@ -29,7 +29,7 @@ export type ChartsData = {
   byMethod?: LabelAmount[];
 };
 
-export type ChartsView = "overview" | "attendance" | "finance" | "admissions";
+export type ChartsView = "overview" | "attendance" | "finance" | "registrations";
 
 const BRAND = "var(--brand, #1d4ed8)";
 
@@ -92,7 +92,7 @@ export function Charts({ view, data }: { view: ChartsView; data: ChartsData }) {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
-        <ChartCard title="Admissions funnel">
+        <ChartCard title="Registrations funnel">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data.admissionsByStage ?? []}
@@ -218,7 +218,7 @@ export function Charts({ view, data }: { view: ChartsView; data: ChartsData }) {
     );
   }
 
-  if (view === "admissions") {
+  if (view === "registrations") {
     return (
       <div className="grid gap-3 md:grid-cols-2">
         <ChartCard title="Pipeline funnel">
