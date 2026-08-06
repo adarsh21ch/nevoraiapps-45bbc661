@@ -156,9 +156,17 @@ export function CollectionsPanel({
           due.state === "paid"
             ? (paymentByStudentPeriod.get(`${s.id}:${due.period}`) ?? null)
             : null;
-        const planAmount = Number(s.fee_plans?.amount ?? 0);
+        const plan = s.fee_plans;
+        const isGenderPricingEnabled = (tenant as any).gender_pricing_enabled === true;
+        const isFemale = typeof s.gender === "string" && (s.gender.toLowerCase() === "female" || s.gender.toLowerCase() === "girl");
+        
+        let baseAmount = Number(plan?.amount ?? 0);
+        if (isGenderPricingEnabled && isFemale && plan?.female_amount != null) {
+          baseAmount = Number(plan.female_amount);
+        }
+
         const custom = s.custom_fee == null ? null : Number(s.custom_fee);
-        const amount = custom != null && !Number.isNaN(custom) ? custom : planAmount;
+        const amount = custom != null && !Number.isNaN(custom) ? custom : baseAmount;
         return {
           studentId: s.id,
           name: s.name,
@@ -168,7 +176,7 @@ export function CollectionsPanel({
           playerId: s.player_id ?? null,
 
           amount,
-          planAmount,
+          planAmount: baseAmount,
           hasCustomFee: custom != null,
           phone: s.phone,
           guardianName: s.guardian_name,

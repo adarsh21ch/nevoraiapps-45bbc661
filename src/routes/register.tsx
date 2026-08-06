@@ -125,8 +125,8 @@ function batchFeeText(batch: Batch, fees: FeePlan[], gender?: string, tenant?: a
   const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
   
   // Use gender-specific amount if gender pricing is enabled AND it's a female student
-  // Check for both "female" (database/legacy) and "girl" (UI labels)
-  const isFemale = gender === "female" || (typeof gender === "string" && gender.toLowerCase() === "girl");
+  // In the registration form, gender is saved as "boy" or "girl" via the RadioGroup
+  const isFemale = typeof gender === "string" && (gender.toLowerCase() === "female" || gender.toLowerCase() === "girl");
   const amount = (isGenderPricingEnabled && isFemale && (plan as any).female_amount != null) 
     ? (plan as any).female_amount 
     : plan.amount;
@@ -330,7 +330,7 @@ function RegisterContent() {
         right: batchFeeText(b, fees, form.gender, tenant),
       })),
     ],
-    [batches, fees],
+    [batches, fees, form.gender, tenant],
   );
 
   async function submitForm(e: React.FormEvent) {
