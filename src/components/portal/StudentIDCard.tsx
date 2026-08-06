@@ -91,32 +91,32 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
                  Scan for Attendance
                </p>
 
-               <div className="w-full grid grid-cols-2 gap-x-4 gap-y-3 px-2">
+                <div className="w-full grid grid-cols-2 gap-x-4 gap-y-3 px-4">
                   <div>
                     <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Player ID</p>
-                    <p className="text-[10px] font-black text-slate-700 leading-tight">
+                    <p className="text-[10px] font-black text-slate-700 leading-none">
                       {student.player_id || "—"}
                     </p>
                   </div>
-                  <div>
+                  <div className="text-right">
                     <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Academy Contact</p>
-                    <p className="text-[10px] font-black text-slate-700 leading-tight">
+                    <p className="text-[10px] font-black text-slate-700 leading-none">
                       {student.academy_phone || "—"}
                     </p>
                   </div>
                   <div>
                     <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Session / Batch</p>
-                    <p className="text-[10px] font-black text-slate-700 leading-tight truncate uppercase">
+                    <p className="text-[10px] font-black text-amber-600 leading-none truncate uppercase">
                       {student.session || student.age_group || "General"}
                     </p>
                   </div>
-                  <div>
+                  <div className="text-right">
                     <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Training Time</p>
-                    <p className="text-[10px] font-black text-slate-700 leading-tight">
+                    <p className="text-[10px] font-black text-slate-700 leading-none truncate uppercase">
                       {student.batch_timing || "Regular"}
                     </p>
                   </div>
-               </div>
+                </div>
             </div>
 
             {/* Footer - Subtle Branding */}
@@ -137,29 +137,36 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
           className="w-[350px] h-[220px] bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden relative border border-slate-200 flex flex-col"
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
-          {/* Front Header */}
-          <div className="h-[60px] px-5 flex items-center gap-3 bg-[#0f172a] text-white">
-            {student.academy_logo ? (
-              <img src={student.academy_logo} alt="Logo" className="h-9 object-contain brightness-0 invert" />
-            ) : (
-              <div className="size-9 bg-amber-500 rounded-lg flex items-center justify-center text-xs font-black italic text-slate-900">
-                {student.academy_name?.slice(0, 2).toUpperCase() || "AO"}
+          <div className="h-[55px] px-5 flex items-center justify-between bg-[#0f172a] text-white">
+            <div className="flex items-center gap-3">
+              {student.academy_logo ? (
+                <img src={student.academy_logo} alt="Logo" className="h-8 object-contain brightness-0 invert" />
+              ) : (
+                <div className="size-8 bg-amber-500 rounded-lg flex items-center justify-center text-[10px] font-black italic text-slate-900">
+                  {student.academy_name?.slice(0, 2).toUpperCase() || "AO"}
+                </div>
+              )}
+              <div className="min-w-0">
+                <div className="font-black tracking-tight text-[13px] uppercase truncate leading-none mb-0.5">
+                  {student.academy_name || "AcademyOS"}
+                </div>
+                <div className="text-[7px] uppercase tracking-[0.15em] font-bold text-white/50">
+                  Player Identity Card
+                </div>
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="font-black tracking-tight text-sm uppercase truncate leading-tight">
-                {student.academy_name || "AcademyOS"}
-              </div>
-              <div className="text-[8px] uppercase tracking-[0.2em] font-bold text-white/50">
-                Player Identity Card
-              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[6px] font-bold text-white/40 uppercase tracking-widest leading-none mb-0.5">Player ID</p>
+              <p className="text-[11px] font-black text-amber-500 leading-none">
+                {student.player_id || "—"}
+              </p>
             </div>
           </div>
 
           {/* Front Body */}
-          <div className="flex-1 p-5 flex gap-5 relative">
+          <div className="flex-1 px-5 pt-3 pb-2 flex gap-5 relative bg-white">
             {/* Player Photo */}
-            <div className="w-[85px] h-[110px] rounded-lg border-2 border-slate-100 bg-slate-50 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+            <div className="w-[85px] h-[110px] rounded-xl border-2 border-slate-50 bg-slate-50 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
               {student.photo_url ? (
                 <img
                   src={student.photo_url}
@@ -168,8 +175,8 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
                 />
               ) : (
                 <div className="flex flex-col items-center gap-1">
-                   <User className="size-10 text-slate-300" />
-                   <span className="text-[14px] font-black text-slate-200">
+                   <User className="size-8 text-slate-300" />
+                   <span className="text-[12px] font-black text-slate-200">
                      {student.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2)}
                    </span>
                 </div>
@@ -177,40 +184,35 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
             </div>
 
             {/* Player Info */}
-            <div className="flex-1 flex flex-col min-w-0">
-               {/* Name - Strongest Hierarchy */}
-               <div className="mb-3">
+            <div className="flex-1 flex flex-col min-w-0 justify-center">
+               {/* Name */}
+               <div className="mb-2">
                   <h2 className={cn(
                     "font-black uppercase leading-[1.1] text-slate-900",
-                    student.name.length > 20 ? "text-sm" : "text-base"
+                    student.name.length > 15 ? "text-[13px]" : "text-[15px]"
                   )}>
                     {student.name}
                   </h2>
                </div>
 
-               <div className="grid grid-cols-2 gap-y-3 gap-x-2">
+               <div className="space-y-3">
                   <div>
-                    <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">Player ID</p>
-                    <p className="text-[11px] font-black text-amber-600 leading-tight">
-                      {student.player_id || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">DOB</p>
-                    <p className="text-[10px] font-black text-slate-700 leading-tight">
+                    <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Date of Birth</p>
+                    <p className="text-[11px] font-black text-slate-700 leading-none">
                       {formatDate(student.dob)}
                     </p>
                   </div>
-                  <div className="col-span-2">
-                    <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">Category</p>
-                    <p className="text-[10px] font-black text-slate-700 leading-tight uppercase flex items-center gap-1">
-                      {student.sport || "Cricket"} • {student.age_group || student.session || "Junior"}
+
+                  <div>
+                    <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Category</p>
+                    <p className="text-[11px] font-black text-amber-600 leading-none uppercase truncate">
+                      {student.sport || "Cricket"} • {student.session || student.age_group || "General"}
                     </p>
                   </div>
+
                   {location && (
-                    <div className="col-span-2">
-                       <p className="text-[10px] font-bold text-slate-500 leading-tight flex items-center gap-1 truncate">
-                          <MapPin className="size-2 text-slate-300" />
+                    <div className="pt-0.5">
+                       <p className="text-[10px] font-bold text-slate-500 leading-none flex items-center gap-1 truncate uppercase">
                           {location}
                        </p>
                     </div>

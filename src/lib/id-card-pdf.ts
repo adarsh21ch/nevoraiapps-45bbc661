@@ -225,6 +225,7 @@ async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numb
   const { brand, accent, darkHex } = getCardTheme(tenant);
   const { logoDataUrl, photoDataUrl } = await loadCardAssets(tenant, r);
 
+  // Gradient background
   gradientRect(doc, fx, fy, CW, CH, brand, darkHex);
 
   // Header
@@ -232,28 +233,37 @@ async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numb
   if (logoDataUrl) {
     const fmt = logoDataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
     try {
-      doc.addImage(logoDataUrl, fmt, hx, fy + 4.5, 8, 8);
+      doc.addImage(logoDataUrl, fmt, hx, fy + 4, 8, 8);
       hx += 10;
     } catch {}
   }
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
-  doc.text((tenant.short_name || tenant.name).slice(0, 26).toUpperCase(), hx, fy + 9);
+  doc.text((tenant.short_name || tenant.name).slice(0, 30).toUpperCase(), hx, fy + 8.5);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.6);
-  doc.text("PLAYER IDENTITY CARD", hx, fy + 12.6);
+  doc.text("PLAYER IDENTITY CARD", hx, fy + 12);
+
+  // Player ID in Header (Right side)
+  doc.setTextColor(255, 255, 255, 0.4);
+  doc.setFontSize(4.5);
+  doc.text("PLAYER ID", fx + CW - 6, fy + 7.5, { align: "right" });
+  doc.setTextColor(...hexToRgb(accent));
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.text(r.playerId || "—", fx + CW - 6, fy + 11.5, { align: "right" });
 
   // White body panel
   doc.setFillColor(255, 255, 255);
-  doc.roundedRect(fx + 4, fy + 16, CW - 8, CH - 21, 2.4, 2.4, "F");
+  doc.roundedRect(fx + 4, fy + 15, CW - 8, CH - 20, 2.4, 2.4, "F");
 
-  // Photo
+  // Photo (Left side)
   const pw = 20;
-  const ph = 24;
+  const ph = 26;
   const px = fx + 7.5;
-  const py = fy + 18.5;
-  doc.setFillColor(238, 240, 245);
+  const py = fy + 17.5;
+  doc.setFillColor(245, 247, 250);
   doc.roundedRect(px, py, pw, ph, 2, 2, "F");
   
   let drewPhoto = false;
@@ -268,71 +278,62 @@ async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numb
     const initials = r.name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join("").toUpperCase();
     doc.setTextColor(...hexToRgb(brand));
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text(initials || "?", px + pw / 2, py + ph / 2 + 2.5, { align: "center" });
+    doc.setFontSize(14);
+    doc.text(initials || "?", px + pw / 2, py + ph / 2 + 2, { align: "center" });
   }
-  doc.setDrawColor(...hexToRgb(accent));
-  doc.setLineWidth(0.5);
+  doc.setDrawColor(240, 242, 245);
+  doc.setLineWidth(0.3);
   doc.roundedRect(px, py, pw, ph, 2, 2, "S");
 
-  // Details
-  const dx = px + pw + 4;
+  // Details (Centered relative to the info section)
+  const dx = px + pw + 5;
   const dw = CW - (dx - fx) - 7;
-  let y = py + 5;
+  let y = py + 3.5;
   
-  doc.setTextColor(140, 146, 158);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(5.4);
-  doc.text("PLAYER", dx, y);
-  
-  y += 3.8;
+  // Name
   doc.setTextColor(17, 24, 39);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.5);
-  const nameLines = (doc.splitTextToSize(r.name, dw) as string[]).slice(0, 2);
+  doc.setFontSize(10);
+  const nameLines = (doc.splitTextToSize(r.name.toUpperCase(), dw) as string[]).slice(0, 2);
   doc.text(nameLines, dx, y);
   
-  y += nameLines.length > 1 ? 8.2 : 4.6;
-  doc.setTextColor(140, 146, 158);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(5.4);
-  doc.text("PLAYER ID", dx, y);
+  y += nameLines.length > 1 ? 9 : 5.5;
   
-  y += 3.5;
-  doc.setTextColor(...hexToRgb(accent));
+  // DOB
+  doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9.5);
-  doc.text(r.playerId || "—", dx, y);
-
-  y += 4.5;
-  doc.setTextColor(140, 146, 158);
-  doc.setFontSize(5.4);
-  doc.text("DOB", dx, y);
+  doc.setFontSize(4.8);
+  doc.text("DATE OF BIRTH", dx, y);
   y += 3.5;
-  doc.setTextColor(17, 24, 39);
-  doc.setFontSize(7.4);
-  doc.text(fmtDate(r.dob), dx, y);
+  doc.setTextColor(55, 65, 81);
+  doc.setFontSize(7.5);
+  doc.text(fmtDate(r.dob).toUpperCase(), dx, y);
 
-  y += 4.5;
+  y += 5.5;
+  
+  // Category
   doc.setTextColor(140, 146, 158);
-  doc.setFontSize(5.4);
+  doc.setFontSize(4.8);
   doc.text("CATEGORY", dx, y);
   y += 3.5;
-  doc.setTextColor(17, 24, 39);
-  doc.setFontSize(7.2);
-  doc.text(`${r.sport || "CRICKET"} • ${r.batchName || "JUNIOR"}`.toUpperCase(), dx, y);
+  doc.setTextColor(...hexToRgb(accent));
+  doc.setFontSize(7.5);
+  doc.setFont("helvetica", "bold");
+  doc.text(`${r.sport || "CRICKET"} • ${r.batchName || "GENERAL"}`.toUpperCase(), dx, y);
   
   const location = formatShortLocation(r.villageLocality, r.city, r.state);
   if (location) {
-    y += 4.5;
-    doc.setTextColor(140, 146, 158);
-    doc.setFontSize(5.4);
+    y += 5.5;
+    doc.setTextColor(107, 114, 128);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5);
     doc.text(location.toUpperCase(), dx, y);
   }
 
   // Footer
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(5.4);
+  doc.setFont("helvetica", "bold");
   doc.text(`JOINED ${fmtDate(r.joinedAt).toUpperCase()}`, fx + 6, fy + CH - 1.8);
   doc.text("OFFICIAL ID", fx + CW - 6, fy + CH - 1.8, { align: "right" });
 }

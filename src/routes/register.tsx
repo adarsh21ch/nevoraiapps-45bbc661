@@ -202,7 +202,7 @@ function RegisterContent() {
     password: "",
     password2: "",
     batch_id: "",
-    dob: "",
+    dob: "", // Expected format: DD/MM/YYYY
     address: "",
     current_address: "",
     permanent_address: "",
@@ -271,7 +271,17 @@ function RegisterContent() {
       if (form.password !== form.password2) e.password2 = "Passwords do not match.";
     } else if (n === 2) {
       if (!form.name.trim()) e.name = "Required.";
-      if (!form.dob) e.dob = "Required.";
+      if (!form.dob) {
+        e.dob = "Required.";
+      } else if (!/^\d{2}\/\d{2}\/\d{4}$/.test(form.dob)) {
+        e.dob = "Use DD/MM/YYYY.";
+      } else {
+        const [d, m, y] = form.dob.split("/").map(Number);
+        const date = new Date(y, m - 1, d);
+        if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) {
+          e.dob = "Invalid date.";
+        }
+      }
       if (!form.gender) e.gender = "Required.";
       if (!form.phone.trim()) e.phone = "Required.";
       if (!form.city.trim()) e.city = "Required.";
@@ -452,6 +462,9 @@ function RegisterContent() {
     }
     const applicantUserId = authData.user?.id ?? null;
 
+    const [dd, mm, yyyy] = (form.dob || "").split("/");
+    const isoDob = dd && mm && yyyy ? `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}` : null;
+
     const { data, error } = await supabase.rpc(
       "submit_registration" as never,
       {
@@ -460,7 +473,7 @@ function RegisterContent() {
         _phone: form.phone.trim(),
         _fee_plan_id: defaultPlan.id,
         _batch_id: form.batch_id || null,
-        _dob: form.dob || null,
+        _dob: isoDob,
         _guardian_name: form.guardian_name.trim() || null,
         _guardian_phone: null,
         _whatsapp: null,
@@ -741,13 +754,37 @@ function RegisterContent() {
                   error={errors.guardian_name}
                 />
 
-                <Field
-                  label="Date of birth *"
-                  type="date"
-                  value={form.dob}
-                  onChange={(v) => setForm({ ...form, dob: v })}
-                  error={errors.dob}
-                />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Date of birth (DD/MM/YYYY) *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="DD/MM/YYYY"
+                    value={form.dob}
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, "");
+                      if (val.length > 8) val = val.slice(0, 8);
+                      
+                      let formatted = val;
+                      if (val.length > 2) formatted = val.slice(0, 2) + "/" + val.slice(2);
+                      if (val.length > 4) formatted = formatted.slice(0, 5) + "/" + val.slice(4);
+                      
+                      setForm({ ...form, dob: formatted });
+                    }}
+                    className={cn(
+                      "w-full px-4 py-3 rounded-xl border-2 transition-all outline-none text-base",
+                      errors.dob
+                        ? "border-red-100 bg-red-50/30 text-red-900 focus:border-red-200"
+                        : "border-slate-100 bg-slate-50/50 focus:border-amber-200 focus:bg-white",
+                    )}
+                  />
+                  {errors.dob && (
+                    <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1">
+                      {errors.dob}
+                    </p>
+                  )}
+                </div>
                 <SelectField
                   label="Gender *"
                   value={form.gender}
