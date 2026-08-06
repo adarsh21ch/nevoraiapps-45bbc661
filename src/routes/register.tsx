@@ -746,6 +746,8 @@ function RegisterContent() {
                     options={batchOptions}
                     onInfo={() => setBatchInfoOpen(true)}
                     error={errors.batch_id}
+                    tenant={tenant}
+                    fees={fees}
                   />
                 ) : null}
                 <div className="sm:col-span-2">
@@ -1173,12 +1175,16 @@ function BatchSelect({
   options,
   onInfo,
   error,
+  tenant,
+  fees,
 }: {
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string; right: string }[];
   onInfo: () => void;
   error?: string;
+  tenant: any;
+  fees: FeePlan[];
 }) {
   return (
     <div>
@@ -1204,11 +1210,16 @@ function BatchSelect({
             error ? "border-red-500" : "border-border",
           )}
         >
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.right ? `${o.label}  •  ${o.right}` : o.label}
-            </option>
-          ))}
+          {options.map((o) => {
+            const isAdmissionFeeEnabled = tenant?.admission_fee_enabled !== false;
+            const regFee = isAdmissionFeeEnabled ? fees.find((f: any) => f.type === 'registration') : null;
+            const regText = regFee ? ` + ₹${regFee.amount} adm.` : '';
+            return (
+              <option key={o.value} value={o.value}>
+                {o.right ? `${o.label}  •  ${o.right}${regText}` : o.label}
+              </option>
+            );
+          })}
         </select>
       </div>
       {error ? <span className="mt-1 block text-xs text-red-600">{error}</span> : null}
@@ -1220,13 +1231,14 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   const registration = fees.find((f) => f.type === "registration");
   const monthly = batch ? batchFeePlan(batch, fees) : undefined;
   const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
+  const isAdmissionFeeEnabled = tenant?.admission_fee_enabled !== false;
+  
   const resolvedMonthlyAmount =
     isGenderPricingEnabled && monthly
       ? resolveMonthlyFee(monthly as any, gender)
       : monthly
         ? Number(monthly.amount)
         : undefined;
-
 
   const cur = (registration?.currency || monthly?.currency || "INR").toUpperCase();
   const sym = cur === "INR" ? "₹" : cur + " ";
@@ -1241,8 +1253,10 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
       : monthly
         ? fmt(Number(resolvedMonthlyAmount))
         : "Contact academy";
+  
+  const showRegistration = isAdmissionFeeEnabled && registration;
   const total =
-    !isPersonal && resolvedMonthlyAmount != null && registration 
+    !isPersonal && resolvedMonthlyAmount != null && showRegistration 
       ? Number(resolvedMonthlyAmount) + Number(registration.amount) 
       : null;
 
@@ -1251,11 +1265,15 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
       <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
         Fees
       </span>
-      <span className="flex items-baseline gap-1.5">
-        <span className="text-muted-foreground">Admission</span>
-        <span className="font-semibold text-foreground">{fmt(registration?.amount)}</span>
-      </span>
-      <span className="text-border">•</span>
+      {showRegistration ? (
+        <>
+          <span className="flex items-baseline gap-1.5">
+            <span className="text-muted-foreground">Admission</span>
+            <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>
+          </span>
+          <span className="text-border">•</span>
+        </>
+      ) : null}
       <span className="flex items-baseline gap-1.5">
         <span className="text-muted-foreground">Monthly</span>
         <span className="font-semibold text-foreground">{monthlyText}</span>
@@ -1359,8 +1377,18 @@ function ReviewSummary({
       "Preferred batch",
       batch ? (batch.timing ? `${batch.name} — ${batch.timing}` : batch.name) : "No preference",
     ],
-    ["Monthly fee", batch ? batchFeeText(batch, fees, genderNormalized, tenant) : "—"],
   ];
+
+  if (tenant?.admission_fee_enabled !== false) {
+    const reg = fees.find((f) => f.type === "registration");
+    if (reg) {
+      const cur = (reg.currency || "INR").toUpperCase();
+      const sym = cur === "INR" ? "₹" : cur + " ";
+      rows.push(["Admission fee", `${sym}${reg.amount}`]);
+    }
+  }
+
+  rows.push(["Monthly fee", batch ? batchFeeText(batch, fees, genderNormalized, tenant) : "—"]);
   return (
     <dl className="divide-y divide-border/60">
       {rows.map(([k, v]) => (
@@ -1399,7 +1427,14 @@ function BatchInfoDialog({
         className="w-full max-w-md rounded-2xl bg-background p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-sm font-semibold text-foreground">Available batches</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold text-foreground">Available batches</div>
+          {tenant.admission_fee_enabled !== false && fees.find((f) => f.type === "registration") && (
+            <div className="text-[10px] font-medium text-muted-foreground uppercase bg-muted/50 px-2 py-0.5 rounded">
+              + Admission fee
+            </div>
+          )}
+        </div>
         <ul className="mt-3 divide-y divide-border/60">
           {batches.map((b) => (
             <li key={b.id} className="flex items-start justify-between gap-4 py-3">
