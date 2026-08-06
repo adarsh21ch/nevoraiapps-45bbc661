@@ -89,7 +89,7 @@ export async function fetchMyPortalContext(): Promise<StudentContext | null> {
 
   const { data: s } = await supabase
     .from("students")
-    .select("id, tenant_id, name, player_id, email, photo_url, tenants(name)")
+    .select("id, tenant_id, name, player_id, email, photo_url, tenants(name, logo_url, phone)")
     .eq("id", first.student_id)
     .maybeSingle();
   if (!s) return null;
