@@ -38,6 +38,12 @@ export const MATCH_FORMATS = [
   { value: "Custom", label: "Custom overs", overs: 20 },
 ] as const;
 
+export function getDefaultPlayingRules(format: string): string {
+  if (format === "Test") return "Test";
+  if (format === "ODI") return "ODI";
+  return "T20";
+}
+
 export const PLAYING_RULES_PROFILES = [
   { 
     value: "T20", 

@@ -577,6 +577,7 @@ function CreateMatchPage() {
       step,
       matchType,
       matchFormat,
+      playingRules,
       overs,
       scheduledDate,
       panelA,
@@ -603,6 +604,7 @@ function CreateMatchPage() {
     setStep(1);
     setMatchType("practice");
     setMatchFormat("");
+    setPlayingRules("T20");
     setOvers(0);
     setScheduledDate(new Date().toISOString().slice(0, 10));
     setPanelA(emptyPanel("new"));
