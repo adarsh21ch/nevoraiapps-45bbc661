@@ -1697,8 +1697,6 @@ function RoleButton({ active, onClick, label, color }: { active: boolean; onClic
     </button>
   );
 }
-  );
-}
 
 /* SummaryCard removed — replaced by wizard StepReview + sticky footer. */
 
