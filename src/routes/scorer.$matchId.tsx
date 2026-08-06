@@ -1284,6 +1284,52 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* No-ball classification sheet for demo */}
+      <Sheet open={nbClassificationOpen} onOpenChange={setNbClassificationOpen}>
+        <SheetContent side="bottom" className="rounded-t-3xl bg-card p-0">
+          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
+          <SheetHeader className="px-5 pb-2 pt-4 text-left">
+            <SheetTitle className="text-base">No Ball — Additional runs were:</SheetTitle>
+            <SheetDescription className="text-xs">
+              Selected total {pendingNoBallRuns}. One run is the penalty.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-2 p-4 pb-8">
+            <Button
+              variant="outline"
+              className="h-12 text-sm font-semibold justify-start px-6"
+              onClick={() => onNbClassify("bat")}
+            >
+              Runs off the bat
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 text-sm font-semibold justify-start px-6"
+              onClick={() => onNbClassify("bye")}
+            >
+              Byes
+            </Button>
+            <Button
+              variant="outline"
+              className="h-12 text-sm font-semibold justify-start px-6"
+              onClick={() => onNbClassify("leg_bye")}
+            >
+              Leg Byes
+            </Button>
+            <Button
+              variant="ghost"
+              className="mt-2 h-10 text-xs text-muted-foreground"
+              onClick={() => {
+                setNbClassificationOpen(false);
+                setPendingNoBallRuns(null);
+              }}
+            >
+              Cancel ball
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
@@ -1394,6 +1440,10 @@ function DemoScorerBody({
   const [newBowlerOpen, setNewBowlerOpen] = useState(false);
   const [pickStrikerOpen, setPickStrikerOpen] = useState(false);
   const [pickNonStrikerOpen, setPickNonStrikerOpen] = useState(false);
+
+  // No-ball classification state for demo
+  const [nbClassificationOpen, setNbClassificationOpen] = useState(false);
+  const [pendingNoBallRuns, setPendingNoBallRuns] = useState<number | null>(null);
   const [extraKind, setExtraKind] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
 
   // No-ball classification state for demo
@@ -1662,14 +1712,37 @@ function DemoScorerBody({
     }
   };
   const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
-  const onExtraRuns = (runs: number) => {
+  const onExtraRuns = (totalRuns: number) => {
     if (!extraKind) return;
     const kind = extraKind;
     setExtraKind(null);
-    if (kind === "Wide") requestSubmit(ballHelpers.wide(1 + Math.max(0, runs)));
-    else if (kind === "No Ball") requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
-    else if (kind === "Bye") requestSubmit(ballHelpers.bye(runs));
-    else if (kind === "Leg Bye") requestSubmit(ballHelpers.legBye(runs));
+
+    if (kind === "Wide") {
+      requestSubmit(ballHelpers.wide(totalRuns));
+    } else if (kind === "No Ball") {
+      if (totalRuns > 1) {
+        setPendingNoBallRuns(totalRuns);
+        setNbClassificationOpen(true);
+      } else {
+        requestSubmit(ballHelpers.noBall(0, 0));
+      }
+    } else if (kind === "Bye") {
+      requestSubmit(ballHelpers.bye(totalRuns));
+    } else if (kind === "Leg Bye") {
+      requestSubmit(ballHelpers.legBye(totalRuns));
+    }
+  };
+
+  const onNbClassify = (mode: "bat" | "bye" | "leg_bye") => {
+    if (pendingNoBallRuns === null) return;
+    const additional = pendingNoBallRuns - 1;
+    if (mode === "bat") {
+      requestSubmit(ballHelpers.noBall(additional, 0));
+    } else {
+      requestSubmit(ballHelpers.noBall(0, additional));
+    }
+    setNbClassificationOpen(false);
+    setPendingNoBallRuns(null);
   };
   const finalizeWicket = async (
     kind: DismissalType,
