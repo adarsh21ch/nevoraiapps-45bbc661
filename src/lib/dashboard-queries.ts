@@ -36,7 +36,7 @@ export const qk = {
 export async function fetchRegistrations(tenantId: string) {
   const { data, error } = await supabase
     .from("registrations")
-    .select("*, batches(name), fee_plans(name, amount)")
+    .select("*, batches(name), fee_plans(name, amount, female_amount)")
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -46,7 +46,7 @@ export async function fetchRegistrations(tenantId: string) {
 export async function fetchStudents(tenantId: string) {
   const { data, error } = await supabase
     .from("students")
-    .select("*, batches(name), fee_plans(name, amount, type)")
+    .select("*, batches(name), fee_plans(name, amount, female_amount, type)")
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -56,7 +56,7 @@ export async function fetchStudents(tenantId: string) {
 export async function fetchStudent(id: string, db: Db = supabase) {
   const { data, error } = await db
     .from("students")
-    .select("*, batches(id, name, timing), fee_plans(id, name, amount, type)")
+    .select("*, batches(id, name, timing), fee_plans(id, name, amount, female_amount, type)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;

@@ -10,7 +10,9 @@ import { bulkApproveRegistrations } from "@/lib/bulk-ops";
 import { useOptimisticMutation } from "@/hooks/use-optimistic-mutation";
 import { markRegistrationsReviewed, newRegsQueryKey } from "@/hooks/use-new-registrations";
 import { enrollStudentInBilling, enrollManyInBilling } from "@/lib/billing-enrollment";
+import { resolveMonthlyFee } from "@/lib/gender";
 import { fetchFeePlans } from "@/lib/dashboard-queries";
+
 import {
   rejectRegistration,
   waitlistRegistration,
@@ -1004,7 +1006,12 @@ function RegistrationDetails({
   onRequestDelete: () => void;
 }) {
   const { tenant } = useDashboard();
-  const plan = reg.fee_plans as { name?: string; amount?: number } | null;
+  const isGenderPricingEnabled = (tenant as any).gender_pricing_enabled === true;
+  const plan = reg.fee_plans as { name?: string; amount?: number; female_amount?: number } | null;
+  const resolvedAmount = isGenderPricingEnabled && plan 
+    ? resolveMonthlyFee(plan as any, reg.gender)
+    : plan?.amount;
+
   const batch = reg.batches as { name?: string } | null;
   const paid = reg.payment_status === "verified" || reg.payment_status === "claimed_paid";
   const waPhone = (reg.phone || "").replace(/\D/g, "");
@@ -1049,7 +1056,7 @@ function RegistrationDetails({
         <DRow label="Batch" value={batch?.name ?? "—"} />
         <DRow
           label="Fee plan"
-          value={plan?.name ? `${plan.name}${plan.amount ? ` · ${money(plan.amount)}` : ""}` : "—"}
+          value={plan?.name ? `${plan.name}${resolvedAmount ? ` · ${money(resolvedAmount)}` : ""}` : "—"}
         />
         <DRow
           label="Payment"

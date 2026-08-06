@@ -362,12 +362,12 @@ function SessionDialog({ initial, onClose }: { initial: SessionForm; onClose: ()
 
       // 1. The fee plan mirrors the session: same name, same active state.
       let feePlanId = form.feePlanId;
-      if (amount != null) {
+      if (amount != null || femaleAmount != null) {
         const planPayload = {
           tenant_id: tenant.id,
           name: form.name,
           description: form.description || null,
-          amount,
+          amount: amount ?? 0,
           female_amount: femaleAmount,
           type: "monthly",
           active: form.active,
@@ -385,6 +385,7 @@ function SessionDialog({ initial, onClose }: { initial: SessionForm; onClose: ()
           feePlanId = data.id;
         }
       } else if (feePlanId) {
+
         // Fee cleared → hide the plan from the public page but keep history intact.
         await supabase.from("fee_plans").update({ active: false }).eq("id", feePlanId);
         feePlanId = null;
