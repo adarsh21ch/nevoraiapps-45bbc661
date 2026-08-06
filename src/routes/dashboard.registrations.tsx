@@ -1072,8 +1072,8 @@ function RegistrationDetails({
         {reg.address && <DRow label="Address" value={reg.address} multiline />}
         <DRow label="Batch" value={batch?.name ?? "—"} />
         <DRow
-          label="Fee plan"
-          value={plan?.name ? `${plan.name}${resolvedAmount ? ` · ${money(resolvedAmount)}` : ""}` : "—"}
+          label="Fees"
+          value={resolvedAmount ? money(resolvedAmount) : "—"}
         />
         <DRow
           label="Payment"
