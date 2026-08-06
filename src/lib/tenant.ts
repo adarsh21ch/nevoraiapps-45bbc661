@@ -33,6 +33,7 @@ const DEFAULT_PLATFORM_HOSTS = [
   "lovable.app",
   "lovable.dev",
   "lovableproject.com",
+  "lovable-preview.com",
 ];
 
 function getPlatformHosts(extra?: string[]): string[] {
@@ -57,7 +58,7 @@ export function isReservedPlatformHost(hostname: string, platformHosts?: string[
   const parts = hostname.split(".");
   if (parts.length > 2 && hosts.some((h) => hostname.endsWith("." + h))) {
     const first = parts[0];
-    if (first.includes("--") || first.startsWith("id-preview")) return true;
+    if (first.includes("--") || first.startsWith("id-preview") || first.length === 36) return true;
     if (RESERVED_HOSTS.has(first)) return true;
   }
   return false;
