@@ -1279,8 +1279,6 @@ function TeamPanel({
   teamsLoading,
   studentPool,
   studentsLoading,
-  studentPool,
-  studentsLoading,
   validationError,
 }: {
   side: "A" | "B";
