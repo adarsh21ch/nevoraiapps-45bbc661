@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { OverHistorySheet } from "./over-history-sheet";
 import type { OverHistoryRow } from "@/lib/mc-statistics-engine";
+import { formatBallNotation } from "@/lib/mc-ball-events-core";
 
 import type { BatterStats, BowlerStats, PlayerOption } from "./scoring-ui";
 
@@ -816,19 +817,8 @@ function InfoTile({ label, value, accent }: { label: string; value: string; acce
 }
 
 function BallBubble({ label }: { label: string }) {
-  let upper = label.toUpperCase();
-  // Standardize notation if it's purely a number and not 0
-  if (/^[1-6]$/.test(upper)) {
-    // Keep as is
-  } else if (upper === "0" || upper === "DOT") {
-    upper = "•";
-  } else if (/^WD\d+$/.test(upper)) {
-    const runs = parseInt(upper.slice(2));
-    upper = runs > 1 ? `WD+${runs - 1}` : "WD";
-  } else if (/^NB\d+$/.test(upper)) {
-    const runs = parseInt(upper.slice(2));
-    upper = runs > 1 ? `NB+${runs - 1}` : "NB";
-  }
+  const upper = formatBallNotation(label);
+
 
   const wicket = /W/.test(upper);
   const four = upper === "4" || upper.endsWith("+4") || (upper.includes("NB") && upper.includes("5"));
