@@ -26,8 +26,7 @@ import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUpload
 import { AccountCard } from "@/components/settings/AccountCard";
 import { EditMyProfileDialog } from "@/components/portal/EditMyProfileDialog";
 import { StudentIDCard } from "@/components/portal/StudentIDCard";
-import { toPng } from "html-to-image";
-import saveAs from "file-saver";
+import { generateIdCardPdf } from "@/lib/id-card-pdf";
 import { toast } from "sonner";
 
 
@@ -49,11 +48,29 @@ function StudentProfilePage() {
   });
 
   const handleDownloadIDCard = async () => {
-    if (!cardRef.current) return;
+    if (!ctx) return;
     setIsDownloading(true);
     try {
-      const dataUrl = await toPng(cardRef.current, { cacheBust: true, pixelRatio: 2 });
-      saveAs(dataUrl, `ID_Card_${s.name?.replace(/\s+/g, "_")}.png`);
+      const { data: tenant } = await supabase
+        .from("tenants")
+        .select("*")
+        .eq("id", ctx.tenant_id)
+        .single();
+      
+      if (!tenant) throw new Error("Tenant not found");
+
+      await generateIdCardPdf(tenant as any, {
+        playerId: s.player_id ?? null,
+        name: (s.name as string) || "Student",
+        guardianName: (s.emergency_contact_name as string) || null,
+        dob: (s.dob as string) || null,
+        phone: (s.phone as string) || "",
+        guardianPhone: (s.emergency_contact_phone as string) || null,
+        batchName: (s.batch_name as string) || (s.playing_role as string) || "Student",
+        joinedAt: (s.joined_at as string) || new Date().toISOString(),
+        photoPath: (s.photo_url as string) || null,
+        cardToken: (s.card_token as string) || null,
+      });
       toast.success("ID Card downloaded successfully");
     } catch (err) {
       console.error("Failed to download ID card", err);
