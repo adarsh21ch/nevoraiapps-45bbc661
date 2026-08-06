@@ -808,6 +808,7 @@ function CreateMatchPage() {
               className="h-11 flex-1 text-sm font-semibold"
               onClick={goBack}
               disabled={createM.isPending}
+              data-step-nav="back"
             >
               <ArrowLeft className="mr-1 size-4" />
               Back
