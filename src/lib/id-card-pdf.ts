@@ -110,16 +110,16 @@ function drawPrintUtilities(doc: jsPDF, fx: number, fy: number, label: string) {
 }
 
 export async function generateIdCardsPdf(tenant: Tenant, rows: IdCardData[]) {
-  const doc = new jsPDF({ unit: "mm", format: [CW + 40, CH + 60], orientation: "landscape" });
+  const doc = new jsPDF({ unit: "mm", format: [CW + 40, CH + 60], orientation: "portrait" });
   const fx = 20;
   const fy = 30;
   
   for (let i = 0; i < rows.length; i++) {
-    if (i > 0) doc.addPage([CW + 40, CH + 60], "landscape");
+    if (i > 0) doc.addPage([CW + 40, CH + 60], "portrait");
     await drawCardFront(doc, tenant, rows[i], fx, fy);
     drawPrintUtilities(doc, fx, fy, `PLAYER: ${rows[i].name} (FRONT)`);
     
-    doc.addPage([CW + 40, CH + 60], "landscape");
+    doc.addPage([CW + 40, CH + 60], "portrait");
     await drawCardBack(doc, tenant, rows[i], fx, fy);
     drawPrintUtilities(doc, fx, fy, `PLAYER: ${rows[i].name} (BACK)`);
   }
@@ -128,9 +128,7 @@ export async function generateIdCardsPdf(tenant: Tenant, rows: IdCardData[]) {
 
 async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, fy: number) {
   const brand = safeHex(tenant.primary_color, "#0f172a");
-  const accent = safeHex(tenant.secondary_color, "#f59e0b");
   const [br, bg, bb] = hexToRgb(brand);
-  const [ar, ag, ab] = hexToRgb(accent);
 
   let logoDataUrl: string | null = null;
   if (tenant.logo_url) {
@@ -148,45 +146,41 @@ async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numb
     } catch {}
   }
 
-  // Header
+  // Header Background
   doc.setFillColor(br, bg, bb);
-  doc.roundedRect(fx, fy, CW, 14, R, R, "F");
-  doc.rect(fx, fy + 7, CW, 7, "F");
+  doc.roundedRect(fx, fy, CW, 18, R, R, "F");
+  doc.rect(fx, fy + 9, CW, 9, "F"); // Flatten bottom corners of header bg
 
-  let hx = fx + 5;
+  // Logo & Academy Name
+  let ly = fy + 3;
   if (logoDataUrl) {
     try {
-      doc.addImage(logoDataUrl, "PNG", hx, fy + 3, 8, 8);
-      hx += 10;
-    } catch {}
+      doc.addImage(logoDataUrl, "PNG", fx + CW/2 - 4.5, ly, 9, 9);
+      ly += 11;
+    } catch {
+      ly += 2;
+    }
+  } else {
+    ly += 5;
   }
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text((tenant.short_name || tenant.name).toUpperCase(), hx, fy + 7);
-  doc.setFontSize(5);
-  doc.setFont("helvetica", "normal");
-  doc.text("PLAYER IDENTITY CARD", hx, fy + 10);
+  doc.setFontSize(7.5);
+  const academyName = (tenant.short_name || tenant.name || "ACADEMY").toUpperCase();
+  const academyLines = doc.splitTextToSize(academyName, CW - 10);
+  doc.text(academyLines, fx + CW / 2, ly, { align: "center" });
 
-  // Player ID in Header
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(4);
-  doc.text("PLAYER ID", fx + CW - 5, fy + 6, { align: "right" });
-  doc.setTextColor(ar, ag, ab);
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.text(r.playerId || "—", fx + CW - 5, fy + 10, { align: "right" });
-
-  // Body
+  // White Body
   doc.setFillColor(255, 255, 255);
-  doc.roundedRect(fx, fy + 14, CW, 30, 0, 0, "F");
+  doc.rect(fx, fy + 18, CW, CH - 18 - 12, "F");
 
-  // Photo
-  const px = fx + 6;
-  const py = fy + 17;
-  const pw = 20;
-  const ph = 26;
+  // Player Photo
+  const pw = 28;
+  const ph = 35;
+  const px = fx + (CW - pw) / 2;
+  const py = fy + 22;
+  
   doc.setFillColor(245, 247, 250);
   doc.roundedRect(px, py, pw, ph, 2, 2, "F");
   if (photoDataUrl) {
@@ -195,66 +189,62 @@ async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numb
     } catch {}
   } else {
     doc.setTextColor(200, 205, 215);
-    doc.setFontSize(15);
-    const initials = r.name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join("").toUpperCase();
-    doc.text(initials || "?", px + pw/2, py + ph/2 + 3, { align: "center" });
+    doc.setFontSize(20);
+    doc.text("?", px + pw/2, py + ph/2 + 5, { align: "center" });
   }
 
-  // Details
-  const dx = px + pw + 5;
-  let dy = py + 3;
-
+  // Player Name
   doc.setTextColor(17, 24, 39);
-  doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
-  const nameLines = doc.splitTextToSize(r.name.toUpperCase(), CW - (dx - fx) - 6);
-  doc.text(nameLines, dx, dy);
-  dy += (nameLines.length * 4) + 2;
+  doc.setFontSize(11);
+  const nameLines = doc.splitTextToSize(r.name.toUpperCase(), CW - 10);
+  doc.text(nameLines, fx + CW / 2, py + ph + 6, { align: "center" });
 
-  const fieldLabel = (label: string, x: number, y: number) => {
-    doc.setTextColor(156, 163, 175);
-    doc.setFontSize(4.5);
+  // Details Area
+  let dy = py + ph + (nameLines.length * 4.5) + 4;
+  const lx = fx + 6;
+  const vx = fx + 22;
+
+  const field = (label: string, value: string, boldValue = true) => {
+    doc.setTextColor(br, bg, bb);
+    doc.setFontSize(5.5);
     doc.setFont("helvetica", "bold");
-    doc.text(label, x, y);
-  };
-  const fieldValue = (val: string, x: number, y: number, color = [31, 41, 55]) => {
-    doc.setTextColor(color[0], color[1], color[2]);
-    doc.setFontSize(7.5);
-    doc.setFont("helvetica", "bold");
-    doc.text(val, x, y);
+    doc.text(label, lx, dy);
+    
+    doc.setTextColor(31, 41, 55);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", boldValue ? "bold" : "normal");
+    const valLines = doc.splitTextToSize(value || "—", CW - (vx - fx) - 6);
+    doc.text(valLines, vx, dy);
+    dy += (valLines.length * 3.5) + 0.5;
   };
 
-  fieldLabel("DATE OF BIRTH", dx, dy);
-  fieldLabel("SPORT", dx + 22, dy);
-  dy += 3.5;
-  fieldValue(fmtDate(r.dob), dx, dy);
-  fieldValue((r.sport || "CRICKET").toUpperCase(), dx + 22, dy, [ar, ag, ab]);
-
-  const location = formatShortLocation(r.villageLocality, r.city, r.state);
-  if (location) {
-    dy += 6;
-    fieldLabel("LOCATION", dx, dy);
-    dy += 3.5;
-    fieldValue(location.toUpperCase(), dx, dy);
-  }
+  field("PLAYER ID", r.playerId || "—");
+  field("DOB", fmtDate(r.dob));
+  field("SPORT", (r.sport || "CRICKET").toUpperCase());
+  field("CONTACT", r.phone || "—");
+  field("ADDRESS", r.academyAddress || "—", false);
 
   // Footer
-  doc.setFillColor(249, 250, 251);
-  doc.roundedRect(fx, fy + CH - 10, CW, 10, R, R, "F");
-  doc.rect(fx, fy + CH - 10, CW, 5, "F");
+  const footerH = 12;
+  doc.setFillColor(br, bg, bb);
+  doc.roundedRect(fx, fy + CH - footerH, CW, footerH, R, R, "F");
+  doc.rect(fx, fy + CH - footerH, CW, footerH / 2, "F");
 
-  doc.setTextColor(156, 163, 175);
-  doc.setFontSize(5);
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(4.5);
   doc.setFont("helvetica", "bold");
-  doc.text(`MEMBER SINCE · ${fmtMonthYear(r.joinedAt)}`, fx + 6, fy + CH - 4);
-  doc.text("OFFICIAL PLAYER ID CARD", fx + CW - 6, fy + CH - 4, { align: "right" });
+  doc.text("MEMBER SINCE", fx + 5, fy + CH - 7);
+  doc.setFontSize(7);
+  doc.text(fmtMonthYear(r.joinedAt), fx + 5, fy + CH - 3);
+
+  doc.setFontSize(6.5);
+  doc.text("OFFICIAL PLAYER ID CARD", fx + CW - 5, fy + CH - 4, { align: "right" });
 }
 
 async function drawCardBack(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, fy: number) {
   const brand = safeHex(tenant.primary_color, "#0f172a");
-  const accent = safeHex(tenant.secondary_color, "#f59e0b");
   const [br, bg, bb] = hexToRgb(brand);
-  const [ar, ag, ab] = hexToRgb(accent);
 
   let logoDataUrl: string | null = null;
   if (tenant.logo_url) {
@@ -264,25 +254,40 @@ async function drawCardBack(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numbe
     } catch {}
   }
 
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(fx, fy, CW, CH, R, R, "F");
-
-  // Header
+  // Header Background
   doc.setFillColor(br, bg, bb);
-  doc.roundedRect(fx, fy, CW, 12, R, R, "F");
-  doc.rect(fx, fy + 6, CW, 6, "F");
+  doc.roundedRect(fx, fy, CW, 18, R, R, "F");
+  doc.rect(fx, fy + 9, CW, 9, "F");
 
-  let hx = fx + 5;
+  // Logo & Academy Name
+  let ly = fy + 3;
   if (logoDataUrl) {
     try {
-      doc.addImage(logoDataUrl, "PNG", hx, fy + 2.5, 7, 7);
-      hx += 9;
-    } catch {}
+      doc.addImage(logoDataUrl, "PNG", fx + CW/2 - 4.5, ly, 9, 9);
+      ly += 11;
+    } catch {
+      ly += 2;
+    }
+  } else {
+    ly += 5;
   }
+
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text((tenant.short_name || tenant.name).toUpperCase(), hx, fy + 7.5);
+  doc.setFontSize(7.5);
+  const academyName = (tenant.short_name || tenant.name || "ACADEMY").toUpperCase();
+  const academyLines = doc.splitTextToSize(academyName, CW - 10);
+  doc.text(academyLines, fx + CW / 2, ly, { align: "center" });
+
+  // Body
+  doc.setFillColor(255, 255, 255);
+  doc.rect(fx, fy + 18, CW, CH - 18 - 10, "F");
+
+  // QR Label
+  doc.setTextColor(107, 114, 128);
+  doc.setFontSize(6.5);
+  doc.setFont("helvetica", "bold");
+  doc.text("SCAN FOR ATTENDANCE", fx + CW / 2, fy + 26, { align: "center" });
 
   // QR
   const site = tenantSiteUrl(tenant);
@@ -291,44 +296,32 @@ async function drawCardBack(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numbe
     : `${site}/?id=${encodeURIComponent(r.playerId || "")}`;
   
   try {
-    const qrDataUrl = await QRCode.toDataURL(qrPayload, { margin: 1, width: 200 });
-    doc.addImage(qrDataUrl, "PNG", fx + 8, fy + 16, 24, 24);
+    const qrDataUrl = await QRCode.toDataURL(qrPayload, { margin: 1, width: 250 });
+    doc.addImage(qrDataUrl, "PNG", fx + (CW - 35) / 2, fy + 28, 35, 35);
   } catch {}
 
-  doc.setTextColor(ar, ag, ab);
-  doc.setFontSize(5.5);
+  // Session / Batch
+  doc.setTextColor(br, bg, bb);
+  doc.setFontSize(6.5);
   doc.setFont("helvetica", "bold");
-  doc.text("SCAN FOR ATTENDANCE", fx + 20, fy + 43, { align: "center" });
+  doc.text("SESSION / BATCH", fx + CW / 2, fy + 68, { align: "center" });
 
-  // Info Column
-  const ix = fx + 42;
-  let iy = fy + 20;
-
-  const backField = (label: string, val: string, color = [31, 41, 55]) => {
-    doc.setTextColor(156, 163, 175);
-    doc.setFontSize(4.5);
-    doc.text(label, ix, iy);
-    iy += 3.5;
-    doc.setTextColor(color[0], color[1], color[2]);
-    doc.setFontSize(7.5);
-    doc.setFont("helvetica", "bold");
-    doc.text(val.toUpperCase(), ix, iy);
-    iy += 6;
-  };
-
-  backField("PLAYER ID", r.playerId || "—");
-  backField("SESSION / BATCH", (r.batchName || "GENERAL").slice(0, 25), [ar, ag, ab]);
-  backField("TRAINING TIME", (r.batchTiming || "AS PER BATCH").slice(0, 25));
+  doc.setTextColor(31, 41, 55);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  const batchName = (r.batchName || "GENERAL SESSION").toUpperCase();
+  const displayBatch = batchName.includes("BOTH SESSION") ? "MORNING + EVENING" : batchName;
+  const batchLines = doc.splitTextToSize(displayBatch, CW - 10);
+  doc.text(batchLines, fx + CW / 2, fy + 74, { align: "center" });
 
   // Footer
-  doc.setDrawColor(243, 244, 246);
-  doc.line(fx + 5, fy + CH - 8, fx + CW - 5, fy + CH - 8);
+  const footerH = 10;
+  doc.setFillColor(br, bg, bb);
+  doc.roundedRect(fx, fy + CH - footerH, CW, footerH, R, R, "F");
+  doc.rect(fx, fy + CH - footerH, CW, footerH / 2, "F");
 
-  doc.setTextColor(107, 114, 128);
+  doc.setTextColor(255, 255, 255);
   doc.setFontSize(6);
-  doc.text(r.academyPhone || "—", fx + 6, fy + CH - 4);
-
-  doc.setTextColor(209, 213, 219);
-  doc.setFontSize(5);
-  doc.text("POWERED BY ACADEMY OS", fx + CW - 6, fy + CH - 4, { align: "right" });
+  doc.setFont("helvetica", "bold");
+  doc.text("POWERED BY ACADEMY OS", fx + CW / 2, fy + CH - 4, { align: "center" });
 }
