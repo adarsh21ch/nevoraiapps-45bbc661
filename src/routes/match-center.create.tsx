@@ -1443,7 +1443,9 @@ function NewTeamBody({
   name,
   onName,
   players,
+  onPlayers,
   onAdd,
+  onRemove,
   studentPool,
   studentsLoading,
 }: {
