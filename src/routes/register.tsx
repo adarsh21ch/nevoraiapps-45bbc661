@@ -1204,11 +1204,16 @@ function BatchSelect({
             error ? "border-red-500" : "border-border",
           )}
         >
-          {options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.right ? `${o.label}  •  ${o.right}` : o.label}
-            </option>
-          ))}
+          {options.map((o) => {
+            const isAdmissionFeeEnabled = tenant?.admission_fee_enabled !== false;
+            const regFee = isAdmissionFeeEnabled ? fees.find(f => f.type === 'registration') : null;
+            const regText = regFee ? ` + ₹${regFee.amount} adm.` : '';
+            return (
+              <option key={o.value} value={o.value}>
+                {o.right ? `${o.label}  •  ${o.right}${regText}` : o.label}
+              </option>
+            );
+          })}
         </select>
       </div>
       {error ? <span className="mt-1 block text-xs text-red-600">{error}</span> : null}
