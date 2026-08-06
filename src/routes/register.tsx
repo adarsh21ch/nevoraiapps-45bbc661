@@ -739,25 +739,29 @@ function RegisterContent() {
                   autoComplete="tel"
                   error={errors.phone}
                 />
-                {batches.length > 0 ? (
-                  <div className="sm:col-span-2">
-                    <BatchSelect
-                      value={form.batch_id}
-                      onChange={(v) => setForm({ ...form, batch_id: v })}
-                      options={batchOptions}
-                      onInfo={() => setBatchInfoOpen(true)}
-                      error={errors.batch_id}
-                      tenant={tenant}
-                      fees={fees}
-                    />
-                    <FeeSummary
-                      batch={batches.find((b) => b.id === form.batch_id)}
-                      fees={fees}
-                      gender={normalizeGender(form.gender) || undefined}
-                      tenant={tenant}
-                    />
+                <div className="sm:col-span-2">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                    <div className="flex-1">
+                      <BatchSelect
+                        value={form.batch_id}
+                        onChange={(v) => setForm({ ...form, batch_id: v })}
+                        options={batchOptions}
+                        onInfo={() => setBatchInfoOpen(true)}
+                        error={errors.batch_id}
+                        tenant={tenant}
+                        fees={fees}
+                      />
+                    </div>
+                    <div className="sm:mt-[22px] sm:min-w-[280px]">
+                      <FeeSummary
+                        batch={batches.find((b) => b.id === form.batch_id)}
+                        fees={fees}
+                        gender={normalizeGender(form.gender) || undefined}
+                        tenant={tenant}
+                      />
+                    </div>
                   </div>
-                ) : null}
+                </div>
                 <div className="sm:col-span-2">
                   <TextArea
                     label="Permanent address *"
