@@ -27,6 +27,7 @@ interface Props {
     tournament?: string | null;
     date?: string | null;
     format?: string | null;
+    playingRules?: string | null;
     homeTeam?: string;
     awayTeam?: string;
     result?: string | null;

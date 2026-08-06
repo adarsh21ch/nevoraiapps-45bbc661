@@ -731,6 +731,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     "B";
   const matchTitle = `${teamAShort} vs ${teamBShort}`;
   const tournamentLabel = [
+    session.match?.playing_rules ? `${session.match.playing_rules} Rules` : null,
     session.match?.match_format,
     session.match?.match_type,
     session.activeInnings ? `Innings ${session.activeInnings.innings_number}` : null,
@@ -1872,6 +1873,7 @@ function DemoScorerBody({
   const teamBShort = teamB?.short_name ?? teamB?.name?.slice(0, 3).toUpperCase() ?? "B";
   const matchTitle = `${teamAShort} vs ${teamBShort} · Demo`;
   const tournamentLabel = [
+    match.playing_rules ? `${match.playing_rules} Rules` : null,
     match.match_format,
     match.match_type,
     activeInnings ? `Innings ${activeInnings.innings_number}` : null,
@@ -1900,6 +1902,7 @@ function DemoScorerBody({
                 tournament: match.match_type,
                 date: match.scheduled_date,
                 format: match.match_format,
+                playingRules: match.playing_rules,
                 homeTeam: homeName,
                 awayTeam: awayName,
                 result: match.result,
@@ -2160,6 +2163,7 @@ function DemoScorerBody({
                 homeTeam: homeName,
                 awayTeam: awayName,
                 format: match.match_format ?? null,
+                playingRules: match.playing_rules ?? null,
                 ground: match.ground_name ?? null,
                 tournament: match.match_type ?? null,
                 date: match.scheduled_date ?? null,
