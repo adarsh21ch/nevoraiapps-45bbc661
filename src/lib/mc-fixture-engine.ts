@@ -24,7 +24,7 @@
  * ================================================================ */
 
 import { supabase } from "@/integrations/supabase/client";
-import { createMatch } from "@/lib/mc-matches";
+import { createMatch, getDefaultPlayingRules } from "@/lib/mc-matches";
 import type { Database } from "@/integrations/supabase/types";
 import type { MCTournament } from "@/lib/mc-tournaments";
 import type {
@@ -585,6 +585,7 @@ export async function persistFixturePlan(
       team_b_id: f.team_b_id!,
       match_type: f.stage === "knockout" ? "tournament_knockout" : "tournament",
       match_format: opts.matchFormat,
+      playing_rules: getDefaultPlayingRules(opts.matchFormat),
       overs: opts.overs,
       scheduled_date: f.scheduled_date ?? null,
       scheduled_time: f.scheduled_time ?? null,

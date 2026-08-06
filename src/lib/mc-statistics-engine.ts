@@ -719,6 +719,7 @@ export function computePartnerships(events: MCBallEvent[]): {
 
 export interface TeamStatsOptions {
   totalOvers?: number | null;
+  playingRules?: string | null;
   target?: number | null;
 }
 
@@ -891,7 +892,7 @@ export function computeInningsStatisticsMemo(
     byOpts = new Map();
     memoCache.set(events, byOpts);
   }
-  const key = `${opts.totalOvers ?? "-"}::${opts.target ?? "-"}`;
+  const key = `${opts.totalOvers ?? "-"}::${opts.playingRules ?? "-"}::${opts.target ?? "-"}`;
   let cached = byOpts.get(key);
   if (!cached) {
     cached = computeInningsStatistics(events, opts);

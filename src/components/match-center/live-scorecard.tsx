@@ -27,6 +27,7 @@ interface Props {
     tournament?: string | null;
     date?: string | null;
     format?: string | null;
+    playingRules?: string | null;
     homeTeam?: string;
     awayTeam?: string;
     result?: string | null;
@@ -73,12 +74,13 @@ export function LiveScorecard({ events, innings, totalOvers, matchInfo, hideHero
   const [openBowler, setOpenBowler] = useState<BowlingStat | null>(null);
   const stats = calculateInningsStatistics(events, {
     totalOvers: totalOvers ?? null,
+    playingRules: matchInfo?.playingRules ?? null,
     target: innings?.target ?? null,
   });
   // Separate stats derived from the OTHER innings so a team that hasn't batted
   // still shows correct Bowling figures.
   const bowlingStats = bowlingStatsEvents && bowlingStatsEvents.length > 0
-    ? calculateInningsStatistics(bowlingStatsEvents, { totalOvers: null, target: null })
+    ? calculateInningsStatistics(bowlingStatsEvents, { totalOvers: null, playingRules: matchInfo?.playingRules ?? null, target: null })
     : stats;
 
   // When embedded in a page that scrolls (hideHero=true, e.g. public match view),
@@ -456,6 +458,7 @@ function SummaryPane({
             label="Teams"
             value={`${matchInfo?.homeTeam ?? "Home"} vs ${matchInfo?.awayTeam ?? "Away"}`}
           />
+          {matchInfo?.playingRules && <InfoRow label="Rules" value={`${matchInfo.playingRules} Rules`} />}
           {matchInfo?.format && <InfoRow label="Format" value={matchInfo.format} />}
           {matchInfo?.ground && <InfoRow label="Ground" value={matchInfo.ground} />}
           {matchInfo?.tournament && <InfoRow label="Tournament" value={matchInfo.tournament} />}

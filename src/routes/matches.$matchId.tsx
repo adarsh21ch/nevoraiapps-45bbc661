@@ -57,6 +57,7 @@ type PublicMatchDetailRow = {
   tenant_id: string;
   status: string;
   match_format: string | null;
+  playing_rules: string | null;
   match_type: string | null;
   overs: number;
   scheduled_date: string | null;
@@ -82,7 +83,7 @@ function PublicMatchDetail() {
       const { data, error } = await supabase
         .from("mc_matches")
         .select(
-          "id,tenant_id,status,match_format,match_type,overs,scheduled_date,scheduled_time,ground_name,result,winner_team,toss_winner,toss_decision,team_a_id,team_b_id,visibility",
+          "id,tenant_id,status,match_format,playing_rules,match_type,overs,scheduled_date,scheduled_time,ground_name,result,winner_team,toss_winner,toss_decision,team_a_id,team_b_id,visibility",
         )
         .eq("id", matchId)
         .eq("visibility", "public")
@@ -371,6 +372,7 @@ function PublicMatchDetail() {
         <span className="font-semibold text-foreground">
           {homeName} <span className="text-muted-foreground">vs</span> {awayName}
         </span>
+        {match.playing_rules && <span>· {match.playing_rules} Rules</span>}
         {match.match_format && <span>· {match.match_format}</span>}
         {match.match_type && <span>· {match.match_type}</span>}
         {match.scheduled_date && (

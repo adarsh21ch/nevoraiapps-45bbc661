@@ -9,7 +9,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { createMatch } from "@/lib/mc-matches";
+import { createMatch, getDefaultPlayingRules } from "@/lib/mc-matches";
 
 export type MCTournament = Database["public"]["Tables"]["mc_tournaments"]["Row"];
 export type MCTournamentInsert = Database["public"]["Tables"]["mc_tournaments"]["Insert"];
@@ -252,6 +252,7 @@ export async function persistFixtures(input: {
       team_b_id: f.team_b_id,
       match_type: "tournament",
       match_format: input.matchFormat,
+      playing_rules: getDefaultPlayingRules(input.matchFormat),
       overs: input.overs,
       scheduled_date: f.scheduled_date,
       scheduled_time: f.scheduled_time,

@@ -79,6 +79,7 @@ export interface MatchHeaderProps {
   target?: string;
   status: string;
   format?: string;
+  playingRules?: string;
   ground?: string;
   tournament?: string;
   timer?: string;
@@ -159,7 +160,14 @@ export function MatchHeader(props: MatchHeaderProps) {
               )}
             </div>
             <div className="truncate text-[11px] sm:text-xs text-muted-foreground">
-              {[props.format, props.tournament, props.ground].filter(Boolean).join(" · ")}
+              {[
+                props.playingRules ? `${props.playingRules} Rules` : null,
+                props.format,
+                props.tournament,
+                props.ground,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             </div>
           </div>
         </div>

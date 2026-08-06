@@ -95,11 +95,18 @@ const FORMAT_OPTIONS: { label: string; overs: number; value: string }[] = [
   { label: "Custom", overs: 20, value: "Custom" },
 ];
 
+const PLAYING_RULES_OPTIONS = [
+  { value: "T20", label: "T20 Rules", description: "Fast limited-overs rules" },
+  { value: "ODI", label: "ODI Rules", description: "One-day rules" },
+  { value: "Test", label: "Test / First-Class Rules", description: "Multi-day / traditional rules" },
+];
+
 const DRAFT_KEY = (tenantId: string) => `mc-create-draft:${tenantId}`;
 type WizardDraft = {
   step: number;
   matchType: string;
   matchFormat: string;
+  playingRules: string;
   overs: number;
   scheduledDate: string;
   panelA: TeamPanelState;
@@ -155,6 +162,7 @@ function CreateMatchPage() {
 
   const [matchType, setMatchType] = useState(draft?.matchType ?? defaults.match_type ?? "practice");
   const [matchFormat, setMatchFormat] = useState(draft?.matchFormat ?? defaults.match_format ?? "");
+  const [playingRules, setPlayingRules] = useState(draft?.playingRules ?? defaults.playing_rules ?? "T20");
   const [overs, setOvers] = useState<number>(draft?.overs ?? defaults.overs ?? 0);
   const [scheduledDate, setScheduledDate] = useState<string>(
     draft?.scheduledDate ?? new Date().toISOString().slice(0, 10),
@@ -235,7 +243,13 @@ function CreateMatchPage() {
   useEffect(() => {
     if (matchFormat === "Custom") return;
     const f = FORMAT_OPTIONS.find((x) => x.value === matchFormat);
-    if (f) setOvers(f.overs);
+    if (f) {
+      setOvers(f.overs);
+      // Sensible default for rules, but user can override
+      if (f.value === "Test") setPlayingRules("Test");
+      else if (f.value === "ODI") setPlayingRules("ODI");
+      else setPlayingRules("T20");
+    }
   }, [matchFormat]);
 
 
@@ -401,6 +415,7 @@ function CreateMatchPage() {
               team_b_id: teamBId,
               match_type: matchType,
               match_format: matchFormat,
+              playing_rules: playingRules,
               overs,
               scheduled_date: scheduledDate,
               scheduled_time: null,
@@ -429,6 +444,7 @@ function CreateMatchPage() {
         team_b_id: teamBId,
         match_type: matchType,
         match_format: matchFormat,
+        playing_rules: playingRules,
         overs,
         scheduled_date: scheduledDate || null,
         scheduled_time: null,
@@ -449,6 +465,7 @@ function CreateMatchPage() {
       writeMatchDefaults(tenant.id, {
         match_type: matchType,
         match_format: matchFormat,
+        playing_rules: playingRules,
         overs,
         ground_name: ground,
         ball_type: ballType,
@@ -560,6 +577,7 @@ function CreateMatchPage() {
       step,
       matchType,
       matchFormat,
+      playingRules,
       overs,
       scheduledDate,
       panelA,
@@ -586,6 +604,7 @@ function CreateMatchPage() {
     setStep(1);
     setMatchType("practice");
     setMatchFormat("");
+    setPlayingRules("T20");
     setOvers(0);
     setScheduledDate(new Date().toISOString().slice(0, 10));
     setPanelA(emptyPanel("new"));

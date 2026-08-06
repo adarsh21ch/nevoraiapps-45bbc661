@@ -31,9 +31,38 @@ export const MATCH_TYPES = [
 export const MATCH_FORMATS = [
   { value: "T10", label: "T10", overs: 10 },
   { value: "T20", label: "T20", overs: 20 },
+  { value: "T30", label: "30 Overs", overs: 30 },
+  { value: "T40", label: "40 Overs", overs: 40 },
   { value: "ODI", label: "ODI", overs: 50 },
   { value: "Test", label: "Test", overs: 90 },
   { value: "Custom", label: "Custom overs", overs: 20 },
+] as const;
+
+export function getDefaultPlayingRules(format: string): string {
+  if (format === "Test") return "Test";
+  if (format === "ODI") return "ODI";
+  return "T20";
+}
+
+export const PLAYING_RULES_PROFILES = [
+  { 
+    value: "T20", 
+    label: "T20 Rules", 
+    description: "Fast limited-overs rules (Free Hits on No Balls)",
+    freeHitEnabled: true 
+  },
+  { 
+    value: "ODI", 
+    label: "ODI Rules", 
+    description: "One-day rules (Free Hits on No Balls)",
+    freeHitEnabled: true 
+  },
+  { 
+    value: "Test", 
+    label: "Test / First-Class Rules", 
+    description: "Traditional rules (No Free Hits)",
+    freeHitEnabled: false 
+  },
 ] as const;
 
 export const MATCH_STATUSES = [
@@ -274,6 +303,7 @@ export type CreateMatchInput = {
   team_b_id: string;
   match_type: string;
   match_format: string;
+  playing_rules: string;
   overs: number;
   scheduled_date?: string | null;
   scheduled_time?: string | null;
@@ -309,6 +339,7 @@ export async function createMatch(input: CreateMatchInput) {
     team_b_id: input.team_b_id,
     match_type: input.match_type,
     match_format: input.match_format,
+    playing_rules: input.playing_rules,
     overs: input.overs,
     scheduled_date: input.scheduled_date || null,
     scheduled_time: input.scheduled_time || null,
@@ -478,6 +509,7 @@ export async function duplicateMatch(tenantId: string, matchId: string) {
 type Defaults = {
   match_type?: string;
   match_format?: string;
+  playing_rules?: string;
   overs?: number;
   ground_name?: string;
   ball_type?: string;
@@ -510,7 +542,15 @@ export function writeMatchDefaults(tenantId: string, patch: Defaults) {
   if (typeof window === "undefined") return;
   try {
     const current = readMatchDefaults(tenantId);
-    window.localStorage.setItem(key(tenantId), JSON.stringify({ ...current, ...patch }));
+    const updated = {
+      ...current,
+      ...patch,
+      playing_xi: { ...(current.playing_xi || {}), ...(patch.playing_xi || {}) },
+      captains: { ...(current.captains || {}), ...(patch.captains || {}) },
+      keepers: { ...(current.keepers || {}), ...(patch.keepers || {}) },
+      vice_captains: { ...(current.vice_captains || {}), ...(patch.vice_captains || {}) },
+    };
+    window.localStorage.setItem(key(tenantId), JSON.stringify(updated));
   } catch {
     /* ignore */
   }
