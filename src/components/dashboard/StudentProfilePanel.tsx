@@ -415,6 +415,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               state: s.state || null,
               guardianPhone: s.guardian_phone,
               batchName: batch?.name ?? null,
+              sport: athleteQ.data?.primary_sport || "Cricket",
               joinedAt: s.joined_at,
               photoPath: s.photo_url ?? null,
               cardToken: (s as { card_token?: string | null }).card_token ?? null,
