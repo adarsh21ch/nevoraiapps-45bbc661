@@ -797,61 +797,65 @@ export function ExtraRunsModal({
   kind: string;
   onSelect: (runs: number) => void;
 }) {
-  // Freeze `kind` while the sheet animates closed so options/sublabels
-  // don't visually "shrink" mid-animation when the parent nulls the kind.
   const [frozenKind, setFrozenKind] = useState(kind);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [customRuns, setCustomRuns] = useState("");
+
   useMemo(() => {
-    if (open && kind) setFrozenKind(kind);
+    if (open && kind) {
+      setFrozenKind(kind);
+      setIsMoreOpen(false);
+      setCustomRuns("");
+    }
   }, [open, kind]);
+
   const k = open ? (kind || frozenKind) : frozenKind;
 
-  // 0-7 runs scroller (total team runs including penalty if any)
-  const options = [0, 1, 2, 3, 4, 5, 6, 7];
+  // ROW 1: 1 2 3 4 | ROW 2: 5 6 7 More
+  const options = [1, 2, 3, 4, 5, 6, 7];
 
   const sublabelFor = (r: number): string | null => {
     if (k === "No Ball") {
-      if (r === 0) return "Invalid";
-      if (r === 1) return "NB only";
+      if (r === 1) return "NB";
       return `NB + ${r - 1}`;
     }
     if (k === "Wide") {
-      if (r === 0) return "Invalid";
-      if (r === 1) return "WD only";
+      if (r === 1) return "WD";
       return `WD + ${r - 1}`;
     }
     if (k === "Bye") {
       if (r === 0) return "Dot";
-      return `${r} Byes`;
+      return `${r} B`;
     }
     if (k === "Leg Bye") {
       if (r === 0) return "Dot";
-      return `${r} Leg Byes`;
+      return `${r} LB`;
     }
     return null;
   };
 
   const isBoundaryHit = (r: number): "four" | "six" | null => {
-    // If total runs is 4 or 6, highlight it
     if (r === 4) return "four";
     if (r === 6) return "six";
     return null;
   };
 
-  const hint =
-    k === "No Ball"
-      ? "Total runs (1 penalty + off-bat/extras). e.g. 5 = NB+4."
-      : k === "Wide"
-        ? "Total runs (1 penalty + extras). e.g. 1 = WD only."
-        : `Total ${k.toLowerCase()} runs on this delivery.`;
-
-
   const handlePick = (r: number) => {
-    // Close instantly, then commit selection — avoids a double-close
-    // animation flash when parent state churn causes a remount.
     onOpenChange(false);
-    // Defer so the exit animation starts before parent re-renders.
     requestAnimationFrame(() => onSelect(r));
   };
+
+  const handleCustomSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const val = parseInt(customRuns, 10);
+    if (!isNaN(val) && val >= 0) {
+      handlePick(val);
+    }
+  };
+
+  // Adjust options for Bye/Leg Bye (they include 0)
+  const isExtraPenalty = k === "Wide" || k === "No Ball";
+  const displayOptions = isExtraPenalty ? options : [0, 1, 2, 3, 4, 5, 6, 7];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -859,63 +863,112 @@ export function ExtraRunsModal({
         side="bottom"
         hideClose
         overlayClassName="bg-background/40 backdrop-blur-[2px]"
-        className="rounded-3xl bg-card/95 p-0 backdrop-blur-xl border-border/60 shadow-2xl w-[calc(100vw-1.5rem)] sm:w-[420px] sm:max-w-[420px] mx-auto"
+        className="rounded-3xl bg-card/95 p-0 backdrop-blur-xl border-border/60 shadow-2xl w-[calc(100vw-1.5rem)] sm:w-[420px] sm:max-w-[420px] mx-auto overflow-hidden"
       >
-        <SheetHeader className="px-5 pb-2 pt-4 text-left space-y-0.5">
-          <SheetTitle className="text-[15px] font-semibold">
-            {k} — total runs
-          </SheetTitle>
-          <SheetDescription className="text-[11px] leading-tight">
-            {hint}
-          </SheetDescription>
-        </SheetHeader>
+        <div className="flex flex-col h-full max-h-[90vh]">
+          <SheetHeader className="px-5 pb-2 pt-4 text-left space-y-0.5">
+            <SheetTitle className="text-[15px] font-semibold">
+              {k} — total runs
+            </SheetTitle>
+            <SheetDescription className="text-[11px] leading-tight">
+              Select total runs from this delivery
+            </SheetDescription>
+          </SheetHeader>
 
-        <div className="px-4 pt-2 overflow-x-auto no-scrollbar">
-          <div className="flex items-start justify-start gap-3 pb-2 min-w-max px-0.5">
-            {options.map((r) => {
-              const boundary = isBoundaryHit(r);
-              const sub = sublabelFor(r);
-              return (
+          <div className="px-5 py-4">
+            {!isMoreOpen ? (
+              <div className="grid grid-cols-4 gap-3">
+                {displayOptions.map((r) => {
+                  const boundary = isBoundaryHit(r);
+                  const sub = sublabelFor(r);
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => handlePick(r)}
+                      className="no-tap-highlight flex flex-col items-center gap-1.5 group shrink-0"
+                    >
+                      <span
+                        className={cn(
+                          "flex aspect-square w-full items-center justify-center rounded-full border-2 font-black tabular-nums text-xl shadow-sm transition group-active:scale-[0.92]",
+                          boundary === "four"
+                            ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-600"
+                            : boundary === "six"
+                              ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-600"
+                              : "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
+                        )}
+                      >
+                        {r}
+                      </span>
+                      <span className="text-[9px] font-bold uppercase tracking-tight leading-none text-muted-foreground whitespace-nowrap min-h-[10px]">
+                        {sub ?? ""}
+                      </span>
+                    </button>
+                  );
+                })}
                 <button
-                  key={r}
                   type="button"
-                  onClick={() => handlePick(r)}
-                  className="no-tap-highlight flex flex-col items-center gap-1.5 group shrink-0 w-12"
+                  onClick={() => setIsMoreOpen(true)}
+                  className="no-tap-highlight flex flex-col items-center gap-1.5 group shrink-0"
                 >
-                  <span
-                    className={cn(
-                      "flex aspect-square w-full items-center justify-center rounded-full border-2 font-black tabular-nums text-xl shadow-sm transition group-active:scale-[0.92]",
-                      boundary === "four"
-                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-600"
-                        : boundary === "six"
-                          ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-600"
-                          : "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
-                    )}
-                  >
-                    {r === 7 ? "7+" : r}
+                  <span className="flex aspect-square w-full items-center justify-center rounded-full border-2 border-dashed font-bold tabular-nums text-sm shadow-sm transition group-active:scale-[0.92] bg-card/40 hover:bg-muted text-muted-foreground border-border/70">
+                    More
                   </span>
                   <span className="text-[9px] font-bold uppercase tracking-tight leading-none text-muted-foreground whitespace-nowrap min-h-[10px]">
-                    {sub ?? ""}
+                    Custom
                   </span>
                 </button>
-              );
-            })}
+              </div>
+            ) : (
+              <form onSubmit={handleCustomSubmit} className="space-y-4 py-2 animate-in fade-in slide-in-from-bottom-2">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Enter total runs</h3>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    autoFocus
+                    placeholder="e.g. 8"
+                    value={customRuns}
+                    onChange={(e) => setCustomRuns(e.target.value)}
+                    className="h-12 text-lg font-bold rounded-xl"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-xl h-11 font-semibold"
+                    onClick={() => setIsMoreOpen(false)}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="rounded-xl h-11 font-semibold"
+                    disabled={!customRuns || isNaN(parseInt(customRuns, 10))}
+                  >
+                    Confirm
+                  </Button>
+                </div>
+              </form>
+            )}
           </div>
-        </div>
 
-        <div className="px-4 pt-2 pb-4">
-          <Button
-            variant="ghost"
-            className="w-full h-10 rounded-full text-sm font-semibold"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
+          <div className="px-4 pb-4">
+            <Button
+              variant="ghost"
+              className="w-full h-10 rounded-full text-sm font-semibold text-muted-foreground"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
   );
 }
+
 
 
 /* ---------------- Drawers ---------------- */
