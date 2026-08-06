@@ -1444,11 +1444,6 @@ function DemoScorerBody({
   // No-ball classification state for demo
   const [nbClassificationOpen, setNbClassificationOpen] = useState(false);
   const [pendingNoBallRuns, setPendingNoBallRuns] = useState<number | null>(null);
-  const [extraKind, setExtraKind] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
-
-  // No-ball classification state for demo
-  const [nbClassificationOpen, setNbClassificationOpen] = useState(false);
-  const [pendingNoBallRuns, setPendingNoBallRuns] = useState<number | null>(null);
   const [pickBowlerOpen, setPickBowlerOpen] = useState(false);
   const [extraKind, setExtraKind] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
   const [scorecardOpen, setScorecardOpen] = useState(false);
