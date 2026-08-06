@@ -193,9 +193,9 @@ function ModuleSubTabs() {
         className="flex items-center gap-1 overflow-x-auto no-scrollbar py-2"
       >
         {SUB_TABS.map((tab) => {
-          const active = tab.match.some(
-            (p) => location.pathname === p || location.pathname.startsWith(p + "/"),
-          );
+          const active = tab.to === "/match-center/live" 
+            ? location.pathname === "/match-center/live" || location.pathname === "/match-center" || location.pathname === "/match-center/dashboard" || location.pathname.startsWith("/scorer")
+            : tab.match.some((p) => location.pathname === p || location.pathname.startsWith(p + "/"));
           const Icon = tab.icon;
           const showLiveDot = tab.label === "Live" && (liveMatches.data ?? 0) > 0;
           return (

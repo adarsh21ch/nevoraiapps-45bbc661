@@ -153,32 +153,34 @@ function RecognitionPage() {
           { label: "Recognition" },
         ]}
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
             <Button
               size="sm"
               variant="outline"
+              className="rounded-full h-8 px-3 text-[12px] shrink-0"
               onClick={() => monthlyMut.mutate()}
               disabled={monthlyMut.isPending}
             >
               <RefreshCw
-                className={`size-4 mr-1.5 ${monthlyMut.isPending ? "animate-spin" : ""}`}
+                className={`size-3.5 mr-1.5 ${monthlyMut.isPending ? "animate-spin" : ""}`}
               />
-      <InsightsTabsBar />
               Monthly
             </Button>
             <Button
               size="sm"
               variant="outline"
+              className="rounded-full h-8 px-3 text-[12px] shrink-0"
               onClick={() => yearlyMut.mutate()}
               disabled={yearlyMut.isPending}
             >
-              <Sparkles className="size-4 mr-1.5" />
+              <Sparkles className="size-3.5 mr-1.5" />
               Yearly
             </Button>
             <CustomRecognitionDialog tenantId={tenantId} onCreated={invalidateAll} />
           </div>
         }
       />
+      <InsightsTabsBar />
 
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -195,21 +197,29 @@ function RecognitionPage() {
       <DemoDerivedRecognitions tenantId={tenantId} />
 
       <Tabs defaultValue="suggestions" className="mt-4">
-        <TabsList className="flex flex-wrap h-auto">
-          <TabsTrigger value="suggestions">
-            Suggestions
-            {suggestionsQ.data && suggestionsQ.data.length > 0 && (
-              <Badge variant="secondary" className="ml-1.5">
-                {suggestionsQ.data.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="published">Published</TabsTrigger>
-          <TabsTrigger value="certificates">Certificates</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="badges">Badges</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsList className="flex w-full h-auto flex-wrap justify-start gap-1 bg-transparent p-0 mb-4 overflow-x-auto no-scrollbar">
+          {[
+            { value: "suggestions", label: "Suggestions", badge: suggestionsQ.data?.length },
+            { value: "published", label: "Published" },
+            { value: "certificates", label: "Certificates" },
+            { value: "templates", label: "Templates" },
+            { value: "badges", label: "Badges" },
+            { value: "timeline", label: "Timeline" },
+            { value: "settings", label: "Settings" },
+          ].map((t) => (
+            <TabsTrigger
+              key={t.value}
+              value={t.value}
+              className="h-8 rounded-full border border-border bg-card px-3 text-[12px] font-medium transition-all data-[state=active]:border-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-none"
+            >
+              {t.label}
+              {t.badge ? (
+                <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] data-[state=active]:bg-background/20">
+                  {t.badge}
+                </span>
+              ) : null}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="suggestions" className="mt-4">
