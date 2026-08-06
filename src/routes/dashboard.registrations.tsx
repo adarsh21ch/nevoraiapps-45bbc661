@@ -663,11 +663,17 @@ function RegistrationsTable({
           </thead>
           <tbody className="divide-y divide-border">
             {rows.map((r, idx) => {
-              const plan = r.fee_plans as { name?: string } | null;
+              const plan = r.fee_plans as { name?: string; amount?: number; female_amount?: number } | null;
               const batch = r.batches as { name?: string } | null;
               const status = statusMeta(r);
               const rs = effectiveReviewStatus(r);
               const actionable = rs !== "approved" && rs !== "rejected";
+              
+              const isGenderPricingEnabled = (tenant as any).gender_pricing_enabled === true;
+              const resolvedAmount = isGenderPricingEnabled && plan 
+                ? resolveMonthlyFee(plan as any, r.gender)
+                : plan?.amount;
+
               return (
                 <tr key={r.id} className="hover:bg-accent/60 transition-colors">
                   <td className="px-3 py-3 text-muted-foreground tabular-nums">{idx + 1}</td>
