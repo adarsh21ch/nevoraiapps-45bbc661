@@ -1550,7 +1550,7 @@ function NewTeamBody({
     <div 
       className={cn(
         "flex flex-col bg-background overflow-hidden",
-        "fixed inset-0 z-50 md:relative md:inset-auto md:h-[80vh] md:max-h-[85vh] md:rounded-3xl md:border md:shadow-xl"
+        "fixed inset-0 z-[100] md:relative md:inset-auto md:h-[80vh] md:max-h-[85vh] md:rounded-3xl md:border md:shadow-xl"
       )}
       style={{ 
         height: vh > 0 ? `${vh}px` : '100dvh'
@@ -1684,14 +1684,18 @@ function NewTeamBody({
         </div>
 
         {/* Navigation Column (Horizontal) */}
-        <div className="flex items-center gap-3 p-4 pt-1">
+        <div className="flex items-center gap-3 p-4 pt-1 pb-6 md:pb-4">
            <Button 
              variant="outline" 
              className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted" 
              onClick={() => {
                const btn = document.querySelector('[data-step-nav="back"]') as HTMLButtonElement;
-               if (btn) btn.click();
-               else window.history.back();
+               if (btn) {
+                 btn.click();
+               } else {
+                 // Fallback if the button is somehow not in DOM (shouldn't happen with Step 2/3)
+                 window.history.back();
+               }
              }}
            >
              <ArrowLeft className="mr-2 size-4" />
@@ -1702,7 +1706,9 @@ function NewTeamBody({
              disabled={!!validationError}
              onClick={() => {
                const btn = document.querySelector('[data-step-nav="next"]') as HTMLButtonElement;
-               if (btn) btn.click();
+               if (btn) {
+                 btn.click();
+               }
              }}
            >
              Continue
