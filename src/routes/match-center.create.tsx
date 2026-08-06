@@ -1500,6 +1500,9 @@ function NewTeamBody({
   studentPool,
   studentsLoading,
   validationError,
+  goBack,
+  goNext,
+  canContinue,
 }: {
   name: string;
   onName: (v: string) => void;
@@ -1510,7 +1513,11 @@ function NewTeamBody({
   studentPool: PlayerRef[];
   studentsLoading?: boolean;
   validationError: string | null;
+  goBack: (e?: React.MouseEvent) => void;
+  goNext: (e?: React.MouseEvent) => void;
+  canContinue: boolean;
 }) {
+
   const [q, setQ] = useState("");
   const selectedKeys = useMemo(() => new Set(players.map((p) => p.key)), [players]);
 
