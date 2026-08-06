@@ -1654,6 +1654,14 @@ function SquadList({
   onPlayers: (v: PlayerRef[]) => void;
   onRemove: (key: string) => void;
 }) {
+  const listRef = useEffect(() => {
+    // When a player is added (length increases), scroll to the bottom to show the recent addition
+    const container = document.getElementById("squad-scroll-container");
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [players.length]);
+
   const setRole = (key: string, role: "C" | "VC" | "WK") => {
     const next = players.map((p) => {
       if (role === "C") {
@@ -1671,7 +1679,7 @@ function SquadList({
   };
 
   return (
-    <ol className="space-y-1.5 max-h-[40vh] overflow-y-auto pr-1">
+    <ol id="squad-scroll-container" className="space-y-1.5 max-h-[40vh] overflow-y-auto pr-1 scroll-smooth">
       {players.map((p, idx) => (
         <li
           key={p.key}
