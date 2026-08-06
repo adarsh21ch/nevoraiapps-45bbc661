@@ -603,8 +603,16 @@ function CreateMatchPage() {
     panelB.mode === "existing" ? !!panelB.selectedTeamId : panelB.draftName.trim().length > 0;
 
   const step1Valid = !!matchType && !!matchFormat && overs > 0;
-  const step2Valid = readyA && panelA.players.length >= 2;
-  const step3Valid = readyB && panelB.players.length >= 2;
+  
+  const hasRolesA = panelA.players.some(p => p.is_captain) && 
+                    panelA.players.some(p => p.is_vice_captain) && 
+                    panelA.players.some(p => p.is_keeper);
+  const hasRolesB = panelB.players.some(p => p.is_captain) && 
+                    panelB.players.some(p => p.is_vice_captain) && 
+                    panelB.players.some(p => p.is_keeper);
+
+  const step2Valid = readyA && panelA.players.length >= 2 && hasRolesA;
+  const step3Valid = readyB && panelB.players.length >= 2 && hasRolesB;
   const canStart = !validationError;
 
   const goBack = () => {
