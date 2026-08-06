@@ -752,6 +752,11 @@ function RegistrationsTable({
             const rs = effectiveReviewStatus(r);
             const actionable = rs !== "approved" && rs !== "rejected";
             const batch = r.batches as { name?: string } | null;
+            const plan = r.fee_plans as { name?: string; amount?: number; female_amount?: number } | null;
+            const isGenderPricingEnabled = (tenant as any).gender_pricing_enabled === true;
+            const resolvedAmount = isGenderPricingEnabled && plan 
+              ? resolveMonthlyFee(plan as any, r.gender)
+              : plan?.amount;
             return (
               <div className="pb-2">
                 <div className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
