@@ -32,6 +32,7 @@ function LeaderboardsPage() {
         description="Batting, bowling and boundary charts across your academy."
         breadcrumbs={[
           { label: "Match Center", to: "/match-center/dashboard" },
+          { label: "Insights", to: "/match-center/leaderboards" },
           { label: "Leaderboards" },
         ]}
       />

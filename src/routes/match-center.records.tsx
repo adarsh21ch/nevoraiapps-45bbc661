@@ -146,21 +146,23 @@ function RecordsPage() {
         description="Automatically aggregated from every finalized match."
         breadcrumbs={[
           { label: "Match Center", to: "/match-center/dashboard" },
+          { label: "Insights", to: "/match-center/leaderboards" },
           { label: "Records" },
         ]}
         actions={
           <Button
             size="sm"
             variant="outline"
+            className="rounded-full h-8 px-3 text-[12px]"
             onClick={() => rebuildMut.mutate()}
             disabled={rebuildMut.isPending}
           >
-            <RefreshCw className={`size-4 mr-1.5 ${rebuildMut.isPending ? "animate-spin" : ""}`} />
-      <InsightsTabsBar />
+            <RefreshCw className={`size-3.5 mr-1.5 ${rebuildMut.isPending ? "animate-spin" : ""}`} />
             Rebuild
           </Button>
         }
       />
+      <InsightsTabsBar />
 
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -176,17 +178,27 @@ function RecordsPage() {
       )}
 
       <Tabs defaultValue="overview" className="mt-4">
-        <TabsList className="flex flex-wrap h-auto">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="hall-of-fame">Hall of Fame</TabsTrigger>
-          <TabsTrigger value="batting">Batting</TabsTrigger>
-          <TabsTrigger value="bowling">Bowling</TabsTrigger>
-          <TabsTrigger value="fielding">Fielding</TabsTrigger>
-          <TabsTrigger value="team">Team</TabsTrigger>
-          <TabsTrigger value="captain">Captain</TabsTrigger>
-          <TabsTrigger value="awards">Awards</TabsTrigger>
-          <TabsTrigger value="milestones">Milestones</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+        <TabsList className="flex w-full h-auto flex-wrap justify-start gap-1 bg-transparent p-0 mb-4 overflow-x-auto no-scrollbar">
+          {[
+            { value: "overview", label: "Overview" },
+            { value: "hall-of-fame", label: "Hall of Fame" },
+            { value: "batting", label: "Batting" },
+            { value: "bowling", label: "Bowling" },
+            { value: "fielding", label: "Fielding" },
+            { value: "team", label: "Team" },
+            { value: "captain", label: "Captain" },
+            { value: "awards", label: "Awards" },
+            { value: "milestones", label: "Milestones" },
+            { value: "timeline", label: "Timeline" },
+          ].map((t) => (
+            <TabsTrigger
+              key={t.value}
+              value={t.value}
+              className="h-8 rounded-full border border-border bg-card px-3 text-[12px] font-medium transition-all data-[state=active]:border-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-none"
+            >
+              {t.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
