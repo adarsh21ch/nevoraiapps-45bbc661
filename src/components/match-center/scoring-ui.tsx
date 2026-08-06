@@ -317,7 +317,7 @@ function BatterRow({ batter, primary }: { batter?: BatterStats; primary?: boolea
   }
   const sr =
     batter.strikeRate ??
-    (batter.balls > 0 ? ((batter.runs / batter.balls) * 100).toFixed(1) : "0.0");
+    ((batter.balls ?? 0) > 0 ? (((batter.runs ?? 0) / (batter.balls ?? 0)) * 100).toFixed(1) : "0.0");
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
