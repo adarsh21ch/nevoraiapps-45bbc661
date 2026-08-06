@@ -125,11 +125,12 @@ function batchFeeText(batch: Batch, fees: FeePlan[], gender?: string, tenant?: a
   if (!plan) return "Contact academy";
   
   const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
-  const amount = isGenderPricingEnabled 
+  const resolved = isGenderPricingEnabled 
     ? resolveMonthlyFee(plan as any, gender)
     : Number(plan.amount);
+
     
-  return formatFeeLabel({ ...plan, amount }) || "Contact academy";
+  return formatFeeLabel({ ...plan, amount: resolved }) || "Contact academy";
 }
 
 function RegisterContent() {
