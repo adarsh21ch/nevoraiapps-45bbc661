@@ -446,26 +446,31 @@ export function ExtraRunsModal({ open, onOpenChange, kind, onSelect, }) {
             setFrozenKind(kind);
     }, [open, kind]);
     const k = open ? (kind || frozenKind) : frozenKind;
-    // No Ball is 1..7 (penalty is always included; 1 = NB only).
-    // Wide is 0..5 batsmen-runs (0 = plain wide; total = 1 penalty + batsmen runs).
-    // Bye/Leg Bye are 0..6 batsmen-runs.
-    // All extra types now use a 0-7 runs scroller (total runs including penalty if any)
-    const options = [1, 2, 3, 4, 5, 6, 7];
+    // 0-7 runs scroller (total team runs including penalty if any)
+    const options = [0, 1, 2, 3, 4, 5, 6, 7];
     const sublabelFor = (r) => {
         if (k === "No Ball") {
+            if (r === 0)
+                return "Invalid";
             if (r === 1)
                 return "NB only";
             return `NB + ${r - 1}`;
         }
         if (k === "Wide") {
+            if (r === 0)
+                return "Invalid";
             if (r === 1)
                 return "WD only";
             return `WD + ${r - 1}`;
         }
         if (k === "Bye") {
+            if (r === 0)
+                return "Dot";
             return `${r} Byes`;
         }
         if (k === "Leg Bye") {
+            if (r === 0)
+                return "Dot";
             return `${r} Leg Byes`;
         }
         return null;
