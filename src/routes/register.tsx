@@ -1406,7 +1406,14 @@ function BatchInfoDialog({
         className="w-full max-w-md rounded-2xl bg-background p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-sm font-semibold text-foreground">Available batches</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold text-foreground">Available batches</div>
+          {tenant.admission_fee_enabled !== false && fees.find((f) => f.type === "registration") && (
+            <div className="text-[10px] font-medium text-muted-foreground uppercase bg-muted/50 px-2 py-0.5 rounded">
+              + Admission fee
+            </div>
+          )}
+        </div>
         <ul className="mt-3 divide-y divide-border/60">
           {batches.map((b) => (
             <li key={b.id} className="flex items-start justify-between gap-4 py-3">
