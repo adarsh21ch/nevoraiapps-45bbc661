@@ -104,7 +104,8 @@ export function PreferencesCard() {
         <Popover open={langOpen} onOpenChange={setLangOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={rowClass}>
-              <RowLeft icon={Languages} label="Language" />
+              <RowLeft icon={Languages} label="But still I don't find out the bug is not solving. When I click multiple times, like suppose 10 to 20 times on download the ID card, then suddenly automatically all the things, but still for 10 second, 15 second, 20 second, nothing is happening. Why on a single click it is downloaded?" />
+
               <RowRight value={hydrated ? currentLang.native : ""} />
             </button>
           </PopoverTrigger>
