@@ -1110,6 +1110,7 @@ function ReviewTeamCard({
   players: PlayerRef[];
   captain: string | undefined;
   viceCaptain: string | undefined;
+  keeper: string | undefined;
   onEdit: () => void;
 }) {
   return (
@@ -1128,7 +1129,7 @@ function ReviewTeamCard({
       <div className="mt-0.5 text-xs text-muted-foreground">
         {players.length} {players.length === 1 ? "player" : "players"}
       </div>
-      {(captain || viceCaptain) && (
+      {(captain || viceCaptain || keeper) && (
         <div className="mt-2 space-y-0.5 text-[11px]">
           {captain && (
             <div className="truncate">
@@ -1144,6 +1145,14 @@ function ReviewTeamCard({
                 VC
               </span>
               {viceCaptain}
+            </div>
+          )}
+          {keeper && (
+            <div className="truncate">
+              <span className="mr-1 rounded bg-emerald-500/15 px-1 py-0.5 font-bold text-emerald-700 dark:text-emerald-400">
+                WK
+              </span>
+              {keeper}
             </div>
           )}
         </div>
