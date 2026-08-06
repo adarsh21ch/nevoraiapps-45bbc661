@@ -63,7 +63,7 @@ export async function fetchMyStudentContext(): Promise<StudentContext | null> {
   return {
     ...(row as StudentContext),
     tenant_name: t?.name,
-  } ?? null;
+  };
 }
 
 /**
