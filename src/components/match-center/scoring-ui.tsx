@@ -804,47 +804,41 @@ export function ExtraRunsModal({
   // No Ball is 1..7 (penalty is always included; 1 = NB only).
   // Wide is 0..5 batsmen-runs (0 = plain wide; total = 1 penalty + batsmen runs).
   // Bye/Leg Bye are 0..6 batsmen-runs.
-  const options: number[] =
-    k === "No Ball" ? [1, 2, 3, 4, 5, 6, 7]
-    : k === "Wide" ? [0, 1, 2, 3, 4, 5]
-    : [0, 1, 2, 3, 4, 5, 6];
+  // All extra types now use a 0-7 runs scroller (total runs including penalty if any)
+  const options = [0, 1, 2, 3, 4, 5, 6, 7];
 
-  const isBoundaryHit = (r: number): "four" | "six" | null => {
+  const sublabelFor = (r: number): string | null => {
     if (k === "No Ball") {
-      if (r === 5) return "four";
-      if (r === 7) return "six";
-      return null;
+      if (r === 1) return "NB only";
+      return `NB + ${r - 1}`;
     }
     if (k === "Wide") {
-      // total = 1 + r; boundary hit at r=3 (WD+3=4) or r=5 (WD+5=6)
-      if (r === 3) return "four";
-      if (r === 5) return "six";
-      return null;
+      if (r === 1) return "WD only";
+      return `WD + ${r - 1}`;
     }
+    if (k === "Bye") {
+      if (r === 0) return "0 runs";
+      return `${r} Byes`;
+    }
+    if (k === "Leg Bye") {
+      if (r === 0) return "0 runs";
+      return `${r} Leg Byes`;
+    }
+    return null;
+  };
+
+  const isBoundaryHit = (r: number): "four" | "six" | null => {
+    // If total runs is 4 or 6, highlight it
     if (r === 4) return "four";
     if (r === 6) return "six";
     return null;
   };
 
-  const sublabelFor = (r: number): string | null => {
-    if (k === "No Ball") {
-      if (r === 1) return "NB only";
-      if (r === 5) return "NB + 4";
-      if (r === 7) return "NB + 6";
-      return `NB + ${r - 1}`;
-    }
-    if (k === "Wide") {
-      if (r === 0) return "WD only";
-      return `WD + ${r}`;
-    }
-    return null;
-  };
-
   const hint =
     k === "No Ball"
-      ? "Total runs on this delivery (includes the 1-run no-ball penalty)."
+      ? "Total runs (1 penalty + off-bat/extras). e.g. 5 = NB+4."
       : k === "Wide"
-        ? "Runs the batsmen physically ran (the wide penalty is added automatically)."
+        ? "Total runs (1 penalty + extras). e.g. 1 = WD only."
         : `Total ${k.toLowerCase()} runs on this delivery.`;
 
 
@@ -873,41 +867,43 @@ export function ExtraRunsModal({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex items-start justify-between gap-2 px-4 pt-2">
-          {options.map((r) => {
-            const boundary = isBoundaryHit(r);
-            const sub = sublabelFor(r);
-            return (
-              <button
-                key={r}
-                type="button"
-                onClick={() => handlePick(r)}
-                className="no-tap-highlight flex flex-1 min-w-0 flex-col items-center gap-1 group"
-              >
-                <span
-                  className={cn(
-                    "flex aspect-square w-full items-center justify-center rounded-full border font-black tabular-nums text-xl shadow-sm transition group-active:scale-[0.92]",
-                    boundary === "four"
-                      ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-600"
-                      : boundary === "six"
-                        ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-600"
-                        : "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
-                  )}
+        <div className="px-4 pt-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-start justify-start gap-3 pb-2 min-w-max px-0.5">
+            {options.map((r) => {
+              const boundary = isBoundaryHit(r);
+              const sub = sublabelFor(r);
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => handlePick(r)}
+                  className="no-tap-highlight flex flex-col items-center gap-1.5 group shrink-0 w-12"
                 >
-                  {r}
-                </span>
-                <span className="text-[9px] font-semibold uppercase tracking-tight leading-none text-muted-foreground whitespace-nowrap min-h-[10px]">
-                  {sub ?? ""}
-                </span>
-              </button>
-            );
-          })}
+                  <span
+                    className={cn(
+                      "flex aspect-square w-full items-center justify-center rounded-full border-2 font-black tabular-nums text-xl shadow-sm transition group-active:scale-[0.92]",
+                      boundary === "four"
+                        ? "bg-blue-500 hover:bg-blue-600 text-white border-blue-600"
+                        : boundary === "six"
+                          ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-600"
+                          : "bg-card/60 hover:bg-muted text-foreground border-border/70 backdrop-blur-sm",
+                    )}
+                  >
+                    {r}
+                  </span>
+                  <span className="text-[9px] font-bold uppercase tracking-tight leading-none text-muted-foreground whitespace-nowrap min-h-[10px]">
+                    {sub ?? ""}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="px-4 pt-3 pb-3">
+        <div className="px-4 pt-2 pb-4">
           <Button
             variant="ghost"
-            className="w-full h-9 rounded-full text-sm"
+            className="w-full h-10 rounded-full text-sm font-semibold"
             onClick={() => onOpenChange(false)}
           >
             Cancel
