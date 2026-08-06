@@ -830,6 +830,7 @@ function CreateMatchPage() {
             </Button>
           {step < 5 ? (
             <Button
+              type="button"
               className="h-11 flex-1 text-sm font-semibold"
               disabled={!canContinue}
               onClick={goNext}
@@ -840,9 +841,14 @@ function CreateMatchPage() {
             </Button>
           ) : (
             <Button
+              type="button"
               className="h-11 flex-1 text-sm font-semibold"
               disabled={!canStart || createM.isPending}
-              onClick={() => createM.mutate()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                createM.mutate();
+              }}
               data-step-nav="start"
             >
               {createM.isPending ? (
@@ -854,6 +860,7 @@ function CreateMatchPage() {
             </Button>
           )}
           </div>
+
         )}
       </div>
     </div>
