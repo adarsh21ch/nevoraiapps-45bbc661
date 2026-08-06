@@ -98,6 +98,7 @@ function effectiveReviewStatus(r: any): string {
 function RegistrationsInbox() {
   const { tenant } = useDashboard();
   const tenantId = tenant.id!;
+  const { tenant: dashboardTenant } = useDashboard(); // Re-binding or ensuring it's accessible
   const qc = useQueryClient();
   const { data = [], isLoading } = useQuery({
     queryKey: qk.regs(tenant.id),
@@ -321,7 +322,7 @@ function RegistrationsInbox() {
     <div className="space-y-4">
       <ModuleHeader
         overline="Academy"
-        title="I'm little confused here because in batch session it is showing double, double kind of thing, like evening session below morning, evening, morning, both session, both session. I mean, little confusing it is. Please solve this partic-- what issue? I don't know what to say. Please solve this so I have a clear-- know exactly which batch it is"
+        title="But I guess batches and fee plan, why it is different? I get same thing, right? I mean, you're getting confused, no? Because the batch plan, it's itself a fee plan, no? Because automatically-- And also there show a fee section there also. So for example, in which batch they do registration or enroll, one-- create one more column of fees of that particular batch. Automatically we have, uh, input, right? So it's go-- source of truth should be the single. I guess you, you are confusing in it, right? For example, if there are five batches, so every batches have their own fees. So we simply same name, batch name, and the right side we create one more column of fees. So we show them the fees of that particular batch. Simple as that. Boys and girls automatically, and all their prices, right?\n\nBecause right now confu-confusion is this, it shows, right? For example, batch plan, it shows above it in evening session and bottom it is written morning session. So it, it is diffi-little difficult, right? As, uh, in Omesh, it is written evening session above and morning session below. I mean, I don't know why it is there. So little, little different there, right? Either morning, either evening. Simple as that. And we create one more column of fees. So morning session fees, evening. In which session they enroll, their fees is showing there automatically. So session fees should be the single of session and fees, which is decided by the owner, right?"
         backTo="/dashboard/academy"
         action={<ShareLinkButton tenant={tenant} />}
       />
@@ -393,6 +394,7 @@ function RegistrationsInbox() {
       ) : (
         <RegistrationsTable
           rows={filtered}
+          tenant={tenant}
           onOpen={(id) => setOpenId(id)}
           onAccept={(id) => approve.mutate(id)}
           onDelete={(id) => del.mutate(id)}
@@ -638,7 +640,8 @@ function RegistrationsTable({
   onWaitlist,
   accepting,
   rejecting,
-}: RowActions) {
+  tenant,
+}: RowActions & { tenant: any }) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [confirmAcceptId, setConfirmAcceptId] = useState<string | null>(null);
   const deleteTarget = rows.find((r) => r.id === confirmDeleteId);
@@ -654,7 +657,8 @@ function RegistrationsTable({
               <th className="px-3 py-2 w-10">#</th>
               <th className="px-3 py-2">Name</th>
               <th className="px-3 py-2">Phone</th>
-              <th className="px-3 py-2">Batch · Plan</th>
+              <th className="px-3 py-2">Batch</th>
+              <th className="px-3 py-2">Fees</th>
               <th className="px-3 py-2">Date</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2 text-right">Actions</th>
@@ -662,11 +666,17 @@ function RegistrationsTable({
           </thead>
           <tbody className="divide-y divide-border">
             {rows.map((r, idx) => {
-              const plan = r.fee_plans as { name?: string } | null;
+              const plan = r.fee_plans as { name?: string; amount?: number; female_amount?: number } | null;
               const batch = r.batches as { name?: string } | null;
               const status = statusMeta(r);
               const rs = effectiveReviewStatus(r);
               const actionable = rs !== "approved" && rs !== "rejected";
+              
+              const isGenderPricingEnabled = (tenant as any).gender_pricing_enabled === true;
+              const resolvedAmount = isGenderPricingEnabled && plan 
+                ? resolveMonthlyFee(plan as any, r.gender)
+                : plan?.amount;
+
               return (
                 <tr key={r.id} className="hover:bg-accent/60 transition-colors">
                   <td className="px-3 py-3 text-muted-foreground tabular-nums">{idx + 1}</td>
@@ -681,9 +691,11 @@ function RegistrationsTable({
                     </button>
                   </td>
                   <td className="px-3 py-3 text-muted-foreground tabular-nums">{r.phone}</td>
-                  <td className="px-3 py-3 text-xs text-muted-foreground">
-                    <div className="truncate max-w-[180px] font-medium text-foreground">{batch?.name ?? "—"}</div>
-                    <div className="truncate max-w-[180px] opacity-70 text-[10px]">{plan?.name ?? ""}</div>
+                  <td className="px-3 py-3 text-xs">
+                    <div className="font-medium text-foreground truncate max-w-[150px]">{batch?.name ?? "—"}</div>
+                  </td>
+                  <td className="px-3 py-3 text-xs tabular-nums text-muted-foreground">
+                    {resolvedAmount ? money(resolvedAmount) : "—"}
                   </td>
                   <td className="px-3 py-3 text-xs text-muted-foreground whitespace-nowrap">
                     {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
@@ -740,6 +752,11 @@ function RegistrationsTable({
             const rs = effectiveReviewStatus(r);
             const actionable = rs !== "approved" && rs !== "rejected";
             const batch = r.batches as { name?: string } | null;
+            const plan = r.fee_plans as { name?: string; amount?: number; female_amount?: number } | null;
+            const isGenderPricingEnabled = (tenant as any).gender_pricing_enabled === true;
+            const resolvedAmount = isGenderPricingEnabled && plan 
+              ? resolveMonthlyFee(plan as any, r.gender)
+              : plan?.amount;
             return (
               <div className="pb-2">
                 <div className="rounded-xl border border-border bg-card p-3 flex items-center gap-3">
@@ -769,7 +786,7 @@ function RegistrationsTable({
                         </span>
                       </div>
                       <div className="text-[11px] text-muted-foreground truncate">
-                        {r.phone} · {batch?.name ?? "No batch"}
+                        {r.phone} · {batch?.name ?? "No batch"} {resolvedAmount ? `· ${money(resolvedAmount)}` : ""}
                       </div>
                     </div>
                   </button>
@@ -1055,8 +1072,8 @@ function RegistrationDetails({
         {reg.address && <DRow label="Address" value={reg.address} multiline />}
         <DRow label="Batch" value={batch?.name ?? "—"} />
         <DRow
-          label="Fee plan"
-          value={plan?.name ? `${plan.name}${resolvedAmount ? ` · ${money(resolvedAmount)}` : ""}` : "—"}
+          label="Fees"
+          value={resolvedAmount ? money(resolvedAmount) : "—"}
         />
         <DRow
           label="Payment"
