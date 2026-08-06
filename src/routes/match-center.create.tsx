@@ -1318,10 +1318,6 @@ function TeamPanel({
       )}
 
 
-      {/* Playing XI summary — only when the panel has players */}
-      {state.players.length > 0 && (
-        <SquadFooter players={state.players} onPlayers={setPlayers} onRemove={removePlayer} />
-      )}
     </div>
   );
 }
