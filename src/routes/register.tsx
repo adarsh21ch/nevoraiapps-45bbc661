@@ -739,28 +739,24 @@ function RegisterContent() {
                   autoComplete="tel"
                   error={errors.phone}
                 />
+                <div className="sm:col-start-2 sm:row-start-3">
+                  <BatchSelect
+                    value={form.batch_id}
+                    onChange={(v) => setForm({ ...form, batch_id: v })}
+                    options={batchOptions}
+                    onInfo={() => setBatchInfoOpen(true)}
+                    error={errors.batch_id}
+                    tenant={tenant}
+                    fees={fees}
+                  />
+                </div>
                 <div className="sm:col-span-2">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                    <div className="flex-1">
-                      <BatchSelect
-                        value={form.batch_id}
-                        onChange={(v) => setForm({ ...form, batch_id: v })}
-                        options={batchOptions}
-                        onInfo={() => setBatchInfoOpen(true)}
-                        error={errors.batch_id}
-                        tenant={tenant}
-                        fees={fees}
-                      />
-                    </div>
-                    <div className="sm:mt-[22px] sm:min-w-[280px]">
-                      <FeeSummary
-                        batch={batches.find((b) => b.id === form.batch_id)}
-                        fees={fees}
-                        gender={normalizeGender(form.gender) || undefined}
-                        tenant={tenant}
-                      />
-                    </div>
-                  </div>
+                  <FeeSummary
+                    batch={batches.find((b) => b.id === form.batch_id)}
+                    fees={fees}
+                    gender={normalizeGender(form.gender) || undefined}
+                    tenant={tenant}
+                  />
                 </div>
                 <div className="sm:col-span-2">
                   <TextArea
