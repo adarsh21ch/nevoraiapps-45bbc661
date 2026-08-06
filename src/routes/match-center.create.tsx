@@ -865,7 +865,7 @@ function StepSetup({
 
       <section>
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Format
+          Overs
         </Label>
         <Select
           value={matchFormat}
@@ -877,7 +877,7 @@ function StepSetup({
           }}
         >
           <SelectTrigger className="mt-2 h-12 text-base">
-            <SelectValue placeholder="Select format" />
+            <SelectValue placeholder="Select overs" />
           </SelectTrigger>
           <SelectContent>
             {FORMAT_OPTIONS.map((f) => (
@@ -887,6 +887,28 @@ function StepSetup({
             ))}
           </SelectContent>
         </Select>
+      </section>
+
+      <section>
+        <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Playing Rules
+        </Label>
+        <Select value={playingRules} onValueChange={setPlayingRules}>
+          <SelectTrigger className="mt-2 h-12 text-base">
+            <SelectValue placeholder="Select playing rules" />
+          </SelectTrigger>
+          <SelectContent>
+            {PLAYING_RULES_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          {PLAYING_RULES_OPTIONS.find((o) => o.value === playingRules)?.description}
+        </p>
+      </section>
 
         {matchFormat === "Custom" && (
           <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-background p-3">
