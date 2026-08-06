@@ -1554,22 +1554,29 @@ function SquadFooter({
   onRemove: (key: string) => void;
 }) {
   const playing = players.filter((p) => !p.is_substitute);
-  const setRole = (key: string, role: "C" | "VC") => {
+  const setRole = (key: string, role: "C" | "VC" | "WK") => {
     const next = players.map((p) => {
       if (role === "C") {
         const willBeCap = p.key === key ? !p.is_captain : false;
         return {
           ...p,
           is_captain: willBeCap,
-          // Same player can't be both C and VC — clear VC if we just made them captain.
           is_vice_captain: willBeCap ? false : p.is_vice_captain,
         };
       }
-      const willBeVc = p.key === key ? !p.is_vice_captain : false;
+      if (role === "VC") {
+        const willBeVc = p.key === key ? !p.is_vice_captain : false;
+        return {
+          ...p,
+          is_vice_captain: willBeVc,
+          is_captain: willBeVc ? false : p.is_captain,
+        };
+      }
+      // role === "WK"
+      const willBeK = p.key === key ? !p.is_keeper : false;
       return {
         ...p,
-        is_vice_captain: willBeVc,
-        is_captain: willBeVc ? false : p.is_captain,
+        is_keeper: willBeK,
       };
     });
     onPlayers(next);
