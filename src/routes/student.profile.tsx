@@ -231,12 +231,12 @@ function StudentProfilePage() {
                 dob: s.dob,
                 academy_name: ctx.tenant_name || "AcademyOS",
                 academy_logo: ctx.tenant_logo || undefined,
-                academy_address: (ctx as any)?.tenant_address || undefined,
-                academy_phone: (ctx as any)?.tenant_phone || undefined,
+                academy_address: ctx.tenant_address || undefined,
+                academy_phone: ctx.tenant_phone || undefined,
                 sport: (athleteQ.data?.primary_sport as string) || "Cricket",
                 session: (s.batches as any)?.name || (s.batch_name as string) || undefined,
                 batch_timing: (s.batches as any)?.timing || (s.batch_timing as string) || undefined,
-                primary_color: (ctx as any)?.tenant_primary_color || undefined,
+                primary_color: ctx.tenant_primary_color || undefined,
                 phone: (s.phone as string) || undefined,
               }} 
             />
@@ -254,12 +254,12 @@ function StudentProfilePage() {
                 dob: s.dob,
                 academy_name: ctx.tenant_name || "AcademyOS",
                 academy_logo: ctx.tenant_logo || undefined,
-                academy_address: (ctx as any)?.tenant_address || undefined,
-                academy_phone: (ctx as any)?.tenant_phone || undefined,
+                academy_address: ctx.tenant_address || undefined,
+                academy_phone: ctx.tenant_phone || undefined,
                 sport: (athleteQ.data?.primary_sport as string) || "Cricket",
                 session: (s.batches as any)?.name || (s.batch_name as string) || undefined,
                 batch_timing: (s.batches as any)?.timing || (s.batch_timing as string) || undefined,
-                primary_color: (ctx as any)?.tenant_primary_color || undefined,
+                primary_color: ctx.tenant_primary_color || undefined,
                 phone: (s.phone as string) || undefined,
               }} 
             />
