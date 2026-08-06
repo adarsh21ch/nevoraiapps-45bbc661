@@ -27,6 +27,7 @@ export type IdCardData = {
   state: string | null;
   guardianPhone: string | null;
   batchName: string | null;
+  sport: string | null;
   joinedAt: string;
   photoPath: string | null;
   /** students.card_token — what the attendance QR encodes. */
