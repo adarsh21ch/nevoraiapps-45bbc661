@@ -1615,8 +1615,6 @@ function NewTeamBody({
     </div>
   );
 }
-  );
-}
 
 
 
