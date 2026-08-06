@@ -1508,7 +1508,6 @@ function NewTeamBody({
     }
   };
 
-  return (
   const hasRoles = players.some(p => p.is_captain) && players.some(p => p.is_keeper);
 
   return (
