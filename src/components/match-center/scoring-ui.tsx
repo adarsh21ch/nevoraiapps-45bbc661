@@ -10,6 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { Wifi, WifiOff, RefreshCw, Search, User2, Undo2, X, Circle } from "lucide-react";
 
@@ -273,14 +274,15 @@ function Avatar({ name }: { name?: string }) {
 
 export interface BatterStats {
   name?: string;
-  runs: number;
-  balls: number;
+  runs?: number;
+  balls?: number;
   fours?: number;
   sixes?: number;
   strikeRate?: string;
   last5?: string[];
   onStrike?: boolean;
   order?: number;
+  isKeeper?: boolean;
 }
 
 export function PlayerPanel({
@@ -315,7 +317,7 @@ function BatterRow({ batter, primary }: { batter?: BatterStats; primary?: boolea
   }
   const sr =
     batter.strikeRate ??
-    (batter.balls > 0 ? ((batter.runs / batter.balls) * 100).toFixed(1) : "0.0");
+    ((batter.balls ?? 0) > 0 ? (((batter.runs ?? 0) / (batter.balls ?? 0)) * 100).toFixed(1) : "0.0");
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
@@ -521,9 +523,9 @@ export function ScoreButton({
 
 export function RunsButton({ value, onClick }: { value: 0 | 1 | 2 | 3 | 4 | 5 | 6; onClick?: () => void }) {
   const isDot = value === 0;
-  const tone: Tone = value === 4 ? "boundary" : value === 6 ? "six" : "run";
+  const tone: Tone = "run";
   const label = isDot ? "•" : value;
-  const sublabel = isDot ? "Dot" : value === 4 ? "Four" : value === 6 ? "Six" : undefined;
+  const sublabel = isDot ? undefined : value === 4 ? "Four" : value === 6 ? "Six" : undefined;
   
   return (
     <ScoreButton label={label} tone={tone} sublabel={sublabel} onClick={onClick} />
@@ -579,13 +581,19 @@ export function DismissalModal({
         overlayClassName="bg-background/35 backdrop-blur-[1px]"
         className="rounded-t-3xl bg-card/95 p-0 backdrop-blur-xl"
       >
-        <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
-        <SheetHeader className="px-4 pb-2 pt-3 text-left">
-          <SheetTitle className="text-base">How is the batter out?</SheetTitle>
-          <SheetDescription className="text-xs">
-            Select the mode of dismissal. Further details next.
-          </SheetDescription>
-        </SheetHeader>
+        <div className="flex items-center justify-between px-4 pb-2 pt-3">
+          <div className="text-left">
+            <SheetTitle className="text-base">How is the batter out?</SheetTitle>
+            <SheetDescription className="text-xs">
+              Select the mode of dismissal.
+            </SheetDescription>
+          </div>
+          <SheetClose asChild>
+            <Button variant="ghost" size="icon" className="size-8 rounded-full">
+              <X className="size-4" />
+            </Button>
+          </SheetClose>
+        </div>
         <div
           className="grid grid-cols-3 gap-2 px-3 pb-3"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + .75rem)" }}
@@ -606,10 +614,13 @@ export function DismissalModal({
   );
 }
 
+
+
 export interface PlayerOption {
   id: string;
   name: string;
   role?: string;
+  isKeeper?: boolean;
 }
 
 export function PlayerPickerModal({

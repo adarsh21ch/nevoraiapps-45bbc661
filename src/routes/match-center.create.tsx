@@ -603,8 +603,16 @@ function CreateMatchPage() {
     panelB.mode === "existing" ? !!panelB.selectedTeamId : panelB.draftName.trim().length > 0;
 
   const step1Valid = !!matchType && !!matchFormat && overs > 0;
-  const step2Valid = readyA && panelA.players.length >= 2;
-  const step3Valid = readyB && panelB.players.length >= 2;
+  
+  const hasRolesA = panelA.players.some(p => p.is_captain) && 
+                    panelA.players.some(p => p.is_vice_captain) && 
+                    panelA.players.some(p => p.is_keeper);
+  const hasRolesB = panelB.players.some(p => p.is_captain) && 
+                    panelB.players.some(p => p.is_vice_captain) && 
+                    panelB.players.some(p => p.is_keeper);
+
+  const step2Valid = readyA && panelA.players.length >= 2 && hasRolesA;
+  const step3Valid = readyB && panelB.players.length >= 2 && hasRolesB;
   const canStart = !validationError;
 
   const goBack = () => {
@@ -1038,6 +1046,8 @@ function StepReview({
   const captainB = playersB.find((p) => p.is_captain)?.name;
   const vcA = playersA.find((p) => p.is_vice_captain)?.name;
   const vcB = playersB.find((p) => p.is_vice_captain)?.name;
+  const keeperA = playersA.find((p) => p.is_keeper)?.name;
+  const keeperB = playersB.find((p) => p.is_keeper)?.name;
 
   return (
     <div className="space-y-4">
@@ -1066,6 +1076,7 @@ function StepReview({
           players={playersA}
           captain={captainA}
           viceCaptain={vcA}
+          keeper={keeperA}
           onEdit={() => onEditStep(2)}
         />
         <div className="grid place-items-center sm:px-1">
@@ -1079,6 +1090,7 @@ function StepReview({
           players={playersB}
           captain={captainB}
           viceCaptain={vcB}
+          keeper={keeperB}
           onEdit={() => onEditStep(3)}
         />
       </div>
@@ -1103,6 +1115,7 @@ function ReviewTeamCard({
   players,
   captain,
   viceCaptain,
+  keeper,
   onEdit,
 }: {
   title: string;
@@ -1110,6 +1123,7 @@ function ReviewTeamCard({
   players: PlayerRef[];
   captain: string | undefined;
   viceCaptain: string | undefined;
+  keeper: string | undefined;
   onEdit: () => void;
 }) {
   return (
@@ -1128,7 +1142,7 @@ function ReviewTeamCard({
       <div className="mt-0.5 text-xs text-muted-foreground">
         {players.length} {players.length === 1 ? "player" : "players"}
       </div>
-      {(captain || viceCaptain) && (
+      {(captain || viceCaptain || keeper) && (
         <div className="mt-2 space-y-0.5 text-[11px]">
           {captain && (
             <div className="truncate">
@@ -1144,6 +1158,14 @@ function ReviewTeamCard({
                 VC
               </span>
               {viceCaptain}
+            </div>
+          )}
+          {keeper && (
+            <div className="truncate">
+              <span className="mr-1 rounded bg-emerald-500/15 px-1 py-0.5 font-bold text-emerald-700 dark:text-emerald-400">
+                WK
+              </span>
+              {keeper}
             </div>
           )}
         </div>
@@ -1532,6 +1554,23 @@ function NewTeamBody({
           </div>
         )}
       </div>
+      <div className="mt-3 space-y-2">
+        {!players.some(p => p.is_captain) && (
+          <div className="text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+            Select a captain (C)
+          </div>
+        )}
+        {!players.some(p => p.is_vice_captain) && (
+          <div className="text-[10px] font-medium text-sky-600 bg-sky-50 px-2 py-1 rounded border border-sky-200">
+            Select a vice-captain (VC)
+          </div>
+        )}
+        {!players.some(p => p.is_keeper) && (
+          <div className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+            Select a wicketkeeper (WK)
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1554,22 +1593,29 @@ function SquadFooter({
   onRemove: (key: string) => void;
 }) {
   const playing = players.filter((p) => !p.is_substitute);
-  const setRole = (key: string, role: "C" | "VC") => {
+  const setRole = (key: string, role: "C" | "VC" | "WK") => {
     const next = players.map((p) => {
       if (role === "C") {
         const willBeCap = p.key === key ? !p.is_captain : false;
         return {
           ...p,
           is_captain: willBeCap,
-          // Same player can't be both C and VC — clear VC if we just made them captain.
           is_vice_captain: willBeCap ? false : p.is_vice_captain,
         };
       }
-      const willBeVc = p.key === key ? !p.is_vice_captain : false;
+      if (role === "VC") {
+        const willBeVc = p.key === key ? !p.is_vice_captain : false;
+        return {
+          ...p,
+          is_vice_captain: willBeVc,
+          is_captain: willBeVc ? false : p.is_captain,
+        };
+      }
+      // role === "WK"
+      const willBeK = p.key === key ? !p.is_keeper : false;
       return {
         ...p,
-        is_vice_captain: willBeVc,
-        is_captain: willBeVc ? false : p.is_captain,
+        is_keeper: willBeK,
       };
     });
     onPlayers(next);
@@ -1586,7 +1632,7 @@ function SquadFooter({
         )}
       </div>
       <div className="mb-2 text-[11px] text-muted-foreground">
-        Tap C / VC to set captain and vice-captain (optional).
+        Tap C / VC / WK to set captain, vice-captain, and wicketkeeper (optional).
       </div>
       <ol className="space-y-1.5">
         {players.map((p, idx) => (
@@ -1626,6 +1672,20 @@ function SquadFooter({
               aria-label="Set vice captain"
             >
               VC
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole(p.key, "WK")}
+              className={cn(
+                "rounded-md border px-1.5 py-0.5 text-[10px] font-bold transition-colors",
+                p.is_keeper
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-border text-muted-foreground hover:text-foreground",
+              )}
+              title="Wicketkeeper"
+              aria-label="Set wicketkeeper"
+            >
+              WK
             </button>
             <button
               type="button"
