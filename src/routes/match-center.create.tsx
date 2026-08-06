@@ -1586,7 +1586,7 @@ function SquadFooter({
         )}
       </div>
       <div className="mb-2 text-[11px] text-muted-foreground">
-        Tap C / VC to set captain and vice-captain (optional).
+        Tap C / VC / WK to set captain, vice-captain, and wicketkeeper (optional).
       </div>
       <ol className="space-y-1.5">
         {players.map((p, idx) => (
