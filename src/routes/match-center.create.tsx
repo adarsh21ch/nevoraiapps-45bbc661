@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Info,
   Users,
+  RefreshCcw,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -693,16 +694,28 @@ function CreateMatchPage() {
     <div className="mx-auto w-full max-w-2xl px-0 pb-32 sm:px-4 sm:pt-3 md:pb-6">
       {showResumedToast && (
         <div className="mx-3 mb-2 flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs sm:mx-0 sm:mb-3">
-          <span className="text-foreground">
-            Continuing where you left off. Your draft is saved automatically.
-          </span>
-          <button
-            type="button"
-            className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold text-primary hover:bg-primary/10"
-            onClick={resetDraft}
-          >
-            Start over
-          </button>
+          <div className="flex items-center gap-2">
+            <RefreshCcw className="h-3.5 w-3.5 text-primary animate-in fade-in zoom-in duration-500" />
+            <span className="text-foreground">
+              Continue with previous draft or start afresh?
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="shrink-0 rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-primary active:scale-95 transition-transform"
+              onClick={() => setShowResumedToast(false)}
+            >
+              Continue
+            </button>
+            <button
+              type="button"
+              className="shrink-0 rounded-full bg-destructive/10 px-3 py-1.5 text-[11px] font-bold text-destructive active:scale-95 transition-transform"
+              onClick={resetDraft}
+            >
+              Start afresh
+            </button>
+          </div>
         </div>
       )}
 
