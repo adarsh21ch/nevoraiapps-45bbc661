@@ -394,6 +394,7 @@ function RegistrationsInbox() {
       ) : (
         <RegistrationsTable
           rows={filtered}
+          tenant={tenant}
           onOpen={(id) => setOpenId(id)}
           onAccept={(id) => approve.mutate(id)}
           onDelete={(id) => del.mutate(id)}
