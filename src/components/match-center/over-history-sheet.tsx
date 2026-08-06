@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import type { OverHistoryRow } from "@/lib/mc-statistics-engine";
+import { formatBallNotation } from "@/lib/mc-ball-events-core";
 import { cn } from "@/lib/utils";
 
 export interface OverHistorySheetProps {
@@ -101,17 +102,20 @@ export function OverHistorySheet({
                     {row.chips.length === 0 ? (
                       <span className="text-[12px] text-muted-foreground">No balls</span>
                     ) : (
-                      row.chips.map((chip, i) => (
+                    row.chips.map((chip, i) => {
+                      const label = formatBallNotation(chip);
+                      return (
                         <span
                           key={`${chip}-${i}`}
                           className={cn(
                             "inline-flex h-6 min-w-6 items-center justify-center rounded-full border px-1.5 text-[11px] font-black tabular-nums",
-                            chipTone(chip),
+                            chipTone(label),
                           )}
                         >
-                          {chip}
+                          {label}
                         </span>
-                      ))
+                      );
+                    })
                     )}
                   </div>
                 </li>
