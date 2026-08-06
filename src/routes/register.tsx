@@ -325,7 +325,7 @@ function RegisterContent() {
       ...batches.map((b) => ({
         value: b.id,
         label: b.timing ? `${b.name} — ${b.timing}` : b.name,
-        right: batchFeeText(b, fees, form.gender, tenant),
+        right: batchFeeText(b, fees, normalizeGender(form.gender) || undefined, tenant),
       })),
     ],
     [batches, fees, form.gender, tenant],
@@ -466,7 +466,7 @@ function RegisterContent() {
           _registration_id: data as unknown as string,
           _email: emailTrim,
           _address: form.address.trim() || null,
-          _gender: form.gender || null,
+          _gender: normalizeGender(form.gender),
           _medical_notes: form.medical_notes.trim() || null,
           _documents: documents as unknown as never,
         } as never,
