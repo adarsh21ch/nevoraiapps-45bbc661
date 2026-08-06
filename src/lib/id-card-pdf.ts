@@ -28,16 +28,17 @@ export type IdCardData = {
 
 async function loadImageDataUrl(url: string): Promise<string | null> {
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { cache: 'force-cache' });
     if (!res.ok) return null;
     const blob = await res.blob();
     return await new Promise<string>((resolve, reject) => {
       const r = new FileReader();
       r.onload = () => resolve(r.result as string);
-      r.onerror = reject;
+      r.onerror = () => reject(new Error("FileReader failed"));
       r.readAsDataURL(blob);
     });
-  } catch {
+  } catch (err) {
+    console.warn("Failed to load image for ID card:", url, err);
     return null;
   }
 }
@@ -72,7 +73,11 @@ const CH = 54;
 const R = 3.2;
 
 export async function generateIdCardPdf(tenant: Tenant, r: IdCardData) {
+  // Use a slight delay to ensure UI feedback (isDownloading state) is visible
+  await new Promise(resolve => setTimeout(resolve, 50));
+  
   const doc = new jsPDF({ 
+
     unit: "mm", 
     format: [CW + 40, CH + 60], 
     orientation: "landscape"

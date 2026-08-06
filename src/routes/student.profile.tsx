@@ -89,7 +89,7 @@ function StudentProfilePage() {
         photoPath: (s.photo_url as string) || null,
         cardToken: (s.card_token as string) || null,
       });
-      toast.success("ID Card downloaded successfully");
+      toast.success("ID Card download started");
     } catch (err) {
       console.error("Failed to download ID card", err);
       toast.error("Failed to generate ID card");
