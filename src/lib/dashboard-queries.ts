@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { Tenant } from "./tenant";
 import { candidatePeriods, periodKey, studentDue, tenantFeeCycle } from "./fees";
+import { resolveMonthlyFee } from "./gender";
 
 type Db = SupabaseClient<Database>;
 
