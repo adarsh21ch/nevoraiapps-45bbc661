@@ -1262,24 +1262,24 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   if (!batch) return null;
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-2.5 text-[11px] sm:h-[42px]">
-      <div className="flex shrink-0 items-center gap-1.5 border-r border-border/60 pr-2.5">
-        <span className="font-medium uppercase tracking-wider text-muted-foreground">
-          Due
+    <div className="flex flex-col gap-1.5 rounded-xl border border-border bg-muted/30 p-3 text-xs sm:flex-row sm:items-center sm:gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:border-r sm:border-border/60 sm:pr-3">
+        <span className="font-semibold uppercase tracking-wider text-muted-foreground text-[10px]">
+          Total Due
         </span>
-        <span className="font-bold text-foreground" style={{ color: "var(--brand)" }}>
+        <span className="text-sm font-bold text-foreground" style={{ color: "var(--brand)" }}>
           {fmt(total ?? (resolvedMonthlyAmount ? Number(resolvedMonthlyAmount) : 0))}
         </span>
       </div>
       
-      <div className="min-w-0 flex-1 truncate text-muted-foreground">
+      <div className="flex-1 text-muted-foreground leading-relaxed">
         {showRegistration ? (
           <span>
-            Monthly <span className="font-semibold text-foreground">{monthlyText}</span> + Admission <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>.
+            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span> and admission fee is <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>. This time you have to pay <span className="font-semibold text-foreground">{fmt(total)}</span>.
           </span>
         ) : (
           <span>
-            Monthly fee: <span className="font-semibold text-foreground">{monthlyText}</span>.
+            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span>. This time you have to pay <span className="font-semibold text-foreground">{fmt(resolvedMonthlyAmount)}</span>.
           </span>
         )}
       </div>
