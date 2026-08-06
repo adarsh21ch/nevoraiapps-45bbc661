@@ -823,49 +823,61 @@ function CreateMatchPage() {
 
         {/* Global action bar — hidden on Team steps (2 and 3) as they have their own fixed bar */}
         {step !== 2 && step !== 3 && (
-          <div className="flex items-center gap-3 border-t border-border/60 bg-card px-4 py-4 sm:rounded-b-3xl sm:px-6">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 flex-1 text-sm font-semibold"
-              onClick={goBack}
-              disabled={createM.isPending}
-              data-step-nav="back"
-            >
-              <ArrowLeft className="mr-1 size-4" />
-              Back
-            </Button>
-          {step < 5 ? (
-            <Button
-              type="button"
-              className="h-11 flex-1 text-sm font-semibold"
-              disabled={!canContinue}
-              onClick={goNext}
-              data-step-nav="next"
-            >
-              Continue
-              <ChevronRight className="ml-1 size-4" />
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              className="h-11 flex-1 text-sm font-semibold"
-              disabled={!canStart || createM.isPending}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                createM.mutate();
-              }}
-              data-step-nav="start"
-            >
-              {createM.isPending ? (
-                <Loader2 className="mr-1.5 size-4 animate-spin" />
+          <div className="flex flex-col gap-2 border-t border-border/60 bg-card px-4 py-4 sm:rounded-b-3xl sm:px-6">
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 flex-1 text-sm font-semibold"
+                onClick={goBack}
+                disabled={createM.isPending}
+                data-step-nav="back"
+              >
+                <ArrowLeft className="mr-1 size-4" />
+                Back
+              </Button>
+              {step < 5 ? (
+                <Button
+                  type="button"
+                  className="h-11 flex-1 text-sm font-semibold"
+                  disabled={!canContinue}
+                  onClick={goNext}
+                  data-step-nav="next"
+                >
+                  Continue
+                  <ChevronRight className="ml-1 size-4" />
+                </Button>
               ) : (
-                <Swords className="mr-1.5 size-4" />
+                <Button
+                  type="button"
+                  className="h-11 flex-1 text-sm font-semibold"
+                  disabled={!canStart || createM.isPending}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    createM.mutate();
+                  }}
+                  data-step-nav="start"
+                >
+                  {createM.isPending ? (
+                    <Loader2 className="mr-1.5 size-4 animate-spin" />
+                  ) : (
+                    <Swords className="mr-1.5 size-4" />
+                  )}
+                  Start match
+                </Button>
               )}
-              Start match
-            </Button>
-          )}
+            </div>
+            {!canContinue && step === 1 && (
+              <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
+                {!matchFormat ? "Select match overs" : overs <= 0 ? "Invalid overs count" : "Complete setup to continue"}
+              </div>
+            )}
+            {!canStart && step === 5 && validationError && (
+              <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
+                {validationError}
+              </div>
+            )}
           </div>
 
         )}
