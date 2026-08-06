@@ -19,6 +19,8 @@ interface StudentIDCardProps {
     state?: string | null;
     age_group?: string | null;
     sport?: string | null;
+    batch_timing?: string | null;
+    academy_phone?: string | null;
   };
   side?: "front" | "back";
 }
@@ -58,32 +60,68 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
     const location = [student.city, student.state].filter(Boolean).join(", ");
 
     if (side === "back") {
-      // PHASE 2 implementation will go here. 
-      // For now, keeping the existing QR-focused design as the "back" logic.
       return (
         <div className="p-4 bg-background flex items-center justify-center">
           <div
             ref={ref}
-            className="w-[350px] h-[220px] bg-slate-900 text-white shadow-2xl rounded-2xl overflow-hidden relative border border-slate-800 flex flex-col items-center justify-center"
+            className="w-[350px] h-[220px] bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden relative border border-slate-200 flex flex-col"
             style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           >
-            <div className="absolute top-4 left-5 flex items-center gap-2">
-               <Shield className="size-4 text-primary" />
-               <span className="text-[10px] font-black uppercase tracking-widest text-white/40">Academy Utility</span>
+            {/* Back Header - Compact branding */}
+            <div className="h-[45px] px-5 flex items-center gap-2 bg-[#0f172a] text-white shrink-0">
+              {student.academy_logo ? (
+                <img src={student.academy_logo} alt="Logo" className="h-6 object-contain brightness-0 invert" />
+              ) : (
+                <Building2 className="size-4 text-amber-500" />
+              )}
+              <div className="font-black tracking-tight text-[11px] uppercase truncate">
+                {student.academy_name || "AcademyOS"}
+              </div>
             </div>
 
-            <div className="bg-white p-2 rounded-xl shadow-2xl">
-              <QrCode className="size-24 text-slate-900" />
-            </div>
-            
-            <div className="mt-4 text-center">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Scan: In / Out</p>
-              <p className="text-[8px] font-medium text-white/30 mt-1">Official Attendance QR</p>
+            {/* Back Body - Utility focused */}
+            <div className="flex-1 flex flex-col items-center justify-center p-4">
+               <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-100 mb-2">
+                  <QrCode className="size-[90px] text-slate-900" />
+               </div>
+               
+               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-600 mb-4">
+                 Scan for Attendance
+               </p>
+
+               <div className="w-full grid grid-cols-2 gap-x-4 gap-y-3 px-2">
+                  <div>
+                    <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Player ID</p>
+                    <p className="text-[10px] font-black text-slate-700 leading-tight">
+                      {student.player_id || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Academy Contact</p>
+                    <p className="text-[10px] font-black text-slate-700 leading-tight">
+                      {student.academy_phone || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Session / Batch</p>
+                    <p className="text-[10px] font-black text-slate-700 leading-tight truncate uppercase">
+                      {student.session || student.age_group || "General"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Training Time</p>
+                    <p className="text-[10px] font-black text-slate-700 leading-tight">
+                      {student.batch_timing || "Regular"}
+                    </p>
+                  </div>
+               </div>
             </div>
 
-            <div className="absolute bottom-4 w-full px-6 flex justify-between items-center opacity-20">
-               <div className="text-[8px] font-bold uppercase">{student.academy_name}</div>
-               <div className="text-[8px] font-bold uppercase">ID: {student.player_id}</div>
+            {/* Footer - Subtle Branding */}
+            <div className="h-[25px] px-5 flex items-center justify-center border-t border-slate-50 shrink-0">
+               <div className="text-[6px] font-bold text-slate-300 uppercase tracking-widest">
+                  Powered by Academy OS
+               </div>
             </div>
           </div>
         </div>

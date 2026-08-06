@@ -30,6 +30,10 @@ export type IdCardData = {
   sport: string | null;
   joinedAt: string;
   photoPath: string | null;
+  batchTiming: string | null;
+  academyPhone: string | null;
+  academyName: string | null;
+  academyLogo: string | null;
   /** students.card_token — what the attendance QR encodes. */
   cardToken?: string | null;
 };
@@ -117,62 +121,90 @@ const CH = 54;
 const R = 3.2;
 
 export async function generateIdCardPdf(tenant: Tenant, r: IdCardData) {
-  // Use a custom card size instead of A4 to avoid white space and small corner rendering
+  // ISO/IEC 7810 ID-1 is 85.6 x 54 mm
   const doc = new jsPDF({ 
     unit: "mm", 
-    format: [CW + 40, CH + 60], // Add margins but focus on the card
+    format: [CW + 40, CH + 60], 
     orientation: "landscape"
   });
-  // Adjust fx/fy to center on the smaller canvas
+
   const canvasW = CW + 40;
   const canvasH = CH + 60;
-  await drawCard(doc, tenant, r, (canvasW - CW) / 2, (canvasH - CH) / 2);
+  const fx = (canvasW - CW) / 2;
+  const fy = (canvasH - CH) / 2;
+
+  // Page 1: FRONT
+  await drawCardFront(doc, tenant, r, fx, fy);
+  
+  // Cut guide and label for Front
+  drawPrintUtilities(doc, fx, fy, "FRONT SIDE");
+
+  // Page 2: BACK
+  doc.addPage([CW + 40, CH + 60], "landscape");
+  await drawCardBack(doc, tenant, r, fx, fy);
+
+  // Cut guide and label for Back
+  drawPrintUtilities(doc, fx, fy, "BACK SIDE");
+
   doc.save(`id-card-${r.playerId || r.name.replace(/\s+/g, "-")}.pdf`);
 }
 
-/** Many players, one single-sided card per A4 page. */
-export async function generateIdCardsPdf(tenant: Tenant, rows: IdCardData[]) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  for (let i = 0; i < rows.length; i++) {
-    if (i > 0) doc.addPage();
-    await drawCard(doc, tenant, rows[i], 20, 30);
-  }
-  doc.save(`id-cards-${tenant.slug || "academy"}.pdf`);
+function drawPrintUtilities(doc: jsPDF, fx: number, fy: number, label: string) {
+  // Cut guide
+  doc.setDrawColor(205, 210, 218);
+  doc.setLineWidth(0.15);
+  doc.setLineDashPattern([1, 1], 0);
+  doc.roundedRect(fx, fy, CW, CH, R, R, "S");
+  doc.setLineDashPattern([], 0);
+
+  // Label
+  doc.setTextColor(185, 190, 198);
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "bold");
+  doc.text(label, fx, fy - 4);
+  doc.setFontSize(5);
+  doc.setFont("helvetica", "normal");
+  doc.text("Cut along the dotted line after printing", fx, fy - 1.5);
 }
 
-/** Single-sided card: everything the gate needs lives on the front. */
-async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, fy: number) {
+/** Many players, two-sided cards. */
+export async function generateIdCardsPdf(tenant: Tenant, rows: IdCardData[]) {
+  const canvasW = CW + 40;
+  const canvasH = CH + 60;
+  const doc = new jsPDF({ unit: "mm", format: [canvasW, canvasH], orientation: "landscape" });
+  
+  for (let i = 0; i < rows.length; i++) {
+    if (i > 0) doc.addPage([canvasW, canvasH], "landscape");
+    const fx = (canvasW - CW) / 2;
+    const fy = (canvasH - CH) / 2;
+    
+    await drawCardFront(doc, tenant, rows[i], fx, fy);
+    drawPrintUtilities(doc, fx, fy, `PLAYER: ${rows[i].name} (FRONT)`);
+    
+    doc.addPage([canvasW, canvasH], "landscape");
+    await drawCardBack(doc, tenant, rows[i], fx, fy);
+    drawPrintUtilities(doc, fx, fy, `PLAYER: ${rows[i].name} (BACK)`);
+  }
+  doc.save(`id-cards-batch-${tenant.slug || "academy"}.pdf`);
+}
+
+/** Helper to get common brand colors and mixed variations */
+function getCardTheme(tenant: Tenant) {
   const brand = safeHex(tenant.primary_color, "#0f172a");
   const accent = safeHex(tenant.secondary_color, "#f59e0b");
   const dark = mix(brand, "#000000", 0.35);
+  const darkHex = `#${dark.map((n) => n.toString(16).padStart(2, "0")).join("")}`;
+  return { brand, accent, dark, darkHex };
+}
 
-  // QR payload — private card token; falls back to a verify link.
-  const site = tenantSiteUrl(tenant);
-  const qrPayload = r.cardToken
-    ? `${site}/checkin?card=${r.cardToken}`
-    : `${site}/?id=${encodeURIComponent(r.playerId || "")}`;
-  let qrDataUrl: string | null = null;
-  try {
-    qrDataUrl = await QRCode.toDataURL(qrPayload, {
-      margin: 0,
-      width: 600,
-      errorCorrectionLevel: "M",
-      color: { dark: "#0b1220", light: "#ffffff" },
-    });
-  } catch {
-    /* card still prints without the QR */
-  }
-
+/** Helper to load common assets (logo, photo) */
+async function loadCardAssets(tenant: Tenant, r: IdCardData) {
   let logoDataUrl: string | null = null;
   if (tenant.logo_url) {
     try {
-      const url = tenant.logo_url.startsWith("http")
-        ? tenant.logo_url
-        : await signedUrl(tenant.logo_url);
+      const url = tenant.logo_url.startsWith("http") ? tenant.logo_url : await signedUrl(tenant.logo_url);
       if (url) logoDataUrl = await loadImageDataUrl(url);
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }
 
   let photoDataUrl: string | null = null;
@@ -180,33 +212,27 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, f
     try {
       const url = r.photoPath.startsWith("http") ? r.photoPath : await signedUrl(r.photoPath);
       if (url) photoDataUrl = await loadImageDataUrl(url);
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }
 
-  gradientRect(
-    doc,
-    fx,
-    fy,
-    CW,
-    CH,
-    brand,
-    `#${dark.map((n) => n.toString(16).padStart(2, "0")).join("")}`,
-  );
+  return { logoDataUrl, photoDataUrl };
+}
 
-  // Accent rule removed as requested
+/** FRONT side: Identity focused */
+async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, fy: number) {
+  const { brand, accent, darkHex } = getCardTheme(tenant);
+  const { logoDataUrl, photoDataUrl } = await loadCardAssets(tenant, r);
 
-  // Header — logo + academy name
+  gradientRect(doc, fx, fy, CW, CH, brand, darkHex);
+
+  // Header
   let hx = fx + 6;
   if (logoDataUrl) {
     const fmt = logoDataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
     try {
       doc.addImage(logoDataUrl, fmt, hx, fy + 4.5, 8, 8);
       hx += 10;
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
@@ -227,24 +253,17 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, f
   const py = fy + 18.5;
   doc.setFillColor(238, 240, 245);
   doc.roundedRect(px, py, pw, ph, 2, 2, "F");
+  
   let drewPhoto = false;
   if (photoDataUrl) {
     try {
       const fmt = photoDataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
       doc.addImage(photoDataUrl, fmt, px, py, pw, ph);
       drewPhoto = true;
-    } catch {
-      /* ignore */
-    }
+    } catch {}
   }
   if (!drewPhoto) {
-    const initials = r.name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((p) => p[0])
-      .join("")
-      .toUpperCase();
+    const initials = r.name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join("").toUpperCase();
     doc.setTextColor(...hexToRgb(brand));
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
@@ -253,28 +272,30 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, f
   doc.setDrawColor(...hexToRgb(accent));
   doc.setLineWidth(0.5);
   doc.roundedRect(px, py, pw, ph, 2, 2, "S");
-  doc.setLineWidth(0.2);
 
   // Details
   const dx = px + pw + 4;
-  const dw = CW - (dx - fx) - 7; // Increased width
+  const dw = CW - (dx - fx) - 7;
   let y = py + 5;
+  
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("PLAYER", dx, y);
+  
   y += 3.8;
   doc.setTextColor(17, 24, 39);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9.5);
   const nameLines = (doc.splitTextToSize(r.name, dw) as string[]).slice(0, 2);
   doc.text(nameLines, dx, y);
+  
   y += nameLines.length > 1 ? 8.2 : 4.6;
-
   doc.setTextColor(140, 146, 158);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("PLAYER ID", dx, y);
+  
   y += 3.5;
   doc.setTextColor(...hexToRgb(accent));
   doc.setFont("helvetica", "bold");
@@ -283,59 +304,123 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, f
 
   y += 4.5;
   doc.setTextColor(140, 146, 158);
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("DOB", dx, y);
   y += 3.5;
   doc.setTextColor(17, 24, 39);
-  doc.setFont("helvetica", "bold");
   doc.setFontSize(7.4);
   doc.text(fmtDate(r.dob), dx, y);
 
   y += 4.5;
   doc.setTextColor(140, 146, 158);
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text("CATEGORY", dx, y);
   y += 3.5;
   doc.setTextColor(17, 24, 39);
-  doc.setFont("helvetica", "bold");
   doc.setFontSize(7.2);
-  doc.text(`CRICKET • ${r.batchName || "JUNIOR"}`.toUpperCase(), dx, y);
+  doc.text(`${r.sport || "CRICKET"} • ${r.batchName || "JUNIOR"}`.toUpperCase(), dx, y);
 
   const location = [r.city, r.state].filter(Boolean).join(", ");
   if (location) {
     y += 4.5;
     doc.setTextColor(140, 146, 158);
-    doc.setFont("helvetica", "normal");
     doc.setFontSize(5.4);
     doc.text(location.toUpperCase(), dx, y);
   }
 
-  // No QR on Front in Phase 1
-  /*
-  if (qrDataUrl) {
-    ...
-  }
-  */
-
-  // Bottom strip
+  // Footer
   doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(5.4);
   doc.text(`JOINED ${fmtDate(r.joinedAt).toUpperCase()}`, fx + 6, fy + CH - 1.8);
-  if (tenant.phone) {
-    doc.text(tenant.phone, fx + CW - 6, fy + CH - 1.8, { align: "right" });
-  }
-
-  // Cut guide
-  doc.setDrawColor(205, 210, 218);
-  doc.setLineWidth(0.15);
-  doc.setLineDashPattern([1, 1], 0);
-  doc.roundedRect(fx, fy, CW, CH, R, R, "S");
-  doc.setLineDashPattern([], 0);
-  doc.setTextColor(185, 190, 198);
-  doc.setFontSize(5.6);
-  doc.text("Cut along the dotted line — single-sided card", fx, fy - 2.5);
+  doc.text("OFFICIAL ID", fx + CW - 6, fy + CH - 1.8, { align: "right" });
 }
+
+/** BACK side: Utility focused (QR, Batch, Contact) */
+async function drawCardBack(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, fy: number) {
+  const { brand, accent, darkHex } = getCardTheme(tenant);
+  const { logoDataUrl } = await loadCardAssets(tenant, r);
+
+  // Background
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(fx, fy, CW, CH, R, R, "F");
+
+  // Compact Header
+  doc.setFillColor(...hexToRgb(brand));
+  doc.roundedRect(fx, fy, CW, 12, R, R, "F");
+  doc.rect(fx, fy + 6, CW, 6, "F"); // Flatten bottom corners of header
+
+  let hx = fx + 6;
+  if (logoDataUrl) {
+    const fmt = logoDataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
+    try {
+      doc.addImage(logoDataUrl, fmt, hx, fy + 2.5, 7, 7);
+      hx += 9;
+    } catch {}
+  }
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8.5);
+  doc.text((tenant.short_name || tenant.name).slice(0, 30).toUpperCase(), hx, fy + 7.5);
+
+  // QR Implementation
+  const site = tenantSiteUrl(tenant);
+  const qrPayload = r.cardToken
+    ? `${site}/checkin?card=${r.cardToken}`
+    : `${site}/?id=${encodeURIComponent(r.playerId || "")}`;
+  
+  try {
+    const qrDataUrl = await QRCode.toDataURL(qrPayload, {
+      margin: 1,
+      width: 400,
+      errorCorrectionLevel: "M",
+    });
+    doc.addImage(qrDataUrl, "PNG", fx + (CW/2 - 13), fy + 14, 26, 26);
+  } catch {}
+
+  doc.setTextColor(...hexToRgb(accent));
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(6.5);
+  doc.text("SCAN FOR ATTENDANCE", fx + CW/2, fy + 43, { align: "center" });
+
+  // Player & Batch Details
+  const bx = fx + 6;
+  const bw = (CW - 12) / 2;
+  let by = fy + 48;
+
+  // Row 1
+  doc.setTextColor(140, 146, 158);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(4.5);
+  doc.text("PLAYER ID", bx, by);
+  doc.text("ACADEMY CONTACT", bx + bw + 2, by);
+  
+  by += 3;
+  doc.setTextColor(17, 24, 39);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(6.5);
+  doc.text(r.playerId || "—", bx, by);
+  doc.text(r.academyPhone || "—", bx + bw + 2, by);
+
+  by += 5;
+  // Row 2
+  doc.setTextColor(140, 146, 158);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(4.5);
+  doc.text("SESSION / BATCH", bx, by);
+  doc.text("TRAINING TIME", bx + bw + 2, by);
+  
+  by += 3;
+  doc.setTextColor(17, 24, 39);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(6.5);
+  doc.text((r.batchName || "GENERAL").toUpperCase(), bx, by);
+  doc.text((r.batchTiming || "REGULAR").toUpperCase(), bx + bw + 2, by);
+
+  // Footer branding
+  doc.setTextColor(200, 205, 215);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(4.5);
+  doc.text("POWERED BY ACADEMY OS", fx + CW/2, fy + CH - 2, { align: "center" });
+}
+
 

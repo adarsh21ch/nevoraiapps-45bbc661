@@ -145,7 +145,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
   if (!s) return <div className="p-8 text-sm text-muted-foreground text-center">Not found.</div>;
 
   const plan = s.fee_plans as { id: string; name: string; amount: number; female_amount: number | null } | null;
-  const batch = s.batches as { id: string; name: string } | null;
+  const batch = s.batches as { id: string; name: string; timing: string | null } | null;
 
   const baseAmount = isGenderPricingEnabled 
     ? resolveMonthlyFee(plan as any, s.gender)
@@ -415,6 +415,10 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               state: s.state || null,
               guardianPhone: s.guardian_phone,
               batchName: batch?.name ?? null,
+              batchTiming: batch?.timing ?? null,
+              academyPhone: tenant.phone || null,
+              academyName: tenant.name || null,
+              academyLogo: tenant.logo_url || null,
               sport: athleteQ.data?.primary_sport || "Cricket",
               joinedAt: s.joined_at,
               photoPath: s.photo_url ?? null,
