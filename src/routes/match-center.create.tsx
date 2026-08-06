@@ -1345,7 +1345,7 @@ function TeamPanel({
     onChange({ ...state, players: state.players.filter((p) => p.key !== key) });
 
   return (
-    <div>
+    <div className="relative">
       <div className="mb-3 flex items-center justify-end">
         <button
           type="button"
@@ -1355,6 +1355,7 @@ function TeamPanel({
           {state.mode === "existing" ? "← Create new team" : "Use existing team →"}
         </button>
       </div>
+
 
 
       {/* Body */}
