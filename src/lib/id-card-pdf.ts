@@ -299,18 +299,27 @@ async function drawCard(doc: jsPDF, tenant: Tenant, r: IdCardData) {
 
   // The only QR — check-in / check-out at the gate.
   if (qrDataUrl) {
-    const qs = 21;
-    const qx = fx + CW - qs - 7;
-    const qy = fy + 19;
+    const qs = 24; // Larger QR
+    const qx = fx + (CW / 2) - (qs / 2); // Center horizontally
+    const qy = fy + CH - 15; // Position relative to bottom
+    
+    // We need to make space for the QR if it overlaps the white panel
+    // Or we just place it below everything in a white rounded box
+    const boxW = qs + 4;
+    const boxH = qs + 4;
+    const boxX = qx - 2;
+    const boxY = qy - 2;
+    
     doc.setFillColor(255, 255, 255);
-    doc.roundedRect(qx - 1.4, qy - 1.4, qs + 2.8, qs + 2.8, 1.6, 1.6, "F");
+    doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "F");
     doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(qx - 1.4, qy - 1.4, qs + 2.8, qs + 2.8, 1.6, 1.6, "S");
+    doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "S");
     doc.addImage(qrDataUrl, "PNG", qx, qy, qs, qs);
+    
     doc.setTextColor(120, 126, 138);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(4.4);
-    doc.text("SCAN: IN / OUT", qx + qs / 2, qy + qs + 2.8, { align: "center" });
+    doc.text("SCAN: IN / OUT", qx + qs / 2, qy + qs + 3, { align: "center" });
   }
 
   // Bottom strip
