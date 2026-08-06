@@ -30,6 +30,10 @@ export type IdCardData = {
   sport: string | null;
   joinedAt: string;
   photoPath: string | null;
+  batchTiming: string | null;
+  academyPhone: string | null;
+  academyName: string | null;
+  academyLogo: string | null;
   /** students.card_token — what the attendance QR encodes. */
   cardToken?: string | null;
 };

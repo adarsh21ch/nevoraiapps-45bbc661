@@ -19,6 +19,8 @@ interface StudentIDCardProps {
     state?: string | null;
     age_group?: string | null;
     sport?: string | null;
+    batch_timing?: string | null;
+    academy_phone?: string | null;
   };
   side?: "front" | "back";
 }
