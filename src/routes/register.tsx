@@ -1100,7 +1100,7 @@ function RegisterContent() {
                 className="ml-auto inline-flex flex-1 items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-white shadow-md disabled:opacity-60"
                 style={{ backgroundColor: "var(--brand)" }}
               >
-                Next
+                {step === 3 ? "Review" : "Next"}
               </button>
             </div>
           ) : null}
