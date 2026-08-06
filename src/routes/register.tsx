@@ -1220,13 +1220,14 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   const registration = fees.find((f) => f.type === "registration");
   const monthly = batch ? batchFeePlan(batch, fees) : undefined;
   const isGenderPricingEnabled = tenant?.gender_pricing_enabled === true;
+  const isAdmissionFeeEnabled = tenant?.admission_fee_enabled !== false;
+  
   const resolvedMonthlyAmount =
     isGenderPricingEnabled && monthly
       ? resolveMonthlyFee(monthly as any, gender)
       : monthly
         ? Number(monthly.amount)
         : undefined;
-
 
   const cur = (registration?.currency || monthly?.currency || "INR").toUpperCase();
   const sym = cur === "INR" ? "₹" : cur + " ";
@@ -1241,8 +1242,10 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
       : monthly
         ? fmt(Number(resolvedMonthlyAmount))
         : "Contact academy";
+  
+  const showRegistration = isAdmissionFeeEnabled && registration;
   const total =
-    !isPersonal && resolvedMonthlyAmount != null && registration 
+    !isPersonal && resolvedMonthlyAmount != null && showRegistration 
       ? Number(resolvedMonthlyAmount) + Number(registration.amount) 
       : null;
 
@@ -1251,11 +1254,15 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
       <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
         Fees
       </span>
-      <span className="flex items-baseline gap-1.5">
-        <span className="text-muted-foreground">Admission</span>
-        <span className="font-semibold text-foreground">{fmt(registration?.amount)}</span>
-      </span>
-      <span className="text-border">•</span>
+      {showRegistration ? (
+        <>
+          <span className="flex items-baseline gap-1.5">
+            <span className="text-muted-foreground">Admission</span>
+            <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>
+          </span>
+          <span className="text-border">•</span>
+        </>
+      ) : null}
       <span className="flex items-baseline gap-1.5">
         <span className="text-muted-foreground">Monthly</span>
         <span className="font-semibold text-foreground">{monthlyText}</span>
