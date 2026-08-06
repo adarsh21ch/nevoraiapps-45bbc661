@@ -781,7 +781,7 @@ function RegistrationsTable({
                         </span>
                       </div>
                       <div className="text-[11px] text-muted-foreground truncate">
-                        {r.phone} · {batch?.name ?? "No batch"}
+                        {r.phone} · {batch?.name ?? "No batch"} {resolvedAmount ? `· ${money(resolvedAmount)}` : ""}
                       </div>
                     </div>
                   </button>
