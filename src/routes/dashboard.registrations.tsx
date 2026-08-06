@@ -63,7 +63,7 @@ import { ModuleHeader } from "@/components/shared/ModuleHeader";
 import { VirtualList } from "@/components/ds/VirtualList";
 
 export const Route = createFileRoute("/dashboard/registrations")({
-  head: () => ({ meta: [{ title: "Registrations / Admissions" }] }),
+  head: () => ({ meta: [{ title: "Registrations" }] }),
   component: RegistrationsInbox,
 });
 
