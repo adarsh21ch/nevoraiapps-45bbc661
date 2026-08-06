@@ -368,21 +368,21 @@ function OverviewReport({
   const health = computeHealthScore({
     att: attQ.data,
     bill: billQ.data,
-    adm: admQ.data,
+    reg: admQ.data,
     ply: plyQ.data,
     comm: commQ.data,
   });
 
   const highlights = buildHighlights({
-    curr: { att: attQ.data, bill: billQ.data, adm: admQ.data, ply: plyQ.data },
-    prev: { att: attPQ.data, bill: billPQ.data, adm: admPQ.data },
+    curr: { att: attQ.data, bill: billQ.data, reg: admQ.data, ply: plyQ.data },
+    prev: { att: attPQ.data, bill: billPQ.data, reg: admPQ.data },
   });
 
   const actions = buildActions({
     tenantId,
     att: attQ.data,
     bill: billQ.data,
-    adm: admQ.data,
+    reg: admQ.data,
     ply: plyQ.data,
     owner,
   });
@@ -578,13 +578,13 @@ type Health = { total: number; status: string; breakdown: HealthBreakdown[] };
 function computeHealthScore(x: {
   att?: AttendanceReport;
   bill?: BillingReport;
-  adm?: AdmissionsReport;
+  reg?: AdmissionsReport;
   ply?: PlayersReport;
   comm?: CommsReport;
 }): Health {
   const attendance = clamp(x.att?.percent ?? 0);
   const finance = clamp(x.bill?.collectionRate ?? 0);
-  const growthRaw = (x.ply?.newInRange ?? 0) * 8 + (x.adm?.conversion ?? 0);
+  const growthRaw = (x.ply?.newInRange ?? 0) * 8 + (x.reg?.conversion ?? 0);
   const growth = clamp(growthRaw);
   const engagementBase =
     x.comm && x.comm.sent > 0 ? Math.round((x.comm.delivered / x.comm.sent) * 100) : 60;
@@ -730,7 +730,7 @@ function buildActions(x: {
   tenantId: string;
   att?: AttendanceReport;
   bill?: BillingReport;
-  adm?: AdmissionsReport;
+  reg?: AdmissionsReport;
   ply?: PlayersReport;
   owner: boolean;
 }): ActionItem[] {
@@ -760,7 +760,7 @@ function buildActions(x: {
       to: "/dashboard/students",
       tone: "info",
     });
-  const newLeads = (x.adm?.byStage ?? []).find((s) => s.stage === "new")?.count ?? 0;
+  const newLeads = (x.reg?.byStage ?? []).find((s) => s.stage === "new")?.count ?? 0;
   if (newLeads > 0)
     items.push({
       label: "Unanswered enquiries",
@@ -1086,7 +1086,7 @@ function AdmissionsReport({ tenantId, range }: { tenantId: string; range: Range 
     <div className="space-y-5">
       <KpiGrid>
         <KpiTile
-          label="Leads"
+          label="Registrations"
           value={String(d?.totalLeads ?? 0)}
           trend={pctChange(d?.totalLeads ?? 0, pq.data?.totalLeads ?? 0)}
         />
