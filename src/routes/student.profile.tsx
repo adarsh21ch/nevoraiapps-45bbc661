@@ -233,7 +233,9 @@ function StudentProfilePage() {
                 village_locality: s.village_locality,
                 playing_role: (s.playing_role as string) || "Student",
                 academy_name: ctx.tenant_name || "AcademyOS",
+                academy_logo: ctx.tenant_logo || undefined,
                 gender: s.gender,
+                sport: (athleteQ.data?.primary_sport as string) || "Cricket",
               }} 
             />
           </div>
@@ -253,7 +255,12 @@ function StudentProfilePage() {
                 village_locality: s.village_locality,
                 playing_role: (s.playing_role as string) || "Student",
                 academy_name: ctx.tenant_name || "AcademyOS",
+                academy_logo: ctx.tenant_logo || undefined,
                 gender: s.gender,
+                sport: (athleteQ.data?.primary_sport as string) || "Cricket",
+                session: (s.batches as any)?.name || (s.batch_name as string) || undefined,
+                batch_timing: (s.batches as any)?.timing || (s.batch_timing as string) || undefined,
+                academy_phone: (ctx as any)?.tenant_phone || undefined,
               }} 
             />
           </div>
