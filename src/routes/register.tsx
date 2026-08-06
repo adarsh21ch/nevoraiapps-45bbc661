@@ -1275,7 +1275,7 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
       <div className="flex-1 text-muted-foreground leading-relaxed">
         {showRegistration ? (
           <span>
-            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span> and admission fee is <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>. This time you have to pay <span className="font-semibold text-foreground">{fmt(total)}</span>.
+            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span> and admission fee is <span className="font-semibold text-foreground">{fmt(registration.amount)}</span>. This time you have to pay <span className="font-semibold text-foreground">{fmt(total ?? 0)}</span>.
           </span>
         ) : (
           <span>
