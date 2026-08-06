@@ -326,13 +326,6 @@ function RegistrationsInbox() {
         backTo="/dashboard/academy"
         action={<ShareLinkButton tenant={tenant} />}
       />
-      <div className="-mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <span className="uppercase tracking-wide">Intake</span>
-        <span aria-hidden>·</span>
-        <Link to="/dashboard/leads" className="hover:text-foreground underline underline-offset-2">
-          Leads pipeline
-        </Link>
-      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <FilterTabs
