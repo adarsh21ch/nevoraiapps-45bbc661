@@ -701,6 +701,8 @@ function CreateMatchPage() {
                 setMatchType={setMatchType}
                 matchFormat={matchFormat}
                 setMatchFormat={setMatchFormat}
+                playingRules={playingRules}
+                setPlayingRules={setPlayingRules}
                 overs={overs}
                 setOvers={setOvers}
               />
