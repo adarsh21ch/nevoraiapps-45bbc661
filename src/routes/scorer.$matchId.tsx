@@ -195,7 +195,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
-
   const [caughtOpen, setCaughtOpen] = useState(false);
   const [runOutOpen, setRunOutOpen] = useState(false);
   const [newBatterOpen, setNewBatterOpen] = useState(false);
@@ -204,6 +203,11 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const [pickNonStrikerOpen, setPickNonStrikerOpen] = useState(false);
   const [pickBowlerOpen, setPickBowlerOpen] = useState(false);
   const [extraKind, setExtraKind] = useState<"Wide" | "No Ball" | "Bye" | "Leg Bye" | null>(null);
+  
+  // No-ball classification state
+  const [nbClassificationOpen, setNbClassificationOpen] = useState(false);
+  const [pendingNoBallRuns, setPendingNoBallRuns] = useState<number | null>(null);
+
   const [rightDrawer, setRightDrawer] = useState(false);
   const [leftDrawer, setLeftDrawer] = useState(false);
   const [scorecardOpen, setScorecardOpen] = useState(false);
@@ -489,7 +493,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
 
-  const onExtraRuns = (runs: number) => {
+  const onExtraRuns = (totalRuns: number) => {
     if (!extraKind) return;
     const kind = extraKind;
     setExtraKind(null);
@@ -497,17 +501,36 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     if (kind === "Wide") {
       // In Wide scroller, total runs includes the 1-run wide penalty
       // 1 = WD only, 5 = WD+4
-      requestSubmit(ballHelpers.wide(runs));
+      requestSubmit(ballHelpers.wide(totalRuns));
     } else if (kind === "No Ball") {
-      // In No Ball scroller, total runs includes the 1-run penalty
-      // 1 = NB only, 5 = NB+4
-      // ballHelpers.noBall expects BATSMAN runs (total - 1)
-      requestSubmit(ballHelpers.noBall(Math.max(0, runs - 1)));
+      // If total runs > 1, we need to know if additional runs came from bat or extras
+      if (totalRuns > 1) {
+        setPendingNoBallRuns(totalRuns);
+        setNbClassificationOpen(true);
+      } else {
+        requestSubmit(ballHelpers.noBall(0, 0));
+      }
     } else if (kind === "Bye") {
-      requestSubmit(ballHelpers.bye(runs));
+      requestSubmit(ballHelpers.bye(totalRuns));
     } else if (kind === "Leg Bye") {
-      requestSubmit(ballHelpers.legBye(runs));
+      requestSubmit(ballHelpers.legBye(totalRuns));
     }
+  };
+
+  const onNbClassify = (mode: "bat" | "bye" | "leg_bye") => {
+    if (pendingNoBallRuns === null) return;
+    const additional = pendingNoBallRuns - 1;
+    if (mode === "bat") {
+      requestSubmit(ballHelpers.noBall(additional, 0));
+    } else if (mode === "bye") {
+      requestSubmit(ballHelpers.noBall(0, additional));
+    } else if (mode === "leg_bye") {
+      // In the rules engine, extra_runs on a no_ball stores ALL non-penalty extras.
+      // Distinct leg-bye tracking on NB is a bonus; for now mapping to general extras.
+      requestSubmit(ballHelpers.noBall(0, additional));
+    }
+    setNbClassificationOpen(false);
+    setPendingNoBallRuns(null);
   };
 
   const finalizeWicket = async (
