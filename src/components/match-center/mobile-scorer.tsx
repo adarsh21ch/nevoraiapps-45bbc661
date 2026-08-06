@@ -816,11 +816,24 @@ function InfoTile({ label, value, accent }: { label: string; value: string; acce
 }
 
 function BallBubble({ label }: { label: string }) {
-  const upper = label.toUpperCase();
+  let upper = label.toUpperCase();
+  // Standardize notation if it's purely a number and not 0
+  if (/^[1-6]$/.test(upper)) {
+    // Keep as is
+  } else if (upper === "0" || upper === "DOT") {
+    upper = "•";
+  } else if (/^WD\d+$/.test(upper)) {
+    const runs = parseInt(upper.slice(2));
+    upper = runs > 1 ? `WD+${runs - 1}` : "WD";
+  } else if (/^NB\d+$/.test(upper)) {
+    const runs = parseInt(upper.slice(2));
+    upper = runs > 1 ? `NB+${runs - 1}` : "NB";
+  }
+
   const wicket = /W/.test(upper);
-  const four = upper === "4";
-  const six = upper === "6";
-  const extra = /WD|NB|LB|B/.test(upper) && !four && !six && !wicket;
+  const four = upper === "4" || upper.endsWith("+4") || (upper.includes("NB") && upper.includes("5"));
+  const six = upper === "6" || upper.endsWith("+6") || (upper.includes("NB") && upper.includes("7"));
+  const extra = /WD|NB|LB|B/.test(upper);
   const isMulti = upper.length > 1;
   return (
     <span
@@ -830,7 +843,7 @@ function BallBubble({ label }: { label: string }) {
         wicket && "bg-destructive text-destructive-foreground",
         four && "bg-[var(--score-four)] text-[var(--score-action-foreground)]",
         six && "bg-[var(--score-six)] text-[var(--score-action-foreground)]",
-        extra && "bg-[var(--score-extra-bg)] text-[var(--score-extra-fg)]",
+        extra && !four && !six && !wicket && "bg-[var(--score-extra-bg)] text-[var(--score-extra-fg)]",
         !wicket && !four && !six && !extra && "bg-muted text-foreground",
       )}
     >
@@ -902,7 +915,7 @@ function RunKey({
         tone === "neutral" && "border-border/80 bg-background text-foreground active:bg-muted",
       )}
     >
-      {value === 0 ? "•" : value}
+      {value === 0 ? "• DOT" : value}
     </button>
   );
 }
