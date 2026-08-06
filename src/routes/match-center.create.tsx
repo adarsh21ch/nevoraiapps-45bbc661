@@ -1636,6 +1636,20 @@ function SquadFooter({
             </button>
             <button
               type="button"
+              onClick={() => setRole(p.key, "WK")}
+              className={cn(
+                "rounded-md border px-1.5 py-0.5 text-[10px] font-bold transition-colors",
+                p.is_keeper
+                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  : "border-border text-muted-foreground hover:text-foreground",
+              )}
+              title="Wicketkeeper"
+              aria-label="Set wicketkeeper"
+            >
+              WK
+            </button>
+            <button
+              type="button"
               onClick={() => onRemove(p.key)}
               className="rounded-md p-1 text-muted-foreground hover:bg-accent"
               aria-label="Remove"
