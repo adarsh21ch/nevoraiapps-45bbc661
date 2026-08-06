@@ -930,7 +930,6 @@ function StepSetup({
             {overs} overs per side · You can change this later.
           </p>
         )}
-      </section>
     </div>
   );
 }
