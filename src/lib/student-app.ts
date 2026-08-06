@@ -328,7 +328,7 @@ export type StudentProfileFull = {
 export async function fetchStudentProfile(ctx: StudentContext): Promise<StudentProfileFull> {
   const { data: student, error } = await supabase
     .from("students")
-    .select("*")
+    .select("*, batches(name, timing)")
     .eq("id", ctx.student_id)
     .maybeSingle();
   if (error) throw error;
