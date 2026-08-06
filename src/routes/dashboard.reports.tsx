@@ -1526,10 +1526,10 @@ function buildHighlights(x: {
   curr: {
     att?: AttendanceReport;
     bill?: BillingReport;
-    adm?: AdmissionsReport;
+    reg?: AdmissionsReport;
     ply?: PlayersReport;
   };
-  prev: { att?: AttendanceReport; bill?: BillingReport; adm?: AdmissionsReport };
+  prev: { att?: AttendanceReport; bill?: BillingReport; reg?: AdmissionsReport };
 }): { text: string; tone: "good" | "warn" }[] {
   const out: { text: string; tone: "good" | "warn" }[] = [];
   const revC = pctChange(x.curr.bill?.revenue ?? 0, x.prev.bill?.revenue ?? 0);
@@ -1552,11 +1552,11 @@ function buildHighlights(x: {
       tone: "warn",
     });
   }
-  const convC = pctChange(x.curr.adm?.conversion ?? 0, x.prev.adm?.conversion ?? 0);
+  const convC = pctChange(x.curr.reg?.conversion ?? 0, x.prev.reg?.conversion ?? 0);
   if (
     convC !== undefined &&
-    x.curr.adm &&
-    (x.curr.adm.totalLeads > 0 || (x.prev.adm?.totalLeads ?? 0) > 0)
+    x.curr.reg &&
+    (x.curr.reg.totalLeads > 0 || (x.prev.reg?.totalLeads ?? 0) > 0)
   ) {
     out.push({
       text: `Trial conversion ${convC >= 0 ? "up" : "down"} ${Math.abs(convC)}% vs previous`,
@@ -1566,8 +1566,8 @@ function buildHighlights(x: {
   const topBatch = x.curr.att?.perBatch?.[0];
   if (topBatch)
     out.push({ text: `${topBatch.batch} leads attendance at ${topBatch.percent}%`, tone: "good" });
-  if ((x.curr.adm?.converted ?? 0) > 0) {
-    out.push({ text: `${x.curr.adm!.converted} new admissions this period`, tone: "good" });
+  if ((x.curr.reg?.converted ?? 0) > 0) {
+    out.push({ text: `${x.curr.reg!.converted} new admissions this period`, tone: "good" });
   }
   return out.slice(0, 6);
 }
@@ -1624,7 +1624,7 @@ function buildRecommendations(x: {
     out.push(`Send fee reminders to ${x.pendingStudents} students with pending balances.`);
   if (x.lowAttendance > 0)
     out.push(`Schedule a check-in with the ${x.lowAttendance} students below 60% attendance.`);
-  if (x.newLeads > 0) out.push(`Follow up with ${x.newLeads} unanswered enquiries this week.`);
+  if (x.newLeads > 0) out.push(`Follow up with ${x.newLeads} unanswered registrations this week.`);
   out.push("Run a weekend trial camp to lift conversion.");
   return out.slice(0, 5);
 }
