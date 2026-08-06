@@ -1654,7 +1654,7 @@ function SquadList({
   onPlayers: (v: PlayerRef[]) => void;
   onRemove: (key: string) => void;
 }) {
-  const listRef = useEffect(() => {
+  useEffect(() => {
     // When a player is added (length increases), scroll to the bottom to show the recent addition
     const container = document.getElementById("squad-scroll-container");
     if (container) {
