@@ -1,6 +1,5 @@
 import React from "react";
-import { User, QrCode, Building2, MapPin, Phone } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { User, QrCode, Building2 } from "lucide-react";
 
 interface StudentIDCardProps {
   student: {
@@ -17,12 +16,15 @@ interface StudentIDCardProps {
     phone?: string;
     session?: string;
     batch_timing?: string | null;
+    primary_color?: string;
   };
   side?: "front" | "back";
 }
 
 export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps>(
   ({ student, side = "front" }, ref) => {
+    const brandColor = student.primary_color || "#0f172a";
+
     const formatDate = (dateStr?: string | null) => {
       if (!dateStr) return "—";
       try {
@@ -57,9 +59,7 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
       return s;
     };
 
-    // CR80 is 54mm x 86mm. 
-    // For preview, we'll use a scale that looks good on screen.
-    // Width 240px, Height 380px (~1.58 ratio)
+    // Card dimensions for preview
     const cardWidth = 240;
     const cardHeight = 380;
 
@@ -72,40 +72,38 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
             style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           >
             {/* Back Header */}
-            <div className="h-[70px] px-4 flex flex-col items-center justify-center bg-[#0f172a] text-white shrink-0 relative">
-               <div className="flex items-center gap-2 mb-1">
-                {student.academy_logo ? (
-                  <img src={student.academy_logo} alt="Logo" className="h-8 object-contain brightness-0 invert" />
-                ) : (
-                  <Building2 className="size-5 text-white" />
-                )}
-              </div>
+            <div 
+              className="h-[60px] px-4 flex flex-col items-center justify-center text-white shrink-0"
+              style={{ backgroundColor: brandColor }}
+            >
               <div className="font-black tracking-tight text-[11px] uppercase text-center leading-tight line-clamp-2">
                 {student.academy_name || "AcademyOS"}
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-4 bg-white" style={{ clipPath: "ellipse(60% 100% at 50% 100%)" }} />
             </div>
 
             {/* Back Body */}
-            <div className="flex-1 flex flex-col items-center justify-center p-4 space-y-4">
+            <div className="flex-1 flex flex-col items-center justify-center p-4 space-y-6">
                 <div className="text-center">
-                  <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Scan for Attendance</p>
-                  <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-100 mx-auto w-fit">
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">Scan for Attendance</p>
+                  <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 mx-auto w-fit">
                     <QrCode className="size-[120px] text-slate-900" />
                   </div>
                 </div>
                 
                 <div className="w-full text-center space-y-1">
-                  <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest leading-none">Session / Batch</p>
-                  <p className="text-[11px] font-black text-slate-900 leading-tight uppercase px-2">
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">Session / Batch</p>
+                  <p className="text-[14px] font-black text-slate-900 leading-tight uppercase px-2">
                     {formatSession(student.session)}
                   </p>
                 </div>
             </div>
 
             {/* Footer */}
-            <div className="h-[40px] px-4 flex flex-col items-center justify-center bg-[#0f172a] shrink-0">
-               <div className="text-[7px] font-bold text-white/40 uppercase tracking-[0.1em]">
+            <div 
+              className="h-[40px] px-4 flex flex-col items-center justify-center shrink-0"
+              style={{ backgroundColor: brandColor }}
+            >
+               <div className="text-[8px] font-bold text-white/60 uppercase tracking-widest">
                   Powered by Academy OS
                </div>
             </div>
@@ -121,58 +119,68 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
           className="w-[240px] h-[380px] bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden relative border border-slate-200 flex flex-col"
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
         >
-          {/* Header */}
-          <div className="h-[70px] px-4 flex flex-col items-center justify-center bg-[#0f172a] text-white shrink-0 relative">
-            <div className="flex items-center gap-2 mb-1">
+          {/* Curved Header */}
+          <div 
+            className="h-[80px] pt-4 px-4 flex flex-col items-center bg-slate-900 relative shrink-0 overflow-hidden"
+            style={{ backgroundColor: brandColor }}
+          >
+            <div className="flex items-center gap-2 mb-1 z-10">
               {student.academy_logo ? (
-                <img src={student.academy_logo} alt="Logo" className="h-8 object-contain brightness-0 invert" />
+                <img src={student.academy_logo} alt="Logo" className="h-10 object-contain brightness-0 invert" />
               ) : (
-                <Building2 className="size-5 text-white" />
+                <Building2 className="size-6 text-white" />
               )}
             </div>
-            <div className="font-black tracking-tight text-[11px] uppercase text-center leading-tight line-clamp-2">
+            <div className="font-black tracking-tight text-[11px] uppercase text-center leading-tight z-10 text-white">
               {student.academy_name || "AcademyOS"}
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-4 bg-white" style={{ clipPath: "ellipse(60% 100% at 50% 100%)" }} />
+            {/* Wave shape */}
+            <div 
+              className="absolute -bottom-6 left-0 right-0 h-12 bg-white rounded-[50%]"
+              style={{ transform: 'scaleX(1.5)' }}
+            />
           </div>
 
           {/* Front Body */}
-          <div className="flex-1 flex flex-col items-center px-4 pt-2">
+          <div className="flex-1 flex flex-col items-center px-4 pt-1">
             {/* Photo */}
-            <div className="w-[85px] h-[105px] rounded-xl border-2 border-slate-100 bg-slate-50 overflow-hidden flex items-center justify-center shadow-md mb-3 shrink-0">
+            <div className="w-[100px] h-[110px] rounded-xl border-2 border-slate-100 bg-slate-50 overflow-hidden flex items-center justify-center shadow-md mb-3 shrink-0 z-20">
               {student.photo_url ? (
                 <img src={student.photo_url} alt={student.name} className="size-full object-cover" />
               ) : (
-                <User className="size-10 text-slate-200" />
+                <User className="size-12 text-slate-200" />
               )}
             </div>
 
             {/* Name */}
-            <h2 className="text-[15px] font-black uppercase text-slate-900 text-center leading-tight mb-4 px-1 line-clamp-2">
+            <h2 
+              className="text-[17px] font-black uppercase text-center leading-tight mb-4 px-1 line-clamp-2"
+              style={{ color: brandColor }}
+            >
               {student.name}
             </h2>
 
-            {/* Details */}
-            <div className="w-full space-y-2.5 text-[9px]">
+            {/* Details Area */}
+            <div className="w-full space-y-3 text-[10px]">
                <div className="flex items-start">
-                 <span className="w-16 font-bold text-slate-400 uppercase tracking-tighter">Player ID</span>
+                 <span className="w-20 font-bold text-slate-400 uppercase tracking-tighter shrink-0">Player ID</span>
                  <span className="font-black text-slate-900 ml-1">{student.player_id || "—"}</span>
                </div>
                <div className="flex items-start">
-                 <span className="w-16 font-bold text-slate-400 uppercase tracking-tighter">Date of Birth</span>
+                 <span className="w-20 font-bold text-slate-400 uppercase tracking-tighter shrink-0">Date of Birth</span>
                  <span className="font-black text-slate-900 ml-1">{formatDate(student.dob)}</span>
                </div>
                <div className="flex items-start">
-                 <span className="w-16 font-bold text-slate-400 uppercase tracking-tighter">Sport</span>
+                 <span className="w-20 font-bold text-slate-400 uppercase tracking-tighter shrink-0">Sport</span>
                  <span className="font-black text-slate-900 ml-1 uppercase">{student.sport || "Cricket"}</span>
                </div>
                <div className="flex items-start">
-                 <span className="w-16 font-bold text-slate-400 uppercase tracking-tighter">Contact</span>
+                 <span className="w-20 font-bold text-slate-400 uppercase tracking-tighter shrink-0">Contact</span>
                  <span className="font-black text-slate-900 ml-1">{student.phone || "—"}</span>
                </div>
                <div className="flex items-start">
-                 <span className="w-16 font-bold text-slate-400 uppercase tracking-tighter">Address</span>
-                 <span className="flex-1 font-bold text-slate-700 ml-1 leading-tight line-clamp-3">
+                 <span className="w-20 font-bold text-slate-400 uppercase tracking-tighter shrink-0">Address</span>
+                 <span className="flex-1 font-bold text-slate-800 ml-1 leading-tight line-clamp-2">
                    {student.academy_address || "—"}
                  </span>
                </div>
@@ -180,12 +188,15 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
           </div>
 
           {/* Footer */}
-          <div className="h-[45px] px-4 flex items-center justify-between bg-[#0f172a] text-white shrink-0">
+          <div 
+            className="h-[45px] px-4 flex items-center justify-between text-white shrink-0"
+            style={{ backgroundColor: brandColor }}
+          >
              <div className="flex flex-col">
-                <span className="text-[6px] font-bold text-white/50 uppercase tracking-widest">Member Since</span>
-                <span className="text-[9px] font-black">{formatMemberSince(student.joined_at)}</span>
+                <span className="text-[6px] font-bold text-white/60 uppercase tracking-widest">Member Since</span>
+                <span className="text-[10px] font-black">{formatMemberSince(student.joined_at)}</span>
              </div>
-             <div className="text-[8px] font-black uppercase tracking-wider text-white/80">
+             <div className="text-[9px] font-black uppercase tracking-widest text-white/80">
                 Official ID Card
              </div>
           </div>
