@@ -1038,6 +1038,8 @@ function StepReview({
   const captainB = playersB.find((p) => p.is_captain)?.name;
   const vcA = playersA.find((p) => p.is_vice_captain)?.name;
   const vcB = playersB.find((p) => p.is_vice_captain)?.name;
+  const keeperA = playersA.find((p) => p.is_keeper)?.name;
+  const keeperB = playersB.find((p) => p.is_keeper)?.name;
 
   return (
     <div className="space-y-4">
