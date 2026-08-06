@@ -1655,21 +1655,26 @@ function NewTeamBody({
 
         {/* Status Indicators (Compact) */}
         {players.length > 0 && (
-          <div className="mt-3 flex items-center gap-3">
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="flex items-center gap-1.5 text-[10px]">
               {players.some(p => p.is_captain) ? (
                 <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
               ) : (
-                <span className="text-muted-foreground">Captain required</span>
+                <span className="text-amber-600 font-medium">Captain required</span>
               )}
             </div>
             <div className="flex items-center gap-1.5 text-[10px]">
               {players.some(p => p.is_keeper) ? (
                 <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> WK</span>
               ) : (
-                <span className="text-muted-foreground">WK required</span>
+                <span className="text-amber-600 font-medium">WK required</span>
               )}
             </div>
+            {players.length < 2 && (
+              <div className="flex items-center gap-1.5 text-[10px]">
+                <span className="text-amber-600 font-medium">Min 2 players required</span>
+              </div>
+            )}
           </div>
         )}
       </div>
