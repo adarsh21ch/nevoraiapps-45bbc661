@@ -236,6 +236,7 @@ export interface BowlingStat {
   bestBowlingRuns: number;
   bestBowlingWickets: number;
   bestBowlingDisplay: string; // "3/22"
+  legalOvers: number; // float for calculations
 }
 
 export interface BowlingTable {
