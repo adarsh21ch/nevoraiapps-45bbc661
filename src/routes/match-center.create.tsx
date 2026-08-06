@@ -701,6 +701,8 @@ function CreateMatchPage() {
                 setMatchType={setMatchType}
                 matchFormat={matchFormat}
                 setMatchFormat={setMatchFormat}
+                playingRules={playingRules}
+                setPlayingRules={setPlayingRules}
                 overs={overs}
                 setOvers={setOvers}
               />
@@ -826,6 +828,8 @@ function StepSetup({
   setMatchType,
   matchFormat,
   setMatchFormat,
+  playingRules,
+  setPlayingRules,
   overs,
   setOvers,
 }: {
@@ -833,6 +837,8 @@ function StepSetup({
   setMatchType: (v: string) => void;
   matchFormat: string;
   setMatchFormat: (v: string) => void;
+  playingRules: string;
+  setPlayingRules: (v: string) => void;
   overs: number;
   setOvers: (v: number) => void;
 }) {
@@ -859,7 +865,7 @@ function StepSetup({
 
       <section>
         <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Format
+          Overs
         </Label>
         <Select
           value={matchFormat}
@@ -871,7 +877,7 @@ function StepSetup({
           }}
         >
           <SelectTrigger className="mt-2 h-12 text-base">
-            <SelectValue placeholder="Select format" />
+            <SelectValue placeholder="Select overs" />
           </SelectTrigger>
           <SelectContent>
             {FORMAT_OPTIONS.map((f) => (
@@ -881,6 +887,28 @@ function StepSetup({
             ))}
           </SelectContent>
         </Select>
+      </section>
+
+      <section>
+        <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Playing Rules
+        </Label>
+        <Select value={playingRules} onValueChange={setPlayingRules}>
+          <SelectTrigger className="mt-2 h-12 text-base">
+            <SelectValue placeholder="Select playing rules" />
+          </SelectTrigger>
+          <SelectContent>
+            {PLAYING_RULES_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          {PLAYING_RULES_OPTIONS.find((o) => o.value === playingRules)?.description}
+        </p>
+      </section>
 
         {matchFormat === "Custom" && (
           <div className="mt-4 flex items-center gap-2 rounded-2xl border border-border bg-background p-3">
@@ -902,7 +930,6 @@ function StepSetup({
             {overs} overs per side · You can change this later.
           </p>
         )}
-      </section>
     </div>
   );
 }
@@ -1291,10 +1318,6 @@ function TeamPanel({
       )}
 
 
-      {/* Playing XI summary — only when the panel has players */}
-      {state.players.length > 0 && (
-        <SquadFooter players={state.players} onPlayers={setPlayers} onRemove={removePlayer} />
-      )}
     </div>
   );
 }
@@ -1420,7 +1443,9 @@ function NewTeamBody({
   name,
   onName,
   players,
+  onPlayers,
   onAdd,
+  onRemove,
   studentPool,
   studentsLoading,
 }: {
@@ -1485,38 +1510,56 @@ function NewTeamBody({
     }
   };
 
+  const hasRoles = players.some(p => p.is_captain) && players.some(p => p.is_keeper);
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div>
-        <Label>Team name</Label>
+        <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Team name</Label>
         <Input
           value={name}
           onChange={(e) => onName(e.target.value)}
-          placeholder="e.g. Team A · U16 · Weekend Warriors"
-          className="mt-1 h-11 text-base"
+          placeholder="e.g. Team A · U16"
+          className="mt-1.5 h-11 text-base"
         />
       </div>
 
+      {players.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Playing XI · {players.length}/11
+            </Label>
+          </div>
+          <SquadList players={players} onPlayers={onPlayers} onRemove={onRemove} />
+          
+          <div className="flex flex-wrap gap-3 rounded-2xl border border-border bg-muted/30 p-3">
+            <div className="flex items-center gap-1.5 text-[11px]">
+              {players.some(p => p.is_captain) ? (
+                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
+              ) : (
+                <span className="text-muted-foreground">Captain required</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px]">
+              {players.some(p => p.is_keeper) ? (
+                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Wicketkeeper</span>
+              ) : (
+                <span className="text-muted-foreground">Wicketkeeper required</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              VC optional
+            </div>
+          </div>
+        </div>
+      )}
+
       <div>
         <div className="flex items-center gap-1.5">
-          <Label>Add player</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                aria-label="How to add players"
-                className="grid size-4 place-items-center rounded-full text-muted-foreground hover:text-foreground"
-              >
-                <Info className="size-3.5" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent side="top" align="start" className="w-64 text-xs leading-relaxed">
-              Search to pick an academy player, or type any name and add them as a guest — no
-              registration needed.
-            </PopoverContent>
-          </Popover>
+          <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Add player</Label>
         </div>
-        <div className="relative mt-1">
+        <div className="relative mt-1.5">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={q}
@@ -1525,63 +1568,51 @@ function NewTeamBody({
             placeholder="Search or type a name…"
             className="pl-9 h-11 text-base"
           />
+          {trimmed && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border bg-popover shadow-lg p-1 z-50">
+              {studentsLoading ? (
+                <div className="p-3 text-sm text-muted-foreground">Loading…</div>
+              ) : (
+                <>
+                  {results.map((p) => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => {
+                        onAdd(p);
+                        setQ("");
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
+                    >
+                      <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full" />
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        Academy
+                      </span>
+                    </button>
+                  ))}
+                  {!exactAcademyMatch && (
+                    <button
+                      type="button"
+                      onClick={addGuest}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
+                    >
+                      <span className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground">
+                        <Plus className="size-4" />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm">
+                        Add <span className="font-semibold">{trimmed}</span> as guest
+                      </span>
+                      <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                        Guest
+                      </span>
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
-        {trimmed && (
-          <div className="mt-2 max-h-64 space-y-1 overflow-y-auto rounded-xl border border-border bg-background/60 p-1">
-            {studentsLoading ? (
-              <div className="p-3 text-sm text-muted-foreground">Loading…</div>
-            ) : (
-              <>
-                {results.map((p) => (
-                  <button
-                    key={p.key}
-                    type="button"
-                    onClick={() => {
-                      onAdd(p);
-                      setQ("");
-                    }}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
-                  >
-                    <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full" />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                      Academy
-                    </span>
-                  </button>
-                ))}
-                {!exactAcademyMatch && (
-                  <button
-                    type="button"
-                    onClick={addGuest}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent"
-                  >
-                    <span className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground">
-                      <Plus className="size-4" />
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-sm">
-                      Add <span className="font-semibold">{trimmed}</span> as guest
-                    </span>
-                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
-                      Guest
-                    </span>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="mt-3 space-y-2">
-        {!players.some(p => p.is_captain) && (
-          <div className="text-[10px] font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-            Captain is required
-          </div>
-        )}
-        {!players.some(p => p.is_keeper) && (
-          <div className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-            Wicketkeeper is required
-          </div>
-        )}
       </div>
     </div>
   );
@@ -1593,9 +1624,7 @@ function NewTeamBody({
 
 
 
-/* --- Squad footer (chips + count) --- */
-
-function SquadFooter({
+function SquadList({
   players,
   onPlayers,
   onRemove,
@@ -1604,111 +1633,70 @@ function SquadFooter({
   onPlayers: (v: PlayerRef[]) => void;
   onRemove: (key: string) => void;
 }) {
-  const playing = players.filter((p) => !p.is_substitute);
   const setRole = (key: string, role: "C" | "VC" | "WK") => {
     const next = players.map((p) => {
       if (role === "C") {
         const willBeCap = p.key === key ? !p.is_captain : false;
-        return {
-          ...p,
-          is_captain: willBeCap,
-        };
+        return { ...p, is_captain: willBeCap };
       }
       if (role === "VC") {
         const willBeVc = p.key === key ? !p.is_vice_captain : false;
-        return {
-          ...p,
-          is_vice_captain: willBeVc,
-        };
+        return { ...p, is_vice_captain: willBeVc };
       }
-      // role === "WK"
       const willBeK = p.key === key ? !p.is_keeper : false;
-      return {
-        ...p,
-        is_keeper: willBeK,
-      };
+      return { ...p, is_keeper: willBeK };
     });
     onPlayers(next);
   };
 
   return (
-    <div className="mt-4 border-t border-border pt-4">
-      <div className="mb-2 flex items-center justify-between">
-        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          Playing XI · {playing.length}/11
-        </div>
-        {playing.length > 11 && (
-          <span className="text-[11px] text-amber-600">More than 11 selected</span>
-        )}
-      </div>
-      <div className="mb-2 text-[11px] text-muted-foreground">
-        Set Captain (C) and Wicketkeeper (WK) – both required. Vice-Captain (VC) is optional.
-      </div>
-      <ol className="space-y-1.5">
-        {players.map((p, idx) => (
-          <li
-            key={p.key}
-            className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2 py-1.5"
+    <ol className="space-y-1.5 max-h-[40vh] overflow-y-auto pr-1">
+      {players.map((p, idx) => (
+        <li
+          key={p.key}
+          className="flex items-center gap-2 rounded-lg border border-border bg-background/40 px-2 py-1.5"
+        >
+          <span className="w-5 text-right text-[11px] font-mono text-muted-foreground">
+            {idx + 1}
+          </span>
+          <Avatar src={p.photo_url} name={p.name} size={28} className="rounded-full" />
+          <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
+          <div className="flex gap-1 shrink-0">
+            <RoleButton active={!!p.is_captain} onClick={() => setRole(p.key, "C")} label="C" color="amber" />
+            <RoleButton active={!!p.is_vice_captain} onClick={() => setRole(p.key, "VC")} label="VC" color="sky" />
+            <RoleButton active={!!p.is_keeper} onClick={() => setRole(p.key, "WK")} label="WK" color="emerald" />
+          </div>
+          <button
+            type="button"
+            onClick={() => onRemove(p.key)}
+            className="rounded-md p-1 text-muted-foreground hover:bg-accent"
+            aria-label="Remove"
           >
-            <span className="w-5 text-right text-[11px] font-mono text-muted-foreground">
-              {idx + 1}
-            </span>
-            <Avatar src={p.photo_url} name={p.name} size={28} className="rounded-full" />
-            <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
-            <button
-              type="button"
-              onClick={() => setRole(p.key, "C")}
-              className={cn(
-                "rounded-md border px-1.5 py-0.5 text-[10px] font-bold transition-colors",
-                p.is_captain
-                  ? "border-amber-500 bg-amber-500 text-white"
-                  : "border-border text-muted-foreground hover:text-foreground",
-              )}
-              title="Captain"
-              aria-label="Set captain"
-            >
-              C
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole(p.key, "VC")}
-              className={cn(
-                "rounded-md border px-1.5 py-0.5 text-[10px] font-bold transition-colors",
-                p.is_vice_captain
-                  ? "border-sky-500 bg-sky-500 text-white"
-                  : "border-border text-muted-foreground hover:text-foreground",
-              )}
-              title="Vice captain"
-              aria-label="Set vice captain"
-            >
-              VC
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole(p.key, "WK")}
-              className={cn(
-                "rounded-md border px-1.5 py-0.5 text-[10px] font-bold transition-colors",
-                p.is_keeper
-                  ? "border-emerald-500 bg-emerald-500 text-white"
-                  : "border-border text-muted-foreground hover:text-foreground",
-              )}
-              title="Wicketkeeper"
-              aria-label="Set wicketkeeper"
-            >
-              WK
-            </button>
-            <button
-              type="button"
-              onClick={() => onRemove(p.key)}
-              className="rounded-md p-1 text-muted-foreground hover:bg-accent"
-              aria-label="Remove"
-            >
-              <X className="size-3.5" />
-            </button>
-          </li>
-        ))}
-      </ol>
-    </div>
+            <X className="size-3.5" />
+          </button>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function RoleButton({ active, onClick, label, color }: { active: boolean; onClick: () => void; label: string; color: "amber" | "sky" | "emerald" }) {
+  const colors = {
+    amber: active ? "border-amber-500 bg-amber-500 text-white" : "border-border text-muted-foreground",
+    sky: active ? "border-sky-500 bg-sky-500 text-white" : "border-border text-muted-foreground",
+    emerald: active ? "border-emerald-500 bg-emerald-500 text-white" : "border-border text-muted-foreground",
+  };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-md border px-1.5 py-0.5 text-[10px] font-bold transition-colors",
+        colors[color]
+      )}
+    >
+      {label}
+    </button>
   );
 }
 
