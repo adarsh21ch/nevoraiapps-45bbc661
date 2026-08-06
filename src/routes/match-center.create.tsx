@@ -1549,67 +1549,80 @@ function NewTeamBody({
     <div 
       className={cn(
         "flex flex-col bg-background overflow-hidden",
-        "fixed inset-0 z-50 md:relative md:inset-auto md:h-full md:max-h-[85vh] md:rounded-3xl md:border md:shadow-xl"
+        "fixed inset-0 z-50 md:relative md:inset-auto md:h-[80vh] md:max-h-[85vh] md:rounded-3xl md:border md:shadow-xl"
       )}
       style={{ 
         height: vh > 0 ? `${vh}px` : '100dvh'
       }}
     >
-      {/* HEADER: Team Name (Fixed) */}
-      <div className="flex-none p-4 pb-2 border-b bg-card">
-        <div className="flex items-center justify-between mb-2">
-          <Label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Team name</Label>
-          <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground">
-             Playing XI · {players.length}/11
+      {/* HEADER: Team Name & Status (Fixed) */}
+      <div className="flex-none p-4 pb-3 border-b bg-card">
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 block">Team name</Label>
+            <Input
+              value={name}
+              onChange={(e) => onName(e.target.value)}
+              placeholder="e.g. Team A"
+              className="h-10 text-base font-semibold focus-visible:ring-offset-0 focus-visible:ring-1"
+            />
           </div>
-        </div>
-        <Input
-          value={name}
-          onChange={(e) => onName(e.target.value)}
-          placeholder="e.g. Team A · U16"
-          className="h-10 text-base"
-        />
-      </div>
-
-      {/* ROSTER: Scrollable list of players (reversed to show latest at top) */}
-      <div className="flex-1 overflow-y-auto min-h-0 bg-muted/5 p-3">
-        {players.length > 0 ? (
-          <div className="flex flex-col gap-3">
-            <SquadList players={[...players].reverse()} onPlayers={(p) => onPlayers([...p].reverse())} onRemove={onRemove} />
-            
-            <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-muted/30 p-2.5">
-              <div className="flex items-center gap-1.5 text-[10px]">
-                {players.some(p => p.is_captain) ? (
-                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
-                ) : (
-                  <span className="text-muted-foreground">Captain required</span>
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px]">
-                {players.some(p => p.is_keeper) ? (
-                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> WK</span>
-                ) : (
-                  <span className="text-muted-foreground">WK required</span>
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px] ml-auto">
-                 <span className={cn(players.some(p => p.is_vice_captain) ? "text-sky-600 font-bold" : "text-muted-foreground")}>VC optional</span>
-              </div>
+          <div className="flex flex-col items-end gap-1.5 shrink-0 pt-5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-bold text-muted-foreground">XI</span>
+              <span className={cn(
+                "flex h-6 min-w-8 items-center justify-center rounded-lg px-2 text-[11px] font-bold",
+                players.length >= 11 ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"
+              )}>
+                {players.length}/11
+              </span>
             </div>
           </div>
+        </div>
+
+        {/* Status Indicators (Compact) */}
+        {players.length > 0 && (
+          <div className="mt-3 flex items-center gap-3">
+            <div className="flex items-center gap-1.5 text-[10px]">
+              {players.some(p => p.is_captain) ? (
+                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
+              ) : (
+                <span className="text-muted-foreground">Captain required</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 text-[10px]">
+              {players.some(p => p.is_keeper) ? (
+                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> WK</span>
+              ) : (
+                <span className="text-muted-foreground">WK required</span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ROSTER: Scrollable list of players */}
+      <div className="flex-1 overflow-y-auto min-h-0 bg-muted/5 scrollbar-thin">
+        {players.length > 0 ? (
+          <div className="p-3">
+            <SquadList players={[...players].reverse()} onPlayers={(p) => onPlayers([...p].reverse())} onRemove={onRemove} />
+          </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground opacity-40">
-            <Plus className="size-10 mb-2" />
-            <p className="text-sm">Add players below</p>
+          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground/30 py-10">
+            <div className="relative mb-3">
+              <Users className="size-12" />
+              <Plus className="absolute -bottom-1 -right-1 size-5 text-primary" />
+            </div>
+            <p className="text-sm font-medium">Add players below</p>
           </div>
         )}
       </div>
 
       {/* COMPOSER & FOOTER (Fixed) */}
-      <div className="flex-none border-t bg-card relative">
-        {/* Search suggestions anchored upward from composer */}
+      <div className="flex-none bg-card border-t shadow-[0_-8px_30px_rgb(0,0,0,0.04)] relative">
+        {/* Search suggestions (Expand Upward) */}
         {trimmed && (
-          <div className="absolute bottom-full left-0 right-0 mx-3 mb-2 max-h-48 space-y-1 overflow-y-auto rounded-xl border border-border bg-popover shadow-xl p-1 z-50">
+          <div className="absolute bottom-full left-0 right-0 mx-3 mb-2 max-h-48 space-y-1 overflow-y-auto rounded-2xl border border-border bg-popover shadow-2xl p-1 z-50">
             {studentsLoading ? (
               <div className="p-3 text-sm text-muted-foreground animate-pulse">Searching academy...</div>
             ) : (
@@ -1622,10 +1635,10 @@ function NewTeamBody({
                       onAdd(p);
                       setQ("");
                     }}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent transition-colors"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left hover:bg-accent transition-colors"
                   >
                     <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full shrink-0" />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{p.name}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold">{p.name}</span>
                     <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary shrink-0">
                       ACADEMY
                     </span>
@@ -1635,16 +1648,16 @@ function NewTeamBody({
                   <button
                     type="button"
                     onClick={addGuest}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-accent transition-colors"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left hover:bg-accent transition-colors border-t border-border/40 mt-1 pt-2"
                   >
-                    <span className="grid size-8 place-items-center rounded-full bg-muted text-muted-foreground shrink-0">
-                      <Plus className="size-4" />
-                    </span>
+                    <div className="size-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      <Plus className="size-4 text-muted-foreground" />
+                    </div>
                     <span className="min-w-0 flex-1 truncate text-sm">
-                      Add <span className="font-semibold">{trimmed}</span> as guest
+                      Add <span className="font-bold">"{trimmed}"</span>
                     </span>
-                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-bold text-amber-700 dark:text-amber-400 shrink-0">
-                      GUEST
+                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-bold text-amber-700 dark:text-amber-400 shrink-0 uppercase">
+                      Guest
                     </span>
                   </button>
                 )}
@@ -1653,45 +1666,46 @@ function NewTeamBody({
           </div>
         )}
 
-        <div className="p-3 pb-0">
+        {/* Input Column */}
+        <div className="px-4 pt-4 pb-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={onKeyDown}
-              placeholder="Search or type a name…"
-              className="pl-9 h-11 text-base focus-visible:ring-primary/20"
+              placeholder="Search or enter player name…"
+              className="pl-10 h-12 text-base rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/20"
               autoComplete="off"
               autoCorrect="off"
             />
           </div>
         </div>
 
-        {/* Global-style action bar (Believable bottom position) */}
-        <div className="flex items-center gap-3 p-4">
+        {/* Navigation Column (Horizontal) */}
+        <div className="flex items-center gap-3 p-4 pt-1">
            <Button 
              variant="outline" 
-             className="h-11 flex-1 text-sm font-semibold rounded-xl" 
+             className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted" 
              onClick={() => {
                const btn = document.querySelector('[data-step-nav="back"]') as HTMLButtonElement;
                if (btn) btn.click();
                else window.history.back();
              }}
            >
-             <ArrowLeft className="mr-1 size-4" />
+             <ArrowLeft className="mr-2 size-4" />
              Back
            </Button>
            <Button 
+             className="h-12 flex-[2] text-sm font-bold rounded-2xl shadow-lg shadow-primary/10" 
              disabled={!!validationError}
-             className="h-11 flex-1 text-sm font-semibold rounded-xl"
              onClick={() => {
                const btn = document.querySelector('[data-step-nav="next"]') as HTMLButtonElement;
-               btn?.click();
+               if (btn) btn.click();
              }}
            >
              Continue
-             <ChevronRight className="ml-1 size-4" />
+             <ChevronRight className="ml-2 size-4" />
            </Button>
         </div>
       </div>
