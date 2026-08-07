@@ -111,7 +111,7 @@ function RegisterContent() {
   const [form, setForm] = useState({
     name: "", guardian_name: "", phone: "", email: "", password: "", password2: "",
     batch_id: "", dob: "", address: "", current_address: "", permanent_address: "",
-    village_locality: "", city: "", state: "", aadhaar_front_url: "", aadhaar_back_url: "",
+    village_locality: "", city: "", state: "", aadhaar_number: "", aadhaar_front_url: "", aadhaar_back_url: "",
     photo_url: "", gender: "", height_cm: "", weight_kg: "", blood_group: "",
     batting_style: "", bowling_style: "", interests: "", medical_notes: "", guardian_phone: "", whatsapp: ""
   });
@@ -164,6 +164,7 @@ function RegisterContent() {
           state: profile.state || "",
           gender: regData.gender || "",
           medical_notes: regData.medical_notes || "",
+          aadhaar_number: profile.aadhaar_number || "",
           aadhaar_front_url: profile.aadhaar_front_url || "",
           aadhaar_back_url: profile.aadhaar_back_url || "",
           photo_url: profile.photo_url || "",
@@ -208,6 +209,10 @@ function RegisterContent() {
       if (!/^\d{2}\/\d{2}\/\d{4}$/.test(form.dob)) e.dob = "DD/MM/YYYY.";
       if (!form.phone.trim()) e.phone = "Required.";
       if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
+    } else if (n === 3) {
+      if (form.aadhaar_number.trim() && form.aadhaar_number.length !== 12) {
+        e.aadhaar_number = "Must be 12 digits.";
+      }
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -275,6 +280,7 @@ function RegisterContent() {
             permanent_address: form.permanent_address.trim(),
             city: form.city.trim(),
             state: form.state.trim(),
+            aadhaar_number: form.aadhaar_number.trim(),
             sport: "cricket"
         };
         const documents = { profile };
@@ -341,7 +347,110 @@ function RegisterContent() {
         {step === 3 && (
           <div className="space-y-4">
             <h2 className="font-bold">Additional Info</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground ml-1">Profile Photo</p>
+                <div className="flex items-center gap-4 p-3 border rounded bg-muted/30">
+                  <div className="size-16 rounded overflow-hidden bg-background border flex-shrink-0">
+                    {form.photo_url ? (
+                      <StoragedImage path={form.photo_url} alt="Profile preview" className="size-full object-cover" />
+                    ) : (
+                      <div className="size-full flex items-center justify-center text-muted-foreground"><Upload size={20} /></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = async (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (!file) return;
+                          try {
+                            const path = await uploadTenantFile(tenant.id, "registrations/photos", file);
+                            setForm(f => ({ ...f, photo_url: path }));
+                            toast.success("Photo uploaded");
+                          } catch (err: any) {
+                            toast.error(err.message);
+                          }
+                        };
+                        input.click();
+                      }}
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      {form.photo_url ? "Change Photo" : "Upload Photo"}
+                    </button>
+                    {form.photo_url && (
+                      <button 
+                        type="button" 
+                        onClick={() => setForm(f => ({ ...f, photo_url: "" }))}
+                        className="block text-xs text-destructive hover:underline mt-1"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground ml-1">Aadhaar Card (Front)</p>
+                <div className="flex items-center gap-4 p-3 border rounded bg-muted/30">
+                  <div className="size-16 rounded overflow-hidden bg-background border flex-shrink-0">
+                    {form.aadhaar_front_url ? (
+                      <div className="size-full flex items-center justify-center text-emerald-500 bg-emerald-50"><FileCheck size={24} /></div>
+                    ) : (
+                      <div className="size-full flex items-center justify-center text-muted-foreground"><Upload size={20} /></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*,application/pdf';
+                        input.onchange = async (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (!file) return;
+                          try {
+                            const path = await uploadTenantFile(tenant.id, "registrations/aadhaar", file);
+                            setForm(f => ({ ...f, aadhaar_front_url: path }));
+                            toast.success("Aadhaar uploaded");
+                          } catch (err: any) {
+                            toast.error(err.message);
+                          }
+                        };
+                        input.click();
+                      }}
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      {form.aadhaar_front_url ? "Change File" : "Upload Aadhaar"}
+                    </button>
+                    {form.aadhaar_front_url && (
+                      <button 
+                        type="button" 
+                        onClick={() => setForm(f => ({ ...f, aadhaar_front_url: "" }))}
+                        className="block text-xs text-destructive hover:underline mt-1"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <input placeholder="Guardian Name" value={form.guardian_name} onChange={e => setForm({...form, guardian_name: e.target.value})} className="w-full border p-2 rounded" />
+            <input 
+              placeholder="Aadhaar Number (12 digits)" 
+              value={form.aadhaar_number} 
+              maxLength={12}
+              onChange={e => setForm({...form, aadhaar_number: e.target.value.replace(/\D/g, '')})} 
+              className={cn("w-full border p-2 rounded", errors.aadhaar_number && "border-destructive")}
+            />
+            {errors.aadhaar_number && <p className="text-xs text-destructive">{errors.aadhaar_number}</p>}
             <textarea placeholder="Address" value={form.current_address} onChange={e => setForm({...form, current_address: e.target.value})} className="w-full border p-2 rounded" />
             <div className="flex gap-2">
               <button type="button" onClick={() => setStep(2)} className="flex-1 border p-3 rounded">Back</button>
@@ -353,7 +462,7 @@ function RegisterContent() {
         {step === 4 && (
           <div className="space-y-4">
             <h2 className="font-bold">Finalize</h2>
-            <div className="bg-gray-50 p-4 rounded text-sm"><p><strong>Name:</strong> {form.name}</p><p><strong>Phone:</strong> {form.phone}</p></div>
+            <div className="bg-gray-50 p-4 rounded text-sm"><p><strong>Name:</strong> {form.name}</p><p><strong>Phone:</strong> {form.phone}</p>{form.aadhaar_number && <p><strong>Aadhaar:</strong> {form.aadhaar_number}</p>}</div>
             <label className="flex gap-2 items-center"><input type="checkbox" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /> I accept terms</label>
             <div className="flex gap-2">
               <button type="button" onClick={() => setStep(3)} className="flex-1 border p-3 rounded">Back</button>
