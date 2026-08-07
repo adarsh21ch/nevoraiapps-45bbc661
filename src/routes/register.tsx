@@ -355,6 +355,7 @@ function RegisterContent() {
               onChange={e => setForm({...form, aadhaar_number: e.target.value.replace(/\D/g, '')})} 
               className="w-full border p-2 rounded" 
             />
+            {errors.aadhaar_number && <p className="text-xs text-destructive">{errors.aadhaar_number}</p>}
             <textarea placeholder="Address" value={form.current_address} onChange={e => setForm({...form, current_address: e.target.value})} className="w-full border p-2 rounded" />
             <div className="flex gap-2">
               <button type="button" onClick={() => setStep(2)} className="flex-1 border p-3 rounded">Back</button>
