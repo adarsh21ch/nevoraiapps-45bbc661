@@ -353,7 +353,7 @@ function RegisterContent() {
                 <div className="flex items-center gap-4 p-3 border rounded bg-muted/30">
                   <div className="size-16 rounded overflow-hidden bg-background border flex-shrink-0">
                     {form.photo_url ? (
-                      <StoragedImage path={form.photo_url} className="size-full object-cover" />
+                      <StoragedImage path={form.photo_url} alt="Profile preview" className="size-full object-cover" />
                     ) : (
                       <div className="size-full flex items-center justify-center text-muted-foreground"><Upload size={20} /></div>
                     )}
