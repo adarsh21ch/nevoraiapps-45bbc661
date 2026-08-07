@@ -404,32 +404,106 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
         </Button>
         <Button
           variant="outline"
-          className="rounded-xl h-12 justify-start"
-          onClick={async () => {
-            await generateIdCardPdf(tenant, {
-              playerId: s.player_id,
-              name: s.name,
-              guardianName: s.guardian_name,
-              dob: s.dob,
-              phone: s.phone,
-              city: s.city || null,
-              state: s.state || null,
-              villageLocality: s.village_locality || null,
-              guardianPhone: s.guardian_phone,
-              batchName: batch?.name ?? null,
-              batchTiming: batch?.timing ?? null,
-              academyPhone: tenant.phone || null,
-              academyName: tenant.name || null,
-              academyLogo: tenant.logo_url || null,
-              sport: athleteQ.data?.primary_sport || "Cricket",
-              joinedAt: s.joined_at,
-              photoPath: s.photo_url ?? null,
-              cardToken: (s as { card_token?: string | null }).card_token ?? null,
-            });
+          className="rounded-xl h-12 justify-start bg-primary/5 hover:bg-primary/10 text-primary border-primary/20"
+          onClick={() => {
+            const dialog = document.getElementById('id-card-preview-dialog-staff') as any;
+            if (dialog) dialog.showModal();
           }}
         >
-          <Download className="size-4 mr-2" /> Download ID card
+          <Eye className="size-4 mr-2" /> View & Download ID
         </Button>
+
+        <dialog id="id-card-preview-dialog-staff" className="bg-transparent backdrop:bg-black/60 p-0 rounded-2xl overflow-visible">
+          <div className="bg-background max-w-[90vw] w-full p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-6 relative">
+            <button 
+              className="absolute -top-3 -right-3 size-10 bg-white dark:bg-slate-800 rounded-full shadow-lg border flex items-center justify-center z-50"
+              onClick={() => {
+                const dialog = document.getElementById('id-card-preview-dialog-staff') as any;
+                if (dialog) dialog.close();
+              }}
+            >
+              <X className="size-5" />
+            </button>
+
+            <div className="flex bg-muted p-1 rounded-lg">
+              <Button 
+                size="sm" 
+                variant={side === "front" ? "secondary" : "ghost"}
+                className="h-8 px-4 text-xs"
+                onClick={() => setSide("front")}
+              >
+                Front
+              </Button>
+              <Button 
+                size="sm" 
+                variant={side === "back" ? "secondary" : "ghost"}
+                className="h-8 px-4 text-xs"
+                onClick={() => setSide("back")}
+              >
+                Back
+              </Button>
+            </div>
+
+            <div className="scale-[0.85] sm:scale-100 origin-top pointer-events-none select-none border rounded-2xl shadow-xl bg-background overflow-hidden mb-2">
+              <StudentIDCard 
+                side={side}
+                student={{
+                  name: s.name,
+                  player_id: s.player_id,
+                  photo_url: s.photo_url,
+                  joined_at: s.joined_at,
+                  dob: s.dob,
+                  academy_name: tenant.name,
+                  academy_logo: tenant.logo_url,
+                  academy_address: tenant.address,
+                  academy_phone: tenant.phone,
+                  sport: athleteQ.data?.primary_sport || "Cricket",
+                  session: batch?.name,
+                  batch_timing: batch?.timing,
+                  primary_color: tenant.primary_color,
+                  phone: s.phone,
+                }} 
+              />
+            </div>
+
+            <Button 
+              className="w-full h-12" 
+              onClick={async () => {
+                const downloadToast = toast.loading("Generating ID card...");
+                try {
+                  await generateIdCardPdf(tenant, {
+                    playerId: s.player_id,
+                    name: s.name,
+                    guardianName: s.guardian_name,
+                    dob: s.dob,
+                    phone: s.phone,
+                    city: s.city || null,
+                    state: s.state || null,
+                    villageLocality: s.village_locality || null,
+                    guardianPhone: s.guardian_phone,
+                    batchName: batch?.name ?? null,
+                    batchTiming: batch?.timing ?? null,
+                    academyPhone: tenant.phone || null,
+                    academyName: tenant.name || null,
+                    academyLogo: tenant.logo_url || null,
+                    academyAddress: tenant.address || null,
+                    sport: athleteQ.data?.primary_sport || "Cricket",
+                    joinedAt: s.joined_at,
+                    photoPath: s.photo_url ?? null,
+                    cardToken: (s as { card_token?: string | null }).card_token ?? null,
+                  });
+                  toast.success("Downloaded successfully", { id: downloadToast });
+                  (document.getElementById('id-card-preview-dialog-staff') as any)?.close();
+                } catch (err) {
+                  toast.error("Failed to generate PDF", { id: downloadToast });
+                }
+              }}
+            >
+              <Download className="size-4 mr-2" /> Download Official PDF
+            </Button>
+          </div>
+        </dialog>
+
         {isLeft ? (
           <div className="sm:col-span-2 grid grid-cols-2 gap-2">
             <Button
