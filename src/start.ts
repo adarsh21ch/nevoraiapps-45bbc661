@@ -37,9 +37,10 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => 
       "Strict-Transport-Security",
       "max-age=31536000; includeSubDomains",
     );
+    // QR attendance needs the camera + GPS on our own origin.
     setResponseHeader(
       "Permissions-Policy",
-      "geolocation=(), microphone=(), camera=()",
+      "geolocation=(self), microphone=(), camera=(self)",
     );
     setResponseHeader(
       "Content-Security-Policy-Report-Only",
