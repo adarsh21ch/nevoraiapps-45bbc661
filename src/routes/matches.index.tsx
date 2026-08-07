@@ -249,18 +249,21 @@ function LiveMatchCard({
   }, [onInvalidate, inningsQ, ballsQ]);
   useMatchLive(match.id, listener);
 
+  const { calculateInningsStatistics } = await import("@/lib/mc-statistics-engine");
   const derived = (() => {
     const balls = ballsQ.data;
     if (!balls || balls.length === 0) return null;
-    let runs = 0;
-    let wickets = 0;
-    let legal = 0;
-    for (const b of balls as Array<{ runs_off_bat: number | null; extra_runs: number | null; is_legal_delivery: boolean | null; dismissal_type: string | null }>) {
-      runs += (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
-      if (b.is_legal_delivery) legal += 1;
-      if (b.dismissal_type) wickets += 1;
-    }
-    return { runs, wickets, overs: Math.floor(legal / 6), balls: legal % 6 };
+    const stats = calculateInningsStatistics(balls as any, { 
+      totalOvers: match.overs ?? 0,
+      playingRules: match.playing_rules as any || {},
+      target: current?.target_runs ?? null
+    });
+    return { 
+      runs: stats.team.runs, 
+      wickets: stats.team.wickets, 
+      overs: Math.floor(stats.team.legalBalls / 6), 
+      balls: stats.team.legalBalls % 6 
+    };
   })();
 
   const score = derived ?? (current
