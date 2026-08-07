@@ -175,7 +175,7 @@ export const acceptInvitation = createServerFn({ method: "POST" })
     }
 
     // Upsert profile with tenant + legacy role hint.
-    const legacyRole = inv.invited_role === "admin" ? "admin" : "coach";
+    const legacyRole = (inv.invited_role === "admin" || inv.invited_role === "coach") ? "coach" : null;
     const { error: profErr } = await supabaseAdmin.from("profiles").upsert(
       {
         user_id: context.userId,
