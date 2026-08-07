@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { GitCompare, ArrowLeft, User } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +27,16 @@ export const Route = createFileRoute("/match-center/performance/compare")({
 
 function ComparePage() {
   const { tenant } = useDashboard();
+  const navigate = useNavigate();
+  const { can, isLoading: permLoading } = usePermissions();
+  const canView = can("canViewPerformance");
+
+  useEffect(() => {
+    if (!permLoading && !canView) {
+      navigate({ to: "/match-center/dashboard", replace: true });
+    }
+  }, [canView, permLoading, navigate]);
+
   const [a, setA] = useState<string | null>(null);
   const [b, setB] = useState<string | null>(null);
 
