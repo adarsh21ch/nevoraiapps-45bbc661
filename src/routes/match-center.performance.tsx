@@ -36,6 +36,16 @@ export const Route = createFileRoute("/match-center/performance")({
 
 function PerformancePage() {
   const { tenant } = useDashboard();
+  const navigate = useNavigate();
+  const { can, isLoading: permLoading } = usePermissions();
+  const canView = can("canViewPerformance");
+
+  useEffect(() => {
+    if (!permLoading && !canView) {
+      navigate({ to: "/match-center/dashboard", replace: true });
+    }
+  }, [canView, permLoading, navigate]);
+
   const [q, setQ] = useState("");
 
   const athletesQ = useQuery({

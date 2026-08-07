@@ -35,6 +35,16 @@ export const Route = createFileRoute("/match-center/performance/$athleteId")({
 function PlayerPerformancePage() {
   const { athleteId } = Route.useParams();
   const { tenant } = useDashboard();
+  const navigate = useNavigate();
+  const { can, isLoading: permLoading } = usePermissions();
+  const canView = can("canViewPerformance");
+
+  useEffect(() => {
+    if (!permLoading && !canView) {
+      navigate({ to: "/match-center/dashboard", replace: true });
+    }
+  }, [canView, permLoading, navigate]);
+
   const demoPerf = useMCPlayerPerformance(tenant.id, athleteId);
   const demoCareer = useMCPlayerCareer(tenant.id, athleteId);
   const demoData = useDemoData(tenant.id);

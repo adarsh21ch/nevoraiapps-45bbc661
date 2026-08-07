@@ -182,8 +182,15 @@ type RosterTab = "waiting" | "present" | "done";
 function AttendancePage() {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
-  const { can } = usePermissions();
+  const { can, isLoading: permLoading } = usePermissions();
   const canMark = can("canMarkAttendance");
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!permLoading && !canMark) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [canMark, permLoading, navigate]);
 
   const [scanCards, setScanCards] = useState(false);
   const [session, setSession] = useState<SessionFilter>("all");
