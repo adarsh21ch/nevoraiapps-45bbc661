@@ -245,8 +245,8 @@ export const feeSummaryTool: AnyToolDef = {
       const cycle = tenantFeeCycle(tenant as never);
       const now = new Date();
       const paidPeriods = new Set<string>();
-      for (const p of (payments ?? []) as Array<{ period: string | null }>) {
-        if (p.period) paidPeriods.add(p.period);
+      for (const p of (payments ?? []) as Array<{ period: string | null; type: string | null }>) {
+        if (p.type === "monthly" && p.period) paidPeriods.add(p.period);
       }
       const joinedAt = (student as { joined_at?: string }).joined_at;
       if (joinedAt) {

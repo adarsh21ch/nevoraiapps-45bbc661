@@ -268,7 +268,17 @@ function Wizard() {
       setStep(6);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast.error(msg);
+      
+      // Close the "live, ownerless" window
+      if (createdTenantId) {
+        await supabase
+          .from("tenants")
+          .update({ status: "suspended" })
+          .eq("id", createdTenantId);
+        toast.error(`Tenant created but owner setup failed — it's been suspended so it isn't publicly live. Retry owner creation from the tenant's admin page, or contact support.`);
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setBusy(false);
     }

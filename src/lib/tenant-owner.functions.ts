@@ -30,29 +30,39 @@ export const createTenantOwner = createServerFn({ method: "POST" })
 
     // Find or create the auth user.
     let userId: string | null = null;
-    const { data: existing, error: listErr } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 200,
+    const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
     });
-    if (listErr) throw new Error(listErr.message);
-    const found = existing.users.find((u) => u.email?.toLowerCase() === data.email.toLowerCase());
-    if (found) {
-      userId = found.id;
-      // Reset password to the temp one the admin chose so they can share it once.
+
+    if (!createErr) {
+      userId = created.user?.id ?? null;
+    } else if (/already.*(registered|exists)/i.test(createErr.message ?? "")) {
+      // Existing user — createUser doesn't return an id on conflict, so page to find it.
+      // Bounded at 50 pages (10,000 users) so this always terminates.
+      for (let page = 1; page <= 50 && !userId; page++) {
+        const { data: pageData, error: listErr } = await supabaseAdmin.auth.admin.listUsers({
+          page,
+          perPage: 200,
+        });
+        if (listErr) throw new Error(listErr.message);
+        const found = pageData.users.find((u) => u.email?.toLowerCase() === data.email.toLowerCase());
+        if (found) userId = found.id;
+        if (pageData.users.length < 200) break; // reached the last page
+      }
+      if (!userId) {
+        throw new Error(`"${data.email}" is already registered but could not be located. Contact support.`);
+      }
       const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         password: data.password,
         email_confirm: true,
       });
       if (updErr) throw new Error(updErr.message);
     } else {
-      const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        email_confirm: true,
-      });
-      if (createErr) throw new Error(createErr.message);
-      userId = created.user?.id ?? null;
+      throw new Error(createErr.message);
     }
+
     if (!userId) throw new Error("Failed to resolve user id");
 
     // Role in user_roles is the SOURCE OF TRUTH (checked by routeAfterLogin /

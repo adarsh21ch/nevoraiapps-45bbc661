@@ -20,6 +20,7 @@ import { checkRateLimit } from "@/lib/bulk-ops";
 import { signedUrl, uploadTenantFile } from "@/lib/storage";
 import { toE164 } from "@/lib/phone";
 import { attachPhoneToApplicant } from "@/lib/registration/attach-phone.functions";
+import { cleanupOrphanedApplicant } from "@/lib/registration/cleanup.functions";
 import { cn } from "@/lib/utils";
 import { INDIAN_STATES } from "@/lib/location";
 
@@ -150,11 +151,32 @@ function RegisterContent() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || cancelled) return;
-      const { data } = await supabase.rpc("my_post_login_route" as never);
+      const { data, error: routeErr } = await supabase.rpc("my_post_login_route" as never);
+      if (routeErr) {
+        console.error("my_post_login_route error", routeErr);
+      }
+
 
 
       if (cancelled) return;
       const route = (data as unknown as string) ?? "student";
+      
+      // If the user has a pending registration and changes are requested,
+      // stay on /register to allow them to edit.
+      if (route === "student") {
+        const { data: regData } = await supabase
+          .from("registrations")
+          .select("review_status")
+          .eq("applicant_user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (regData?.review_status === "changes_requested") {
+          return;
+        }
+      }
+
       const target =
         route === "platform_admin" ? "/platform-admin"
         : route === "staff" ? "/dashboard"
@@ -543,13 +565,17 @@ function RegisterContent() {
       const phoneE164 = toE164(form.phone.trim());
       if (phoneE164) {
         try {
-          await attachPhoneToApplicant({
+          const result = await attachPhoneToApplicant({
             data: {
               tenantId: tenant.id,
               applicantUserId,
               phoneE164,
             },
           });
+          if (!result.attached) {
+            console.warn("[register] phone attach failed", result.reason);
+            // Non-fatal, but we could surface this in the UI if needed
+          }
         } catch {
           // non-fatal — email login still works
         }
@@ -557,6 +583,14 @@ function RegisterContent() {
     }
     setSaving(false);
     if (error || !data) {
+      if (applicantUserId) {
+        try {
+          await cleanupOrphanedApplicant({});
+        } catch {
+          /* best-effort — if this fails, the applicant just needs to sign in and retry instead of re-registering */
+        }
+        await supabase.auth.signOut();
+      }
       toast.error(error?.message ?? "Could not submit. Please try again.");
       console.error(error);
       return;
