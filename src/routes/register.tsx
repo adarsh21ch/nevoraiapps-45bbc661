@@ -350,25 +350,95 @@ function RegisterContent() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground ml-1">Profile Photo</p>
-                <FileUploader
-                  tenantId={tenant.id}
-                  path="registrations/photos"
-                  value={form.photo_url}
-                  onChange={(url) => setForm({ ...form, photo_url: url })}
-                  accept="image/*"
-                  label="Upload Photo"
-                />
+                <div className="flex items-center gap-4 p-3 border rounded bg-muted/30">
+                  <div className="size-16 rounded overflow-hidden bg-background border flex-shrink-0">
+                    {form.photo_url ? (
+                      <StoragedImage path={form.photo_url} className="size-full object-cover" />
+                    ) : (
+                      <div className="size-full flex items-center justify-center text-muted-foreground"><Upload size={20} /></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = async (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (!file) return;
+                          try {
+                            const path = await uploadTenantFile(tenant.id, "registrations/photos", file);
+                            setForm(f => ({ ...f, photo_url: path }));
+                            toast.success("Photo uploaded");
+                          } catch (err: any) {
+                            toast.error(err.message);
+                          }
+                        };
+                        input.click();
+                      }}
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      {form.photo_url ? "Change Photo" : "Upload Photo"}
+                    </button>
+                    {form.photo_url && (
+                      <button 
+                        type="button" 
+                        onClick={() => setForm(f => ({ ...f, photo_url: "" }))}
+                        className="block text-xs text-destructive hover:underline mt-1"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground ml-1">Aadhaar Card (Front)</p>
-                <FileUploader
-                  tenantId={tenant.id}
-                  path="registrations/aadhaar"
-                  value={form.aadhaar_front_url}
-                  onChange={(url) => setForm({ ...form, aadhaar_front_url: url })}
-                  accept="image/*,application/pdf"
-                  label="Upload Front"
-                />
+                <div className="flex items-center gap-4 p-3 border rounded bg-muted/30">
+                  <div className="size-16 rounded overflow-hidden bg-background border flex-shrink-0">
+                    {form.aadhaar_front_url ? (
+                      <div className="size-full flex items-center justify-center text-emerald-500 bg-emerald-50"><FileCheck size={24} /></div>
+                    ) : (
+                      <div className="size-full flex items-center justify-center text-muted-foreground"><Upload size={20} /></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*,application/pdf';
+                        input.onchange = async (e) => {
+                          const file = (e.target as HTMLInputElement).files?.[0];
+                          if (!file) return;
+                          try {
+                            const path = await uploadTenantFile(tenant.id, "registrations/aadhaar", file);
+                            setForm(f => ({ ...f, aadhaar_front_url: path }));
+                            toast.success("Aadhaar uploaded");
+                          } catch (err: any) {
+                            toast.error(err.message);
+                          }
+                        };
+                        input.click();
+                      }}
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      {form.aadhaar_front_url ? "Change File" : "Upload Aadhaar"}
+                    </button>
+                    {form.aadhaar_front_url && (
+                      <button 
+                        type="button" 
+                        onClick={() => setForm(f => ({ ...f, aadhaar_front_url: "" }))}
+                        className="block text-xs text-destructive hover:underline mt-1"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
