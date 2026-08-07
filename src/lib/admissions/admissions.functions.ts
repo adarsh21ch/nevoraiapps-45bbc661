@@ -77,7 +77,7 @@ export const approveRegistration = createServerFn({ method: "POST" })
 
 
     if (studentId) {
-      const { error } = await supabase.from("students").update(studentPayload).eq("id", studentId);
+      const { error } = await supabase.from("students").update(studentPayload as any).eq("id", studentId);
       if (error) throw error;
     } else {
       const { data: created, error } = await supabase.from("students").insert(studentPayload as any).select("id").single();
