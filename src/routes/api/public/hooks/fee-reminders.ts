@@ -35,8 +35,13 @@ export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
 
         for (const t of tenants ?? []) {
           // Active students in this tenant with a fee plan
-          const { studentDue, resolveEffectiveMonthlyFee, tenantFeeCycle } = await import("@/lib/fees");
+          const { studentDue, resolveEffectiveMonthlyFee, tenantFeeCycle, getPaidPeriodSet } = await import("@/lib/fees");
           const cycle = tenantFeeCycle(t as any);
+          const { data: tenantData } = await supabaseAdmin
+            .from("tenants")
+            .select("gender_pricing_enabled")
+            .eq("id", t.id)
+            .single();
 
           const { data: students } = await supabaseAdmin
             .from("students")
@@ -56,19 +61,14 @@ export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
             .eq("tenant_id", t.id)
             .eq("type", "monthly")
             .eq("period", period);
-          const paid = new Set((payments ?? []).map((p) => p.student_id));
+          const paidByStudent = getPaidPeriodSet((payments ?? []) as any);
 
 
           for (const s of students) {
-            if (paid.has(s.id)) continue;
+            const paidPeriods = paidByStudent.get(s.id) ?? new Set();
+            if (paidPeriods.has(period)) continue;
             const plan = (s.fee_plans as { amount: number; female_amount: number | null; type: string } | null) ?? null;
             if (!plan || plan.type !== "monthly") continue;
-
-            const { data: tenantData } = await supabaseAdmin
-              .from("tenants")
-              .select("gender_pricing_enabled")
-              .eq("id", t.id)
-              .single();
 
             const amount = resolveEffectiveMonthlyFee({
               plan,
@@ -82,15 +82,12 @@ export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
               cycle,
               joinedAt: s.joined_at!,
               selectedMonth: kolkata,
-              paidPeriods: paid.has(s.id) ? new Set([period]) : new Set(),
+              paidPeriods,
               today: kolkata
             });
 
             if (due.state !== "pending") continue;
 
-
-            const joined = s.joined_at ? new Date(s.joined_at + "T00:00:00") : null;
-            if (joined && joined > periodStart) continue; // not enrolled yet
 
             const phoneRaw = (s.guardian_phone || s.phone || "").replace(/\D/g, "");
             if (!phoneRaw) {

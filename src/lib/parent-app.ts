@@ -124,11 +124,12 @@ export async function fetchChildBillingSummary(
 
   const { data: payments } = await supabase
     .from("payments")
-    .select("type, period")
+    .select("student_id, type, period")
     .eq("student_id", studentId);
 
   const cycle = tenantFeeCycle(tenant as any);
-  const paidPeriods = getPaidPeriodSet(payments ?? []);
+  const paidByStudent = getPaidPeriodSet(payments ?? []);
+  const paidPeriods = paidByStudent.get(studentId) ?? new Set<string>();
   const now = new Date();
   
   const due = studentDue({

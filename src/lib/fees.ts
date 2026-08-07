@@ -28,18 +28,24 @@ export function resolveEffectiveMonthlyFee(opts: {
 
 /**
  * Helper B — paid-period set.
- * Returns a set of period keys for payments of type 'monthly'.
+ * Returns a Map of studentId -> Set of period keys for payments of type 'monthly'.
  */
 export function getPaidPeriodSet(
-  payments: Array<{ type: string | null | undefined; period: string | null | undefined }>,
-): Set<string> {
-  const set = new Set<string>();
+  payments: Array<{
+    student_id: string | null | undefined;
+    type: string | null | undefined;
+    period: string | null | undefined;
+  }>,
+): Map<string, Set<string>> {
+  const map = new Map<string, Set<string>>();
   for (const p of payments) {
-    if (p.type === "monthly" && p.period) {
+    if (p.type === "monthly" && p.period && p.student_id) {
+      const set = map.get(p.student_id) ?? new Set<string>();
       set.add(p.period);
+      map.set(p.student_id, set);
     }
   }
-  return set;
+  return map;
 }
 
 

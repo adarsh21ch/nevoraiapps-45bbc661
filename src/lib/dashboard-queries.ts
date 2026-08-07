@@ -152,7 +152,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
       .eq("fee_plans.type", "monthly"),
     db
       .from("payments")
-      .select("student_id, period")
+      .select("student_id, period, type")
       .eq("tenant_id", tenantId)
       .eq("type", "monthly")
       .in("period", periods),
@@ -164,15 +164,7 @@ export async function fetchKpis(tenant: Tenant, db: Db = supabase): Promise<Kpis
 
   ]);
 
-  const paidByStudent = new Map<string, Set<string>>();
-  const paidSet = getPaidPeriodSet((paidRowsRes.data ?? []) as any);
-  // Re-grouping for student-specific logic below
-  for (const p of paidRowsRes.data ?? []) {
-    if (!p.student_id || !p.period) continue;
-    const set = paidByStudent.get(p.student_id) ?? new Set<string>();
-    set.add(p.period);
-    paidByStudent.set(p.student_id, set);
-  }
+  const paidByStudent = getPaidPeriodSet((paidRowsRes.data ?? []) as any);
 
 
   // Sum valid monthly payments for the current month.

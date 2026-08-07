@@ -69,8 +69,22 @@ async function buildBriefForTenant(tenantId: string): Promise<DailyBrief> {
     else if (r.status === "absent") absent++;
   }
 
-  const overdue = kpis?.pendingFeeCount ?? 0;
-  const outstanding = kpis?.pendingFeeCount ?? 0;
+  const paidByStudent = getPaidPeriodSet((allPayments?.data ?? []) as any);
+  let overdue = 0;
+  let outstanding = 0;
+
+  for (const s of (studentsRes?.data ?? []) as any) {
+    const due = studentDue({
+      cycle: tenantFeeCycle(tenant as any),
+      joinedAt: s.joined_at,
+      selectedMonth: new Date(),
+      paidPeriods: paidByStudent.get(s.id) ?? new Set(),
+    });
+    if (due.state === "pending") {
+      outstanding++;
+      if (due.overdueDays > 0) overdue++;
+    }
+  }
   const collected = kpis?.collectionThisMonth ?? 0;
   const activeStudents = kpis?.activeStudents ?? 0;
 
@@ -160,16 +174,6 @@ async function buildBriefForTenant(tenantId: string): Promise<DailyBrief> {
 export const getDailyBrief = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<DailyBrief> => {
-    // 2b — assert owner (or platform admin) server-side
-    const [{ data: isOwner }, { data: isPlatform }] = await Promise.all([
-      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "owner" }),
-      context.supabase.rpc("is_platform_admin", { _uid: context.userId }),
-    ]);
-
-    if (!isOwner && !isPlatform) {
-      throw new Error("Forbidden: Daily brief is restricted to owners");
-    }
-
     const { data: profile } = await context.supabase
       .from("profiles")
       .select("tenant_id")
@@ -185,5 +189,19 @@ export const getDailyBrief = createServerFn({ method: "GET" })
         recommendations: [],
       };
     }
+
+    const [{ data: isOwner }, { data: isPlatform }] = await Promise.all([
+      context.supabase.rpc("has_role", {
+        _user_id: context.userId,
+        _tenant_id: profile.tenant_id,
+        _role: "owner",
+      }),
+      context.supabase.rpc("is_platform_admin", { _uid: context.userId }),
+    ]);
+
+    if (!isOwner && !isPlatform) {
+      throw new Error("Forbidden: Daily brief is restricted to owners");
+    }
+
     return buildBriefForTenant(profile.tenant_id);
   });

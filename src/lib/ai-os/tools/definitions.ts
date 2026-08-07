@@ -143,14 +143,7 @@ export const financeSummaryTool: AnyToolDef = {
         .eq("tenant_id", ctx.tenantId)
         .in("period", periods),
     ]);
-    const paidByStudent = new Map<string, Set<string>>();
-    const allPaid = getPaidPeriodSet((paidRes.data ?? []) as any);
-    for (const p of (paidRes.data ?? []) as Array<{ student_id: string | null; period: string | null }>) {
-      if (!p.student_id || !p.period) continue;
-      const set = paidByStudent.get(p.student_id) ?? new Set<string>();
-      set.add(p.period);
-      paidByStudent.set(p.student_id, set);
-    }
+    const paidByStudent = getPaidPeriodSet((paidRes.data ?? []) as any);
 
     type StudentRow = {
       id: string;

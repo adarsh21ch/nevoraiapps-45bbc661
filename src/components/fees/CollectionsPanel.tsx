@@ -4,7 +4,7 @@ import { format } from "date-fns";
 
 import { useDashboard } from "@/lib/dashboard-context";
 import { fetchPaymentsForPeriods, fetchStudents, qk } from "@/lib/dashboard-queries";
-import { recordPayment } from "@/lib/billing";
+import { recordPayment, newIdempotencyKey } from "@/lib/billing";
 
 // M2a bridge helpers — route-local, no lib changes.
 function buildQuickCollectRemarks(period: string, existingRemarks: string | null | undefined) {
@@ -13,10 +13,6 @@ function buildQuickCollectRemarks(period: string, existingRemarks: string | null
   return rest ? `${prefix} ${rest}` : prefix;
 }
 
-function quickCollectIdempotencyKey() {
-  const { newIdempotencyKey } = require("@/lib/billing");
-  return newIdempotencyKey();
-}
 
 import {
   candidatePeriods,
@@ -770,7 +766,7 @@ function CollectForm({
   const [amount, setAmount] = useState(String(row.amount || ""));
   const [method, setMethod] = useState<"cash" | "upi" | null>(null);
   const [note, setNote] = useState("");
-  const [idempotencyKey] = useState(() => quickCollectIdempotencyKey());
+  const [idempotencyKey] = useState(() => newIdempotencyKey());
 
 
   const qc = useQueryClient();
