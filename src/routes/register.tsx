@@ -143,6 +143,10 @@ function RegisterContent() {
 
       if (regData?.review_status === "changes_requested") {
         setExistingReg(regData);
+        // Map registration row to form state safely, handling the 'documents' JSON structure
+        const docs = regData.documents as any;
+        const profile = docs?.profile || {};
+        
         setForm(f => ({
           ...f,
           name: regData.name || "",
@@ -153,12 +157,22 @@ function RegisterContent() {
           batch_id: regData.batch_id || "",
           dob: regData.dob ? regData.dob.split('-').reverse().join('/') : "",
           address: regData.address || "",
-          current_address: regData.address || "",
+          current_address: regData.address || profile.current_address || "",
+          permanent_address: profile.permanent_address || "",
+          village_locality: profile.village_locality || "",
+          city: profile.city || "",
+          state: profile.state || "",
           gender: regData.gender || "",
           medical_notes: regData.medical_notes || "",
-          aadhaar_front_url: regData.aadhaar_front_url || "",
-          aadhaar_back_url: regData.aadhaar_back_url || "",
-          photo_url: regData.photo_url || "",
+          aadhaar_front_url: profile.aadhaar_front_url || "",
+          aadhaar_back_url: profile.aadhaar_back_url || "",
+          photo_url: profile.photo_url || "",
+          height_cm: profile.height_cm?.toString() || "",
+          weight_kg: profile.weight_kg?.toString() || "",
+          blood_group: profile.blood_group || "",
+          batting_style: profile.batting_style || "",
+          bowling_style: profile.bowling_style || "",
+          interests: profile.interests || "",
         }));
         setStep(2);
         return;
@@ -193,14 +207,14 @@ function RegisterContent() {
       if (!form.name.trim()) e.name = "Required.";
       if (!/^\d{2}\/\d{2}\/\d{4}$/.test(form.dob)) e.dob = "DD/MM/YYYY.";
       if (!form.phone.trim()) e.phone = "Required.";
-      if (!form.batch_id) e.batch_id = "Required.";
+      if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
 
   const batchOptions = useMemo(() => [
-    { value: "", label: "Select a batch" },
+    { value: "", label: "Select a batch", description: "" },
     ...batches.map(b => ({
       value: b.id,
       label: b.timing ? `${b.name} — ${b.timing}` : b.name,
@@ -210,20 +224,26 @@ function RegisterContent() {
 
   async function submitForm(e: React.FormEvent) {
     e.preventDefault();
-    if (!validateStep(4)) return;
+    if (!validateStep(step)) return;
+    if (step < 4) {
+        setStep(s => Math.min(4, s + 1) as Step);
+        return;
+    }
     if (!termsAccepted) return toast.error("Accept terms.");
     
     setSaving(true);
     try {
-      let applicantUserId = null;
-      if (!existingReg) {
+      const { data: { user } } = await supabase.auth.getUser();
+      let applicantUserId = user?.id || null;
+      
+      if (!existingReg && !user) {
         const { data: authData, error: authErr } = await supabase.auth.signUp({
           email: form.email.trim().toLowerCase(),
           password: form.password,
           options: { data: { full_name: form.name.trim(), tenant_slug: tenant.slug } }
         });
         if (authErr) throw authErr;
-        applicantUserId = authData.user?.id;
+        applicantUserId = authData.user?.id || null;
       }
 
       const [d, m, y] = form.dob.split("/");
@@ -236,23 +256,36 @@ function RegisterContent() {
           _name: form.name.trim(),
           _phone: form.phone.trim(),
           _fee_plan_id: plan?.id,
-          _batch_id: form.batch_id,
+          _batch_id: form.batch_id || null,
           _dob: isoDob,
           _guardian_name: form.guardian_name || null,
           _address: form.current_address || null,
           _gender: form.gender || null
-        });
+        } as any);
         if (rErr) throw rErr;
       } else {
         const { data: regId, error: sErr } = await supabase.rpc("submit_registration" as never, {
           _tenant_id: tenant.id, _name: form.name.trim(), _phone: form.phone.trim(),
-          _fee_plan_id: plan?.id, _batch_id: form.batch_id, _dob: isoDob
-        });
+          _fee_plan_id: plan?.id, _batch_id: form.batch_id || null, _dob: isoDob
+        } as any);
         if (sErr) throw sErr;
+        
+        const profile: Record<string, unknown> = {
+            current_address: form.current_address.trim(),
+            permanent_address: form.permanent_address.trim(),
+            city: form.city.trim(),
+            state: form.state.trim(),
+            sport: "cricket"
+        };
+        const documents = { profile };
+
         await supabase.rpc("attach_applicant_to_registration" as never, {
-          _registration_id: regId, _email: form.email.trim().toLowerCase(),
-          _address: form.current_address || null, _gender: normalizeGender(form.gender)
-        });
+          _registration_id: regId as any, 
+          _email: form.email.trim().toLowerCase(),
+          _address: form.current_address || null, 
+          _gender: normalizeGender(form.gender),
+          _documents: documents
+        } as any);
       }
       setDone(true);
     } catch (err: any) {
@@ -299,7 +332,7 @@ function RegisterContent() {
               {batchOptions.map(o => <option key={o.value} value={o.value}>{o.label} {o.description ? `(${o.description})` : ""}</option>)}
             </select>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setStep(1)} className="flex-1 border p-3 rounded">Back</button>
+              {!existingReg && <button type="button" onClick={() => setStep(1)} className="flex-1 border p-3 rounded">Back</button>}
               <button type="button" onClick={() => setStep(3)} className="flex-1 bg-black text-white p-3 rounded">Continue</button>
             </div>
           </div>
