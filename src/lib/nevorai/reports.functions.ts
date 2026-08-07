@@ -112,14 +112,14 @@ async function generateForUser(
     import("@/lib/fees"),
   ]);
 
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
   const [studentsRes, allPayments] = await Promise.all([
-    supabaseAdmin
+    admin
       .from("students")
       .select("id, joined_at")
       .eq("tenant_id", tenantId)
       .eq("status", "active"),
-    supabaseAdmin
+    admin
       .from("payments")
       .select("student_id, period, type")
       .eq("tenant_id", tenantId),
