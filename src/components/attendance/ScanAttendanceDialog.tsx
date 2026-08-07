@@ -8,7 +8,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
-import { Loader2, MapPin, CheckCircle2, AlertCircle, QrCode, CameraOff } from "lucide-react";
+import { Loader2, MapPin, CheckCircle2, AlertCircle, QrCode, CameraOff, LogOut, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +19,7 @@ import {
 } from "@/lib/attendance/qr";
 import { formatDuration } from "@/lib/attendance/constants";
 
-type Phase = "scanning" | "locating" | "sending" | "done" | "error";
+type Phase = "scanning" | "locating" | "sending" | "done" | "error" | "confirm_out";
 
 /** Accepts a full check-in URL (`.../checkin?t=xyz`) or a bare token. */
 export function extractToken(text: string): string | null {
@@ -62,6 +62,7 @@ export function ScanAttendanceDialog({
   const [phase, setPhase] = useState<Phase>("scanning");
   const [message, setMessage] = useState<string | null>(null);
   const [result, setResult] = useState<Extract<QrScanResult, { ok: true }> | null>(null);
+  const [lastToken, setLastToken] = useState<string | null>(null);
 
   const stopCamera = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -73,8 +74,16 @@ export function ScanAttendanceDialog({
   }, []);
 
   const record = useCallback(
-    async (token: string) => {
+    async (token: string, bypassConfirm = false) => {
       if (busyRef.current) return;
+
+      if (mode === "out" && !bypassConfirm) {
+        setLastToken(token);
+        setPhase("confirm_out");
+        stopCamera();
+        return;
+      }
+
       busyRef.current = true;
       stopCamera();
       setPhase("locating");
@@ -267,9 +276,11 @@ export function ScanAttendanceDialog({
               ? result.action === "check_in"
                 ? "Entry recorded"
                 : "Exit recorded"
-              : mode === "out"
-                ? "Scan to check out"
-                : "Scan to check in"}
+              : phase === "confirm_out"
+                ? "Confirm Exit"
+                : mode === "out"
+                  ? "Scan to check out"
+                  : "Scan to check in"}
           </DialogTitle>
         </DialogHeader>
 
@@ -286,6 +297,34 @@ export function ScanAttendanceDialog({
               </span>
               . The camera closes automatically once it's recorded.
             </p>
+          </div>
+        ) : phase === "confirm_out" ? (
+          <div className="py-3 text-center">
+            <StatusIcon tone="neutral">
+              <LogOut className="size-7" />
+            </StatusIcon>
+            <p className="text-base font-semibold">Confirm Checkout</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Are you sure you want to check out from the academy now?
+            </p>
+            <div className="mt-6 flex flex-col gap-2">
+              <Button
+                className="h-12 w-full rounded-xl font-bold bg-primary"
+                onClick={() => lastToken && record(lastToken, true)}
+              >
+                <Check className="size-4 mr-2" /> Yes, Checkout
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-12 w-full rounded-xl text-muted-foreground"
+                onClick={() => {
+                  setPhase("scanning");
+                  void startCamera();
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         ) : (
 
