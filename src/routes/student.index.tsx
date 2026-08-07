@@ -16,7 +16,10 @@ import {
   FileText,
   ScanLine,
   LogIn,
+  Info,
 } from "lucide-react";
+import { toast } from "sonner";
+import { isPendingApproval } from "@/lib/admissions/lifecycle";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +96,16 @@ function StudentHomePage() {
       {/* Primary daily action — scan the academy QR to check in / out */}
       <button
         type="button"
-        onClick={() => setScanOpen(true)}
+        onClick={() => {
+          const isPending = !ctx.student_id || (ctx.lifecycle_status && isPendingApproval(ctx.lifecycle_status));
+          if (isPending) {
+            toast.info("Registration Pending", {
+              description: "Attendance marking will be available once the academy approves your registration.",
+            });
+            return;
+          }
+          setScanOpen(true);
+        }}
         className={cn(
           "w-full rounded-2xl px-5 py-4 text-left transition-all active:scale-[0.99] shadow-lg",
           home.todayVisit && !home.todayVisit.check_out_at
@@ -257,7 +269,16 @@ function StudentHomePage() {
         </p>
         <div className="space-y-2">
           <PlayerQuickAction
-            onClick={() => setScanOpen(true)}
+            onClick={() => {
+              const isPending = !ctx.student_id || (ctx.lifecycle_status && isPendingApproval(ctx.lifecycle_status));
+              if (isPending) {
+                toast.info("Registration Pending", {
+                  description: "Attendance marking will be available once the academy approves your registration.",
+                });
+                return;
+              }
+              setScanOpen(true);
+            }}
             icon={<QrCode className="size-5" />}
             label={home.todayVisit && !home.todayVisit.check_out_at ? "Check Out Attendance" : "Scan QR Code for Attendance"}
             highlight={!!(home.todayVisit && !home.todayVisit.check_out_at)}

@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { LogOut } from "lucide-react";
+import { LogOut, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyPortalContext, studentKeys } from "@/lib/student-app";
 import {
@@ -90,9 +90,7 @@ function StudentLayout() {
   useEffect(() => {
     if (!gateQ.data) return;
     const lifecycle = gateQ.data.lifecycle;
-    const shouldGate =
-      gateQ.data.pendingReg ||
-      (lifecycle && (isPendingApproval(lifecycle) || needsActivation(lifecycle)));
+    const shouldGate = lifecycle && isBlocked(lifecycle);
     if (shouldGate && !onPendingRoute) {
       navigate({ to: "/student/pending" });
     }
@@ -149,31 +147,47 @@ function StudentLayout() {
   }
 
   if (!ctxQ.data) {
-    // No student record and no pending registration → guidance card.
-    return (
-      <div className="min-h-dvh grid place-items-center p-6 bg-background">
-        <Card className="p-6 max-w-md text-center space-y-3">
-          <h1 className="text-xl font-semibold">No player record</h1>
-          <p className="text-sm text-muted-foreground">
-            Your sign-in email is not linked to a student. Please contact your academy so they can
-            update your email in your profile.
-          </p>
-          <Button
-            variant="outline"
-            onClick={async () => {
-              await supabase.auth.signOut();
-              navigate({ to: "/auth" });
-            }}
-          >
-            <LogOut className="size-4 mr-1" /> Sign out
-          </Button>
-        </Card>
-      </div>
-    );
+    if (gateQ.data?.pendingReg) {
+      // Allow rendering the portal layout for applicants with a pending registration
+      // even if the student record hasn't been created yet.
+      // We will provide a dummy context or let downstream components handle missing student_id.
+    } else {
+      return (
+        <div className="min-h-dvh grid place-items-center p-6 bg-background">
+          <Card className="p-6 max-w-md text-center space-y-3">
+            <h1 className="text-xl font-semibold">No player record</h1>
+            <p className="text-sm text-muted-foreground">
+              Your sign-in email is not linked to a student. Please contact your academy so they can
+              update your email in your profile.
+            </p>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate({ to: "/auth" });
+              }}
+            >
+              <LogOut className="size-4 mr-1" /> Sign out
+            </Button>
+          </Card>
+        </div>
+      );
+    }
   }
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-background to-muted/30 pb-24">
+      {gateQ.data?.pendingReg || (gateQ.data?.lifecycle && isPendingApproval(gateQ.data.lifecycle)) ? (
+        <div className="bg-amber-500 text-white px-4 py-2 text-center text-[13px] font-medium sticky top-0 z-50 flex items-center justify-center gap-2 shadow-sm animate-in fade-in slide-in-from-top duration-300">
+          <Info className="size-4 shrink-0" />
+          <span>Registration pending. You can view features, but attendance & internal tools will unlock once approved.</span>
+        </div>
+      ) : gateQ.data?.lifecycle && needsActivation(gateQ.data.lifecycle) ? (
+        <div className="bg-primary text-primary-foreground px-4 py-2 text-center text-[13px] font-medium sticky top-0 z-50 flex items-center justify-center gap-2 shadow-sm animate-in fade-in slide-in-from-top duration-300">
+          <Info className="size-4 shrink-0" />
+          <span>Account approved! Please check your email/phone to activate and unlock full access.</span>
+        </div>
+      ) : null}
       <div className="max-w-3xl mx-auto px-4 pt-6">
         <Outlet />
       </div>

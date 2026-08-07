@@ -1,6 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "@tanstack/react-router";
 import { useState } from "react";
+import { toast } from "sonner";
+import { isPendingApproval } from "@/lib/admissions/lifecycle";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useDashboardOptional } from "@/lib/dashboard-context";
@@ -68,6 +70,13 @@ export function GlobalBottomNav() {
 
   const handleFabClick = () => {
     if (role === "student") {
+      const isPending = !studentCtx?.student_id || (studentCtx.lifecycle_status && isPendingApproval(studentCtx.lifecycle_status));
+      if (isPending) {
+        toast.info("Registration Pending", {
+          description: "Scan functionality will unlock once your account is approved.",
+        });
+        return;
+      }
       setStudentScanOpen(true);
     } else {
       setStaffScanOpen(true);
