@@ -353,7 +353,7 @@ function RegisterContent() {
               value={form.aadhaar_number} 
               maxLength={12}
               onChange={e => setForm({...form, aadhaar_number: e.target.value.replace(/\D/g, '')})} 
-              className="w-full border p-2 rounded" 
+              className={cn("w-full border p-2 rounded", errors.aadhaar_number && "border-destructive")}
             />
             {errors.aadhaar_number && <p className="text-xs text-destructive">{errors.aadhaar_number}</p>}
             <textarea placeholder="Address" value={form.current_address} onChange={e => setForm({...form, current_address: e.target.value})} className="w-full border p-2 rounded" />
