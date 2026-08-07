@@ -153,15 +153,21 @@ async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numb
   doc.text(nameLines, fx + CW / 2, py + ph + 8, { align: "center" });
 
   // Details
-  let dy = py + ph + 16;
+  let dy = py + ph + 17;
   const field = (label: string, value: string) => {
-    doc.setTextColor(100, 100, 100);
+    doc.setTextColor(150, 150, 150);
     doc.setFontSize(6);
     doc.text(label, fx + 6, dy);
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(8);
-    doc.text(value, fx + 25, dy);
-    dy += 5;
+    doc.setFontSize(8.5);
+    doc.text(value, fx + CW - 6, dy, { align: "right" });
+    
+    // Bottom border line for field
+    doc.setDrawColor(240, 240, 240);
+    doc.setLineWidth(0.1);
+    doc.line(fx + 6, dy + 1.5, fx + CW - 6, dy + 1.5);
+    
+    dy += 6;
   };
   field("PLAYER ID", r.playerId || "—");
   field("DOB", fmtDate(r.dob));
@@ -169,13 +175,14 @@ async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numb
   field("CONTACT", r.phone || "—");
   
   // Address
-  doc.setTextColor(100, 100, 100);
+  doc.setTextColor(150, 150, 150);
   doc.setFontSize(6);
   doc.text("ADDRESS", fx + 6, dy);
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(7);
-  const addrLines = doc.splitTextToSize(r.academyAddress || "—", CW - 28);
-  doc.text(addrLines, fx + 25, dy);
+  const addrLines = doc.splitTextToSize(r.academyAddress || "—", CW - 12);
+  doc.text(addrLines, fx + 6, dy + 3);
+
 
   // Footer
   doc.setFillColor(br, bg, bb);
@@ -214,12 +221,15 @@ async function drawCardBack(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numbe
 
   // Session
   doc.setTextColor(br, bg, bb);
-  doc.setFontSize(7);
+  doc.setFontSize(8);
   doc.text("SESSION / BATCH", fx + CW/2, fy + 75, { align: "center" });
   doc.setTextColor(0, 0, 0);
-  doc.setFontSize(10);
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text((r.batchName || "GENERAL").toUpperCase(), fx + CW/2, fy + 80, { align: "center" });
+  const sessionText = (r.batchName || "GENERAL").toUpperCase();
+  const formattedSession = sessionText.includes("BOTH SESSION") ? "MORNING + EVENING" : sessionText;
+  doc.text(formattedSession, fx + CW/2, fy + 82, { align: "center" });
+
 
   // Footer
   doc.setFillColor(br, bg, bb);

@@ -17,7 +17,10 @@ import {
   Download,
   Loader2,
   MapPin,
+  Eye,
+  X,
 } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -186,100 +189,121 @@ function StudentProfilePage() {
         </Button>
       </div>
 
-      {/* ID Card Download */}
-      <Card className="p-4 flex flex-col items-center gap-4">
-        <div className="w-full flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <IdCard className="size-5 text-primary" />
-            <h3 className="font-medium">Identity Card</h3>
-          </div>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={handleDownloadIDCard}
-            disabled={isDownloading}
-          >
-            {isDownloading ? (
-              <Loader2 className="size-4 mr-2 animate-spin" />
-            ) : (
-              <Download className="size-4 mr-2" />
-            )}
-            Download
-          </Button>
+      {/* ID Card section */}
+      <section aria-label="ID Card">
+        <div className="mb-2 px-1">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Student ID Card</p>
         </div>
-        <p className="text-xs text-muted-foreground text-center mb-4">
-          Carry your official digital ID for attendance and academy access.
-        </p>
-        
-        {/* Interactive preview with Front/Back toggle */}
-        <div className="w-full flex flex-col items-center gap-4">
-          <div className="flex bg-muted p-1 rounded-lg">
-            <Button 
-              size="sm" 
-              variant={side === "front" ? "secondary" : "ghost"}
-              className="h-8 px-4 text-xs"
-              onClick={() => setSide("front")}
-            >
-              Front
-            </Button>
-            <Button 
-              size="sm" 
-              variant={side === "back" ? "secondary" : "ghost"}
-              className="h-8 px-4 text-xs"
-              onClick={() => setSide("back")}
-            >
-              Back
-            </Button>
-          </div>
-
-          {/* Hidden containers for PDF capture */}
-          <div className="fixed -left-[9999px] top-0 pointer-events-none">
-            <StudentIDCard 
-              ref={cardRef}
-              side="front"
-              student={{
-                name: (s.name as string) || "Student",
-                player_id: s.player_id,
-                photo_url: (s.photo_url as string) || null,
-                joined_at: s.joined_at,
-                dob: s.dob,
-                academy_name: ctx.tenant_name || "AcademyOS",
-                academy_logo: ctx.tenant_logo || undefined,
-                academy_address: ctx.tenant_address || undefined,
-                academy_phone: ctx.tenant_phone || undefined,
-                sport: (athleteQ.data?.primary_sport as string) || "Cricket",
-                session: (s.batches as any)?.name || (s.batch_name as string) || undefined,
-                batch_timing: (s.batches as any)?.timing || (s.batch_timing as string) || undefined,
-                primary_color: ctx.tenant_primary_color || undefined,
-                phone: (s.phone as string) || undefined,
-              }} 
-            />
+        <Card className="p-4 flex flex-col items-center gap-4">
+          <div className="w-full flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <IdCard className="size-5 text-primary" />
+              <div className="flex flex-col">
+                <h3 className="text-sm font-semibold">Official ID Card</h3>
+                <p className="text-[10px] text-muted-foreground">Digital Identity for Academy</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-9 px-3 text-xs"
+                onClick={handleDownloadIDCard}
+                disabled={isDownloading}
+              >
+                {isDownloading ? (
+                  <Loader2 className="size-3.5 mr-2 animate-spin" />
+                ) : (
+                  <Download className="size-3.5 mr-2" />
+                )}
+                Download
+              </Button>
+            </div>
           </div>
           
-          {/* Visible preview */}
-          <div className="scale-[0.8] sm:scale-100 origin-top pointer-events-none select-none border rounded-2xl shadow-xl bg-background overflow-hidden">
-             <StudentIDCard 
-              side={side}
-              student={{
-                name: (s.name as string) || "Student",
-                player_id: s.player_id,
-                photo_url: (s.photo_url as string) || null,
-                joined_at: s.joined_at,
-                dob: s.dob,
-                academy_name: ctx.tenant_name || "AcademyOS",
-                academy_logo: ctx.tenant_logo || undefined,
-                academy_address: ctx.tenant_address || undefined,
-                academy_phone: ctx.tenant_phone || undefined,
-                sport: (athleteQ.data?.primary_sport as string) || "Cricket",
-                session: (s.batches as any)?.name || (s.batch_name as string) || undefined,
-                batch_timing: (s.batches as any)?.timing || (s.batch_timing as string) || undefined,
-                primary_color: ctx.tenant_primary_color || undefined,
-                phone: (s.phone as string) || undefined,
-              }} 
-            />
+          <div className="w-full pt-2">
+            <Button
+              variant="secondary"
+              className="w-full h-11 bg-primary/5 hover:bg-primary/10 text-primary border-primary/20"
+              onClick={() => {
+                const dialog = document.getElementById('id-card-preview-dialog') as any;
+                if (dialog) dialog.showModal();
+              }}
+            >
+              <Eye className="size-4 mr-2" /> View ID Card
+            </Button>
           </div>
-        </div>
-      </Card>
+        </Card>
+
+        {/* Minimal dialog-like preview using HTML <dialog> or a simple fixed overlay */}
+        <dialog id="id-card-preview-dialog" className="bg-transparent backdrop:bg-black/60 p-0 rounded-2xl overflow-visible">
+          <div className="bg-background max-w-[90vw] w-full p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-6 relative">
+            <button 
+              className="absolute -top-3 -right-3 size-10 bg-white dark:bg-slate-800 rounded-full shadow-lg border flex items-center justify-center z-50"
+              onClick={() => {
+                const dialog = document.getElementById('id-card-preview-dialog') as any;
+                if (dialog) dialog.close();
+              }}
+            >
+              <X className="size-5" />
+            </button>
+
+            <div className="flex bg-muted p-1 rounded-lg">
+              <Button 
+                size="sm" 
+                variant={side === "front" ? "secondary" : "ghost"}
+                className="h-8 px-4 text-xs"
+                onClick={() => setSide("front")}
+              >
+                Front
+              </Button>
+              <Button 
+                size="sm" 
+                variant={side === "back" ? "secondary" : "ghost"}
+                className="h-8 px-4 text-xs"
+                onClick={() => setSide("back")}
+              >
+                Back
+              </Button>
+            </div>
+
+            <div className="scale-[0.85] sm:scale-100 origin-top pointer-events-none select-none border rounded-2xl shadow-xl bg-background overflow-hidden mb-2">
+              <StudentIDCard 
+                side={side}
+                student={{
+                  name: (s.name as string) || "Student",
+                  player_id: s.player_id,
+                  photo_url: (s.photo_url as string) || null,
+                  joined_at: s.joined_at,
+                  dob: s.dob,
+                  academy_name: ctx.tenant_name || "AcademyOS",
+                  academy_logo: ctx.tenant_logo || undefined,
+                  academy_address: ctx.tenant_address || undefined,
+                  academy_phone: ctx.tenant_phone || undefined,
+                  sport: (athleteQ.data?.primary_sport as string) || "Cricket",
+                  session: (s.batches as any)?.name || (s.batch_name as string) || undefined,
+                  batch_timing: (s.batches as any)?.timing || (s.batch_timing as string) || undefined,
+                  primary_color: ctx.tenant_primary_color || undefined,
+                  phone: (s.phone as string) || undefined,
+                }} 
+              />
+            </div>
+
+            <Button 
+              className="w-full h-12" 
+              onClick={() => {
+                handleDownloadIDCard();
+                (document.getElementById('id-card-preview-dialog') as any)?.close();
+              }}
+              disabled={isDownloading}
+            >
+              {isDownloading ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Download className="size-4 mr-2" />}
+              Download Official PDF
+            </Button>
+          </div>
+        </dialog>
+      </section>
+
 
       {/* Personal details */}
       <section aria-label="Personal details">
