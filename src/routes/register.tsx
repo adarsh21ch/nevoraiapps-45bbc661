@@ -276,6 +276,7 @@ function RegisterContent() {
             permanent_address: form.permanent_address.trim(),
             city: form.city.trim(),
             state: form.state.trim(),
+            aadhaar_number: form.aadhaar_number.trim(),
             sport: "cricket"
         };
         const documents = { profile };
