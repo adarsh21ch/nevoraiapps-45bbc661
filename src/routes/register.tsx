@@ -896,7 +896,7 @@ function RegisterContent() {
 
                 <div className="sm:col-span-2">
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                    Aadhaar Card Verification *
+                    Aadhaar Card Verification (optional)
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <DocumentUpload
