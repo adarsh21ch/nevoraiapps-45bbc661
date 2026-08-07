@@ -72,7 +72,9 @@ export const approveRegistration = createServerFn({ method: "POST" })
       approved_by: context.userId,
       status: "active",
       activation_token: activationToken,
+      password: reg.phone,
     };
+
 
     if (studentId) {
       const { error } = await supabase.from("students").update(studentPayload).eq("id", studentId);
@@ -188,7 +190,9 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
         emergency_contact_name?: string | null;
         emergency_contact_phone?: string | null;
         coach_name?: string | null;
+        password?: string | null;
       }>;
+
     }) => i,
   )
   .handler(async ({ data, context }) => {
@@ -238,7 +242,9 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
       status: "active",
       import_batch_id: batch.id,
       activation_token: crypto.randomUUID(),
+      password: r.password ?? r.phone ?? null,
     }));
+
 
     // Insert in chunks of 100
     for (let i = 0; i < inserts.length; i += 100) {
