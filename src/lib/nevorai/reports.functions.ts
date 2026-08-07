@@ -108,8 +108,39 @@ async function generateForUser(
     else if (r.status === "absent") absent++;
   }
 
-  const overdue = kpis?.pendingFeeCount ?? 0;
-  const outstanding = kpis?.pendingFeeCount ?? 0;
+  const [{ getPaidPeriodSet, studentDue, tenantFeeCycle }] = await Promise.all([
+    import("@/lib/fees"),
+  ]);
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const [studentsRes, allPayments] = await Promise.all([
+    supabaseAdmin
+      .from("students")
+      .select("id, joined_at")
+      .eq("tenant_id", tenantId)
+      .eq("status", "active"),
+    supabaseAdmin
+      .from("payments")
+      .select("student_id, period, type")
+      .eq("tenant_id", tenantId),
+  ]);
+
+  const paidByStudent = getPaidPeriodSet((allPayments?.data ?? []) as any);
+  let overdue = 0;
+  let outstanding = 0;
+
+  for (const s of (studentsRes?.data ?? []) as any) {
+    const due = studentDue({
+      cycle: tenantFeeCycle(tenant as any),
+      joinedAt: s.joined_at,
+      selectedMonth: new Date(),
+      paidPeriods: paidByStudent.get(s.id) ?? new Set(),
+    });
+    if (due.state === "pending") {
+      outstanding++;
+      if (due.overdueDays > 0) overdue++;
+    }
+  }
   const collected = kpis?.collectionThisMonth ?? 0;
   const active = kpis?.activeStudents ?? 0;
 
@@ -158,16 +189,6 @@ export const generatePeriodicBrief = createServerFn({ method: "POST" })
     z.object({ period: z.enum(["daily", "weekly", "monthly"]) }).parse(input),
   )
   .handler(async ({ context, data }) => {
-    // 2b — assert owner (or platform admin) server-side
-    const [{ data: isOwner }, { data: isPlatform }] = await Promise.all([
-      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "owner" }),
-      context.supabase.rpc("is_platform_admin", { _uid: context.userId }),
-    ]);
-
-    if (!isOwner && !isPlatform) {
-      throw new Error("Forbidden: Reports are restricted to owners");
-    }
-
     const { data: profile } = await context.supabase
       .from("profiles")
       .select("tenant_id")
@@ -175,6 +196,20 @@ export const generatePeriodicBrief = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (!profile?.tenant_id) throw new Error("No tenant");
+
+    const [{ data: isOwner }, { data: isPlatform }] = await Promise.all([
+      context.supabase.rpc("has_role", {
+        _user_id: context.userId,
+        _tenant_id: profile.tenant_id,
+        _role: "owner",
+      }),
+      context.supabase.rpc("is_platform_admin", { _uid: context.userId }),
+    ]);
+
+    if (!isOwner && !isPlatform) {
+      throw new Error("Forbidden: Reports are restricted to owners");
+    }
+
     return generateForUser(profile.tenant_id, context.userId, data.period);
   });
 
