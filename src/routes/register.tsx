@@ -209,6 +209,10 @@ function RegisterContent() {
       if (!/^\d{2}\/\d{2}\/\d{4}$/.test(form.dob)) e.dob = "DD/MM/YYYY.";
       if (!form.phone.trim()) e.phone = "Required.";
       if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
+    } else if (n === 3) {
+      if (form.aadhaar_number.trim() && form.aadhaar_number.length !== 12) {
+        e.aadhaar_number = "Must be 12 digits.";
+      }
     }
     setErrors(e);
     return Object.keys(e).length === 0;
