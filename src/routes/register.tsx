@@ -344,6 +344,13 @@ function RegisterContent() {
           <div className="space-y-4">
             <h2 className="font-bold">Additional Info</h2>
             <input placeholder="Guardian Name" value={form.guardian_name} onChange={e => setForm({...form, guardian_name: e.target.value})} className="w-full border p-2 rounded" />
+            <input 
+              placeholder="Aadhaar Number (12 digits)" 
+              value={form.aadhaar_number} 
+              maxLength={12}
+              onChange={e => setForm({...form, aadhaar_number: e.target.value.replace(/\D/g, '')})} 
+              className="w-full border p-2 rounded" 
+            />
             <textarea placeholder="Address" value={form.current_address} onChange={e => setForm({...form, current_address: e.target.value})} className="w-full border p-2 rounded" />
             <div className="flex gap-2">
               <button type="button" onClick={() => setStep(2)} className="flex-1 border p-3 rounded">Back</button>
