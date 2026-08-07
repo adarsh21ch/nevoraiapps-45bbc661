@@ -90,9 +90,7 @@ function StudentLayout() {
   useEffect(() => {
     if (!gateQ.data) return;
     const lifecycle = gateQ.data.lifecycle;
-    const shouldGate =
-      gateQ.data.pendingReg ||
-      (lifecycle && (isPendingApproval(lifecycle) || needsActivation(lifecycle)));
+    const shouldGate = lifecycle && isBlocked(lifecycle);
     if (shouldGate && !onPendingRoute) {
       navigate({ to: "/student/pending" });
     }
@@ -174,6 +172,17 @@ function StudentLayout() {
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-background to-muted/30 pb-24">
+      {gateQ.data?.pendingReg || (gateQ.data?.lifecycle && isPendingApproval(gateQ.data.lifecycle)) ? (
+        <div className="bg-amber-500 text-white px-4 py-2 text-center text-[13px] font-medium sticky top-0 z-50 flex items-center justify-center gap-2 shadow-sm animate-in fade-in slide-in-from-top duration-300">
+          <Info className="size-4 shrink-0" />
+          <span>Registration pending. You can view features, but attendance & internal tools will unlock once approved.</span>
+        </div>
+      ) : gateQ.data?.lifecycle && needsActivation(gateQ.data.lifecycle) ? (
+        <div className="bg-primary text-primary-foreground px-4 py-2 text-center text-[13px] font-medium sticky top-0 z-50 flex items-center justify-center gap-2 shadow-sm animate-in fade-in slide-in-from-top duration-300">
+          <Info className="size-4 shrink-0" />
+          <span>Account approved! Please check your email/phone to activate and unlock full access.</span>
+        </div>
+      ) : null}
       <div className="max-w-3xl mx-auto px-4 pt-6">
         <Outlet />
       </div>
