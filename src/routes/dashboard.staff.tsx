@@ -326,10 +326,11 @@ function AdminPicker({
   const eligible = useMemo(() => {
     return members.filter(
       (m) =>
-        m.source === "student" &&
         !m.roles.includes("owner") &&
         m.profile_role !== "owner" &&
-        !m.roles.some(r => ["admin", "staff", "coach", "head_coach", "assistant_coach"].includes(r)),
+        !m.roles.some((r) =>
+          ["admin", "staff", "coach", "head_coach", "assistant_coach"].includes(r),
+        ),
     );
   }, [members]);
 

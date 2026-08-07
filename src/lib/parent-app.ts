@@ -158,8 +158,8 @@ export async function fetchChildBillingSummary(
       total: effectiveFee,
       balance: effectiveFee,
       due_date: due.dueDate.toISOString(),
-      status: "issued",
-      currency: "INR"
+      status: "pending", // Fixed: explicitly 'pending' for due invoices
+      currency: "INR",
     });
   }
 
