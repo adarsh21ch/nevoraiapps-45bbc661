@@ -1016,6 +1016,8 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
         joined_at: f.joined_at,
         photo_url,
         status: "active",
+        password: f.phone, // Default password is phone number for magic link/login
+
       };
       const { data, error } = await (supabase.from("students") as any)
         .insert(payload)
@@ -1171,7 +1173,7 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
           <FeePreview plans={(feePlans.data ?? []) as FeePlanLite[]} feePlanId={f.fee_plan_id} />
 
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 opacity-60">
             <FormField
               label="Joining date"
               type="date"
@@ -1184,6 +1186,7 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
               onChange={(v) => setF({ ...f, coach_name: v })}
             />
           </div>
+
         </>
       )}
 
