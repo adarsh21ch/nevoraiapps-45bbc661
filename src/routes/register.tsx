@@ -291,7 +291,6 @@ function RegisterContent() {
       if (!form.current_address.trim()) e.current_address = "Required.";
       if (!form.aadhaar_front_url) e.aadhaar_front = "Aadhaar Front photo is required.";
       if (!form.aadhaar_back_url) e.aadhaar_back = "Aadhaar Back photo is required.";
-      if (!form.photo_url) e.photo = "Passport photo is required.";
       if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     }
     setErrors(e);
@@ -384,7 +383,6 @@ function RegisterContent() {
       !form.current_address.trim() ||
       !form.aadhaar_front_url ||
       !form.aadhaar_back_url ||
-      !form.photo_url ||
       (batches.length > 0 && !form.batch_id)
     ) {
       toast.error("Please fill all required fields.");
@@ -908,7 +906,7 @@ function RegisterContent() {
                       value={form.aadhaar_front_url}
                       onUpload={(url) => setForm({ ...form, aadhaar_front_url: url })}
                       tenantId={tenant.id}
-                      folder="aadhaar"
+                      folder="registration"
                       error={errors.aadhaar_front}
                     />
                     <DocumentUpload
@@ -916,7 +914,7 @@ function RegisterContent() {
                       value={form.aadhaar_back_url}
                       onUpload={(url) => setForm({ ...form, aadhaar_back_url: url })}
                       tenantId={tenant.id}
-                      folder="aadhaar"
+                      folder="registration"
                       error={errors.aadhaar_back}
                     />
                   </div>
@@ -924,14 +922,14 @@ function RegisterContent() {
 
                 <div className="sm:col-span-2">
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                    Passport Sized Photo *
+                    Passport Sized Photo (optional)
                   </div>
                   <DocumentUpload
                     label="Student Photo (Upload or Selfie)"
                     value={form.photo_url}
                     onUpload={(url) => setForm({ ...form, photo_url: url })}
                     tenantId={tenant.id}
-                    folder="student_photos"
+                    folder="registration"
                     error={errors.photo}
                   />
                   <p className="mt-2 text-[10px] text-muted-foreground">
