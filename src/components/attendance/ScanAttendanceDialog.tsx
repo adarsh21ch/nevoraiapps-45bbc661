@@ -96,6 +96,7 @@ export function ScanAttendanceDialog({
             if (r.ok) {
               setResult(r);
               setPhase("done");
+              // Check-in is instant; check-out was already prompted before scanning
               onRecordedRef.current?.();
             } else {
               setMessage(scanErrorMessage(r));
@@ -318,31 +319,29 @@ export function ScanAttendanceDialog({
             {phase === "sending" && <p className="text-base font-semibold">Recording…</p>}
             {phase === "done" && result && (
               <>
-                <p className="text-base font-semibold">
+                <p className="text-lg font-bold">
                   {result.action === "check_in"
-                    ? `You're checked in at ${new Date(result.at).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}`
-                    : `You're checked out at ${new Date(result.at).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}`}
+                    ? "🎉 You're checked in!"
+                    : "✅ Exit recorded"}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">{result.student_name}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {new Date(result.at).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })} · {result.student_name}
+                </p>
                 {result.action === "check_in" ? (
-                  <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-sm text-muted-foreground">
-                    Camera closed. When you leave the academy, open the app and tap{" "}
-                    <span className="font-medium text-foreground">Scan QR to check out</span>.
+                  <p className="mt-3 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary font-medium">
+                    Have a great session!
                   </p>
                 ) : (
                   <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-sm">
-                    <span className="font-medium">Time at academy today:</span>{" "}
+                    <span className="font-medium">Total time today:</span>{" "}
                     {formatDuration(result.total_minutes_today)}
                   </p>
                 )}
                 <Button
-                  className="mt-5 h-11 w-full rounded-xl"
+                  className="mt-5 h-12 w-full rounded-xl font-bold"
                   onClick={() => onOpenChange(false)}
                 >
                   Done

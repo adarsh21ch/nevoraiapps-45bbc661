@@ -156,7 +156,10 @@ function StudentProfilePage() {
           photoUrl={(s.photo_url as string | null) ?? null}
           name={(s.name as string | null) ?? "Player"}
           size={64}
-          onUpdated={() => q.refetch()}
+          onUpdated={() => {
+            q.refetch();
+            ctxQ.refetch(); // Ensure the global context (which has photo_url) also updates
+          }}
         />
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-semibold truncate">{s.name}</h1>
