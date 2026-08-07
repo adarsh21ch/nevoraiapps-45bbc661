@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   LineChart,
@@ -16,6 +16,7 @@ import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { InsightsTabsBar } from "@/components/match-center/InsightsTabsBar";
 import { LoadingSkeleton, EmptyState } from "@/components/match-center/ui";
 import { useDashboard } from "@/lib/dashboard-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { listAthletes } from "@/lib/mc-athletes";
 import { StatPill, TrendArrow } from "@/components/match-center/perf-charts";
 import { Input } from "@/components/ui/input";
