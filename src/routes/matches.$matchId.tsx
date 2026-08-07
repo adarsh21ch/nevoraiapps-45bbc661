@@ -9,7 +9,7 @@ import { LiveScorecard, BallChip } from "@/components/match-center/live-scorecar
 import { buildCommentary } from "@/lib/mc-commentary";
 import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
 import { ArrowLeft, Radio, RefreshCw } from "lucide-react";
-import { playerKey } from "@/lib/mc-statistics-engine";
+import { playerKey, calculateInningsStatistics } from "@/lib/mc-statistics-engine";
 
 
 export const Route = createFileRoute("/matches/$matchId")({
@@ -256,14 +256,12 @@ function PublicMatchDetail() {
   void battingOrdered;
 
   // Canonical statistics for header and player cards
-  const stats = await (async () => {
-    const { calculateInningsStatistics } = await import("@/lib/mc-statistics-engine");
-    return calculateInningsStatistics(currentBalls, { 
-      totalOvers: match.overs ?? 0, 
-      playing_rules: (match.playing_rules as any) || {}, 
-      target: (currentInnings as any)?.target_runs ?? null 
-    });
-  })();
+  // Canonical statistics for header and player cards
+  const stats = calculateInningsStatistics(currentBalls, { 
+    totalOvers: match.overs ?? 0, 
+    playingRules: (match.playing_rules as any) || {}, 
+    target: (currentInnings as any)?.target_runs ?? null 
+  });
 
   const teamRuns = stats.team.runs;
   const teamWickets = stats.team.wickets;

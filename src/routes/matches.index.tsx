@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { calculateInningsStatistics } from "@/lib/mc-statistics-engine";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { TenantGate } from "@/components/site/TenantGate";
@@ -28,7 +29,9 @@ type PublicMatchRow = {
   id: string;
   status: string;
   match_format: string | null;
+  playing_rules: any | null;
   match_type: string | null;
+  overs: number;
   scheduled_date: string | null;
   scheduled_time: string | null;
   ground_name: string | null;
@@ -59,7 +62,7 @@ function MatchesPage() {
       const { data, error } = await supabase
         .from("mc_matches")
         .select(
-          "id,status,match_format,match_type,scheduled_date,scheduled_time,ground_name,result,winner_team,team_a_id,team_b_id",
+          "id,status,match_format,playing_rules,match_type,overs,scheduled_date,scheduled_time,ground_name,result,winner_team,team_a_id,team_b_id",
         )
         .eq("tenant_id", tenant.id)
         .eq("visibility", "public")
@@ -252,8 +255,17 @@ function LiveMatchCard({
   const derived = (() => {
     const balls = ballsQ.data;
     if (!balls || balls.length === 0) return null;
-    // Note: This matches the pattern of dynamic import in components
-    return { runs: 0, wickets: 0, overs: 0, balls: 0 }; // Placeholder for async refactor
+    const stats = calculateInningsStatistics(balls as any, { 
+      totalOvers: match.overs ?? 0,
+      playingRules: (match as any).playing_rules || {},
+      target: (current as any)?.target_runs ?? null
+    });
+    return { 
+      runs: stats.team.runs, 
+      wickets: stats.team.wickets, 
+      overs: Math.floor(stats.team.legalBalls / 6), 
+      balls: stats.team.legalBalls % 6 
+    };
   })();
 
   const score = derived ?? (current
