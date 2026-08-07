@@ -1,5 +1,7 @@
 import { format } from "date-fns";
 import type { Tenant } from "./tenant";
+import { resolveMonthlyFee } from "./gender";
+
 
 export type FeeCycle = "calendar_month" | "joining_date";
 
