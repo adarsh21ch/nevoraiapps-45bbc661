@@ -7979,6 +7979,20 @@ export type Database = {
         Args: { p_fee_plan_id: string; p_gender: string; p_tenant_id: string }
         Returns: number
       }
+      resubmit_registration: {
+        Args: {
+          _address?: string
+          _batch_id?: string
+          _dob?: string
+          _fee_plan_id?: string
+          _gender?: string
+          _guardian_name?: string
+          _name: string
+          _phone: string
+          _registration_id: string
+        }
+        Returns: undefined
+      }
       schedule_campaign: {
         Args: { _campaign_id: string; _when: string }
         Returns: undefined
