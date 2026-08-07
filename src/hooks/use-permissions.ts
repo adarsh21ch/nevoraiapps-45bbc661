@@ -36,7 +36,8 @@ export type PermissionFeature =
   | "canManageAssignedBatches"
   | "canSendAnnouncements"
   | "canViewBilling"
-  | "canManageTenantSettings";
+  | "canManageTenantSettings"
+  | "canViewPerformance";
 
 const OWNER_ONLY: AppRole[] = ["owner"];
 const OWNER_ADMIN: AppRole[] = ["owner", "admin"];
@@ -63,6 +64,7 @@ const RULES: Record<PermissionFeature, AppRole[]> = {
   canSendAnnouncements: OWNER_ADMIN_HEAD,
   canViewBilling: OWNER_ONLY,
   canManageTenantSettings: OWNER_ONLY,
+  canViewPerformance: OWNER_ADMIN_COACHES,
 };
 
 const COACH_ROLES: ReadonlySet<AppRole> = new Set([

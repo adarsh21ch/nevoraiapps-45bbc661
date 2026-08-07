@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { ArrowLeft, Printer, Share2, Trophy, Target, Activity, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useDashboard } from "@/lib/dashboard-context";
 import { PageHeader } from "@/components/match-center/MatchCenterLayout";
 import { LoadingSkeleton, EmptyState } from "@/components/match-center/ui";
@@ -35,6 +37,16 @@ export const Route = createFileRoute("/match-center/performance/$athleteId")({
 function PlayerPerformancePage() {
   const { athleteId } = Route.useParams();
   const { tenant } = useDashboard();
+  const navigate = useNavigate();
+  const { can, isLoading: permLoading } = usePermissions();
+  const canView = can("canViewPerformance");
+
+  useEffect(() => {
+    if (!permLoading && !canView) {
+      navigate({ to: "/match-center/dashboard", replace: true });
+    }
+  }, [canView, permLoading, navigate]);
+
   const demoPerf = useMCPlayerPerformance(tenant.id, athleteId);
   const demoCareer = useMCPlayerCareer(tenant.id, athleteId);
   const demoData = useDemoData(tenant.id);

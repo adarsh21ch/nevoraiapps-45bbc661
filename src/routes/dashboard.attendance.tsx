@@ -8,7 +8,7 @@
  * parent portal and reports.
  */
 
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, isToday, isYesterday, startOfDay, isAfter } from "date-fns";
@@ -182,8 +182,15 @@ type RosterTab = "waiting" | "present" | "done";
 function AttendancePage() {
   const { tenant } = useDashboard();
   const qc = useQueryClient();
-  const { can } = usePermissions();
+  const { can, isLoading: permLoading } = usePermissions();
   const canMark = can("canMarkAttendance");
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!permLoading && !canMark) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [canMark, permLoading, navigate]);
 
   const [scanCards, setScanCards] = useState(false);
   const [session, setSession] = useState<SessionFilter>("all");
