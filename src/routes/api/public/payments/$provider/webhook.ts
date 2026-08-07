@@ -116,7 +116,11 @@ export const Route = createFileRoute("/api/public/payments/$provider/webhook")({
                   .eq("id", tx.ref_id)
                   .maybeSingle();
                 if (inv) {
+                  // NOTE: This call will currently fail with 'Not authorized' because the RPC guard 
+                  // does not yet recognize service-role. This MUST be fixed before enabling 
+                  // online payments for any tenant. We throw now to ensure it fails loudly.
                   const { error: rpcErr } = await supabaseAdmin.rpc("record_billing_payment", {
+
                     _tenant_id: inv.tenant_id,
                     _student_id: inv.student_id,
                     _amount: amountMajor,
