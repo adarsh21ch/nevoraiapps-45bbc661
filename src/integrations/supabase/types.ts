@@ -8001,10 +8001,9 @@ export type Database = {
         Returns: undefined
       }
       slugify: { Args: { _input: string }; Returns: string }
-      staff_scan_student_card: {
-        Args: { _card_token: string; _local_date?: string }
-        Returns: Json
-      }
+      staff_scan_student_card:
+        | { Args: { _card_token: string; _local_date?: string }; Returns: Json }
+        | { Args: { _card_token: string; _local_date?: string }; Returns: Json }
       student_can_read_session: {
         Args: { _session_id: string }
         Returns: boolean
