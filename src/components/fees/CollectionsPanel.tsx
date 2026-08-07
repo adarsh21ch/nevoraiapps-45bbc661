@@ -8,10 +8,11 @@ import { recordPayment } from "@/lib/billing";
 
 // M2a bridge helpers — route-local, no lib changes.
 function buildQuickCollectRemarks(period: string, existingRemarks: string | null | undefined) {
-  const prefix = `[period:${period}]`;
+  const prefix = `[period:${period}] [type:monthly]`;
   const rest = (existingRemarks ?? "").trim();
   return rest ? `${prefix} ${rest}` : prefix;
 }
+
 function quickCollectIdempotencyKey() {
   const { newIdempotencyKey } = require("@/lib/billing");
   return newIdempotencyKey();
