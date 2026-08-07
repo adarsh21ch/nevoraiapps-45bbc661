@@ -78,29 +78,27 @@ async function generateForUser(
   period: BriefPeriod,
 ): Promise<{ conversationId: string; body: string }> {
   const { getDailyBrief } = await import("./brief.functions");
-  // Reuse existing engine — its handler is authenticated, so invoke directly.
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  
   const { data: tenant } = await supabaseAdmin
     .from("tenants")
     .select("*")
     .eq("id", tenantId)
-    .maybeSingle();
+    .single();
   if (!tenant) throw new Error("Tenant not found");
 
   // Recreate the brief body via the shared helper (import unused type only).
   void getDailyBrief;
 
   // Compose the brief inline using the same helpers to avoid an auth hop.
-  const [{ fetchKpis }, { fetchBillingKpis }, { fetchAttendanceToday }] = await Promise.all([
+  const [{ fetchKpis }, { fetchAttendanceToday }] = await Promise.all([
     import("@/lib/dashboard-queries"),
-    import("@/lib/billing"),
     import("@/lib/attendance/queries"),
   ]);
 
-  const [kpis, billing, attendance] = await Promise.all([
+  const [kpis, attendance] = await Promise.all([
     fetchKpis(tenant as never, supabaseAdmin).catch(() => null),
-    fetchBillingKpis(tenantId, supabaseAdmin).catch(() => null),
-    fetchAttendanceToday(tenantId, supabaseAdmin).catch(() => [] as Awaited<ReturnType<typeof fetchAttendanceToday>>),
+    fetchAttendanceToday(tenantId, supabaseAdmin).catch(() => []),
   ]);
 
   let present = 0;
@@ -110,10 +108,11 @@ async function generateForUser(
     else if (r.status === "absent") absent++;
   }
 
-  const overdue = billing?.overdue ?? 0;
-  const outstanding = billing?.outstanding ?? 0;
-  const collected = billing?.collectedThisMonth ?? 0;
+  const overdue = kpis?.pendingFeeCount ?? 0;
+  const outstanding = kpis?.pendingFeeCount ?? 0;
+  const collected = kpis?.collectionThisMonth ?? 0;
   const active = kpis?.activeStudents ?? 0;
+
 
   const recommendations: string[] = [];
   if (overdue > 0) recommendations.push(`Send fee reminders — ${overdue} overdue.`);
@@ -159,11 +158,22 @@ export const generatePeriodicBrief = createServerFn({ method: "POST" })
     z.object({ period: z.enum(["daily", "weekly", "monthly"]) }).parse(input),
   )
   .handler(async ({ context, data }) => {
+    // 2b — assert owner (or platform admin) server-side
+    const [{ data: isOwner }, { data: isPlatform }] = await Promise.all([
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "owner" }),
+      context.supabase.rpc("is_platform_admin", { _uid: context.userId }),
+    ]);
+
+    if (!isOwner && !isPlatform) {
+      throw new Error("Forbidden: Reports are restricted to owners");
+    }
+
     const { data: profile } = await context.supabase
       .from("profiles")
       .select("tenant_id")
       .eq("user_id", context.userId)
       .maybeSingle();
+
     if (!profile?.tenant_id) throw new Error("No tenant");
     return generateForUser(profile.tenant_id, context.userId, data.period);
   });

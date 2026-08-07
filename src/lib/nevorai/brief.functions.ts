@@ -69,10 +69,11 @@ async function buildBriefForTenant(tenantId: string): Promise<DailyBrief> {
     else if (r.status === "absent") absent++;
   }
 
-  const overdue = billing?.overdue ?? 0;
-  const outstanding = billing?.outstanding ?? 0;
-  const collected = billing?.collectedThisMonth ?? 0;
+  const overdue = kpis?.pendingFeeCount ?? 0;
+  const outstanding = kpis?.pendingFeeCount ?? 0;
+  const collected = kpis?.collectionThisMonth ?? 0;
   const activeStudents = kpis?.activeStudents ?? 0;
+
 
   const insightsList: QuickInsight[] = [
     {
@@ -159,11 +160,22 @@ async function buildBriefForTenant(tenantId: string): Promise<DailyBrief> {
 export const getDailyBrief = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<DailyBrief> => {
+    // 2b — assert owner (or platform admin) server-side
+    const [{ data: isOwner }, { data: isPlatform }] = await Promise.all([
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "owner" }),
+      context.supabase.rpc("is_platform_admin", { _uid: context.userId }),
+    ]);
+
+    if (!isOwner && !isPlatform) {
+      throw new Error("Forbidden: Daily brief is restricted to owners");
+    }
+
     const { data: profile } = await context.supabase
       .from("profiles")
       .select("tenant_id")
       .eq("user_id", context.userId)
       .maybeSingle();
+
     if (!profile?.tenant_id) {
       return {
         generatedAt: new Date().toISOString(),

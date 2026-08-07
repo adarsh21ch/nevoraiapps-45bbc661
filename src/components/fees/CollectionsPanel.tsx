@@ -12,9 +12,11 @@ function buildQuickCollectRemarks(period: string, existingRemarks: string | null
   const rest = (existingRemarks ?? "").trim();
   return rest ? `${prefix} ${rest}` : prefix;
 }
-function quickCollectIdempotencyKey(studentId: string, period: string, amount: number) {
-  return `fees:quick:${studentId}:${period}:${amount}`;
+function quickCollectIdempotencyKey() {
+  const { newIdempotencyKey } = require("@/lib/billing");
+  return newIdempotencyKey();
 }
+
 import {
   candidatePeriods,
   periodKey,
@@ -767,6 +769,8 @@ function CollectForm({
   const [amount, setAmount] = useState(String(row.amount || ""));
   const [method, setMethod] = useState<"cash" | "upi" | null>(null);
   const [note, setNote] = useState("");
+  const [idempotencyKey] = useState(() => quickCollectIdempotencyKey());
+
 
   const qc = useQueryClient();
 
@@ -789,7 +793,7 @@ function CollectForm({
         allocations: [],
         collected_at: new Date().toISOString(),
         remarks: buildQuickCollectRemarks(period, note),
-        idempotency_key: quickCollectIdempotencyKey(row.studentId, period, amt),
+        idempotency_key: idempotencyKey,
       });
     },
 
