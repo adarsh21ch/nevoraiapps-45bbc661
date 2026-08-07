@@ -180,7 +180,7 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       {
         user_id: context.userId,
         tenant_id: inv.tenant_id,
-        role: legacyRole,
+        role: legacyRole as any,
       },
       { onConflict: "user_id" },
     );
