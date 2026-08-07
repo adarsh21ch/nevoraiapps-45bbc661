@@ -53,11 +53,13 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
     };
 
     const formatSession = (session?: string) => {
-      if (!session) return "GENERAL SESSION";
-      const s = session.toUpperCase();
-      if (s.includes("BOTH SESSION")) return "MORNING + EVENING";
-      return s;
+      if (!session) return "General Session";
+      const s = session.toLowerCase();
+      if (s.includes("both session")) return "Morning + Evening";
+      // Capitalize first letter of each word
+      return s.replace(/\b\w/g, l => l.toUpperCase());
     };
+
 
     // Card dimensions for preview
     const cardWidth = 240;
@@ -91,11 +93,12 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
                 </div>
                 
                 <div className="w-full text-center space-y-1">
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">Session / Batch</p>
-                  <p className="text-[14px] font-black text-slate-900 leading-tight uppercase px-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Session / Batch</p>
+                  <p className="text-[18px] font-black text-slate-900 leading-tight uppercase px-2">
                     {formatSession(student.session)}
                   </p>
                 </div>
+
             </div>
 
             {/* Footer */}
@@ -161,30 +164,31 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
             </h2>
 
             {/* Details Area */}
-            <div className="w-full space-y-3 text-[10px]">
-               <div className="flex items-start">
-                 <span className="w-20 font-bold text-slate-400 uppercase tracking-tighter shrink-0">Player ID</span>
-                 <span className="font-black text-slate-900 ml-1">{student.player_id || "—"}</span>
+            <div className="w-full space-y-3.5 text-[11px] mt-2">
+               <div className="flex items-center justify-between border-b border-slate-50 pb-1">
+                 <span className="font-bold text-slate-400 uppercase tracking-tighter shrink-0">Player ID</span>
+                 <span className="font-black text-slate-900">{student.player_id || "—"}</span>
                </div>
-               <div className="flex items-start">
-                 <span className="w-20 font-bold text-slate-400 uppercase tracking-tighter shrink-0">Date of Birth</span>
-                 <span className="font-black text-slate-900 ml-1">{formatDate(student.dob)}</span>
+               <div className="flex items-center justify-between border-b border-slate-50 pb-1">
+                 <span className="font-bold text-slate-400 uppercase tracking-tighter shrink-0">Date of Birth</span>
+                 <span className="font-black text-slate-900">{formatDate(student.dob)}</span>
                </div>
-               <div className="flex items-start">
-                 <span className="w-20 font-bold text-slate-400 uppercase tracking-tighter shrink-0">Sport</span>
-                 <span className="font-black text-slate-900 ml-1 uppercase">{student.sport || "Cricket"}</span>
+               <div className="flex items-center justify-between border-b border-slate-50 pb-1">
+                 <span className="font-bold text-slate-400 uppercase tracking-tighter shrink-0">Sport</span>
+                 <span className="font-black text-slate-900 uppercase">{student.sport || "Cricket"}</span>
                </div>
-               <div className="flex items-start">
-                 <span className="w-20 font-bold text-slate-400 uppercase tracking-tighter shrink-0">Contact</span>
-                 <span className="font-black text-slate-900 ml-1">{student.phone || "—"}</span>
+               <div className="flex items-center justify-between border-b border-slate-50 pb-1">
+                 <span className="font-bold text-slate-400 uppercase tracking-tighter shrink-0">Contact</span>
+                 <span className="font-black text-slate-900">{student.phone || "—"}</span>
                </div>
-               <div className="flex items-start">
-                 <span className="w-20 font-bold text-slate-400 uppercase tracking-tighter shrink-0">Address</span>
-                 <span className="flex-1 font-bold text-slate-800 ml-1 leading-tight line-clamp-2">
+               <div className="flex flex-col gap-1">
+                 <span className="font-bold text-slate-400 uppercase tracking-tighter shrink-0">Address</span>
+                 <span className="font-bold text-slate-800 leading-tight line-clamp-2">
                    {student.academy_address || "—"}
                  </span>
                </div>
             </div>
+
           </div>
 
           {/* Footer */}
