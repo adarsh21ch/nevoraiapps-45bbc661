@@ -146,41 +146,61 @@ function RegisterContent() {
 
   // A signed-in user must never see the blank /register form. Route them
   // to the destination the DB says they belong.
+  // Handle auth redirection and edit-mode loading
+  const [existingReg, setExistingReg] = useState<any>(null);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || cancelled) return;
-      const { data, error: routeErr } = await supabase.rpc("my_post_login_route" as never);
-      if (routeErr) {
-        console.error("my_post_login_route error", routeErr);
-      }
-
-
+      
+      const { data: routeData, error: routeErr } = await supabase.rpc("my_post_login_route" as never);
+      if (routeErr) console.error("my_post_login_route error", routeErr);
 
       if (cancelled) return;
-      const route = (data as unknown as string) ?? "student";
+      const route = (routeData as unknown as string) ?? "student";
       
-      // If the user has a pending registration and changes are requested,
-      // stay on /register to allow them to edit.
-      if (route === "student") {
-        const { data: regData } = await supabase
-          .from("registrations")
-          .select("review_status")
-          .eq("applicant_user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        
-        if (regData?.review_status === "changes_requested") {
-          return;
-        }
+      // Fetch existing registration to check for changes_requested
+      const { data: regData } = await supabase
+        .from("registrations")
+        .select("*")
+        .eq("applicant_user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (cancelled) return;
+
+      if (regData?.review_status === "changes_requested") {
+        setExistingReg(regData);
+        // Map registration row to form state
+        setForm(f => ({
+          ...f,
+          name: regData.name || "",
+          phone: regData.phone || "",
+          guardian_name: regData.guardian_name || "",
+          guardian_phone: regData.guardian_phone || "",
+          whatsapp: regData.whatsapp || "",
+          batch_id: regData.batch_id || "",
+          dob: regData.dob ? regData.dob.split('-').reverse().join('/') : "", // ISO -> DD/MM/YYYY
+          address: regData.address || "",
+          current_address: regData.address || "", // Map to current_address in wizard
+          gender: regData.gender || "",
+          medical_notes: regData.medical_notes || "",
+          aadhaar_front_url: regData.aadhaar_front_url || "",
+          aadhaar_back_url: regData.aadhaar_back_url || "",
+          photo_url: regData.photo_url || "",
+        }));
+        // Since they are already signed in, move them past Step 1
+        setStep(2);
+        return;
       }
 
+      // If they reach here and aren't in changes_requested, redirect them
       const target =
         route === "platform_admin" ? "/platform-admin"
         : route === "staff" ? "/dashboard"
-        : route === "parent" ? "/student"
         : "/student";
       window.location.replace(target);
     })();
@@ -335,7 +355,7 @@ function RegisterContent() {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const showStep = (s: Step) => !isMobile || step === s;
+  const showStep = (s: Step) => (!isMobile || step === s) && (s !== 1 || !existingReg);
 
 
 
@@ -408,21 +428,25 @@ function RegisterContent() {
       toast.error("Please fill all required fields.");
       return;
     }
-    // Account credentials — become the applicant's login after approval.
-    const emailTrim = form.email.trim().toLowerCase();
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim);
-    if (!emailOk) {
-      toast.error("Please enter a valid email address.");
-      return;
+
+    if (!existingReg) {
+      // Step 1 validation for new accounts
+      const emailTrim = form.email.trim().toLowerCase();
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim);
+      if (!emailOk) {
+        toast.error("Please enter a valid email address.");
+        return;
+      }
+      if (form.password.length < 8) {
+        toast.error("Password must be at least 8 characters.");
+        return;
+      }
+      if (form.password !== form.password2) {
+        toast.error("Passwords do not match.");
+        return;
+      }
     }
-    if (form.password.length < 8) {
-      toast.error("Password must be at least 8 characters.");
-      return;
-    }
-    if (form.password !== form.password2) {
-      toast.error("Passwords do not match.");
-      return;
-    }
+
     if (!termsAccepted) {
       toast.error("Please accept the Terms & Conditions to continue.");
       return;
@@ -431,8 +455,7 @@ function RegisterContent() {
       toast.error("Please accept the academy policies to continue.");
       return;
     }
-    // Prefer the fee plan that matches the selected batch — this prevents
-    // the "batch says Both, plan silently saved as Single" data-entry bug.
+
     const selectedBatch = form.batch_id
       ? batches.find((b) => b.id === form.batch_id)
       : undefined;
@@ -456,48 +479,75 @@ function RegisterContent() {
     }));
 
     setSaving(true);
-    const rlKey = `public-registration:${tenant.id}:${form.phone.trim()}`;
-    const allowed = await checkRateLimit(rlKey, 3, 600);
-    if (!allowed) {
-      setSaving(false);
-      toast.error("Too many submissions. Please try again in a few minutes.");
-      return;
-    }
 
-    // 1) Create the applicant's auth account (browser → Supabase Auth directly;
-    // password never touches our servers).
-    const { data: authData, error: authErr } = await supabase.auth.signUp({
-      email: emailTrim,
-      password: form.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth`,
-        data: { full_name: form.name.trim(), tenant_slug: tenant.slug },
-      },
-    });
-    if (authErr) {
-      setSaving(false);
-      const msg = authErr.message || "";
-      if (/already|registered|exist/i.test(msg)) {
-        toast.error("This email is already registered. Please sign in first, then submit.");
-      } else {
-        toast.error(msg || "Could not create your account. Please try again.");
+    try {
+      const rlKey = `public-registration:${tenant.id}:${form.phone.trim()}`;
+      const allowed = await checkRateLimit(rlKey, 3, 600);
+      if (!allowed) {
+        setSaving(false);
+        toast.error("Too many submissions. Please try again in a few minutes.");
+        return;
       }
-      return;
-    }
-    const applicantUserId = authData.user?.id ?? null;
 
-    const [dd, mm, yyyy] = (form.dob || "").split("/");
-    const isoDob = dd && mm && yyyy ? `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}` : null;
+      let applicantUserId = null;
+      if (!existingReg) {
+        const emailTrim = form.email.trim().toLowerCase();
+        const { data: authData, error: authErr } = await supabase.auth.signUp({
+          email: emailTrim,
+          password: form.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth`,
+            data: { full_name: form.name.trim(), tenant_slug: tenant.slug },
+          },
+        });
+        if (authErr) {
+          const msg = authErr.message || "";
+          if (/already|registered|exist/i.test(msg)) {
+            toast.error("This email is already registered. Please sign in first, then submit.");
+          } else {
+            toast.error(msg || "Could not create your account. Please try again.");
+          }
+          setSaving(false);
+          return;
+        }
+        applicantUserId = authData.user?.id ?? null;
+      }
 
-    const { data, error } = await supabase.rpc(
-      "submit_registration" as never,
-      {
-        _tenant_id: tenant.id,
-        _name: form.name.trim(),
-        _phone: form.phone.trim(),
-        _fee_plan_id: defaultPlan.id,
-        _batch_id: form.batch_id || null,
-        _dob: isoDob,
+      const [dd, mm, yyyy] = (form.dob || "").split("/");
+      const isoDob = dd && mm && yyyy ? `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}` : null;
+
+      if (existingReg) {
+        const { error: resubmitErr } = await supabase.rpc(
+          "resubmit_registration" as never,
+          {
+            _registration_id: existingReg.id,
+            _name: form.name.trim(),
+            _phone: form.phone.trim(),
+            _fee_plan_id: defaultPlan.id,
+            _batch_id: form.batch_id || null,
+            _dob: isoDob,
+            _guardian_name: form.guardian_name || null,
+            _guardian_phone: form.phone || null, // Registration schema uses 'phone' as student phone usually, let's keep form mapping clean
+            _whatsapp: form.whatsapp || null,
+            _address: form.current_address || null,
+            _medical_notes: form.medical_notes || null,
+            _gender: form.gender || null,
+            _aadhaar_front_url: form.aadhaar_front_url || null,
+            _aadhaar_back_url: form.aadhaar_back_url || null,
+            _photo_url: form.photo_url || null
+          }
+        );
+        if (resubmitErr) throw resubmitErr;
+      } else {
+        const { data, error } = await supabase.rpc(
+          "submit_registration" as never,
+          {
+            _tenant_id: tenant.id,
+            _name: form.name.trim(),
+            _phone: form.phone.trim(),
+            _fee_plan_id: defaultPlan.id,
+            _batch_id: form.batch_id || null,
+            _dob: isoDob,
         _guardian_name: form.guardian_name.trim() || null,
         _guardian_phone: null,
         _whatsapp: null,
