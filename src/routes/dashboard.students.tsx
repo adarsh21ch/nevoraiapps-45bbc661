@@ -1016,7 +1016,10 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
         joined_at: f.joined_at,
         photo_url,
         status: "active",
+        lifecycle_status: "imported",
+        activation_token: crypto.randomUUID(),
         password: f.phone, // Default password is phone number for magic link/login
+
 
       };
       const { data, error } = await (supabase.from("students") as any)
