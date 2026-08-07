@@ -164,6 +164,7 @@ function RegisterContent() {
           state: profile.state || "",
           gender: regData.gender || "",
           medical_notes: regData.medical_notes || "",
+          aadhaar_number: profile.aadhaar_number || "",
           aadhaar_front_url: profile.aadhaar_front_url || "",
           aadhaar_back_url: profile.aadhaar_back_url || "",
           photo_url: profile.photo_url || "",
