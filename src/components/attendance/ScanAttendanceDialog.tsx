@@ -125,28 +125,89 @@ export function ScanAttendanceDialog({
     // Crucial: Clear everything first to avoid "NotReadableError" or "Source unavailable"
     // which happens if a previous stream isn't fully released by the browser/OS.
     stopCamera();
-    
+
     busyRef.current = false;
     setResult(null);
     setMessage(null);
     setPhase("scanning");
-    
-    try {
-      // First attempt with ideal environment (back) camera
-      let stream: MediaStream;
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: false,
-        });
-      } catch (e) {
-        // Fallback to any camera if environment camera fails
-        console.warn("Preferred environment camera failed, falling back to any camera:", e);
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
+
+    // Give the OS a moment to release a camera that was in use moments ago
+    // (e.g. the check-in scan earlier in the same session). Without this,
+    // Android Chrome frequently rejects the second getUserMedia call.
+    await new Promise((r) => setTimeout(r, 250));
+
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      setMessage(
+        window.isSecureContext === false
+          ? "Camera needs a secure (https) connection. Open the academy app link directly in Chrome or Safari."
+          : "This browser can't open the camera. Please open the app in Chrome or Safari.",
+      );
+      setPhase("error");
+      return;
+    }
+
+    const constraints: MediaStreamConstraints[] = [
+      { video: { facingMode: { ideal: "environment" } }, audio: false },
+      { video: true, audio: false },
+    ];
+
+    let stream: MediaStream | null = null;
+    let lastErr: any = null;
+
+    // Two passes: transient failures (camera still being released, or the
+    // permission prompt racing a re-render) resolve on a short retry.
+    for (let pass = 0; pass < 2 && !stream; pass++) {
+      for (const c of constraints) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(c);
+          break;
+        } catch (e: any) {
+          lastErr = e;
+          if (e?.name === "NotAllowedError" || e?.name === "PermissionDeniedError") {
+            // A hard denial won't be fixed by trying other constraints.
+            break;
+          }
+        }
       }
+      if (!stream && pass === 0) await new Promise((r) => setTimeout(r, 600));
+    }
+
+    if (!stream) {
+      console.error("Camera access error:", lastErr);
+
+      // Ask the browser what the permission actually is — Android often throws
+      // NotAllowedError for transient reasons even when access is granted.
+      let permState: string | null = null;
+      try {
+        const status = await (navigator.permissions as any)?.query?.({ name: "camera" });
+        permState = status?.state ?? null;
+      } catch {
+        /* Permissions API unsupported (Safari) */
+      }
+
+      const name = lastErr?.name;
+      if (permState === "denied") {
+        setMessage(
+          "Camera is blocked for this site. Tap the lock/settings icon next to the address bar → Permissions → allow Camera, then tap Try again.",
+        );
+      } else if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+        setMessage(
+          "Camera didn't open. Tap Try again and choose Allow when your browser asks for camera access.",
+        );
+      } else if (name === "NotReadableError" || name === "TrackStartError" || name === "AbortError") {
+        setMessage(
+          "Camera is being used by another app or tab. Close it (or lock/unlock your phone) and tap Try again.",
+        );
+      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        setMessage("No camera found on this device.");
+      } else {
+        setMessage(lastErr?.message || "Couldn't open the camera. Please tap Try again.");
+      }
+      setPhase("error");
+      return;
+    }
+
+    try {
       streamRef.current = stream;
       const video = videoRef.current;
       if (!video) return;
@@ -172,39 +233,22 @@ export function ScanAttendanceDialog({
       };
       rafRef.current = requestAnimationFrame(tick);
     } catch (e: any) {
-      console.error("Camera access error:", e);
-      
-      const isPermissionError = 
-        e?.name === 'NotAllowedError' || 
-        e?.name === 'PermissionDeniedError' ||
-        String(e).toLowerCase().includes('denied') ||
-        String(e).toLowerCase().includes('blocked');
-
-      if (isPermissionError) {
-        setMessage(
-          "Camera access is blocked. Please ensure 'Camera' is allowed for this site in your browser settings. If it's already allowed, try refreshing the page or restarting your browser to reset the permission.",
-        );
-      } else if (e?.name === 'NotReadableError' || e?.name === 'TrackStartError' || e?.name === 'AbortError') {
-        setMessage(
-          "Camera is already in use by another app or browser tab. Please close other apps and try again.",
-        );
-      } else if (e?.name === 'NotFoundError' || e?.name === 'DevicesNotFoundError') {
-        setMessage(
-          "No camera found on this device. Please ensure your camera is connected and enabled.",
-        );
-      } else {
-        setMessage(
-          e?.message || "Couldn't open camera. Please ensure you have a working camera and try again.",
-        );
-      }
+      console.error("Camera preview error:", e);
+      setMessage(e?.message || "Couldn't start the camera preview. Please tap Try again.");
       setPhase("error");
     }
   }, [record, stopCamera]);
 
   useEffect(() => {
-    if (open) void startCamera();
+    if (!open) return;
+    void startCamera();
     return stopCamera;
-  }, [open, startCamera, stopCamera]);
+    // Only (re)start when the dialog opens — startCamera/stopCamera are stable
+    // refs, but re-running this on identity changes can kill a live stream.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+
 
   return (
     <Dialog
