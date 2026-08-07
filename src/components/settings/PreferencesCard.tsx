@@ -104,7 +104,7 @@ export function PreferencesCard() {
         <Popover open={langOpen} onOpenChange={setLangOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={rowClass}>
-              <RowLeft icon={Languages} label="It is looking-- It is not look, not at all good ID card. I mean, no good UI/UX, no presentations, no look like premium. It's rubbish" />
+              <RowLeft icon={Languages} label="How it is possible that check-in, check-out both are the same time, but zero minute playing? I mean, how it is possible? Even we had a two-minute safe timer that after the check-in, there is a two-minute timer to again do check-in or check-out, right? I mean, how it is possible?" />
 
               <RowRight value={hydrated ? currentLang.native : ""} />
             </button>
