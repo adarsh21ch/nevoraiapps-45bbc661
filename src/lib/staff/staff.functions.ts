@@ -231,7 +231,7 @@ export const disableStaff = createServerFn({ method: "POST" })
     // Clear legacy profile role hint
     const { error: clearErr } = await supabaseAdmin
       .from("profiles")
-      .update({ role: null })
+      .update({ role: null as any })
       .eq("user_id", data.userId)
       .eq("tenant_id", data.tenantId);
     if (clearErr) throw new Error(`Failed to clear legacy role: ${clearErr.message}`);
@@ -286,11 +286,13 @@ export const setStaffRole = createServerFn({ method: "POST" })
         .eq("tenant_id", data.tenantId);
     } else {
       // Clear legacy profile role hint for student demotion
-      await supabaseAdmin
+      const { error: clearErr } = await supabaseAdmin
         .from("profiles")
-        .update({ role: "" as any })
+        .update({ role: null as any })
         .eq("user_id", data.userId)
         .eq("tenant_id", data.tenantId);
+      if (clearErr) throw new Error(`Failed to clear legacy role: ${clearErr.message}`);
+
     }
     return { ok: true };
   });
