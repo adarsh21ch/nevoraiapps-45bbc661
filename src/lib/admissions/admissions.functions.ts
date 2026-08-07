@@ -86,7 +86,7 @@ export const approveRegistration = createServerFn({ method: "POST" })
       studentId = created.id;
     }
 
-    await supabase
+    const { error: regUpdateErr, data: regUpdated } = await supabase
       .from("registrations")
       .update({
         review_status: "approved",
@@ -96,7 +96,12 @@ export const approveRegistration = createServerFn({ method: "POST" })
         student_id: studentId,
         status: "approved",
       })
-      .eq("id", data.registrationId);
+      .eq("id", data.registrationId)
+      .eq("tenant_id", data.tenantId)
+      .select("id");
+    
+    if (regUpdateErr) throw regUpdateErr;
+    if (!regUpdated?.length) throw new Error("Registration update matched 0 rows — check permissions.");
 
     await supabase.from("automation_events").insert({
       tenant_id: data.tenantId,
@@ -141,7 +146,7 @@ export const waitlistRegistration = createServerFn({ method: "POST" })
   .inputValidator(idInput.extend({ notes: z.string().max(500).optional() }).parse)
   .handler(async ({ data, context }) => {
     await assertAdmin(context, data.tenantId);
-    await context.supabase
+    const { error: wErr, data: wUpdated } = await context.supabase
       .from("registrations")
       .update({
         review_status: "waitlisted",
@@ -151,7 +156,11 @@ export const waitlistRegistration = createServerFn({ method: "POST" })
         status: "waitlisted",
       })
       .eq("id", data.registrationId)
-      .eq("tenant_id", data.tenantId);
+      .eq("tenant_id", data.tenantId)
+      .select("id");
+    
+    if (wErr) throw wErr;
+    if (!wUpdated?.length) throw new Error("Registration update matched 0 rows — check permissions.");
     await context.supabase.from("automation_events").insert({
       tenant_id: data.tenantId,
       event_type: "student.waitlisted",

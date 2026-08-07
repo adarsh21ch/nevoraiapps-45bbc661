@@ -14,7 +14,7 @@ import { z } from "zod";
 const uuid = z.string().uuid();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function assertManager(supabase: any, userId: string, tenantId: string): Promise<void> {
+export async function assertManager(supabase: any, userId: string, tenantId: string): Promise<void> {
   const [{ data: isOwner }, { data: isAdmin }, { data: isPlatform }] = await Promise.all([
     supabase.rpc("has_role", { _user_id: userId, _tenant_id: tenantId, _role: "owner" }),
     supabase.rpc("has_role", { _user_id: userId, _tenant_id: tenantId, _role: "admin" }),
