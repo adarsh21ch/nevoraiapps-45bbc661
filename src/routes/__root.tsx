@@ -179,7 +179,7 @@ function AppSplash() {
     <div className="fixed inset-0 grid place-items-center bg-background text-foreground animate-in fade-in duration-300">
       <div className="flex flex-col items-center gap-6">
         <div
-          className="grid h-20 w-20 place-items-center rounded-3xl text-4xl shadow-2xl animate-pulse"
+          className="grid h-20 w-20 place-items-center rounded-3xl text-4xl"
           style={{ backgroundColor: "transparent" }}
         >
           <img 

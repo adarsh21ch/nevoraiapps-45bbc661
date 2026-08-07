@@ -109,7 +109,7 @@ function RegisterContent() {
 
   const [existingReg, setExistingReg] = useState<any>(null);
   const [form, setForm] = useState({
-    name: "", guardian_name: "", phone: "", email: "", password: "", password2: "",
+    name: "", guardian_name: "", phone: "", email: "", username: "", password: "", password2: "",
     batch_id: "", dob: "", address: "", current_address: "", permanent_address: "",
     village_locality: "", city: "", state: "", aadhaar_number: "", aadhaar_front_url: "", aadhaar_back_url: "",
     photo_url: "", gender: "", height_cm: "", weight_kg: "", blood_group: "",
@@ -201,7 +201,8 @@ function RegisterContent() {
   function validateStep(n: Step): boolean {
     const e: Record<string, string> = {};
     if (n === 1 && !existingReg) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim().toLowerCase())) e.email = "Invalid email.";
+      if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim().toLowerCase())) e.email = "Invalid email.";
+      if (!form.email.trim() && !form.phone.trim()) e.id = "Email or Phone required.";
       if (form.password.length < 8) e.password = "8+ chars.";
       if (form.password !== form.password2) e.password2 = "Mismatch.";
     } else if (n === 2) {
@@ -247,11 +248,18 @@ function RegisterContent() {
       let applicantUserId = user?.id || null;
       
       if (!existingReg && !user) {
-        const { data: authData, error: authErr } = await supabase.auth.signUp({
-          email: form.email.trim().toLowerCase(),
+        const signupData: any = {
           password: form.password,
           options: { data: { full_name: form.name.trim(), tenant_slug: tenant.slug } }
-        });
+        };
+        
+        if (form.email.trim()) {
+          signupData.email = form.email.trim().toLowerCase();
+        } else {
+          signupData.phone = toE164(form.phone.trim());
+        }
+
+        const { data: authData, error: authErr } = await supabase.auth.signUp(signupData);
         if (authErr) throw authErr;
         applicantUserId = authData.user?.id || null;
       }
@@ -292,7 +300,7 @@ function RegisterContent() {
 
         await supabase.rpc("attach_applicant_to_registration" as never, {
           _registration_id: regId as any, 
-          _email: form.email.trim().toLowerCase(),
+          _email: form.email.trim().toLowerCase() || null,
           _address: form.current_address || null, 
           _gender: normalizeGender(form.gender),
           _documents: documents
@@ -330,7 +338,13 @@ function RegisterContent() {
         {step === 1 && !existingReg && (
           <div className="space-y-4">
             <h2 className="font-bold">Account Setup</h2>
-            <input type="email" placeholder="Email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className="w-full border p-2 rounded" />
+            <div className="text-xs text-muted-foreground mb-2">Provide either an email or phone number to create your account.</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input placeholder="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className={cn("w-full border p-2 rounded", errors.id && "border-destructive")} />
+              <input type="email" placeholder="Email (Optional)" value={form.email} onChange={e => setForm({...form, email: e.target.value})} className={cn("w-full border p-2 rounded", errors.email && "border-destructive")} />
+            </div>
+            {errors.id && <p className="text-xs text-destructive">{errors.id}</p>}
+            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             <input type="password" placeholder="Password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="w-full border p-2 rounded" />
             <input type="password" placeholder="Confirm Password" value={form.password2} onChange={e => setForm({...form, password2: e.target.value})} className="w-full border p-2 rounded" />
             <button type="button" onClick={() => setStep(2)} className="w-full bg-black text-white p-3 rounded">Continue</button>
@@ -341,7 +355,7 @@ function RegisterContent() {
           <div className="space-y-4">
             <h2 className="font-bold">Student Details</h2>
             <input placeholder="Full Name" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full border p-2 rounded" />
-            <input placeholder="Phone" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full border p-2 rounded" />
+            <input placeholder="Phone" value={form.phone} disabled className="w-full border p-2 rounded bg-muted" />
             <input placeholder="Date of Birth (DD/MM/YYYY)" value={form.dob} onChange={e => setForm({...form, dob: e.target.value})} className="w-full border p-2 rounded" />
             <select value={form.batch_id} onChange={e => setForm({...form, batch_id: e.target.value})} className="w-full border p-2 rounded">
               {batchOptions.map(o => <option key={o.value} value={o.value}>{o.label} {o.description ? `(${o.description})` : ""}</option>)}
