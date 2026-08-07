@@ -39,6 +39,7 @@ export type StudentContext = {
   player_id: string | null;
   email: string | null;
   photo_url: string | null;
+  lifecycle_status?: string | null;
 };
 
 export const studentKeys = {
@@ -66,6 +67,7 @@ export async function fetchMyStudentContext(): Promise<StudentContext | null> {
 
   return {
     ...(row as StudentContext),
+    lifecycle_status: (row as any).lifecycle_status ?? null,
     tenant_name: t?.name ?? undefined,
     tenant_logo: t?.logo_url ?? undefined,
     tenant_phone: t?.phone ?? undefined,
@@ -93,7 +95,7 @@ export async function fetchMyPortalContext(): Promise<StudentContext | null> {
 
   const { data: s } = await supabase
     .from("students")
-    .select("id, tenant_id, name, player_id, email, photo_url, tenants(name, logo_url, phone, address, primary_color)")
+    .select("id, tenant_id, name, player_id, email, photo_url, lifecycle_status, tenants(name, logo_url, phone, address, primary_color)")
     .eq("id", first.student_id)
     .maybeSingle();
   if (!s) return null;
@@ -117,6 +119,7 @@ export async function fetchMyPortalContext(): Promise<StudentContext | null> {
     player_id: s.player_id,
     email: s.email,
     photo_url: s.photo_url,
+    lifecycle_status: s.lifecycle_status,
   };
 }
 
