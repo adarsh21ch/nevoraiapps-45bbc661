@@ -124,7 +124,7 @@ export const Route = createFileRoute("/api/public/payments/$provider/webhook")({
                     _allocations: [{ invoice_id: tx.ref_id, amount: amountMajor }],
                     _reference_number: providerPaymentId ?? tx.idempotency_key,
                     _gateway: providerId,
-                    _gateway_reference: providerPaymentId ?? undefined,
+                    _gateway_reference: (providerPaymentId ?? undefined) as string | undefined,
                     _idempotency_key: tx.idempotency_key ?? tx.id,
                     _collected_at: new Date().toISOString(),
                     _status: "succeeded",
