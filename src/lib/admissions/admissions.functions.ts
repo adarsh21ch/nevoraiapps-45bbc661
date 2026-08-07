@@ -80,7 +80,8 @@ export const approveRegistration = createServerFn({ method: "POST" })
       const { error } = await supabase.from("students").update(studentPayload).eq("id", studentId);
       if (error) throw error;
     } else {
-      const { data: created, error } = await supabase.from("students").insert(studentPayload).select("id").single();
+      const { data: created, error } = await supabase.from("students").insert(studentPayload as any).select("id").single();
+
       if (error) throw error;
       studentId = created.id;
     }
@@ -249,7 +250,7 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
     // Insert in chunks of 100
     for (let i = 0; i < inserts.length; i += 100) {
       const chunk = inserts.slice(i, i + 100);
-      const { error, count } = await supabase.from("students").insert(chunk, { count: "exact" });
+      const { error, count } = await supabase.from("students").insert(chunk as any, { count: "exact" });
       if (error) {
         errors.push({ row: i, error: error.message });
       } else {

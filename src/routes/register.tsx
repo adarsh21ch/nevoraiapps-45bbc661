@@ -150,13 +150,8 @@ function RegisterContent() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || cancelled) return;
-      const { data: profile } = await supabase.from("profiles").select("password_set").eq("id", user.id).single();
-      if (profile?.password_set === false) {
-        // User created by owner, needs to set password/profile details.
-        // For now, let them pass if they are just registering.
-        // But if they are logged in, we should usually redirect to complete profile.
-      }
       const { data } = await supabase.rpc("my_post_login_route" as never);
+
 
       if (cancelled) return;
       const route = (data as unknown as string) ?? "student";
