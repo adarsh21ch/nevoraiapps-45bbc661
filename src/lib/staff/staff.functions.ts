@@ -229,11 +229,13 @@ export const disableStaff = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     // Clear legacy profile role hint
-    await supabaseAdmin
+    const { error: clearErr } = await supabaseAdmin
       .from("profiles")
-      .update({ role: "" as any })
+      .update({ role: null })
       .eq("user_id", data.userId)
       .eq("tenant_id", data.tenantId);
+    if (clearErr) throw new Error(`Failed to clear legacy role: ${clearErr.message}`);
+
     // Also deactivate their coach assignments.
     const { error: aerr } = await supabaseAdmin
       .from("coach_assignments")
