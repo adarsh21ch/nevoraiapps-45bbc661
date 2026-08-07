@@ -147,27 +147,32 @@ function StudentLayout() {
   }
 
   if (!ctxQ.data) {
-    // No student record and no pending registration → guidance card.
-    return (
-      <div className="min-h-dvh grid place-items-center p-6 bg-background">
-        <Card className="p-6 max-w-md text-center space-y-3">
-          <h1 className="text-xl font-semibold">No player record</h1>
-          <p className="text-sm text-muted-foreground">
-            Your sign-in email is not linked to a student. Please contact your academy so they can
-            update your email in your profile.
-          </p>
-          <Button
-            variant="outline"
-            onClick={async () => {
-              await supabase.auth.signOut();
-              navigate({ to: "/auth" });
-            }}
-          >
-            <LogOut className="size-4 mr-1" /> Sign out
-          </Button>
-        </Card>
-      </div>
-    );
+    if (gateQ.data?.pendingReg) {
+      // Allow rendering the portal layout for applicants with a pending registration
+      // even if the student record hasn't been created yet.
+      // We will provide a dummy context or let downstream components handle missing student_id.
+    } else {
+      return (
+        <div className="min-h-dvh grid place-items-center p-6 bg-background">
+          <Card className="p-6 max-w-md text-center space-y-3">
+            <h1 className="text-xl font-semibold">No player record</h1>
+            <p className="text-sm text-muted-foreground">
+              Your sign-in email is not linked to a student. Please contact your academy so they can
+              update your email in your profile.
+            </p>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate({ to: "/auth" });
+              }}
+            >
+              <LogOut className="size-4 mr-1" /> Sign out
+            </Button>
+          </Card>
+        </div>
+      );
+    }
   }
 
   return (
