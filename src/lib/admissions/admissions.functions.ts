@@ -72,13 +72,16 @@ export const approveRegistration = createServerFn({ method: "POST" })
       approved_by: context.userId,
       status: "active",
       activation_token: activationToken,
+      password: reg.phone,
     };
 
+
     if (studentId) {
-      const { error } = await supabase.from("students").update(studentPayload).eq("id", studentId);
+      const { error } = await supabase.from("students").update(studentPayload as any).eq("id", studentId);
       if (error) throw error;
     } else {
-      const { data: created, error } = await supabase.from("students").insert(studentPayload).select("id").single();
+      const { data: created, error } = await supabase.from("students").insert(studentPayload as any).select("id").single();
+
       if (error) throw error;
       studentId = created.id;
     }
@@ -188,7 +191,9 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
         emergency_contact_name?: string | null;
         emergency_contact_phone?: string | null;
         coach_name?: string | null;
+        password?: string | null;
       }>;
+
     }) => i,
   )
   .handler(async ({ data, context }) => {
@@ -238,12 +243,14 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
       status: "active",
       import_batch_id: batch.id,
       activation_token: crypto.randomUUID(),
+      password: r.password ?? r.phone ?? null,
     }));
+
 
     // Insert in chunks of 100
     for (let i = 0; i < inserts.length; i += 100) {
       const chunk = inserts.slice(i, i + 100);
-      const { error, count } = await supabase.from("students").insert(chunk, { count: "exact" });
+      const { error, count } = await supabase.from("students").insert(chunk as any, { count: "exact" });
       if (error) {
         errors.push({ row: i, error: error.message });
       } else {

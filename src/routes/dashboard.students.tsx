@@ -1016,6 +1016,11 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
         joined_at: f.joined_at,
         photo_url,
         status: "active",
+        lifecycle_status: "imported",
+        activation_token: crypto.randomUUID(),
+        password: f.phone, // Default password is phone number for magic link/login
+
+
       };
       const { data, error } = await (supabase.from("students") as any)
         .insert(payload)
@@ -1084,11 +1089,11 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
         </label>
       </div>
 
-      {/* Section pills */}
-      <div className="flex items-center gap-1 rounded-full bg-muted p-1 text-xs font-medium">
+      {/* Section pills - only visible if user wants to add extra info */}
+      <div className="flex items-center gap-1 rounded-full bg-muted p-1 text-[11px] font-medium">
         {(
           [
-            ["basic", "Basic"],
+            ["basic", "Required"],
             ["cricket", "Cricket"],
             ["contact", "Contact"],
             ["medical", "Medical"],
@@ -1099,7 +1104,7 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
             type="button"
             onClick={() => setSection(k)}
             className={cn(
-              "flex-1 h-8 rounded-full transition-colors",
+              "flex-1 h-7 rounded-full transition-colors",
               section === k ? "bg-background shadow-sm" : "text-muted-foreground",
             )}
           >
@@ -1111,55 +1116,31 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
       {section === "basic" && (
         <>
           <FormField
-            label="Full name"
+            label="Player Name"
+            placeholder="e.g. Rahul Sharma"
             required
             value={f.name}
             onChange={(v) => setF({ ...f, name: v })}
           />
-          <div className="grid grid-cols-2 gap-2">
-            <FormField
-              label="Mobile"
-              required
-              value={f.phone}
-              onChange={(v) => setF({ ...f, phone: v })}
-            />
-            <FormField
-              label="Email"
-              type="email"
-              value={f.email}
-              onChange={(v) => setF({ ...f, email: v })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <FormField
-              label="Date of birth"
-              type="date"
-              value={f.dob}
-              onChange={(v) => setF({ ...f, dob: v })}
-            />
-            <SelectField
-              label="Gender"
-              value={f.gender}
-              onChange={(v) => setF({ ...f, gender: v })}
-              options={[
-                { value: "male", label: "Male" },
-                { value: "female", label: "Female" },
-                { value: "other", label: "Other" },
-              ]}
-            />
-          </div>
+          <FormField
+            label="Mobile Number"
+            placeholder="10 digit mobile"
+            required
+            value={f.phone}
+            onChange={(v) => setF({ ...f, phone: v })}
+          />
+
           <div className="space-y-1.5">
-            <Label>Session</Label>
+            <Label>Session / Batch</Label>
             <Select
               value={f.batch_id}
               onValueChange={(v) => {
-                // Money follows the session — a session owns its monthly fee.
                 const b = ((batches.data ?? []) as any[]).find((x) => x.id === v);
                 setF({ ...f, batch_id: v, fee_plan_id: b?.fee_plan_id ?? "" });
               }}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select" />
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Select session" />
               </SelectTrigger>
               <SelectContent>
                 {((batches.data ?? []) as any[]).map((b) => {
@@ -1176,10 +1157,26 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
               </SelectContent>
             </Select>
           </div>
+
+          <div className="grid grid-cols-2 gap-2 opacity-60">
+            <FormField
+              label="Email (Optional)"
+              type="email"
+              value={f.email}
+              onChange={(v) => setF({ ...f, email: v })}
+            />
+            <FormField
+              label="Date of Birth (Optional)"
+              type="date"
+              value={f.dob}
+              onChange={(v) => setF({ ...f, dob: v })}
+            />
+          </div>
+
           <FeePreview plans={(feePlans.data ?? []) as FeePlanLite[]} feePlanId={f.fee_plan_id} />
 
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 opacity-60">
             <FormField
               label="Joining date"
               type="date"
@@ -1192,6 +1189,7 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
               onChange={(v) => setF({ ...f, coach_name: v })}
             />
           </div>
+
         </>
       )}
 
@@ -1302,12 +1300,13 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
 
       <Button
         type="submit"
-        disabled={save.isPending || !f.name || !f.phone}
-        className="w-full h-12 rounded-xl font-semibold"
-        style={{ backgroundColor: "var(--brand)", color: "white" }}
+        disabled={save.isPending || !f.name || !f.phone || !f.batch_id}
+        className="w-full h-12 rounded-xl font-semibold shadow-md"
+        style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
       >
-        {save.isPending ? "Saving…" : "Add player"}
+        {save.isPending ? "Adding Player..." : "Add & Invite Player"}
       </Button>
+
       <p className="text-xs text-center text-muted-foreground">
         A Player ID like{" "}
         <span className="font-mono">
@@ -1325,13 +1324,16 @@ function FormField({
   onChange,
   required,
   type,
+  placeholder,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   required?: boolean;
   type?: string;
+  placeholder?: string;
 }) {
+
   return (
     <div className="space-y-1.5">
       <Label>
@@ -1342,8 +1344,11 @@ function FormField({
         type={type}
         value={value}
         required={required}
+        placeholder={placeholder}
+        className="h-11"
         onChange={(e) => onChange(e.target.value)}
       />
+
     </div>
   );
 }

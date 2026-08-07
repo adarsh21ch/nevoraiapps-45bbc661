@@ -151,6 +151,8 @@ function RegisterContent() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || cancelled) return;
       const { data } = await supabase.rpc("my_post_login_route" as never);
+
+
       if (cancelled) return;
       const route = (data as unknown as string) ?? "student";
       const target =
