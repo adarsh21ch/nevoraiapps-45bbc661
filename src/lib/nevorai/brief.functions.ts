@@ -205,13 +205,3 @@ export const getDailyBrief = createServerFn({ method: "GET" })
 
     return buildBriefForTenant(profile.tenant_id);
   });
-      return {
-        generatedAt: new Date().toISOString(),
-        headline: "Set up your academy to unlock daily briefs.",
-        sections: [],
-        insights: [],
-        recommendations: [],
-      };
-    }
-    return buildBriefForTenant(profile.tenant_id);
-  });
