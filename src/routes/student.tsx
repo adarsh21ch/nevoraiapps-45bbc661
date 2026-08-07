@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { LogOut, Info } from "lucide-react";
+import { LogOut, Info, Share, Plus, X, Smartphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyPortalContext, studentKeys } from "@/lib/student-app";
 import {
@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GlobalBottomNav } from "@/components/shared/GlobalBottomNav";
+import { PWAInstallBanner } from "@/components/shared/PWAInstallBanner";
 
 
 export const Route = createFileRoute("/student")({
@@ -177,13 +178,14 @@ function StudentLayout() {
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-background to-muted/30 pb-24">
+      <PWAInstallBanner />
       {gateQ.data?.pendingReg || (gateQ.data?.lifecycle && isPendingApproval(gateQ.data.lifecycle)) ? (
-        <div className="bg-amber-500 text-white px-4 py-2 text-center text-[13px] font-medium sticky top-0 z-50 flex items-center justify-center gap-2 shadow-sm animate-in fade-in slide-in-from-top duration-300">
+        <div className="bg-amber-500 text-white px-4 py-2 text-center text-[13px] font-medium sticky top-0 z-60 flex items-center justify-center gap-2 shadow-sm animate-in fade-in slide-in-from-top duration-300">
           <Info className="size-4 shrink-0" />
           <span>Registration pending. You can view features, but attendance & internal tools will unlock once approved.</span>
         </div>
       ) : gateQ.data?.lifecycle && needsActivation(gateQ.data.lifecycle) ? (
-        <div className="bg-primary text-primary-foreground px-4 py-2 text-center text-[13px] font-medium sticky top-0 z-50 flex items-center justify-center gap-2 shadow-sm animate-in fade-in slide-in-from-top duration-300">
+        <div className="bg-primary text-primary-foreground px-4 py-2 text-center text-[13px] font-medium sticky top-0 z-60 flex items-center justify-center gap-2 shadow-sm animate-in fade-in slide-in-from-top duration-300">
           <Info className="size-4 shrink-0" />
           <span>Account approved! Please check your email/phone to activate and unlock full access.</span>
         </div>
