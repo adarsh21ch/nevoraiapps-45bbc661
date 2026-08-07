@@ -122,10 +122,11 @@ export const Route = createFileRoute("/api/public/payments/$provider/webhook")({
                     _amount: amountMajor,
                     _method: "gateway",
                     _allocations: [{ invoice_id: tx.ref_id, amount: amountMajor }],
-                    _reference_number: providerPaymentId ?? tx.idempotency_key,
+                    _reference_number: (providerPaymentId ?? tx.idempotency_key ?? tx.id) as string,
                     _gateway: providerId,
                     _gateway_reference: (providerPaymentId ?? undefined) as string | undefined,
-                    _idempotency_key: tx.idempotency_key ?? tx.id,
+                    _idempotency_key: (tx.idempotency_key ?? tx.id) as string,
+
                     _collected_at: new Date().toISOString(),
                     _status: "succeeded",
                   });
