@@ -289,8 +289,8 @@ function RegisterContent() {
       if (!form.city.trim()) e.city = "Required.";
       if (!form.state.trim()) e.state = "Required.";
       if (!form.current_address.trim()) e.current_address = "Required.";
-      if (!form.aadhaar_front_url) e.aadhaar_front = "Aadhaar Front photo is required.";
-      if (!form.aadhaar_back_url) e.aadhaar_back = "Aadhaar Back photo is required.";
+      // Aadhaar photos are optional — academy can collect them later.
+
       if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     }
     setErrors(e);
@@ -381,8 +381,6 @@ function RegisterContent() {
       !form.city.trim() ||
       !form.state.trim() ||
       !form.current_address.trim() ||
-      !form.aadhaar_front_url ||
-      !form.aadhaar_back_url ||
       (batches.length > 0 && !form.batch_id)
     ) {
       toast.error("Please fill all required fields.");
@@ -898,7 +896,7 @@ function RegisterContent() {
 
                 <div className="sm:col-span-2">
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                    Aadhaar Card Verification *
+                    Aadhaar Card Verification (optional)
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <DocumentUpload
