@@ -407,7 +407,6 @@ export const getTenantPaymentSetup = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     // Authorization: Must be a tenant member or a linked parent
-    // Reuse the parent-link logic: if they can see at least one student in this tenant, they are authorized
     const { data: hasStudent } = await supabase
       .from("students")
       .select("id")
@@ -415,18 +414,11 @@ export const getTenantPaymentSetup = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
 
-    if (!hasStudent) {
-      const { data: isMember } = await supabase.rpc("is_tenant_member", { _uid: userId, _tenant: data.tenantId });
-      if (!isMember) {
-        const { data: isPlatform } = await supabase.rpc("is_platform_admin", { _uid: userId });
-        if (!isPlatform) throw new Error("Forbidden: Access denied to tenant payment setup");
-      }
-    }
+    const { data: isMember } = await supabase.rpc("is_tenant_member", { _uid: userId, _tenant: data.tenantId });
+    const { data: isPlatform } = await supabase.rpc("is_platform_admin", { _uid: userId });
 
-    if (!isMember && !isParent) {
-      // Final fallback: platform admin
-      const { data: isPlatform } = await supabase.rpc("is_platform_admin", { _uid: userId });
-      if (!isPlatform) throw new Error("Forbidden: Access denied to tenant payment setup");
+    if (!hasStudent && !isMember && !isPlatform) {
+      throw new Error("Forbidden: Access denied to tenant payment setup");
     }
 
     const { data: t, error } = await supabase

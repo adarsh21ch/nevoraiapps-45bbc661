@@ -494,10 +494,10 @@ function PublicMatchDetail() {
                 </div>
                 <div className="shrink-0 text-right tabular-nums">
                   <span className="text-lg font-black">
-                    {bowlerStat?.wickets ?? 0}/{bowlerStat?.runs ?? 0}
+                    {bowlerStat?.wickets ?? 0}/{bowlerStat?.runsConceded ?? 0}
                   </span>
                   <span className="ml-1 text-xs text-muted-foreground">
-                    ({oversDisplay(bowlerStat?.balls ?? 0)} ov)
+                    ({oversDisplay(bowlerStat?.legalBalls ?? 0)} ov)
                   </span>
                 </div>
               </div>
