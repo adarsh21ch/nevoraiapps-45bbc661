@@ -458,14 +458,16 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
                   joined_at: s.joined_at,
                   dob: s.dob,
                   academy_name: tenant.name,
-                  academy_logo: tenant.logo_url,
-                  academy_address: tenant.address,
-                  academy_phone: tenant.phone,
-                  sport: athleteQ.data?.primary_sport || "Cricket",
-                  session: batch?.name,
-                  batch_timing: batch?.timing,
-                  primary_color: tenant.primary_color,
-                  phone: s.phone,
+                  academy_logo: tenant.logo_url || undefined,
+
+                  academy_address: tenant.address || undefined,
+                  academy_phone: tenant.phone || undefined,
+                  sport: (athleteQ.data?.primary_sport as string) || "Cricket",
+                  session: batch?.name || undefined,
+                  batch_timing: batch?.timing || undefined,
+                  primary_color: tenant.primary_color || undefined,
+                  phone: s.phone || undefined,
+
                 }} 
               />
             </div>
