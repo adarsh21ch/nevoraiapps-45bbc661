@@ -29,16 +29,23 @@ export const updatePlayerPhoto = createServerFn({ method: "POST" })
     if (sErr || !student) throw new Error("Student not found or not accessible");
 
     // Determine caller's role in this tenant.
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role, tenant_id")
-      .eq("user_id", userId)
-      .maybeSingle();
+    const { data: isManager } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _tenant_id: student.tenant_id,
+      _role: "owner"
+    });
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _tenant_id: student.tenant_id,
+      _role: "admin"
+    });
+    const { data: isCoach } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _tenant_id: student.tenant_id,
+      _role: "coach"
+    });
 
-    const isStaff =
-      !!profile &&
-      profile.tenant_id === student.tenant_id &&
-      (profile.role === "owner" || profile.role === "coach" || profile.role === "admin");
+    const isStaff = isManager || isAdmin || isCoach;
     const isSelf = student.user_id === userId;
 
     if (!isStaff && !isSelf) throw new Error("Forbidden");
@@ -82,15 +89,23 @@ export const setMatchCaptains = createServerFn({ method: "POST" })
       .maybeSingle();
     if (mErr || !match) throw new Error("Match not found or not accessible");
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role, tenant_id")
-      .eq("user_id", userId)
-      .maybeSingle();
-    const isStaff =
-      !!profile &&
-      profile.tenant_id === match.tenant_id &&
-      (profile.role === "owner" || profile.role === "coach" || profile.role === "admin");
+    const { data: isManager } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _tenant_id: match.tenant_id,
+      _role: "owner"
+    });
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _tenant_id: match.tenant_id,
+      _role: "admin"
+    });
+    const { data: isCoach } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _tenant_id: match.tenant_id,
+      _role: "coach"
+    });
+
+    const isStaff = isManager || isAdmin || isCoach;
     if (!isStaff) throw new Error("Forbidden");
 
     // Clear existing captain / VC for this (match, team) before setting new one.

@@ -9,6 +9,7 @@ import { LiveScorecard, BallChip } from "@/components/match-center/live-scorecar
 import { buildCommentary } from "@/lib/mc-commentary";
 import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
 import { ArrowLeft, Radio, RefreshCw } from "lucide-react";
+import { playerKey, calculateInningsStatistics } from "@/lib/mc-statistics-engine";
 
 
 export const Route = createFileRoute("/matches/$matchId")({
@@ -254,55 +255,24 @@ function PublicMatchDetail() {
   void findBatter;
   void battingOrdered;
 
-  // Local mini stats derivation from currentBalls for header (light-weight)
-  const battersMap = new Map<string, { runs: number; balls: number; fours: number; sixes: number }>();
-  const bowlersMap = new Map<string, { runs: number; balls: number; wickets: number }>();
-  for (const b of currentBalls) {
-    const et = (b.extra_type as string | null) ?? null;
-    const isWide = et === "wide";
-    const isNoBall = et === "no_ball";
-    if (b.striker_name) {
-      const s = battersMap.get(b.striker_name) ?? { runs: 0, balls: 0, fours: 0, sixes: 0 };
-      const faced = !isWide;
-      if (faced) s.balls += 1;
-      const off = b.runs_off_bat ?? 0;
-      s.runs += off;
-      if (off === 4) s.fours += 1;
-      if (off === 6) s.sixes += 1;
-      battersMap.set(b.striker_name, s);
-    }
-    if (b.bowler_name) {
-      const bw = bowlersMap.get(b.bowler_name) ?? { runs: 0, balls: 0, wickets: 0 };
-      const legal = !isWide && !isNoBall;
-      if (legal) bw.balls += 1;
-      bw.runs += (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
-      if (b.dismissal_type && b.dismissal_type !== "run_out") bw.wickets += 1;
-      bowlersMap.set(b.bowler_name, bw);
-    }
-  }
+  // Canonical statistics for header and player cards
+  // Canonical statistics for header and player cards
+  const stats = calculateInningsStatistics(currentBalls, { 
+    totalOvers: match.overs ?? 0, 
+    playingRules: (match.playing_rules as any) || {}, 
+    target: (currentInnings as any)?.target_runs ?? null 
+  });
+
+  const teamRuns = stats.team.runs;
+  const teamWickets = stats.team.wickets;
+  const teamBalls = stats.team.legalBalls;
+
+  const strikerStat = strikerName ? stats.batting.byKey.get(playerKey(null, strikerName) || "") : null;
+  const nonStrikerStat = nonStrikerName ? stats.batting.byKey.get(playerKey(null, nonStrikerName) || "") : null;
+  const bowlerStat = bowlerName ? stats.bowling.byKey.get(playerKey(null, bowlerName) || "") : null;
+
   const oversDisplay = (legalBalls: number) =>
     `${Math.floor(legalBalls / 6)}.${legalBalls % 6}`;
-
-  // Derive team totals from ball events (source of truth) so the score
-  // updates in real time even if the innings row hasn't been aggregated yet.
-  let derivedRuns = 0;
-  let derivedWickets = 0;
-  let derivedLegalBalls = 0;
-  for (const b of currentBalls) {
-    const et = (b.extra_type as string | null) ?? null;
-    const isWide = et === "wide";
-    const isNoBall = et === "no_ball";
-    derivedRuns += (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
-    if (!isWide && !isNoBall) derivedLegalBalls += 1;
-    if (b.dismissal_type) derivedWickets += 1;
-  }
-  const teamRuns = Math.max(currentInnings?.runs ?? 0, derivedRuns);
-  const teamWickets = Math.max(currentInnings?.wickets ?? 0, derivedWickets);
-  const teamBalls = Math.max(currentInnings?.balls ?? 0, derivedLegalBalls);
-
-  const strikerStat = strikerName ? battersMap.get(strikerName) : null;
-  const nonStrikerStat = nonStrikerName ? battersMap.get(nonStrikerName) : null;
-  const bowlerStat = bowlerName ? bowlersMap.get(bowlerName) : null;
 
 
   // Recent balls: show previous + current over, grouped with a separator between overs
@@ -524,10 +494,10 @@ function PublicMatchDetail() {
                 </div>
                 <div className="shrink-0 text-right tabular-nums">
                   <span className="text-lg font-black">
-                    {bowlerStat?.wickets ?? 0}/{bowlerStat?.runs ?? 0}
+                    {bowlerStat?.wickets ?? 0}/{bowlerStat?.runsConceded ?? 0}
                   </span>
                   <span className="ml-1 text-xs text-muted-foreground">
-                    ({oversDisplay(bowlerStat?.balls ?? 0)} ov)
+                    ({oversDisplay(bowlerStat?.legalBalls ?? 0)} ov)
                   </span>
                 </div>
               </div>

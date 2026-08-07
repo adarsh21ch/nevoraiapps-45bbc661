@@ -402,20 +402,38 @@ export const markManualPaymentViewed = createServerFn({ method: "POST" })
 /** Public payment-setup projection for parents (safe fields only). */
 export const getTenantPaymentSetup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((v: { tenantId: string }) => v)
+  .inputValidator((v: unknown) => z.object({ tenantId: z.string().uuid() }).parse(v))
   .handler(async ({ data, context }) => {
-    // Any linked parent / tenant member can read this
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: t, error } = await supabaseAdmin
+    const { supabase, userId } = context;
+
+    // Authorization: Must be a tenant member or a linked parent
+    const { data: hasStudent } = await supabase
+      .from("students")
+      .select("id")
+      .eq("tenant_id", data.tenantId)
+      .limit(1)
+      .maybeSingle();
+
+    const { data: isMember } = await supabase.rpc("is_tenant_member", { _uid: userId, _tenant: data.tenantId });
+    const { data: isPlatform } = await supabase.rpc("is_platform_admin", { _uid: userId });
+
+    if (!hasStudent && !isMember && !isPlatform) {
+      throw new Error("Forbidden: Access denied to tenant payment setup");
+    }
+
+    const { data: t, error } = await supabase
       .from("tenants")
       .select(
         "online_payments_enabled, upi_id, upi_qr_url, bank_account_name, bank_account_number, bank_ifsc, payment_instructions",
       )
       .eq("id", data.tenantId)
       .maybeSingle();
+
     if (error) throw error;
+    if (!t) throw new Error("Tenant not found");
+
     // Also probe if any enabled online provider config exists
-    const { data: cfg } = await supabaseAdmin
+    const { data: cfg } = await supabase
       .from("payment_provider_configs")
       .select("provider")
       .eq("scope", "tenant")
@@ -423,7 +441,7 @@ export const getTenantPaymentSetup = createServerFn({ method: "POST" })
       .eq("enabled", true)
       .limit(1)
       .maybeSingle();
-    void context;
+
     return {
       online_payments_enabled: !!t?.online_payments_enabled && !!cfg,
       upi_id: t?.upi_id ?? null,

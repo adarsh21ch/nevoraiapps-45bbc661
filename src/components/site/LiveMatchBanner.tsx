@@ -9,6 +9,8 @@ type LiveMatch = {
   id: string;
   team_a_id: string;
   team_b_id: string;
+  overs: number;
+  playing_rules: any;
 };
 
 type Innings = {
@@ -18,6 +20,7 @@ type Innings = {
   wickets: number;
   overs: number;
   balls: number;
+  target_runs: number | null;
 };
 
 type TeamMap = Record<string, string>;
@@ -37,7 +40,7 @@ export function LiveMatchBanner() {
   const load = () => {
     supabase
       .from("mc_matches")
-      .select("id,team_a_id,team_b_id")
+      .select("id,team_a_id,team_b_id,overs,playing_rules")
       .eq("tenant_id", tenant.id)
       .eq("visibility", "public")
       .in("status", ["live", "in_progress"])
@@ -79,22 +82,25 @@ export function LiveMatchBanner() {
             }
             supabase
               .from("mc_ball_events")
-              .select("runs_off_bat,extra_runs,is_legal_delivery,dismissal_type")
+              .select("*")
               .eq("innings_id", row.id)
-              .then(({ data: balls }) => {
+              .then(async ({ data: balls }) => {
                 if (!balls || balls.length === 0) {
                   setDerived(null);
                   return;
                 }
-                let runs = 0;
-                let wickets = 0;
-                let legal = 0;
-                for (const b of balls as Array<{ runs_off_bat: number | null; extra_runs: number | null; is_legal_delivery: boolean | null; dismissal_type: string | null }>) {
-                  runs += (b.runs_off_bat ?? 0) + (b.extra_runs ?? 0);
-                  if (b.is_legal_delivery) legal += 1;
-                  if (b.dismissal_type) wickets += 1;
-                }
-                setDerived({ runs, wickets, overs: Math.floor(legal / 6), balls: legal % 6 });
+                const { calculateInningsStatistics } = await import("@/lib/mc-statistics-engine");
+                const stats = calculateInningsStatistics(balls as any, { 
+                  totalOvers: match?.overs ?? 0,
+                  playingRules: match?.playing_rules || {},
+                  target: row.target_runs ?? null
+                });
+                setDerived({ 
+                  runs: stats.team.runs, 
+                  wickets: stats.team.wickets, 
+                  overs: Math.floor(stats.team.legalBalls / 6), 
+                  balls: stats.team.legalBalls % 6 
+                });
               });
           });
       });

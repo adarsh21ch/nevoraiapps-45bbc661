@@ -227,6 +227,13 @@ export const disableStaff = createServerFn({ method: "POST" })
       .eq("tenant_id", data.tenantId)
       .neq("role", "owner");
     if (error) throw new Error(error.message);
+
+    // Clear legacy profile role hint
+    await supabaseAdmin
+      .from("profiles")
+      .update({ role: "" as any })
+      .eq("user_id", data.userId)
+      .eq("tenant_id", data.tenantId);
     // Also deactivate their coach assignments.
     const { error: aerr } = await supabaseAdmin
       .from("coach_assignments")
@@ -273,6 +280,13 @@ export const setStaffRole = createServerFn({ method: "POST" })
       await supabaseAdmin
         .from("profiles")
         .update({ role: legacy })
+        .eq("user_id", data.userId)
+        .eq("tenant_id", data.tenantId);
+    } else {
+      // Clear legacy profile role hint for student demotion
+      await supabaseAdmin
+        .from("profiles")
+        .update({ role: "" as any })
         .eq("user_id", data.userId)
         .eq("tenant_id", data.tenantId);
     }
