@@ -454,7 +454,7 @@ function RegisterContent() {
 
             <input placeholder="Guardian Name" value={form.guardian_name} onChange={e => setForm({...form, guardian_name: e.target.value})} className="w-full border p-2 rounded" />
             <input 
-              placeholder="Aadhaar Number (12 digits)" 
+              placeholder="Aadhaar Number (12 digits) *" 
               value={form.aadhaar_number} 
               maxLength={12}
               onChange={e => setForm({...form, aadhaar_number: e.target.value.replace(/\D/g, '')})} 
