@@ -21,7 +21,7 @@ async function assertPlatformAdmin(
   const rpc = (supabase as {
     rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>;
   }).rpc;
-  const { data, error } = await rpc("is_platform_admin", { _user_id: userId });
+  const { data, error } = await rpc("is_platform_admin", { _uid: userId });
   if (error) throw new Error("Authorization check failed");
   if (!data) throw new Error("Forbidden: platform admin only");
 }
