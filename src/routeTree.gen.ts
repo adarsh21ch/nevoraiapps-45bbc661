@@ -14,7 +14,6 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StudentRouteImport } from './routes/student'
 import { Route as StarPlayersRouteImport } from './routes/star-players'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProgramsRouteImport } from './routes/programs'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
@@ -177,11 +176,6 @@ const StarPlayersRoute = StarPlayersRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgramsRoute = ProgramsRouteImport.update({
@@ -925,7 +919,6 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
-  '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/star-players': typeof StarPlayersRoute
   '/student': typeof StudentRouteWithChildren
@@ -1066,7 +1059,6 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
-  '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/star-players': typeof StarPlayersRoute
   '/terms': typeof TermsRoute
@@ -1212,7 +1204,6 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/programs': typeof ProgramsRoute
-  '/register': typeof RegisterRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/star-players': typeof StarPlayersRoute
   '/student': typeof StudentRouteWithChildren
@@ -1360,7 +1351,6 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/programs'
-    | '/register'
     | '/sitemap.xml'
     | '/star-players'
     | '/student'
@@ -1501,7 +1491,6 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/programs'
-    | '/register'
     | '/sitemap.xml'
     | '/star-players'
     | '/terms'
@@ -1646,7 +1635,6 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/privacy'
     | '/programs'
-    | '/register'
     | '/sitemap.xml'
     | '/star-players'
     | '/student'
@@ -1793,7 +1781,6 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ProgramsRoute: typeof ProgramsRoute
-  RegisterRoute: typeof RegisterRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StarPlayersRoute: typeof StarPlayersRoute
   StudentRoute: typeof StudentRouteWithChildren
@@ -1855,13 +1842,6 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programs': {
@@ -3147,7 +3127,6 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ProgramsRoute: ProgramsRoute,
-  RegisterRoute: RegisterRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StarPlayersRoute: StarPlayersRoute,
   StudentRoute: StudentRouteWithChildren,
@@ -3177,13 +3156,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
