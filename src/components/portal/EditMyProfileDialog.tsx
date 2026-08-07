@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PlayerPhotoUploader } from "@/components/match-center/PlayerPhotoUploader";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +39,12 @@ export function EditMyProfileDialog({ student, onSaved }: EditMyProfileDialogPro
     state: student.state || "",
     current_address: student.current_address || "",
     permanent_address: student.permanent_address || student.address || "",
+    photo_url: student.photo_url || "",
   });
+
+  const handleUpdated = (url: string) => {
+    setF({ ...f, photo_url: url });
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -47,6 +53,7 @@ export function EditMyProfileDialog({ student, onSaved }: EditMyProfileDialogPro
         .from("students")
         .update({
           name: f.name,
+          photo_url: f.photo_url || null,
           guardian_name: f.guardian_name || null,
           village_locality: f.village_locality || null,
           city: f.city || null,
@@ -81,7 +88,18 @@ export function EditMyProfileDialog({ student, onSaved }: EditMyProfileDialogPro
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-1">
+          <div className="flex flex-col items-center justify-center pb-4 border-b border-border/50">
+            <Label className="mb-3 text-xs uppercase tracking-wider text-muted-foreground">Profile Photo</Label>
+            <PlayerPhotoUploader
+              tenantId={student.tenant_id}
+              studentId={student.id}
+              photoUrl={f.photo_url || null}
+              name={f.name || "Player"}
+              size={100}
+              onUpdated={handleUpdated}
+            />
+          </div>
           <div className="space-y-2">
             <Label>Full Name</Label>
             <Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
