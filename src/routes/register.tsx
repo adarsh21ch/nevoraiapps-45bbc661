@@ -381,8 +381,6 @@ function RegisterContent() {
       !form.city.trim() ||
       !form.state.trim() ||
       !form.current_address.trim() ||
-      !form.aadhaar_front_url ||
-      !form.aadhaar_back_url ||
       (batches.length > 0 && !form.batch_id)
     ) {
       toast.error("Please fill all required fields.");
