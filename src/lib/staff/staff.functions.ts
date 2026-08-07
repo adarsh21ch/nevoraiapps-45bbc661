@@ -231,7 +231,7 @@ export const disableStaff = createServerFn({ method: "POST" })
     // Clear legacy profile role hint
     await supabaseAdmin
       .from("profiles")
-      .update({ role: null })
+      .update({ role: "" as any })
       .eq("user_id", data.userId)
       .eq("tenant_id", data.tenantId);
     // Also deactivate their coach assignments.
@@ -286,7 +286,7 @@ export const setStaffRole = createServerFn({ method: "POST" })
       // Clear legacy profile role hint for student demotion
       await supabaseAdmin
         .from("profiles")
-        .update({ role: null })
+        .update({ role: "" as any })
         .eq("user_id", data.userId)
         .eq("tenant_id", data.tenantId);
     }

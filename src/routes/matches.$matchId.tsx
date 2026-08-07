@@ -9,6 +9,7 @@ import { LiveScorecard, BallChip } from "@/components/match-center/live-scorecar
 import { buildCommentary } from "@/lib/mc-commentary";
 import type { MCBallEvent, MCInnings } from "@/lib/mc-ball-events";
 import { ArrowLeft, Radio, RefreshCw } from "lucide-react";
+import { playerKey } from "@/lib/mc-statistics-engine";
 
 
 export const Route = createFileRoute("/matches/$matchId")({
@@ -255,12 +256,14 @@ function PublicMatchDetail() {
   void battingOrdered;
 
   // Canonical statistics for header and player cards
-  const { calculateInningsStatistics } = await import("@/lib/mc-statistics-engine");
-  const stats = calculateInningsStatistics(currentBalls, { 
-    totalOvers: match.overs ?? 0, 
-    playingRules: match.playing_rules as any || {}, 
-    target: currentInnings?.target_runs ?? null 
-  });
+  const stats = await (async () => {
+    const { calculateInningsStatistics } = await import("@/lib/mc-statistics-engine");
+    return calculateInningsStatistics(currentBalls, { 
+      totalOvers: match.overs ?? 0, 
+      playing_rules: (match.playing_rules as any) || {}, 
+      target: (currentInnings as any)?.target_runs ?? null 
+    });
+  })();
 
   const teamRuns = stats.team.runs;
   const teamWickets = stats.team.wickets;
@@ -269,6 +272,9 @@ function PublicMatchDetail() {
   const strikerStat = strikerName ? stats.batting.byKey.get(playerKey(null, strikerName) || "") : null;
   const nonStrikerStat = nonStrikerName ? stats.batting.byKey.get(playerKey(null, nonStrikerName) || "") : null;
   const bowlerStat = bowlerName ? stats.bowling.byKey.get(playerKey(null, bowlerName) || "") : null;
+
+  const oversDisplay = (legalBalls: number) =>
+    `${Math.floor(legalBalls / 6)}.${legalBalls % 6}`;
 
 
   // Recent balls: show previous + current over, grouped with a separator between overs

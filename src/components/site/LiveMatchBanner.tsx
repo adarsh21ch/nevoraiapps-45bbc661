@@ -9,6 +9,8 @@ type LiveMatch = {
   id: string;
   team_a_id: string;
   team_b_id: string;
+  overs: number;
+  playing_rules: any;
 };
 
 type Innings = {
@@ -18,6 +20,7 @@ type Innings = {
   wickets: number;
   overs: number;
   balls: number;
+  target_runs: number | null;
 };
 
 type TeamMap = Record<string, string>;
@@ -37,7 +40,7 @@ export function LiveMatchBanner() {
   const load = () => {
     supabase
       .from("mc_matches")
-      .select("id,team_a_id,team_b_id")
+      .select("id,team_a_id,team_b_id,overs,playing_rules")
       .eq("tenant_id", tenant.id)
       .eq("visibility", "public")
       .in("status", ["live", "in_progress"])
@@ -88,8 +91,8 @@ export function LiveMatchBanner() {
                 }
                 const { calculateInningsStatistics } = await import("@/lib/mc-statistics-engine");
                 const stats = calculateInningsStatistics(balls as any, { 
-                  totalOvers: match.overs ?? 0,
-                  playingRules: match.playing_rules as any || {},
+                  totalOvers: match?.overs ?? 0,
+                  playingRules: match?.playing_rules || {},
                   target: row.target_runs ?? null
                 });
                 setDerived({ 

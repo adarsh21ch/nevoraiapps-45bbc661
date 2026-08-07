@@ -406,11 +406,8 @@ export const getTenantPaymentSetup = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    // Authorization: Must be a tenant member or a linked parent
-    const [{ data: isMember }, { data: isParent }] = await Promise.all([
-      supabase.rpc("is_tenant_member", { _uid: userId, _tenant: data.tenantId }),
-      supabase.rpc("is_parent_of_tenant_student", { _parent_uid: userId, _tenant_id: data.tenantId }),
-    ]);
+    const { data: isParent } = await supabase.rpc("is_parent_of_tenant_student", { _parent_uid: userId, _tenant_id: data.tenantId });
+    const { data: isMember } = await supabase.rpc("is_tenant_member", { _uid: userId, _tenant: data.tenantId });
 
     if (!isMember && !isParent) {
       // Final fallback: platform admin
