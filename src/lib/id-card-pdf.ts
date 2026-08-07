@@ -116,7 +116,7 @@ async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numb
   // Curved wave transition
   doc.setFillColor(br, bg, bb);
   doc.moveTo(fx, fy + 20);
-  doc.curveTo(fx + CW/2, fy + 25, fx + CW/2, fy + 25, fx + CW, fy + 20);
+  doc.curveTo(fx + CW/2, fy + 27, fx + CW/2, fy + 27, fx + CW, fy + 20);
   doc.lineTo(fx + CW, fy);
   doc.lineTo(fx, fy);
   doc.fill();
@@ -184,7 +184,9 @@ async function drawCardFront(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numb
   doc.setFontSize(6);
   doc.text("MEMBER SINCE: " + fmtMonthYear(r.joinedAt), fx + 5, fy + CH - 3);
   doc.setFontSize(6);
-  doc.text("OFFICIAL ID", fx + CW - 5, fy + CH - 3, { align: "right" });
+  doc.text("OFFICIAL", fx + CW - 5, fy + CH - 4, { align: "right" });
+  doc.setFontSize(5);
+  doc.text("PLAYER ID CARD", fx + CW - 5, fy + CH - 2.5, { align: "right" });
 }
 
 async function drawCardBack(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: number, fy: number) {
@@ -224,5 +226,5 @@ async function drawCardBack(doc: jsPDF, tenant: Tenant, r: IdCardData, fx: numbe
   doc.rect(fx, fy + CH - 8, CW, 8, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(6);
-  doc.text("POWERED BY ACADEMY OS", fx + CW/2, fy + CH - 3, { align: "center" });
+  doc.text("BUILDING CHAMPIONS, INSPIRING FUTURES", fx + CW/2, fy + CH - 3, { align: "center" });
 }

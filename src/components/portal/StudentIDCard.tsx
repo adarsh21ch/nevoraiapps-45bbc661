@@ -103,8 +103,8 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
               className="h-[40px] px-4 flex flex-col items-center justify-center shrink-0"
               style={{ backgroundColor: brandColor }}
             >
-               <div className="text-[8px] font-bold text-white/60 uppercase tracking-widest">
-                  Powered by Academy OS
+               <div className="text-[7px] font-bold text-white uppercase tracking-[0.2em] opacity-90">
+                  Building Champions, Inspiring Futures
                </div>
             </div>
           </div>
@@ -135,10 +135,10 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
               {student.academy_name || "AcademyOS"}
             </div>
             {/* Wave shape */}
-            <div 
-              className="absolute -bottom-6 left-0 right-0 h-12 bg-white rounded-[50%]"
-              style={{ transform: 'scaleX(1.5)' }}
-            />
+              <div 
+                className="absolute -bottom-7 left-0 right-0 h-14 bg-white rounded-[50%]"
+                style={{ transform: 'scaleX(1.4)' }}
+              />
           </div>
 
           {/* Front Body */}
@@ -196,8 +196,9 @@ export const StudentIDCard = React.forwardRef<HTMLDivElement, StudentIDCardProps
                 <span className="text-[6px] font-bold text-white/60 uppercase tracking-widest">Member Since</span>
                 <span className="text-[10px] font-black">{formatMemberSince(student.joined_at)}</span>
              </div>
-             <div className="text-[9px] font-black uppercase tracking-widest text-white/80">
-                Official ID Card
+             <div className="flex flex-col items-end">
+                <span className="text-[8px] font-black uppercase tracking-widest text-white">Official</span>
+                <span className="text-[7px] font-bold uppercase tracking-tighter text-white/80">Player ID Card</span>
              </div>
           </div>
         </div>

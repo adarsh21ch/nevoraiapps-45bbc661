@@ -104,7 +104,7 @@ export function PreferencesCard() {
         <Popover open={langOpen} onOpenChange={setLangOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={rowClass}>
-              <RowLeft icon={Languages} label="But still I don't find out the bug is not solving. When I click multiple times, like suppose 10 to 20 times on download the ID card, then suddenly automatically all the things, but still for 10 second, 15 second, 20 second, nothing is happening. Why on a single click it is downloaded?" />
+              <RowLeft icon={Languages} label="Language" />
 
               <RowRight value={hydrated ? currentLang.native : ""} />
             </button>
@@ -117,7 +117,7 @@ export function PreferencesCard() {
         <Sheet open={langOpen} onOpenChange={setLangOpen}>
           <SheetTrigger asChild>
             <button type="button" className={rowClass}>
-              <RowLeft icon={Languages} label="But still I don't find out the bug is not solving. When I click multiple times, like suppose 10 to 20 times on download the ID card, then suddenly automatically all the things, but still for 10 second, 15 second, 20 second, nothing is happening. Why on a single click it is downloaded?" />
+              <RowLeft icon={Languages} label="Language" />
               <RowRight value={hydrated ? currentLang.native : ""} />
             </button>
           </SheetTrigger>
@@ -126,7 +126,7 @@ export function PreferencesCard() {
             className="rounded-t-2xl border-t border-border p-0 pb-[env(safe-area-inset-bottom)]"
           >
             <SheetHeader className="px-4 pt-4 pb-2 text-left">
-              <SheetTitle className="text-base">But still I don't find out the bug is not solving. When I click multiple times, like suppose 10 to 20 times on download the ID card, then suddenly automatically all the things, but still for 10 second, 15 second, 20 second, nothing is happening. Why on a single click it is downloaded?</SheetTitle>
+              <SheetTitle className="text-base">Select Language</SheetTitle>
             </SheetHeader>
             {LanguageOptions}
           </SheetContent>
