@@ -8,6 +8,9 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import type { StudentContext } from "@/lib/student-app";
+import { resolveEffectiveMonthlyFee, getPaidPeriodSet, studentDue, tenantFeeCycle, periodLabel } from "./fees";
+import { fetchKpis } from "./dashboard-queries";
+
 
 export type ParentChildRow = {
   link_id: string;
@@ -101,33 +104,72 @@ export async function fetchChildBillingSummary(
   studentId: string,
   tenantId: string,
 ): Promise<ParentBillingSummary> {
-  // Check per-tenant opt-in
-  const { data: t } = await supabase
+  const { data: tenant } = await supabase
     .from("tenants")
-    .select("show_billing_to_parents")
+    .select("id, fee_cycle, show_billing_to_parents, gender_pricing_enabled")
     .eq("id", tenantId)
-    .maybeSingle();
-  const enabled = !!(t as { show_billing_to_parents?: boolean } | null)?.show_billing_to_parents;
-  if (!enabled) return { enabled: false, outstanding: 0, currency: "INR", invoices: [] };
+    .single();
+  
+  if (!tenant || !tenant.show_billing_to_parents) {
+    return { enabled: false, outstanding: 0, currency: "INR", invoices: [] };
+  }
 
-  const { data, error } = await supabase
-    .from("billing_invoices")
-    .select("id, number, total, balance, due_date, status, currency")
-    .eq("student_id", studentId)
-    .in("status", ["issued", "partially_paid", "overdue"])
-    .order("due_date", { ascending: true, nullsFirst: false })
-    .limit(20);
-  if (error) throw error;
+  const { data: student } = await supabase
+    .from("students")
+    .select("*, fee_plans(*)")
+    .eq("id", studentId)
+    .single();
 
-  const invoices = (data ?? []) as ParentBillingSummary["invoices"];
-  const outstanding = invoices.reduce((s, i) => s + Number(i.balance ?? 0), 0);
+  if (!student) throw new Error("Student not found");
+
+  const { data: payments } = await supabase
+    .from("payments")
+    .select("type, period")
+    .eq("student_id", studentId);
+
+  const cycle = tenantFeeCycle(tenant as any);
+  const paidPeriods = getPaidPeriodSet(payments ?? []);
+  const now = new Date();
+  
+  const due = studentDue({
+    cycle,
+    joinedAt: student.joined_at,
+    selectedMonth: now,
+    paidPeriods,
+    today: now,
+  });
+
+  const effectiveFee = resolveEffectiveMonthlyFee({
+    plan: student.fee_plans as any,
+    gender: student.gender,
+    customFee: student.custom_fee,
+    isGenderPricingEnabled: !!tenant.gender_pricing_enabled
+  });
+
+  const invoices: ParentBillingSummary["invoices"] = [];
+  let outstanding = 0;
+
+  if (due.state === "pending") {
+    outstanding = effectiveFee;
+    invoices.push({
+      id: `due-${due.period}`,
+      number: null,
+      total: effectiveFee,
+      balance: effectiveFee,
+      due_date: due.dueDate.toISOString(),
+      status: "issued",
+      currency: "INR"
+    });
+  }
+
   return {
     enabled: true,
     outstanding,
-    currency: invoices[0]?.currency ?? "INR",
+    currency: "INR",
     invoices,
   };
 }
+
 
 // -------------------- Timeline --------------------
 

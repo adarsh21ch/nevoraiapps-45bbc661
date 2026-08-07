@@ -97,15 +97,23 @@ export async function enrollStudentInBilling(input: {
     .limit(1);
   if ((existing ?? []).length > 0) return { skipped: true, reason: "already_enrolled" };
 
+  const { resolveEffectiveMonthlyFee } = await import("./fees");
+  const { resolveMonthlyFee } = await import("./gender");
+  
   const cycle = ((plan.billing_cycle as BillingCycle) || "monthly") as BillingCycle;
   const start = input.startDate ? new Date(input.startDate) : new Date();
   const periodEnd = endOfCycle(start, cycle);
 
   const { data: tenantData } = await supabase.from('tenants').select('gender_pricing_enabled').eq('id', input.tenantId).single();
   const isGenderPricingEnabled = tenantData?.gender_pricing_enabled === true;
-  const resolvedAmount = isGenderPricingEnabled 
-    ? resolveMonthlyFee(plan as any, input.gender)
-    : Number(plan.amount ?? 0);
+  const resolvedAmount = resolveEffectiveMonthlyFee({
+    plan: plan as any,
+    gender: input.gender,
+    customFee: null, // enrollment uses plan defaults, custom_fee is set later
+    isGenderPricingEnabled
+  });
+
+
 
   const sub = await createSubscription({
     tenant_id: input.tenantId,

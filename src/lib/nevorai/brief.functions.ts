@@ -26,28 +26,39 @@ export type DailyBrief = {
 };
 
 async function buildBriefForTenant(tenantId: string): Promise<DailyBrief> {
-  const [{ fetchKpis }, { fetchBillingKpis }, { fetchAttendanceToday }, { fetchDashboardInsights }] =
+  const [{ fetchKpis }, { fetchAttendanceToday }, { fetchDashboardInsights }, { studentDue, tenantFeeCycle, getPaidPeriodSet, periodKey }] =
     await Promise.all([
       import("@/lib/dashboard-queries"),
-      import("@/lib/billing"),
       import("@/lib/attendance/queries"),
       import("@/lib/dashboard-queries"),
+      import("@/lib/fees"),
     ]);
 
-  // Load tenant for fetchKpis (matches its existing signature).
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: tenant } = await supabaseAdmin
     .from("tenants")
     .select("*")
     .eq("id", tenantId)
-    .maybeSingle();
+    .single();
 
-  const [kpis, billing, attendance, insights] = await Promise.all([
-    tenant ? fetchKpis(tenant as never, supabaseAdmin).catch(() => null) : Promise.resolve(null),
-    fetchBillingKpis(tenantId, supabaseAdmin).catch(() => null),
-    fetchAttendanceToday(tenantId, supabaseAdmin).catch(() => [] as Awaited<ReturnType<typeof fetchAttendanceToday>>),
+  if (!tenant) throw new Error("Tenant not found");
+
+  const [kpis, attendance, insights, studentsRes, allPayments] = await Promise.all([
+    fetchKpis(tenant as never, supabaseAdmin).catch(() => null),
+    fetchAttendanceToday(tenantId, supabaseAdmin).catch(() => []),
     fetchDashboardInsights(tenantId, supabaseAdmin).catch(() => null),
+    supabaseAdmin
+      .from("students")
+      .select("id, joined_at, custom_fee, gender, fee_plans!inner(amount, female_amount, type)")
+      .eq("tenant_id", tenantId)
+      .eq("status", "active")
+      .eq("fee_plans.type", "monthly"),
+    supabaseAdmin
+      .from("payments")
+      .select("student_id, period, type")
+      .eq("tenant_id", tenantId),
   ]);
+
 
   let present = 0;
   let absent = 0;
@@ -58,10 +69,11 @@ async function buildBriefForTenant(tenantId: string): Promise<DailyBrief> {
     else if (r.status === "absent") absent++;
   }
 
-  const overdue = billing?.overdue ?? 0;
-  const outstanding = billing?.outstanding ?? 0;
-  const collected = billing?.collectedThisMonth ?? 0;
+  const overdue = kpis?.pendingFeeCount ?? 0;
+  const outstanding = kpis?.pendingFeeCount ?? 0;
+  const collected = kpis?.collectionThisMonth ?? 0;
   const activeStudents = kpis?.activeStudents ?? 0;
+
 
   const insightsList: QuickInsight[] = [
     {
@@ -148,11 +160,22 @@ async function buildBriefForTenant(tenantId: string): Promise<DailyBrief> {
 export const getDailyBrief = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<DailyBrief> => {
+    // 2b — assert owner (or platform admin) server-side
+    const [{ data: isOwner }, { data: isPlatform }] = await Promise.all([
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "owner" }),
+      context.supabase.rpc("is_platform_admin", { _uid: context.userId }),
+    ]);
+
+    if (!isOwner && !isPlatform) {
+      throw new Error("Forbidden: Daily brief is restricted to owners");
+    }
+
     const { data: profile } = await context.supabase
       .from("profiles")
       .select("tenant_id")
       .eq("user_id", context.userId)
       .maybeSingle();
+
     if (!profile?.tenant_id) {
       return {
         generatedAt: new Date().toISOString(),

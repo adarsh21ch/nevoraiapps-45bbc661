@@ -126,39 +126,44 @@ export const financeSummaryTool: AnyToolDef = {
     // uses (active monthly students with no payment for the current period).
     // Amounts come from each student's assigned fee_plan.amount. Names are
     // the authoritative source: renderers/models MUST NOT invent students.
-    const { tenantFeeCycle, studentDue, periodKey, candidatePeriods } = await import("@/lib/fees");
+    const { tenantFeeCycle, studentDue, periodKey, candidatePeriods, resolveEffectiveMonthlyFee, getPaidPeriodSet } = await import("@/lib/fees");
     const cycle = tenantFeeCycle(tenant as never);
     const now = new Date();
     const periods = cycle === "joining_date" ? candidatePeriods(now) : [periodKey(now)];
     const [studentsRes, paidRes] = await Promise.all([
       db
         .from("students")
-        .select("id, name, joined_at, fee_plan_id, fee_plans!inner(type, amount, name)")
+        .select("id, name, joined_at, custom_fee, gender, fee_plan_id, fee_plans!inner(type, amount, female_amount, name)")
         .eq("tenant_id", ctx.tenantId)
         .eq("status", "active")
         .eq("fee_plans.type", "monthly"),
       db
         .from("payments")
-        .select("student_id, period")
+        .select("student_id, period, type")
         .eq("tenant_id", ctx.tenantId)
         .in("period", periods),
     ]);
     const paidByStudent = new Map<string, Set<string>>();
+    const allPaid = getPaidPeriodSet((paidRes.data ?? []) as any);
     for (const p of (paidRes.data ?? []) as Array<{ student_id: string | null; period: string | null }>) {
       if (!p.student_id || !p.period) continue;
       const set = paidByStudent.get(p.student_id) ?? new Set<string>();
       set.add(p.period);
       paidByStudent.set(p.student_id, set);
     }
+
     type StudentRow = {
       id: string;
       name: string | null;
       joined_at: string | null;
+      gender: string | null;
+      custom_fee: number | null;
       fee_plans:
-        | { amount: number | null; name: string | null }
-        | Array<{ amount: number | null; name: string | null }>
+        | { amount: number | null; female_amount: number | null; name: string | null }
+        | Array<{ amount: number | null; female_amount: number | null; name: string | null }>
         | null;
     };
+
     const pendingStudents: Array<{
       id: string;
       name: string;
@@ -177,13 +182,20 @@ export const financeSummaryTool: AnyToolDef = {
       });
       if (due.state !== "pending") continue;
       const plan = Array.isArray(s.fee_plans) ? s.fee_plans[0] : s.fee_plans;
+      const amount = resolveEffectiveMonthlyFee({
+        plan: plan as any,
+        gender: s.gender,
+        customFee: s.custom_fee,
+        isGenderPricingEnabled: !!(tenant as any).gender_pricing_enabled
+      });
       pendingStudents.push({
         id: s.id,
         name: (s.name ?? "").trim() || "(unnamed)",
-        amount: Number(plan?.amount ?? 0),
+        amount,
         period: due.period,
         overdueDays: due.overdueDays,
       });
+
     }
     pendingStudents.sort(
       (a, b) => b.overdueDays - a.overdueDays || a.name.localeCompare(b.name),

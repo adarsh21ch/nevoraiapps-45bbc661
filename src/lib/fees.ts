@@ -1,11 +1,47 @@
 import { format } from "date-fns";
 import type { Tenant } from "./tenant";
+import { resolveMonthlyFee } from "./gender";
+
 
 export type FeeCycle = "calendar_month" | "joining_date";
 
 export function tenantFeeCycle(t: Tenant): FeeCycle {
   return t.fee_cycle === "joining_date" ? "joining_date" : "calendar_month";
 }
+
+/**
+ * Helper A — effective monthly fee.
+ * Logic: custom_fee ?? (gender_pricing_enabled ? resolveMonthlyFee(plan, gender) : plan.amount)
+ */
+export function resolveEffectiveMonthlyFee(opts: {
+  plan: { amount: number | null; female_amount: number | null } | null;
+  gender: string | null | undefined;
+  customFee: number | null | undefined;
+  isGenderPricingEnabled: boolean;
+}): number {
+  if (opts.customFee != null) return Number(opts.customFee);
+  const base = opts.isGenderPricingEnabled
+    ? resolveMonthlyFee(opts.plan as any, opts.gender)
+    : Number(opts.plan?.amount ?? 0);
+  return base;
+}
+
+/**
+ * Helper B — paid-period set.
+ * Returns a set of period keys for payments of type 'monthly'.
+ */
+export function getPaidPeriodSet(
+  payments: Array<{ type: string | null | undefined; period: string | null | undefined }>,
+): Set<string> {
+  const set = new Set<string>();
+  for (const p of payments) {
+    if (p.type === "monthly" && p.period) {
+      set.add(p.period);
+    }
+  }
+  return set;
+}
+
 
 export function periodKey(d: Date): string {
   return format(d, "yyyy-MM");

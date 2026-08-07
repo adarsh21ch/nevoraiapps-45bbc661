@@ -98,10 +98,15 @@ export const Route = createFileRoute("/api/public/payments/$provider/webhook")({
                   : isFailed
                     ? "failed"
                     : tx.status;
-              await supabaseAdmin
-                .from("payment_transactions")
-                .update({ status: nextStatus, provider_payment_id: providerPaymentId ?? null })
-                .eq("id", tx.id);
+              // Move status flip to AFTER ledger write if successful
+              const updateTx = async (status: string) => {
+                const { error: updErr } = await supabaseAdmin
+                  .from("payment_transactions")
+                  .update({ status, provider_payment_id: providerPaymentId ?? null })
+                  .eq("id", tx.id);
+                if (updErr) throw updErr;
+              };
+
 
               if (isSuccess && tx.ref_type === "invoice" && tx.ref_id && tx.tenant_id) {
                 const amountMajor = Number(tx.amount_paise) / 100;
@@ -111,21 +116,32 @@ export const Route = createFileRoute("/api/public/payments/$provider/webhook")({
                   .eq("id", tx.ref_id)
                   .maybeSingle();
                 if (inv) {
-                  await supabaseAdmin.rpc("record_billing_payment", {
+                  // NOTE: This call will currently fail with 'Not authorized' because the RPC guard 
+                  // does not yet recognize service-role. This MUST be fixed before enabling 
+                  // online payments for any tenant. We throw now to ensure it fails loudly.
+                  const { error: rpcErr } = await supabaseAdmin.rpc("record_billing_payment", {
+
                     _tenant_id: inv.tenant_id,
                     _student_id: inv.student_id,
                     _amount: amountMajor,
                     _method: "gateway",
                     _allocations: [{ invoice_id: tx.ref_id, amount: amountMajor }],
-                    _reference_number: providerPaymentId ?? tx.idempotency_key,
+                    _reference_number: (providerPaymentId ?? tx.idempotency_key ?? tx.id) as string,
                     _gateway: providerId,
-                    _gateway_reference: providerPaymentId ?? undefined,
-                    _idempotency_key: tx.idempotency_key ?? tx.id,
+                    _gateway_reference: (providerPaymentId ?? undefined) as string | undefined,
+                    _idempotency_key: (tx.idempotency_key ?? tx.id) as string,
+
                     _collected_at: new Date().toISOString(),
                     _status: "succeeded",
-                  } as any);
+                  });
+                  if (rpcErr) throw rpcErr;
+
+                  await updateTx(nextStatus);
                 }
+              } else {
+                await updateTx(nextStatus);
               }
+
 
               if (tx.tenant_id) {
                 const evType = isRefund

@@ -35,28 +35,59 @@ export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
 
         for (const t of tenants ?? []) {
           // Active students in this tenant with a fee plan
+          const { studentDue, resolveEffectiveMonthlyFee, tenantFeeCycle } = await import("@/lib/fees");
+          const cycle = tenantFeeCycle(t as any);
+
           const { data: students } = await supabaseAdmin
             .from("students")
             .select(
-              "id, name, phone, guardian_name, guardian_phone, joined_at, fee_plans(amount, type)",
+              "id, name, phone, guardian_name, guardian_phone, joined_at, gender, custom_fee, fee_plans(amount, female_amount, type)",
             )
             .eq("tenant_id", t.id)
             .eq("status", "active")
             .not("fee_plan_id", "is", null);
+
           if (!students?.length) continue;
 
-          // Payments in this period
+          // Payments for this student in this period - Task 4 route to helper
           const { data: payments } = await supabaseAdmin
             .from("payments")
-            .select("student_id")
+            .select("student_id, period, type")
             .eq("tenant_id", t.id)
+            .eq("type", "monthly")
             .eq("period", period);
           const paid = new Set((payments ?? []).map((p) => p.student_id));
 
+
           for (const s of students) {
             if (paid.has(s.id)) continue;
-            const plan = (s.fee_plans as { amount: number; type: string } | null) ?? null;
+            const plan = (s.fee_plans as { amount: number; female_amount: number | null; type: string } | null) ?? null;
             if (!plan || plan.type !== "monthly") continue;
+
+            const { data: tenantData } = await supabaseAdmin
+              .from("tenants")
+              .select("gender_pricing_enabled")
+              .eq("id", t.id)
+              .single();
+
+            const amount = resolveEffectiveMonthlyFee({
+              plan,
+              gender: s.gender,
+              customFee: s.custom_fee,
+              isGenderPricingEnabled: !!tenantData?.gender_pricing_enabled
+            });
+
+            // Check if actually due using studentDue
+            const due = studentDue({
+              cycle,
+              joinedAt: s.joined_at!,
+              selectedMonth: kolkata,
+              paidPeriods: paid.has(s.id) ? new Set([period]) : new Set(),
+              today: kolkata
+            });
+
+            if (due.state !== "pending") continue;
+
 
             const joined = s.joined_at ? new Date(s.joined_at + "T00:00:00") : null;
             if (joined && joined > periodStart) continue; // not enrolled yet
@@ -74,7 +105,7 @@ export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
             const monthLabel = format(periodStart, "MMMM yyyy");
             const message =
               `${greet}, ${s.name} ki ${monthLabel} fees ` +
-              `₹${Number(plan.amount).toLocaleString("en-IN")} pending hai. ` +
+              `₹${amount.toLocaleString("en-IN")} pending hai. ` +
               `Kripya jald payment kar dein. Dhanyavaad 🙏 — ${t.name}`;
             const whatsapp_url = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
 
@@ -86,7 +117,7 @@ export const Route = createFileRoute("/api/public/hooks/fee-reminders")({
               message,
               whatsapp_url,
               phone: waNumber,
-              amount: plan.amount,
+              amount,
               status: "queued",
             });
             if (!insErr) queued++;

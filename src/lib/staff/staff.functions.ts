@@ -175,12 +175,12 @@ export const acceptInvitation = createServerFn({ method: "POST" })
     }
 
     // Upsert profile with tenant + legacy role hint.
-    const legacyRole = inv.invited_role === "admin" ? "admin" : "coach";
+    const legacyRole = (inv.invited_role === "admin" || inv.invited_role === "coach") ? "coach" : null;
     const { error: profErr } = await supabaseAdmin.from("profiles").upsert(
       {
         user_id: context.userId,
         tenant_id: inv.tenant_id,
-        role: legacyRole,
+        role: legacyRole as any,
       },
       { onConflict: "user_id" },
     );
@@ -229,11 +229,13 @@ export const disableStaff = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     // Clear legacy profile role hint
-    await supabaseAdmin
+    const { error: clearErr } = await supabaseAdmin
       .from("profiles")
-      .update({ role: "" as any })
+      .update({ role: null as any })
       .eq("user_id", data.userId)
       .eq("tenant_id", data.tenantId);
+    if (clearErr) throw new Error(`Failed to clear legacy role: ${clearErr.message}`);
+
     // Also deactivate their coach assignments.
     const { error: aerr } = await supabaseAdmin
       .from("coach_assignments")
@@ -284,11 +286,13 @@ export const setStaffRole = createServerFn({ method: "POST" })
         .eq("tenant_id", data.tenantId);
     } else {
       // Clear legacy profile role hint for student demotion
-      await supabaseAdmin
+      const { error: clearErr } = await supabaseAdmin
         .from("profiles")
-        .update({ role: "" as any })
+        .update({ role: null as any })
         .eq("user_id", data.userId)
         .eq("tenant_id", data.tenantId);
+      if (clearErr) throw new Error(`Failed to clear legacy role: ${clearErr.message}`);
+
     }
     return { ok: true };
   });

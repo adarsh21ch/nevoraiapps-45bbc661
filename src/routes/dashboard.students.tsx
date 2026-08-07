@@ -1038,7 +1038,9 @@ function AddStudentForm({ onDone }: { onDone: () => void }) {
           feePlanId: f.fee_plan_id || null,
           plans: (feePlans.data ?? []) as FeePlanLite[],
           startDate: f.joined_at,
+          gender: f.gender,
         });
+
       } catch {
         /* never block adding a player on billing */
       }
