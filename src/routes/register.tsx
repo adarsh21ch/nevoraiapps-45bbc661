@@ -111,7 +111,7 @@ function RegisterContent() {
   const [form, setForm] = useState({
     name: "", guardian_name: "", phone: "", email: "", password: "", password2: "",
     batch_id: "", dob: "", address: "", current_address: "", permanent_address: "",
-    village_locality: "", city: "", state: "", aadhaar_front_url: "", aadhaar_back_url: "",
+    village_locality: "", city: "", state: "", aadhaar_number: "", aadhaar_front_url: "", aadhaar_back_url: "",
     photo_url: "", gender: "", height_cm: "", weight_kg: "", blood_group: "",
     batting_style: "", bowling_style: "", interests: "", medical_notes: "", guardian_phone: "", whatsapp: ""
   });
