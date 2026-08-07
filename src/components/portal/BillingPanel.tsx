@@ -103,6 +103,16 @@ export function BillingPanel({ child }: { child: StudentContext | null }) {
         </div>
       )}
 
+      {/* Ringer/Paid month visibility — showing last approved payment */}
+      {submissionsQ.data && submissionsQ.data.find(s => s.status === 'approved') && (
+        <Card className="p-3 bg-emerald-50 border-emerald-100 flex items-center gap-3">
+          <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+          <div className="text-xs text-emerald-800">
+            <span className="font-medium">Payment Received:</span> Your most recent payment has been verified.
+          </div>
+        </Card>
+      )}
+
       <PendingSubmissions rows={submissionsQ.data ?? []} />
       <PaymentHistory rows={txQ.data ?? []} loading={txQ.isLoading} />
     </div>
