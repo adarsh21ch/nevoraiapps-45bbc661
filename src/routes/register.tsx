@@ -347,6 +347,31 @@ function RegisterContent() {
         {step === 3 && (
           <div className="space-y-4">
             <h2 className="font-bold">Additional Info</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground ml-1">Profile Photo</p>
+                <FileUploader
+                  tenantId={tenant.id}
+                  path="registrations/photos"
+                  value={form.photo_url}
+                  onChange={(url) => setForm({ ...form, photo_url: url })}
+                  accept="image/*"
+                  label="Upload Photo"
+                />
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground ml-1">Aadhaar Card (Front)</p>
+                <FileUploader
+                  tenantId={tenant.id}
+                  path="registrations/aadhaar"
+                  value={form.aadhaar_front_url}
+                  onChange={(url) => setForm({ ...form, aadhaar_front_url: url })}
+                  accept="image/*,application/pdf"
+                  label="Upload Front"
+                />
+              </div>
+            </div>
+
             <input placeholder="Guardian Name" value={form.guardian_name} onChange={e => setForm({...form, guardian_name: e.target.value})} className="w-full border p-2 rounded" />
             <input 
               placeholder="Aadhaar Number (12 digits)" 
