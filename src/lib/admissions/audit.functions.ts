@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 /**
@@ -21,7 +22,7 @@ export const auditStudentIdentity = createServerFn({ method: "POST" })
     // 1. Fetch current state
     const { data: student, error: fetchErr } = await supabaseAdmin
       .from("students")
-      .select("player_id, card_token")
+      .select("player_id, card_token, user_id, tenant_id")
       .eq("id", studentId)
       .eq("tenant_id", tenantId)
       .single();

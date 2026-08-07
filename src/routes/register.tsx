@@ -151,11 +151,32 @@ function RegisterContent() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || cancelled) return;
-      const { data } = await supabase.rpc("my_post_login_route" as never);
+      const { data, error: routeErr } = await supabase.rpc("my_post_login_route" as never);
+      if (routeErr) {
+        console.error("my_post_login_route error", routeErr);
+      }
+
 
 
       if (cancelled) return;
       const route = (data as unknown as string) ?? "student";
+      
+      // If the user has a pending registration and changes are requested,
+      // stay on /register to allow them to edit.
+      if (route === "student") {
+        const { data: regData } = await supabase
+          .from("registrations")
+          .select("review_status")
+          .eq("applicant_user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (regData?.review_status === "changes_requested") {
+          return;
+        }
+      }
+
       const target =
         route === "platform_admin" ? "/platform-admin"
         : route === "staff" ? "/dashboard"
