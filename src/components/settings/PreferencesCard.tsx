@@ -104,7 +104,7 @@ export function PreferencesCard() {
         <Popover open={langOpen} onOpenChange={setLangOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={rowClass}>
-              <RowLeft icon={Languages} label="Language" />
+              <RowLeft icon={Languages} label="It is looking-- It is not look, not at all good ID card. I mean, no good UI/UX, no presentations, no look like premium. It's rubbish" />
 
               <RowRight value={hydrated ? currentLang.native : ""} />
             </button>
@@ -117,7 +117,7 @@ export function PreferencesCard() {
         <Sheet open={langOpen} onOpenChange={setLangOpen}>
           <SheetTrigger asChild>
             <button type="button" className={rowClass}>
-              <RowLeft icon={Languages} label="Language" />
+              <RowLeft icon={Languages} label="It is looking-- It is not look, not at all good ID card. I mean, no good UI/UX, no presentations, no look like premium. It's rubbish" />
               <RowRight value={hydrated ? currentLang.native : ""} />
             </button>
           </SheetTrigger>
