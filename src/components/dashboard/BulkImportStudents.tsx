@@ -322,7 +322,9 @@ export function BulkImportStudents() {
           batch_id: batchFor(r),
           fee_plan_id: planFor(r),
           roll_number: null,
+          password: r.phone || null, // Import phone as password for magic login
         }));
+
         const res: any = await bulkImport({
           data: { tenantId: tenant.id, fileName, rows: rowsPayload },
         });
@@ -352,7 +354,9 @@ export function BulkImportStudents() {
         batch_id: batchFor(r),
         fee_plan_id: planFor(r),
         status: (r.status || "active").toLowerCase(),
+        password: r.phone || null, // Import phone as password for magic login
       }));
+
       const { error } = await supabase.from("students").insert(payload);
       if (error) throw error;
       return payload.length;
