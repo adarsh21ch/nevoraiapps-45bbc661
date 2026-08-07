@@ -269,7 +269,16 @@ function StudentHomePage() {
         </p>
         <div className="space-y-2">
           <PlayerQuickAction
-            onClick={() => setScanOpen(true)}
+            onClick={() => {
+              const isPending = !ctx.student_id || (ctx.lifecycle_status && isPendingApproval(ctx.lifecycle_status));
+              if (isPending) {
+                toast.info("Registration Pending", {
+                  description: "Attendance marking will be available once the academy approves your registration.",
+                });
+                return;
+              }
+              setScanOpen(true);
+            }}
             icon={<QrCode className="size-5" />}
             label={home.todayVisit && !home.todayVisit.check_out_at ? "Check Out Attendance" : "Scan QR Code for Attendance"}
             highlight={!!(home.todayVisit && !home.todayVisit.check_out_at)}
