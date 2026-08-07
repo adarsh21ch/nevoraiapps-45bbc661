@@ -210,8 +210,13 @@ function RegisterContent() {
       if (!form.phone.trim()) e.phone = "Required.";
       if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     } else if (n === 3) {
-      if (form.aadhaar_number.trim() && form.aadhaar_number.length !== 12) {
+      if (!form.aadhaar_number.trim()) {
+        e.aadhaar_number = "Aadhaar number is compulsory.";
+      } else if (form.aadhaar_number.length !== 12) {
         e.aadhaar_number = "Must be 12 digits.";
+      }
+      if (!form.photo_url) {
+        e.photo_url = "Photo is important.";
       }
     }
     setErrors(e);
@@ -294,6 +299,10 @@ function RegisterContent() {
         } as any);
       }
       setDone(true);
+      // Automatically redirect to student dashboard after a short delay
+      setTimeout(() => {
+        window.location.replace("/student");
+      }, 1500);
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -346,10 +355,10 @@ function RegisterContent() {
 
         {step === 3 && (
           <div className="space-y-4">
-            <h2 className="font-bold">Additional Info</h2>
+            <h2 className="font-bold">Identity Details</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground ml-1">Profile Photo</p>
+                <p className="text-xs font-medium text-muted-foreground ml-1">Profile Photo <span className="text-destructive">*</span></p>
                 <div className="flex items-center gap-4 p-3 border rounded bg-muted/30">
                   <div className="size-16 rounded overflow-hidden bg-background border flex-shrink-0">
                     {form.photo_url ? (
@@ -382,6 +391,7 @@ function RegisterContent() {
                     >
                       {form.photo_url ? "Change Photo" : "Upload Photo"}
                     </button>
+                    {errors.photo_url && <p className="text-[10px] text-destructive mt-1">{errors.photo_url}</p>}
                     {form.photo_url && (
                       <button 
                         type="button" 
@@ -444,7 +454,7 @@ function RegisterContent() {
 
             <input placeholder="Guardian Name" value={form.guardian_name} onChange={e => setForm({...form, guardian_name: e.target.value})} className="w-full border p-2 rounded" />
             <input 
-              placeholder="Aadhaar Number (12 digits)" 
+              placeholder="Aadhaar Number (12 digits) *" 
               value={form.aadhaar_number} 
               maxLength={12}
               onChange={e => setForm({...form, aadhaar_number: e.target.value.replace(/\D/g, '')})} 
