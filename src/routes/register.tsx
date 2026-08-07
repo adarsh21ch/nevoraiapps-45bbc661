@@ -367,7 +367,7 @@ function RegisterContent() {
         {step === 4 && (
           <div className="space-y-4">
             <h2 className="font-bold">Finalize</h2>
-            <div className="bg-gray-50 p-4 rounded text-sm"><p><strong>Name:</strong> {form.name}</p><p><strong>Phone:</strong> {form.phone}</p></div>
+            <div className="bg-gray-50 p-4 rounded text-sm"><p><strong>Name:</strong> {form.name}</p><p><strong>Phone:</strong> {form.phone}</p>{form.aadhaar_number && <p><strong>Aadhaar:</strong> {form.aadhaar_number}</p>}</div>
             <label className="flex gap-2 items-center"><input type="checkbox" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} /> I accept terms</label>
             <div className="flex gap-2">
               <button type="button" onClick={() => setStep(3)} className="flex-1 border p-3 rounded">Back</button>
