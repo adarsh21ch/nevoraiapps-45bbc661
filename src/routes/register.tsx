@@ -345,11 +345,15 @@ function RegisterContent() {
   const batchOptions = useMemo(
     () => [
       { value: "", label: "Select a batch", right: "" },
-      ...batches.map((b) => ({
-        value: b.id,
-        label: b.timing ? `${b.name} — ${b.timing}` : b.name,
-        right: batchFeeText(b, fees, normalizeGender(form.gender) || undefined, tenant),
-      })),
+      ...batches.map((b) => {
+        const feeText = batchFeeText(b, fees, normalizeGender(form.gender) || undefined, tenant);
+        return {
+          value: b.id,
+          label: b.timing ? `${b.name} — ${b.timing}` : b.name,
+          right: feeText,
+          description: feeText, // Ensure description is set for the searchable select or dropdown
+        };
+      }),
     ],
     [batches, fees, form.gender, tenant],
   );
