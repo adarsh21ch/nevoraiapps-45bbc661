@@ -1330,8 +1330,9 @@ function RegisterContent() {
           </div>
           <h2 className="mt-6 text-2xl font-bold text-foreground">Registration submitted 🎉</h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            {tenant.name} will review your application. You can sign in right away with your email or phone and the password you just set.
+            Your registration was successful! You can now access your academy dashboard.
           </p>
+
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
               to="/student"
