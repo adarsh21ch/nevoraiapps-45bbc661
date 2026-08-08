@@ -109,7 +109,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         }
         el.content = value;
       };
-      const desc = t.tagline ?? `${t.name} — register online, view fees, and get in touch.`;
+      const desc = t.tagline ?? `${t.name} — professional ${t.niche || 'sports'} training and online registration.`;
       setMeta("name", "description", desc);
       setMeta("property", "og:title", t.name);
       setMeta("property", "og:description", desc);

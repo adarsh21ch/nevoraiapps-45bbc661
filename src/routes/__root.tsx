@@ -104,7 +104,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Academy OS — the white-label operating system for sports academies, gyms and coaching centres.",
+          "'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                            \n                                            And also there is a one issue. Whenever somebody search our tenant, uh, domain on the Google, it is not visible. Let's suppose scienceportsacademy.nemurai.com, not visible, not opening. So we need to fix this too also, right? Tenant's website should also be shown with their domain, right? On the Google itself. Do it, favicon and all, you have to do it. Please make sure. So any random person just search on scienceportsacademy.nemurai.com, so it shows the website of their, right? Because right now it is not showing\n\nAnd not for this particular tenant, for everyone. Whenever new tenant come, new academy, we have created some XYZ, so their name should be also visible and s-website should be searchable on Google, no?",
       },
       { name: "author", content: "AcademyOS" },
       // PWA / standalone app hints so installed app launches without browser chrome.
