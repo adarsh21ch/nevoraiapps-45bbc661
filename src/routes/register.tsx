@@ -1302,7 +1302,7 @@ function RegisterContent() {
                 "sticky bottom-0 z-20 flex items-center gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur",
                 isMobile ? "-mx-4" : "-mx-6 px-6"
               )}
-              style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
+              style={isMobile ? { paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" } : undefined}
             >
               {step > 1 ? (
                 <button
