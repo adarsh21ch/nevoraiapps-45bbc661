@@ -39,17 +39,28 @@ function AppLaunch() {
         //setMessage("Signing you in…");
         // Platform admins land on the admin console; everyone else on the
         // owner dashboard. Falls back to /dashboard if the lookup errors.
-        let target: "/platform-admin" | "/dashboard" = "/dashboard";
+        let target: "/platform-admin" | "/dashboard" | "/student" = "/dashboard";
         try {
           const { data } = await supabase
             .from("platform_admins")
             .select("user_id")
             .eq("user_id", session.user.id)
             .maybeSingle();
-          if (data) target = "/platform-admin";
+          if (data) {
+            target = "/platform-admin";
+          } else {
+            // Check if the user is a student (parent portal user)
+            const { data: student } = await supabase
+              .from("students")
+              .select("id")
+              .eq("auth_user_id", session.user.id)
+              .maybeSingle();
+            if (student) target = "/student";
+          }
         } catch {
           /* ignore — default to /dashboard */
         }
+
         if (cancelled) return;
         navigate({ to: target, replace: true });
       } catch {
