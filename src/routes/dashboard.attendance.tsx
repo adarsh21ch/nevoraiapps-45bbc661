@@ -1166,24 +1166,27 @@ function StudentRow({
           </div>
         }
         title={
-          <span className="inline-flex items-center gap-1.5">
-            {student.name}
-            {isLate ? (
-              <span
-                className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400"
-                aria-label="Arrived late"
-              >
-                Late
-              </span>
-            ) : null}
-          </span>
-        }
-        subtitle={
-          <div className="flex flex-col gap-0.5">
-            {idLine ? <span className="text-[11px] text-muted-foreground">{idLine}</span> : null}
-            <StateSummary state={state} row={row} />
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 truncate">
+              {student.name}
+              {isLate ? (
+                <span
+                  className="inline-flex items-center rounded-full bg-amber-500/10 px-1.2 py-0.2 text-[9px] font-medium text-amber-700 dark:text-amber-400 shrink-0"
+                  aria-label="Arrived late"
+                >
+                  Late
+                </span>
+              ) : null}
+            </span>
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums shrink-0">
+              <StateSummary state={state} row={row} />
+            </div>
           </div>
         }
+        subtitle={
+          idLine ? <span className="text-[10px] text-muted-foreground/70">{idLine}</span> : null
+        }
+
 
         trailing={
           readOnly ? (
