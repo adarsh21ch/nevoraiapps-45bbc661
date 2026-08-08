@@ -374,8 +374,24 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             <Row label="Current Address" value={s.current_address || "—"} multiline />
             <Row label="Permanent Address" value={s.permanent_address || s.address || "—"} multiline />
             <Row label="Phone" value={s.phone} />
-            <IdProofRow label="Aadhaar Front" path={s.aadhaar_front_url} />
-            <IdProofRow label="Aadhaar Back" path={s.aadhaar_back_url} />
+            <IdProofRow 
+              label="Aadhaar Front" 
+              path={s.aadhaar_front_url} 
+              onUpload={async (path) => {
+                await patch.mutateAsync({ aadhaar_front_url: path });
+                toast.success("Aadhaar front updated");
+              }}
+              tenantId={tenant.id}
+            />
+            <IdProofRow 
+              label="Aadhaar Back" 
+              path={s.aadhaar_back_url} 
+              onUpload={async (path) => {
+                await patch.mutateAsync({ aadhaar_back_url: path });
+                toast.success("Aadhaar back updated");
+              }}
+              tenantId={tenant.id}
+            />
             <Row label="Batch" value={batch?.name || "—"} />
             <Row label="Fee plan" value={plan?.name || "—"} />
             <Row
