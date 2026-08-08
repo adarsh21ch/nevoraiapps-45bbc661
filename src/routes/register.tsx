@@ -1258,7 +1258,7 @@ function RegisterContent() {
                   "z-20 pt-2",
                   isMobile
                     ? "sticky bottom-0 -mx-4 border-t border-border bg-background/95 px-4 pb-3 backdrop-blur"
-                    : "sticky bottom-0 -mx-6 mt-8 border-t border-border bg-background/95 px-6 py-4 backdrop-blur",
+                    : "sticky bottom-0 -mx-4 border-t border-border bg-background/95 px-4 py-4 backdrop-blur",
                 )}
                 style={
                   isMobile
