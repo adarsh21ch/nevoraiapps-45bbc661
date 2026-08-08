@@ -7,6 +7,7 @@ import {
   Settings as SettingsIcon,
   ShieldCheck,
   UserCircle,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useDashboard } from "@/lib/dashboard-context";
 import { isOwner } from "@/lib/roles";

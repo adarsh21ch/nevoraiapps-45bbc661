@@ -650,20 +650,25 @@ export async function persistFixturePlan(
       if (!roundId) continue;
       const feederA = f.feeder_a_slot ? roundByKey.get(f.feeder_a_slot) : null;
       const feederB = f.feeder_b_slot ? roundByKey.get(f.feeder_b_slot) : null;
-      await supabase
+      const { error: updateAError } = await supabase
         .from("mc_tournament_rounds")
         .update({
           feeder_a_round_id: feederA ?? null,
           feeder_b_round_id: feederB ?? null,
         })
         .eq("id", roundId);
+      
+      if (updateAError) throw updateAError;
+
       // Point feeder rounds to this "advances_to".
       const feederRoundIds = [feederA, feederB].filter(Boolean) as string[];
       if (feederRoundIds.length > 0) {
-        await supabase
+        const { error: updateBError } = await supabase
           .from("mc_tournament_rounds")
           .update({ advances_to_round_id: roundId })
           .in("id", feederRoundIds);
+        
+        if (updateBError) throw updateBError;
       }
     }
   }
