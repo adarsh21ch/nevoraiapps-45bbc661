@@ -442,9 +442,10 @@ function RegisterContent() {
       return;
     }
 
+    const emailTrim = form.email.trim().toLowerCase();
+
     if (!existingReg) {
       // Account credentials — become the applicant's login after approval.
-      const emailTrim = form.email.trim().toLowerCase();
       const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim);
       if (!emailOk) {
         toast.error("Please enter a valid email address.");
@@ -505,7 +506,6 @@ function RegisterContent() {
     if (!existingReg) {
       // 1) Create the applicant's auth account (browser → Supabase Auth directly;
       // password never touches our servers).
-      const emailTrim = form.email.trim().toLowerCase();
       const { data: authData, error: authErr } = await supabase.auth.signUp({
         email: emailTrim,
         password: form.password,
