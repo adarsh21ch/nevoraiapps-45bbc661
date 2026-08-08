@@ -739,13 +739,13 @@ function RegisterContent() {
                 {STEP_TITLES[step - 1]}
               </span>
               <span className="text-[11px] font-medium text-muted-foreground">
-                Step {step} of 4
+                Step {step} of 7
               </span>
             </div>
             <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full transition-all duration-300"
-                style={{ width: `${step * 25}%`, backgroundColor: "var(--brand)" }}
+                style={{ width: `${(step / 7) * 100}%`, backgroundColor: "var(--brand)" }}
               />
             </div>
           </div>
