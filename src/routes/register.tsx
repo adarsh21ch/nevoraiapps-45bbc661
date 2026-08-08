@@ -324,6 +324,7 @@ function RegisterContent() {
       const emailTrim = form.email.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim))
         e.email = "Enter a valid email address.";
+      if (!form.phone.trim()) e.phone = "Enter your phone number.";
       if (form.password.length < 8) e.password = "At least 8 characters.";
       if (form.password !== form.password2) e.password2 = "Passwords do not match.";
     } else if (n === 2) {
@@ -763,10 +764,19 @@ function RegisterContent() {
           {showStep(1) && !existingReg ? (
             <Section title="Create your account">
               <p className="mb-3 text-xs text-muted-foreground">
-                You'll sign in with this email and password to see the status of your application and,
+                You'll sign in with these details to see the status of your application and,
                 once approved, your student dashboard.
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Phone Number *"
+                  value={form.phone}
+                  onChange={(v) => setForm({ ...form, phone: v })}
+                  placeholder="10-digit mobile"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  error={errors.phone}
+                />
                 <Field
                   label="Email *"
                   type="email"
@@ -892,15 +902,14 @@ function RegisterContent() {
                   ]}
                   error={errors.gender}
                 />
-                <Field
-                  label="Contact number *"
-                  value={form.phone}
-                  onChange={(v) => setForm({ ...form, phone: v })}
-                  placeholder="10-digit mobile"
-                  inputMode="numeric"
-                  autoComplete="tel"
-                  error={errors.phone}
-                />
+                <div className="space-y-1.5 opacity-60">
+                  <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Contact Number (from account)
+                  </label>
+                  <div className="flex h-[42px] items-center rounded-lg border border-border bg-muted/50 px-3 text-sm text-foreground italic">
+                    {form.phone || "Not provided"}
+                  </div>
+                </div>
                 <div className="sm:col-start-2 sm:row-start-3">
                   <BatchSelect
                     value={form.batch_id}
@@ -1702,6 +1711,7 @@ function Field({
   error,
   inputMode,
   autoComplete,
+  readOnly,
 }: {
   label: string;
   value: string;
@@ -1711,6 +1721,7 @@ function Field({
   error?: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   autoComplete?: string;
+  readOnly?: boolean;
 }) {
   return (
     <label className="block">
@@ -1724,10 +1735,12 @@ function Field({
         placeholder={placeholder}
         inputMode={inputMode}
         autoComplete={autoComplete}
+        readOnly={readOnly}
         aria-invalid={error ? true : undefined}
         className={cn(
           "mt-1.5 block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2",
           error ? "border-red-500" : "border-border",
+          readOnly && "bg-muted/50 cursor-not-allowed opacity-80",
         )}
         style={{ boxShadow: "none" }}
         onFocus={(e) => (e.currentTarget.style.borderColor = error ? "" : "var(--brand)")}
