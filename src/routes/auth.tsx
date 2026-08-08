@@ -161,8 +161,14 @@ function AuthPage() {
     const { data, error } = result;
     setLoading(false);
     if (error) {
-      // Never surface raw Supabase errors to end users.
-      setFormError("We couldn't sign you in with those details. Check your information and try again.");
+      const msg = error.message.toLowerCase();
+      if (msg.includes("invalid login") || msg.includes("invalid credentials")) {
+        setFormError("Incorrect password. Please check and try again.");
+      } else if (msg.includes("user not found")) {
+        setFormError("We couldn't find an account with that email or phone.");
+      } else {
+        setFormError("Check your details and try again. Make sure your email or phone is correct.");
+      }
       return;
     }
     toast.success("Signed in");

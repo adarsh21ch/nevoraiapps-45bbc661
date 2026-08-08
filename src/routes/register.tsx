@@ -1328,9 +1328,9 @@ function RegisterContent() {
           >
             <CheckCircle2 className="h-8 w-8 text-white" />
           </div>
-          <h2 className="mt-6 text-2xl font-bold text-foreground">Registration submitted 🎉</h2>
+          <h2 className="mt-6 text-2xl font-bold text-foreground">Congratulations! 🎉</h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            Your registration was successful! You can now access your academy dashboard.
+            Your registration is complete. You are being redirected to your dashboard...
           </p>
 
           <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
@@ -1342,6 +1342,8 @@ function RegisterContent() {
               Go to Dashboard
             </Link>
           </div>
+
+          <script dangerouslySetInnerHTML={{ __html: `setTimeout(() => { window.location.href = '/student'; }, 2000);` }} />
 
         </div>
         )}
