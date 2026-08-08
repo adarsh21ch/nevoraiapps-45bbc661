@@ -932,92 +932,8 @@ function RegisterContent() {
 
           {/* Step 3 — Contact info */}
           {showStep(3) ? (
-            <Section title="Student details">
+            <Section title="Contact & Address">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field
-                  label="Student name *"
-                  value={form.name}
-                  onChange={(v) => setForm({ ...form, name: v })}
-                  autoComplete="name"
-                  error={errors.name}
-                />
-                <Field
-                  label="Parent / guardian name"
-                  value={form.guardian_name}
-                  onChange={(v) => setForm({ ...form, guardian_name: v })}
-                  autoComplete="off"
-                  error={errors.guardian_name}
-                />
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
-                    Date of birth (DD/MM/YYYY) *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="DD/MM/YYYY"
-                    value={form.dob}
-                    onChange={(e) => {
-                      let val = e.target.value.replace(/\D/g, "");
-                      if (val.length > 8) val = val.slice(0, 8);
-                      
-                      let formatted = val;
-                      if (val.length > 2) formatted = val.slice(0, 2) + "/" + val.slice(2);
-                      if (val.length > 4) formatted = formatted.slice(0, 5) + "/" + val.slice(4);
-                      
-                      setForm({ ...form, dob: formatted });
-                    }}
-                    className={cn(
-                      "w-full px-4 py-3 rounded-xl border-2 transition-all outline-none text-base",
-                      errors.dob
-                        ? "border-red-100 bg-red-50/30 text-red-900 focus:border-red-200"
-                        : "border-slate-100 bg-slate-50/50 focus:border-amber-200 focus:bg-white",
-                    )}
-                  />
-                  {errors.dob && (
-                    <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1">
-                      {errors.dob}
-                    </p>
-                  )}
-                </div>
-                <SelectField
-                  label="Gender *"
-                  value={form.gender}
-                  onChange={(v) => setForm({ ...form, gender: v })}
-                  options={[
-                    { value: "", label: "Select gender" },
-                    { value: "male", label: "Boy" },
-                    { value: "female", label: "Girl" },
-                  ]}
-                  error={errors.gender}
-                />
-                <div className="space-y-1.5 opacity-60">
-                  <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Contact Number (from account)
-                  </label>
-                  <div className="flex h-[42px] items-center rounded-lg border border-border bg-muted/50 px-3 text-sm text-foreground italic">
-                    {form.phone || "Not provided"}
-                  </div>
-                </div>
-                <div className="sm:col-start-2 sm:row-start-3">
-                  <BatchSelect
-                    value={form.batch_id}
-                    onChange={(v) => setForm({ ...form, batch_id: v })}
-                    options={batchOptions}
-                    onInfo={() => setBatchInfoOpen(true)}
-                    error={errors.batch_id}
-                    tenant={tenant}
-                    fees={fees}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <FeeSummary
-                    batch={batches.find((b) => b.id === form.batch_id)}
-                    fees={fees}
-                    gender={normalizeGender(form.gender) || undefined}
-                    tenant={tenant}
-                  />
-                </div>
                 <div className="sm:col-span-2 space-y-4">
                   <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-4">
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -1085,7 +1001,14 @@ function RegisterContent() {
                     />
                   </div>
                 </div>
+              </div>
+            </Section>
+          ) : null}
 
+          {/* Step 4 — Identity docs */}
+          {showStep(4) ? (
+            <Section title="Identity & Photos">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
                     Aadhaar Card Verification (optional)
@@ -1130,95 +1053,88 @@ function RegisterContent() {
             </Section>
           ) : null}
 
-          {/* Step 3 — Optional details (all grouped) */}
-          {showStep(3) ? (
-            <>
-              {isMobile ? (
-                <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
-                  These details help your coach plan better. You can add them later in your student
-                  profile — tap <span className="font-medium text-foreground">Skip for now</span> to
-                  continue.
-                </div>
-              ) : null}
-              <Section title="Physical details">
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <Field
-                    label="Height (cm)"
-                    type="number"
-                    value={form.height_cm}
-                    onChange={(v) => setForm({ ...form, height_cm: v })}
-                    placeholder="e.g. 165"
-                    inputMode="numeric"
-                  />
-                  <Field
-                    label="Weight (kg)"
-                    type="number"
-                    value={form.weight_kg}
-                    onChange={(v) => setForm({ ...form, weight_kg: v })}
-                    placeholder="e.g. 55"
-                    inputMode="numeric"
-                  />
-                  <SelectField
-                    label="Blood group"
-                    value={form.blood_group}
-                    onChange={(v) => setForm({ ...form, blood_group: v })}
-                    options={[
-                      { value: "", label: "Select" },
-                      ...BLOOD_GROUPS.map((g) => ({ value: g, label: g })),
-                    ]}
-                  />
-                </div>
-              </Section>
-
-              <Section title="Cricket profile">
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <SelectField
-                    label="Batting style"
-                    value={form.batting_style}
-                    onChange={(v) => setForm({ ...form, batting_style: v })}
-                    options={[
-                      { value: "", label: "Not sure yet" },
-                      { value: "right-hand", label: "Right hand" },
-                      { value: "left-hand", label: "Left hand" },
-                    ]}
-                  />
-                  <SelectField
-                    label="Bowling style"
-                    value={form.bowling_style}
-                    onChange={(v) => setForm({ ...form, bowling_style: v })}
-                    options={[
-                      { value: "", label: "Not sure yet" },
-                      { value: "right-arm", label: "Right arm" },
-                      { value: "left-arm", label: "Left arm" },
-                    ]}
-                  />
-                  <SelectField
-                    label="Playing role"
-                    value={form.interests}
-                    onChange={(v) => setForm({ ...form, interests: v })}
-                    options={[
-                      { value: "", label: "Not sure yet" },
-                      { value: "batter", label: "Batter" },
-                      { value: "bowler", label: "Bowler" },
-                      { value: "all-rounder", label: "All rounder" },
-                      { value: "wicket-keeper-batter", label: "Wicketkeeper batsman" },
-                    ]}
-                  />
-                </div>
-              </Section>
-
-              <Section title="Medical (optional)">
-                <TextArea
-                  label="Allergies, conditions or other notes"
-                  value={form.medical_notes}
-                  onChange={(v) => setForm({ ...form, medical_notes: v })}
+          {/* Step 5 — Sport profile */}
+          {showStep(5) ? (
+            <Section title="Cricket profile">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <SelectField
+                  label="Batting style"
+                  value={form.batting_style}
+                  onChange={(v) => setForm({ ...form, batting_style: v })}
+                  options={[
+                    { value: "", label: "Not sure yet" },
+                    { value: "right-hand", label: "Right hand" },
+                    { value: "left-hand", label: "Left hand" },
+                  ]}
                 />
-              </Section>
-            </>
+                <SelectField
+                  label="Bowling style"
+                  value={form.bowling_style}
+                  onChange={(v) => setForm({ ...form, bowling_style: v })}
+                  options={[
+                    { value: "", label: "Not sure yet" },
+                    { value: "right-arm", label: "Right arm" },
+                    { value: "left-arm", label: "Left arm" },
+                  ]}
+                />
+                <SelectField
+                  label="Playing role"
+                  value={form.interests}
+                  onChange={(v) => setForm({ ...form, interests: v })}
+                  options={[
+                    { value: "", label: "Not sure yet" },
+                    { value: "batter", label: "Batter" },
+                    { value: "bowler", label: "Bowler" },
+                    { value: "all-rounder", label: "All rounder" },
+                    { value: "wicket-keeper-batter", label: "Wicketkeeper batsman" },
+                  ]}
+                />
+              </div>
+            </Section>
           ) : null}
 
-          {/* Step 4 — Review, policies, terms, submit */}
-          {showStep(4) ? (
+          {/* Step 6 — Physical profile */}
+          {showStep(6) ? (
+            <Section title="Physical & Medical">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Height (cm)"
+                  type="number"
+                  value={form.height_cm}
+                  onChange={(v) => setForm({ ...form, height_cm: v })}
+                  placeholder="e.g. 165"
+                  inputMode="numeric"
+                />
+                <Field
+                  label="Weight (kg)"
+                  type="number"
+                  value={form.weight_kg}
+                  onChange={(v) => setForm({ ...form, weight_kg: v })}
+                  placeholder="e.g. 55"
+                  inputMode="numeric"
+                />
+                <SelectField
+                  label="Blood group"
+                  value={form.blood_group}
+                  onChange={(v) => setForm({ ...form, blood_group: v })}
+                  options={[
+                    { value: "", label: "Select" },
+                    ...BLOOD_GROUPS.map((g) => ({ value: g, label: g })),
+                  ]}
+                />
+                <div className="sm:col-span-2">
+                  <TextArea
+                    label="Medical (optional): Allergies, conditions or other notes"
+                    value={form.medical_notes}
+                    onChange={(v) => setForm({ ...form, medical_notes: v })}
+                  />
+                </div>
+              </div>
+            </Section>
+          ) : null}
+
+          {/* Step 7 — Review & submit */}
+          {showStep(7) ? (
             <>
               {isMobile ? (
                 <Section title="Review your details">
