@@ -36,7 +36,13 @@ function AppLaunch() {
           return;
         }
 
-        //setMessage("Signing you in…");
+        // setMessage("Signing you in…");
+        // Check if we are running in a standalone window (PWA)
+        const isStandalone = 
+          window.matchMedia?.("(display-mode: standalone)").matches ||
+          (window.navigator as any).standalone === true ||
+          window.matchMedia?.("(display-mode: minimal-ui)").matches;
+
         // Platform admins land on the admin console; everyone else on the
         // owner dashboard. Falls back to /dashboard if the lookup errors.
         let target: "/platform-admin" | "/dashboard" | "/student" = "/dashboard";
@@ -52,10 +58,19 @@ function AppLaunch() {
             // Check if the user is a student (parent portal user)
             const { data: student } = await supabase
               .from("students")
-              .select("id")
+              .select("id, status")
               .eq("user_id", session.user.id)
               .maybeSingle();
-            if (student) target = "/student";
+            
+            if (student) {
+              target = "/student";
+              
+              // If PWA launch and student is active, skip any landing/pending checks 
+              // and go straight to their dashboard.
+              if (isStandalone && student.status === 'active') {
+                target = "/student";
+              }
+            }
           }
         } catch {
           /* ignore — default to /dashboard */
