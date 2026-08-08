@@ -7610,6 +7610,10 @@ export type Database = {
         Args: { _match_id: string; _session_id: string }
         Returns: boolean
       }
+      admin_set_student_password: {
+        Args: { _new_password: string; _student_id: string; _tenant_id: string }
+        Returns: undefined
+      }
       advance_lead_stage: {
         Args: { _lead_id: string; _new_stage: string; _remark?: string }
         Returns: string
