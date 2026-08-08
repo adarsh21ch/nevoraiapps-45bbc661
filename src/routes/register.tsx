@@ -903,7 +903,8 @@ function RegisterContent() {
                   error={errors.gender}
                 />
                 <Field
-                  label="Alternate Contact Number"
+                  label="Contact Number (already filled)"
+                  readOnly
                   value={form.phone}
                   onChange={(v) => setForm({ ...form, phone: v })}
                   placeholder="Optional extra mobile"
