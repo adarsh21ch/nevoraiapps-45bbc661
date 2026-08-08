@@ -45,8 +45,9 @@ function StudentHomePage() {
   const homeQ = useQuery({
     queryKey: ctx ? studentKeys.home(ctx.student_id) : ["student", "home", "none"],
     queryFn: () => fetchStudentHome(ctx!),
-    enabled: !!ctx,
+    enabled: !!ctx?.student_id,
   });
+
   const qc = useQueryClient();
   const [scanOpen, setScanOpen] = useState(false);
 
