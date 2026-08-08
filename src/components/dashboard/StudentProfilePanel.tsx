@@ -373,7 +373,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             <Row label="State" value={s.state || "—"} />
             <Row label="Current Address" value={s.current_address || "—"} multiline />
             <Row label="Permanent Address" value={s.permanent_address || s.address || "—"} multiline />
+            <Row label="Email" value={s.email || "—"} />
             <Row label="Phone" value={s.phone} />
+            <Row label="Password" value={s.auth_password_hint || "********"} />
             <IdProofRow 
               label="Aadhaar Front" 
               path={s.aadhaar_front_url} 
