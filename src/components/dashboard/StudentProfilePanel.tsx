@@ -9,7 +9,7 @@ import {
   qk,
 } from "@/lib/dashboard-queries";
 import { useServerFn } from "@tanstack/react-start";
-import { deleteStudentPermanently } from "@/lib/students-manage.functions";
+import { deleteStudentPermanently, resetStudentPassword } from "@/lib/students-manage.functions";
 import { normalizeGender, resolveMonthlyFee } from "@/lib/gender";
 import { INDIAN_STATES } from "@/lib/location";
 
