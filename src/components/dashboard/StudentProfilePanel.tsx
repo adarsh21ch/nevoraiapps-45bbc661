@@ -335,6 +335,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           <dl className="divide-y divide-border text-sm">
             <Row label="Guardian" value={s.guardian_name || "—"} />
             <Row label="Guardian phone" value={s.guardian_phone || "—"} />
+            <Row label="Email" value={s.email || "—"} />
+
             <Row
               label="Date of birth"
               value={
