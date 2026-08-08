@@ -53,7 +53,7 @@ function StudentHomePage() {
   const firstName = useMemo(() => (ctx?.name ?? "").split(" ")[0] || "Player", [ctx?.name]);
 
 
-  if (!ctx || homeQ.isLoading) {
+  if (!ctx || (homeQ.isLoading && !homeQ.data)) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-24 w-full" />

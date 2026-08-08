@@ -112,7 +112,7 @@ function StudentLayout() {
     return null;
   }
 
-  if (ctxQ.isLoading || gateQ.isLoading) return <PageSkeleton />;
+  if (ctxQ.isLoading || (gateQ.isLoading && !gateQ.data)) return <PageSkeleton />;
 
   // Allow /student/pending to render even without a student record.
   if (onPendingRoute) {
