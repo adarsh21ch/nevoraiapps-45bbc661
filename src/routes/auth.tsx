@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { AtSign, KeyRound, Mail, ShieldCheck } from "lucide-react";
@@ -165,7 +166,14 @@ function AuthPage() {
       if (msg.includes("invalid login") || msg.includes("invalid credentials")) {
         setFormError("Incorrect password. Please check and try again.");
       } else if (msg.includes("user not found")) {
-        setFormError("We couldn't find an account with that email or phone.");
+        setFormError(
+          <div className="space-y-2">
+            <p>Your account is not created. Please first do registration.</p>
+            <Button asChild variant="outline" className="w-full border-red-200 bg-red-50 text-red-900 hover:bg-red-100">
+              <Link to="/register">Do Registration</Link>
+            </Button>
+          </div> as any
+        );
       } else {
         setFormError("Check your details and try again. Make sure your email or phone is correct.");
       }
@@ -362,11 +370,11 @@ function AuthPage() {
             </p>
             <Link
               to="/register"
-              className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl border border-auth-border bg-auth-elevated text-[14px] font-semibold text-auth-foreground backdrop-blur transition-colors hover:border-[var(--brand-accent-auth)]"
+              className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl border border-transparent bg-[var(--brand-accent-auth)] text-[14px] font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
             >
-              Register / Apply now →
+              Do Registration →
             </Link>
-            <p className="mt-3 text-center text-[11px] uppercase tracking-[0.18em] text-auth-subtle">
+            <p className="mt-4 text-center text-[11px] uppercase tracking-[0.18em] text-auth-subtle">
               Student · Parent · Academy staff
             </p>
           </div>
