@@ -662,6 +662,9 @@ function RegisterContent() {
       /* ignore */
     }
     setDone(true);
+    setTimeout(() => {
+      window.location.replace("/student");
+    }, 2000);
   }
 
   const wa = (tenant.whatsapp ?? tenant.phone ?? "").replace(/[^\d]/g, "");
