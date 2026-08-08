@@ -733,7 +733,7 @@ function RegisterContent() {
 
 
           {/* Step 1 — Account */}
-          {showStep(1) ? (
+          {showStep(1) && !existingReg ? (
             <Section title="Create your account">
               <p className="mb-3 text-xs text-muted-foreground">
                 You'll sign in with this email and password to see the status of your application and,
