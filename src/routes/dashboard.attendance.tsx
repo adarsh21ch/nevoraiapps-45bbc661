@@ -1142,7 +1142,7 @@ function StudentRow({
     );
   };
 
-  const idLine = [student.player_id, batchName].filter(Boolean).join(" · ");
+  const idLine = batchName;
 
   return (
     <div
@@ -1151,64 +1151,70 @@ function StudentRow({
       className={cn("rounded-md transition-shadow", selectMode && isSelected ? "bg-primary/5" : "")}
     >
       <ListItem
+        className="px-2.5 py-2"
         leading={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {selectMode && canMark ? (
               <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={() => onToggleSelected(student.id)}
                 aria-label={`Select ${student.name}`}
-                className="size-4 rounded border-border"
+                className="size-3.5 rounded border-border"
               />
             ) : null}
-            <PersonAvatar name={student.name} src={student.photo_url} className="size-10" />
+            <PersonAvatar name={student.name} src={student.photo_url} className="size-9" />
           </div>
         }
+
         title={
-          <span className="inline-flex items-center gap-1.5">
-            {student.name}
-            {isLate ? (
-              <span
-                className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400"
-                aria-label="Arrived late"
-              >
-                Late
-              </span>
-            ) : null}
-          </span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 truncate">
+              {student.name}
+              {isLate ? (
+                <span
+                  className="inline-flex items-center rounded-full bg-amber-500/10 px-1.2 py-0.2 text-[9px] font-medium text-amber-700 dark:text-amber-400 shrink-0"
+                  aria-label="Arrived late"
+                >
+                  Late
+                </span>
+              ) : null}
+            </span>
+            <div className="flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums shrink-0">
+              <StateSummary state={state} row={row} />
+            </div>
+          </div>
         }
         subtitle={
-          <div className="flex flex-col gap-0.5">
-            {idLine ? <span className="text-xs text-muted-foreground">{idLine}</span> : null}
-            <StateSummary state={state} row={row} />
-          </div>
+          idLine ? <span className="text-[10px] text-muted-foreground/70">{idLine}</span> : null
         }
+
+
         trailing={
           readOnly ? (
             <HistoryStatusChip state={state} />
           ) : canMark ? (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               {state === "in_academy" ? (
                 <Button
                   size="sm"
                   variant="secondary"
                   onClick={onCheckOut}
                   disabled={busy}
-                  className="min-h-11 min-w-11"
+                  className="h-8 w-8 p-0"
                   aria-label={`Check out ${student.name}`}
                 >
-                  <LogOut className="size-4" /> Check Out
+                  <LogOut className="size-3.5" />
                 </Button>
               ) : state === "checked_out" ? (
                 <Button
                   size="sm"
                   variant="ghost"
                   disabled
-                  className="min-h-11 min-w-11 text-emerald-600 dark:text-emerald-400"
+                  className="h-8 w-8 p-0 text-emerald-600 dark:text-emerald-400"
                   aria-label={`${student.name} completed`}
                 >
-                  <CheckCircle2 className="size-4" /> Completed
+                  <CheckCircle2 className="size-3.5" />
                 </Button>
               ) : (
                 <Button
@@ -1216,13 +1222,14 @@ function StudentRow({
                   variant="default"
                   onClick={onCheckIn}
                   disabled={busy}
-                  className="min-h-11 min-w-11"
+                  className="h-8 w-8 p-0"
                   aria-label={`Check in ${student.name}`}
                 >
-                  <LogIn className="size-4" /> Check In
+                  <LogIn className="size-3.5" />
                 </Button>
               )}
             </div>
+
           ) : null
         }
       />
@@ -1261,34 +1268,37 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
 
   if (state === "in_academy" && row?.check_in_at) {
     return (
-      <span className={cn("inline-flex items-center gap-1 text-sm", toneClass)}>
-        <span className="size-1.5 rounded-full bg-current animate-pulse" aria-hidden />
-        In since {format(new Date(row.check_in_at), "h:mm a")}
+      <span className={cn("inline-flex items-center gap-1", toneClass)}>
+        <span className="size-1 rounded-full bg-current animate-pulse" aria-hidden />
+        {format(new Date(row.check_in_at), "h:mm a")}
       </span>
     );
   }
   if (state === "checked_out" && row?.check_in_at && row?.check_out_at) {
-    const visits = row.visit_count ?? 1;
     const isAuto = row.auto_checked_out;
-    const duration = isAuto ? 0 : (row.duration_minutes ?? 0);
     return (
-      <span className={cn("inline-flex items-center gap-1 text-sm", toneClass)}>
-        <Clock className={cn("size-3", isAuto && "text-muted-foreground")} />
-        {format(new Date(row.check_in_at), "h:mm a")} –{" "}
-        {format(new Date(row.check_out_at), "h:mm a")} · {formatDuration(duration)}
-        {visits > 1 ? ` · ${visits} visits` : ""}
+      <span className={cn("inline-flex items-center gap-1.5", toneClass)}>
+        <span className="flex items-center gap-0.5">
+          <LogIn className="size-2.5 opacity-70" />
+          {format(new Date(row.check_in_at), "h:mm a")}
+        </span>
+        <span className="flex items-center gap-0.5">
+          <LogOut className="size-2.5 opacity-70" />
+          {format(new Date(row.check_out_at), "h:mm a")}
+        </span>
         {isAuto && (
           <span
-            className="ml-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400"
-            title="Student forgot to check out — closed automatically at end of day"
+            className="rounded-full border border-amber-500/30 bg-amber-500/10 px-1 py-0.2 text-[8px] font-medium text-amber-700 dark:text-amber-400"
+            title="Auto checkout"
           >
-            Auto (0h)
+            Auto
           </span>
         )}
       </span>
     );
   }
-  return <span className={cn("text-sm", toneClass)}>{attendanceStateLabels[state]}</span>;
+
+  return <span className={cn("text-[11px]", toneClass)}>{attendanceStateLabels[state]}</span>;
 }
 
 function HistoryStatusChip({ state }: { state: AttendanceState }) {
