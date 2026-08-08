@@ -733,25 +733,31 @@ export function generateFixtures(input: GenerateFixturesInput): FixturePlanResul
  * ================================================================ */
 
 export async function advanceKnockoutWinner(matchId: string): Promise<void> {
-  const { data: match } = await supabase
+  const { data: match, error: matchFetchError } = await supabase
     .from("mc_matches")
     .select("id, tournament_id, winner_team, match_locked")
     .eq("id", matchId)
     .maybeSingle();
+
+  if (matchFetchError) throw matchFetchError;
   if (!match?.match_locked || !match.winner_team || !match.tournament_id) return;
 
-  const { data: round } = await supabase
+  const { data: round, error: roundFetchError } = await supabase
     .from("mc_tournament_rounds")
     .select("id, advances_to_round_id, feeder_a_round_id, feeder_b_round_id")
     .eq("match_id", matchId)
     .maybeSingle();
+
+  if (roundFetchError) throw roundFetchError;
   if (!round?.advances_to_round_id) return;
 
-  const { data: nextRound } = await supabase
+  const { data: nextRound, error: nextRoundFetchError } = await supabase
     .from("mc_tournament_rounds")
     .select("id, team_a_id, team_b_id, feeder_a_round_id, feeder_b_round_id, match_id")
     .eq("id", round.advances_to_round_id)
     .maybeSingle();
+
+  if (nextRoundFetchError) throw nextRoundFetchError;
   if (!nextRound) return;
 
   const patch: Partial<Database["public"]["Tables"]["mc_tournament_rounds"]["Update"]> = {};
@@ -759,13 +765,25 @@ export async function advanceKnockoutWinner(matchId: string): Promise<void> {
   if (nextRound.feeder_b_round_id === round.id) patch.team_b_id = match.winner_team;
 
   if (Object.keys(patch).length > 0) {
-    await supabase.from("mc_tournament_rounds").update(patch).eq("id", nextRound.id);
+    const { error: roundUpdateError } = await supabase
+      .from("mc_tournament_rounds")
+      .update(patch)
+      .eq("id", nextRound.id);
+
+    if (roundUpdateError) throw roundUpdateError;
+
     if (nextRound.match_id) {
       const matchPatch: Database["public"]["Tables"]["mc_matches"]["Update"] = {};
       if (patch.team_a_id) matchPatch.team_a_id = patch.team_a_id;
       if (patch.team_b_id) matchPatch.team_b_id = patch.team_b_id;
+
       if (Object.keys(matchPatch).length > 0) {
-        await supabase.from("mc_matches").update(matchPatch).eq("id", nextRound.match_id);
+        const { error: matchUpdateError } = await supabase
+          .from("mc_matches")
+          .update(matchPatch)
+          .eq("id", nextRound.match_id);
+
+        if (matchUpdateError) throw matchUpdateError;
       }
     }
   }
