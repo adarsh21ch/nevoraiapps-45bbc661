@@ -30,6 +30,7 @@ import {
   ListChecks,
   Sparkles,
   LayoutGrid,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
