@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { AtSign, KeyRound, Mail, ShieldCheck } from "lucide-react";
@@ -165,7 +166,14 @@ function AuthPage() {
       if (msg.includes("invalid login") || msg.includes("invalid credentials")) {
         setFormError("Incorrect password. Please check and try again.");
       } else if (msg.includes("user not found")) {
-        setFormError("We couldn't find an account with that email or phone.");
+        setFormError(
+          <div className="space-y-2">
+            <p>Your account is not created. Please first do registration.</p>
+            <Button asChild variant="outline" className="w-full border-red-200 bg-red-50 text-red-900 hover:bg-red-100">
+              <Link to="/register">Do Registration</Link>
+            </Button>
+          </div> as any
+        );
       } else {
         setFormError("Check your details and try again. Make sure your email or phone is correct.");
       }
@@ -241,6 +249,18 @@ function AuthPage() {
           {title}
         </h1>
         <p className="mt-2 text-[14px] leading-relaxed text-auth-muted">{subtitle}</p>
+
+        {mode === "signin" && (
+          <div className="mt-6 mb-6">
+            <p className="text-[13px] text-auth-muted">New here?</p>
+            <Link
+              to="/register"
+              className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-accent-auth)] text-[14px] font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
+            >
+              Do Registration →
+            </Link>
+          </div>
+        )}
 
         {mode === "signin" && (
           <form onSubmit={onSignIn} className="mt-6 space-y-4" noValidate>
@@ -355,22 +375,6 @@ function AuthPage() {
           </form>
         )}
 
-        {mode === "signin" && (
-          <div className="mt-7 border-t border-auth-border pt-5">
-            <p className="text-[13px] text-auth-muted">
-              New to {brand.resolved ? brand.name : "the academy"}?
-            </p>
-            <Link
-              to="/register"
-              className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl border border-auth-border bg-auth-elevated text-[14px] font-semibold text-auth-foreground backdrop-blur transition-colors hover:border-[var(--brand-accent-auth)]"
-            >
-              Register / Apply now →
-            </Link>
-            <p className="mt-3 text-center text-[11px] uppercase tracking-[0.18em] text-auth-subtle">
-              Student · Parent · Academy staff
-            </p>
-          </div>
-        )}
       </motion.div>
     </AcademyAuthLayout>
   );
