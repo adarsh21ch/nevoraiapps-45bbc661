@@ -141,14 +141,14 @@ function CheckinPage() {
           <StatusIcon tone="neutral">
             <LogIn className="size-7" />
           </StatusIcon>
-          <h1 className="text-lg font-semibold">Sign in to check in</h1>
+          <h1 className="text-lg font-semibold">Registration or Sign in</h1>
           <p className="text-sm text-muted-foreground">
             Attendance is recorded against your student account.
           </p>
           <div className="mt-5 space-y-3 w-full">
             <Button asChild className="h-12 w-full rounded-xl text-base">
-              <Link to="/auth" search={{ next: `/checkin?t=${token}` } as never}>
-                Sign in
+              <Link to="/register">
+                Do Registration
               </Link>
             </Button>
             <div className="relative">
@@ -156,12 +156,12 @@ function CheckinPage() {
                 <span className="w-full border-t border-border/60"></span>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">New student?</span>
+                <span className="bg-background px-2 text-muted-foreground">Already a student?</span>
               </div>
             </div>
             <Button asChild variant="outline" className="h-12 w-full rounded-xl text-base">
-              <Link to="/register">
-                Create account
+              <Link to="/auth" search={{ next: `/checkin?t=${token}` } as never}>
+                Sign in
               </Link>
             </Button>
           </div>
