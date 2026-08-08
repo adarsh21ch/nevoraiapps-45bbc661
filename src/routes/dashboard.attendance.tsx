@@ -1142,7 +1142,7 @@ function StudentRow({
     );
   };
 
-  const idLine = [student.player_id, batchName].filter(Boolean).join(" · ");
+  const idLine = batchName;
 
   return (
     <div
@@ -1180,10 +1180,11 @@ function StudentRow({
         }
         subtitle={
           <div className="flex flex-col gap-0.5">
-            {idLine ? <span className="text-xs text-muted-foreground">{idLine}</span> : null}
+            {idLine ? <span className="text-[11px] text-muted-foreground">{idLine}</span> : null}
             <StateSummary state={state} row={row} />
           </div>
         }
+
         trailing={
           readOnly ? (
             <HistoryStatusChip state={state} />
