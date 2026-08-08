@@ -866,12 +866,13 @@ function RegisterContent() {
                 />
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-slate-700">
+                  <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Date of birth (DD/MM/YYYY) *
                   </label>
                   <input
                     type="text"
                     placeholder="DD/MM/YYYY"
+                    inputMode="numeric"
                     value={form.dob}
                     onChange={(e) => {
                       let val = e.target.value.replace(/\D/g, "");
@@ -883,17 +884,15 @@ function RegisterContent() {
                       
                       setForm({ ...form, dob: formatted });
                     }}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = errors.dob ? "" : "var(--brand)")}
+                    onBlur={(e) => (e.currentTarget.style.borderColor = "")}
                     className={cn(
-                      "w-full px-4 py-3 rounded-xl border-2 transition-all outline-none text-base",
-                      errors.dob
-                        ? "border-red-100 bg-red-50/30 text-red-900 focus:border-red-200"
-                        : "border-slate-100 bg-slate-50/50 focus:border-amber-200 focus:bg-white",
+                      "block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2 transition-all",
+                      errors.dob ? "border-red-500" : "border-border",
                     )}
                   />
                   {errors.dob && (
-                    <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1">
-                      {errors.dob}
-                    </p>
+                    <span className="mt-1 block text-xs text-red-600">{errors.dob}</span>
                   )}
                 </div>
                 <SelectField
