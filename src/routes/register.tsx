@@ -1713,6 +1713,7 @@ function Field({
   error,
   inputMode,
   autoComplete,
+  readOnly,
 }: {
   label: string;
   value: string;
