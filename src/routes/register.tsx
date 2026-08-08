@@ -1296,8 +1296,8 @@ function RegisterContent() {
             </>
           ) : null}
 
-          {/* Mobile-only sticky nav (steps 1–3) */}
-          {isMobile && step < 4 && !saving ? (
+          {/* Mobile-only sticky nav (steps 1–6) */}
+          {isMobile && step < 7 && !saving ? (
             <div
               className="sticky bottom-0 z-20 -mx-4 flex items-center gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
               style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
@@ -1313,7 +1313,7 @@ function RegisterContent() {
               ) : (
                 <div />
               )}
-              {step === 3 ? (
+              {step >= 5 && step <= 6 ? (
                 <button
                   type="button"
                   onClick={skipOptional}
@@ -1328,7 +1328,7 @@ function RegisterContent() {
                 className="ml-auto inline-flex flex-1 items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-white shadow-md disabled:opacity-60"
                 style={{ backgroundColor: "var(--brand)" }}
               >
-                {step === 3 ? "Review" : "Next"}
+                {step === 6 ? "Review" : "Next"}
               </button>
             </div>
           ) : null}
