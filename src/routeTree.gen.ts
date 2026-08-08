@@ -54,7 +54,9 @@ import { Route as StudentPendingRouteImport } from './routes/student.pending'
 import { Route as StudentMatchesRouteImport } from './routes/student.matches'
 import { Route as StudentManageRouteImport } from './routes/student.manage'
 import { Route as StudentFeesRouteImport } from './routes/student.fees'
+import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
+import { Route as RobotsTxtRouteImport } from './routes/robots.txt'
 import { Route as PoliciesKindRouteImport } from './routes/policies.$kind'
 import { Route as PlatformAdminUsageRouteImport } from './routes/platform-admin.usage'
 import { Route as PlatformAdminSupportRouteImport } from './routes/platform-admin.support'
@@ -144,8 +146,6 @@ import { Route as DashboardCoachOnboardingRouteImport } from './routes/dashboard
 import { Route as DashboardCoachApprovalsRouteImport } from './routes/dashboard.coach.approvals'
 import { Route as DashboardCoachAnalyticsRouteImport } from './routes/dashboard.coach.analytics'
 import { Route as ApiPublicTenantIconRouteImport } from './routes/api/public/tenant-icon'
-import { Route as ApiPublicSitemapXmlRouteImport } from './routes/api/public/sitemap.xml'
-import { Route as ApiPublicRobotsTxtRouteImport } from './routes/api/public/robots.txt'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksSubscriptionCheckRouteImport } from './routes/api/public/hooks/subscription-check'
 import { Route as ApiPublicHooksOwnerSummariesRouteImport } from './routes/api/public/hooks/owner-summaries'
@@ -381,9 +381,19 @@ const StudentFeesRoute = StudentFeesRouteImport.update({
   path: '/fees',
   getParentRoute: () => StudentRoute,
 } as any)
+const SitemapXmlRoute = SitemapXmlRouteImport.update({
+  id: '/sitemap/xml',
+  path: '/sitemap/xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScorerMatchIdRoute = ScorerMatchIdRouteImport.update({
   id: '/scorer/$matchId',
   path: '/scorer/$matchId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsTxtRoute = RobotsTxtRouteImport.update({
+  id: '/robots/txt',
+  path: '/robots/txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliciesKindRoute = PoliciesKindRouteImport.update({
@@ -845,16 +855,6 @@ const ApiPublicTenantIconRoute = ApiPublicTenantIconRouteImport.update({
   path: '/api/public/tenant-icon',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSitemapXmlRoute = ApiPublicSitemapXmlRouteImport.update({
-  id: '/api/public/sitemap/xml',
-  path: '/api/public/sitemap/xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicRobotsTxtRoute = ApiPublicRobotsTxtRouteImport.update({
-  id: '/api/public/robots/txt',
-  path: '/api/public/robots/txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicManifestWebmanifestRoute =
   ApiPublicManifestWebmanifestRouteImport.update({
     id: '/api/public/manifest/webmanifest',
@@ -1016,7 +1016,9 @@ export interface FileRoutesByFullPath {
   '/platform-admin/support': typeof PlatformAdminSupportRoute
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
+  '/robots/txt': typeof RobotsTxtRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -1054,8 +1056,6 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
-  '/api/public/robots/txt': typeof ApiPublicRobotsTxtRoute
-  '/api/public/sitemap/xml': typeof ApiPublicSitemapXmlRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -1158,7 +1158,9 @@ export interface FileRoutesByTo {
   '/platform-admin/support': typeof PlatformAdminSupportRoute
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
+  '/robots/txt': typeof RobotsTxtRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -1196,8 +1198,6 @@ export interface FileRoutesByTo {
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
-  '/api/public/robots/txt': typeof ApiPublicRobotsTxtRoute
-  '/api/public/sitemap/xml': typeof ApiPublicSitemapXmlRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
 export interface FileRoutesById {
@@ -1307,7 +1307,9 @@ export interface FileRoutesById {
   '/platform-admin/support': typeof PlatformAdminSupportRoute
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
+  '/robots/txt': typeof RobotsTxtRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -1345,8 +1347,6 @@ export interface FileRoutesById {
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
-  '/api/public/robots/txt': typeof ApiPublicRobotsTxtRoute
-  '/api/public/sitemap/xml': typeof ApiPublicSitemapXmlRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
 export interface FileRouteTypes {
@@ -1457,7 +1457,9 @@ export interface FileRouteTypes {
     | '/platform-admin/support'
     | '/platform-admin/usage'
     | '/policies/$kind'
+    | '/robots/txt'
     | '/scorer/$matchId'
+    | '/sitemap/xml'
     | '/student/fees'
     | '/student/manage'
     | '/student/matches'
@@ -1495,8 +1497,6 @@ export interface FileRouteTypes {
     | '/api/public/hooks/owner-summaries'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
-    | '/api/public/robots/txt'
-    | '/api/public/sitemap/xml'
     | '/api/public/payments/$provider/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1599,7 +1599,9 @@ export interface FileRouteTypes {
     | '/platform-admin/support'
     | '/platform-admin/usage'
     | '/policies/$kind'
+    | '/robots/txt'
     | '/scorer/$matchId'
+    | '/sitemap/xml'
     | '/student/fees'
     | '/student/manage'
     | '/student/matches'
@@ -1637,8 +1639,6 @@ export interface FileRouteTypes {
     | '/api/public/hooks/owner-summaries'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
-    | '/api/public/robots/txt'
-    | '/api/public/sitemap/xml'
     | '/api/public/payments/$provider/webhook'
   id:
     | '__root__'
@@ -1747,7 +1747,9 @@ export interface FileRouteTypes {
     | '/platform-admin/support'
     | '/platform-admin/usage'
     | '/policies/$kind'
+    | '/robots/txt'
     | '/scorer/$matchId'
+    | '/sitemap/xml'
     | '/student/fees'
     | '/student/manage'
     | '/student/matches'
@@ -1785,8 +1787,6 @@ export interface FileRouteTypes {
     | '/api/public/hooks/owner-summaries'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
-    | '/api/public/robots/txt'
-    | '/api/public/sitemap/xml'
     | '/api/public/payments/$provider/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -1831,7 +1831,9 @@ export interface RootRouteChildren {
   MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
   PoliciesKindRoute: typeof PoliciesKindRoute
+  RobotsTxtRoute: typeof RobotsTxtRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
+  SitemapXmlRoute: typeof SitemapXmlRoute
   ApiPublicTenantIconRoute: typeof ApiPublicTenantIconRoute
   AcademyAcademySlugTournamentsTournamentSlugRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRoute
   ApiPublicHooksAutomationTickRoute: typeof ApiPublicHooksAutomationTickRoute
@@ -1841,8 +1843,6 @@ export interface RootRouteChildren {
   ApiPublicHooksOwnerSummariesRoute: typeof ApiPublicHooksOwnerSummariesRoute
   ApiPublicHooksSubscriptionCheckRoute: typeof ApiPublicHooksSubscriptionCheckRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
-  ApiPublicRobotsTxtRoute: typeof ApiPublicRobotsTxtRoute
-  ApiPublicSitemapXmlRoute: typeof ApiPublicSitemapXmlRoute
   ApiPublicPaymentsProviderWebhookRoute: typeof ApiPublicPaymentsProviderWebhookRoute
 }
 
@@ -2163,11 +2163,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentFeesRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/sitemap/xml': {
+      id: '/sitemap/xml'
+      path: '/sitemap/xml'
+      fullPath: '/sitemap/xml'
+      preLoaderRoute: typeof SitemapXmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scorer/$matchId': {
       id: '/scorer/$matchId'
       path: '/scorer/$matchId'
       fullPath: '/scorer/$matchId'
       preLoaderRoute: typeof ScorerMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots/txt': {
+      id: '/robots/txt'
+      path: '/robots/txt'
+      fullPath: '/robots/txt'
+      preLoaderRoute: typeof RobotsTxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/policies/$kind': {
@@ -2793,20 +2807,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTenantIconRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/sitemap/xml': {
-      id: '/api/public/sitemap/xml'
-      path: '/api/public/sitemap/xml'
-      fullPath: '/api/public/sitemap/xml'
-      preLoaderRoute: typeof ApiPublicSitemapXmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/robots/txt': {
-      id: '/api/public/robots/txt'
-      path: '/api/public/robots/txt'
-      fullPath: '/api/public/robots/txt'
-      preLoaderRoute: typeof ApiPublicRobotsTxtRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/manifest/webmanifest': {
       id: '/api/public/manifest/webmanifest'
       path: '/api/public/manifest/webmanifest'
@@ -3201,7 +3201,9 @@ const rootRouteChildren: RootRouteChildren = {
   MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,
   PoliciesKindRoute: PoliciesKindRoute,
+  RobotsTxtRoute: RobotsTxtRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
+  SitemapXmlRoute: SitemapXmlRoute,
   ApiPublicTenantIconRoute: ApiPublicTenantIconRoute,
   AcademyAcademySlugTournamentsTournamentSlugRoute:
     AcademyAcademySlugTournamentsTournamentSlugRoute,
@@ -3212,8 +3214,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksOwnerSummariesRoute: ApiPublicHooksOwnerSummariesRoute,
   ApiPublicHooksSubscriptionCheckRoute: ApiPublicHooksSubscriptionCheckRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
-  ApiPublicRobotsTxtRoute: ApiPublicRobotsTxtRoute,
-  ApiPublicSitemapXmlRoute: ApiPublicSitemapXmlRoute,
   ApiPublicPaymentsProviderWebhookRoute: ApiPublicPaymentsProviderWebhookRoute,
 }
 export const routeTree = rootRouteImport
