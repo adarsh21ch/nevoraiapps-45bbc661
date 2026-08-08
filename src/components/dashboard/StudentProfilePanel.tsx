@@ -9,7 +9,7 @@ import {
   qk,
 } from "@/lib/dashboard-queries";
 import { useServerFn } from "@tanstack/react-start";
-import { deleteStudentPermanently } from "@/lib/students-manage.functions";
+import { deleteStudentPermanently, resetStudentPassword } from "@/lib/students-manage.functions";
 import { normalizeGender, resolveMonthlyFee } from "@/lib/gender";
 import { INDIAN_STATES } from "@/lib/location";
 
@@ -56,7 +56,9 @@ import {
   UserRoundCheck,
   Eye,
   Loader2,
+  Lock,
 } from "lucide-react";
+
 
 type Props = {
   studentId: string;
@@ -120,6 +122,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteStep, setDeleteStep] = useState(1);
   const [side, setSide] = useState<"front" | "back">("front");
+  const [resetPassOpen, setResetPassOpen] = useState(false);
+  const resetPass = useServerFn(resetStudentPassword);
+
 
 
 
@@ -330,6 +335,8 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           <dl className="divide-y divide-border text-sm">
             <Row label="Guardian" value={s.guardian_name || "—"} />
             <Row label="Guardian phone" value={s.guardian_phone || "—"} />
+            <Row label="Email" value={s.email || "—"} />
+
             <Row
               label="Date of birth"
               value={
@@ -416,6 +423,14 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
         >
           <Eye className="size-4 mr-2" /> View & Download ID
         </Button>
+        <Button
+          variant="outline"
+          className="rounded-xl h-12 justify-start border-amber-200 text-amber-700 hover:bg-amber-50"
+          onClick={() => setResetPassOpen(true)}
+        >
+          <Lock className="size-4 mr-2" /> Reset Password
+        </Button>
+
 
         <dialog id="id-card-preview-dialog-staff" className="bg-transparent backdrop:bg-black/60 p-0 rounded-2xl overflow-visible">
           <div className="bg-background max-w-[90vw] w-full p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-6 relative">
@@ -634,7 +649,68 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Password Reset Dialog */}
+      <AlertDialog open={resetPassOpen} onOpenChange={setResetPassOpen}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Student Password</AlertDialogTitle>
+            <AlertDialogDescription>
+              Set a new password for <strong>{s.name}</strong>. They will need this to sign in.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Label htmlFor="new-password">New Password</Label>
+            <Input 
+              id="new-password"
+              type="text" 
+              placeholder="Enter new password"
+              className="mt-2"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const val = (e.target as HTMLInputElement).value;
+                  if (val.length >= 6) {
+                    (document.getElementById('confirm-reset-btn') as HTMLElement).click();
+                  } else {
+                    toast.error("Password must be at least 6 characters");
+                  }
+                }
+              }}
+            />
+            <p className="text-[11px] text-muted-foreground mt-2">
+              Make sure to share this password with the student.
+            </p>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              id="confirm-reset-btn"
+              onClick={async (e) => {
+                e.preventDefault();
+                const input = document.getElementById('new-password') as HTMLInputElement;
+                const newPassword = input.value;
+                if (newPassword.length < 6) {
+                  toast.error("Password must be at least 6 characters");
+                  return;
+                }
+                const tid = toast.loading("Updating password...");
+                try {
+                  await resetPass({ data: { tenantId: tenant.id, studentId, newPassword } });
+                  toast.success("Password updated successfully", { id: tid });
+                  setResetPassOpen(false);
+                } catch (err: any) {
+                  toast.error(err.message || "Failed to reset password", { id: tid });
+                }
+              }}
+            >
+              Reset Password
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+
 
   );
 }
