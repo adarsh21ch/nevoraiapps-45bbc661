@@ -764,10 +764,19 @@ function RegisterContent() {
           {showStep(1) && !existingReg ? (
             <Section title="Create your account">
               <p className="mb-3 text-xs text-muted-foreground">
-                You'll sign in with this email and password to see the status of your application and,
+                You'll sign in with these details to see the status of your application and,
                 once approved, your student dashboard.
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Phone Number *"
+                  value={form.phone}
+                  onChange={(v) => setForm({ ...form, phone: v })}
+                  placeholder="10-digit mobile"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  error={errors.phone}
+                />
                 <Field
                   label="Email *"
                   type="email"
@@ -894,10 +903,10 @@ function RegisterContent() {
                   error={errors.gender}
                 />
                 <Field
-                  label="Contact number *"
+                  label="Alternate Contact Number"
                   value={form.phone}
                   onChange={(v) => setForm({ ...form, phone: v })}
-                  placeholder="10-digit mobile"
+                  placeholder="Optional extra mobile"
                   inputMode="numeric"
                   autoComplete="tel"
                   error={errors.phone}
