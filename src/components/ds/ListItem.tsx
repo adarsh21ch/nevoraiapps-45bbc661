@@ -30,7 +30,7 @@ export function ListItem({
       onClick={onClick}
       className={cn(
         "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 w-full text-left",
-        "px-3 py-2.5 rounded-xl",
+        "px-3 py-3.5 rounded-xl min-h-[52px]",
         interactive && "hover:bg-accent/40 active:bg-accent/60 transition-colors",
         className,
       )}
