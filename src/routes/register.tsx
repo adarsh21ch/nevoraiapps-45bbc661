@@ -767,7 +767,7 @@ function RegisterContent() {
 
           {/* Step 1 — Account */}
           {showStep(1) && !existingReg ? (
-            <Section title="Create your account">
+            <Section title="Account setup">
               <p className="mb-3 text-xs text-muted-foreground">
                 You'll sign in with these details to see the status of your application and,
                 once approved, your student dashboard.
@@ -846,8 +846,92 @@ function RegisterContent() {
             </Section>
           ) : null}
 
-          {/* Step 2 — Student details */}
+          {/* Step 2 — Primary info */}
           {showStep(2) ? (
+            <Section title="Primary info">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Student name *"
+                  value={form.name}
+                  onChange={(v) => setForm({ ...form, name: v })}
+                  autoComplete="name"
+                  error={errors.name}
+                />
+                <Field
+                  label="Parent / guardian name"
+                  value={form.guardian_name}
+                  onChange={(v) => setForm({ ...form, guardian_name: v })}
+                  autoComplete="off"
+                  error={errors.guardian_name}
+                />
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Date of birth (DD/MM/YYYY) *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="DD/MM/YYYY"
+                    value={form.dob}
+                    onChange={(e) => {
+                      let val = e.target.value.replace(/\D/g, "");
+                      if (val.length > 8) val = val.slice(0, 8);
+                      
+                      let formatted = val;
+                      if (val.length > 2) formatted = val.slice(0, 2) + "/" + val.slice(2);
+                      if (val.length > 4) formatted = formatted.slice(0, 5) + "/" + val.slice(4);
+                      
+                      setForm({ ...form, dob: formatted });
+                    }}
+                    className={cn(
+                      "w-full px-4 py-3 rounded-xl border-2 transition-all outline-none text-base",
+                      errors.dob
+                        ? "border-red-100 bg-red-50/30 text-red-900 focus:border-red-200"
+                        : "border-slate-100 bg-slate-50/50 focus:border-amber-200 focus:bg-white",
+                    )}
+                  />
+                  {errors.dob && (
+                    <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest ml-1">
+                      {errors.dob}
+                    </p>
+                  )}
+                </div>
+                <SelectField
+                  label="Gender *"
+                  value={form.gender}
+                  onChange={(v) => setForm({ ...form, gender: v })}
+                  options={[
+                    { value: "", label: "Select gender" },
+                    { value: "male", label: "Boy" },
+                    { value: "female", label: "Girl" },
+                  ]}
+                  error={errors.gender}
+                />
+                <div className="sm:col-span-2">
+                  <BatchSelect
+                    value={form.batch_id}
+                    onChange={(v) => setForm({ ...form, batch_id: v })}
+                    options={batchOptions}
+                    onInfo={() => setBatchInfoOpen(true)}
+                    error={errors.batch_id}
+                    tenant={tenant}
+                    fees={fees}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <FeeSummary
+                    batch={batches.find((b) => b.id === form.batch_id)}
+                    fees={fees}
+                    gender={normalizeGender(form.gender) || undefined}
+                    tenant={tenant}
+                  />
+                </div>
+              </div>
+            </Section>
+          ) : null}
+
+          {/* Step 3 — Contact info */}
+          {showStep(3) ? (
             <Section title="Student details">
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
