@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/robots/txt")({
+export const Route = createFileRoute("/robots.txt")({
   server: {
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url);
         const platformBase = process.env.VITE_PLATFORM_BASE_DOMAIN || "nevorai.com";
-        const sitemapUrl = `https://${platformBase}/api/public/sitemap.xml`;
+        const sitemapUrl = `https://${platformBase}/sitemap.xml`;
 
         const content = `User-agent: *
 Allow: /
