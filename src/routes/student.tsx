@@ -183,11 +183,10 @@ function StudentLayout() {
         Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.
       */}
 
-      {gateQ.data?.pendingReg || (gateQ.data?.lifecycle && isPendingApproval(gateQ.data.lifecycle)) ? (
-        <div className="bg-amber-500 text-white px-4 py-2 text-center text-[13px] font-medium sticky top-0 z-60 flex items-center justify-center gap-2 shadow-sm animate-in fade-in slide-in-from-top duration-300">
-          <Info className="size-4 shrink-0" />
-          <span>Registration pending. You can view features, but attendance & internal tools will unlock once approved.</span>
-        </div>
+      {/* 
+        Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.
+      */}
+
       ) : gateQ.data?.lifecycle && needsActivation(gateQ.data.lifecycle) ? (
         <div className="bg-primary text-primary-foreground px-4 py-2 text-center text-[13px] font-medium sticky top-0 z-60 flex items-center justify-center gap-2 shadow-sm animate-in fade-in slide-in-from-top duration-300">
           <Info className="size-4 shrink-0" />
