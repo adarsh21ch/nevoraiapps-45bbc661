@@ -166,11 +166,15 @@ function StudentHomePage() {
         onClick={() => {
           const isPending = !ctx.student_id || (ctx.lifecycle_status && isPendingApproval(ctx.lifecycle_status));
           if (isPending) {
+            {/* 
+              Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.
+            */}
             toast.info("Registration Pending", {
               description: "Attendance marking will be available once the academy approves your registration.",
             });
             return;
           }
+
 
           setScanOpen(true);
         }}
