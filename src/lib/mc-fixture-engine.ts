@@ -759,6 +759,11 @@ export async function advanceKnockoutWinner(matchId: string): Promise<void> {
     .maybeSingle();
   if (!nextRound) return;
 
+  const patch: Partial<Database["public"]["Tables"]["mc_tournament_rounds"]["Update"]> = {};
+  if (nextRound.feeder_a_round_id === round.id) patch.team_a_id = match.winner_team;
+  if (nextRound.feeder_b_round_id === round.id) patch.team_b_id = match.winner_team;
+
+  if (Object.keys(patch).length > 0) {
     const { error: roundError } = await supabase.from("mc_tournament_rounds").update(patch).eq("id", nextRound.id);
     if (roundError) throw roundError;
 
