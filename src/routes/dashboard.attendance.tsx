@@ -645,32 +645,6 @@ function AttendancePage() {
               </div>
             </PopoverContent>
           </Popover>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label="Filter by session"
-                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-1 text-xs font-medium hover:bg-muted min-h-8 shrink-0"
-              >
-                {session === "all"
-                  ? "All"
-                  : session === "morning"
-                    ? "Morning"
-                    : session === "evening"
-                      ? "Evening"
-                      : "Night"}
-                <ChevronDown className="size-3" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {(["all", "morning", "evening", "night"] as SessionFilter[]).map((s) => (
-                <DropdownMenuItem key={s} onClick={() => setSession(s)}>
-                  <span className={cn("capitalize", session === s && "font-semibold")}>{s}</span>
-                  {session === s ? <CheckCircle2 className="ml-auto size-4 text-primary" /> : null}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
           {isTodayView ? (
             <>
               <button
