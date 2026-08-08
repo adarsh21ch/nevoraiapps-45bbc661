@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { getPageHeroImages } from "@/lib/page-hero-images";
 import { useTenantState } from "@/lib/tenant-context";
 import { HeroCarousel } from "@/components/site/HeroCarousel";
+import { pickPreset } from "@/lib/theme-presets";
 import { AcademyLogo } from "./AcademyLogo";
 
 export interface AcademyBrand {
@@ -11,6 +12,8 @@ export interface AcademyBrand {
   initials: string;
   accent: string;
   ink: string;
+  surface: string;
+  brandAccent: string;
   logoPath: string | null;
   tagline: string | null;
   heroImages: string[];
@@ -24,26 +27,46 @@ export function useAcademyBrand(): AcademyBrand {
   const state = useTenantState();
   const tenant = state.status === "ready" || state.status === "suspended" ? state.tenant : null;
   return useMemo(() => {
-    const name = tenant?.name ?? "AcademyOS";
+    // Platform door (academy.nevorai.com / no tenant resolved): AcademyOS's own identity.
+    // Deliberate, not a fallback — never show a tenant's palette here.
+    if (!tenant) {
+      return {
+        name: "AcademyOS",
+        initials: "AOS",
+        accent: "#2563EB",
+        ink: "#0B1220",
+        surface: "#040A18",
+        brandAccent: "#3B82F6",
+        logoPath: null,
+        tagline: null,
+        heroImages: [],
+        resolved: false,
+      };
+    }
+
+    const name = tenant.name ?? "AcademyOS";
     const initials =
-      (tenant?.short_name?.trim() ||
-        name
-          .split(/\s+/)
-          .slice(0, 2)
-          .map((w) => w[0])
-          .join("")) ?? "A";
+      (tenant.short_name?.trim() ||
+        name.split(/\s+/).slice(0, 2).map((w) => w[0]).join("")) ?? "A";
+    
     // Owner-uploaded login artwork wins; otherwise reuse the homepage hero.
     const login = getPageHeroImages(tenant, "login");
     const heroImages = login.length > 0 ? login : getPageHeroImages(tenant, "home");
+
+    // Same chain the rest of the app uses: owner's colors win, niche preset fills the gap.
+    const preset = pickPreset(tenant.niche, tenant.slug);
+
     return {
       name,
       initials: initials.slice(0, 3).toUpperCase(),
-      accent: tenant?.primary_color || "#2563EB",
-      ink: tenant?.secondary_color || "#0B1220",
-      logoPath: tenant?.logo_url ?? null,
-      tagline: tenant?.tagline ?? null,
+      accent: tenant.primary_color || preset.primary,
+      ink: tenant.secondary_color || preset.ink,
+      surface: preset.surface,
+      brandAccent: preset.accent,
+      logoPath: tenant.logo_url ?? null,
+      tagline: tenant.tagline ?? null,
       heroImages,
-      resolved: !!tenant,
+      resolved: true,
     };
   }, [tenant]);
 }
@@ -64,6 +87,8 @@ export function AcademyAuthLayout({ children }: { children: ReactNode }) {
         {
           "--brand-accent-auth": brand.accent,
           "--brand-ink-auth": brand.ink,
+          "--brand-surface-auth": brand.surface,
+          "--brand-highlight-auth": brand.brandAccent,
         } as React.CSSProperties
       }
     >
@@ -72,11 +97,11 @@ export function AcademyAuthLayout({ children }: { children: ReactNode }) {
         <div
           className="absolute inset-0"
           style={{
-            background: `radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--brand-accent-auth) 22%, transparent), transparent 60%), linear-gradient(180deg, var(--brand-ink-auth), rgba(4,10,24,0.98))`,
+            background: `radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--brand-accent-auth) 32%, transparent), transparent 60%), linear-gradient(180deg, var(--brand-ink-auth), rgba(4,10,24,0.98))`,
           }}
         />
         <div
-          className="absolute inset-0 opacity-[0.07]"
+          className="absolute inset-0 opacity-[0.10]"
           style={{
             backgroundImage:
               "linear-gradient(to right,#fff 1px,transparent 1px),linear-gradient(to bottom,#fff 1px,transparent 1px)",
@@ -104,25 +129,33 @@ export function AcademyAuthLayout({ children }: { children: ReactNode }) {
             className="relative mx-auto w-full max-w-[420px]"
           >
             {/* Compact brand lockup — mobile only */}
-            <div className="mb-6 flex items-center gap-3 lg:hidden">
-              <AcademyLogo
-                path={brand.logoPath}
-                name={brand.name}
-                initials={brand.initials}
-                accent={brand.accent}
-                className="size-12"
-              />
-              <div className="min-w-0">
-                <p
-                  className="truncate text-[19px] leading-tight tracking-wide"
-                  style={{ fontFamily: DISPLAY_FONT }}
-                >
-                  {brand.name}
-                </p>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-auth-subtle">
-                  Member portal
-                </p>
+            <div className="mb-6 flex items-center justify-between lg:hidden">
+              <div className="flex items-center gap-3">
+                <AcademyLogo
+                  path={brand.logoPath}
+                  name={brand.name}
+                  initials={brand.initials}
+                  accent={brand.accent}
+                  className="size-12"
+                />
+                <div className="min-w-0">
+                  <p
+                    className="truncate text-[19px] leading-tight tracking-wide"
+                    style={{ fontFamily: DISPLAY_FONT }}
+                  >
+                    {brand.name}
+                  </p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-auth-subtle">
+                    Member portal
+                  </p>
+                </div>
               </div>
+              <Link
+                to="/register"
+                className="rounded-full bg-[var(--brand-accent-auth)] px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white shadow-lg transition-transform active:scale-95"
+              >
+                Apply
+              </Link>
             </div>
 
             <div className="rounded-3xl border border-auth-border bg-[color-mix(in_oklab,var(--auth-surface)_70%,transparent)] p-5 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:p-6 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none">
@@ -153,32 +186,46 @@ function BrandPanel({ brand, hasArt }: { brand: AcademyBrand; hasArt: boolean })
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(105deg,rgba(4,10,24,0.92),rgba(4,10,24,0.62)_55%,rgba(4,10,24,0.95))]" />
         </>
       ) : (
-        <div
-          className="pointer-events-none absolute -left-24 top-1/3 h-[420px] w-[420px] rounded-full opacity-30 blur-[140px]"
-          style={{ backgroundColor: brand.accent }}
-        />
+        <>
+          <div
+            className="pointer-events-none absolute -left-24 top-1/3 h-[420px] w-[420px] rounded-full opacity-[0.45] blur-[140px]"
+            style={{ backgroundColor: brand.accent }}
+          />
+          <div
+            className="pointer-events-none absolute -right-12 bottom-1/4 h-[280px] w-[280px] rounded-full opacity-[0.25] blur-[100px]"
+            style={{ backgroundColor: brand.brandAccent }}
+          />
+        </>
       )}
 
-      <Link to="/" className="relative flex items-center gap-3">
-        <AcademyLogo
-          path={brand.logoPath}
-          name={brand.name}
-          initials={brand.initials}
-          accent={brand.accent}
-          className="size-12"
-        />
-        <span>
-          <span
-            className="block text-[22px] leading-tight tracking-wide"
-            style={{ fontFamily: DISPLAY_FONT }}
-          >
-            {brand.name}
+      <div className="relative flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-3">
+          <AcademyLogo
+            path={brand.logoPath}
+            name={brand.name}
+            initials={brand.initials}
+            accent={brand.accent}
+            className="size-12"
+          />
+          <span>
+            <span
+              className="block text-[22px] leading-tight tracking-wide"
+              style={{ fontFamily: DISPLAY_FONT }}
+            >
+              {brand.name}
+            </span>
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.28em] text-auth-subtle">
+              Member portal
+            </span>
           </span>
-          <span className="block text-[10px] font-semibold uppercase tracking-[0.28em] text-auth-subtle">
-            Member portal
-          </span>
-        </span>
-      </Link>
+        </Link>
+        <Link
+          to="/register"
+          className="rounded-full bg-[var(--brand-accent-auth)] px-5 py-2 text-[12px] font-bold uppercase tracking-wider text-white shadow-xl transition-all hover:brightness-110 active:scale-95"
+        >
+          Register / Apply
+        </Link>
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 18 }}
