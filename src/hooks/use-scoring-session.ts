@@ -534,7 +534,7 @@ export function useScoringSession(
           toast.error("Ball not saved — network error. Retrying...");
           
           // Basic retry logic
-          const retry = () => appendBall(partial);
+          const retry = () => submitBall(partial);
           setTimeout(retry, 2000);
 
           const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
