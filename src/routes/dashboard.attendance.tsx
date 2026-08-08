@@ -1151,20 +1151,22 @@ function StudentRow({
       className={cn("rounded-md transition-shadow", selectMode && isSelected ? "bg-primary/5" : "")}
     >
       <ListItem
+        className="px-2.5 py-2"
         leading={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {selectMode && canMark ? (
               <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={() => onToggleSelected(student.id)}
                 aria-label={`Select ${student.name}`}
-                className="size-4 rounded border-border"
+                className="size-3.5 rounded border-border"
               />
             ) : null}
-            <PersonAvatar name={student.name} src={student.photo_url} className="size-10" />
+            <PersonAvatar name={student.name} src={student.photo_url} className="size-9" />
           </div>
         }
+
         title={
           <div className="flex items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 truncate">
