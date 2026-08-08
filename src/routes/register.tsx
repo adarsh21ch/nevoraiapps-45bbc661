@@ -144,6 +144,8 @@ function RegisterContent() {
   const { data: fees = [] } = useQuery(feePlansQuery(tenant.id));
   const { data: policies = [] } = useQuery(publishedPoliciesQuery(tenant.id));
 
+  const [existingReg, setExistingReg] = useState<any>(null);
+
   // A signed-in user must never see the blank /register form. Route them
   // to the destination the DB says they belong.
   useEffect(() => {
@@ -156,8 +158,6 @@ function RegisterContent() {
         console.error("my_post_login_route error", routeErr);
       }
 
-
-
       if (cancelled) return;
       const route = (data as unknown as string) ?? "student";
       
@@ -166,13 +166,46 @@ function RegisterContent() {
       if (route === "student") {
         const { data: regData } = await supabase
           .from("registrations")
-          .select("review_status")
+          .select("*")
           .eq("applicant_user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
         
         if (regData?.review_status === "changes_requested") {
+          if (!cancelled) {
+            setExistingReg(regData);
+            // Prefill the form from existing registration
+            const docs = regData.documents as any;
+            const profile = docs?.profile || {};
+            setForm(f => ({
+              ...f,
+              name: regData.name || "",
+              phone: regData.phone || "",
+              guardian_name: regData.guardian_name || "",
+              batch_id: regData.batch_id || "",
+              dob: regData.dob ? regData.dob.split('-').reverse().join('/') : "",
+              address: regData.address || "",
+              current_address: regData.address || profile.current_address || "",
+              permanent_address: profile.permanent_address || "",
+              village_locality: profile.village_locality || "",
+              city: profile.city || "",
+              state: profile.state || "",
+              gender: regData.gender || "",
+              medical_notes: regData.medical_notes || "",
+              aadhaar_front_url: profile.aadhaar_front_url || "",
+              aadhaar_back_url: profile.aadhaar_back_url || "",
+              photo_url: profile.photo_url || "",
+              height_cm: profile.height_cm?.toString() || "",
+              weight_kg: profile.weight_kg?.toString() || "",
+              blood_group: profile.blood_group || "",
+              batting_style: profile.batting_style || "",
+              bowling_style: profile.bowling_style || "",
+              interests: profile.interests || "",
+            }));
+            // If they are signed in, they've already done Step 1.
+            setStep(2);
+          }
           return;
         }
       }
