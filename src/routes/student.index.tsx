@@ -54,7 +54,7 @@ function StudentHomePage() {
   const firstName = useMemo(() => (ctx?.name ?? "").split(" ")[0] || "Player", [ctx?.name]);
 
 
-  if (!ctx || (homeQ.isLoading && !homeQ.data)) {
+  if (ctxQ.isLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-24 w-full" />
@@ -66,6 +66,72 @@ function StudentHomePage() {
       </div>
     );
   }
+
+  // If we have context but no student ID yet (pending applicant), show the welcome 
+  // without the data-heavy home stats.
+  if (!ctx?.student_id) {
+    return (
+      <div className="space-y-5">
+        <header className="flex items-center gap-4">
+          <div className="size-14 rounded-full bg-gradient-to-br from-primary to-primary/60 grid place-items-center text-primary-foreground font-semibold text-lg overflow-hidden">
+            {ctx?.photo_url ? (
+              <img src={ctx.photo_url} alt="" className="size-full object-cover" />
+            ) : (
+              firstName.slice(0, 1).toUpperCase()
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{greeting()}</p>
+            <h1 className="text-2xl font-semibold leading-tight truncate">{firstName}</h1>
+          </div>
+        </header>
+
+        <Card className="p-6 text-center space-y-4 bg-muted/20 border-dashed">
+          <div className="size-12 rounded-full bg-primary/10 grid place-items-center mx-auto">
+            <Info className="size-6 text-primary" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-semibold text-base">Registration in Progress</h3>
+            <p className="text-sm text-muted-foreground max-w-[280px] mx-auto">
+              Welcome to the academy! Your registration is being reviewed. Once approved, your stats, attendance, and match details will appear here.
+            </p>
+          </div>
+        </Card>
+
+        <section aria-label="Limited access">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 px-1">
+            Available While Pending
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <PlayerQuickAction
+              to="/student/profile"
+              icon={<FileText className="size-5" />}
+              label="My Details"
+            />
+            <PlayerQuickAction
+              to="/student/manage"
+              icon={<Mail className="size-5" />}
+              label="Contact Academy"
+            />
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  if (homeQ.isLoading && !homeQ.data) {
+    return (
+      <div className="space-y-4 pt-10">
+        <Skeleton className="h-24 w-full" />
+        <div className="grid grid-cols-2 gap-3">
+          <Skeleton className="h-28" />
+          <Skeleton className="h-28" />
+        </div>
+        <Skeleton className="h-32 w-full" />
+      </div>
+    );
+  }
+
 
   const home = homeQ.data!;
   const statusLabel = home.todayVisit
