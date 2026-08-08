@@ -1274,11 +1274,12 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
     const isAuto = row.auto_checked_out;
     const duration = isAuto ? 0 : (row.duration_minutes ?? 0);
     return (
-      <span className={cn("inline-flex items-center gap-1 text-sm", toneClass)}>
-        <Clock className={cn("size-3", isAuto && "text-muted-foreground")} />
+      <span className={cn("inline-flex items-center gap-1 text-[11px]", toneClass)}>
+        <Clock className={cn("size-2.5", isAuto && "text-muted-foreground")} />
         {format(new Date(row.check_in_at), "h:mm a")} –{" "}
         {format(new Date(row.check_out_at), "h:mm a")} · {formatDuration(duration)}
         {visits > 1 ? ` · ${visits} visits` : ""}
+
         {isAuto && (
           <span
             className="ml-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400"
