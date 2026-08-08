@@ -1074,7 +1074,6 @@ function RegisterContent() {
                           label="Current Address Details *"
                           value={form.current_address}
                           onChange={(v) => setForm({ ...form, current_address: v })}
-                          placeholder="House/Street/Colony/Landmark"
                           error={errors.current_address}
                         />
                       </div>
