@@ -345,13 +345,11 @@ function RegisterContent() {
         }
       }
       if (!form.gender) e.gender = "Required.";
-      if (!form.phone.trim()) e.phone = "Required.";
+      if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
+    } else if (n === 3) {
       if (!form.city.trim()) e.city = "Required.";
       if (!form.state.trim()) e.state = "Required.";
       if (!form.current_address.trim()) e.current_address = "Required.";
-      // Aadhaar photos are optional — academy can collect them later.
-
-      if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -359,7 +357,7 @@ function RegisterContent() {
   function goNext() {
     if (!validateStep(step)) return;
     setErrors({});
-    setStep((s) => Math.min(4, s + 1) as Step);
+    setStep((s) => Math.min(7, s + 1) as Step);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function goBack() {
@@ -369,7 +367,7 @@ function RegisterContent() {
   }
   function skipOptional() {
     setErrors({});
-    setStep(4);
+    setStep(7);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
