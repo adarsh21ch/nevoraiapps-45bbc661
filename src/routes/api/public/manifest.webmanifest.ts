@@ -111,12 +111,11 @@ export const Route = createFileRoute("/api/public/manifest/webmanifest")({
           tenant?.tagline ?? "Register, view fees, and stay in touch with your academy.";
 
         // Tenant PWAs (custom domain or {slug}.nevorai.com) should install as
-        // the parent-facing academy website — hero video, CTAs, gallery — so
-        // tapping the home-screen icon lands on the marketing home ("/"),
-        // never on the owner login/router. The platform PWA on the bare
-        // nevorai.com / lovable.app host keeps the /app-launch behaviour so
-        // owners land in their dashboard.
-        const startUrl = tenant ? (tenantParam ? `/?tenant=${encodeURIComponent(iconTenant)}` : "/") : "/app-launch";
+        // the app-launch target. Tapping the home-screen icon will run the
+        // session restore logic and bounce to /dashboard or /auth, ensuring 
+        // a native app experience that never "opens the website" home.
+        const startUrl = "/app-launch";
+
 
         const manifest = {
           id: startUrl,
