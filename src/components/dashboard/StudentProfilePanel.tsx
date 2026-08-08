@@ -375,7 +375,11 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             <Row label="Permanent Address" value={s.permanent_address || s.address || "—"} multiline />
             <Row label="Email" value={s.email || "—"} />
             <Row label="Phone" value={s.phone} />
-            <Row label="Password" value={s.auth_password_hint || "********"} />
+            <PasswordRow 
+              tenantId={tenant.id}
+              studentId={s.id}
+              hint={s.auth_password_hint} 
+            />
             <IdProofRow 
               label="Aadhaar Front" 
               path={s.aadhaar_front_url} 
@@ -765,7 +769,98 @@ function Row({ label, value, multiline, action }: { label: string; value: string
   );
 }
 
+function PasswordRow({ 
+  tenantId,
+  studentId,
+  hint 
+}: { 
+  tenantId: string;
+  studentId: string;
+  hint?: string | null;
+}) {
+  const [show, setShow] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [newPass, setNewPass] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const handleReset = async () => {
+    if (newPass.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    setBusy(true);
+    try {
+      await resetStudentPassword({ data: { tenantId, studentId, newPassword: newPass } });
+      toast.success("Password updated");
+      setEditing(false);
+      setNewPass("");
+    } catch (e: any) {
+      toast.error(e.message || "Reset failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="px-4 py-3 grid grid-cols-[110px_minmax(0,1fr)] gap-3 items-start border-b border-border/40 last:border-b-0">
+      <dt className="text-xs uppercase tracking-wide text-muted-foreground font-medium pt-1">Password</dt>
+      <dd className="font-medium text-foreground space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 font-mono text-sm tracking-tight">
+            {show ? (hint || "********") : "••••••••"}
+            <button 
+              type="button" 
+              onClick={() => setShow(!show)}
+              className="text-muted-foreground hover:text-foreground p-1"
+            >
+              {show ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+            </button>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-7 text-[11px] px-2 text-primary"
+            onClick={() => setEditing(!editing)}
+          >
+            {editing ? "Cancel" : "Change"}
+          </Button>
+        </div>
+
+        {editing && (
+          <div className="pt-1 space-y-2 animate-in slide-in-from-top-1 duration-200">
+            <div className="relative">
+              <Input
+                size="sm"
+                type="text"
+                placeholder="New 8+ char password"
+                value={newPass}
+                onChange={(e) => setNewPass(e.target.value)}
+                className="h-9 text-xs pr-20"
+                autoComplete="off"
+              />
+              <div className="absolute right-1 top-1">
+                <Button 
+                  size="sm" 
+                  className="h-7 text-[10px] px-2"
+                  onClick={handleReset}
+                  disabled={busy || !newPass}
+                >
+                  {busy ? <Loader2 className="size-3 animate-spin" /> : "Save"}
+                </Button>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground italic">
+              Changes take effect immediately. Students can sign in with this new password.
+            </p>
+          </div>
+        )}
+      </dd>
+    </div>
+  );
+}
+
 function IdProofRow({ 
+
   label, 
   path,
   onUpload,
