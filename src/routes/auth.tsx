@@ -250,17 +250,8 @@ function AuthPage() {
         </h1>
         <p className="mt-2 text-[14px] leading-relaxed text-auth-muted">{subtitle}</p>
 
-        {mode === "signin" && (
-          <div className="mt-6 mb-6">
-            <p className="text-[13px] text-auth-muted">New here?</p>
-            <Link
-              to="/register"
-              className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-accent-auth)] text-[14px] font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
-            >
-              Do Registration →
-            </Link>
-          </div>
-        )}
+        {/* Moved Register CTA to the pill in the layout header per Task C */}
+        
 
         {mode === "signin" && (
           <form onSubmit={onSignIn} className="mt-6 space-y-4" noValidate>
