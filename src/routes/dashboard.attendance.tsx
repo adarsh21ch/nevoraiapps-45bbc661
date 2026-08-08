@@ -1266,35 +1266,36 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
 
   if (state === "in_academy" && row?.check_in_at) {
     return (
-      <span className={cn("inline-flex items-center gap-1 text-[11px]", toneClass)}>
+      <span className={cn("inline-flex items-center gap-1", toneClass)}>
         <span className="size-1 rounded-full bg-current animate-pulse" aria-hidden />
-        In since {format(new Date(row.check_in_at), "h:mm a")}
+        {format(new Date(row.check_in_at), "h:mm a")}
       </span>
-
     );
   }
   if (state === "checked_out" && row?.check_in_at && row?.check_out_at) {
-    const visits = row.visit_count ?? 1;
     const isAuto = row.auto_checked_out;
-    const duration = isAuto ? 0 : (row.duration_minutes ?? 0);
     return (
-      <span className={cn("inline-flex items-center gap-1 text-[11px]", toneClass)}>
-        <Clock className={cn("size-2.5", isAuto && "text-muted-foreground")} />
-        {format(new Date(row.check_in_at), "h:mm a")} –{" "}
-        {format(new Date(row.check_out_at), "h:mm a")} · {formatDuration(duration)}
-        {visits > 1 ? ` · ${visits} visits` : ""}
-
+      <span className={cn("inline-flex items-center gap-1.5", toneClass)}>
+        <span className="flex items-center gap-0.5">
+          <LogIn className="size-2.5 opacity-70" />
+          {format(new Date(row.check_in_at), "h:mm a")}
+        </span>
+        <span className="flex items-center gap-0.5">
+          <LogOut className="size-2.5 opacity-70" />
+          {format(new Date(row.check_out_at), "h:mm a")}
+        </span>
         {isAuto && (
           <span
-            className="ml-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400"
-            title="Student forgot to check out — closed automatically at end of day"
+            className="rounded-full border border-amber-500/30 bg-amber-500/10 px-1 py-0.2 text-[8px] font-medium text-amber-700 dark:text-amber-400"
+            title="Auto checkout"
           >
-            Auto (0h)
+            Auto
           </span>
         )}
       </span>
     );
   }
+
   return <span className={cn("text-[11px]", toneClass)}>{attendanceStateLabels[state]}</span>;
 }
 
