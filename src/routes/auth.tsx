@@ -290,6 +290,19 @@ function AuthPage() {
             <AuthButton type="submit" loading={loading} loadingLabel="Signing in…">
               Sign in
             </AuthButton>
+
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t border-auth-border" />
+              </div>
+              <div className="relative flex justify-center text-[11px] font-semibold uppercase tracking-widest">
+                <span className="bg-auth-bg px-3 text-auth-subtle">New here?</span>
+              </div>
+            </div>
+
+            <Button asChild variant="outline" className="h-[54px] w-full rounded-2xl border-auth-border bg-auth-elevated text-[15px] font-semibold text-auth-foreground hover:bg-auth-border/40">
+              <Link to="/register">Create an account</Link>
+            </Button>
           </form>
         )}
 

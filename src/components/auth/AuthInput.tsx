@@ -29,7 +29,7 @@ export const AuthInput = forwardRef<HTMLInputElement, BaseProps>(function AuthIn
         {label}
       </label>
       <div
-        className={`flex h-[54px] items-center gap-2.5 rounded-2xl border bg-auth-elevated px-3.5 backdrop-blur transition-colors duration-200 focus-within:ring-4 ${
+        className={`group flex h-[54px] items-center gap-2.5 rounded-2xl border bg-auth-elevated px-3.5 backdrop-blur transition-all duration-200 focus-within:ring-4 ${
           error
             ? "border-auth-danger focus-within:ring-[color-mix(in_oklab,var(--auth-danger)_25%,transparent)]"
             : "border-auth-border focus-within:border-[var(--brand-accent-auth)] focus-within:ring-[color-mix(in_oklab,var(--brand-accent-auth)_22%,transparent)]"
@@ -78,7 +78,7 @@ export function PasswordInput({
         {label}
       </label>
       <div
-        className={`flex h-[54px] items-center gap-2.5 rounded-2xl border bg-auth-elevated px-3.5 backdrop-blur transition-colors duration-200 focus-within:ring-4 ${
+        className={`group flex h-[54px] items-center gap-2.5 rounded-2xl border bg-auth-elevated px-3.5 backdrop-blur transition-all duration-200 focus-within:ring-4 ${
           error
             ? "border-auth-danger focus-within:ring-[color-mix(in_oklab,var(--auth-danger)_25%,transparent)]"
             : "border-auth-border focus-within:border-[var(--brand-accent-auth)] focus-within:ring-[color-mix(in_oklab,var(--brand-accent-auth)_22%,transparent)]"
