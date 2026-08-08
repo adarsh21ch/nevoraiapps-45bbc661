@@ -832,6 +832,10 @@ function PasswordRow({
           <div className="pt-1 space-y-2 animate-in slide-in-from-top-1 duration-200">
             <div className="relative">
               <Input
+                type="text"
+                placeholder="New 8+ char password"
+                value={newPass}
+                onChange={(e) => setNewPass(e.target.value)}
                 className="h-9 text-xs pr-20"
                 autoComplete="off"
               />
