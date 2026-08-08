@@ -902,16 +902,14 @@ function RegisterContent() {
                   ]}
                   error={errors.gender}
                 />
-                <Field
-                  label="Contact Number (already filled)"
-                  readOnly
-                  value={form.phone}
-                  onChange={(v) => setForm({ ...form, phone: v })}
-                  placeholder="Optional extra mobile"
-                  inputMode="numeric"
-                  autoComplete="tel"
-                  error={errors.phone}
-                />
+                <div className="space-y-1.5 opacity-60">
+                  <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Contact Number (from account)
+                  </label>
+                  <div className="flex h-[42px] items-center rounded-lg border border-border bg-muted/50 px-3 text-sm text-foreground italic">
+                    {form.phone || "Not provided"}
+                  </div>
+                </div>
                 <div className="sm:col-start-2 sm:row-start-3">
                   <BatchSelect
                     value={form.batch_id}
