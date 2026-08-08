@@ -1722,6 +1722,7 @@ function Field({
   error?: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   autoComplete?: string;
+  readOnly?: boolean;
 }) {
   return (
     <label className="block">
@@ -1735,10 +1736,12 @@ function Field({
         placeholder={placeholder}
         inputMode={inputMode}
         autoComplete={autoComplete}
+        readOnly={readOnly}
         aria-invalid={error ? true : undefined}
         className={cn(
           "mt-1.5 block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2",
           error ? "border-red-500" : "border-border",
+          readOnly && "bg-muted/50 cursor-not-allowed opacity-80",
         )}
         style={{ boxShadow: "none" }}
         onFocus={(e) => (e.currentTarget.style.borderColor = error ? "" : "var(--brand)")}
