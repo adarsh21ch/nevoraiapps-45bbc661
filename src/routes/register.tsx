@@ -732,7 +732,7 @@ function RegisterContent() {
             </Link>
           </div>
         </div>
-        {!done && isMobile ? (
+        {!done ? (
           <div className="mx-auto w-full max-w-3xl px-4 pb-3">
             <div className="flex items-baseline justify-between">
               <span className="text-sm font-semibold text-foreground">
