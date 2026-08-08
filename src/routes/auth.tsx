@@ -375,22 +375,6 @@ function AuthPage() {
           </form>
         )}
 
-        {mode === "signin" && (
-          <div className="mt-7 border-t border-auth-border pt-5">
-            <p className="text-[13px] text-auth-muted">
-              New to {brand.resolved ? brand.name : "the academy"}?
-            </p>
-            <Link
-              to="/register"
-              className="mt-2 flex h-[50px] w-full items-center justify-center gap-2 rounded-2xl border border-transparent bg-[var(--brand-accent-auth)] text-[14px] font-bold text-white shadow-lg transition-all hover:opacity-90 active:scale-[0.98]"
-            >
-              Do Registration →
-            </Link>
-            <p className="mt-4 text-center text-[11px] uppercase tracking-[0.18em] text-auth-subtle">
-              Student · Parent · Academy staff
-            </p>
-          </div>
-        )}
       </motion.div>
     </AcademyAuthLayout>
   );
