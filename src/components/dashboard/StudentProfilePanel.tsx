@@ -122,6 +122,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteStep, setDeleteStep] = useState(1);
   const [side, setSide] = useState<"front" | "back">("front");
+  const [resetPassOpen, setResetPassOpen] = useState(false);
+  const resetPass = useServerFn(resetStudentPassword);
+
 
 
 
