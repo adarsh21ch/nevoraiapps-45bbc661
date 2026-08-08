@@ -441,21 +441,25 @@ function RegisterContent() {
       toast.error("Please fill all required fields.");
       return;
     }
-    // Account credentials — become the applicant's login after approval.
-    const emailTrim = form.email.trim().toLowerCase();
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim);
-    if (!emailOk) {
-      toast.error("Please enter a valid email address.");
-      return;
+
+    if (!existingReg) {
+      // Account credentials — become the applicant's login after approval.
+      const emailTrim = form.email.trim().toLowerCase();
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim);
+      if (!emailOk) {
+        toast.error("Please enter a valid email address.");
+        return;
+      }
+      if (form.password.length < 8) {
+        toast.error("Password must be at least 8 characters.");
+        return;
+      }
+      if (form.password !== form.password2) {
+        toast.error("Passwords do not match.");
+        return;
+      }
     }
-    if (form.password.length < 8) {
-      toast.error("Password must be at least 8 characters.");
-      return;
-    }
-    if (form.password !== form.password2) {
-      toast.error("Passwords do not match.");
-      return;
-    }
+
     if (!termsAccepted) {
       toast.error("Please accept the Terms & Conditions to continue.");
       return;
@@ -497,47 +501,70 @@ function RegisterContent() {
       return;
     }
 
-    // 1) Create the applicant's auth account (browser → Supabase Auth directly;
-    // password never touches our servers).
-    const { data: authData, error: authErr } = await supabase.auth.signUp({
-      email: emailTrim,
-      password: form.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth`,
-        data: { full_name: form.name.trim(), tenant_slug: tenant.slug },
-      },
-    });
-    if (authErr) {
-      setSaving(false);
-      const msg = authErr.message || "";
-      if (/already|registered|exist/i.test(msg)) {
-        toast.error("This email is already registered. Please sign in first, then submit.");
-      } else {
-        toast.error(msg || "Could not create your account. Please try again.");
+    let applicantUserId: string | null = null;
+    if (!existingReg) {
+      // 1) Create the applicant's auth account (browser → Supabase Auth directly;
+      // password never touches our servers).
+      const emailTrim = form.email.trim().toLowerCase();
+      const { data: authData, error: authErr } = await supabase.auth.signUp({
+        email: emailTrim,
+        password: form.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth`,
+          data: { full_name: form.name.trim(), tenant_slug: tenant.slug },
+        },
+      });
+      if (authErr) {
+        setSaving(false);
+        const msg = authErr.message || "";
+        if (/already|registered|exist/i.test(msg)) {
+          toast.error("This email is already registered. Please sign in first, then submit.");
+        } else {
+          toast.error(msg || "Could not create your account. Please try again.");
+        }
+        return;
       }
-      return;
+      applicantUserId = authData.user?.id ?? null;
+    } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      applicantUserId = user?.id ?? null;
     }
-    const applicantUserId = authData.user?.id ?? null;
 
     const [dd, mm, yyyy] = (form.dob || "").split("/");
     const isoDob = dd && mm && yyyy ? `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}` : null;
 
-    const { data, error } = await supabase.rpc(
-      "submit_registration" as never,
-      {
-        _tenant_id: tenant.id,
+    let res;
+    if (existingReg) {
+      res = await supabase.rpc("resubmit_registration" as never, {
+        _registration_id: existingReg.id,
         _name: form.name.trim(),
         _phone: form.phone.trim(),
         _fee_plan_id: defaultPlan.id,
         _batch_id: form.batch_id || null,
         _dob: isoDob,
         _guardian_name: form.guardian_name.trim() || null,
-        _guardian_phone: null,
-        _whatsapp: null,
-        _policy_acceptances: acceptances as unknown as never,
-        _lead_id: leadId ?? null,
-      } as never,
-    );
+        _address: form.current_address.trim() || null,
+        _gender: form.gender || null
+      } as any);
+    } else {
+      res = await supabase.rpc(
+        "submit_registration" as never,
+        {
+          _tenant_id: tenant.id,
+          _name: form.name.trim(),
+          _phone: form.phone.trim(),
+          _fee_plan_id: defaultPlan.id,
+          _batch_id: form.batch_id || null,
+          _dob: isoDob,
+          _guardian_name: form.guardian_name.trim() || null,
+          _guardian_phone: null,
+          _whatsapp: null,
+          _policy_acceptances: acceptances as unknown as never,
+          _lead_id: leadId ?? null,
+        } as never,
+      );
+    }
+    const { data, error } = res;
     // Persist email + profile extras and link applicant_user_id via
     // SECURITY DEFINER RPC (tenant-scoped RLS blocks a direct client UPDATE
     // by the just-signed-up applicant).
