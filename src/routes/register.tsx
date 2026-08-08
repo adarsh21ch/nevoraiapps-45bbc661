@@ -32,12 +32,15 @@ const REQUIRED_POLICIES: PolicyKind[] = ["terms", "privacy", "fee", "medical"];
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
 
 const STEP_TITLES = [
-  "Create your account",
-  "Student details",
-  "Optional details",
+  "Account setup",
+  "Primary info",
+  "Contact info",
+  "Identity docs",
+  "Sport profile",
+  "Physical profile",
   "Review & submit",
 ] as const;
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 
 type RegisterSearch = { lead?: string };
@@ -190,10 +193,10 @@ function RegisterContent() {
               current_address: regData.address || profile.current_address || "",
               permanent_address: profile.permanent_address || "",
               village_locality: profile.village_locality || "",
-              city: profile.city || "",
+              city: profile.city || profile.village_locality || "",
               state: profile.state || "",
               gender: regData.gender || "",
-              medical_notes: regData.medical_notes || "",
+              medical_notes: profile.medical_notes || regData.medical_notes || "",
               aadhaar_front_url: profile.aadhaar_front_url || "",
               aadhaar_back_url: profile.aadhaar_back_url || "",
               photo_url: profile.photo_url || "",
@@ -342,13 +345,11 @@ function RegisterContent() {
         }
       }
       if (!form.gender) e.gender = "Required.";
-      if (!form.phone.trim()) e.phone = "Required.";
+      if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
+    } else if (n === 3) {
       if (!form.city.trim()) e.city = "Required.";
       if (!form.state.trim()) e.state = "Required.";
       if (!form.current_address.trim()) e.current_address = "Required.";
-      // Aadhaar photos are optional — academy can collect them later.
-
-      if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -356,7 +357,7 @@ function RegisterContent() {
   function goNext() {
     if (!validateStep(step)) return;
     setErrors({});
-    setStep((s) => Math.min(4, s + 1) as Step);
+    setStep((s) => Math.min(7, s + 1) as Step);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function goBack() {
@@ -366,7 +367,7 @@ function RegisterContent() {
   }
   function skipOptional() {
     setErrors({});
-    setStep(4);
+    setStep(7);
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -738,13 +739,13 @@ function RegisterContent() {
                 {STEP_TITLES[step - 1]}
               </span>
               <span className="text-[11px] font-medium text-muted-foreground">
-                Step {step} of 4
+                Step {step} of 7
               </span>
             </div>
             <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full transition-all duration-300"
-                style={{ width: `${step * 25}%`, backgroundColor: "var(--brand)" }}
+                style={{ width: `${(step / 7) * 100}%`, backgroundColor: "var(--brand)" }}
               />
             </div>
           </div>
@@ -766,7 +767,7 @@ function RegisterContent() {
 
           {/* Step 1 — Account */}
           {showStep(1) && !existingReg ? (
-            <Section title="Create your account">
+            <Section title="Account setup">
               <p className="mb-3 text-xs text-muted-foreground">
                 You'll sign in with these details to see the status of your application and,
                 once approved, your student dashboard.
@@ -845,9 +846,9 @@ function RegisterContent() {
             </Section>
           ) : null}
 
-          {/* Step 2 — Student details */}
+          {/* Step 2 — Primary info */}
           {showStep(2) ? (
-            <Section title="Student details">
+            <Section title="Primary info">
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   label="Student name *"
@@ -906,15 +907,7 @@ function RegisterContent() {
                   ]}
                   error={errors.gender}
                 />
-                <div className="space-y-1.5 opacity-60">
-                  <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Contact Number (from account)
-                  </label>
-                  <div className="flex h-[42px] items-center rounded-lg border border-border bg-muted/50 px-3 text-sm text-foreground italic">
-                    {form.phone || "Not provided"}
-                  </div>
-                </div>
-                <div className="sm:col-start-2 sm:row-start-3">
+                <div className="sm:col-span-2">
                   <BatchSelect
                     value={form.batch_id}
                     onChange={(v) => setForm({ ...form, batch_id: v })}
@@ -933,6 +926,14 @@ function RegisterContent() {
                     tenant={tenant}
                   />
                 </div>
+              </div>
+            </Section>
+          ) : null}
+
+          {/* Step 3 — Contact info */}
+          {showStep(3) ? (
+            <Section title="Contact & Address">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2 space-y-4">
                   <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-4">
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -1000,7 +1001,14 @@ function RegisterContent() {
                     />
                   </div>
                 </div>
+              </div>
+            </Section>
+          ) : null}
 
+          {/* Step 4 — Identity docs */}
+          {showStep(4) ? (
+            <Section title="Identity & Photos">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
                     Aadhaar Card Verification (optional)
@@ -1045,95 +1053,88 @@ function RegisterContent() {
             </Section>
           ) : null}
 
-          {/* Step 3 — Optional details (all grouped) */}
-          {showStep(3) ? (
-            <>
-              {isMobile ? (
-                <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
-                  These details help your coach plan better. You can add them later in your student
-                  profile — tap <span className="font-medium text-foreground">Skip for now</span> to
-                  continue.
-                </div>
-              ) : null}
-              <Section title="Physical details">
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <Field
-                    label="Height (cm)"
-                    type="number"
-                    value={form.height_cm}
-                    onChange={(v) => setForm({ ...form, height_cm: v })}
-                    placeholder="e.g. 165"
-                    inputMode="numeric"
-                  />
-                  <Field
-                    label="Weight (kg)"
-                    type="number"
-                    value={form.weight_kg}
-                    onChange={(v) => setForm({ ...form, weight_kg: v })}
-                    placeholder="e.g. 55"
-                    inputMode="numeric"
-                  />
-                  <SelectField
-                    label="Blood group"
-                    value={form.blood_group}
-                    onChange={(v) => setForm({ ...form, blood_group: v })}
-                    options={[
-                      { value: "", label: "Select" },
-                      ...BLOOD_GROUPS.map((g) => ({ value: g, label: g })),
-                    ]}
-                  />
-                </div>
-              </Section>
-
-              <Section title="Cricket profile">
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <SelectField
-                    label="Batting style"
-                    value={form.batting_style}
-                    onChange={(v) => setForm({ ...form, batting_style: v })}
-                    options={[
-                      { value: "", label: "Not sure yet" },
-                      { value: "right-hand", label: "Right hand" },
-                      { value: "left-hand", label: "Left hand" },
-                    ]}
-                  />
-                  <SelectField
-                    label="Bowling style"
-                    value={form.bowling_style}
-                    onChange={(v) => setForm({ ...form, bowling_style: v })}
-                    options={[
-                      { value: "", label: "Not sure yet" },
-                      { value: "right-arm", label: "Right arm" },
-                      { value: "left-arm", label: "Left arm" },
-                    ]}
-                  />
-                  <SelectField
-                    label="Playing role"
-                    value={form.interests}
-                    onChange={(v) => setForm({ ...form, interests: v })}
-                    options={[
-                      { value: "", label: "Not sure yet" },
-                      { value: "batter", label: "Batter" },
-                      { value: "bowler", label: "Bowler" },
-                      { value: "all-rounder", label: "All rounder" },
-                      { value: "wicket-keeper-batter", label: "Wicketkeeper batsman" },
-                    ]}
-                  />
-                </div>
-              </Section>
-
-              <Section title="Medical (optional)">
-                <TextArea
-                  label="Allergies, conditions or other notes"
-                  value={form.medical_notes}
-                  onChange={(v) => setForm({ ...form, medical_notes: v })}
+          {/* Step 5 — Sport profile */}
+          {showStep(5) ? (
+            <Section title="Cricket profile">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <SelectField
+                  label="Batting style"
+                  value={form.batting_style}
+                  onChange={(v) => setForm({ ...form, batting_style: v })}
+                  options={[
+                    { value: "", label: "Not sure yet" },
+                    { value: "right-hand", label: "Right hand" },
+                    { value: "left-hand", label: "Left hand" },
+                  ]}
                 />
-              </Section>
-            </>
+                <SelectField
+                  label="Bowling style"
+                  value={form.bowling_style}
+                  onChange={(v) => setForm({ ...form, bowling_style: v })}
+                  options={[
+                    { value: "", label: "Not sure yet" },
+                    { value: "right-arm", label: "Right arm" },
+                    { value: "left-arm", label: "Left arm" },
+                  ]}
+                />
+                <SelectField
+                  label="Playing role"
+                  value={form.interests}
+                  onChange={(v) => setForm({ ...form, interests: v })}
+                  options={[
+                    { value: "", label: "Not sure yet" },
+                    { value: "batter", label: "Batter" },
+                    { value: "bowler", label: "Bowler" },
+                    { value: "all-rounder", label: "All rounder" },
+                    { value: "wicket-keeper-batter", label: "Wicketkeeper batsman" },
+                  ]}
+                />
+              </div>
+            </Section>
           ) : null}
 
-          {/* Step 4 — Review, policies, terms, submit */}
-          {showStep(4) ? (
+          {/* Step 6 — Physical profile */}
+          {showStep(6) ? (
+            <Section title="Physical & Medical">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field
+                  label="Height (cm)"
+                  type="number"
+                  value={form.height_cm}
+                  onChange={(v) => setForm({ ...form, height_cm: v })}
+                  placeholder="e.g. 165"
+                  inputMode="numeric"
+                />
+                <Field
+                  label="Weight (kg)"
+                  type="number"
+                  value={form.weight_kg}
+                  onChange={(v) => setForm({ ...form, weight_kg: v })}
+                  placeholder="e.g. 55"
+                  inputMode="numeric"
+                />
+                <SelectField
+                  label="Blood group"
+                  value={form.blood_group}
+                  onChange={(v) => setForm({ ...form, blood_group: v })}
+                  options={[
+                    { value: "", label: "Select" },
+                    ...BLOOD_GROUPS.map((g) => ({ value: g, label: g })),
+                  ]}
+                />
+                <div className="sm:col-span-2">
+                  <TextArea
+                    label="Medical (optional): Allergies, conditions or other notes"
+                    value={form.medical_notes}
+                    onChange={(v) => setForm({ ...form, medical_notes: v })}
+                  />
+                </div>
+              </div>
+            </Section>
+          ) : null}
+
+          {/* Step 7 — Review & submit */}
+          {showStep(7) ? (
             <>
               {isMobile ? (
                 <Section title="Review your details">
@@ -1295,8 +1296,8 @@ function RegisterContent() {
             </>
           ) : null}
 
-          {/* Mobile-only sticky nav (steps 1–3) */}
-          {isMobile && step < 4 && !saving ? (
+          {/* Mobile-only sticky nav (steps 1–6) */}
+          {isMobile && step < 7 && !saving ? (
             <div
               className="sticky bottom-0 z-20 -mx-4 flex items-center gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
               style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}
@@ -1312,7 +1313,7 @@ function RegisterContent() {
               ) : (
                 <div />
               )}
-              {step === 3 ? (
+              {step >= 5 && step <= 6 ? (
                 <button
                   type="button"
                   onClick={skipOptional}
@@ -1327,7 +1328,7 @@ function RegisterContent() {
                 className="ml-auto inline-flex flex-1 items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-white shadow-md disabled:opacity-60"
                 style={{ backgroundColor: "var(--brand)" }}
               >
-                {step === 3 ? "Review" : "Next"}
+                {step === 6 ? "Review" : "Next"}
               </button>
             </div>
           ) : null}

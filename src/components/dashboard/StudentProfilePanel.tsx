@@ -335,7 +335,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           />
         ) : (
           <dl className="divide-y divide-border text-sm">
-            <Row label="Login Email" value={s.email || "—"} />
+            <Row label="Email" value={s.email || "—"} />
             <Row 
               label="Password" 
               value="********" 
@@ -375,7 +375,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             <Row label="State" value={s.state || "—"} />
             <Row label="Current Address" value={s.current_address || "—"} multiline />
             <Row label="Permanent Address" value={s.permanent_address || s.address || "—"} multiline />
-            <Row label="Email" value={s.email || "—"} />
+            {/* Row removed: duplicate email */}
             <Row label="Phone" value={s.phone} />
             <PasswordRow 
               tenantId={tenant.id}
@@ -402,14 +402,15 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             />
             <Row label="Batch" value={batch?.name || "—"} />
             <Row label="Fee plan" value={plan?.name || "—"} />
-            <Row
-              label="Joined"
-              value={new Date(s.joined_at).toLocaleDateString("en-IN", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
-            />
+            <Row label="Joined" value={new Date(s.joined_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} />
+            {/* Displaying additional athletic profile details if available */}
+            <Row label="Height (cm)" value={s.height_cm ? String(s.height_cm) : "—"} />
+            <Row label="Weight (kg)" value={s.weight_kg ? String(s.weight_kg) : "—"} />
+            <Row label="Blood Group" value={s.blood_group || "—"} />
+            <Row label="Batting Style" value={s.batting_style || "—"} />
+            <Row label="Bowling Style" value={s.bowling_style || "—"} />
+            <Row label="Playing Role" value={s.interests || "—"} />
+            <Row label="Medical Notes" value={s.medical_notes || "—"} multiline />
           </dl>
         )}
       </div>
