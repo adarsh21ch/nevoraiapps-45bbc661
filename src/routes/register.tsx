@@ -371,7 +371,7 @@ function RegisterContent() {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  const showStep = (s: Step) => !isMobile || step === s;
+  const showStep = (s: Step) => step === s;
 
 
 
