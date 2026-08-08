@@ -1266,7 +1266,8 @@ function RegisterContent() {
                     : undefined
                 }
               >
-                <div className={cn("flex gap-2", "items-center")}>
+                <div className="flex gap-2 items-center">
+                  {/* Step 7 has its own back button logic to return to step 6 */}
                   <button
                     type="button"
                     onClick={goBack}
