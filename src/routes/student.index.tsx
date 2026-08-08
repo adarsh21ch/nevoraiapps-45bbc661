@@ -171,6 +171,7 @@ function StudentHomePage() {
             });
             return;
           }
+
           setScanOpen(true);
         }}
         className={cn(
