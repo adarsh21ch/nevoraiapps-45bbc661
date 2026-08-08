@@ -1342,10 +1342,10 @@ function RegisterContent() {
           </div>
           <h2 className="mt-6 text-2xl font-bold text-foreground">Congratulations! 🎉</h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            Your registration is complete. You are being redirected to your dashboard...
+            Your registration is complete. We've sent your details to the academy for review.
           </p>
 
-          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          <div className="mt-8 flex flex-col items-center gap-4">
             <Link
               to="/student"
               className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-base font-bold text-white shadow-xl hover:opacity-90 transition-all active:scale-95"
@@ -1353,6 +1353,7 @@ function RegisterContent() {
             >
               Go to Dashboard
             </Link>
+            <p className="text-xs text-muted-foreground animate-pulse">Redirecting you to your dashboard in 2 seconds...</p>
           </div>
 
           <script dangerouslySetInnerHTML={{ __html: `setTimeout(() => { window.location.href = '/student'; }, 2000);` }} />
