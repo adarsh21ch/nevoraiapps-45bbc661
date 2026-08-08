@@ -324,6 +324,7 @@ function RegisterContent() {
       const emailTrim = form.email.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim))
         e.email = "Enter a valid email address.";
+      if (!form.phone.trim()) e.phone = "Enter your phone number.";
       if (form.password.length < 8) e.password = "At least 8 characters.";
       if (form.password !== form.password2) e.password2 = "Passwords do not match.";
     } else if (n === 2) {
