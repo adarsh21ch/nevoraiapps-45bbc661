@@ -82,6 +82,13 @@ function ProfilePage() {
           <>
             <Divider />
             <Row
+              icon={ImageIcon}
+              label="Website"
+              hint="Public match center widget editor"
+              onClick={() => navigate({ to: "/match-center/website" })}
+            />
+            <Divider />
+            <Row
               icon={ShieldCheck}
               label="Scorers"
               hint="Manage authorised scorers"
