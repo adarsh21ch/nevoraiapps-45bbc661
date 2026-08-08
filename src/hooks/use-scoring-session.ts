@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import {
@@ -530,7 +531,19 @@ export function useScoringSession(
         )
         .catch((e) => {
           console.error("[scoring] append failed, reverting", e);
+          toast.error("Ball not saved — network error. Retrying...");
+          
+          // Basic retry logic
+          const retry = () => submitBall(partial);
+          setTimeout(retry, 2000);
+
           const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
+          if (!wasLatest) {
+            // If it's not the latest ball, we have a rotation mismatch risk.
+            // Block further input until sync? For now, we revert and toast.
+            toast.error("Sync error: rotation may be incorrect. Please refresh.");
+          }
+
           eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
           setEvents(eventsRef.current);
           if (wasLatest) {

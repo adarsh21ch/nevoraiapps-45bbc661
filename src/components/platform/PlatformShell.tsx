@@ -29,15 +29,20 @@ import { usePlatform } from "@/lib/platform-context";
 const nav = [
   { to: "/platform-admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { to: "/platform-admin/tenants", label: "Tenants", icon: Building2 },
+  { to: "/platform-admin/founder", label: "Founder KPIs", icon: Trophy },
   { to: "/platform-admin/subscriptions", label: "Subscriptions", icon: Receipt },
   { to: "/platform-admin/usage", label: "Usage metrics", icon: BarChart3 },
   { to: "/platform-admin/communication", label: "Infrastructure", icon: Radio },
   { to: "/platform-admin/audit", label: "Audit trail", icon: ScrollText },
   { to: "/platform-admin/health", label: "System health", icon: Activity },
   { to: "/platform-admin/search", label: "Global search", icon: Search },
-  
+  { to: "/platform-admin/push", label: "Push config", icon: BellRing },
+  { to: "/platform-admin/sports", label: "Sports catalog", icon: Plus },
+  { to: "/platform-admin/flags", label: "Feature flags", icon: Sparkles },
+  { to: "/platform-admin/support", label: "Support inbox", icon: LifeBuoy },
+  { to: "/platform-admin/nevorai", label: "NevorAI debug", icon: Activity },
+  { to: "/platform-admin/payment-settings", label: "Payment gateway", icon: CreditCard },
   { to: "/platform-admin/settings", label: "Platform config", icon: Settings },
-
 ];
 
 export function PlatformShell({ children }: { children: ReactNode }) {

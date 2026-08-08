@@ -623,11 +623,15 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     if (!session.match || !session.activeInnings) return;
     const target = session.matchState.innings.runs + 1;
     try {
-      // Complete current innings then start next
-      await supabase
+      // 1. Close the first innings first with error check
+      const { error: closeError } = await supabase
         .from("mc_innings")
         .update({ status: "completed", completed_at: new Date().toISOString() })
         .eq("id", session.activeInnings.id);
+      
+      if (closeError) throw closeError;
+
+      // 2. Only if close succeeded, start next innings
       await session.startInnings({
         inningsNumber: 2,
         battingTeamId: session.activeInnings.bowling_team_id,
@@ -640,6 +644,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       setInningsCompleteOpen(false);
       toast.success(`Innings 2 · target ${target}`);
     } catch (e) {
+      console.error("Error starting second innings:", e);
       toast.error(e instanceof Error ? e.message : "Could not start next innings");
     }
   };
@@ -1790,25 +1795,6 @@ function DemoScorerBody({
     else void finalizeWicket(DISMISSAL_MAP[kind]);
   };
 
-  const startSecondInnings = async () => {
-    if (!match || !activeInnings) return;
-    const target = session.matchState.innings.runs + 1;
-    try {
-      await session.startInnings({
-        inningsNumber: 2,
-        battingTeamId: activeInnings.bowling_team_id,
-        bowlingTeamId: activeInnings.batting_team_id,
-        target,
-      });
-      session.setStriker({ athleteId: null, name: null, onStrike: true });
-      session.setNonStriker({ athleteId: null, name: null, onStrike: false });
-      session.setBowler({ athleteId: null, name: null });
-      setInningsCompleteOpen(false);
-      toast.success(`Innings 2 · target ${target}`);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not start next innings");
-    }
-  };
 
   const resultLine = (() => {
     const ms = session.matchState;
@@ -1848,6 +1834,19 @@ function DemoScorerBody({
     setMatchCompleteOpen(false);
     setInningsCompleteOpen(false);
     toast.success("Demo match finalized");
+  };
+
+  const startSecondInnings = async () => {
+    if (!session.activeInnings) return;
+    const target = stats.team.runs + 1;
+    await session.startInnings({
+      inningsNumber: 2,
+      battingTeamId: session.activeInnings.bowling_team_id,
+      bowlingTeamId: session.activeInnings.batting_team_id,
+      target,
+    });
+    setInningsCompleteOpen(false);
+    toast.success(`Demo Innings 2 · target ${target}`);
   };
 
   useEffect(() => {
