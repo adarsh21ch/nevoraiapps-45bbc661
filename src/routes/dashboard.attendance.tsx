@@ -1263,10 +1263,11 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
 
   if (state === "in_academy" && row?.check_in_at) {
     return (
-      <span className={cn("inline-flex items-center gap-1 text-sm", toneClass)}>
-        <span className="size-1.5 rounded-full bg-current animate-pulse" aria-hidden />
+      <span className={cn("inline-flex items-center gap-1 text-[11px]", toneClass)}>
+        <span className="size-1 rounded-full bg-current animate-pulse" aria-hidden />
         In since {format(new Date(row.check_in_at), "h:mm a")}
       </span>
+
     );
   }
   if (state === "checked_out" && row?.check_in_at && row?.check_out_at) {
