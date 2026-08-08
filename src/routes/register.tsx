@@ -32,12 +32,15 @@ const REQUIRED_POLICIES: PolicyKind[] = ["terms", "privacy", "fee", "medical"];
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
 
 const STEP_TITLES = [
-  "Create your account",
-  "Student details",
-  "Optional details",
+  "Account setup",
+  "Primary info",
+  "Contact info",
+  "Identity docs",
+  "Sport profile",
+  "Physical profile",
   "Review & submit",
 ] as const;
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 
 type RegisterSearch = { lead?: string };
