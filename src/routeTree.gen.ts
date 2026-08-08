@@ -145,6 +145,7 @@ import { Route as DashboardCoachApprovalsRouteImport } from './routes/dashboard.
 import { Route as DashboardCoachAnalyticsRouteImport } from './routes/dashboard.coach.analytics'
 import { Route as ApiPublicTenantIconRouteImport } from './routes/api/public/tenant-icon'
 import { Route as ApiPublicSitemapXmlRouteImport } from './routes/api/public/sitemap.xml'
+import { Route as ApiPublicRobotsTxtRouteImport } from './routes/api/public/robots.txt'
 import { Route as ApiPublicManifestWebmanifestRouteImport } from './routes/api/public/manifest.webmanifest'
 import { Route as ApiPublicHooksSubscriptionCheckRouteImport } from './routes/api/public/hooks/subscription-check'
 import { Route as ApiPublicHooksOwnerSummariesRouteImport } from './routes/api/public/hooks/owner-summaries'
@@ -849,6 +850,11 @@ const ApiPublicSitemapXmlRoute = ApiPublicSitemapXmlRouteImport.update({
   path: '/api/public/sitemap/xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRobotsTxtRoute = ApiPublicRobotsTxtRouteImport.update({
+  id: '/api/public/robots/txt',
+  path: '/api/public/robots/txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicManifestWebmanifestRoute =
   ApiPublicManifestWebmanifestRouteImport.update({
     id: '/api/public/manifest/webmanifest',
@@ -1048,6 +1054,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
+  '/api/public/robots/txt': typeof ApiPublicRobotsTxtRoute
   '/api/public/sitemap/xml': typeof ApiPublicSitemapXmlRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
@@ -1189,6 +1196,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
+  '/api/public/robots/txt': typeof ApiPublicRobotsTxtRoute
   '/api/public/sitemap/xml': typeof ApiPublicSitemapXmlRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
@@ -1337,6 +1345,7 @@ export interface FileRoutesById {
   '/api/public/hooks/owner-summaries': typeof ApiPublicHooksOwnerSummariesRoute
   '/api/public/hooks/subscription-check': typeof ApiPublicHooksSubscriptionCheckRoute
   '/api/public/manifest/webmanifest': typeof ApiPublicManifestWebmanifestRoute
+  '/api/public/robots/txt': typeof ApiPublicRobotsTxtRoute
   '/api/public/sitemap/xml': typeof ApiPublicSitemapXmlRoute
   '/api/public/payments/$provider/webhook': typeof ApiPublicPaymentsProviderWebhookRoute
 }
@@ -1486,6 +1495,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/owner-summaries'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
+    | '/api/public/robots/txt'
     | '/api/public/sitemap/xml'
     | '/api/public/payments/$provider/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -1627,6 +1637,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/owner-summaries'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
+    | '/api/public/robots/txt'
     | '/api/public/sitemap/xml'
     | '/api/public/payments/$provider/webhook'
   id:
@@ -1774,6 +1785,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/owner-summaries'
     | '/api/public/hooks/subscription-check'
     | '/api/public/manifest/webmanifest'
+    | '/api/public/robots/txt'
     | '/api/public/sitemap/xml'
     | '/api/public/payments/$provider/webhook'
   fileRoutesById: FileRoutesById
@@ -1829,6 +1841,7 @@ export interface RootRouteChildren {
   ApiPublicHooksOwnerSummariesRoute: typeof ApiPublicHooksOwnerSummariesRoute
   ApiPublicHooksSubscriptionCheckRoute: typeof ApiPublicHooksSubscriptionCheckRoute
   ApiPublicManifestWebmanifestRoute: typeof ApiPublicManifestWebmanifestRoute
+  ApiPublicRobotsTxtRoute: typeof ApiPublicRobotsTxtRoute
   ApiPublicSitemapXmlRoute: typeof ApiPublicSitemapXmlRoute
   ApiPublicPaymentsProviderWebhookRoute: typeof ApiPublicPaymentsProviderWebhookRoute
 }
@@ -2787,6 +2800,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSitemapXmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/robots/txt': {
+      id: '/api/public/robots/txt'
+      path: '/api/public/robots/txt'
+      fullPath: '/api/public/robots/txt'
+      preLoaderRoute: typeof ApiPublicRobotsTxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/manifest/webmanifest': {
       id: '/api/public/manifest/webmanifest'
       path: '/api/public/manifest/webmanifest'
@@ -3192,9 +3212,20 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksOwnerSummariesRoute: ApiPublicHooksOwnerSummariesRoute,
   ApiPublicHooksSubscriptionCheckRoute: ApiPublicHooksSubscriptionCheckRoute,
   ApiPublicManifestWebmanifestRoute: ApiPublicManifestWebmanifestRoute,
+  ApiPublicRobotsTxtRoute: ApiPublicRobotsTxtRoute,
   ApiPublicSitemapXmlRoute: ApiPublicSitemapXmlRoute,
   ApiPublicPaymentsProviderWebhookRoute: ApiPublicPaymentsProviderWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
