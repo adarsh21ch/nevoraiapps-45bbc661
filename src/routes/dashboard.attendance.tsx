@@ -1189,27 +1189,27 @@ function StudentRow({
           readOnly ? (
             <HistoryStatusChip state={state} />
           ) : canMark ? (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               {state === "in_academy" ? (
                 <Button
                   size="sm"
                   variant="secondary"
                   onClick={onCheckOut}
                   disabled={busy}
-                  className="min-h-11 min-w-11"
+                  className="h-8 w-8 p-0"
                   aria-label={`Check out ${student.name}`}
                 >
-                  <LogOut className="size-4" /> Check Out
+                  <LogOut className="size-3.5" />
                 </Button>
               ) : state === "checked_out" ? (
                 <Button
                   size="sm"
                   variant="ghost"
                   disabled
-                  className="min-h-11 min-w-11 text-emerald-600 dark:text-emerald-400"
+                  className="h-8 w-8 p-0 text-emerald-600 dark:text-emerald-400"
                   aria-label={`${student.name} completed`}
                 >
-                  <CheckCircle2 className="size-4" /> Completed
+                  <CheckCircle2 className="size-3.5" />
                 </Button>
               ) : (
                 <Button
@@ -1217,13 +1217,14 @@ function StudentRow({
                   variant="default"
                   onClick={onCheckIn}
                   disabled={busy}
-                  className="min-h-11 min-w-11"
+                  className="h-8 w-8 p-0"
                   aria-label={`Check in ${student.name}`}
                 >
-                  <LogIn className="size-4" /> Check In
+                  <LogIn className="size-3.5" />
                 </Button>
               )}
             </div>
+
           ) : null
         }
       />
