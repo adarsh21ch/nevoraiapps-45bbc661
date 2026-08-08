@@ -192,9 +192,14 @@ function RegisterContent() {
               address: regData.address || "",
               current_address: regData.address || profile.current_address || "",
               permanent_address: profile.permanent_address || "",
-              village_locality: profile.village_locality || "",
-              city: profile.city || profile.village_locality || "",
-              state: profile.state || "",
+              current_village: profile.current_village || profile.village_locality || "",
+              current_city: profile.current_city || profile.city || profile.village_locality || "",
+              current_state: profile.current_state || profile.state || "",
+              permanent_village: profile.permanent_village || "",
+              permanent_city: profile.permanent_city || "",
+              permanent_state: profile.permanent_state || "",
+              permanent_landmark: profile.permanent_landmark || "",
+              is_same_address: !!profile.is_same_address,
               gender: regData.gender || "",
               medical_notes: profile.medical_notes || regData.medical_notes || "",
               aadhaar_front_url: profile.aadhaar_front_url || "",
@@ -351,9 +356,13 @@ function RegisterContent() {
       if (!form.gender) e.gender = "Required.";
       if (batches.length > 0 && !form.batch_id) e.batch_id = "Required.";
     } else if (n === 3) {
-      if (!form.city.trim()) e.city = "Required.";
-      if (!form.state.trim()) e.state = "Required.";
+      if (!form.current_city.trim()) e.current_city = "Required.";
+      if (!form.current_state.trim()) e.current_state = "Required.";
       if (!form.current_address.trim()) e.current_address = "Required.";
+      if (!form.permanent_village.trim()) e.permanent_village = "Required.";
+      if (!form.permanent_city.trim()) e.permanent_city = "Required.";
+      if (!form.permanent_state.trim()) e.permanent_state = "Required.";
+      if (!form.permanent_address.trim()) e.permanent_address = "Required.";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -423,13 +432,23 @@ function RegisterContent() {
   useEffect(() => {
     if (tenant.address) {
       const addr = tenant.address.toLowerCase();
-      // Heuristic: check if Chhatarpur is in the address
       if (addr.includes("chhatarpur")) {
-        setForm(f => ({ ...f, city: f.city || "Chhatarpur", state: f.state || "Madhya Pradesh" }));
+        setForm(f => ({ 
+          ...f, 
+          current_city: f.current_city || "Chhatarpur", 
+          current_state: f.current_state || "Madhya Pradesh",
+          permanent_city: f.permanent_city || "Chhatarpur",
+          permanent_state: f.permanent_state || "Madhya Pradesh"
+        }));
       }
     } else {
-      // Global fallback for Academy OS current context
-      setForm(f => ({ ...f, city: f.city || "Chhatarpur", state: f.state || "Madhya Pradesh" }));
+      setForm(f => ({ 
+        ...f, 
+        current_city: f.current_city || "Chhatarpur", 
+        current_state: f.current_state || "Madhya Pradesh",
+        permanent_city: f.permanent_city || "Chhatarpur",
+        permanent_state: f.permanent_state || "Madhya Pradesh"
+      }));
     }
   }, [tenant.address]);
 
@@ -440,9 +459,12 @@ function RegisterContent() {
       !form.dob ||
       !form.gender ||
       !form.phone.trim() ||
-      !form.city.trim() ||
-      !form.state.trim() ||
+      !form.current_city.trim() ||
+      !form.current_state.trim() ||
       !form.current_address.trim() ||
+      !form.permanent_city.trim() ||
+      !form.permanent_state.trim() ||
+      !form.permanent_address.trim() ||
       (batches.length > 0 && !form.batch_id)
     ) {
       toast.error("Please fill all required fields.");
@@ -589,10 +611,15 @@ function RegisterContent() {
     profile.aadhaar_back_url = form.aadhaar_back_url;
     profile.photo_url = form.photo_url;
     profile.current_address = form.current_address.trim();
+    profile.current_village = form.current_village.trim();
+    profile.current_city = form.current_city.trim();
+    profile.current_state = form.current_state.trim();
     profile.permanent_address = form.permanent_address.trim();
-    profile.village_locality = form.village_locality.trim();
-    profile.city = form.city.trim();
-    profile.state = form.state.trim();
+    profile.permanent_village = form.permanent_village.trim();
+    profile.permanent_city = form.permanent_city.trim();
+    profile.permanent_state = form.permanent_state.trim();
+    profile.permanent_landmark = form.permanent_landmark.trim();
+    profile.is_same_address = form.is_same_address;
     const documents = Object.keys(profile).length > 0 ? { profile } : null;
 
     if (!error && data && applicantUserId) {
@@ -601,7 +628,7 @@ function RegisterContent() {
         {
           _registration_id: data as unknown as string,
           _email: emailTrim,
-          _address: form.address.trim() || form.current_address.trim() || null,
+          _address: form.permanent_address.trim() || form.current_address.trim() || null,
           _gender: normalizeGender(form.gender),
           _medical_notes: form.medical_notes.trim() || null,
           _documents: documents as unknown as never,
@@ -616,7 +643,7 @@ function RegisterContent() {
           {
             _registration_id: data as unknown as string,
             _email: emailTrim,
-            _address: form.address.trim() || null,
+            _address: form.permanent_address.trim() || null,
             _gender: form.gender || null,
             _medical_notes: form.medical_notes.trim() || null,
             _documents: documents as unknown as never,
@@ -940,68 +967,118 @@ function RegisterContent() {
                 <div className="sm:col-span-2 space-y-4">
                   <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-4">
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      <MapPin className="size-3.5" />
-                      Location
+                      <Building2 className="size-3.5" />
+                      Permanent Address
                     </div>
                     <div className="grid gap-4 sm:grid-cols-3">
                       <Field
-                        label="Village / Locality"
-                        value={form.village_locality}
-                        onChange={(v) => setForm({ ...form, village_locality: v })}
+                        label="Village Name"
+                        value={form.permanent_village}
+                        onChange={(v) => setForm({ ...form, permanent_village: v })}
                         placeholder="e.g. Maharajpur"
-                        error={errors.village_locality}
+                        error={errors.permanent_village}
                       />
                       <Field
-                        label="City / District *"
-                        value={form.city}
-                        onChange={(v) => setForm({ ...form, city: v })}
+                        label="District / City *"
+                        value={form.permanent_city}
+                        onChange={(v) => setForm({ ...form, permanent_city: v })}
                         placeholder="e.g. Chhatarpur"
-                        error={errors.city}
+                        error={errors.permanent_city}
                       />
                       <SelectField
                         label="State *"
-                        value={form.state}
-                        onChange={(v) => setForm({ ...form, state: v })}
+                        value={form.permanent_state}
+                        onChange={(v) => setForm({ ...form, permanent_state: v })}
                         options={[
                           { value: "", label: "Select State" },
                           ...INDIAN_STATES.map((s) => ({ value: s, label: s })),
                         ]}
-                        error={errors.state}
+                        error={errors.permanent_state}
                       />
                     </div>
-                  </div>
-
-                  <TextArea
-                    label="Current address (House/Street/Colony/Landmark) *"
-                    value={form.current_address}
-                    onChange={(v) => setForm({ ...form, current_address: v })}
-                    error={errors.current_address}
-                  />
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        Permanent address
-                      </span>
-                      <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
-                        <input
-                          type="checkbox"
-                          className="h-3.5 w-3.5 rounded border-border"
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setForm({ ...form, permanent_address: form.current_address });
-                            }
-                          }}
-                        />
-                        Same as current
-                      </label>
-                    </div>
                     <TextArea
-                      label="Permanent address (optional)"
+                      label="Permanent Address (House/Street/Colony/Landmark) *"
                       value={form.permanent_address}
                       onChange={(v) => setForm({ ...form, permanent_address: v })}
                       error={errors.permanent_address}
                     />
+                    <Field
+                      label="Landmark or Area"
+                      value={form.permanent_landmark}
+                      onChange={(v) => setForm({ ...form, permanent_landmark: v })}
+                      placeholder="e.g. Near Main Market"
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        <MapIcon className="size-3.5" />
+                        Current Address
+                      </div>
+                      <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="h-3.5 w-3.5 rounded border-border"
+                          checked={form.is_same_address}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            if (checked) {
+                              setForm({ 
+                                ...form, 
+                                is_same_address: true,
+                                current_village: form.permanent_village,
+                                current_city: form.permanent_city,
+                                current_state: form.permanent_state,
+                                current_address: form.permanent_address
+                              });
+                            } else {
+                              setForm({ ...form, is_same_address: false });
+                            }
+                          }}
+                        />
+                        Same as permanent address
+                      </label>
+                    </div>
+
+                    {!form.is_same_address && (
+                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <Field
+                            label="Village or Area"
+                            value={form.current_village}
+                            onChange={(v) => setForm({ ...form, current_village: v })}
+                            placeholder="e.g. Maharajpur"
+                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <Field
+                              label="City *"
+                              value={form.current_city}
+                              onChange={(v) => setForm({ ...form, current_city: v })}
+                              placeholder="City"
+                              error={errors.current_city}
+                            />
+                            <SelectField
+                              label="State *"
+                              value={form.current_state}
+                              onChange={(v) => setForm({ ...form, current_state: v })}
+                              options={[
+                                { value: "", label: "Select State" },
+                                ...INDIAN_STATES.map((s) => ({ value: s, label: s })),
+                              ]}
+                              error={errors.current_state}
+                            />
+                          </div>
+                        </div>
+                        <TextArea
+                          label="Current Address Details *"
+                          value={form.current_address}
+                          onChange={(v) => setForm({ ...form, current_address: v })}
+                          placeholder="House/Street/Colony/Landmark"
+                          error={errors.current_address}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1142,7 +1219,7 @@ function RegisterContent() {
               {isMobile ? (
                 <Section title="Review your details">
                   <ReviewSummary
-                    form={form}
+                    form={{ ...form, address: form.permanent_address }}
                     batches={batches}
                     fees={fees}
                     tenant={tenant}
