@@ -1790,25 +1790,6 @@ function DemoScorerBody({
     else void finalizeWicket(DISMISSAL_MAP[kind]);
   };
 
-  const startSecondInnings = async () => {
-    if (!match || !activeInnings) return;
-    const target = session.matchState.innings.runs + 1;
-    try {
-      await session.startInnings({
-        inningsNumber: 2,
-        battingTeamId: activeInnings.bowling_team_id,
-        bowlingTeamId: activeInnings.batting_team_id,
-        target,
-      });
-      session.setStriker({ athleteId: null, name: null, onStrike: true });
-      session.setNonStriker({ athleteId: null, name: null, onStrike: false });
-      session.setBowler({ athleteId: null, name: null });
-      setInningsCompleteOpen(false);
-      toast.success(`Innings 2 · target ${target}`);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not start next innings");
-    }
-  };
 
   const resultLine = (() => {
     const ms = session.matchState;
