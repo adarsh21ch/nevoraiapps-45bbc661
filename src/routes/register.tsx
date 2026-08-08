@@ -51,7 +51,7 @@ export const Route = createFileRoute("/register")({
       { title: "Register" },
       {
         name: "description",
-        content: "Register online with your academy — no payment needed here.",
+        content: "'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                            \n                                            Okay, now just verify the recent changes we have do. Everything should work. And also verify the phone number acceptance and, uh, user can, uh, properly register and they'll sign in-- uh, automatically sign in to the dashboard, right?",
       },
       { property: "og:title", content: "Register" },
       {
