@@ -120,19 +120,35 @@ function RegistrationsInbox() {
   // Gmail/WhatsApp/Slack behaviour: opening the inbox marks every NEW
   // registration as REVIEWED. The badge instantly disappears everywhere.
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        await markRegistrationsReviewed(tenant.id);
-        if (cancelled) return;
-        qc.invalidateQueries({ queryKey: newRegsQueryKey(tenant.id) });
-        qc.invalidateQueries({ queryKey: qk.regs(tenant.id) });
-      } catch {
-        // silent — badge just remains until next refetch
-      }
-    })();
+    if (!tenant.id) return;
+    
+    // 1. Initial mark as reviewed
+    markRegistrationsReviewed(tenant.id).then(() => {
+      qc.invalidateQueries({ queryKey: newRegsQueryKey(tenant.id) });
+      qc.invalidateQueries({ queryKey: qk.regs(tenant.id) });
+    }).catch(console.error);
+
+    // 2. Real-time updates: whenever a new registration arrives, invalidate the inbox list
+    const channel = supabase
+      .channel(`registrations-inbox:${tenant.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "registrations",
+          filter: `tenant_id=eq.${tenant.id}`,
+        },
+        () => {
+          console.log("Real-time registration update detected, invalidating inbox...");
+          qc.invalidateQueries({ queryKey: qk.regs(tenant.id) });
+          qc.invalidateQueries({ queryKey: newRegsQueryKey(tenant.id) });
+        }
+      )
+      .subscribe();
+
     return () => {
-      cancelled = true;
+      supabase.removeChannel(channel);
     };
   }, [tenant.id, qc]);
 

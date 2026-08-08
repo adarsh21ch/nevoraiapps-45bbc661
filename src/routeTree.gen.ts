@@ -54,7 +54,9 @@ import { Route as StudentPendingRouteImport } from './routes/student.pending'
 import { Route as StudentMatchesRouteImport } from './routes/student.matches'
 import { Route as StudentManageRouteImport } from './routes/student.manage'
 import { Route as StudentFeesRouteImport } from './routes/student.fees'
+import { Route as SitemapXmlRouteImport } from './routes/sitemap.xml'
 import { Route as ScorerMatchIdRouteImport } from './routes/scorer.$matchId'
+import { Route as RobotsTxtRouteImport } from './routes/robots.txt'
 import { Route as PoliciesKindRouteImport } from './routes/policies.$kind'
 import { Route as PlatformAdminUsageRouteImport } from './routes/platform-admin.usage'
 import { Route as PlatformAdminSupportRouteImport } from './routes/platform-admin.support'
@@ -379,9 +381,19 @@ const StudentFeesRoute = StudentFeesRouteImport.update({
   path: '/fees',
   getParentRoute: () => StudentRoute,
 } as any)
+const SitemapXmlRoute = SitemapXmlRouteImport.update({
+  id: '/sitemap/xml',
+  path: '/sitemap/xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScorerMatchIdRoute = ScorerMatchIdRouteImport.update({
   id: '/scorer/$matchId',
   path: '/scorer/$matchId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsTxtRoute = RobotsTxtRouteImport.update({
+  id: '/robots/txt',
+  path: '/robots/txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliciesKindRoute = PoliciesKindRouteImport.update({
@@ -1004,7 +1016,9 @@ export interface FileRoutesByFullPath {
   '/platform-admin/support': typeof PlatformAdminSupportRoute
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
+  '/robots/txt': typeof RobotsTxtRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -1144,7 +1158,9 @@ export interface FileRoutesByTo {
   '/platform-admin/support': typeof PlatformAdminSupportRoute
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
+  '/robots/txt': typeof RobotsTxtRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -1291,7 +1307,9 @@ export interface FileRoutesById {
   '/platform-admin/support': typeof PlatformAdminSupportRoute
   '/platform-admin/usage': typeof PlatformAdminUsageRoute
   '/policies/$kind': typeof PoliciesKindRoute
+  '/robots/txt': typeof RobotsTxtRoute
   '/scorer/$matchId': typeof ScorerMatchIdRoute
+  '/sitemap/xml': typeof SitemapXmlRoute
   '/student/fees': typeof StudentFeesRoute
   '/student/manage': typeof StudentManageRoute
   '/student/matches': typeof StudentMatchesRoute
@@ -1439,7 +1457,9 @@ export interface FileRouteTypes {
     | '/platform-admin/support'
     | '/platform-admin/usage'
     | '/policies/$kind'
+    | '/robots/txt'
     | '/scorer/$matchId'
+    | '/sitemap/xml'
     | '/student/fees'
     | '/student/manage'
     | '/student/matches'
@@ -1579,7 +1599,9 @@ export interface FileRouteTypes {
     | '/platform-admin/support'
     | '/platform-admin/usage'
     | '/policies/$kind'
+    | '/robots/txt'
     | '/scorer/$matchId'
+    | '/sitemap/xml'
     | '/student/fees'
     | '/student/manage'
     | '/student/matches'
@@ -1725,7 +1747,9 @@ export interface FileRouteTypes {
     | '/platform-admin/support'
     | '/platform-admin/usage'
     | '/policies/$kind'
+    | '/robots/txt'
     | '/scorer/$matchId'
+    | '/sitemap/xml'
     | '/student/fees'
     | '/student/manage'
     | '/student/matches'
@@ -1807,7 +1831,9 @@ export interface RootRouteChildren {
   MSlugRoute: typeof MSlugRoute
   MatchSlugRoute: typeof MatchSlugRoute
   PoliciesKindRoute: typeof PoliciesKindRoute
+  RobotsTxtRoute: typeof RobotsTxtRoute
   ScorerMatchIdRoute: typeof ScorerMatchIdRoute
+  SitemapXmlRoute: typeof SitemapXmlRoute
   ApiPublicTenantIconRoute: typeof ApiPublicTenantIconRoute
   AcademyAcademySlugTournamentsTournamentSlugRoute: typeof AcademyAcademySlugTournamentsTournamentSlugRoute
   ApiPublicHooksAutomationTickRoute: typeof ApiPublicHooksAutomationTickRoute
@@ -2137,11 +2163,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentFeesRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/sitemap/xml': {
+      id: '/sitemap/xml'
+      path: '/sitemap/xml'
+      fullPath: '/sitemap/xml'
+      preLoaderRoute: typeof SitemapXmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scorer/$matchId': {
       id: '/scorer/$matchId'
       path: '/scorer/$matchId'
       fullPath: '/scorer/$matchId'
       preLoaderRoute: typeof ScorerMatchIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots/txt': {
+      id: '/robots/txt'
+      path: '/robots/txt'
+      fullPath: '/robots/txt'
+      preLoaderRoute: typeof RobotsTxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/policies/$kind': {
@@ -3161,7 +3201,9 @@ const rootRouteChildren: RootRouteChildren = {
   MSlugRoute: MSlugRoute,
   MatchSlugRoute: MatchSlugRoute,
   PoliciesKindRoute: PoliciesKindRoute,
+  RobotsTxtRoute: RobotsTxtRoute,
   ScorerMatchIdRoute: ScorerMatchIdRoute,
+  SitemapXmlRoute: SitemapXmlRoute,
   ApiPublicTenantIconRoute: ApiPublicTenantIconRoute,
   AcademyAcademySlugTournamentsTournamentSlugRoute:
     AcademyAcademySlugTournamentsTournamentSlugRoute,
