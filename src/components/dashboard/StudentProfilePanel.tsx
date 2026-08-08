@@ -335,7 +335,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           />
         ) : (
           <dl className="divide-y divide-border text-sm">
-            <Row label="Login Email" value={s.email || "—"} />
+            <Row label="Email" value={s.email || "—"} />
             <Row 
               label="Password" 
               value="********" 
@@ -375,7 +375,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             <Row label="State" value={s.state || "—"} />
             <Row label="Current Address" value={s.current_address || "—"} multiline />
             <Row label="Permanent Address" value={s.permanent_address || s.address || "—"} multiline />
-            <Row label="Email" value={s.email || "—"} />
+            {/* Row removed: duplicate email */}
             <Row label="Phone" value={s.phone} />
             <PasswordRow 
               tenantId={tenant.id}
