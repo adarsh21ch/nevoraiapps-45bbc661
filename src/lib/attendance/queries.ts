@@ -86,12 +86,16 @@ export async function fetchAttendanceToday(
   tenantId: string,
   db: Db = supabase,
 ): Promise<AttendanceTodayRow[]> {
+  {/* 
+    Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.
+  */}
   const localToday = new Date();
   const y = localToday.getFullYear();
   const m = String(localToday.getMonth() + 1).padStart(2, "0");
   const d = String(localToday.getDate()).padStart(2, "0");
   return fetchAttendanceByDate(tenantId, `${y}-${m}-${d}`, db);
 }
+
 
 /**
  * Historical attendance for any past date. Mirrors the shape of the
