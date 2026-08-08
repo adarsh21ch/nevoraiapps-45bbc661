@@ -53,7 +53,7 @@ function AppLaunch() {
             const { data: student } = await supabase
               .from("students")
               .select("id")
-              .eq("auth_user_id", session.user.id)
+              .eq("user_id", session.user.id)
               .maybeSingle();
             if (student) target = "/student";
           }
