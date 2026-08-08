@@ -1292,7 +1292,7 @@ function StateSummary({ state, row }: { state: AttendanceState; row: TodayRow | 
       </span>
     );
   }
-  return <span className={cn("text-sm", toneClass)}>{attendanceStateLabels[state]}</span>;
+  return <span className={cn("text-[11px]", toneClass)}>{attendanceStateLabels[state]}</span>;
 }
 
 function HistoryStatusChip({ state }: { state: AttendanceState }) {
