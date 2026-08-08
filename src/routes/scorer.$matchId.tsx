@@ -1836,6 +1836,19 @@ function DemoScorerBody({
     toast.success("Demo match finalized");
   };
 
+  const startSecondInnings = async () => {
+    if (!session.activeInnings) return;
+    const target = stats.team.runs + 1;
+    await session.startInnings({
+      inningsNumber: 2,
+      battingTeamId: session.activeInnings.bowling_team_id,
+      bowlingTeamId: session.activeInnings.batting_team_id,
+      target,
+    });
+    setInningsCompleteOpen(false);
+    toast.success(`Demo Innings 2 · target ${target}`);
+  };
+
   useEffect(() => {
     const onKey = (ev: KeyboardEvent) => {
       if (ev.target instanceof HTMLElement && ["INPUT", "TEXTAREA"].includes(ev.target.tagName))
