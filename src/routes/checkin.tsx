@@ -145,11 +145,26 @@ function CheckinPage() {
           <p className="text-sm text-muted-foreground">
             Attendance is recorded against your student account.
           </p>
-          <Button asChild className="mt-5 h-12 w-full rounded-xl text-base">
-            <Link to="/auth" search={{ next: `/checkin?t=${token}` } as never}>
-              Sign in
-            </Link>
-          </Button>
+          <div className="mt-5 space-y-3 w-full">
+            <Button asChild className="h-12 w-full rounded-xl text-base">
+              <Link to="/auth" search={{ next: `/checkin?t=${token}` } as never}>
+                Sign in
+              </Link>
+            </Button>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border/60"></span>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">New student?</span>
+              </div>
+            </div>
+            <Button asChild variant="outline" className="h-12 w-full rounded-xl text-base">
+              <Link to="/register">
+                Create account
+              </Link>
+            </Button>
+          </div>
         </>
       ) : phase === "locating" ? (
         <>

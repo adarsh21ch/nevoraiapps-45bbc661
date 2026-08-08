@@ -488,7 +488,7 @@ function QrSetupPage() {
                   </Button>
                 </div>
                 <p className="text-[11px] leading-relaxed text-muted-foreground">
-                  Download the PDF and send it to a print shop, or share it straight from your
+                  Download the PDF and send it to a print shop, or share it straight from your phone. This QR code allows students to sign in, check in/out, and even register for the academy.
                   phone. Print A4 and stick it at every entry point — several copies of the same
                   poster all work at once.
                 </p>
