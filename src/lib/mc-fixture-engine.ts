@@ -107,12 +107,15 @@ export async function persistFixturePlan(
       .insert({
         tenant_id: options.tenantId,
         tournament_id: options.tournamentId,
-        home_team_id: f.team_a_id,
-        away_team_id: f.team_b_id,
+        team_a_id: f.team_a_id ?? "",
+        team_b_id: f.team_b_id ?? "",
         scheduled_date: f.scheduled_date,
         status: "upcoming",
         venue_id: f.venue_id,
         group_id: f.group_id,
+        match_type: options.matchFormat === "Test" ? "first_class" : "limited_overs",
+        match_format: options.matchFormat,
+        overs: options.overs,
       })
       .select()
       .single();
@@ -123,12 +126,12 @@ export async function persistFixturePlan(
     const { data: round, error: roundError } = await supabase
       .from("mc_tournament_rounds")
       .insert({
+        tenant_id: options.tenantId,
         tournament_id: options.tournamentId,
-        round_number: f.round_number,
         match_id: match.id,
         team_a_id: f.team_a_id,
         team_b_id: f.team_b_id,
-        slot_key: f.slot_key,
+        stage: "league", // default
       })
       .select()
       .single();
@@ -178,8 +181,8 @@ export async function advanceKnockoutWinner(matchId: string): Promise<void> {
 
     if (nextRound.match_id) {
       const matchPatch: Database["public"]["Tables"]["mc_matches"]["Update"] = {};
-      if (patch.team_a_id) matchPatch.home_team_id = patch.team_a_id;
-      if (patch.team_b_id) matchPatch.away_team_id = patch.team_b_id;
+      if (patch.team_a_id) matchPatch.team_a_id = patch.team_a_id;
+      if (patch.team_b_id) matchPatch.team_b_id = patch.team_b_id;
 
       if (Object.keys(matchPatch).length > 0) {
         const { error: matchError } = await supabase

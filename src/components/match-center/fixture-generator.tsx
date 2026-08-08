@@ -136,7 +136,7 @@ export function FixtureGeneratorDialog({
         venues,
       },
     });
-    const issues = validateFixturePlan(fixtures).map((i) => i.message);
+    const issues = validateFixturePlan(fixtures).map((i: any) => i.message);
     return { fixtures, warnings, issues };
   }, [
     tournament,
