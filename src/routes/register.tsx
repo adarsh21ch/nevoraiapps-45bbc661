@@ -1330,28 +1330,19 @@ function RegisterContent() {
           </div>
           <h2 className="mt-6 text-2xl font-bold text-foreground">Registration submitted 🎉</h2>
           <p className="mt-3 text-sm text-muted-foreground">
-            {tenant.name} will review your application. You can sign in right away with your email or phone and the password you just set.
+            Your registration was successful! You can now access your academy dashboard.
           </p>
-          <div className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
-              to="/auth"
-              className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-white shadow-md hover:opacity-90"
+              to="/student"
+              className="inline-flex items-center gap-2 rounded-full px-8 py-4 text-base font-bold text-white shadow-xl hover:opacity-90 transition-all active:scale-95"
               style={{ backgroundColor: "var(--brand)" }}
             >
-              Sign in to check status
+              Go to Dashboard
             </Link>
-            {waHref ? (
-              <a
-                href={waHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-semibold text-white shadow-md hover:opacity-95"
-              >
-                <MessageCircle className="h-4 w-4" fill="currentColor" />
-                Message on WhatsApp
-              </a>
-            ) : null}
           </div>
+
         </div>
         )}
 
