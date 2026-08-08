@@ -645,32 +645,6 @@ function AttendancePage() {
               </div>
             </PopoverContent>
           </Popover>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                aria-label="Filter by session"
-                className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-1 text-xs font-medium hover:bg-muted min-h-8 shrink-0"
-              >
-                {session === "all"
-                  ? "All"
-                  : session === "morning"
-                    ? "Morning"
-                    : session === "evening"
-                      ? "Evening"
-                      : "Night"}
-                <ChevronDown className="size-3" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {(["all", "morning", "evening", "night"] as SessionFilter[]).map((s) => (
-                <DropdownMenuItem key={s} onClick={() => setSession(s)}>
-                  <span className={cn("capitalize", session === s && "font-semibold")}>{s}</span>
-                  {session === s ? <CheckCircle2 className="ml-auto size-4 text-primary" /> : null}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
           {isTodayView ? (
             <>
               <button
@@ -1142,7 +1116,8 @@ function StudentRow({
     );
   };
 
-  const idLine = batchName;
+  const check_in = row?.check_in_at;
+  const check_out = row?.check_out_at;
 
   return (
     <div
@@ -1168,9 +1143,9 @@ function StudentRow({
         }
 
         title={
-          <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 truncate">
-              {student.name}
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5 truncate">
+              <span className="font-semibold text-sm">{student.name}</span>
               {isLate ? (
                 <span
                   className="inline-flex items-center rounded-full bg-amber-500/10 px-1.2 py-0.2 text-[9px] font-medium text-amber-700 dark:text-amber-400 shrink-0"
@@ -1179,15 +1154,22 @@ function StudentRow({
                   Late
                 </span>
               ) : null}
-            </span>
-            <div className="flex items-center gap-3 text-[11px] text-muted-foreground tabular-nums shrink-0">
-              <StateSummary state={state} row={row} />
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-medium">
+              {check_in && (
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <LogIn className="size-3" /> {format(new Date(check_in), "h:mm a")}
+                </span>
+              )}
+              {check_out && (
+                <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                  <LogOut className="size-3" /> {format(new Date(check_out), "h:mm a")}
+                </span>
+              )}
             </div>
           </div>
         }
-        subtitle={
-          idLine ? <span className="text-[10px] text-muted-foreground/70">{idLine}</span> : null
-        }
+        subtitle={null}
 
 
         trailing={
@@ -1198,34 +1180,24 @@ function StudentRow({
               {state === "in_academy" ? (
                 <Button
                   size="sm"
-                  variant="secondary"
                   onClick={onCheckOut}
                   disabled={busy}
-                  className="h-8 w-8 p-0"
-                  aria-label={`Check out ${student.name}`}
+                  className="h-9 px-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-sm"
                 >
-                  <LogOut className="size-3.5" />
+                  Check Out
                 </Button>
               ) : state === "checked_out" ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled
-                  className="h-8 w-8 p-0 text-emerald-600 dark:text-emerald-400"
-                  aria-label={`${student.name} completed`}
-                >
-                  <CheckCircle2 className="size-3.5" />
-                </Button>
+                <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-muted/50 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  <CheckCircle2 className="size-3 text-emerald-500" /> Done
+                </div>
               ) : (
                 <Button
                   size="sm"
-                  variant="default"
                   onClick={onCheckIn}
                   disabled={busy}
-                  className="h-8 w-8 p-0"
-                  aria-label={`Check in ${student.name}`}
+                  className="h-9 px-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-sm"
                 >
-                  <LogIn className="size-3.5" />
+                  Check In
                 </Button>
               )}
             </div>

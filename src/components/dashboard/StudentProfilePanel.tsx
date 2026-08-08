@@ -333,9 +333,22 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
           />
         ) : (
           <dl className="divide-y divide-border text-sm">
+            <Row label="Login Email" value={s.email || "—"} />
+            <Row 
+              label="Password" 
+              value="********" 
+              action={
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-[10px] px-2 text-amber-700"
+                  onClick={() => setResetPassOpen(true)}
+                >
+                  <Lock className="size-3 mr-1" /> Reset
+                </Button>
+              }
+            />
             <Row label="Guardian" value={s.guardian_name || "—"} />
-            <Row label="Guardian phone" value={s.guardian_phone || "—"} />
-            <Row label="Email" value={s.email || "—"} />
 
             <Row
               label="Date of birth"
@@ -715,17 +728,20 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
   );
 }
 
-function Row({ label, value, multiline }: { label: string; value: string; multiline?: boolean }) {
+function Row({ label, value, multiline, action }: { label: string; value: string; multiline?: boolean; action?: React.ReactNode }) {
   return (
     <div className="px-4 py-3 grid grid-cols-[110px_minmax(0,1fr)] gap-3 items-start">
       <dt className="text-xs uppercase tracking-wide text-muted-foreground font-medium">{label}</dt>
-      <dd
-        className={cn(
-          "font-medium text-foreground",
-          multiline ? "whitespace-pre-wrap" : "truncate",
-        )}
-      >
-        {value}
+      <dd className="flex items-center justify-between gap-2">
+        <span
+          className={cn(
+            "font-medium text-foreground",
+            multiline ? "whitespace-pre-wrap" : "truncate",
+          )}
+        >
+          {value}
+        </span>
+        {action}
       </dd>
     </div>
   );
