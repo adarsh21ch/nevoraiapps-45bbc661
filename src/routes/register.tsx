@@ -1266,16 +1266,14 @@ function RegisterContent() {
                     : undefined
                 }
               >
-                <div className={cn("flex gap-2", isMobile && "items-center")}>
-                  {isMobile ? (
-                    <button
-                      type="button"
-                      onClick={goBack}
-                      className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
-                    >
-                      Back
-                    </button>
-                  ) : null}
+                <div className={cn("flex gap-2", "items-center")}>
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    className="inline-flex items-center justify-center rounded-full border border-border bg-background px-4 py-3 text-sm font-medium text-foreground hover:bg-muted"
+                  >
+                    Back
+                  </button>
                   <button
                     type="submit"
                     disabled={saving}
