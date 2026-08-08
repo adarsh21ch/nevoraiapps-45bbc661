@@ -988,6 +988,7 @@ function CoreEditor({
     fee_plan_id: student.fee_plan_id ?? "",
     custom_fee: student.custom_fee as number | null,
     joined_at: student.joined_at ?? "",
+    email: student.email ?? "",
   });
 
   const selectedBatch = batches.find((b) => b.id === f.batch_id);
@@ -1025,6 +1026,7 @@ function CoreEditor({
             fee_plan_id: f.fee_plan_id || null,
             custom_fee: f.custom_fee,
             joined_at: f.joined_at || null,
+            email: f.email || null,
           });
 
         } finally {
@@ -1042,6 +1044,14 @@ function CoreEditor({
         />
         <FormField label="DOB" type="date" value={f.dob} onChange={(v) => setF({ ...f, dob: v })} />
         <FormField label="Joined Date" type="date" value={f.joined_at ? f.joined_at.split('T')[0] : ""} onChange={(v) => setF({ ...f, joined_at: v })} />
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <FormField
+          label="Email"
+          value={f.email}
+          onChange={(v) => setF({ ...f, email: v })}
+          type="email"
+        />
       </div>
       <div className="grid grid-cols-2 gap-2">
         <FormField
