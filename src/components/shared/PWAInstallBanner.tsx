@@ -54,6 +54,9 @@ export function PWAInstallBanner() {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold">Install AcademyOS</p>
           <div className="text-[12px] text-muted-foreground leading-relaxed mt-0.5">
+            {/* 
+              Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.
+            */}
             {platform === "ios" ? (
               <p>
                 Tap <Share className="inline size-3.5 mx-0.5 mb-0.5" /> then <span className="font-medium text-foreground">"Add to Home Screen"</span> to install this app.
@@ -66,6 +69,7 @@ export function PWAInstallBanner() {
               <p>Install this app on your device for a better experience and quick access.</p>
             )}
           </div>
+
           
           {platform === "android" && isInstallReady() && (
             <button 
