@@ -73,12 +73,20 @@ function useStandaloneAppRedirect() {
     const isStandalone =
       window.matchMedia?.("(display-mode: standalone)").matches ||
       // iOS Safari's non-standard flag
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+      // Android / Chrome TWA / PWA detection
+      window.matchMedia?.("(display-mode: minimal-ui)").matches ||
+      // Some Android launchers inject specific user agents or headers, 
+      // but checking display-mode covers 99% of modern PWA launches.
+      document.referrer.includes("android-app://");
+
     if (isStandalone) {
+      console.log("PWA standalone mode detected, redirecting to app-launch");
       navigate({ to: "/app-launch", replace: true });
     }
   }, [navigate]);
 }
+
 
 type Hero = {
   headline?: string;
