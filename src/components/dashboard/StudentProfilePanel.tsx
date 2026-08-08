@@ -423,6 +423,14 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
         >
           <Eye className="size-4 mr-2" /> View & Download ID
         </Button>
+        <Button
+          variant="outline"
+          className="rounded-xl h-12 justify-start border-amber-200 text-amber-700 hover:bg-amber-50"
+          onClick={() => setResetPassOpen(true)}
+        >
+          <Lock className="size-4 mr-2" /> Reset Password
+        </Button>
+
 
         <dialog id="id-card-preview-dialog-staff" className="bg-transparent backdrop:bg-black/60 p-0 rounded-2xl overflow-visible">
           <div className="bg-background max-w-[90vw] w-full p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-6 relative">
