@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 
-export const Route = createFileRoute("/api/public/sitemap.xml")({
+export const Route = createFileRoute("/api/public/sitemap/xml")({
   server: {
     handlers: {
       GET: async ({ request }) => {
