@@ -1028,7 +1028,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             lastWicket: stats?.team?.fallOfWickets?.at(-1)
               ? `${stats.team.fallOfWickets.at(-1)?.score}/${stats.team.fallOfWickets.at(-1)?.wicketNumber}`
               : "–",
-            extras: String(stats?.team?.extras.total ?? 0),
+            extras: String(stats?.team?.extras?.total ?? 0),
             recentOvers: (stats?.team?.overs_summary ?? []).slice(-3).map((over: any) => ({
               label: `${over.overNumber + 1}`,
               runs: over.runs,
