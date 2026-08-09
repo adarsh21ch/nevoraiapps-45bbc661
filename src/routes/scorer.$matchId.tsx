@@ -156,12 +156,12 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   // and shows "This page didn't load".
   if (session.loading || tenantQ.isLoading || userQ.isLoading) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-6 text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-[#0a0a0a] p-6 text-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           <div className="space-y-1">
-            <h2 className="text-sm font-semibold">Loading match...</h2>
-            <p className="text-[11px] text-muted-foreground">Preparing scorecard and team data</p>
+            <h2 className="text-sm font-semibold text-white">Loading match...</h2>
+            <p className="text-[11px] text-zinc-500">Preparing scorecard and team data</p>
           </div>
         </div>
       </div>
