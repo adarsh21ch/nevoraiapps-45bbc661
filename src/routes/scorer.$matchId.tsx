@@ -1061,7 +1061,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           scorecardContent={
             <LiveScorecard
               hideHero
-              events={session.events}
+              events={session.events ?? []}
               innings={session.activeInnings}
               totalOvers={session.match?.overs ?? null}
               matchInfo={{
