@@ -1999,12 +1999,12 @@ function DemoScorerBody({
     .filter(Boolean)
     .join(" · ");
   const chase =
-    activeInnings?.target != null && stats?.team.requiredRuns != null
+    activeInnings?.target != null && stats?.team?.requiredRuns != null
       ? { runsNeeded: stats.team.requiredRuns, ballsLeft: stats.team.ballsRemaining ?? 0 }
       : null;
   const bowledBowlerIds: string[] = Array.from(stats?.bowling?.byKey?.values?.() ?? [])
-    .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
-    .map((b) => b.player.athleteId as string);
+    .filter((b: any) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
+    .map((b: any) => b.player.athleteId as string);
 
   return (
     <MobileViewportShell
