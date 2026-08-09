@@ -424,10 +424,10 @@ export function MobileScorer(props: MobileScorerProps) {
           />
         </div>
         <div
-          className={cn(
-            "grid gap-1 px-2 pb-1 pt-1",
-            props.showFinishInnings && props.onFinishInnings ? "grid-cols-5" : "grid-cols-4",
-          )}
+        className={cn(
+          "grid gap-1 px-2 pb-1.5 pt-1",
+          props.showFinishInnings && props.onFinishInnings ? "grid-cols-5" : "grid-cols-4",
+        )}
         >
           <FooterAction
             icon={<Undo2 className="size-[18px]" />}

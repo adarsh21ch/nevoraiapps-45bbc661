@@ -918,7 +918,7 @@ function RegisterContent() {
                     onFocus={(e) => (e.currentTarget.style.borderColor = errors.dob ? "" : "var(--brand)")}
                     onBlur={(e) => (e.currentTarget.style.borderColor = "")}
                     className={cn(
-                      "block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2 transition-all",
+                      "block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-brand focus:ring-0 focus:bg-background transition-all",
                       errors.dob ? "border-red-500" : "border-border",
                     )}
                   />
