@@ -129,26 +129,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     userId: userQ.data?.id ?? null,
   });
 
-  const stats = useMemo(() => {
-    if (!session.match) return null;
-    try {
-      // Defensive check: ensure byKey exists on the result if the engine returns a partial object
-      const result = calculateInningsStatistics(session.events, {
-        totalOvers: session.match?.overs ?? null,
-        playingRules: session.match?.playing_rules ?? null,
-        target: session.activeInnings?.target ?? null,
-      });
-      
-      if (!result?.batting?.byKey || !result?.bowling?.byKey) {
-        console.warn("Stats engine returned incomplete result structure");
-        return null;
-      }
-      return result;
-    } catch (e) {
-      console.error("Stats engine crash:", e);
-      return null;
-    }
-  }, [session.events, session.match, session.activeInnings?.target]);
+  // Move stats memo AFTER loading guards to avoid stale matchId/match data races.
+  const stats = null; 
+  // ... placeholders handled by loading guards below ...
+
 
 
   // Critical crash fix: ensure we don't render UI components that expect match data
@@ -195,7 +179,26 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   // Phase 3 — advisory lock. Only one active scorer per match at a time.
   const lockStatus = useScoringLock(isDemo ? null : matchId, !isDemo);
-
+  const stats = useMemo(() => {
+    if (!session.match) return null;
+    try {
+      // Defensive check: ensure byKey exists on the result if the engine returns a partial object
+      const result = calculateInningsStatistics(session.events, {
+        totalOvers: session.match?.overs ?? null,
+        playingRules: session.match?.playing_rules ?? null,
+        target: session.activeInnings?.target ?? null,
+      });
+      
+      if (!result?.batting?.byKey || !result?.bowling?.byKey) {
+        console.warn("Stats engine returned incomplete result structure");
+        return null;
+      }
+      return result;
+    } catch (e) {
+      console.error("Stats engine crash:", e);
+      return null;
+    }
+  }, [session.events, session.match, session.activeInnings?.target]);
 
 
   // Team names
