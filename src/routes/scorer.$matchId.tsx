@@ -1992,10 +1992,10 @@ function DemoScorerBody({
     .filter(Boolean)
     .join(" · ");
   const chase =
-    activeInnings?.target != null && stats.team.requiredRuns != null
+    activeInnings?.target != null && stats?.team.requiredRuns != null
       ? { runsNeeded: stats.team.requiredRuns, ballsLeft: stats.team.ballsRemaining ?? 0 }
       : null;
-  const bowledBowlerIds: string[] = Array.from(stats.bowling.byKey.values())
+  const bowledBowlerIds: string[] = Array.from(stats?.bowling.byKey.values() ?? [])
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
 
@@ -2305,10 +2305,10 @@ function DemoScorerBody({
           </DialogHeader>
           <div className="rounded-lg border bg-card p-3 text-center">
             <div className="text-3xl font-black tabular-nums">
-              {stats.team.runs}/{stats.team.wickets}
+              {stats?.team.runs}/{stats?.team.wickets}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats.team.legalBalls)} overs
+              {formatOversCompact(stats?.team.legalBalls || 0)} overs
             </div>
           </div>
           <DialogFooter className="gap-2">
@@ -2338,10 +2338,10 @@ function DemoScorerBody({
               Final score
             </div>
             <div className="mt-1 text-3xl font-black tabular-nums">
-              {stats.team.runs}/{stats.team.wickets}
+              {stats?.team.runs}/{stats?.team.wickets}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats.team.legalBalls)} overs
+              {formatOversCompact(stats?.team.legalBalls || 0)} overs
             </div>
           </div>
           <DialogFooter className="gap-2">
