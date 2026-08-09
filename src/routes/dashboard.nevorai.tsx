@@ -20,7 +20,7 @@ import {
 import { useNevorAIPageContext } from "@/lib/nevorai/page-context";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { useVisualViewportHeight } from "@/hooks/use-visual-viewport";
+import { MobileViewportShell } from "@/components/ds/MobileViewportShell";
 
 const LAST_CONV_KEY = "nevorai:lastConversationId";
 
