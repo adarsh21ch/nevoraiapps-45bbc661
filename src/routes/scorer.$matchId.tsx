@@ -1943,7 +1943,7 @@ function DemoScorerBody({
       const diff = activeInnings.target - 1 - ms.innings.runs;
       winnerTeamId = diff > 0 ? activeInnings.bowling_team_id : null;
     }
-    const topBat = stats?.summary.highestScorer?.player;
+    const topBat = stats?.summary?.highestScorer?.player;
     const pomId = topBat?.athleteId ?? null;
     finalizeDemoMatch(session.tenantId, matchId, {
       winnerTeamId,
