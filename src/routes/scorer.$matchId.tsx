@@ -1010,23 +1010,24 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           overHistory={overHistory}
           inningsLabel={undefined}
           insights={{
-            partnership: stats.team.currentPartnership
+            partnership: stats?.team.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
               : "0(0)",
             projected:
-              session.match?.overs && stats.team.legalBalls > 0
+              session.match?.overs && stats?.team.legalBalls && stats.team.legalBalls > 0
                 ? String(Math.round(stats.team.runRate * session.match.overs))
                 : "–",
-            lastWicket: stats.team.fallOfWickets.at(-1)
+            lastWicket: stats?.team.fallOfWickets.at(-1)
               ? `${stats.team.fallOfWickets.at(-1)?.score}/${stats.team.fallOfWickets.at(-1)?.wicketNumber}`
               : "–",
-            extras: String(stats.team.extras.total),
-            recentOvers: stats.team.overs_summary.slice(-3).map((over) => ({
+            extras: String(stats?.team.extras.total ?? 0),
+            recentOvers: (stats?.team.overs_summary ?? []).slice(-3).map((over) => ({
               label: `${over.overNumber + 1}`,
               runs: over.runs,
               wickets: over.wickets,
             })),
           }}
+
           onRun={onRun}
           onExtra={(k) => setExtraKind(k)}
           onOut={() => setDismissOpen(true)}
@@ -1296,11 +1297,12 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           </DialogHeader>
           <div className="rounded-lg border bg-card p-3 text-center">
             <div className="text-3xl font-black tabular-nums">
-              {stats.team.runs}/{stats.team.wickets}
+              {stats?.team.runs ?? 0}/{stats?.team.wickets ?? 0}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats.team.legalBalls)} overs
+              {formatOversCompact(stats?.team.legalBalls ?? 0)} overs
             </div>
+
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>
@@ -1329,11 +1331,12 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
               Final score
             </div>
             <div className="mt-1 text-3xl font-black tabular-nums">
-              {stats.team.runs}/{stats.team.wickets}
+              {stats?.team.runs ?? 0}/{stats?.team.wickets ?? 0}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats.team.legalBalls)} overs
+              {formatOversCompact(stats?.team.legalBalls ?? 0)} overs
             </div>
+
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setScorecardOpen(true)}>
