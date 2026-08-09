@@ -1025,7 +1025,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
               session.match?.overs && stats?.team?.legalBalls && stats.team.legalBalls > 0
                 ? String(Math.round(stats.team.runRate * session.match.overs))
                 : "–",
-            lastWicket: stats?.team?.fallOfWickets.at(-1)
+            lastWicket: stats?.team?.fallOfWickets?.at(-1)
               ? `${stats.team.fallOfWickets.at(-1)?.score}/${stats.team.fallOfWickets.at(-1)?.wicketNumber}`
               : "–",
             extras: String(stats?.team?.extras.total ?? 0),
