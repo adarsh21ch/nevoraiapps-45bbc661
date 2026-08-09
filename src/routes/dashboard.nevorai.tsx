@@ -221,115 +221,69 @@ function NevorAIPage() {
 
       {/* Center — chat */}
       <main className="flex min-w-0 flex-1 flex-col">
-        <header
-          className="flex shrink-0 items-center justify-between gap-2 border-b border-border/50 px-3 py-2.5 lg:px-6"
-          style={{ paddingTop: "calc(0.625rem + env(safe-area-inset-top))" }}
-        >
+        {/* Conversations rail — persistent on lg+ (compact) */}
+        <aside className="hidden lg:flex w-[240px] xl:w-[260px] shrink-0 flex-col border-r border-border/60 bg-card/40">
+          <ConversationList activeId={conversationId} onSelect={setConversationId} />
+        </aside>
 
-          <Link
-            to="/dashboard/academy"
-            className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
-            aria-label="Back to Manage"
-          >
-            <ArrowLeft className="size-4" />
-          </Link>
-          <button
-            type="button"
-            onClick={() => setConvOpen(true)}
-            className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent lg:hidden"
-            aria-label="Open conversations"
-          >
-            <PanelLeft className="size-4" />
-          </button>
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className="grid size-7 shrink-0 place-items-center rounded-lg"
-              style={{
-                background:
-                  "linear-gradient(135deg, var(--tenant-brand, var(--brand, #E8873C)) 0%, color-mix(in oklab, var(--tenant-brand, var(--brand, #E8873C)) 60%, #6366f1) 100%)",
-              }}
-            >
-              <Sparkles className="size-4 text-white" />
-            </span>
-            <span className="truncate text-sm font-semibold">NevorAI</span>
-            <span className="hidden truncate text-xs text-muted-foreground sm:inline">
-              · AI Academy Manager
-            </span>
+        {/* Center — chat */}
+        <main className="flex min-w-0 flex-1 flex-col">
+          {/* Chat: comfortable centered column that breathes at every width */}
+          <div className="relative flex min-h-0 flex-1 flex-col">
+            <div className="mx-auto flex w-full min-h-0 max-w-[880px] flex-1 flex-col px-4 sm:px-6 lg:px-8">
+              <ChatPanel
+                key={conversationId ?? "draft"}
+                conversationId={conversationId}
+                initialMessages={initialMessages}
+                pageContext={pageContext}
+                ensureConversationId={ensureConversationId}
+                onConversationStarted={() => {
+                  qc.invalidateQueries({ queryKey: ["nevorai", "conversations"] });
+                }}
+                suggestions={SUGGESTIONS}
+                pendingPrompt={pendingPrompt}
+                onPendingPromptConsumed={() => setPendingPrompt(null)}
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setConversationId(null)}
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors"
-            >
-              <Plus className="size-3.5" /> New chat
-            </button>
-            <button
-              type="button"
-              onClick={() => setRightOpen(true)}
-              className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent xl:hidden"
-              aria-label="Open intelligence panel"
-            >
-              <PanelRight className="size-4" />
-            </button>
-          </div>
-        </header>
+        </main>
 
-        {/* Chat: comfortable centered column that breathes at every width */}
-        <div className="relative flex min-h-0 flex-1 flex-col">
-          <div className="mx-auto flex w-full min-h-0 max-w-[880px] flex-1 flex-col px-4 sm:px-6 lg:px-8">
-            <ChatPanel
-              key={conversationId ?? "draft"}
-              conversationId={conversationId}
-              initialMessages={initialMessages}
-              pageContext={pageContext}
-              ensureConversationId={ensureConversationId}
-              onConversationStarted={() => {
-                qc.invalidateQueries({ queryKey: ["nevorai", "conversations"] });
+        {/* Intelligence rail — persistent on xl+ */}
+        <aside className="hidden xl:flex w-[340px] 2xl:w-[380px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/60 bg-card/30 p-5">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Today at your academy
+            </div>
+          </div>
+          <RightRail />
+        </aside>
+
+        {/* < lg: conversations drawer */}
+        <Sheet open={convOpen} onOpenChange={setConvOpen}>
+          <SheetContent side="left" className="w-[300px] max-w-[85vw] p-0">
+            <ConversationList
+              activeId={conversationId}
+              onSelect={(id) => {
+                setConversationId(id);
+                setConvOpen(false);
               }}
-              suggestions={SUGGESTIONS}
-              pendingPrompt={pendingPrompt}
-              onPendingPromptConsumed={() => setPendingPrompt(null)}
             />
-          </div>
-        </div>
-      </main>
+          </SheetContent>
+        </Sheet>
 
-      {/* Intelligence rail — persistent on xl+ */}
-      <aside className="hidden xl:flex w-[340px] 2xl:w-[380px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/60 bg-card/30 p-5">
-        <div className="flex items-center justify-between">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Today at your academy
-          </div>
-        </div>
-        <RightRail />
-      </aside>
-
-      {/* < lg: conversations drawer */}
-      <Sheet open={convOpen} onOpenChange={setConvOpen}>
-        <SheetContent side="left" className="w-[300px] max-w-[85vw] p-0">
-          <ConversationList
-            activeId={conversationId}
-            onSelect={(id) => {
-              setConversationId(id);
-              setConvOpen(false);
-            }}
-          />
-        </SheetContent>
-      </Sheet>
-
-      {/* < xl: intelligence drawer */}
-      <Sheet open={rightOpen} onOpenChange={setRightOpen}>
-        <SheetContent side="right" className="w-[380px] max-w-[92vw] overflow-y-auto p-4">
-          <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Today at your academy
-          </div>
-          <div className="flex flex-col gap-4">
-            <RightRail />
-          </div>
-        </SheetContent>
-      </Sheet>
-    </div>
+        {/* < xl: intelligence drawer */}
+        <Sheet open={rightOpen} onOpenChange={setRightOpen}>
+          <SheetContent side="right" className="w-[380px] max-w-[92vw] overflow-y-auto p-4">
+            <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Today at your academy
+            </div>
+            <div className="flex flex-col gap-4">
+              <RightRail />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+    </MobileViewportShell>
   );
 }
 
