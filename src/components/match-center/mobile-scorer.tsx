@@ -841,8 +841,8 @@ function BallBubble({ label }: { label: string }) {
 
 
   const wicket = /W/.test(upper);
-  const four = upper === "4" || upper.endsWith("+4") || (upper.startsWith("NB") && upper.endsWith("5"));
-  const six = upper === "6" || upper.endsWith("+6") || (upper.startsWith("NB") && upper.endsWith("7"));
+  const four = upper === "4" || upper.endsWith("+4") || (upper.startsWith("NB") && upper.endsWith("5")) || (upper.startsWith("NB") && upper.includes("4"));
+  const six = upper === "6" || upper.endsWith("+6") || (upper.startsWith("NB") && upper.endsWith("7")) || (upper.startsWith("NB") && upper.includes("6"));
   const extra = /WD|NB|LB|B/.test(upper);
   const isMulti = upper.length > 1;
   return (
