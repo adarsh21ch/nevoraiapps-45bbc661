@@ -982,10 +982,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           tournamentLabel={tournamentLabel || undefined}
           isLive={!!session.activeInnings && !session.match?.match_locked}
           freeHit={session.matchState.innings.freeHit}
-          score={`${stats.team.runs}/${stats.team.wickets}`}
+          score={`${stats?.team.runs ?? 0}/${stats?.team.wickets ?? 0}`}
           overs={currentOverLabel}
-          crr={String(stats.team.runRate)}
-          rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
+          crr={String(stats?.team.runRate ?? 0)}
+          rrr={stats?.team.requiredRunRate != null ? String(stats?.team.requiredRunRate) : undefined}
           target={
             session.activeInnings?.target != null ? String(session.activeInnings.target) : undefined
           }
@@ -994,7 +994,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           nonStriker={{ ...nonStrikerStat, isKeeper: session.nonStriker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.nonStriker.athleteId)?.is_keeper : false }}
           bowler={bowlerStat}
           partnership={
-            stats.team.currentPartnership
+            stats?.team.currentPartnership
               ? {
                   runs: stats.team.currentPartnership.runs,
                   balls: stats.team.currentPartnership.balls,
