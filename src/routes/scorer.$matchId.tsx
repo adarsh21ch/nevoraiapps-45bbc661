@@ -830,9 +830,9 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   return (
     <MobileViewportShell
       className="scorer-root z-40"
-      children={
-        <div className="flex h-full flex-col">
-          {isDemo ? (
+    >
+      {isDemo ? (
+
         <div className="grid flex-1 place-items-center p-8 text-center">
           <div className="max-w-md space-y-3">
             <div className="text-lg font-semibold">Demo scorer</div>
@@ -1449,10 +1449,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
       {/* No-ball classification sheet for demo */}
         </div>
-      }
-    />
+    </MobileViewportShell>
   );
 }
+
 
 function SquadSection({ title, players }: { title: string; players: PlayerOption[] }) {
   return (
