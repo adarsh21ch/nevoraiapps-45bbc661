@@ -990,10 +990,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           tournamentLabel={tournamentLabel || undefined}
           isLive={!!session.activeInnings && !session.match?.match_locked}
           freeHit={session.matchState.innings.freeHit}
-          score={`${stats?.team.runs ?? 0}/${stats?.team.wickets ?? 0}`}
+          score={stats ? `${stats.team.runs}/${stats.team.wickets}` : "0/0"}
           overs={currentOverLabel}
-          crr={String(stats?.team.runRate ?? 0)}
-          rrr={stats?.team.requiredRunRate != null ? String(stats?.team.requiredRunRate) : undefined}
+          crr={stats ? String(stats.team.runRate) : "0"}
+          rrr={stats?.team?.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={
             session.activeInnings?.target != null ? String(session.activeInnings.target) : undefined
           }
@@ -1002,7 +1002,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           nonStriker={{ ...nonStrikerStat, isKeeper: session.nonStriker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.nonStriker.athleteId)?.is_keeper : false }}
           bowler={bowlerStat}
           partnership={
-            stats?.team.currentPartnership
+            stats?.team?.currentPartnership
               ? {
                   runs: stats.team.currentPartnership.runs,
                   balls: stats.team.currentPartnership.balls,
@@ -1018,18 +1018,18 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           overHistory={overHistory}
           inningsLabel={undefined}
           insights={{
-            partnership: stats?.team.currentPartnership
+            partnership: stats?.team?.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
               : "0(0)",
             projected:
-              session.match?.overs && stats?.team.legalBalls && stats.team.legalBalls > 0
+              session.match?.overs && stats?.team?.legalBalls && stats.team.legalBalls > 0
                 ? String(Math.round(stats.team.runRate * session.match.overs))
                 : "–",
-            lastWicket: stats?.team.fallOfWickets.at(-1)
+            lastWicket: stats?.team?.fallOfWickets.at(-1)
               ? `${stats.team.fallOfWickets.at(-1)?.score}/${stats.team.fallOfWickets.at(-1)?.wicketNumber}`
               : "–",
-            extras: String(stats?.team.extras.total ?? 0),
-            recentOvers: (stats?.team.overs_summary ?? []).slice(-3).map((over) => ({
+            extras: String(stats?.team?.extras.total ?? 0),
+            recentOvers: (stats?.team?.overs_summary ?? []).slice(-3).map((over: any) => ({
               label: `${over.overNumber + 1}`,
               runs: over.runs,
               wickets: over.wickets,
