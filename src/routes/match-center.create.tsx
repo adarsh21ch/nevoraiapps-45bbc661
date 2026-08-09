@@ -1698,6 +1698,126 @@ function NewTeamBody({
       }
       footer={
         <div className="flex-none bg-card border-t shadow-[0_-8px_30px_rgb(0,0,0,0.04)] relative">
+          {/* Search suggestions (Expand Upward) */}
+          {trimmed && (
+            <div className="absolute bottom-full left-0 right-0 mx-3 mb-2 max-h-48 space-y-1 overflow-y-auto rounded-2xl border border-border bg-popover shadow-2xl p-1 z-50">
+              {studentsLoading ? (
+                <div className="p-3 text-sm text-muted-foreground animate-pulse">Searching academy...</div>
+              ) : (
+                <>
+                  {results.map((p) => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => {
+                        onAdd(p);
+                        setQ("");
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left hover:bg-accent transition-colors"
+                    >
+                      <Avatar src={p.photo_url} name={p.name} size={32} className="rounded-full shrink-0" />
+                      <span className="min-w-0 flex-1 truncate text-sm font-semibold">{p.name}</span>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-bold text-primary shrink-0">
+                        ACADEMY
+                      </span>
+                    </button>
+                  ))}
+                  {!exactAcademyMatch && (
+                    <button
+                      type="button"
+                      onClick={addGuest}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left hover:bg-accent transition-colors border-t border-border/40 mt-1 pt-2"
+                    >
+                      <div className="size-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                        <Plus className="size-4 text-muted-foreground" />
+                      </div>
+                      <span className="min-w-0 flex-1 truncate text-sm">
+                        Add <span className="font-bold">"{trimmed}"</span>
+                      </span>
+                      <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-bold text-amber-700 dark:text-amber-400 shrink-0 uppercase">
+                        Guest
+                      </span>
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Input Column */}
+          <div className="px-4 pt-4 pb-2">
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                onKeyDown={onKeyDown}
+                placeholder="Search or enter player name…"
+                className="pl-10 h-12 text-base rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/20"
+                autoComplete="off"
+                autoCorrect="off"
+              />
+            </div>
+          </div>
+
+          {/* Navigation Column (Horizontal) */}
+          <div className="flex flex-col gap-2 p-4 pt-1 pb-6 md:pb-4">
+            <div className="flex items-center gap-3">
+               <Button 
+                 type="button"
+                 variant="outline" 
+                 className="h-12 flex-1 text-sm font-bold rounded-2xl border-border/60 hover:bg-muted" 
+                 onClick={(e) => {
+                   e.preventDefault();
+                   e.stopPropagation();
+                   const btn = document.querySelector('[data-step-nav="back"]') as HTMLButtonElement;
+                   if (btn) btn.click();
+                 }}
+               >
+                 <ChevronLeft className="mr-2 size-4" /> Back
+               </Button>
+               <Button 
+                 type="button"
+                 disabled={!canContinue}
+                 className="h-12 flex-[2] text-sm font-bold rounded-2xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20" 
+                 onClick={() => onContinue()}
+               >
+                 Continue <ChevronRight className="ml-2 size-4" />
+               </Button>
+            </div>
+
+            {!canContinue && (
+              <div className="text-[10px] text-center text-amber-600 font-bold bg-amber-50 dark:bg-amber-900/10 rounded-lg py-1 px-2 border border-amber-100 dark:border-amber-900/20">
+                {!name.trim() ? "Team name required" : 
+                 players.length < 2 ? "Add at least 2 players" : 
+                 !players.some(p => p.is_captain) ? "Captain missing" : 
+                 !players.some(p => p.is_keeper) ? "Wicketkeeper missing" : "Check requirements"}
+              </div>
+            )}
+          </div>
+        </div>
+      }
+    >
+      {/* ROSTER: Scrollable list of players */}
+      <div className="p-3">
+        {players.length > 0 ? (
+          <SquadList 
+            players={[...players].reverse()} 
+            onPlayers={(p) => onPlayers([...p].reverse())} 
+            onRemove={onRemove} 
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground/30">
+            <div className="relative mb-3">
+              <Users className="size-12" />
+              <Plus className="absolute -bottom-1 -right-1 size-5 text-primary" />
+            </div>
+            <p className="text-sm font-medium">Add players below</p>
+          </div>
+        )}
+      </div>
+    </MobileViewportShell>
+  );
         {/* Search suggestions (Expand Upward) */}
         {trimmed && (
           <div className="absolute bottom-full left-0 right-0 mx-3 mb-2 max-h-48 space-y-1 overflow-y-auto rounded-2xl border border-border bg-popover shadow-2xl p-1 z-50">
