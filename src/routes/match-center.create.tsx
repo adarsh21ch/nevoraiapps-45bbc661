@@ -1780,7 +1780,7 @@ function NewTeamBody({
                  type="button"
                  disabled={!canContinue}
                  className="h-12 flex-[2] text-sm font-bold rounded-2xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20" 
-                 onClick={() => onContinue()}
+                 onClick={() => goNext()}
                >
                  Continue <ChevronRight className="ml-2 size-4" />
                </Button>
