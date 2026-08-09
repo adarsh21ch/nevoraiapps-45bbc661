@@ -844,6 +844,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   return (
     <MobileViewportShell
       className="scorer-root z-40"
+      desktopClassName="md:relative md:inset-auto md:h-[90dvh] md:rounded-3xl md:border md:shadow-2xl md:mt-4 md:mx-auto md:max-w-screen-xl"
     >
       {isDemo ? (
 
