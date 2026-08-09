@@ -844,6 +844,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   return (
     <MobileViewportShell
       className="scorer-root z-40"
+      desktopClassName="md:relative md:inset-auto md:h-[90dvh] md:rounded-3xl md:border md:shadow-2xl md:mt-4 md:mx-auto md:max-w-screen-xl"
     >
       {isDemo ? (
 
@@ -1935,7 +1936,7 @@ function DemoScorerBody({
       const diff = activeInnings.target - 1 - ms.innings.runs;
       winnerTeamId = diff > 0 ? activeInnings.bowling_team_id : null;
     }
-    const topBat = stats.summary.highestScorer?.player;
+    const topBat = stats?.summary.highestScorer?.player;
     const pomId = topBat?.athleteId ?? null;
     finalizeDemoMatch(session.tenantId, matchId, {
       winnerTeamId,
@@ -1949,7 +1950,7 @@ function DemoScorerBody({
 
   const startSecondInnings = async () => {
     if (!session.activeInnings) return;
-    const target = stats.team.runs + 1;
+    const target = (stats?.team.runs || 0) + 1;
     await session.startInnings({
       inningsNumber: 2,
       battingTeamId: session.activeInnings.bowling_team_id,
@@ -1991,10 +1992,10 @@ function DemoScorerBody({
     .filter(Boolean)
     .join(" · ");
   const chase =
-    activeInnings?.target != null && stats.team.requiredRuns != null
+    activeInnings?.target != null && stats?.team.requiredRuns != null
       ? { runsNeeded: stats.team.requiredRuns, ballsLeft: stats.team.ballsRemaining ?? 0 }
       : null;
-  const bowledBowlerIds: string[] = Array.from(stats.bowling.byKey.values())
+  const bowledBowlerIds: string[] = Array.from(stats?.bowling.byKey.values() ?? [])
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
 
@@ -2304,10 +2305,10 @@ function DemoScorerBody({
           </DialogHeader>
           <div className="rounded-lg border bg-card p-3 text-center">
             <div className="text-3xl font-black tabular-nums">
-              {stats.team.runs}/{stats.team.wickets}
+              {stats?.team.runs}/{stats?.team.wickets}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats.team.legalBalls)} overs
+              {formatOversCompact(stats?.team.legalBalls || 0)} overs
             </div>
           </div>
           <DialogFooter className="gap-2">
@@ -2337,10 +2338,10 @@ function DemoScorerBody({
               Final score
             </div>
             <div className="mt-1 text-3xl font-black tabular-nums">
-              {stats.team.runs}/{stats.team.wickets}
+              {stats?.team.runs}/{stats?.team.wickets}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats.team.legalBalls)} overs
+              {formatOversCompact(stats?.team.legalBalls || 0)} overs
             </div>
           </div>
           <DialogFooter className="gap-2">
