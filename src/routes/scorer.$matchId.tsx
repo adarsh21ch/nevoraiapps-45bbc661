@@ -132,11 +132,17 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const stats = useMemo(() => {
     if (!session.match) return null;
     try {
-      return calculateInningsStatistics(session.events, {
+      // Defensive check: ensure byKey exists on the result if the engine returns a partial object
+      const result = calculateInningsStatistics(session.events, {
         totalOvers: session.match?.overs ?? null,
         playingRules: session.match?.playing_rules ?? null,
         target: session.activeInnings?.target ?? null,
       });
+      
+      if (!result.batting?.byKey || !result.bowling?.byKey) {
+        console.warn("Stats engine returned incomplete result structure");
+      }
+      return result;
     } catch (e) {
       console.error("Stats engine crash:", e);
       return null;
@@ -398,7 +404,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const strikerStat: BatterStats | undefined = strikerKey
     ? (() => {
-        const s = stats?.batting?.byKey?.get?.(strikerKey);
+        const s = stats?.batting?.byKey ? stats.batting.byKey.get(strikerKey) : undefined;
 
         return {
           name: striker.name ?? undefined,
@@ -421,7 +427,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const nonStrikerStat: BatterStats | undefined = nonStrikerKey
     ? (() => {
-        const s = stats?.batting?.byKey?.get?.(nonStrikerKey);
+        const s = stats?.batting?.byKey ? stats.batting.byKey.get(nonStrikerKey) : undefined;
 
         return {
           name: nonStriker.name ?? undefined,
@@ -437,7 +443,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const bowlerStat: BowlerStats | undefined = bowlerKey
     ? (() => {
-        const b = stats?.bowling?.byKey?.get?.(bowlerKey);
+        const b = stats?.bowling?.byKey ? stats.bowling.byKey.get(bowlerKey) : undefined;
 
         return {
           name: bowlerRef.name ?? undefined,
@@ -836,7 +842,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
         }
       : null;
-  const bowledBowlerIds: string[] = Array.from(stats?.bowling?.byKey?.values?.() ?? [])
+  const bowledBowlerIds: string[] = Array.from(stats?.bowling?.byKey?.values() ?? [])
 
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
