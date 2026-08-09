@@ -48,6 +48,8 @@ import { ShareMatchDialog } from "@/components/match-center/share-match-dialog";
 import { FinalizationDialog, UnlockMatchDialog } from "@/components/match-center/finalization-ui";
 import { detectMatchResult, type InningsRow, type MatchResult } from "@/lib/mc-finalization";
 import { Printer, Share2, FileText, Trophy } from "lucide-react";
+import { useViewportInsets } from "@/hooks/use-visual-viewport";
+import { MobileViewportShell } from "@/components/ds/MobileViewportShell";
 
 export const Route = createFileRoute("/scorer/$matchId")({
   head: () => ({
