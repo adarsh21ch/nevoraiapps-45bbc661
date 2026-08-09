@@ -148,7 +148,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   // render in multiple places, but it's null until session.loading is false.
   // The error component in __root.tsx catches the resulting "Cannot read property of null"
   // and shows "This page didn't load".
-  if (session.loading || tenantQ.isLoading || userQ.isLoading || (session.match && !stats)) {
+  if (session.loading || tenantQ.isLoading || userQ.isLoading) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-6 text-center">
         <div className="flex flex-col items-center gap-4">
@@ -398,7 +398,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const strikerStat: BatterStats | undefined = strikerKey
     ? (() => {
-        const s = stats?.batting.byKey.get(strikerKey);
+        const s = stats?.batting?.byKey?.get?.(strikerKey);
 
         return {
           name: striker.name ?? undefined,
@@ -421,7 +421,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const nonStrikerStat: BatterStats | undefined = nonStrikerKey
     ? (() => {
-        const s = stats?.batting.byKey.get(nonStrikerKey);
+        const s = stats?.batting?.byKey?.get?.(nonStrikerKey);
 
         return {
           name: nonStriker.name ?? undefined,
@@ -437,7 +437,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const bowlerStat: BowlerStats | undefined = bowlerKey
     ? (() => {
-        const b = stats?.bowling.byKey.get(bowlerKey);
+        const b = stats?.bowling?.byKey?.get?.(bowlerKey);
 
         return {
           name: bowlerRef.name ?? undefined,
@@ -836,7 +836,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
         }
       : null;
-  const bowledBowlerIds: string[] = Array.from(stats?.bowling.byKey.values() ?? [])
+  const bowledBowlerIds: string[] = Array.from(stats?.bowling?.byKey?.values?.() ?? [])
 
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
@@ -1995,7 +1995,7 @@ function DemoScorerBody({
     activeInnings?.target != null && stats?.team.requiredRuns != null
       ? { runsNeeded: stats.team.requiredRuns, ballsLeft: stats.team.ballsRemaining ?? 0 }
       : null;
-  const bowledBowlerIds: string[] = Array.from(stats?.bowling.byKey.values() ?? [])
+  const bowledBowlerIds: string[] = Array.from(stats?.bowling?.byKey?.values?.() ?? [])
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
 
