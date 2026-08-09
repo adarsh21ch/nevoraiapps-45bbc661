@@ -93,7 +93,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mc_athlete_profiles")
-        .select("primary_sport")
+        .select("*, mc_cricket_profiles(*)")
         .eq("tenant_id", tenant.id)
         .eq("student_id", studentId)
         .maybeSingle();
