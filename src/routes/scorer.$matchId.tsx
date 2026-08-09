@@ -150,17 +150,15 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   }, [session.events, session.match, session.activeInnings?.target]);
 
 
-  // Critical crash fix: the route component assumes session.match exists during initial 
-  // render in multiple places, but it's null until session.loading is false.
-  // The error component in __root.tsx catches the resulting "Cannot read property of null"
-  // and shows "This page didn't load".
+  // Critical crash fix: ensure we don't render UI components that expect match data
+  // until loading is finished.
   if (session.loading || tenantQ.isLoading || userQ.isLoading) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-[#0a0a0a] p-6 text-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <div className="space-y-1">
-            <h2 className="text-sm font-semibold text-white">Loading match...</h2>
+          <div className="space-y-1 text-white">
+            <h2 className="text-sm font-semibold">Loading match...</h2>
             <p className="text-[11px] text-zinc-500">Preparing scorecard and team data</p>
           </div>
         </div>
