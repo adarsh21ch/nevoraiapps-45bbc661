@@ -1447,9 +1447,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         </SheetContent>
       </Sheet>
 
-      {/* No-ball classification sheet for demo */}
+    </MobileViewportShell>
   );
 }
+
 
 
 
