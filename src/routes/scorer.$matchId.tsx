@@ -180,7 +180,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     if (!session.match) return null;
     try {
       // Defensive check: ensure byKey exists on the result if the engine returns a partial object
-      const result = calculateInningsStatistics(session.events, {
+      const result = calculateInningsStatistics(session.events ?? [], {
         totalOvers: session.match?.overs ?? null,
         playingRules: session.match?.playing_rules ?? null,
         target: session.activeInnings?.target ?? null,
