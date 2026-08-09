@@ -19,7 +19,6 @@ import {
 } from "@/lib/nevorai/conversations.functions";
 import { useNevorAIPageContext } from "@/lib/nevorai/page-context";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
 import { MobileViewportShell } from "@/components/ds/MobileViewportShell";
 
 const LAST_CONV_KEY = "nevorai:lastConversationId";
@@ -53,11 +52,7 @@ const SUGGESTIONS = [
 ];
 
 /**
- * NevorAI is a normal dashboard module. It lives INSIDE the DashboardShell
- * (sidebar + header + bottom nav remain visible at all times). The workspace
- * fills the available content area with a 3-column layout on xl+, collapsing
- * to drawers on smaller viewports. Chat dominates; conversations and
- * intelligence rails are secondary.
+ * NevorAIPage — uses MobileViewportShell to handle mobile viewport & keyboard.
  */
 function NevorAIPage() {
   const [conversationId, setConversationId] = useState<string | null>(() => {
@@ -81,19 +76,16 @@ function NevorAIPage() {
   const qc = useQueryClient();
   const pageContext = useNevorAIPageContext();
 
-  // Persist the active conversation across route changes so returning to
-  // NevorAI restores the same chat instead of a blank draft.
+  // Persist conversation across route changes.
   useEffect(() => {
     try {
       if (conversationId) window.localStorage.setItem(LAST_CONV_KEY, conversationId);
       else window.localStorage.removeItem(LAST_CONV_KEY);
     } catch {
-      /* ignore quota / private mode */
+      /* ignore */
     }
   }, [conversationId]);
 
-  // If we don't have a stored conversation, quietly select the most-recent one
-  // (pinned first, then latest updated) so users see their history immediately.
   const conversationsQ = useQuery({
     queryKey: ["nevorai", "conversations"],
     queryFn: () => fetchConversations(),
@@ -111,9 +103,6 @@ function NevorAIPage() {
     queryFn: () => fetchTurns({ data: { conversationId: conversationId! } }),
   });
 
-  // Lazily create a conversation row when the user submits their first
-  // message in a draft chat. This prevents the server from silently minting
-  // a fresh row every turn while the client still thinks it's a draft.
   const ensureConversationId = useCallback(async (): Promise<string | null> => {
     if (conversationId) return conversationId;
     try {
@@ -142,17 +131,6 @@ function NevorAIPage() {
       });
   }, [conversationId, turnsQ.data]);
 
-  // Mobile chat architecture:
-  //  • The workspace mounts as a fullscreen fixed overlay (inset-0), covering
-  //    the DashboardShell header and hiding it while chat is open. Only ONE
-  //    element sits above the keyboard; nothing behind it can move.
-  //  • Body is hard-locked with position:fixed for the lifetime of the page.
-  //    `overflow: hidden` alone does NOT stop iOS Safari from auto-scrolling
-  //    the layout viewport to reveal a focused input — position:fixed does.
-  //  • Height is driven by window.visualViewport so the container shrinks
-  //    exactly to the space above the on-screen keyboard (iOS `100dvh` does
-  //    not shrink on keyboard open). Composer stays welded to the bottom.
-  //  • Desktop (md+) keeps the normal flow layout inside DashboardShell.
   return (
     <MobileViewportShell
       data-nevorai-workspace
@@ -211,24 +189,11 @@ function NevorAIPage() {
       }
     >
       <div className="flex h-full w-full">
-
-
-
-      {/* Conversations rail — persistent on lg+ (compact) */}
-      <aside className="hidden lg:flex w-[240px] xl:w-[260px] shrink-0 flex-col border-r border-border/60 bg-card/40">
-        <ConversationList activeId={conversationId} onSelect={setConversationId} />
-      </aside>
-
-      {/* Center — chat */}
-      <main className="flex min-w-0 flex-1 flex-col">
-        {/* Conversations rail — persistent on lg+ (compact) */}
         <aside className="hidden lg:flex w-[240px] xl:w-[260px] shrink-0 flex-col border-r border-border/60 bg-card/40">
           <ConversationList activeId={conversationId} onSelect={setConversationId} />
         </aside>
 
-        {/* Center — chat */}
         <main className="flex min-w-0 flex-1 flex-col">
-          {/* Chat: comfortable centered column that breathes at every width */}
           <div className="relative flex min-h-0 flex-1 flex-col">
             <div className="mx-auto flex w-full min-h-0 max-w-[880px] flex-1 flex-col px-4 sm:px-6 lg:px-8">
               <ChatPanel
@@ -248,7 +213,6 @@ function NevorAIPage() {
           </div>
         </main>
 
-        {/* Intelligence rail — persistent on xl+ */}
         <aside className="hidden xl:flex w-[340px] 2xl:w-[380px] shrink-0 flex-col gap-4 overflow-y-auto border-l border-border/60 bg-card/30 p-5">
           <div className="flex items-center justify-between">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -258,7 +222,6 @@ function NevorAIPage() {
           <RightRail />
         </aside>
 
-        {/* < lg: conversations drawer */}
         <Sheet open={convOpen} onOpenChange={setConvOpen}>
           <SheetContent side="left" className="w-[300px] max-w-[85vw] p-0">
             <ConversationList
@@ -271,7 +234,6 @@ function NevorAIPage() {
           </SheetContent>
         </Sheet>
 
-        {/* < xl: intelligence drawer */}
         <Sheet open={rightOpen} onOpenChange={setRightOpen}>
           <SheetContent side="right" className="w-[380px] max-w-[92vw] overflow-y-auto p-4">
             <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
