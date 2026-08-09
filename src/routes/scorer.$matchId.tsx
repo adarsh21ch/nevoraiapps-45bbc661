@@ -2037,17 +2037,17 @@ function DemoScorerBody({
           matchTitle={matchTitle}
           tournamentLabel={tournamentLabel || undefined}
           isLive={isLive}
-          score={`${stats.team.runs}/${stats.team.wickets}`}
+          score={stats ? `${stats.team.runs}/${stats.team.wickets}` : "0/0"}
           overs={currentOverLabel}
-          crr={String(stats.team.runRate)}
-          rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
+          crr={stats ? String(stats.team.runRate) : "0"}
+          rrr={stats?.team?.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={activeInnings?.target != null ? String(activeInnings.target) : undefined}
           chase={chase}
           striker={{ ...strikerStat, isKeeper: session.striker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.striker.athleteId)?.is_keeper : false }}
           nonStriker={{ ...nonStrikerStat, isKeeper: session.nonStriker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.nonStriker.athleteId)?.is_keeper : false }}
           bowler={bowlerStat}
           partnership={
-            stats.team.currentPartnership
+            stats?.team?.currentPartnership
               ? {
                   runs: stats.team.currentPartnership.runs,
                   balls: stats.team.currentPartnership.balls,
@@ -2062,18 +2062,18 @@ function DemoScorerBody({
           currentOverLabel={currentOverLabel}
           overHistory={overHistory}
           insights={{
-            partnership: stats.team.currentPartnership
+            partnership: stats?.team?.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
               : "0(0)",
             projected:
-              match.overs && stats.team.legalBalls > 0
+              match.overs && stats?.team?.legalBalls > 0
                 ? String(Math.round(stats.team.runRate * match.overs))
                 : "–",
-            lastWicket: stats.team.fallOfWickets.at(-1)
+            lastWicket: stats?.team?.fallOfWickets.at(-1)
               ? `${stats.team.fallOfWickets.at(-1)?.score}/${stats.team.fallOfWickets.at(-1)?.wicketNumber}`
               : "–",
-            extras: String(stats.team.extras.total),
-            recentOvers: stats.team.overs_summary.slice(-3).map((over) => ({
+            extras: String(stats?.team?.extras?.total ?? 0),
+            recentOvers: (stats?.team?.overs_summary ?? []).slice(-3).map((over: any) => ({
               label: `${over.overNumber + 1}`,
               runs: over.runs,
               wickets: over.wickets,
