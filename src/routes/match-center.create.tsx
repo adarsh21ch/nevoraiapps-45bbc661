@@ -1641,89 +1641,63 @@ function NewTeamBody({
   };
 
   const hasRoles = players.some(p => p.is_captain) && players.some(p => p.is_keeper);
-  const keyboardOpen = useKeyboardOpen();
-  const vh = useVisualViewportHeight();
+  const hasRoles = players.some(p => p.is_captain) && players.some(p => p.is_keeper);
 
   return (
-    <div 
-      className={cn(
-        "flex flex-col bg-background overflow-hidden",
-        "fixed inset-0 z-[100] md:relative md:inset-auto md:h-[80vh] md:max-h-[85vh] md:rounded-3xl md:border md:shadow-xl"
-      )}
-      style={{ 
-        height: vh > 0 ? `${vh}px` : '100dvh'
-      }}
-    >
-      {/* HEADER: Team Name & Status (Fixed) */}
-      <div className="flex-none p-4 pb-3 border-b bg-card">
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 block">Team name</Label>
-            <Input
-              value={name}
-              onChange={(e) => onName(e.target.value)}
-              placeholder="e.g. Team A"
-              className="h-10 text-base font-semibold focus-visible:ring-offset-0 focus-visible:ring-1"
-            />
-          </div>
-          <div className="flex flex-col items-end gap-1.5 shrink-0 pt-5">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] font-bold text-muted-foreground">XI</span>
-              <span className={cn(
-                "flex h-6 min-w-8 items-center justify-center rounded-lg px-2 text-[11px] font-bold",
-                players.length >= 11 ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"
-              )}>
-                {players.length}/11
-              </span>
+    <MobileViewportShell
+      desktopClassName="md:relative md:inset-auto md:h-[80vh] md:max-h-[85vh] md:rounded-3xl md:border md:shadow-xl"
+      header={
+        <div className="flex-none p-4 pb-3 border-b bg-card">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 block">Team name</Label>
+              <Input
+                value={name}
+                onChange={(e) => onName(e.target.value)}
+                placeholder="e.g. Team A"
+                className="h-10 text-base font-semibold focus-visible:ring-offset-0 focus-visible:ring-1"
+              />
             </div>
-          </div>
-        </div>
-
-        {/* Status Indicators (Compact) */}
-        {players.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <div className="flex items-center gap-1.5 text-[10px]">
-              {players.some(p => p.is_captain) ? (
-                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
-              ) : (
-                <span className="text-amber-600 font-medium">Captain required</span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px]">
-              {players.some(p => p.is_keeper) ? (
-                <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> WK</span>
-              ) : (
-                <span className="text-amber-600 font-medium">WK required</span>
-              )}
-            </div>
-            {players.length < 2 && (
-              <div className="flex items-center gap-1.5 text-[10px]">
-                <span className="text-amber-600 font-medium">Min 2 players required</span>
+            <div className="flex flex-col items-end gap-1.5 shrink-0 pt-5">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold text-muted-foreground">XI</span>
+                <span className={cn(
+                  "flex h-6 min-w-8 items-center justify-center rounded-lg px-2 text-[11px] font-bold",
+                  players.length >= 11 ? "bg-emerald-500/10 text-emerald-600" : "bg-primary/10 text-primary"
+                )}>
+                  {players.length}/11
+                </span>
               </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ROSTER: Scrollable list of players */}
-      <div className="flex-1 overflow-y-auto min-h-0 bg-muted/5 scrollbar-thin">
-        {players.length > 0 ? (
-          <div className="p-3">
-            <SquadList players={[...players].reverse()} onPlayers={(p) => onPlayers([...p].reverse())} onRemove={onRemove} />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground/30 py-10">
-            <div className="relative mb-3">
-              <Users className="size-12" />
-              <Plus className="absolute -bottom-1 -right-1 size-5 text-primary" />
             </div>
-            <p className="text-sm font-medium">Add players below</p>
           </div>
-        )}
-      </div>
 
-      {/* COMPOSER & FOOTER (Fixed) */}
-      <div className="flex-none bg-card border-t shadow-[0_-8px_30px_rgb(0,0,0,0.04)] relative">
+          {players.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <div className="flex items-center gap-1.5 text-[10px]">
+                {players.some(p => p.is_captain) ? (
+                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> Captain</span>
+                ) : (
+                  <span className="text-amber-600 font-medium">Captain required</span>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 text-[10px]">
+                {players.some(p => p.is_keeper) ? (
+                  <span className="flex items-center gap-1 text-emerald-600 font-bold"><CheckCircle2 className="size-3" /> WK</span>
+                ) : (
+                  <span className="text-amber-600 font-medium">WK required</span>
+                )}
+              </div>
+              {players.length < 2 && (
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <span className="text-amber-600 font-medium">Min 2 players required</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      }
+      footer={
+        <div className="flex-none bg-card border-t shadow-[0_-8px_30px_rgb(0,0,0,0.04)] relative">
         {/* Search suggestions (Expand Upward) */}
         {trimmed && (
           <div className="absolute bottom-full left-0 right-0 mx-3 mb-2 max-h-48 space-y-1 overflow-y-auto rounded-2xl border border-border bg-popover shadow-2xl p-1 z-50">
