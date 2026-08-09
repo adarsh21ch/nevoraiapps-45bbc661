@@ -47,24 +47,9 @@ import { LiveScorecard } from "@/components/match-center/live-scorecard";
 import { ShareMatchDialog } from "@/components/match-center/share-match-dialog";
 import { FinalizationDialog, UnlockMatchDialog } from "@/components/match-center/finalization-ui";
 import { detectMatchResult, type InningsRow, type MatchResult } from "@/lib/mc-finalization";
-import { Printer, Share2, FileText, Trophy, Settings2, UserPlus, Pencil, Trash2, Search, ArrowLeftRight } from "lucide-react";
+import { Printer, Share2, FileText, Trophy } from "lucide-react";
 import { useViewportInsets } from "@/hooks/use-visual-viewport";
 import { MobileViewportShell } from "@/components/ds/MobileViewportShell";
-import { 
-  renameGuestSquadPlayer, 
-  replaceSquadPlayer, 
-  removeSquadPlayer, 
-  addSquadPlayer, 
-  renameMatchTeam, 
-  reorderSquad 
-} from "@/lib/mc-squad-editing.functions";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { Avatar } from "@/components/match-center/athlete-ui";
-import { listStudents } from "@/lib/mc-teams";
-import { SquadEditorSheet } from "@/components/match-center/SquadEditorSheet";
-
-
 
 export const Route = createFileRoute("/scorer/$matchId")({
   head: () => ({
@@ -129,12 +114,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     userId: userQ.data?.id ?? null,
   });
 
-  const [squadEditOpen, setSquadEditOpen] = useState(false);
-  const qc = useQueryClient();
-
   // Phase 3 — advisory lock. Only one active scorer per match at a time.
   const lockStatus = useScoringLock(isDemo ? null : matchId, !isDemo);
-
 
   // Team names
   const teamsQ = useQuery({
@@ -980,7 +961,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           onOpenBowlerPicker={() => setPickBowlerOpen(true)}
           onUndo={() => void handleUndo()}
           onRedo={() => void handleRedo()}
-          onOpenSquadEditor={() => setSquadEditOpen(true)}
           canRedo={redoStack.length > 0}
           onSwapStrike={() => {
             const s = { ...session.striker };
@@ -1176,24 +1156,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         </SheetContent>
       </Sheet>
 
-      {/* Squad/Team Editor Sheet */}
-      <SquadEditorSheet 
-        open={squadEditOpen} 
-        onOpenChange={setSquadEditOpen}
-        matchId={matchId}
-        session={session}
-        teams={teamsQ.data ?? []}
-        nameMap={nameMapQ.data ?? {}}
-        onRefresh={() => {
-          qc.invalidateQueries({ queryKey: ["mc-match-teams"] });
-          qc.invalidateQueries({ queryKey: ["mc-scorer-names"] });
-          session.reload();
-        }}
-      />
-
       {/* Scorecard sheet */}
       <Sheet open={scorecardOpen} onOpenChange={setScorecardOpen}>
-
         <SheetContent
           side="bottom"
           className="flex h-[90dvh] flex-col rounded-t-[28px] border-t-0 p-0 pb-[env(safe-area-inset-bottom)] shadow-2xl"
