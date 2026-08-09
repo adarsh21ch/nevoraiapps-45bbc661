@@ -26,6 +26,7 @@ export const qk = {
   payments: (t: string) => ["d", "payments", t] as const,
   studentPayments: (id: string) => ["d", "payments", "student", id] as const,
   site: (t: string) => ["d", "site", t] as const,
+  athlete: (sid: string) => ["d", "athlete", sid] as const,
   kpis: (t: string) => ["d", "kpis", t] as const,
   insights: (t: string) => ["d", "insights", t] as const,
   activity: (t: string) => ["d", "activity", t] as const,
@@ -63,6 +64,22 @@ export async function fetchStudent(id: string, db: Db = supabase) {
   if (error) throw error;
   return data;
 }
+
+export async function fetchAthleteByStudent(studentId: string, db: Db = supabase) {
+  const { data, error } = await db
+    .from("mc_athlete_profiles")
+    .select("*, mc_cricket_profiles(*)")
+    .eq("student_id", studentId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export const athleteProfileQuery = (studentId: string) => ({
+  queryKey: qk.athlete(studentId),
+  queryFn: () => fetchAthleteByStudent(studentId),
+});
+
 
 export async function fetchStudentPayments(studentId: string, db: Db = supabase) {
   const { data, error } = await db
