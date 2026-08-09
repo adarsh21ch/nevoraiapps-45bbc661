@@ -831,8 +831,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const chase =
     session.activeInnings?.target != null && stats?.team.requiredRuns != null
       ? {
-          runsNeeded: stats?.team.requiredRuns ?? 0,
-          ballsLeft: stats?.team.ballsRemaining ?? 0,
+          runsNeeded: stats.team.requiredRuns,
+          ballsLeft: stats.team.ballsRemaining ?? 0,
 
         }
       : null;
