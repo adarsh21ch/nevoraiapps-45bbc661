@@ -153,56 +153,64 @@ function NevorAIPage() {
   //    exactly to the space above the on-screen keyboard (iOS `100dvh` does
   //    not shrink on keyboard open). Composer stays welded to the bottom.
   //  • Desktop (md+) keeps the normal flow layout inside DashboardShell.
-  const vvHeight = useVisualViewportHeight();
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    if (typeof window === "undefined") return;
-    // Only lock on mobile viewports; desktop scrolls normally inside main.
-    if (window.matchMedia("(min-width: 768px)").matches) return;
-    const html = document.documentElement;
-    const body = document.body;
-    const scrollY = window.scrollY;
-    const prev = {
-      htmlOverflow: html.style.overflow,
-      bodyOverflow: body.style.overflow,
-      bodyPosition: body.style.position,
-      bodyTop: body.style.top,
-      bodyWidth: body.style.width,
-    };
-    html.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    body.style.position = "fixed";
-    body.style.top = `-${scrollY}px`;
-    body.style.width = "100%";
-    return () => {
-      html.style.overflow = prev.htmlOverflow;
-      body.style.overflow = prev.bodyOverflow;
-      body.style.position = prev.bodyPosition;
-      body.style.top = prev.bodyTop;
-      body.style.width = prev.bodyWidth;
-      window.scrollTo(0, scrollY);
-    };
-  }, []);
-
-  // Mobile: fullscreen overlay whose height tracks the visual viewport so the
-  // keyboard shrinks only this container. No top offset — we replace the shell
-  // header with our own NevorAI header (rendered below).
-  const mobileStyle: React.CSSProperties | undefined = vvHeight
-    ? { height: `${vvHeight}px` }
-    : undefined;
-
   return (
-    <div
+    <MobileViewportShell
       data-nevorai-workspace
-      className={cn(
-        // Mobile: fullscreen fixed overlay ABOVE the shell.
-        // We use z-[60] to ensure it covers the bottom nav (z-40) and header (z-40).
-        "fixed inset-0 z-[60] flex bg-background text-foreground",
-        // Desktop: normal flow inside dashboard main, negate main padding.
-        "md:static md:z-auto md:-mx-8 md:-mt-8 md:-mb-8 md:h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]",
-      )}
-      style={mobileStyle}
+      className="z-[60]"
+      desktopClassName="md:static md:z-auto md:-mx-8 md:-mt-8 md:-mb-8 md:h-[calc(100dvh-env(safe-area-inset-top)-3.5rem)]"
+      header={
+        <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border/50 px-3 py-2.5 lg:px-6">
+          <Link
+            to="/dashboard/academy"
+            className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent"
+            aria-label="Back to Manage"
+          >
+            <ArrowLeft className="size-4" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => setConvOpen(true)}
+            className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent lg:hidden"
+            aria-label="Open conversations"
+          >
+            <PanelLeft className="size-4" />
+          </button>
+          <div className="flex min-w-0 items-center gap-2">
+            <span
+              className="grid size-7 shrink-0 place-items-center rounded-lg"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--tenant-brand, var(--brand, #E8873C)) 0%, color-mix(in oklab, var(--tenant-brand, var(--brand, #E8873C)) 60%, #6366f1) 100%)",
+              }}
+            >
+              <Sparkles className="size-4 text-white" />
+            </span>
+            <span className="truncate text-sm font-semibold">NevorAI</span>
+            <span className="hidden truncate text-xs text-muted-foreground sm:inline">
+              · AI Academy Manager
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setConversationId(null)}
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors"
+            >
+              <Plus className="size-3.5" /> New chat
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightOpen(true)}
+              className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent xl:hidden"
+              aria-label="Open intelligence panel"
+            >
+              <PanelRight className="size-4" />
+            </button>
+          </div>
+        </header>
+      }
     >
+      <div className="flex h-full w-full">
 
 
 
