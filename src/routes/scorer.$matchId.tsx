@@ -1369,7 +1369,9 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       </Sheet>
 
       {/* No-ball classification sheet for demo */}
-    </div>
+        </div>
+      }
+    />
   );
 }
 
@@ -2255,6 +2257,8 @@ function DemoScorerBody({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+        </div>
+      }
+    />
   );
 }

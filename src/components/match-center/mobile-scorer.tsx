@@ -414,10 +414,7 @@ export function MobileScorer(props: MobileScorerProps) {
         </div>
       </main>
 
-      <div
-        className="z-20 shrink-0 border-t bg-background/95 backdrop-blur-xl"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-      >
+      <div className="z-20 shrink-0 border-t bg-background/95 backdrop-blur-xl">
         <div className="px-3 pt-2">
           <ScoringDock
             disabled={props.disabled}
