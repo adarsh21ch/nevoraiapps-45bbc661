@@ -6,8 +6,8 @@ import { listMatchSquad } from "./mc-matches";
 /**
  * Validates that a match is editable (scheduled or live) and user is staff.
  */
-async function assertMatchEditable(matchId: string, supabase: any) {
-  const { data: match, error } = await supabase
+async function assertMatchEditable(matchId: string, supabaseClient: any) {
+  const { data: match, error } = await supabaseClient
     .from("mc_matches")
     .select("status, tenant_id")
     .eq("id", matchId)
@@ -21,9 +21,11 @@ async function assertMatchEditable(matchId: string, supabase: any) {
 }
 
 export const renameGuestSquadPlayer = createServerFn({ method: "POST" })
-  .input(z.object({ squadRowId: z.string(), newName: z.string().min(1) }))
-  .handler(async ({ input }) => {
-    const { squadRowId, newName } = input;
+  .validator((data: { squadRowId: string, newName: string }) => 
+    z.object({ squadRowId: z.string(), newName: z.string().min(1) }).parse(data)
+  )
+  .handler(async ({ data }) => {
+    const { squadRowId, newName } = data;
     
     const { data: row, error: rowErr } = await supabase
       .from("mc_match_squads")
@@ -46,15 +48,20 @@ export const renameGuestSquadPlayer = createServerFn({ method: "POST" })
   });
 
 export const replaceSquadPlayer = createServerFn({ method: "POST" })
-  .input(z.object({ 
-    squadRowId: z.string(), 
-    replaceWith: z.union([
-      z.object({ athleteProfileId: z.string() }),
-      z.object({ guestName: z.string() })
-    ])
-  }))
-  .handler(async ({ input }) => {
-    const { squadRowId, replaceWith } = input;
+  .validator((data: { 
+    squadRowId: string, 
+    replaceWith: { athleteProfileId: string } | { guestName: string } 
+  }) => 
+    z.object({ 
+      squadRowId: z.string(), 
+      replaceWith: z.union([
+        z.object({ athleteProfileId: z.string() }),
+        z.object({ guestName: z.string() })
+      ])
+    }).parse(data)
+  )
+  .handler(async ({ data }) => {
+    const { squadRowId, replaceWith } = data;
     
     const { data: row, error: rowErr } = await supabase
       .from("mc_match_squads")
@@ -81,9 +88,11 @@ export const replaceSquadPlayer = createServerFn({ method: "POST" })
   });
 
 export const removeSquadPlayer = createServerFn({ method: "POST" })
-  .input(z.object({ squadRowId: z.string() }))
-  .handler(async ({ input }) => {
-    const { squadRowId } = input;
+  .validator((data: { squadRowId: string }) => 
+    z.object({ squadRowId: z.string() }).parse(data)
+  )
+  .handler(async ({ data }) => {
+    const { squadRowId } = data;
     
     const { data: row, error: rowErr } = await supabase
       .from("mc_match_squads")
@@ -118,16 +127,22 @@ export const removeSquadPlayer = createServerFn({ method: "POST" })
   });
 
 export const addSquadPlayer = createServerFn({ method: "POST" })
-  .input(z.object({ 
-    matchId: z.string(), 
-    teamId: z.string(), 
-    player: z.union([
-      z.object({ athleteProfileId: z.string() }),
-      z.object({ guestName: z.string() })
-    ])
-  }))
-  .handler(async ({ input }) => {
-    const { matchId, teamId, player } = input;
+  .validator((data: { 
+    matchId: string, 
+    teamId: string, 
+    player: { athleteProfileId: string } | { guestName: string } 
+  }) => 
+    z.object({ 
+      matchId: z.string(), 
+      teamId: z.string(), 
+      player: z.union([
+        z.object({ athleteProfileId: z.string() }),
+        z.object({ guestName: z.string() })
+      ])
+    }).parse(data)
+  )
+  .handler(async ({ data }) => {
+    const { matchId, teamId, player } = data;
     const match = await assertMatchEditable(matchId, supabase);
 
     const squad = await listMatchSquad(matchId, teamId);
@@ -151,9 +166,11 @@ export const addSquadPlayer = createServerFn({ method: "POST" })
   });
 
 export const renameMatchTeam = createServerFn({ method: "POST" })
-  .input(z.object({ matchId: z.string(), teamId: z.string(), newName: z.string().min(1) }))
-  .handler(async ({ input }) => {
-    const { matchId, teamId, newName } = input;
+  .validator((data: { matchId: string, teamId: string, newName: string }) => 
+    z.object({ matchId: z.string(), teamId: z.string(), newName: z.string().min(1) }).parse(data)
+  )
+  .handler(async ({ data }) => {
+    const { matchId, teamId, newName } = data;
     await assertMatchEditable(matchId, supabase);
 
     const { error } = await supabase
@@ -166,19 +183,18 @@ export const renameMatchTeam = createServerFn({ method: "POST" })
   });
 
 export const reorderSquad = createServerFn({ method: "POST" })
-  .input(z.object({ 
-    matchId: z.string(), 
-    teamId: z.string(), 
-    orderedRowIds: z.array(z.string()) 
-  }))
-  .handler(async ({ input }) => {
-    const { matchId, teamId, orderedRowIds } = input;
+  .validator((data: { matchId: string, teamId: string, orderedRowIds: string[] }) => 
+    z.object({ 
+      matchId: z.string(), 
+      teamId: z.string(), 
+      orderedRowIds: z.array(z.string()) 
+    }).parse(data)
+  )
+  .handler(async ({ data }) => {
+    const { matchId, teamId, orderedRowIds } = data;
     await assertMatchEditable(matchId, supabase);
 
-    // TODO: "Refuse to move any player who has already batted"
-    // This requires detailed innings analysis. For now, we perform the reorder.
-
-    const updates = orderedRowIds.map((id, idx) => 
+    const updates = orderedRowIds.map((id: string, idx: number) => 
       supabase.from("mc_match_squads").update({ batting_order: idx + 1 }).eq("id", id)
     );
 

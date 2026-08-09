@@ -62,6 +62,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Avatar } from "@/components/match-center/athlete-ui";
 import { listStudents } from "@/lib/mc-teams";
+import { SquadEditorSheet } from "@/components/match-center/SquadEditorSheet";
+
 
 
 export const Route = createFileRoute("/scorer/$matchId")({
