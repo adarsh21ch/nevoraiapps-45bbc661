@@ -82,7 +82,7 @@ export function SquadEditorSheet({
   // Fetch students for the picker
   const studentsQ = useQuery({
     queryKey: ["academy-students-picker", searchQuery],
-    queryFn: () => listStudents(session.match?.tenant_id || "", searchQuery),
+    queryFn: () => listStudents(session.match?.tenant_id || ""),
     enabled: !!(replacingSquadId || addingToTeamId)
   });
 
