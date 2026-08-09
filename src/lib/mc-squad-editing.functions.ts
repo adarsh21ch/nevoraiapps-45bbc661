@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabase } from "@/integrations/supabase/client";
 import { listMatchSquad } from "./mc-matches";
 
 /**
@@ -26,21 +26,19 @@ export const renameGuestSquadPlayer = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { squadRowId, newName } = data;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     
-    const { data: row, error: rowErr } = await supabaseAdmin
+    const { data: row, error: rowErr } = await supabase
       .from("mc_match_squads")
       .select("athlete_profile_id, match_id")
       .eq("id", squadRowId)
       .single();
 
-    if (rowErr) throw rowErr;
-    if (!row) throw new Error("Squad player not found");
+    if (rowErr || !row) throw new Error("Squad player not found");
     if (row.athlete_profile_id) throw new Error("Cannot rename an academy player. Rename them in the student record.");
 
-    await assertMatchEditable(row.match_id, supabaseAdmin);
+    await assertMatchEditable(row.match_id, supabase);
 
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from("mc_match_squads")
       .update({ external_player_name: newName })
       .eq("id", squadRowId);
@@ -64,25 +62,23 @@ export const replaceSquadPlayer = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { squadRowId, replaceWith } = data;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     
-    const { data: row, error: rowErr } = await supabaseAdmin
+    const { data: row, error: rowErr } = await supabase
       .from("mc_match_squads")
       .select("*")
       .eq("id", squadRowId)
       .single();
 
-    if (rowErr) throw rowErr;
-    if (!row) throw new Error("Squad player not found");
+    if (rowErr || !row) throw new Error("Squad player not found");
 
-    await assertMatchEditable(row.match_id, supabaseAdmin);
+    await assertMatchEditable(row.match_id, supabase);
 
     const update: any = {
       athlete_profile_id: "athleteProfileId" in replaceWith ? replaceWith.athleteProfileId : null,
       external_player_name: "guestName" in replaceWith ? replaceWith.guestName : null,
     };
 
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from("mc_match_squads")
       .update(update)
       .eq("id", squadRowId);
@@ -97,21 +93,19 @@ export const removeSquadPlayer = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { squadRowId } = data;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     
-    const { data: row, error: rowErr } = await supabaseAdmin
+    const { data: row, error: rowErr } = await supabase
       .from("mc_match_squads")
       .select("*")
       .eq("id", squadRowId)
       .single();
 
-    if (rowErr) throw rowErr;
-    if (!row) throw new Error("Squad player not found");
+    if (rowErr || !row) throw new Error("Squad player not found");
 
-    await assertMatchEditable(row.match_id, supabaseAdmin);
+    await assertMatchEditable(row.match_id, supabase);
 
     // Check for ball events
-    const { data: balls, error: ballErr } = await supabaseAdmin
+    const { data: balls, error: ballErr } = await supabase
       .from("mc_ball_events")
       .select("id")
       .eq("match_id", row.match_id)
@@ -123,7 +117,7 @@ export const removeSquadPlayer = createServerFn({ method: "POST" })
       throw new Error("Cannot remove player who has already participated in the match (has ball events).");
     }
 
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from("mc_match_squads")
       .delete()
       .eq("id", squadRowId);
@@ -149,22 +143,12 @@ export const addSquadPlayer = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { matchId, teamId, player } = data;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const match = await assertMatchEditable(matchId, supabaseAdmin);
+    const match = await assertMatchEditable(matchId, supabase);
 
-    // listMatchSquad is safe because it uses the standard anon client internally,
-    // which is fine as this runs on the server. However, to be consistent with 
-    // the prompt's request for destruction and error checking, we should use admin.
-    const { data: squad, error: squadErr } = await supabaseAdmin
-      .from("mc_match_squads")
-      .select("*")
-      .eq("match_id", matchId)
-      .eq("team_id", teamId);
-      
-    if (squadErr) throw squadErr;
-    const maxOrder = Math.max(0, ...(squad || []).map(p => p.batting_order || 0));
+    const squad = await listMatchSquad(matchId, teamId);
+    const maxOrder = Math.max(0, ...squad.map(p => p.batting_order || 0));
 
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from("mc_match_squads")
       .insert({
         match_id: matchId,
@@ -187,10 +171,9 @@ export const renameMatchTeam = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { matchId, teamId, newName } = data;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await assertMatchEditable(matchId, supabaseAdmin);
+    await assertMatchEditable(matchId, supabase);
 
-    const { error } = await supabaseAdmin
+    const { error } = await supabase
       .from("mc_teams")
       .update({ name: newName })
       .eq("id", teamId);
@@ -209,11 +192,10 @@ export const reorderSquad = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { matchId, teamId, orderedRowIds } = data;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await assertMatchEditable(matchId, supabaseAdmin);
+    await assertMatchEditable(matchId, supabase);
 
     const updates = orderedRowIds.map((id: string, idx: number) => 
-      supabaseAdmin.from("mc_match_squads").update({ batting_order: idx + 1 }).eq("id", id)
+      supabase.from("mc_match_squads").update({ batting_order: idx + 1 }).eq("id", id)
     );
 
     await Promise.all(updates);

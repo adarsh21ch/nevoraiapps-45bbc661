@@ -13,7 +13,7 @@ export function useBodyLock(active: boolean) {
     if (!active) return;
 
     // Only apply on mobile-like viewports where it matters most
-    const isMobile = window.innerWidth < 1024;
+    const isMobile = window.innerWidth < 768;
     if (!isMobile) return;
 
     lockCount++;
