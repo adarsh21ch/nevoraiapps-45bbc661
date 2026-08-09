@@ -1397,10 +1397,8 @@ function SquadSection({ title, players }: { title: string; players: PlayerOption
             </li>
           ))}
         </ul>
-          )}
-        </div>
-      }
-    />
+      )}
+    </div>
   );
 }
 
