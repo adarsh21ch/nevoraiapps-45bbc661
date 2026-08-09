@@ -1271,7 +1271,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           </SheetHeader>
           <div className="flex-1 min-h-0 overflow-hidden px-4">
             <LiveScorecard
-              events={session.events}
+              events={session.events ?? []}
               innings={session.activeInnings}
               totalOvers={session.match?.overs ?? null}
               matchInfo={{
