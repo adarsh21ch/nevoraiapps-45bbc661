@@ -1957,7 +1957,7 @@ function DemoScorerBody({
 
   const startSecondInnings = async () => {
     if (!session.activeInnings) return;
-    const target = (stats?.team.runs || 0) + 1;
+    const target = (stats?.team?.runs || 0) + 1;
     await session.startInnings({
       inningsNumber: 2,
       battingTeamId: session.activeInnings.bowling_team_id,
