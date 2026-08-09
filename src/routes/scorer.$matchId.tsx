@@ -129,25 +129,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     userId: userQ.data?.id ?? null,
   });
 
-  const stats = useMemo(() => {
-    if (!session.match) return null;
-    try {
-      // Defensive check: ensure byKey exists on the result if the engine returns a partial object
-      const result = calculateInningsStatistics(session.events, {
-        totalOvers: session.match?.overs ?? null,
-        playingRules: session.match?.playing_rules ?? null,
-        target: session.activeInnings?.target ?? null,
-      });
-      
-      if (!result.batting?.byKey || !result.bowling?.byKey) {
-        console.warn("Stats engine returned incomplete result structure");
-      }
-      return result;
-    } catch (e) {
-      console.error("Stats engine crash:", e);
-      return null;
-    }
-  }, [session.events, session.match, session.activeInnings?.target]);
+
 
 
   // Critical crash fix: ensure we don't render UI components that expect match data
@@ -194,7 +176,26 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   // Phase 3 — advisory lock. Only one active scorer per match at a time.
   const lockStatus = useScoringLock(isDemo ? null : matchId, !isDemo);
-
+  const stats = useMemo(() => {
+    if (!session.match) return null;
+    try {
+      // Defensive check: ensure byKey exists on the result if the engine returns a partial object
+      const result = calculateInningsStatistics(session.events ?? [], {
+        totalOvers: session.match?.overs ?? null,
+        playingRules: session.match?.playing_rules ?? null,
+        target: session.activeInnings?.target ?? null,
+      });
+      
+      if (!result?.batting?.byKey || !result?.bowling?.byKey) {
+        console.warn("Stats engine returned incomplete result structure");
+        return null;
+      }
+      return result;
+    } catch (e) {
+      console.error("Stats engine crash:", e);
+      return null;
+    }
+  }, [session.events, session.match, session.activeInnings?.target]);
 
 
   // Team names
@@ -374,7 +375,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
 
   const overHistory = useMemo(
-    () => computeOverHistory(session.events, ballChipLabel),
+    () => computeOverHistory(session.events ?? [], ballChipLabel),
     [session.events],
   );
 
@@ -402,7 +403,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const strikerStat: BatterStats | undefined = strikerKey
     ? (() => {
-        const s = stats?.batting?.byKey ? stats.batting.byKey.get(strikerKey) : undefined;
+        const byKey = stats?.batting?.byKey;
+        const s = byKey instanceof Map ? byKey.get(strikerKey) : undefined;
 
         return {
           name: striker.name ?? undefined,
@@ -412,7 +414,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           sixes: s?.sixes ?? 0,
           strikeRate: s ? String(s.strikeRate) : "0.0",
           order: s?.battingPosition,
-          last5: session.events
+          last5: (session.events ?? [])
             .filter(
               (e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name,
             )
@@ -425,7 +427,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const nonStrikerStat: BatterStats | undefined = nonStrikerKey
     ? (() => {
-        const s = stats?.batting?.byKey ? stats.batting.byKey.get(nonStrikerKey) : undefined;
+        const byKey = stats?.batting?.byKey;
+        const s = byKey instanceof Map ? byKey.get(nonStrikerKey) : undefined;
 
         return {
           name: nonStriker.name ?? undefined,
@@ -441,7 +444,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const bowlerStat: BowlerStats | undefined = bowlerKey
     ? (() => {
-        const b = stats?.bowling?.byKey ? stats.bowling.byKey.get(bowlerKey) : undefined;
+        const byKey = stats?.bowling?.byKey;
+        const b = byKey instanceof Map ? byKey.get(bowlerKey) : undefined;
 
         return {
           name: bowlerRef.name ?? undefined,
@@ -457,7 +461,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   // Formatter receives completed legal deliveries only — never nextBallIndex
   // or completedLegalBalls + 1. The preOver flag only changes the idle label
   // between completed overs from "N.6" to "Over N+1".
-  const completedLegalBalls = completedLegalBallsFromEvents(session.events);
+  const completedLegalBalls = completedLegalBallsFromEvents(session.events ?? []);
   const currentOverLabel = formatLiveOver(completedLegalBalls, {
     preOver: session.matchState.innings.awaitingNewBowler,
   });
@@ -833,17 +837,16 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     .join(" · ");
 
   const chase =
-    session.activeInnings?.target != null && stats?.team.requiredRuns != null
+    session.activeInnings?.target != null && stats && stats.team.requiredRuns != null
       ? {
           runsNeeded: stats.team.requiredRuns,
           ballsLeft: stats.team.ballsRemaining ?? 0,
-
         }
       : null;
-  const bowledBowlerIds: string[] = Array.from(stats?.bowling?.byKey?.values() ?? [])
 
-    .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
-    .map((b) => b.player.athleteId as string);
+  const bowledBowlerIds: string[] = Array.from(stats?.bowling?.byKey?.values() ?? [])
+    .filter((b: any) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
+    .map((b: any) => b.player.athleteId as string);
 
   return (
     <MobileViewportShell
@@ -987,19 +990,19 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           tournamentLabel={tournamentLabel || undefined}
           isLive={!!session.activeInnings && !session.match?.match_locked}
           freeHit={session.matchState.innings.freeHit}
-          score={`${stats?.team.runs ?? 0}/${stats?.team.wickets ?? 0}`}
+          score={stats ? `${stats.team.runs}/${stats.team.wickets}` : "0/0"}
           overs={currentOverLabel}
-          crr={String(stats?.team.runRate ?? 0)}
-          rrr={stats?.team.requiredRunRate != null ? String(stats?.team.requiredRunRate) : undefined}
+          crr={stats ? String(stats.team.runRate) : "0"}
+          rrr={stats?.team?.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={
             session.activeInnings?.target != null ? String(session.activeInnings.target) : undefined
           }
           chase={chase}
-          striker={{ ...strikerStat, isKeeper: session.striker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.striker.athleteId)?.is_keeper : false }}
-          nonStriker={{ ...nonStrikerStat, isKeeper: session.nonStriker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.nonStriker.athleteId)?.is_keeper : false }}
+          striker={strikerStat ? { ...strikerStat, isKeeper: session.striker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.striker.athleteId)?.is_keeper : false } : undefined}
+          nonStriker={nonStrikerStat ? { ...nonStrikerStat, isKeeper: session.nonStriker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.nonStriker.athleteId)?.is_keeper : false } : undefined}
           bowler={bowlerStat}
           partnership={
-            stats?.team.currentPartnership
+            stats?.team?.currentPartnership
               ? {
                   runs: stats.team.currentPartnership.runs,
                   balls: stats.team.currentPartnership.balls,
@@ -1015,18 +1018,18 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           overHistory={overHistory}
           inningsLabel={undefined}
           insights={{
-            partnership: stats?.team.currentPartnership
+            partnership: stats?.team?.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
               : "0(0)",
             projected:
-              session.match?.overs && stats?.team.legalBalls && stats.team.legalBalls > 0
+              session.match?.overs && stats?.team?.legalBalls && stats.team.legalBalls > 0
                 ? String(Math.round(stats.team.runRate * session.match.overs))
                 : "–",
-            lastWicket: stats?.team.fallOfWickets.at(-1)
+            lastWicket: stats?.team?.fallOfWickets?.at(-1)
               ? `${stats.team.fallOfWickets.at(-1)?.score}/${stats.team.fallOfWickets.at(-1)?.wicketNumber}`
               : "–",
-            extras: String(stats?.team.extras.total ?? 0),
-            recentOvers: (stats?.team.overs_summary ?? []).slice(-3).map((over) => ({
+            extras: String(stats?.team?.extras?.total ?? 0),
+            recentOvers: (stats?.team?.overs_summary ?? []).slice(-3).map((over: any) => ({
               label: `${over.overNumber + 1}`,
               runs: over.runs,
               wickets: over.wickets,
@@ -1058,7 +1061,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           scorecardContent={
             <LiveScorecard
               hideHero
-              events={session.events}
+              events={session.events ?? []}
               innings={session.activeInnings}
               totalOvers={session.match?.overs ?? null}
               matchInfo={{
@@ -1268,7 +1271,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           </SheetHeader>
           <div className="flex-1 min-h-0 overflow-hidden px-4">
             <LiveScorecard
-              events={session.events}
+              events={session.events ?? []}
               innings={session.activeInnings}
               totalOvers={session.match?.overs ?? null}
               matchInfo={{
@@ -1305,7 +1308,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
               {stats?.team.runs ?? 0}/{stats?.team.wickets ?? 0}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats?.team.legalBalls ?? 0)} overs
+              {formatOversCompact(stats?.team?.legalBalls ?? 0)} overs
             </div>
 
           </div>
@@ -1336,10 +1339,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
               Final score
             </div>
             <div className="mt-1 text-3xl font-black tabular-nums">
-              {stats?.team.runs ?? 0}/{stats?.team.wickets ?? 0}
+              {stats?.team?.runs ?? 0}/{stats?.team?.wickets ?? 0}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats?.team.legalBalls ?? 0)} overs
+              {formatOversCompact(stats?.team?.legalBalls ?? 0)} overs
             </div>
 
           </div>
@@ -1940,7 +1943,7 @@ function DemoScorerBody({
       const diff = activeInnings.target - 1 - ms.innings.runs;
       winnerTeamId = diff > 0 ? activeInnings.bowling_team_id : null;
     }
-    const topBat = stats?.summary.highestScorer?.player;
+    const topBat = stats?.summary?.highestScorer?.player;
     const pomId = topBat?.athleteId ?? null;
     finalizeDemoMatch(session.tenantId, matchId, {
       winnerTeamId,
@@ -1954,7 +1957,7 @@ function DemoScorerBody({
 
   const startSecondInnings = async () => {
     if (!session.activeInnings) return;
-    const target = (stats?.team.runs || 0) + 1;
+    const target = (stats?.team?.runs || 0) + 1;
     await session.startInnings({
       inningsNumber: 2,
       battingTeamId: session.activeInnings.bowling_team_id,
@@ -1996,12 +1999,12 @@ function DemoScorerBody({
     .filter(Boolean)
     .join(" · ");
   const chase =
-    activeInnings?.target != null && stats?.team.requiredRuns != null
+    activeInnings?.target != null && stats?.team?.requiredRuns != null
       ? { runsNeeded: stats.team.requiredRuns, ballsLeft: stats.team.ballsRemaining ?? 0 }
       : null;
   const bowledBowlerIds: string[] = Array.from(stats?.bowling?.byKey?.values?.() ?? [])
-    .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
-    .map((b) => b.player.athleteId as string);
+    .filter((b: any) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
+    .map((b: any) => b.player.athleteId as string);
 
   return (
     <MobileViewportShell
@@ -2034,17 +2037,17 @@ function DemoScorerBody({
           matchTitle={matchTitle}
           tournamentLabel={tournamentLabel || undefined}
           isLive={isLive}
-          score={`${stats.team.runs}/${stats.team.wickets}`}
+          score={stats ? `${stats.team.runs}/${stats.team.wickets}` : "0/0"}
           overs={currentOverLabel}
-          crr={String(stats.team.runRate)}
-          rrr={stats.team.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
+          crr={stats ? String(stats.team.runRate) : "0"}
+          rrr={stats?.team?.requiredRunRate != null ? String(stats.team.requiredRunRate) : undefined}
           target={activeInnings?.target != null ? String(activeInnings.target) : undefined}
           chase={chase}
           striker={{ ...strikerStat, isKeeper: session.striker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.striker.athleteId)?.is_keeper : false }}
           nonStriker={{ ...nonStrikerStat, isKeeper: session.nonStriker.athleteId ? session.playingXI.find(p => p.athlete_profile_id === session.nonStriker.athleteId)?.is_keeper : false }}
           bowler={bowlerStat}
           partnership={
-            stats.team.currentPartnership
+            stats?.team?.currentPartnership
               ? {
                   runs: stats.team.currentPartnership.runs,
                   balls: stats.team.currentPartnership.balls,
@@ -2059,18 +2062,18 @@ function DemoScorerBody({
           currentOverLabel={currentOverLabel}
           overHistory={overHistory}
           insights={{
-            partnership: stats.team.currentPartnership
+            partnership: stats?.team?.currentPartnership
               ? `${stats.team.currentPartnership.runs}(${stats.team.currentPartnership.balls})`
               : "0(0)",
             projected:
-              match.overs && stats.team.legalBalls > 0
+              match.overs && stats?.team?.legalBalls > 0
                 ? String(Math.round(stats.team.runRate * match.overs))
                 : "–",
-            lastWicket: stats.team.fallOfWickets.at(-1)
+            lastWicket: stats?.team?.fallOfWickets.at(-1)
               ? `${stats.team.fallOfWickets.at(-1)?.score}/${stats.team.fallOfWickets.at(-1)?.wicketNumber}`
               : "–",
-            extras: String(stats.team.extras.total),
-            recentOvers: stats.team.overs_summary.slice(-3).map((over) => ({
+            extras: String(stats?.team?.extras?.total ?? 0),
+            recentOvers: (stats?.team?.overs_summary ?? []).slice(-3).map((over: any) => ({
               label: `${over.overNumber + 1}`,
               runs: over.runs,
               wickets: over.wickets,
@@ -2274,7 +2277,7 @@ function DemoScorerBody({
           </SheetHeader>
           <div className="flex-1 min-h-0 overflow-hidden px-4">
             <LiveScorecard
-              events={session.events}
+              events={session.events ?? []}
               innings={activeInnings}
               totalOvers={match.overs ?? null}
               matchInfo={{
@@ -2309,10 +2312,10 @@ function DemoScorerBody({
           </DialogHeader>
           <div className="rounded-lg border bg-card p-3 text-center">
             <div className="text-3xl font-black tabular-nums">
-              {stats?.team.runs}/{stats?.team.wickets}
+              {stats?.team?.runs ?? 0}/{stats?.team?.wickets ?? 0}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats?.team.legalBalls || 0)} overs
+              {formatOversCompact(stats?.team?.legalBalls || 0)} overs
             </div>
           </div>
           <DialogFooter className="gap-2">
@@ -2342,10 +2345,10 @@ function DemoScorerBody({
               Final score
             </div>
             <div className="mt-1 text-3xl font-black tabular-nums">
-              {stats?.team.runs}/{stats?.team.wickets}
+              {stats?.team?.runs ?? 0}/{stats?.team?.wickets ?? 0}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats?.team.legalBalls || 0)} overs
+              {formatOversCompact(stats?.team?.legalBalls || 0)} overs
             </div>
           </div>
           <DialogFooter className="gap-2">
