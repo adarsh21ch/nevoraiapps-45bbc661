@@ -117,6 +117,9 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
       return data ?? [];
     },
   });
+  const athlete = athleteQ.data;
+  const cricket = (athlete as any)?.mc_cricket_profiles?.[0] || (athlete as any)?.mc_cricket_profiles;
+
 
   const [uploading, setUploading] = useState(false);
   const [editFeeOpen, setEditFeeOpen] = useState(false);
