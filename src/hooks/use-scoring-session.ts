@@ -415,12 +415,7 @@ export function useScoringSession(
       const priorEvents = eventsRef.current;
       const completedLegalBallsBefore = countCompletedLegalDeliveries(priorEvents);
       logScoringOverCheckpoint("before recording", completedLegalBallsBefore);
-      const latestMatchState = replayInnings(priorEvents, {
-        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
-        maxWickets: 10,
-        target: activeInnings.target ?? null,
-      });
-
+      
       // Rules-engine validation against the reconstructed state.
       validateBallDraft(
         {
