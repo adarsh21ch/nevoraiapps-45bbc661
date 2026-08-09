@@ -132,11 +132,17 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const stats = useMemo(() => {
     if (!session.match) return null;
     try {
-      return calculateInningsStatistics(session.events, {
+      // Defensive check: ensure byKey exists on the result if the engine returns a partial object
+      const result = calculateInningsStatistics(session.events, {
         totalOvers: session.match?.overs ?? null,
         playingRules: session.match?.playing_rules ?? null,
         target: session.activeInnings?.target ?? null,
       });
+      
+      if (!result.batting?.byKey || !result.bowling?.byKey) {
+        console.warn("Stats engine returned incomplete result structure");
+      }
+      return result;
     } catch (e) {
       console.error("Stats engine crash:", e);
       return null;
@@ -144,18 +150,16 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   }, [session.events, session.match, session.activeInnings?.target]);
 
 
-  // Critical crash fix: the route component assumes session.match exists during initial 
-  // render in multiple places, but it's null until session.loading is false.
-  // The error component in __root.tsx catches the resulting "Cannot read property of null"
-  // and shows "This page didn't load".
+  // Critical crash fix: ensure we don't render UI components that expect match data
+  // until loading is finished.
   if (session.loading || tenantQ.isLoading || userQ.isLoading) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-6 text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-[#0a0a0a] p-6 text-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <div className="space-y-1">
+          <div className="space-y-1 text-white">
             <h2 className="text-sm font-semibold">Loading match...</h2>
-            <p className="text-[11px] text-muted-foreground">Preparing scorecard and team data</p>
+            <p className="text-[11px] text-zinc-500">Preparing scorecard and team data</p>
           </div>
         </div>
       </div>
@@ -398,7 +402,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const strikerStat: BatterStats | undefined = strikerKey
     ? (() => {
-        const s = stats?.batting?.byKey?.get?.(strikerKey);
+        const s = stats?.batting?.byKey ? stats.batting.byKey.get(strikerKey) : undefined;
 
         return {
           name: striker.name ?? undefined,
@@ -421,7 +425,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const nonStrikerStat: BatterStats | undefined = nonStrikerKey
     ? (() => {
-        const s = stats?.batting?.byKey?.get?.(nonStrikerKey);
+        const s = stats?.batting?.byKey ? stats.batting.byKey.get(nonStrikerKey) : undefined;
 
         return {
           name: nonStriker.name ?? undefined,
@@ -437,7 +441,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const bowlerStat: BowlerStats | undefined = bowlerKey
     ? (() => {
-        const b = stats?.bowling?.byKey?.get?.(bowlerKey);
+        const b = stats?.bowling?.byKey ? stats.bowling.byKey.get(bowlerKey) : undefined;
 
         return {
           name: bowlerRef.name ?? undefined,
@@ -836,7 +840,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
         }
       : null;
-  const bowledBowlerIds: string[] = Array.from(stats?.bowling?.byKey?.values?.() ?? [])
+  const bowledBowlerIds: string[] = Array.from(stats?.bowling?.byKey?.values() ?? [])
 
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
