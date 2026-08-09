@@ -129,11 +129,26 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     userId: userQ.data?.id ?? null,
   });
 
+  const stats = useMemo(() => {
+    if (!session.match) return null;
+    try {
+      return calculateInningsStatistics(session.events, {
+        totalOvers: session.match?.overs ?? null,
+        playingRules: session.match?.playing_rules ?? null,
+        target: session.activeInnings?.target ?? null,
+      });
+    } catch (e) {
+      console.error("Stats engine crash:", e);
+      return null;
+    }
+  }, [session.events, session.match, session.activeInnings?.target]);
+
+
   // Critical crash fix: the route component assumes session.match exists during initial 
   // render in multiple places, but it's null until session.loading is false.
   // The error component in __root.tsx catches the resulting "Cannot read property of null"
   // and shows "This page didn't load".
-  if (session.loading || tenantQ.isLoading || userQ.isLoading) {
+  if (session.loading || tenantQ.isLoading || userQ.isLoading || (session.match && !stats)) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-6 text-center">
         <div className="flex flex-col items-center gap-4">
@@ -146,6 +161,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       </div>
     );
   }
+
 
   // If loading is done but no match was found (or user lacks access)
   if (!session.match && !isDemo) {
@@ -350,15 +366,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   /* Batter/bowler setup is handled from the mobile scorer rows and bottom sheets. */
 
   /* ---------- stats ---------- */
-  const stats = useMemo(
-    () =>
-      calculateInningsStatistics(session.events, {
-        totalOvers: session.match?.overs ?? null,
-        playingRules: session.match?.playing_rules ?? null,
-        target: session.activeInnings?.target ?? null,
-      }),
-    [session.events, session.match?.overs, session.match?.playing_rules, session.activeInnings?.target],
-  );
+  // Moved to top of component for safety
+
 
   const overHistory = useMemo(
     () => computeOverHistory(session.events, ballChipLabel),
@@ -389,7 +398,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const strikerStat: BatterStats | undefined = strikerKey
     ? (() => {
-        const s = stats.batting.byKey.get(strikerKey);
+        const s = stats?.batting.byKey.get(strikerKey);
+
         return {
           name: striker.name ?? undefined,
           runs: s?.runs ?? 0,
@@ -411,7 +421,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const nonStrikerStat: BatterStats | undefined = nonStrikerKey
     ? (() => {
-        const s = stats.batting.byKey.get(nonStrikerKey);
+        const s = stats?.batting.byKey.get(nonStrikerKey);
+
         return {
           name: nonStriker.name ?? undefined,
           runs: s?.runs ?? 0,
@@ -426,7 +437,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const bowlerStat: BowlerStats | undefined = bowlerKey
     ? (() => {
-        const b = stats.bowling.byKey.get(bowlerKey);
+        const b = stats?.bowling.byKey.get(bowlerKey);
+
         return {
           name: bowlerRef.name ?? undefined,
           overs: b ? formatOversCompact(b.legalBalls) : "0",
@@ -817,13 +829,15 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     .join(" · ");
 
   const chase =
-    session.activeInnings?.target != null && stats.team.requiredRuns != null
+    session.activeInnings?.target != null && stats?.team.requiredRuns != null
       ? {
-          runsNeeded: stats.team.requiredRuns,
-          ballsLeft: stats.team.ballsRemaining ?? 0,
+          runsNeeded: stats?.team.requiredRuns ?? 0,
+          ballsLeft: stats?.team.ballsRemaining ?? 0,
+
         }
       : null;
-  const bowledBowlerIds: string[] = Array.from(stats.bowling.byKey.values())
+  const bowledBowlerIds: string[] = Array.from(stats?.bowling.byKey.values() ?? [])
+
     .filter((b) => (b.legalBalls > 0 || b.wides > 0 || b.noBalls > 0) && b.player.athleteId)
     .map((b) => b.player.athleteId as string);
 
