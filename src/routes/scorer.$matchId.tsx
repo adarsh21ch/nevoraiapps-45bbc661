@@ -2312,10 +2312,10 @@ function DemoScorerBody({
           </DialogHeader>
           <div className="rounded-lg border bg-card p-3 text-center">
             <div className="text-3xl font-black tabular-nums">
-              {stats?.team.runs}/{stats?.team.wickets}
+              {stats?.team?.runs ?? 0}/{stats?.team?.wickets ?? 0}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatOversCompact(stats?.team.legalBalls || 0)} overs
+              {formatOversCompact(stats?.team?.legalBalls || 0)} overs
             </div>
           </div>
           <DialogFooter className="gap-2">
