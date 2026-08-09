@@ -139,8 +139,9 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         target: session.activeInnings?.target ?? null,
       });
       
-      if (!result.batting?.byKey || !result.bowling?.byKey) {
+      if (!result?.batting?.byKey || !result?.bowling?.byKey) {
         console.warn("Stats engine returned incomplete result structure");
+        return null;
       }
       return result;
     } catch (e) {
@@ -402,7 +403,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const strikerStat: BatterStats | undefined = strikerKey
     ? (() => {
-        const s = stats?.batting?.byKey ? stats.batting.byKey.get(strikerKey) : undefined;
+        const byKey = stats?.batting?.byKey;
+        const s = byKey instanceof Map ? byKey.get(strikerKey) : undefined;
 
         return {
           name: striker.name ?? undefined,
@@ -425,7 +427,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const nonStrikerStat: BatterStats | undefined = nonStrikerKey
     ? (() => {
-        const s = stats?.batting?.byKey ? stats.batting.byKey.get(nonStrikerKey) : undefined;
+        const byKey = stats?.batting?.byKey;
+        const s = byKey instanceof Map ? byKey.get(nonStrikerKey) : undefined;
 
         return {
           name: nonStriker.name ?? undefined,
@@ -441,7 +444,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
   const bowlerStat: BowlerStats | undefined = bowlerKey
     ? (() => {
-        const b = stats?.bowling?.byKey ? stats.bowling.byKey.get(bowlerKey) : undefined;
+        const byKey = stats?.bowling?.byKey;
+        const b = byKey instanceof Map ? byKey.get(bowlerKey) : undefined;
 
         return {
           name: bowlerRef.name ?? undefined,
