@@ -430,27 +430,15 @@ function RegisterContent() {
   
   // Set defaults from tenant location
   useEffect(() => {
-    if (tenant.address) {
-      const addr = tenant.address.toLowerCase();
-      if (addr.includes("chhatarpur")) {
-        setForm(f => ({ 
-          ...f, 
-          current_city: f.current_city || "Chhatarpur", 
-          current_state: f.current_state || "Madhya Pradesh",
-          permanent_city: f.permanent_city || "Chhatarpur",
-          permanent_state: f.permanent_state || "Madhya Pradesh"
-        }));
-      }
-    } else {
-      setForm(f => ({ 
-        ...f, 
-        current_city: f.current_city || "Chhatarpur", 
-        current_state: f.current_state || "Madhya Pradesh",
-        permanent_city: f.permanent_city || "Chhatarpur",
-        permanent_state: f.permanent_state || "Madhya Pradesh"
-      }));
-    }
-  }, [tenant.address]);
+    setForm(f => ({ 
+      ...f, 
+      current_city: f.current_city || "Chhatarpur", 
+      current_state: f.current_state || "Madhya Pradesh",
+      permanent_city: f.permanent_city || "Chhatarpur",
+      permanent_state: f.permanent_state || "Madhya Pradesh"
+    }));
+  }, []);
+
 
   async function submitForm(e: React.FormEvent) {
     e.preventDefault();
@@ -918,7 +906,7 @@ function RegisterContent() {
                     onFocus={(e) => (e.currentTarget.style.borderColor = errors.dob ? "" : "var(--brand)")}
                     onBlur={(e) => (e.currentTarget.style.borderColor = "")}
                     className={cn(
-                      "block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-transparent focus:ring-2 transition-all",
+                      "block w-full rounded-lg border bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none focus:border-brand focus:ring-0 focus:bg-background transition-all",
                       errors.dob ? "border-red-500" : "border-border",
                     )}
                   />
@@ -1549,7 +1537,7 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   const monthlyText = !batch
     ? "Select a batch"
     : isPersonal && !monthly
-      ? "Contact academy"
+      ? "Select batch"
       : monthly
         ? fmt(Number(resolvedMonthlyAmount))
         : "Contact academy";
@@ -1580,7 +1568,7 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
           </span>
         ) : (
           <span>
-            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span>. This time you have to pay <span className="font-semibold text-foreground">{fmt(resolvedMonthlyAmount)}</span>.
+            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span>.
           </span>
         )}
       </div>

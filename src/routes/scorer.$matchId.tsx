@@ -48,6 +48,8 @@ import { ShareMatchDialog } from "@/components/match-center/share-match-dialog";
 import { FinalizationDialog, UnlockMatchDialog } from "@/components/match-center/finalization-ui";
 import { detectMatchResult, type InningsRow, type MatchResult } from "@/lib/mc-finalization";
 import { Printer, Share2, FileText, Trophy } from "lucide-react";
+import { useViewportInsets } from "@/hooks/use-visual-viewport";
+import { MobileViewportShell } from "@/components/ds/MobileViewportShell";
 
 export const Route = createFileRoute("/scorer/$matchId")({
   head: () => ({
@@ -766,8 +768,11 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     .map((b) => b.player.athleteId as string);
 
   return (
-    <div className="scorer-root fixed inset-0 z-40 flex flex-col overflow-hidden bg-background text-foreground">
-      {isDemo ? (
+    <MobileViewportShell
+      className="scorer-root z-40"
+      children={
+        <div className="flex h-full flex-col">
+          {isDemo ? (
         <div className="grid flex-1 place-items-center p-8 text-center">
           <div className="max-w-md space-y-3">
             <div className="text-lg font-semibold">Demo scorer</div>
@@ -1366,7 +1371,9 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       </Sheet>
 
       {/* No-ball classification sheet for demo */}
-    </div>
+        </div>
+      }
+    />
   );
 }
 
@@ -1898,8 +1905,11 @@ function DemoScorerBody({
     .map((b) => b.player.athleteId as string);
 
   return (
-    <div className="scorer-root fixed inset-0 z-40 flex flex-col overflow-hidden bg-background text-foreground">
-      {match.match_locked ? (
+    <MobileViewportShell
+      className="scorer-root z-40"
+      children={
+        <div className="flex h-full flex-col">
+          {match.match_locked ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-5xl space-y-4 p-3 sm:p-4">
             <LiveScorecard
@@ -2247,6 +2257,8 @@ function DemoScorerBody({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+        </div>
+      }
+    />
   );
 }

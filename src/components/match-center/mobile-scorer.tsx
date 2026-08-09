@@ -265,7 +265,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
   return (
     <div className="scorer-native-page flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
-      <header className="relative z-20 shrink-0 overflow-hidden border-b border-border/60 pt-[env(safe-area-inset-top)]">
+      <header className="relative z-20 shrink-0 overflow-hidden border-b border-border/60">
         <div
           aria-hidden
           className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background to-background"
@@ -414,10 +414,7 @@ export function MobileScorer(props: MobileScorerProps) {
         </div>
       </main>
 
-      <div
-        className="z-20 shrink-0 border-t bg-background/95 backdrop-blur-xl"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-      >
+      <div className="z-20 shrink-0 border-t bg-background/95 backdrop-blur-xl">
         <div className="px-3 pt-2">
           <ScoringDock
             disabled={props.disabled}
@@ -427,10 +424,10 @@ export function MobileScorer(props: MobileScorerProps) {
           />
         </div>
         <div
-          className={cn(
-            "grid gap-1 px-2 pb-1 pt-1",
-            props.showFinishInnings && props.onFinishInnings ? "grid-cols-5" : "grid-cols-4",
-          )}
+        className={cn(
+          "grid gap-1 px-2 pb-1.5 pt-1",
+          props.showFinishInnings && props.onFinishInnings ? "grid-cols-5" : "grid-cols-4",
+        )}
         >
           <FooterAction
             icon={<Undo2 className="size-[18px]" />}

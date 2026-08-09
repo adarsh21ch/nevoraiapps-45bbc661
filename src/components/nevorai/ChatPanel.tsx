@@ -25,7 +25,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { copyText, downloadMarkdown, messagesToMarkdown } from "@/lib/nevorai/export";
-import { useKeyboardOpen } from "@/hooks/use-visual-viewport";
+import { useViewportInsets } from "@/hooks/use-visual-viewport";
 import type { NevorAIPageContext } from "@/lib/nevorai/page-context";
 
 type Props = {
@@ -60,7 +60,8 @@ export function ChatPanel({
   ensureConversationId,
 }: Props) {
   const [token, setToken] = useState<string | null>(null);
-  const keyboardOpen = useKeyboardOpen();
+  const insets = useViewportInsets();
+  const keyboardOpen = insets.keyboardOpen;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setToken(data.session?.access_token ?? null));
@@ -490,7 +491,7 @@ export function ChatPanel({
         style={{
           // When keyboard is open the visual viewport already excludes the
           // home indicator area — don't double-pad.
-          paddingBottom: keyboardOpen
+          paddingBottom: insets.keyboardOpen
             ? "0.75rem"
             : "calc(0.75rem + env(safe-area-inset-bottom, 0px))",
         }}
