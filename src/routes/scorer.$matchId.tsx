@@ -414,7 +414,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           sixes: s?.sixes ?? 0,
           strikeRate: s ? String(s.strikeRate) : "0.0",
           order: s?.battingPosition,
-          last5: session.events
+          last5: (session.events ?? [])
             .filter(
               (e) => e.striker_athlete_id === striker.athleteId || e.striker_name === striker.name,
             )
