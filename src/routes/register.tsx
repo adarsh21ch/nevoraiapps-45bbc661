@@ -1549,7 +1549,7 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
   const monthlyText = !batch
     ? "Select a batch"
     : isPersonal && !monthly
-      ? "Contact academy"
+      ? "Select batch"
       : monthly
         ? fmt(Number(resolvedMonthlyAmount))
         : "Contact academy";
@@ -1580,7 +1580,7 @@ function FeeSummary({ batch, fees, gender, tenant }: { batch: Batch | undefined;
           </span>
         ) : (
           <span>
-            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span>. This time you have to pay <span className="font-semibold text-foreground">{fmt(resolvedMonthlyAmount)}</span>.
+            Your monthly fee is <span className="font-semibold text-foreground">{monthlyText}</span>.
           </span>
         )}
       </div>
