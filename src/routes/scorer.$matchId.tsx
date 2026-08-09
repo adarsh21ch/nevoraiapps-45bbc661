@@ -375,7 +375,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
 
 
   const overHistory = useMemo(
-    () => computeOverHistory(session.events, ballChipLabel),
+    () => computeOverHistory(session.events ?? [], ballChipLabel),
     [session.events],
   );
 
