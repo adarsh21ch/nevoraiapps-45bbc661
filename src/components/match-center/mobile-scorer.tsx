@@ -106,8 +106,9 @@ export interface MobileScorerProps {
   dismissedBatterIds?: string[];
   dismissedBatterNames?: string[];
 
-  onUndo: () => void;
+   onUndo: () => void;
   onRedo?: () => void;
+  onOpenSquadEditor?: () => void;
   canRedo?: boolean;
   onSwapStrike: () => void;
   onRetiredHurt: () => void;

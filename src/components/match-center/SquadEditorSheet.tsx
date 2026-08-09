@@ -93,16 +93,20 @@ export function SquadEditorSheet({
     try {
       if (replacingSquadId) {
         await replacePlayerFn({
-          squadRowId: replacingSquadId,
-          replaceWith: typeof player === "string" ? { guestName: player } : { athleteProfileId: player.id }
+          data: {
+            squadRowId: replacingSquadId,
+            replaceWith: typeof player === "string" ? { guestName: player } : { athleteProfileId: player.id }
+          }
         });
         toast.success("Player replaced");
         setReplacingSquadId(null);
       } else if (addingToTeamId) {
         await addPlayerFn({
-          matchId,
-          teamId: addingToTeamId,
-          player: typeof player === "string" ? { guestName: player } : { athleteProfileId: player.id }
+          data: {
+            matchId,
+            teamId: addingToTeamId,
+            player: typeof player === "string" ? { guestName: player } : { athleteProfileId: player.id }
+          }
         });
         toast.success("Player added");
         setAddingToTeamId(null);
