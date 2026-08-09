@@ -275,6 +275,16 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     }
   }, [session.matchState.matchShouldEnd, matchCompleteOpen]);
 
+  // If match just ended, auto-open the finalization dialog after a short delay
+  useEffect(() => {
+    if (session.matchState.matchShouldEnd && !finalizeDialogOpen) {
+      const timer = setTimeout(() => {
+        setFinalizeDialogOpen(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [session.matchState.matchShouldEnd, finalizeDialogOpen]);
+
   /* Batter/bowler setup is handled from the mobile scorer rows and bottom sheets. */
 
   /* ---------- stats ---------- */

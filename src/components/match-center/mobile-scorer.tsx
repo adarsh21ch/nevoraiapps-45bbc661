@@ -344,6 +344,7 @@ export function MobileScorer(props: MobileScorerProps) {
               rrr={props.rrr}
               target={props.target}
               chase={props.chase}
+              isFinished={props.hideEndMatch}
             />
           </section>
 

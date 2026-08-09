@@ -393,6 +393,16 @@ export function useScoringSession(
         throw new BallEventError("INNINGS_CLOSED", "Innings is not in progress.");
       if (match?.status === "completed" || match?.status === "archived")
         throw new BallEventError("MATCH_COMPLETED", "Match is no longer active.");
+      
+      const latestMatchState = replayInnings(eventsRef.current, {
+        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
+        maxWickets: 10,
+        target: activeInnings.target ?? null,
+      });
+
+      if (latestMatchState.matchShouldEnd) {
+        throw new BallEventError("MATCH_COMPLETED", "Match has already reached a conclusion.");
+      }
       const currentStriker = strikerRef.current;
       const currentNonStriker = nonStrikerRef.current;
       const currentBowler = bowlerRef.current;
