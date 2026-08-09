@@ -47,7 +47,7 @@ import { listStudents, createTeam, addPlayersToTeam } from "@/lib/mc-teams";
 import { useDemoData, useDemoMode, updateDemoData } from "@/lib/mc-demo/store";
 import type { TeamWithCount } from "@/lib/mc-teams";
 import { toast } from "sonner";
-import { useViewportInsets } from "@/hooks/use-visual-viewport";
+import { useViewportInsets, useKeyboardOpen, useVisualViewportHeight } from "@/hooks/use-visual-viewport";
 import { MobileViewportShell } from "@/components/ds/MobileViewportShell";
 
 export const Route = createFileRoute("/match-center/create")({
