@@ -1448,10 +1448,9 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
       </Sheet>
 
       {/* No-ball classification sheet for demo */}
-        </div>
-    </MobileViewportShell>
   );
 }
+
 
 
 function SquadSection({ title, players }: { title: string; players: PlayerOption[] }) {
