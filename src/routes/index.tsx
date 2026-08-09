@@ -36,7 +36,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                            \n                                            One more thing I need to refresh. For example, some user do registration, but on the pending it is not showing. I have to refresh the tab then that particular request is showing to approve. Please make sure user no need to refresh or close or reopen the application or open the tab. Whenever somebody do registration complete, automatically it shows in the end to approve, right?",
+          "'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                            \n                                            HELLO",
       },
       { property: "og:title", content: "Sports Academy — Coaching, Batches & Live Match Centre" },
       {
