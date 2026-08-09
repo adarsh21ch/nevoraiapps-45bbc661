@@ -30,6 +30,7 @@ import {
   Undo2,
   UserPlus,
   Share2,
+  Settings2,
 } from "lucide-react";
 
 const CricketBatIcon = ({ className }: { className?: string }) => (
@@ -436,10 +437,10 @@ export function MobileScorer(props: MobileScorerProps) {
             onClick={props.onUndo}
           />
           <FooterAction
-            icon={<Redo2 className="size-[18px]" />}
-            label="Redo"
-            onClick={props.onRedo ?? (() => {})}
-            disabled={!props.onRedo || !props.canRedo}
+            icon={<Settings2 className="size-[18px]" />}
+            label="Squad"
+            onClick={props.onOpenSquadEditor ?? (() => {})}
+            disabled={!props.onOpenSquadEditor}
           />
           <FooterAction
             icon={<UserPlus className="size-[18px]" />}
