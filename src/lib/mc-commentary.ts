@@ -87,17 +87,32 @@ export function buildCommentary(events: MCBallEvent[]): CommentaryEntry[] {
  * Ball-chip label for over timelines
  * ================================================================ */
 
+export function deliveryTotalRuns(e: MCBallEvent): number {
+  const off = e.runs_off_bat ?? 0;
+  const ex = e.extra_runs ?? 0;
+  const extra = e.extra_type as ExtraType | null;
+  if (extra === "wide") return ex; // extra_runs already includes the 1-run wide penalty
+  if (extra === "no_ball") return 1 + off + ex; // penalty is implicit, add it
+  return off + ex;
+}
+
 export function ballChipLabel(e: MCBallEvent): string {
   const extra = e.extra_type as ExtraType | null;
   const dt = e.dismissal_type as DismissalType | null;
   const off = e.runs_off_bat ?? 0;
   const ex = e.extra_runs ?? 0;
   if (dt) return "W";
-  if (extra === "wide") return ex > 1 ? `WD ${ex - 1}` : "WD";
-  if (extra === "no_ball") {
-    const totalExtra = ex + off;
-    return totalExtra > 0 ? `NB ${totalExtra}` : "NB";
+
+  if (extra === "wide") {
+    const total = deliveryTotalRuns(e);
+    return total === 1 ? "WD" : `WD ${total}`;
   }
+
+  if (extra === "no_ball") {
+    const total = deliveryTotalRuns(e);
+    return total === 1 ? "NB" : `NB ${total}`;
+  }
+
   if (extra === "bye") return `B ${ex}`;
   if (extra === "leg_bye") return `LB ${ex}`;
   if (extra === "penalty") return `P${ex}`;

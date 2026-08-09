@@ -44,11 +44,9 @@ export function formatBallNotation(label: string): string {
   } else if (upper === "0" || upper === "DOT" || upper === "•") {
     upper = "•";
   } else if (/^WD\d+$/.test(upper)) {
-    const runs = parseInt(upper.slice(2));
-    upper = runs > 1 ? `WD ${runs - 1}` : "WD";
+    // Keep as is - numeric part is already total
   } else if (/^NB\d+$/.test(upper)) {
-    const runs = parseInt(upper.slice(2));
-    upper = runs > 1 ? `NB ${runs - 1}` : "NB";
+    // Keep as is - numeric part is already total
   } else if (/^B\d+$/.test(upper)) {
     const runs = parseInt(upper.slice(1));
     upper = runs > 0 ? `B ${runs}` : "•";
