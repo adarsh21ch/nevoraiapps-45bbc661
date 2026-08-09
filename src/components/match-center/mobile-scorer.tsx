@@ -265,7 +265,7 @@ export function MobileScorer(props: MobileScorerProps) {
 
   return (
     <div className="scorer-native-page flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background text-foreground">
-      <header className="relative z-20 shrink-0 overflow-hidden border-b border-border/60 pt-[env(safe-area-inset-top)]">
+      <header className="relative z-20 shrink-0 overflow-hidden border-b border-border/60">
         <div
           aria-hidden
           className="absolute inset-0 bg-gradient-to-br from-primary/15 via-background to-background"

@@ -766,8 +766,11 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     .map((b) => b.player.athleteId as string);
 
   return (
-    <div className="scorer-root fixed inset-0 z-40 flex flex-col overflow-hidden bg-background text-foreground">
-      {isDemo ? (
+    <MobileViewportShell
+      className="scorer-root z-40"
+      children={
+        <div className="flex h-full flex-col">
+          {isDemo ? (
         <div className="grid flex-1 place-items-center p-8 text-center">
           <div className="max-w-md space-y-3">
             <div className="text-lg font-semibold">Demo scorer</div>
@@ -1392,8 +1395,10 @@ function SquadSection({ title, players }: { title: string; players: PlayerOption
             </li>
           ))}
         </ul>
-      )}
-    </div>
+          )}
+        </div>
+      }
+    />
   );
 }
 
@@ -1898,8 +1903,11 @@ function DemoScorerBody({
     .map((b) => b.player.athleteId as string);
 
   return (
-    <div className="scorer-root fixed inset-0 z-40 flex flex-col overflow-hidden bg-background text-foreground">
-      {match.match_locked ? (
+    <MobileViewportShell
+      className="scorer-root z-40"
+      children={
+        <div className="flex h-full flex-col">
+          {match.match_locked ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-5xl space-y-4 p-3 sm:p-4">
             <LiveScorecard
