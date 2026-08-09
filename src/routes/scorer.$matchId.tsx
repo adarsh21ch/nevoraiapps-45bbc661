@@ -980,6 +980,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           onOpenBowlerPicker={() => setPickBowlerOpen(true)}
           onUndo={() => void handleUndo()}
           onRedo={() => void handleRedo()}
+          onOpenSquadEditor={() => setSquadEditOpen(true)}
           canRedo={redoStack.length > 0}
           onSwapStrike={() => {
             const s = { ...session.striker };
