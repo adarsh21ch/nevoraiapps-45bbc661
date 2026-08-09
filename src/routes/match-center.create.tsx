@@ -1818,6 +1818,8 @@ function NewTeamBody({
       </div>
     </MobileViewportShell>
   );
+}
+
 
 
 
