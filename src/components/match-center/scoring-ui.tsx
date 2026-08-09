@@ -836,19 +836,19 @@ export function ExtraRunsModal({
   const sublabelFor = (r: number): string | null => {
     if (k === "No Ball") {
       if (r === 1) return "NB";
-      return `NB ${r - 1}`;
+      return `NB ${r}`;
     }
     if (k === "Wide") {
       if (r === 1) return "WD";
-      return `WD ${r - 1}`;
+      return `WD ${r}`;
     }
     if (k === "Bye") {
       if (r === 0) return "Dot";
-      return `${r} B`;
+      return `B ${r}`;
     }
     if (k === "Leg Bye") {
       if (r === 0) return "Dot";
-      return `${r} LB`;
+      return `LB ${r}`;
     }
     return null;
   };
