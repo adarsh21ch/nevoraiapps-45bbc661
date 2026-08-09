@@ -129,9 +129,6 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     userId: userQ.data?.id ?? null,
   });
 
-  // Move stats memo AFTER loading guards to avoid stale matchId/match data races.
-  const stats = null; 
-  // ... placeholders handled by loading guards below ...
 
 
 
