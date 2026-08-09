@@ -129,6 +129,46 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     userId: userQ.data?.id ?? null,
   });
 
+  // Critical crash fix: the route component assumes session.match exists during initial 
+  // render in multiple places, but it's null until session.loading is false.
+  // The error component in __root.tsx catches the resulting "Cannot read property of null"
+  // and shows "This page didn't load".
+  if (session.loading || tenantQ.isLoading || userQ.isLoading) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-6 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <div className="space-y-1">
+            <h2 className="text-sm font-semibold">Loading match...</h2>
+            <p className="text-[11px] text-muted-foreground">Preparing scorecard and team data</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If loading is done but no match was found (or user lacks access)
+  if (!session.match && !isDemo) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-6 text-center">
+        <div className="max-w-xs space-y-4">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-muted">
+            <Search className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold">Match not found</h2>
+            <p className="text-sm text-muted-foreground">
+              This match may have been deleted, or you might not have permission to score it.
+            </p>
+          </div>
+          <Button asChild className="w-full rounded-xl">
+            <Link to="/dashboard">Back to Dashboard</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   const [squadEditOpen, setSquadEditOpen] = useState(false);
   const qc = useQueryClient();
 
