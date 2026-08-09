@@ -412,7 +412,7 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             {/* Displaying additional athletic profile details if available */}
             <Row label="Height (cm)" value={athlete?.height_cm ? String(athlete.height_cm) : "—"} />
             <Row label="Weight (kg)" value={athlete?.weight_kg ? String(athlete.weight_kg) : "—"} />
-            <Row label="Blood Group" value={athlete?.blood_group || "—"} />
+            <Row label="Blood Group" value={s.blood_group || "—"} />
             <Row label="Batting Style" value={cricket?.batting_style || "—"} />
             <Row label="Bowling Style" value={cricket?.bowling_style || "—"} />
             <Row label="Playing Role" value={cricket?.interests || "—"} />
