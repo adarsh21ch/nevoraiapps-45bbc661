@@ -176,6 +176,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const lockStatus = useScoringLock(isDemo ? null : matchId, !isDemo);
 
 
+
   // Team names
   const teamsQ = useQuery({
     enabled: !!session.match,
