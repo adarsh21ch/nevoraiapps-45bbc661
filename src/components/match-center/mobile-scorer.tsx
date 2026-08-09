@@ -344,6 +344,7 @@ export function MobileScorer(props: MobileScorerProps) {
               rrr={props.rrr}
               target={props.target}
               chase={props.chase}
+              isFinished={props.hideEndMatch}
             />
           </section>
 
@@ -524,6 +525,7 @@ function ScoreHeroCard({
   rrr,
   target,
   chase,
+  isFinished,
 }: {
   score: string;
   overs: string;
@@ -531,6 +533,7 @@ function ScoreHeroCard({
   rrr?: string;
   target?: string;
   chase?: { runsNeeded: number; ballsLeft: number } | null;
+  isFinished?: boolean;
 }) {
   const [runsPart, wicketsPart] = score.split("/");
   const wickets = wicketsPart ?? "0";
@@ -553,7 +556,11 @@ function ScoreHeroCard({
               {overs.startsWith("Over ") ? overs : `${overs} overs`}
             </span>
           </div>
-          {chase && (
+          {isFinished ? (
+            <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-1 text-[11.5px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-tight">
+              Match Finished
+            </div>
+          ) : chase && (
             <div className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-[var(--score-success-bg,color-mix(in_oklab,var(--primary)_16%,transparent))] px-2 py-1 text-[11.5px] font-black text-[var(--score-success-fg)] tabular-nums">
               Need {chase.runsNeeded} from {chase.ballsLeft}
             </div>
