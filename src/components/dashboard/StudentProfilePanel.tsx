@@ -373,12 +373,13 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
               }
             />
             <Row label="Village / Locality" value={s.village_locality || "—"} />
+            <Row label="Landmark" value={(s as any).permanent_landmark || "—"} />
             <Row label="City / District" value={s.city || "—"} />
             <Row label="State" value={s.state || "—"} />
             <Row label="Current Address" value={s.current_address || "—"} multiline />
             <Row label="Permanent Address" value={s.permanent_address || s.address || "—"} multiline />
-            {/* Row removed: duplicate email */}
             <Row label="Phone" value={s.phone} />
+
             <PasswordRow 
               tenantId={tenant.id}
               studentId={s.id}
@@ -406,13 +407,14 @@ export function StudentProfilePanel({ studentId, compact }: Props) {
             <Row label="Fee plan" value={plan?.name || "—"} />
             <Row label="Joined" value={new Date(s.joined_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} />
             {/* Displaying additional athletic profile details if available */}
-            <Row label="Height (cm)" value={s.height_cm ? String(s.height_cm) : "—"} />
-            <Row label="Weight (kg)" value={s.weight_kg ? String(s.weight_kg) : "—"} />
-            <Row label="Blood Group" value={s.blood_group || "—"} />
-            <Row label="Batting Style" value={s.batting_style || "—"} />
-            <Row label="Bowling Style" value={s.bowling_style || "—"} />
-            <Row label="Playing Role" value={s.interests || "—"} />
-            <Row label="Medical Notes" value={s.medical_notes || "—"} multiline />
+            <Row label="Height (cm)" value={athlete?.height_cm ? String(athlete.height_cm) : "—"} />
+            <Row label="Weight (kg)" value={athlete?.weight_kg ? String(athlete.weight_kg) : "—"} />
+            <Row label="Blood Group" value={athlete?.blood_group || "—"} />
+            <Row label="Batting Style" value={cricket?.batting_style || "—"} />
+            <Row label="Bowling Style" value={cricket?.bowling_style || "—"} />
+            <Row label="Playing Role" value={cricket?.interests || "—"} />
+            <Row label="Medical Notes" value={athlete?.medical_notes || "—"} multiline />
+
           </dl>
         )}
       </div>

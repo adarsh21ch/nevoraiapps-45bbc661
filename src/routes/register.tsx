@@ -430,27 +430,15 @@ function RegisterContent() {
   
   // Set defaults from tenant location
   useEffect(() => {
-    if (tenant.address) {
-      const addr = tenant.address.toLowerCase();
-      if (addr.includes("chhatarpur")) {
-        setForm(f => ({ 
-          ...f, 
-          current_city: f.current_city || "Chhatarpur", 
-          current_state: f.current_state || "Madhya Pradesh",
-          permanent_city: f.permanent_city || "Chhatarpur",
-          permanent_state: f.permanent_state || "Madhya Pradesh"
-        }));
-      }
-    } else {
-      setForm(f => ({ 
-        ...f, 
-        current_city: f.current_city || "Chhatarpur", 
-        current_state: f.current_state || "Madhya Pradesh",
-        permanent_city: f.permanent_city || "Chhatarpur",
-        permanent_state: f.permanent_state || "Madhya Pradesh"
-      }));
-    }
-  }, [tenant.address]);
+    setForm(f => ({ 
+      ...f, 
+      current_city: f.current_city || "Chhatarpur", 
+      current_state: f.current_state || "Madhya Pradesh",
+      permanent_city: f.permanent_city || "Chhatarpur",
+      permanent_state: f.permanent_state || "Madhya Pradesh"
+    }));
+  }, []);
+
 
   async function submitForm(e: React.FormEvent) {
     e.preventDefault();
