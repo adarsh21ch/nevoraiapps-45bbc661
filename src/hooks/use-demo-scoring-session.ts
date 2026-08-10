@@ -152,7 +152,21 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
   // When events change (rotation etc.), clear stale overrides so replay wins.
   const lastEventSeq = lastEvent?.sequence_number ?? -1;
   const lastSeenRef = useRef<number>(lastEventSeq);
-  if (lastSeenRef.current !== lastEventSeq) {
+  const activeInningsId = activeInnings?.id ?? null;
+  const lastInningsRef = useRef<string | null>(activeInningsId);
+
+  // 1. CLEAR ON INNINGS TRANSITION
+  if (lastInningsRef.current !== activeInningsId) {
+    lastInningsRef.current = activeInningsId;
+    // reset everything when the innings itself changes (Task 1)
+    if (strikerOverride) setStrikerOverride(null);
+    if (nonStrikerOverride) setNonStrikerOverride(null);
+    if (bowlerOverride) setBowlerOverride(null);
+    // sync the event sequence ref too so we don't double-trigger below
+    lastSeenRef.current = lastEventSeq;
+  }
+  // 2. CLEAR ON NEW EVENT (Supersede optimistic pick)
+  else if (lastSeenRef.current !== lastEventSeq) {
     lastSeenRef.current = lastEventSeq;
     const batterChoiceStillNeeded = Boolean(lastEvent?.dismissal_type);
     // reset overrides after each ball — replay is now source of truth
