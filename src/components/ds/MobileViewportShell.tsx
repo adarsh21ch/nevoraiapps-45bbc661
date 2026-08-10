@@ -33,10 +33,9 @@ export function MobileViewportShell({
 }: MobileViewportShellProps) {
   const insets = useViewportInsets();
   
-  // Body lock is only active when we are in "mobile mode" (fixed inset-0)
-  // We'll detect this based on the absence of md: classes or being on a mobile device.
-  // Actually, the hook handles the width check.
-  useBodyLock(true);
+  // Body lock is only active when we are in "mobile mode" (viewport width < 768)
+  const isMobileSize = typeof window !== "undefined" && window.innerWidth < 768;
+  useBodyLock(isMobileSize);
 
   const containerStyle = {
     height: insets.height > 0 ? `${insets.height}px` : "100dvh",
