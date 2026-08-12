@@ -349,44 +349,38 @@ export const listTenantMembers = createServerFn({ method: "POST" })
         name: null,
         roles: [],
         profile_role: null,
-        source: "profile",
+        source: patch.source ?? "profile",
         review_status: null,
         lifecycle_status: null,
         created_at: patch.created_at,
       };
-      Object.assign(cur, {
-        ...patch,
-        // Preserve existing non-null fields
-        email: patch.email ?? cur.email,
-        name: patch.name ?? cur.name,
-        roles: cur.roles,
-        profile_role: patch.profile_role ?? cur.profile_role,
-        review_status: patch.review_status ?? cur.review_status,
-        lifecycle_status: patch.lifecycle_status ?? cur.lifecycle_status,
-      });
+      
+      // Update fields if the incoming patch has values
+      if (patch.email) cur.email = patch.email;
+      if (patch.name) cur.name = patch.name;
+      if (patch.profile_role) cur.profile_role = patch.profile_role;
+      if (patch.review_status) cur.review_status = patch.review_status;
+      if (patch.lifecycle_status) cur.lifecycle_status = patch.lifecycle_status;
+      if (patch.source && cur.source === "profile") cur.source = patch.source;
+
       byUser.set(uid, cur);
     };
 
     (rolesR.data ?? []).forEach((r) => {
       upsert(r.user_id, { created_at: r.created_at, source: "staff" });
-      byUser.get(r.user_id)!.roles.push(r.role as string);
+      const m = byUser.get(r.user_id)!;
+      if (!m.roles.includes(r.role as string)) {
+        m.roles.push(r.role as string);
+      }
     });
+    
     (profsR.data ?? []).forEach((p) => {
       upsert(p.user_id, {
         created_at: p.created_at,
         profile_role: (p.role as string) ?? null,
       });
     });
-    (regsR.data ?? []).forEach((r) => {
-      if (!r.applicant_user_id) return;
-      upsert(r.applicant_user_id, {
-        created_at: r.created_at,
-        source: "student",
-        email: r.email,
-        name: r.name,
-        review_status: (r.review_status || r.status) as string | null,
-      });
-    });
+
     (studsR.data ?? []).forEach((s) => {
       if (!s.user_id) return;
       upsert(s.user_id, {
@@ -395,6 +389,17 @@ export const listTenantMembers = createServerFn({ method: "POST" })
         email: s.email,
         name: s.name,
         lifecycle_status: s.lifecycle_status as string | null,
+      });
+    });
+
+    (regsR.data ?? []).forEach((r) => {
+      if (!r.applicant_user_id) return;
+      upsert(r.applicant_user_id, {
+        created_at: r.created_at,
+        source: "student",
+        email: r.email,
+        name: r.name,
+        review_status: (r.review_status || r.status) as string | null,
       });
     });
 
