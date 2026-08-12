@@ -327,7 +327,7 @@ export function useScoringSession(
             const row = payload.new as MCBallEvent;
             if (next.some((e) => e.id === row.id)) return prev;
             
-            // Phase 47 - Gap detection: if we missed events, trigger a full reload
+            // Phase 47/48 - Real-time sync: explicitly check sequence and sort
             const lastKnownSeq = next.length > 0 ? next[next.length - 1].sequence_number : 0;
             if (row.sequence_number > lastKnownSeq + 1) {
               console.warn("[scoring] Gap detected in ball events, reloading...", { lastKnownSeq, received: row.sequence_number });
@@ -345,7 +345,9 @@ export function useScoringSession(
           }
           const sorted = next.sort((a, b) => a.sequence_number - b.sequence_number);
           eventsRef.current = sorted; 
-          return sorted;
+          
+          // Trigger a re-render by returning a new array
+          return [...sorted];
         });
       })
       .on("postgres_changes", {
@@ -377,12 +379,16 @@ export function useScoringSession(
       }, (payload) => {
         setMatch(payload.new as MCMatch);
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log("[scoring] Successfully subscribed to real-time updates");
+        }
+      });
 
     return () => {
       void supabase.removeChannel(ballChannel);
     };
-  }, [activeInnings?.id]);
+  }, [activeInnings?.id, matchId, load]);
 
   const battingSquad = useMemo(
     () => activeInnings ? playingXI.filter((p) => p.team_id === activeInnings.batting_team_id) : [],
