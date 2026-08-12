@@ -359,13 +359,26 @@ export function useScoringSession(
       }, (payload) => {
         if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
           const d = payload.new as any;
-          setStrikerState({ athleteId: d.striker_athlete_id, name: d.striker_name, onStrike: true });
-          setNonStrikerState({ athleteId: d.non_striker_athlete_id, name: d.non_striker_name, onStrike: false });
-          setBowlerState({ athleteId: d.bowler_athlete_id, name: d.bowler_name });
           
-          strikerRef.current = { athleteId: d.striker_athlete_id, name: d.striker_name, onStrike: true };
-          nonStrikerRef.current = { athleteId: d.non_striker_athlete_id, name: d.non_striker_name, onStrike: false };
-          bowlerRef.current = { athleteId: d.bowler_athlete_id, name: d.bowler_name };
+          // Only update local state if we aren't the one who just sent it
+          // (prevents cursor jumping/state thrashing while typing/selecting)
+          const currentS = strikerRef.current;
+          const currentNS = nonStrikerRef.current;
+          const currentB = bowlerRef.current;
+
+          const isSameS = (d.striker_athlete_id === currentS.athleteId && d.striker_name === currentS.name);
+          const isSameNS = (d.non_striker_athlete_id === currentNS.athleteId && d.non_striker_name === currentNS.name);
+          const isSameB = (d.bowler_athlete_id === currentB.athleteId && d.bowler_name === currentB.name);
+
+          if (!isSameS || !isSameNS || !isSameB) {
+            setStrikerState({ athleteId: d.striker_athlete_id, name: d.striker_name, onStrike: true });
+            setNonStrikerState({ athleteId: d.non_striker_athlete_id, name: d.non_striker_name, onStrike: false });
+            setBowlerState({ athleteId: d.bowler_athlete_id, name: d.bowler_name });
+            
+            strikerRef.current = { athleteId: d.striker_athlete_id, name: d.striker_name, onStrike: true };
+            nonStrikerRef.current = { athleteId: d.non_striker_athlete_id, name: d.non_striker_name, onStrike: false };
+            bowlerRef.current = { athleteId: d.bowler_athlete_id, name: d.bowler_name };
+          }
         }
       })
       .subscribe();
