@@ -272,7 +272,7 @@ export async function undoLastBallEvent(inningsId: string): Promise<MCBallEvent 
 }
 
 export async function deleteBallEvent(eventId: string): Promise<void> {
-  const { error } = await supabase.rpc("delete_mc_ball_event", { p_event_id: eventId });
+  const { error } = await (supabase as any).rpc("delete_mc_ball_event", { p_event_id: eventId });
   if (error) throw error;
 }
 
@@ -287,7 +287,7 @@ export interface UpdateBallInput {
 }
 
 export async function updateBallEvent(input: UpdateBallInput): Promise<void> {
-  const { error } = await supabase.rpc("update_mc_ball_event", {
+  const { error } = await (supabase as any).rpc("update_mc_ball_event", {
     p_event_id: input.eventId,
     p_runs_off_bat: input.runsOffBat,
     p_extra_type: input.extraType,

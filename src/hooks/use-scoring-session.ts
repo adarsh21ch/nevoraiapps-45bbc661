@@ -398,11 +398,22 @@ export function useScoringSession(
         comment: null,
         created_by: opts.userId ?? null,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      } as MCBallEvent;
 
       setEvents((prev) => [...prev, optimistic]);
-      const result = await appendBallEvent({ ...partial, ...optimistic, tenantId: opts.tenantId });
+      const result = await appendBallEvent({ 
+        ...partial, 
+        tenantId: opts.tenantId,
+        matchId,
+        inningsId: activeInnings.id,
+        eventId: optimistic.id,
+        strikerAthleteId: optimistic.striker_athlete_id,
+        strikerName: optimistic.striker_name,
+        nonStrikerAthleteId: optimistic.non_striker_athlete_id,
+        nonStrikerName: optimistic.non_striker_name,
+        bowlerAthleteId: optimistic.bowler_athlete_id,
+        bowlerName: optimistic.bowler_name,
+      });
       
       const newStriker = applyStrikeAfterBall(currentStriker, currentNonStriker, result, optimistic.is_legal_delivery);
       setStriker(newStriker.striker);
