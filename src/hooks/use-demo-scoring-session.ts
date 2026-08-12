@@ -526,6 +526,23 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     startInnings,
     submitBall,
     undo,
+    deleteBall: async (id: string) => {
+      if (!tenantId) return;
+      updateDemoData(tenantId, (d) => {
+        d.ballEvents = d.ballEvents.filter((e) => e.id !== id);
+      });
+    },
+    updateBall: async (input: any) => {
+      if (!tenantId) return;
+      updateDemoData(tenantId, (d) => {
+        const ball = d.ballEvents.find((e) => e.id === input.eventId);
+        if (!ball) return;
+        ball.runs_off_bat = input.runsOffBat;
+        ball.extra_type = input.extraType;
+        ball.extra_runs = input.extraRuns;
+        ball.dismissal_type = input.dismissalType;
+      });
+    },
     reload,
     tenantId,
     isDemo: true,

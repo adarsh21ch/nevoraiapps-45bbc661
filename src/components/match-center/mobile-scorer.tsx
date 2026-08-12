@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { NumberRoll } from "@/components/ui/number-roll";
 import { useSwipe } from "@/hooks/use-swipe";
 import { cn } from "@/lib/utils";
+import { MCBallEvent } from "@/lib/mc-ball-events";
 import {
   Dialog,
   DialogContent,
@@ -107,6 +108,9 @@ export interface MobileScorerProps {
   dismissedBatterNames?: string[];
 
   onUndo: () => void;
+  onDeleteBall?: (eventId: string) => void;
+  onUpdateBall?: (input: any) => void;
+  allEvents?: MCBallEvent[];
   onRedo?: () => void;
   canRedo?: boolean;
   onSwapStrike: () => void;
@@ -510,6 +514,9 @@ export function MobileScorer(props: MobileScorerProps) {
         onOpenChange={setHistoryOpen}
         rows={props.overHistory ?? []}
         inningsLabel={props.inningsLabel}
+        onDeleteBall={props.onDeleteBall}
+        onUpdateBall={props.onUpdateBall}
+        allEvents={props.allEvents}
       />
     </div>
   );
