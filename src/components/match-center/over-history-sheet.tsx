@@ -200,10 +200,13 @@ export function OverHistorySheet({
         open={!!editingBall} 
         onOpenChange={(v) => !v && setEditingBall(null)}
         onSave={(data) => {
-          onUpdateBall?.({ eventId: editingBall?.id, ...data });
+          if (editingBall) {
+            onUpdateBall?.({ eventId: editingBall.id, ...data });
+          }
           setEditingBall(null);
         }}
       />
+
     </>
   );
 }
