@@ -260,9 +260,27 @@ export function useScoringSession(
       setPlayingXI(squad ?? []);
       const active = pickActiveInnings(inningsList);
       if (active) {
-        const evs = await listBallEvents(active.id);
+        const [evs, { data: draft }] = await Promise.all([
+          listBallEvents(active.id),
+          supabase.from("mc_match_draft_selections" as any).select("*").eq("innings_id", active.id).maybeSingle()
+        ]);
+        
         eventsRef.current = evs;
         setEvents(evs);
+
+        if (draft) {
+          const s = { athleteId: draft.striker_athlete_id, name: draft.striker_name, onStrike: true };
+          const ns = { athleteId: draft.non_striker_athlete_id, name: draft.non_striker_name, onStrike: false };
+          const b = { athleteId: draft.bowler_athlete_id, name: draft.bowler_name };
+          
+          strikerRef.current = s;
+          nonStrikerRef.current = ns;
+          bowlerRef.current = b;
+          
+          setStrikerState(s);
+          setNonStrikerState(ns);
+          setBowlerState(b);
+        }
       } else {
         eventsRef.current = [];
         setEvents([]);
@@ -302,8 +320,31 @@ export function useScoringSession(
             const row = payload.new as MCBallEvent;
             next = next.map((e) => (e.id === row.id ? row : e));
           }
-          return next.sort((a, b) => a.sequence_number - b.sequence_number);
+          const sorted = next.sort((a, b) => a.sequence_number - b.sequence_number);
+          eventsRef.current = sorted; // KEEP REF IN SYNC
+          return sorted;
         });
+      })
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "mc_match_draft_selections",
+        filter: `innings_id=eq.${activeInnings.id}`,
+      }, (payload) => {
+        if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+          const row = payload.new as any;
+          const s = { athleteId: row.striker_athlete_id, name: row.striker_name, onStrike: true };
+          const ns = { athleteId: row.non_striker_athlete_id, name: row.non_striker_name, onStrike: false };
+          const b = { athleteId: row.bowler_athlete_id, name: row.bowler_name };
+          
+          strikerRef.current = s;
+          nonStrikerRef.current = ns;
+          bowlerRef.current = b;
+          
+          setStrikerState(s);
+          setNonStrikerState(ns);
+          setBowlerState(b);
+        }
       })
       .subscribe();
 

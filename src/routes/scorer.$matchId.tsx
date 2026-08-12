@@ -232,9 +232,13 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     const rs = session.matchState.innings.striker;
     const rn = session.matchState.innings.nonStriker;
     const rb = session.matchState.innings.bowler;
+    
+    // ONLY hydrate if local state is totally empty and rules engine has data
+    // This allows the persistent draft (loaded in useScoringSession) to take precedence
     const strikerEmpty = !session.striker.athleteId && !session.striker.name;
     const nonStrikerEmpty = !session.nonStriker.athleteId && !session.nonStriker.name;
     const bowlerEmpty = !session.bowler.athleteId && !session.bowler.name;
+
     if (strikerEmpty && (rs.athleteId || rs.name)) {
       const dismissed =
         (rs.athleteId && session.matchState.innings.dismissedIds.has(rs.athleteId)) ||
@@ -252,17 +256,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     if (bowlerEmpty && (rb.athleteId || rb.name) && !session.matchState.innings.awaitingNewBowler) {
       session.setBowler({ athleteId: rb.athleteId, name: rb.name });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    session.loading,
-    session.matchState.innings.striker.athleteId,
-    session.matchState.innings.striker.name,
-    session.matchState.innings.nonStriker.athleteId,
-    session.matchState.innings.nonStriker.name,
-    session.matchState.innings.bowler.athleteId,
-    session.matchState.innings.bowler.name,
-    session.matchState.innings.awaitingNewBowler,
-  ]);
+  }, [session.loading]); // Only run on initial load completion
 
   /* ---------- innings/match completion detection ---------- */
   useEffect(() => {
