@@ -98,7 +98,10 @@ export function OverHistorySheet({
                 {ordered.map((row) => (
                   <li
                     key={row.overNumber}
-                    className="rounded-xl border border-border/60 bg-card/70 p-3 shadow-sm"
+                    className="group rounded-xl border border-border/60 bg-card/70 p-3 shadow-sm transition-colors hover:border-primary/30 hover:bg-card active:scale-[0.99] cursor-pointer"
+                    onClick={() => {
+                      // Row click logic can be added here if needed
+                    }}
                   >
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <div className="flex min-w-0 items-baseline gap-2">
@@ -140,37 +143,43 @@ export function OverHistorySheet({
 
                           return (
                             <div key={`${row.overNumber}-${i}`} className="group relative">
-                              <span
+                              <Button
+                                variant="ghost"
                                 className={cn(
-                                  "inline-flex h-7 min-w-7 items-center justify-center rounded-full border px-1.5 text-[11px] font-black tabular-nums transition-transform",
+                                  "inline-flex h-8 min-w-8 items-center justify-center rounded-full border p-0 text-[12px] font-black tabular-nums transition-all active:scale-90 hover:brightness-110 hover:shadow-md",
                                   chipTone(label),
                                 )}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (ballEvent) setEditingBall(ballEvent);
+                                }}
                               >
                                 {label}
-                              </span>
+                              </Button>
                               {ballEvent && (
-                                <div className="absolute -top-9 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-md bg-background/95 p-1 shadow-lg border border-border opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto z-10">
+                                <div className="absolute -top-10 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-background/95 p-1 shadow-xl border border-border opacity-0 transition-all scale-90 group-hover:opacity-100 group-hover:scale-100 pointer-events-none group-hover:pointer-events-auto z-10">
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="size-6 text-muted-foreground hover:text-primary"
+                                    className="size-7 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setEditingBall(ballEvent);
                                     }}
                                   >
-                                    <Edit2 className="size-3" />
+                                    <Edit2 className="size-3.5" />
                                   </Button>
+                                  <div className="w-px h-3 bg-border" />
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="size-6 text-muted-foreground hover:text-destructive"
+                                    className="size-7 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       onDeleteBall?.(ballEvent.id);
                                     }}
                                   >
-                                    <Trash2 className="size-3" />
+                                    <Trash2 className="size-3.5" />
                                   </Button>
                                 </div>
                               )}
