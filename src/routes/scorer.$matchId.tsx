@@ -46,6 +46,7 @@ import type { DismissalType, ExtraType } from "@/lib/mc-ball-events";
 import { LiveScorecard } from "@/components/match-center/live-scorecard";
 import { ShareMatchDialog } from "@/components/match-center/share-match-dialog";
 import { FinalizationDialog, UnlockMatchDialog } from "@/components/match-center/finalization-ui";
+import { EditMatchDialog } from "@/components/match-center/EditMatchDialog";
 import { detectMatchResult, type InningsRow, type MatchResult } from "@/lib/mc-finalization";
 import { Printer, Share2, FileText, Trophy } from "lucide-react";
 import { useViewportInsets } from "@/hooks/use-visual-viewport";
@@ -129,7 +130,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         .in("id", [session.match.team_a_id, session.match.team_b_id].filter(Boolean));
       return data ?? [];
     },
-    staleTime: 1000 * 60 * 60, // 1 hour
+    staleTime: 1000 * 60, // 1 minute
+    refetchInterval: 10000, // 10 seconds to catch team name changes
   });
 
   // Squad names — resolve athlete_profile_id → student name
@@ -225,6 +227,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   const [inningsCompleteOpen, setInningsCompleteOpen] = useState(false);
   const [matchCompleteOpen, setMatchCompleteOpen] = useState(false);
   const [finalizeDialogOpen, setFinalizeDialogOpen] = useState(false);
+  const [editMatchOpen, setEditMatchOpen] = useState(false);
   const [unlockDialogOpen, setUnlockDialogOpen] = useState(false);
   const [commentaryCollapsed, setCommentaryCollapsed] = useState(false);
   const [tossWinnerId, setTossWinnerId] = useState<string | null>(null);
@@ -1007,6 +1010,28 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           bowledBowlerIds={bowledBowlerIds}
           dismissedBatterIds={Array.from(session.matchState.innings.dismissedIds)}
           dismissedBatterNames={Array.from(session.matchState.innings.dismissedNames)}
+          onEditMatch={() => setEditMatchOpen(true)}
+        />
+      )}
+
+      {session.match && (
+        <EditMatchDialog
+          open={editMatchOpen}
+          onOpenChange={setEditMatchOpen}
+          matchId={session.match.id}
+          teamA={{ 
+            id: session.match.team_a_id, 
+            name: teamMap.get(session.match.team_a_id)?.name ?? "Team A" 
+          }}
+          teamB={{ 
+            id: session.match.team_b_id, 
+            name: teamMap.get(session.match.team_b_id)?.name ?? "Team B" 
+          }}
+          overs={session.match.overs}
+          matchFormat={session.match.match_format}
+          onUpdated={() => {
+            // Optional: load() is called by the hook's visibility listener or realtime
+          }}
         />
       )}
 

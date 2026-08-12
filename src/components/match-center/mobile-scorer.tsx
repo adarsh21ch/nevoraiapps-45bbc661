@@ -120,6 +120,7 @@ export interface MobileScorerProps {
   onEndMatch: () => void;
   showFinishInnings?: boolean;
   hideEndMatch?: boolean;
+  onEditMatch?: () => void;
 
   onOpenScorecard?: () => void;
   onOpenScorebook?: () => void;
@@ -294,10 +295,14 @@ export function MobileScorer(props: MobileScorerProps) {
                 {props.tournamentLabel}
               </div>
             )}
-            <div className="mt-1 flex min-w-0 items-center gap-1.5">
+            <div 
+              className={cn("mt-1 flex min-w-0 items-center gap-1.5", props.onEditMatch && "cursor-pointer active:opacity-70")}
+              onClick={props.onEditMatch}
+            >
               <span className="truncate text-[15px] font-black leading-none tracking-tight">
                 {props.matchTitle}
               </span>
+              {props.onEditMatch && <FileText className="size-3.5 text-primary" />}
               {props.isLive && (
                 <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-1.5 py-0.5 text-[9px] font-black uppercase leading-none tracking-wider text-destructive">
                   <span className="size-1.5 animate-pulse rounded-full bg-destructive" />
