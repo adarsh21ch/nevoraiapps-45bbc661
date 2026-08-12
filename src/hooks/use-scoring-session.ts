@@ -444,13 +444,13 @@ export function useScoringSession(
 
   const redo = useCallback(async () => {
     const active = activeInningsRef.current;
-    if (!active || redoStackRef.current.length === 0) return;
+    if (!active || redoStackRef.current.length === 0) return null;
     
     const lastUndone = redoStackRef.current[0];
     redoStackRef.current = redoStackRef.current.slice(1);
     
     try {
-      await appendBallEvent({
+      const result = await appendBallEvent({
         eventId: lastUndone.id,
         tenantId: lastUndone.tenant_id,
         matchId: lastUndone.match_id,
@@ -471,11 +471,14 @@ export function useScoringSession(
         fielderName: lastUndone.fielder_name,
         priorEvents: eventsRef.current,
       });
+      return result;
     } catch (err) {
       console.error("[scoring] Redo failed", err);
       redoStackRef.current = [lastUndone, ...redoStackRef.current];
+      return null;
     }
   }, []);
+
 
   const deleteBall = useCallback(async (eventId: string) => {
     await deleteBallEvent(eventId);
