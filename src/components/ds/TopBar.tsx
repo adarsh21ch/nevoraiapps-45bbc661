@@ -29,8 +29,17 @@ export function TopBar({
   const router = useRouter();
   const back = () => {
     if (onBack) return onBack();
-    router.history.back();
+    
+    // Safety check for history availability
+    const hasHistory = typeof window !== "undefined" && window.history.length > 1;
+    if (hasHistory) {
+      router.history.back();
+    } else {
+      // Fallback to dashboard root if no history (prevents "stuck" buttons)
+      router.navigate({ to: "/dashboard" });
+    }
   };
+
 
   return (
     <header

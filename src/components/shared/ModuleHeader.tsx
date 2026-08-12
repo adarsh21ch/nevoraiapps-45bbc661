@@ -34,18 +34,18 @@ export function ModuleHeader({
   const router = useRouter();
 
   const onBack = () => {
-    // Prefer previous in-app entry so sub-tab selection is preserved.
-    const canGoBack =
-      typeof window !== "undefined" &&
-      window.history.length > 1 &&
-      // Ensure previous page is same-origin (in-app), otherwise fall back.
+    // Standard back behavior: try history first to preserve state, else fallback.
+    const hasHistory = typeof window !== "undefined" && window.history.length > 1;
+    const isSameOrigin = typeof document !== "undefined" && 
       (document.referrer === "" || document.referrer.startsWith(window.location.origin));
-    if (canGoBack) {
+
+    if (hasHistory && isSameOrigin) {
       router.history.back();
     } else {
       navigate({ to: backTo });
     }
   };
+
 
   return (
     <div className={cn("flex items-center gap-2 pt-1 pb-2 -mt-2", className)}>
