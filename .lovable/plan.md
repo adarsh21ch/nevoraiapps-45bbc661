@@ -1,42 +1,37 @@
-# Innings Transition & Match Synchronization Fix
+# Security Audit and Fixes - Phase 1
 
-Fix the Match Center issue where the UI triggers an innings change prematurely (even before overs are finished) and ensures consistent scoring between mobile and desktop views.
+This plan addresses several security issues identified during the manual audit of the AcademyOS codebase, focusing on RLS hardening, server function protection, and environment variable safety.
 
-## User Review Required
+## Database (RLS & Functions)
 
-> [!IMPORTANT]
-> - The innings transition was likely triggering because the **innings limit (overs)** was being checked against the **total legal balls** without properly accounting for whether the over was actually completed or if a target was reached.
-> - Synchronization issues between desktop and mobile often occur when one device uses local "optimistic" state while the other relies on Supabase Realtime, or when the `replayInnings` logic diverges between devices due to stale metadata.
+- **Hardening `site_content` RLS**: The `site_content` table has a broad `SELECT TO anon USING (true)` policy. I will restrict this to specific content types or ensure it only exposes non-sensitive data.
+- **Security Definer Functions**: Several migrations contain `SECURITY DEFINER` functions without an explicit `search_path`. This is a security risk as it can be exploited via path hijacking. I will add `SET search_path = public` to these functions.
+- **Privilege Cleanup**: Revoke `EXECUTE` on sensitive internal `SECURITY DEFINER` functions from the `public` and `anon` roles.
 
-## Proposed Changes
+## Server Functions
 
-### Match Logic & Synchronization
+- **Auth Verification**: Audit `createServerFn` declarations that lack `.middleware([requireSupabaseAuth])` but perform sensitive operations.
+- **Tenant Isolation**: Ensure all server functions that take a `tenantId` perform a membership check (e.g., using `assertAdmin` or `assertMember`) inside the handler.
 
-#### [lib/mc-rules-engine.ts]
-- Refine the `inningsShouldEnd` logic to be more robust.
-- Ensure `awaitingNewBatter` and `awaitingNewBowler` flags are strictly cleared when an innings is complete to prevent "Next Batter/Bowler" pickers from popping up in a finished innings.
-- Add a guard to `replayInnings` to ensure that an innings only ends at the *conclusion* of a legal over if it's an "overs_finished" condition, or instantly if "all_out" or "target_achieved".
+## Environment Variables
 
-#### [hooks/use-scoring-session.ts]
-- Harden the Supabase Realtime listener to ensure it always sorts events by `sequence_number` to prevent over-count discrepancies between devices.
-- Ensure that the local `events` state is always an exact reflection of the database, minimizing "ghost" balls that appear on one device but not the other.
+- **Leak Prevention**: Move `process.env` reads from module scope into function handlers to prevent values from leaking into the client-side bundle and to ensure correctness in edge runtimes (like Cloudflare Workers).
 
-#### [components/match-center/mobile-scorer.tsx]
-- Update the "Finish" button and auto-picker logic to strictly respect the `inningsShouldEnd` status from the rules engine.
-- Improve the "Awaiting Batter/Bowler" banner to hide automatically if the innings or match is complete.
+## Implementation Details
 
-#### [routes/scorer.$matchId.tsx]
-- Fix the `resultLine` calculation to use the canonical `detectMatchResult` helper instead of a local heuristic, ensuring desktop and mobile show the same winner/margin.
-- Ensure the "Innings Complete" dialog only appears when the engine confirms the innings is done.
+### Database Migrations
+Create a new migration `supabase/migrations/20260812090000_security_hardening.sql`:
+- Fix `SECURITY DEFINER` search paths.
+- Tighten RLS on `site_content`.
+- Revoke execution rights on internal helpers.
 
-## Technical Details
+### Server-side Fixes
+- **`src/lib/automation/providers/whatsapp/adapters/meta.ts`**: Move `process.env` reads inside `readConfig()` and other functions.
+- **`src/lib/automation/providers/push/adapters/expo.ts`**: (If exists) Move env reads inside handlers.
+- **`src/integrations/supabase/client.ts`**: Ensure env reads are correctly gated for SSR vs Client.
 
-- **Innings Logic**: Update `replayInnings` in `src/lib/mc-rules-engine.ts` to check `legalBalls >= totalOvers * 6` only.
-- **Realtime Sync**: In `src/hooks/use-scoring-session.ts`, the `INSERT` event in the Supabase channel will now explicitly re-sort the entire event array to handle out-of-order network packets.
-- **Persistence**: Verify `mc_match_draft_selections` syncs correctly so striker/non-striker choices made on mobile appear instantly on desktop.
+## Verification Plan
 
-## Risk Assessment
-
-- **Low Risk**: UI updates for banners and buttons.
-- **Medium Risk**: Changes to the core replay engine (affects scoring).
-- **High Risk**: None (no schema changes).
+- Run `lovable-exec build:dev` to ensure no environment variable leaks break the build.
+- Manually verify RLS policies in the Supabase dashboard (or via `supabase--read_query`).
+- Check that `requireSupabaseAuth` middleware is present on all non-public server functions.
