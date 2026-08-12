@@ -104,7 +104,9 @@ export function OverHistorySheet({
                     key={row.overNumber}
                     className="group rounded-xl border border-border/60 bg-card/70 p-3 shadow-sm transition-colors hover:border-primary/30 hover:bg-card active:scale-[0.99] cursor-pointer"
                     onClick={() => {
-                      // Row click logic can be added here if needed
+                      // Trigger editing for the first ball of the over to allow changing the bowler/metadata
+                      const firstBall = allEvents?.find(ev => ev.over_number === row.overNumber);
+                      if (firstBall) setEditingBall(firstBall);
                     }}
                   >
                     <div className="mb-2 flex items-center justify-between gap-2">
@@ -116,18 +118,9 @@ export function OverHistorySheet({
                           {row.overLabel}
                         </span>
                         {row.bowler && (
-                          <Button
-                            variant="ghost"
-                            className="h-auto min-w-0 p-0 text-[11.5px] font-bold text-muted-foreground hover:text-primary transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Find the first ball of this over to identify the bowler
-                              const firstBall = allEvents?.find(ev => ev.over_number === row.overNumber);
-                              if (firstBall) setEditingBall(firstBall);
-                            }}
-                          >
+                          <span className="text-[11.5px] font-bold text-muted-foreground group-hover:text-primary transition-colors">
                             {row.bowler}
-                          </Button>
+                          </span>
                         )}
                       </div>
                       <div className="flex shrink-0 items-center gap-1.5 tabular-nums">
@@ -155,7 +148,7 @@ export function OverHistorySheet({
 
 
                           return (
-                            <div key={`${row.overNumber}-${i}`} className="group relative">
+                            <div key={`${row.overNumber}-${i}`} className="group/ball relative">
                               <Button
                                 variant="ghost"
                                 className={cn(
@@ -170,7 +163,7 @@ export function OverHistorySheet({
                                 {label}
                               </Button>
                               {ballEvent && (
-                                <div className="absolute -top-10 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-background/95 p-1 shadow-xl border border-border opacity-0 transition-all scale-90 group-hover:opacity-100 group-hover:scale-100 pointer-events-none group-hover:pointer-events-auto z-10">
+                                <div className="absolute -top-10 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-background/95 p-1 shadow-xl border border-border opacity-0 transition-all scale-90 group-hover/ball:opacity-100 group-hover/ball:scale-100 pointer-events-none group-hover/ball:pointer-events-auto z-10">
                                   <Button
                                     variant="ghost"
                                     size="icon"
