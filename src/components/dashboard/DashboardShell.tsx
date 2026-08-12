@@ -31,6 +31,7 @@ import {
   Sparkles,
   LayoutGrid,
   Activity,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
