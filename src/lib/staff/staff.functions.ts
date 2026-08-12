@@ -318,7 +318,7 @@ export const listTenantMembers = createServerFn({ method: "POST" })
         .eq("tenant_id", data.tenantId),
       supabaseAdmin
         .from("registrations")
-        .select("applicant_user_id, name, email, review_status, created_at")
+        .select("applicant_user_id, name, email, review_status, created_at, status")
         .eq("tenant_id", data.tenantId)
         .not("applicant_user_id", "is", null),
       supabaseAdmin
@@ -386,7 +386,7 @@ export const listTenantMembers = createServerFn({ method: "POST" })
         source: "student",
         email: r.email,
         name: r.name,
-        review_status: r.review_status as string | null,
+        review_status: (r.review_status || r.status) as string | null,
       });
     });
     (studsR.data ?? []).forEach((s) => {

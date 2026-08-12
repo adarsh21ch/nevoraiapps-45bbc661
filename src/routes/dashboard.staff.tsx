@@ -326,8 +326,10 @@ function AdminPicker({
   const eligible = useMemo(() => {
     return members.filter(
       (m) =>
+        // Exclude the owner
         !m.roles.includes("owner") &&
         m.profile_role !== "owner" &&
+        // Exclude those already promoted to staff roles
         !m.roles.some((r) =>
           ["admin", "staff", "coach", "head_coach", "assistant_coach"].includes(r),
         ),
