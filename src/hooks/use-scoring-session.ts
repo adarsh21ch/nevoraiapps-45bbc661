@@ -260,7 +260,7 @@ export function useScoringSession(
       setPlayingXI(squad ?? []);
       const active = pickActiveInnings(inningsList);
       if (active) {
-        const [evs, { data: draft }] = await Promise.all([
+        const [evs, draftRes] = await Promise.all([
           listBallEvents(active.id),
           supabase.from("mc_match_draft_selections" as any).select("*").eq("innings_id", active.id).maybeSingle()
         ]);
@@ -268,6 +268,7 @@ export function useScoringSession(
         eventsRef.current = evs;
         setEvents(evs);
 
+        const draft = draftRes.data as any;
         if (draft) {
           const s = { athleteId: draft.striker_athlete_id, name: draft.striker_name, onStrike: true };
           const ns = { athleteId: draft.non_striker_athlete_id, name: draft.non_striker_name, onStrike: false };
