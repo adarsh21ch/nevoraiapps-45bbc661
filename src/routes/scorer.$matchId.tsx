@@ -1032,6 +1032,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
             // Optional: load() is called by the hook's visibility listener or realtime
           }}
         />
+      )}
 
       {/* ---------- modals ---------- */}
       <DismissalModal open={dismissOpen} onOpenChange={setDismissOpen} onSelect={handleDismissal} />
