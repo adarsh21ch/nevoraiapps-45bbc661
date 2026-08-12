@@ -75,10 +75,12 @@ export const Route = createFileRoute("/dashboard/students/$id")({
 type TabKey = "overview" | "timeline" | "performance" | "attendance" | "matches" | "more";
 
 function PlayerProfileRoute() {
+  const navigate = useNavigate();
   const { id } = Route.useParams();
   const { tenant } = useDashboard();
   const [tab, setTab] = useState<TabKey>("overview");
   const [editing, setEditing] = useState(false);
+
 
   const studentQ = useQuery({
     queryKey: ["d", "student", id],
