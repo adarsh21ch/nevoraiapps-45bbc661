@@ -526,7 +526,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     startInnings,
     submitBall,
     undo,
-    redo: async () => {},
+    redo: async () => null,
     deleteBall: async (id: string) => {
       if (!tenantId) return;
       updateDemoData(tenantId, (d) => {
