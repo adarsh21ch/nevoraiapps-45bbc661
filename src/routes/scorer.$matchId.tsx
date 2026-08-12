@@ -444,12 +444,12 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   // (connection status handled implicitly by MobileScorer; kept for future use)
 
   /* ---------- ball submission ---------- */
-  const [redoStack, setRedoStack] = useState<Awaited<ReturnType<typeof session.undo>>[]>([]);
   const submit = async (partial: Parameters<typeof session.submitBall>[0]) => {
+
     try {
       await session.submitBall(partial);
-      setRedoStack([]);
     } catch (e) {
+
       toast.error(e instanceof Error ? e.message : "Failed to record ball");
     }
   };

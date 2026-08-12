@@ -94,6 +94,7 @@ export interface ScoringSession {
   undo: () => Promise<MCBallEvent | null>;
   deleteBall: (eventId: string) => Promise<void>;
   updateBall: (input: UpdateBallInput) => Promise<void>;
+  redo: () => Promise<void>;
   reload: () => Promise<void>;
 }
 
@@ -199,6 +200,8 @@ export function useScoringSession(
   const bowlerRef = useRef<CurrentBowlerState>(bowler);
   
   const netQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const redoStackRef = useRef<MCBallEvent[]>([]);
+
   
   useEffect(() => {
     eventsRef.current = events;
@@ -415,7 +418,9 @@ export function useScoringSession(
       const created = await createInnings({ ...input, tenantId: opts.tenantId, matchId });
       setInnings((prev) => [...prev, created]);
       eventsRef.current = [];
+      redoStackRef.current = [];
       setEvents([]);
+
       return created;
     },
     [matchId, opts.tenantId],
@@ -491,6 +496,9 @@ export function useScoringSession(
         matchId,
         inningsId: active.id,
         eventId: optimistic.id,
+        priorEvents: eventsRef.current.filter(e => e.id !== optimistic.id)
+      });
+
         strikerAthleteId: optimistic.striker_athlete_id,
         strikerName: optimistic.striker_name,
         nonStrikerAthleteId: optimistic.non_striker_athlete_id,
@@ -546,11 +554,13 @@ export function useScoringSession(
     startInnings,
     submitBall,
     undo,
+    redo,
     deleteBall,
     updateBall,
     reload: load,
   };
 }
+
 
 export const ballHelpers = {
   run: (runs: 0 | 1 | 2 | 3 | 4 | 5 | 6) => ({ runsOffBat: runs, extraType: null, extraRuns: 0 }),
