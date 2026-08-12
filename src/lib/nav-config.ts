@@ -35,7 +35,7 @@ export const navByRole: Record<AppRole, NavItem[]> = {
   admin: [
     { to: "/dashboard", label: "Home", icon: LayoutDashboard },
     { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-    { to: "/match-center/leaderboards", label: "Performance", icon: TrendingUp },
+    { to: "/match-center/live", label: "Match Center", icon: Trophy },
     { to: "/dashboard/academy", label: "Manage", icon: Building2 },
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],

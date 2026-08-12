@@ -36,8 +36,9 @@ export function canAccess(role: AppRole, feature: RestrictedFeature): boolean {
       "players",
       "match-center",
       "platform-admin",
+      "staff-management",
     ]),
-    admin: new Set(["attendance", "players", "match-center"]),
+    admin: new Set(["attendance", "players", "match-center", "staff-management"]),
     student: new Set(["own-progress", "own-attendance", "own-matches"]),
   };
   return rules[role].has(feature);
@@ -54,7 +55,8 @@ export type RestrictedFeature =
   | "platform-admin"
   | "own-progress"
   | "own-attendance"
-  | "own-matches";
+  | "own-matches"
+  | "staff-management";
 
 /**
  * React hook — reads the current role from DashboardContext when available.
