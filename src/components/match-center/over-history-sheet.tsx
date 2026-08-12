@@ -133,12 +133,9 @@ export function OverHistorySheet({
                         <span className="text-[12px] text-muted-foreground">No balls</span>
                       ) : (
                         row.chips.map((chip, i) => {
-                          const label = formatBallNotation(chip);
-                          const ballEvent = allEvents?.find(e => 
-                            e.over_number === row.overNumber && 
-                            e.ball_number === chip.ballNumber &&
-                            e.sequence_number === chip.sequenceNumber
-                          );
+                          const label = formatBallNotation(chip.label);
+                          const ballEvent = allEvents?.find(e => e.id === chip.eventId);
+
 
 
                           return (
