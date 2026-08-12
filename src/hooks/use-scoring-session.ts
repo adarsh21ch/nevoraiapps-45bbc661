@@ -16,6 +16,10 @@ import {
   type ExtraType,
   type MCBallEvent,
   type MCInnings,
+  deleteBallEvent,
+  updateBallEvent,
+  type UpdateBallInput,
+  type DismissalType,
 } from "@/lib/mc-ball-events";
 import {
   applyStrikeAfterBall,
@@ -33,17 +37,8 @@ export interface PersistentSelection {
   bowler_name: string | null;
 }
 
-
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
-
-/* ================================================================
- * useScoringSession(matchId)
- *
- * Loads match + innings + ball events + playing XI, and exposes
- * mutations. Never stores derived statistics — only the event log
- * plus positional pointers (current over / ball / active innings).
- * ================================================================ */
 
 export interface CurrentBatterState {
   athleteId: string | null;
@@ -58,37 +53,28 @@ export interface CurrentBowlerState {
 
 export interface CurrentOverState {
   overNumber: number;
-  ballsBowled: number; // legal deliveries this over (0..6)
-  events: MCBallEvent[]; // events in current over (any delivery)
+  ballsBowled: number;
+  events: MCBallEvent[];
 }
 
 export interface ScoringSession {
   loading: boolean;
   error: string | null;
-
   match: MCMatch | null;
   innings: MCInnings[];
   activeInnings: MCInnings | null;
-  events: MCBallEvent[]; // active innings events, in order
-
+  events: MCBallEvent[];
   playingXI: MCMatchSquad[];
   battingSquad: MCMatchSquad[];
   bowlingSquad: MCMatchSquad[];
-
   striker: CurrentBatterState;
   nonStriker: CurrentBatterState;
   bowler: CurrentBowlerState;
   currentOver: CurrentOverState;
-
-  /** Reconstructed match state (pure replay of the event log). */
   matchState: MatchState;
-
-  /* --- setters (UI-driven, no calculations) --- */
   setStriker: (b: CurrentBatterState) => void;
   setNonStriker: (b: CurrentBatterState) => void;
   setBowler: (b: CurrentBowlerState) => void;
-
-  /* --- mutations --- */
   startInnings: (input: Omit<CreateInningsInput, "tenantId" | "matchId">) => Promise<MCInnings>;
   submitBall: (
     input: Omit<
@@ -107,10 +93,12 @@ export interface ScoringSession {
     >,
   ) => Promise<MCBallEvent>;
   undo: () => Promise<MCBallEvent | null>;
+  redo: () => Promise<MCBallEvent | null>;
+  deleteBall: (eventId: string) => Promise<void>;
+  updateBall: (input: UpdateBallInput) => Promise<void>;
+  updateBallBowler: (eventId: string, opt: { athleteId: string | null; name: string }) => Promise<void>;
   reload: () => Promise<void>;
 }
-
-/* ---------- helpers ---------- */
 
 function pickActiveInnings(list: MCInnings[]): MCInnings | null {
   const inProgress = list.find((i) => i.status === "in_progress");
@@ -124,22 +112,8 @@ function buildCurrentOver(events: MCBallEvent[]): CurrentOverState {
   }
   const lastOver = events[events.length - 1].over_number;
   const overEvents = events.filter((e) => e.over_number === lastOver);
-  // Derive legality from extra_type — the single source of truth. Never
-  // rely on the stored flag (may be stale on optimistic / legacy rows).
   const legal = overEvents.filter((e) => isLegalDelivery(e.extra_type as ExtraType | null)).length;
   return { overNumber: lastOver, ballsBowled: legal, events: overEvents };
-}
-
-function countCompletedLegalDeliveries(events: MCBallEvent[]) {
-  return events.filter((e) => isLegalDelivery(e.extra_type as ExtraType | null)).length;
-}
-
-function logScoringOverCheckpoint(
-  _phase: "before recording" | "after recording",
-  _completedLegalBalls: number,
-) {
-  // no-op: previously logged to console on every ball; removed to keep
-  // rapid tapping responsive and DevTools quiet.
 }
 
 function samePlayerRef(
@@ -150,28 +124,6 @@ function samePlayerRef(
     Boolean(a.athleteId && b.athleteId && a.athleteId === b.athleteId) ||
     Boolean(!a.athleteId && !b.athleteId && a.name && b.name && a.name === b.name)
   );
-}
-
-function clearDismissedBatter(
-  pair: { striker: CurrentBatterState; nonStriker: CurrentBatterState },
-  event: MCBallEvent,
-) {
-  const dismissed = {
-    athleteId: event.dismissed_athlete_id,
-    name: event.dismissed_name,
-  };
-  if (!dismissed.athleteId && !dismissed.name) return pair;
-
-  const emptyStriker: CurrentBatterState = { athleteId: null, name: null, onStrike: true };
-  const emptyNonStriker: CurrentBatterState = { athleteId: null, name: null, onStrike: false };
-
-  if (samePlayerRef(pair.striker, dismissed)) {
-    return { ...pair, striker: emptyStriker };
-  }
-  if (samePlayerRef(pair.nonStriker, dismissed)) {
-    return { ...pair, nonStriker: emptyNonStriker };
-  }
-  return pair;
 }
 
 function matchStateForSelectedBatters(
@@ -207,15 +159,12 @@ function makeClientEventId() {
   );
 }
 
-/* ---------- hook ---------- */
-
 export function useScoringSession(
   matchId: string | undefined,
   opts: { tenantId?: string; userId?: string | null } = {},
 ): ScoringSession {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
   const [match, setMatch] = useState<MCMatch | null>(null);
   const [innings, setInnings] = useState<MCInnings[]>([]);
   const [events, setEvents] = useState<MCBallEvent[]>([]);
@@ -237,30 +186,32 @@ export function useScoringSession(
   });
 
   const activeInnings = useMemo(() => pickActiveInnings(innings), [innings]);
+  const activeInningsRef = useRef<MCInnings | null>(null);
+  
+  useEffect(() => {
+    activeInningsRef.current = activeInnings;
+  }, [activeInnings]);
 
   const eventsRef = useRef<MCBallEvent[]>([]);
   const strikerRef = useRef<CurrentBatterState>(striker);
   const nonStrikerRef = useRef<CurrentBatterState>(nonStriker);
   const bowlerRef = useRef<CurrentBowlerState>(bowler);
   
-  // Serialized network queue so rapid taps don't fire concurrent
-  // appendBallEvent calls (which would race on sequence_number). The
-  // optimistic UI update still happens synchronously on every call.
-  const netQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const redoStackRef = useRef<MCBallEvent[]>([]);
   
   useEffect(() => {
     eventsRef.current = events;
   }, [events]);
 
-  // Persistent persistence helpers
   const persistSelection = useCallback(
     async (s: CurrentBatterState, ns: CurrentBatterState, b: CurrentBowlerState) => {
-      if (!matchId || !activeInnings || !opts.tenantId) return;
+      const active = activeInningsRef.current;
+      if (!matchId || !active || !opts.tenantId) return;
       try {
         await supabase.from("mc_match_draft_selections" as any).upsert({
           tenant_id: opts.tenantId,
           match_id: matchId,
-          innings_id: activeInnings.id,
+          innings_id: active.id,
           striker_athlete_id: s.athleteId,
           striker_name: s.name,
           non_striker_athlete_id: ns.athleteId,
@@ -273,7 +224,7 @@ export function useScoringSession(
         console.warn("[scoring] Selection persistence failed", err);
       }
     },
-    [matchId, activeInnings, opts.tenantId],
+    [matchId, opts.tenantId],
   );
 
   const setStriker = useCallback((b: CurrentBatterState) => {
@@ -281,41 +232,57 @@ export function useScoringSession(
     setStrikerState(b);
     void persistSelection(b, nonStrikerRef.current, bowlerRef.current);
   }, [persistSelection]);
+
   const setNonStriker = useCallback((b: CurrentBatterState) => {
     nonStrikerRef.current = b;
     setNonStrikerState(b);
     void persistSelection(strikerRef.current, b, bowlerRef.current);
   }, [persistSelection]);
+
   const setBowler = useCallback((b: CurrentBowlerState) => {
     bowlerRef.current = b;
     setBowlerState(b);
     void persistSelection(strikerRef.current, nonStrikerRef.current, b);
   }, [persistSelection]);
 
-  /* ---------- initial load ---------- */
-
   const load = useCallback(async () => {
     if (!matchId) return;
     setLoading(true);
     setError(null);
     try {
-      const [{ data: matchRow, error: matchErr }, inningsList, { data: squad }] = await Promise.all(
-        [
-          supabase.from("mc_matches").select("*").eq("id", matchId).maybeSingle(),
-          listInningsForMatch(matchId),
-          supabase.from("mc_match_squads").select("*").eq("match_id", matchId),
-        ],
-      );
+      const [{ data: matchRow, error: matchErr }, inningsList, { data: squad }] = await Promise.all([
+        supabase.from("mc_matches").select("*").eq("id", matchId).maybeSingle(),
+        listInningsForMatch(matchId),
+        supabase.from("mc_match_squads").select("*").eq("match_id", matchId),
+      ]);
       if (matchErr) throw matchErr;
       setMatch(matchRow ?? null);
       setInnings(inningsList);
       setPlayingXI(squad ?? []);
-
       const active = pickActiveInnings(inningsList);
       if (active) {
-        const evs = await listBallEvents(active.id);
+        const [evs, draftRes] = await Promise.all([
+          listBallEvents(active.id),
+          supabase.from("mc_match_draft_selections" as any).select("*").eq("innings_id", active.id).maybeSingle()
+        ]);
+        
         eventsRef.current = evs;
         setEvents(evs);
+
+        const draft = draftRes.data as any;
+        if (draft) {
+          const s = { athleteId: draft.striker_athlete_id, name: draft.striker_name, onStrike: true };
+          const ns = { athleteId: draft.non_striker_athlete_id, name: draft.non_striker_name, onStrike: false };
+          const b = { athleteId: draft.bowler_athlete_id, name: draft.bowler_name };
+          
+          strikerRef.current = s;
+          nonStrikerRef.current = ns;
+          bowlerRef.current = b;
+          
+          setStrikerState(s);
+          setNonStrikerState(ns);
+          setBowlerState(b);
+        }
       } else {
         eventsRef.current = [];
         setEvents([]);
@@ -331,130 +298,146 @@ export function useScoringSession(
     void load();
   }, [load]);
 
-  /* ---------- realtime: broadcast ball events to any subscriber ---------- */
+  // Phase 47 - Visibility sync
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible" && matchId) {
+        console.log("[scoring] Tab became visible, refreshing state...");
+        void load();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [load, matchId]);
 
   useEffect(() => {
     if (!activeInnings?.id) return;
-    const channel = supabase
-      .channel(`mc_ball_events:${activeInnings.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "mc_ball_events",
-          filter: `innings_id=eq.${activeInnings.id}`,
-        },
-        (payload) => {
-          setEvents((prev) => {
-            if (payload.eventType === "INSERT") {
-              const row = payload.new as MCBallEvent;
-              if (prev.some((e) => e.id === row.id)) return prev;
-              return [...prev, row].sort((a, b) => a.sequence_number - b.sequence_number);
-            }
-            if (payload.eventType === "DELETE") {
-              const row = payload.old as MCBallEvent;
-              return prev.filter((e) => e.id !== row.id);
-            }
-            if (payload.eventType === "UPDATE") {
-              const row = payload.new as MCBallEvent;
-              return prev.map((e) => (e.id === row.id ? row : e));
-            }
-            return prev;
-          });
-        },
-      )
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [activeInnings?.id]);
 
-  /* ---------- squads split by innings ---------- */
+    const ballChannel = supabase
+      .channel(`mc_ball_events:${activeInnings.id}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "mc_ball_events",
+        filter: `innings_id=eq.${activeInnings.id}`,
+      }, (payload) => {
+        setEvents((prev) => {
+          let next = [...prev];
+          if (payload.eventType === "INSERT") {
+            const row = payload.new as MCBallEvent;
+            if (next.some((e) => e.id === row.id)) return prev;
+            
+            // Phase 47/48 - Real-time sync: explicitly check sequence and sort
+            const lastKnownSeq = next.length > 0 ? next[next.length - 1].sequence_number : 0;
+            if (row.sequence_number > lastKnownSeq + 1) {
+              console.warn("[scoring] Gap detected in ball events, reloading...", { lastKnownSeq, received: row.sequence_number });
+              void load();
+              return prev;
+            }
+            
+            next.push(row);
+          } else if (payload.eventType === "DELETE") {
+            const row = payload.old as MCBallEvent;
+            next = next.filter((e) => e.id !== row.id);
+          } else if (payload.eventType === "UPDATE") {
+            const row = payload.new as MCBallEvent;
+            next = next.map((e) => (e.id === row.id ? row : e));
+          }
+          const sorted = next.sort((a, b) => a.sequence_number - b.sequence_number);
+          eventsRef.current = sorted; 
+          
+          // Trigger a re-render by returning a new array
+          return [...sorted];
+        });
+      })
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "mc_match_draft_selections",
+        filter: `innings_id=eq.${activeInnings.id}`,
+      }, (payload) => {
+        if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+          const row = payload.new as any;
+          const s = { athleteId: row.striker_athlete_id, name: row.striker_name, onStrike: true };
+          const ns = { athleteId: row.non_striker_athlete_id, name: row.non_striker_name, onStrike: false };
+          const b = { athleteId: row.bowler_athlete_id, name: row.bowler_name };
+          
+          strikerRef.current = s;
+          nonStrikerRef.current = ns;
+          bowlerRef.current = b;
+          
+          setStrikerState(s);
+          setNonStrikerState(ns);
+          setBowlerState(b);
+        }
+      })
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "mc_matches",
+        filter: `id=eq.${matchId}`,
+      }, (payload) => {
+        setMatch(payload.new as MCMatch);
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log("[scoring] Successfully subscribed to real-time updates");
+        }
+      });
+
+    return () => {
+      void supabase.removeChannel(ballChannel);
+    };
+  }, [activeInnings?.id, matchId, load]);
 
   const battingSquad = useMemo(
-    () =>
-      activeInnings ? playingXI.filter((p) => p.team_id === activeInnings.batting_team_id) : [],
+    () => activeInnings ? playingXI.filter((p) => p.team_id === activeInnings.batting_team_id) : [],
     [playingXI, activeInnings],
   );
   const bowlingSquad = useMemo(
-    () =>
-      activeInnings ? playingXI.filter((p) => p.team_id === activeInnings.bowling_team_id) : [],
+    () => activeInnings ? playingXI.filter((p) => p.team_id === activeInnings.bowling_team_id) : [],
     [playingXI, activeInnings],
   );
 
-  /* ---------- current over ---------- */
-
   const currentOver = useMemo(() => buildCurrentOver(events), [events]);
 
-  /* ---------- reconstructed match state (pure replay) ---------- */
-
   const matchState = useMemo<MatchState>(
-    () =>
-      replayInnings(events, {
-        totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
-        maxWickets: 10,
-        target: activeInnings?.target ?? null,
-      }),
+    () => replayInnings(events, {
+      totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
+      maxWickets: 10,
+      target: activeInnings?.target ?? null,
+    }),
     [events, match, activeInnings?.target],
   );
 
-  /* ---------- mutations ---------- */
-
   const startInnings = useCallback(
     async (input: Omit<CreateInningsInput, "tenantId" | "matchId">) => {
-      if (!matchId) throw new BallEventError("INVALID_MATCH", "Missing match.");
-      if (!opts.tenantId) throw new BallEventError("INVALID_TENANT", "Missing tenant.");
-      if (match?.status === "completed" || match?.status === "archived") {
-        throw new BallEventError("MATCH_COMPLETED", "Match is no longer active.");
-      }
-      const created = await createInnings({
-        ...input,
-        tenantId: opts.tenantId,
-        matchId,
-      });
+      if (!matchId || !opts.tenantId) throw new Error("Missing ID");
+      const created = await createInnings({ ...input, tenantId: opts.tenantId, matchId });
       setInnings((prev) => [...prev, created]);
       eventsRef.current = [];
+      redoStackRef.current = [];
       setEvents([]);
       return created;
     },
-    [matchId, opts.tenantId, match?.status],
+    [matchId, opts.tenantId],
   );
 
   const submitBall = useCallback<ScoringSession["submitBall"]>(
     async (partial) => {
-      if (!matchId) throw new BallEventError("INVALID_MATCH", "Missing match.");
-      if (!opts.tenantId) throw new BallEventError("INVALID_TENANT", "Missing tenant.");
-      if (!activeInnings)
-        throw new BallEventError("INVALID_INNINGS", "Start an innings before scoring.");
-      if (activeInnings.status !== "in_progress")
-        throw new BallEventError("INNINGS_CLOSED", "Innings is not in progress.");
-      if (match?.status === "completed" || match?.status === "archived")
-        throw new BallEventError("MATCH_COMPLETED", "Match is no longer active.");
+      const active = activeInningsRef.current;
+      if (!matchId || !opts.tenantId || !active) throw new Error("Invalid state");
       
       const latestMatchState = replayInnings(eventsRef.current, {
         totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
         maxWickets: 10,
-        target: activeInnings.target ?? null,
+        target: active.target ?? null,
       });
 
-      if (latestMatchState.matchShouldEnd) {
-        throw new BallEventError("MATCH_COMPLETED", "Match has already reached a conclusion.");
-      }
       const currentStriker = strikerRef.current;
       const currentNonStriker = nonStrikerRef.current;
       const currentBowler = bowlerRef.current;
 
-      if (!currentStriker.athleteId && !currentStriker.name)
-        throw new BallEventError("NO_STRIKER", "Select the striker.");
-      if (!currentBowler.athleteId && !currentBowler.name)
-        throw new BallEventError("NO_BOWLER", "Select the bowler.");
-
-      const priorEvents = eventsRef.current;
-      const completedLegalBallsBefore = countCompletedLegalDeliveries(priorEvents);
-      logScoringOverCheckpoint("before recording", completedLegalBallsBefore);
-      
-      // Rules-engine validation against the reconstructed state.
       validateBallDraft(
         {
           strikerAthleteId: currentStriker.athleteId,
@@ -467,24 +450,24 @@ export function useScoringSession(
         },
         matchStateForSelectedBatters(latestMatchState, currentStriker, currentNonStriker),
         {
-          innings: activeInnings,
-          events: priorEvents,
+          innings: active,
+          events: eventsRef.current,
           matchStatus: match?.status ?? null,
           totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
         },
       );
 
-
-      const pos = nextPosition(priorEvents);
+      const pos = nextPosition(eventsRef.current);
+      const isLegal = isLegalDelivery(partial.extraType ?? null);
       const optimistic: MCBallEvent = {
         id: makeClientEventId(),
         tenant_id: opts.tenantId,
         match_id: matchId,
-        innings_id: activeInnings.id,
+        innings_id: active.id,
         sequence_number: pos.sequenceNumber,
         over_number: pos.overNumber,
         ball_number: pos.ballNumber,
-        is_legal_delivery: isLegalDelivery(partial.extraType ?? null),
+        is_legal_delivery: isLegal,
         striker_athlete_id: currentStriker.athleteId,
         striker_name: currentStriker.name,
         non_striker_athlete_id: currentNonStriker.athleteId,
@@ -499,151 +482,100 @@ export function useScoringSession(
         dismissed_name: partial.dismissedName ?? null,
         fielder_athlete_id: partial.fielderAthleteId ?? null,
         fielder_name: partial.fielderName ?? null,
-        comment: partial.comment ?? null,
-        created_at: new Date().toISOString(),
+        comment: null,
         created_by: opts.userId ?? null,
+        created_at: new Date().toISOString(),
       } as MCBallEvent;
 
-      eventsRef.current = [...priorEvents, optimistic];
-      setEvents(eventsRef.current);
-      logScoringOverCheckpoint(
-        "after recording",
-        completedLegalBallsBefore + (optimistic.is_legal_delivery ? 1 : 0),
-      );
-
-      // Auto strike rotation for the UI pointer (state is still derived from
-      // events — this only updates the *selected* striker/non-striker).
-      const legalBefore = priorEvents.filter(
-        (e) =>
-          e.over_number === optimistic.over_number &&
-          isLegalDelivery(e.extra_type as ExtraType | null),
-      ).length;
-      const overCompleted = optimistic.is_legal_delivery && legalBefore + 1 >= 6;
-      const rotated = applyStrikeAfterBall(
-        { striker: currentStriker, nonStriker: currentNonStriker },
-        optimistic,
-        overCompleted,
-      );
-      const next = optimistic.dismissal_type
-        ? clearDismissedBatter(
-            {
-              striker: { ...rotated.striker, onStrike: true },
-              nonStriker: { ...rotated.nonStriker, onStrike: false },
-            },
-            optimistic,
-          )
-        : {
-            striker: { ...rotated.striker, onStrike: true },
-            nonStriker: { ...rotated.nonStriker, onStrike: false },
-          };
-      if (
-        next.striker.athleteId !== currentStriker.athleteId ||
-        next.striker.name !== currentStriker.name ||
-        next.nonStriker.athleteId !== currentNonStriker.athleteId ||
-        next.nonStriker.name !== currentNonStriker.name
-      ) {
-        setStriker(next.striker);
-        setNonStriker(next.nonStriker);
-      }
-
-      // Chain the network write behind any in-flight ones so sequence
-      // numbers stay ordered on the backend. The optimistic UI update
-      // above has already been applied synchronously, and we do NOT
-      // await the network here — that way rapid taps never queue behind
-      // slow round-trips (bad connection at the ground, long matches,
-      // etc.). If the write eventually fails we surface it via console
-      // and revert the optimistic row.
-      const networkPromise = netQueueRef.current
-        .catch(() => {})
-        .then(() =>
-          appendBallEvent({
-            eventId: optimistic.id,
-            tenantId: opts.tenantId!,
-            matchId,
-            inningsId: activeInnings.id,
-            strikerAthleteId: currentStriker.athleteId,
-            strikerName: currentStriker.name,
-            nonStrikerAthleteId: currentNonStriker.athleteId,
-            nonStrikerName: currentNonStriker.name,
-            bowlerAthleteId: currentBowler.athleteId,
-            bowlerName: currentBowler.name,
-            createdBy: opts.userId ?? null,
-            priorEvents,
-            ...partial,
-          }).then(() => undefined),
-        )
-        .catch((e) => {
-          console.error("[scoring] append failed, reverting", e);
-          toast.error("Ball not saved — network error. Retrying...");
-          
-          // Basic retry logic
-          const retry = () => submitBall(partial);
-          setTimeout(retry, 2000);
-
-          const wasLatest = eventsRef.current.at(-1)?.id === optimistic.id;
-          if (!wasLatest) {
-            // If it's not the latest ball, we have a rotation mismatch risk.
-            // Block further input until sync? For now, we revert and toast.
-            toast.error("Sync error: rotation may be incorrect. Please refresh.");
-          }
-
-          eventsRef.current = eventsRef.current.filter((event) => event.id !== optimistic.id);
-          setEvents(eventsRef.current);
-          if (wasLatest) {
-            setStriker(currentStriker);
-            setNonStriker(currentNonStriker);
-            setBowler(currentBowler);
-          }
-        });
-      netQueueRef.current = networkPromise.catch(() => {});
-
-      return optimistic;
+      setEvents((prev) => [...prev, optimistic]);
+      redoStackRef.current = [];
+      const result = await appendBallEvent({ 
+        ...partial, 
+        tenantId: opts.tenantId,
+        matchId,
+        inningsId: active.id,
+        eventId: optimistic.id,
+        priorEvents: eventsRef.current.filter(e => e.id !== optimistic.id)
+      });
+      
+      const newStriker = applyStrikeAfterBall({ striker: currentStriker, nonStriker: currentNonStriker }, result, isLegal);
+      setStriker({ ...newStriker.striker, onStrike: true });
+      setNonStriker({ ...newStriker.nonStriker, onStrike: false });
+      
+      return result;
     },
-    [
-      matchId,
-      opts.tenantId,
-      opts.userId,
-      activeInnings,
-      match?.status,
-      match,
-      setStriker,
-      setNonStriker,
-      setBowler,
-    ],
+    [matchId, opts.tenantId, opts.userId, match?.status, setStriker, setNonStriker],
   );
 
 
   const undo = useCallback(async () => {
-    if (!activeInnings) throw new BallEventError("INVALID_INNINGS", "No active innings.");
-    const removed = await undoLastBallEvent(activeInnings.id);
-    if (removed) {
-      const filtered = eventsRef.current.filter((e) => e.id !== removed.id);
-      eventsRef.current = filtered;
-      setEvents(filtered);
-      // Universal undo: restore batters and bowler to the state that existed
-      // just before the removed ball was recorded. The removed ball itself
-      // captured that pre-ball snapshot (striker/non-striker/bowler fields),
-      // so re-seating them from the removed event correctly reverses wickets
-      // (dismissed batter returns), strike rotations, and end-of-over bowler
-      // changes in a single step.
-      setStriker({
-        athleteId: removed.striker_athlete_id ?? null,
-        name: removed.striker_name ?? null,
-        onStrike: true,
-      });
-      setNonStriker({
-        athleteId: removed.non_striker_athlete_id ?? null,
-        name: removed.non_striker_name ?? null,
-        onStrike: false,
-      });
-      setBowler({
-        athleteId: removed.bowler_athlete_id ?? null,
-        name: removed.bowler_name ?? null,
-      });
+    const active = activeInningsRef.current;
+    if (!active) return null;
+    const last = await undoLastBallEvent(active.id);
+    if (last) {
+      redoStackRef.current = [last, ...redoStackRef.current].slice(0, 20);
+      setEvents((prev) => prev.filter((e) => e.id !== last.id));
     }
-    return removed;
-  }, [activeInnings, setBowler, setStriker, setNonStriker]);
+    return last;
+  }, []);
 
+  const redo = useCallback(async () => {
+    const active = activeInningsRef.current;
+    if (!active || redoStackRef.current.length === 0) return null;
+    
+    const lastUndone = redoStackRef.current[0];
+    redoStackRef.current = redoStackRef.current.slice(1);
+    
+    try {
+      const result = await appendBallEvent({
+        eventId: lastUndone.id,
+        tenantId: lastUndone.tenant_id,
+        matchId: lastUndone.match_id,
+        inningsId: lastUndone.innings_id,
+        strikerAthleteId: lastUndone.striker_athlete_id,
+        strikerName: lastUndone.striker_name,
+        nonStrikerAthleteId: lastUndone.non_striker_athlete_id,
+        nonStrikerName: lastUndone.non_striker_name,
+        bowlerAthleteId: lastUndone.bowler_athlete_id,
+        bowlerName: lastUndone.bowler_name,
+        runsOffBat: lastUndone.runs_off_bat,
+        extraType: lastUndone.extra_type as ExtraType | null,
+        extraRuns: lastUndone.extra_runs,
+        dismissalType: lastUndone.dismissal_type as DismissalType | null,
+        dismissedAthleteId: lastUndone.dismissed_athlete_id,
+        dismissedName: lastUndone.dismissed_name,
+        fielderAthleteId: lastUndone.fielder_athlete_id,
+        fielderName: lastUndone.fielder_name,
+        priorEvents: eventsRef.current,
+      });
+      return result;
+    } catch (err) {
+      console.error("[scoring] Redo failed", err);
+      redoStackRef.current = [lastUndone, ...redoStackRef.current];
+      return null;
+    }
+  }, []);
+
+
+  const deleteBall = useCallback(async (eventId: string) => {
+    await deleteBallEvent(eventId);
+    redoStackRef.current = [];
+  }, []);
+
+  const updateBall = useCallback(async (input: UpdateBallInput) => {
+    await updateBallEvent(input);
+    redoStackRef.current = [];
+  }, []);
+
+  const updateBallBowler = useCallback(async (eventId: string, opt: { athleteId: string | null; name: string }) => {
+    const { error } = await (supabase as any).rpc("update_mc_ball_bowler", {
+      p_event_id: eventId,
+      p_bowler_athlete_id: opt.athleteId,
+      p_bowler_name: opt.name
+    });
+    if (error) throw error;
+    redoStackRef.current = [];
+  }, []);
 
   return {
     loading,
@@ -666,62 +598,30 @@ export function useScoringSession(
     startInnings,
     submitBall,
     undo,
+    redo,
+    deleteBall,
+    updateBall,
+    updateBallBowler,
     reload: load,
   };
 }
 
-/* ================================================================
- * Convenience helpers for the scorer UI (still no derived stats).
- * Each returns a partial for `submitBall`.
- * ================================================================ */
-
 export const ballHelpers = {
-  run: (runs: 0 | 1 | 2 | 3 | 4 | 5 | 6) => ({
-    runsOffBat: runs,
-    extraType: null,
-    extraRuns: 0,
-  }),
-  wide: (runs: number = 1) => ({
-    runsOffBat: 0,
-    extraType: "wide" as const,
-    extraRuns: runs,
-  }),
-  /**
-   * No-ball. The +1 penalty is added by the rules engine automatically.
-   * `batRuns` = runs off the bat while the ball was live (0..6).
-   * `byes`    = bye/leg-bye runs completed off the no-ball (rare).
-   * `extra_runs` on a no-ball stores ONLY those byes — never the penalty.
-   */
-  noBall: (batRuns: number = 0, byes: number = 0) => ({
-    runsOffBat: batRuns,
-    extraType: "no_ball" as const,
-    extraRuns: byes,
-  }),
-  bye: (runs: number) => ({
-    runsOffBat: 0,
-    extraType: "bye" as const,
-    extraRuns: runs,
-  }),
-  legBye: (runs: number) => ({
-    runsOffBat: 0,
-    extraType: "leg_bye" as const,
-    extraRuns: runs,
-  }),
-  wicket: (
-    kind: AppendBallInput["dismissalType"],
-    extras?: {
-      fielderAthleteId?: string | null;
-      fielderName?: string | null;
-      dismissedAthleteId?: string | null;
-      dismissedName?: string | null;
-    },
-  ) => ({
+  run: (runs: 0 | 1 | 2 | 3 | 4 | 5 | 6) => ({ runsOffBat: runs, extraType: null, extraRuns: 0 }),
+  wide: (runs: number = 1) => ({ runsOffBat: 0, extraType: "wide" as const, extraRuns: runs }),
+  noBall: (batRuns: number = 0, byes: number = 0) => ({ runsOffBat: batRuns, extraType: "no_ball" as const, extraRuns: byes }),
+  bye: (runs: number) => ({ runsOffBat: 0, extraType: "bye" as const, extraRuns: runs }),
+  legBye: (runs: number) => ({ runsOffBat: 0, extraType: "leg_bye" as const, extraRuns: runs }),
+  wicket: (kind: DismissalType, opts?: { fielderAthleteId?: string | null; fielderName?: string | null; dismissedAthleteId?: string | null; dismissedName?: string | null }) => ({
     runsOffBat: 0,
     extraType: null,
     extraRuns: 0,
-    dismissalType: kind ?? null,
-    ...extras,
+    dismissalType: kind,
+    fielderAthleteId: opts?.fielderAthleteId,
+    fielderName: opts?.fielderName,
+    dismissedAthleteId: opts?.dismissedAthleteId,
+    dismissedName: opts?.dismissedName,
   }),
 };
 
-export { isLegalDelivery, nextPosition };
+
