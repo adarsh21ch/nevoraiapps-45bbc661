@@ -947,6 +947,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           onUndo={() => void handleUndo()}
           onRedo={() => void handleRedo()}
           canRedo={true}
+          onDeleteBall={handleDeleteBall}
+          onUpdateBall={handleUpdateBall}
+          onPickBowler={handlePickBowler}
+          allEvents={session.events}
 
 
           onSwapStrike={() => {
