@@ -947,7 +947,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           onOpenBowlerPicker={() => setPickBowlerOpen(true)}
           onUndo={() => void handleUndo()}
           onRedo={() => void handleRedo()}
-          canRedo={true} 
+          canRedo={true}
+
 
           onSwapStrike={() => {
             const s = { ...session.striker };

@@ -132,19 +132,12 @@ export function OverHistorySheet({
                       ) : (
                         row.chips.map((chip, i) => {
                           const label = formatBallNotation(chip);
-                          // Heuristic lookup for the actual event row
                           const ballEvent = allEvents?.find(e => 
                             e.over_number === row.overNumber && 
-                            formatBallNotation(
-                              e.dismissal_type ? "W" : 
-                              e.extra_type === "wide" ? (deliveryTotalRuns(e) === 1 ? "WD" : `WD ${deliveryTotalRuns(e)}`) :
-                              e.extra_type === "no_ball" ? (deliveryTotalRuns(e) === 1 ? "NB" : `NB ${deliveryTotalRuns(e)}`) :
-                              e.extra_type === "bye" ? `B ${e.extra_runs}` :
-                              e.extra_type === "leg_bye" ? `LB ${e.extra_runs}` :
-                              e.runs_off_bat === 0 ? "•" : String(e.runs_off_bat)
-                            ) === label
-                            // Note: if multiple balls have same label in same over, this might pick first
+                            e.ball_number === chip.ballNumber &&
+                            e.sequence_number === chip.sequenceNumber
                           );
+
 
                           return (
                             <div key={`${row.overNumber}-${i}`} className="group relative">
@@ -222,24 +215,20 @@ function EditBallDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (data: any) => void;
 }) {
-  const [runs, setRuns] = useState(ball?.runs_off_bat ?? 0);
-  const [extraType, setExtraType] = useState<ExtraType | "none">(
-    (ball?.extra_type as ExtraType) ?? "none"
-  );
-  const [extraRuns, setExtraRuns] = useState(ball?.extra_runs ?? 0);
-  const [dismissalType, setDismissalType] = useState<DismissalType | "none">(
-    (ball?.dismissal_type as DismissalType) ?? "none"
-  );
+  const [runs, setRuns] = useState(0);
+  const [extraType, setExtraType] = useState<ExtraType | "none">("none");
+  const [extraRuns, setExtraRuns] = useState(0);
+  const [dismissalType, setDismissalType] = useState<DismissalType | "none">("none");
 
-  // Sync state when ball changes
-  useState(() => {
+  useEffect(() => {
     if (ball) {
       setRuns(ball.runs_off_bat ?? 0);
       setExtraType((ball.extra_type as ExtraType) ?? "none");
       setExtraRuns(ball.extra_runs ?? 0);
       setDismissalType((ball.dismissal_type as DismissalType) ?? "none");
     }
-  });
+  }, [ball]);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
