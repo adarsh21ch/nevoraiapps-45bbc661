@@ -1,14 +1,37 @@
-import { X } from "lucide-react";
+import { X, Trash2, Edit2 } from "lucide-react";
 import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import type { OverHistoryRow } from "@/lib/mc-statistics-engine";
 import { formatBallNotation } from "@/lib/mc-ball-events-core";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { MCBallEvent } from "@/lib/mc-ball-events";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { ExtraType, DismissalType } from "@/lib/mc-ball-events-core";
 
 export interface OverHistorySheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   rows: OverHistoryRow[];
   inningsLabel?: string;
+  onDeleteBall?: (eventId: string) => void;
+  onUpdateBall?: (input: any) => void;
+  allEvents?: MCBallEvent[];
 }
 
 function chipTone(label: string): string {
@@ -28,11 +51,17 @@ export function OverHistorySheet({
   onOpenChange,
   rows,
   inningsLabel,
+  onDeleteBall,
+  onUpdateBall,
+  allEvents,
 }: OverHistorySheetProps) {
+  const [editingBall, setEditingBall] = useState<MCBallEvent | null>(null);
+
   // Newest over first — scorers look at the most recent context.
   const ordered = [...rows].reverse();
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
       {/* Hide the default absolutely-positioned close button that SheetContent
           renders as its FIRST direct child; we render our own inline close in
           the header so it sits on the same horizontal line as the title. */}

@@ -16,6 +16,9 @@ import {
   type ExtraType,
   type MCBallEvent,
   type MCInnings,
+  deleteBallEvent,
+  updateBallEvent,
+  type UpdateBallInput,
 } from "@/lib/mc-ball-events";
 import {
   applyStrikeAfterBall,
@@ -107,6 +110,8 @@ export interface ScoringSession {
     >,
   ) => Promise<MCBallEvent>;
   undo: () => Promise<MCBallEvent | null>;
+  deleteBall: (eventId: string) => Promise<void>;
+  updateBall: (input: UpdateBallInput) => Promise<void>;
   reload: () => Promise<void>;
 }
 
