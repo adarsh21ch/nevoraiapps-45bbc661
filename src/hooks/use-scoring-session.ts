@@ -512,3 +512,12 @@ export function useScoringSession(
     reload: load,
   };
 }
+
+export const ballHelpers = {
+  run: (runs: 0 | 1 | 2 | 3 | 4 | 5 | 6) => ({ runsOffBat: runs, extraType: null, extraRuns: 0 }),
+  wide: (runs: number = 1) => ({ runsOffBat: 0, extraType: "wide" as const, extraRuns: runs }),
+  noBall: (batRuns: number = 0, byes: number = 0) => ({ runsOffBat: batRuns, extraType: "no_ball" as const, extraRuns: byes }),
+  bye: (runs: number) => ({ runsOffBat: 0, extraType: "bye" as const, extraRuns: runs }),
+  legBye: (runs: number) => ({ runsOffBat: 0, extraType: "leg_bye" as const, extraRuns: runs }),
+};
+
