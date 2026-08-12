@@ -1,4 +1,4 @@
--- Add update_mc_ball_bowler RPC if missing
+-- Function to update a ball's bowler transactionally
 CREATE OR REPLACE FUNCTION public.update_mc_ball_bowler(
     p_event_id UUID,
     p_bowler_athlete_id UUID,
@@ -22,39 +22,22 @@ $$;
 GRANT EXECUTE ON FUNCTION public.update_mc_ball_bowler(UUID, UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.update_mc_ball_bowler(UUID, UUID, TEXT) TO service_role;
 
--- Ensure RLS on mc_teams allows authenticated updates
--- (Assumes existing policy might be too restrictive or missing)
+-- Ensure RLS on mc_teams allows authenticated updates for owners and platform admins
+-- The existing "Tenant members manage their teams" policy handles this if they are members.
+-- We add a specific policy for scorers to update team names if they are designated scorers.
 DO $$
 BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM pg_policies 
         WHERE tablename = 'mc_teams' 
-        AND policyname = 'Admins can update teams'
+        AND policyname = 'scorers can update team names'
     ) THEN
-        CREATE POLICY "Admins can update teams" 
+        CREATE POLICY "scorers can update team names" 
         ON public.mc_teams 
         FOR UPDATE 
         TO authenticated 
-        USING (true)
-        WITH CHECK (true);
-    END IF;
-END
-$$;
-
--- Ensure RLS on mc_matches allows authenticated updates
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_policies 
-        WHERE tablename = 'mc_matches' 
-        AND policyname = 'Admins can update matches'
-    ) THEN
-        CREATE POLICY "Admins can update matches" 
-        ON public.mc_matches 
-        FOR UPDATE 
-        TO authenticated 
-        USING (true)
-        WITH CHECK (true);
+        USING (is_match_scorer(auth.uid(), tenant_id))
+        WITH CHECK (is_match_scorer(auth.uid(), tenant_id));
     END IF;
 END
 $$;
