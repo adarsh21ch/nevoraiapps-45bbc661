@@ -5,7 +5,8 @@ import { formatBallNotation } from "@/lib/mc-ball-events-core";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { MCBallEvent } from "@/lib/mc-ball-events";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -37,15 +38,16 @@ export interface OverHistorySheetProps {
 
 function chipTone(label: string): string {
   const t = label.trim().toUpperCase();
-  if (t === "W" || t.startsWith("W"))
+  if (t === "W" || t.startsWith("W") || t.endsWith("W"))
     return "bg-destructive/15 text-destructive border-destructive/30";
-  if (t === "4") return "bg-primary/12 text-primary border-primary/30";
-  if (t === "6") return "bg-primary/20 text-primary border-primary/40";
+  if (t === "4" || t.endsWith("+4")) return "bg-primary/12 text-primary border-primary/30";
+  if (t === "6" || t.endsWith("+6")) return "bg-primary/20 text-primary border-primary/40";
   if (t === "•" || t === "0") return "bg-muted text-muted-foreground border-border/50";
   if (/^(WD|NB|B|LB)/.test(t))
     return "bg-amber-500/15 text-amber-600 border-amber-500/30 dark:text-amber-400";
   return "bg-card text-foreground border-border/60";
 }
+
 
 export function OverHistorySheet({
   open,
@@ -131,20 +133,10 @@ export function OverHistorySheet({
                         <span className="text-[12px] text-muted-foreground">No balls</span>
                       ) : (
                         row.chips.map((chip, i) => {
-                          const label = formatBallNotation(chip);
-                          // Heuristic lookup for the actual event row
-                          const ballEvent = allEvents?.find(e => 
-                            e.over_number === row.overNumber && 
-                            formatBallNotation(
-                              e.dismissal_type ? "W" : 
-                              e.extra_type === "wide" ? (deliveryTotalRuns(e) === 1 ? "WD" : `WD ${deliveryTotalRuns(e)}`) :
-                              e.extra_type === "no_ball" ? (deliveryTotalRuns(e) === 1 ? "NB" : `NB ${deliveryTotalRuns(e)}`) :
-                              e.extra_type === "bye" ? `B ${e.extra_runs}` :
-                              e.extra_type === "leg_bye" ? `LB ${e.extra_runs}` :
-                              e.runs_off_bat === 0 ? "•" : String(e.runs_off_bat)
-                            ) === label
-                            // Note: if multiple balls have same label in same over, this might pick first
-                          );
+                          const label = formatBallNotation(chip.label);
+                          const ballEvent = allEvents?.find(e => e.id === chip.eventId);
+
+
 
                           return (
                             <div key={`${row.overNumber}-${i}`} className="group relative">
@@ -200,10 +192,13 @@ export function OverHistorySheet({
         open={!!editingBall} 
         onOpenChange={(v) => !v && setEditingBall(null)}
         onSave={(data) => {
-          onUpdateBall?.({ eventId: editingBall?.id, ...data });
+          if (editingBall) {
+            onUpdateBall?.({ eventId: editingBall.id, ...data });
+          }
           setEditingBall(null);
         }}
       />
+
     </>
   );
 }
@@ -219,24 +214,20 @@ function EditBallDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (data: any) => void;
 }) {
-  const [runs, setRuns] = useState(ball?.runs_off_bat ?? 0);
-  const [extraType, setExtraType] = useState<ExtraType | "none">(
-    (ball?.extra_type as ExtraType) ?? "none"
-  );
-  const [extraRuns, setExtraRuns] = useState(ball?.extra_runs ?? 0);
-  const [dismissalType, setDismissalType] = useState<DismissalType | "none">(
-    (ball?.dismissal_type as DismissalType) ?? "none"
-  );
+  const [runs, setRuns] = useState(0);
+  const [extraType, setExtraType] = useState<ExtraType | "none">("none");
+  const [extraRuns, setExtraRuns] = useState(0);
+  const [dismissalType, setDismissalType] = useState<DismissalType | "none">("none");
 
-  // Sync state when ball changes
-  useState(() => {
+  useEffect(() => {
     if (ball) {
       setRuns(ball.runs_off_bat ?? 0);
       setExtraType((ball.extra_type as ExtraType) ?? "none");
       setExtraRuns(ball.extra_runs ?? 0);
       setDismissalType((ball.dismissal_type as DismissalType) ?? "none");
     }
-  });
+  }, [ball]);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

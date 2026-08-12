@@ -93,7 +93,7 @@ export interface ScoringSession {
     >,
   ) => Promise<MCBallEvent>;
   undo: () => Promise<MCBallEvent | null>;
-  redo: () => Promise<void>;
+  redo: () => Promise<MCBallEvent | null>;
   deleteBall: (eventId: string) => Promise<void>;
   updateBall: (input: UpdateBallInput) => Promise<void>;
   reload: () => Promise<void>;
@@ -381,6 +381,7 @@ export function useScoringSession(
       );
 
       const pos = nextPosition(eventsRef.current);
+      const isLegal = isLegalDelivery(partial.extraType ?? null);
       const optimistic: MCBallEvent = {
         id: makeClientEventId(),
         tenant_id: opts.tenantId,
@@ -389,7 +390,7 @@ export function useScoringSession(
         sequence_number: pos.sequenceNumber,
         over_number: pos.overNumber,
         ball_number: pos.ballNumber,
-        is_legal_delivery: isLegalDelivery(partial.extraType ?? null),
+        is_legal_delivery: isLegal,
         striker_athlete_id: currentStriker.athleteId,
         striker_name: currentStriker.name,
         non_striker_athlete_id: currentNonStriker.athleteId,
@@ -420,7 +421,7 @@ export function useScoringSession(
         priorEvents: eventsRef.current.filter(e => e.id !== optimistic.id)
       });
       
-      const newStriker = applyStrikeAfterBall({ striker: currentStriker, nonStriker: currentNonStriker }, result, optimistic.is_legal_delivery);
+      const newStriker = applyStrikeAfterBall({ striker: currentStriker, nonStriker: currentNonStriker }, result, isLegal);
       setStriker({ ...newStriker.striker, onStrike: true });
       setNonStriker({ ...newStriker.nonStriker, onStrike: false });
       
@@ -428,6 +429,7 @@ export function useScoringSession(
     },
     [matchId, opts.tenantId, opts.userId, match?.status, setStriker, setNonStriker],
   );
+
 
   const undo = useCallback(async () => {
     const active = activeInningsRef.current;
@@ -442,13 +444,13 @@ export function useScoringSession(
 
   const redo = useCallback(async () => {
     const active = activeInningsRef.current;
-    if (!active || redoStackRef.current.length === 0) return;
+    if (!active || redoStackRef.current.length === 0) return null;
     
     const lastUndone = redoStackRef.current[0];
     redoStackRef.current = redoStackRef.current.slice(1);
     
     try {
-      await appendBallEvent({
+      const result = await appendBallEvent({
         eventId: lastUndone.id,
         tenantId: lastUndone.tenant_id,
         matchId: lastUndone.match_id,
@@ -469,11 +471,14 @@ export function useScoringSession(
         fielderName: lastUndone.fielder_name,
         priorEvents: eventsRef.current,
       });
+      return result;
     } catch (err) {
       console.error("[scoring] Redo failed", err);
       redoStackRef.current = [lastUndone, ...redoStackRef.current];
+      return null;
     }
   }, []);
+
 
   const deleteBall = useCallback(async (eventId: string) => {
     await deleteBallEvent(eventId);

@@ -850,6 +850,7 @@ function BallBubble({ label }: { label: string }) {
   const six = upper === "6" || upper.endsWith("+6") || (upper.startsWith("NB") && upper.endsWith("7"));
   const extra = /WD|NB|LB|B/.test(upper);
   const isMulti = upper.length > 1;
+
   return (
     <span
       className={cn(
