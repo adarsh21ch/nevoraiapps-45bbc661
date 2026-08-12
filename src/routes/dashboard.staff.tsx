@@ -388,7 +388,7 @@ function AdminPicker({
         <div className="flex-1 overflow-y-auto px-3 pb-5">
           {filtered.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              {query ? "No matching students." : "'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                        \n                                            \n                                            home tab is not opning .."}
+              {query ? "No matching students." : "'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                        \n                                            \n                                            also make sure owner dashboaerd should not change"}
             </div>
           ) : (
             <ul className="space-y-1">
