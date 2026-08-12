@@ -93,7 +93,7 @@ export interface ScoringSession {
     >,
   ) => Promise<MCBallEvent>;
   undo: () => Promise<MCBallEvent | null>;
-  redo: () => Promise<void>;
+  redo: () => Promise<MCBallEvent | null>;
   deleteBall: (eventId: string) => Promise<void>;
   updateBall: (input: UpdateBallInput) => Promise<void>;
   reload: () => Promise<void>;
