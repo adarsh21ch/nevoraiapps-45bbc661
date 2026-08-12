@@ -96,6 +96,7 @@ export interface ScoringSession {
   redo: () => Promise<MCBallEvent | null>;
   deleteBall: (eventId: string) => Promise<void>;
   updateBall: (input: UpdateBallInput) => Promise<void>;
+  updateBallBowler: (eventId: string, opt: { athleteId: string | null; name: string }) => Promise<void>;
   reload: () => Promise<void>;
 }
 
@@ -528,6 +529,16 @@ export function useScoringSession(
 
   const updateBall = useCallback(async (input: UpdateBallInput) => {
     await updateBallEvent(input);
+    redoStackRef.current = [];
+  }, []);
+
+  const updateBallBowler = useCallback(async (eventId: string, opt: { athleteId: string | null; name: string }) => {
+    const { error } = await (supabase as any).rpc("update_mc_ball_bowler", {
+      p_event_id: eventId,
+      p_bowler_athlete_id: opt.athleteId,
+      p_bowler_name: opt.name
+    });
+    if (error) throw error;
     redoStackRef.current = [];
   }, []);
 
