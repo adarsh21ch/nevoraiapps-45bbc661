@@ -112,9 +112,18 @@ export function OverHistorySheet({
                           {row.overLabel}
                         </span>
                         {row.bowler && (
-                          <span className="min-w-0 truncate text-[11.5px] font-bold text-muted-foreground">
+                          <Button
+                            variant="ghost"
+                            className="h-auto min-w-0 p-0 text-[11.5px] font-bold text-muted-foreground hover:text-primary transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Find the first ball of this over to identify the bowler
+                              const firstBall = allEvents?.find(ev => ev.over_number === row.overNumber);
+                              if (firstBall) setEditingBall(firstBall);
+                            }}
+                          >
                             {row.bowler}
-                          </span>
+                          </Button>
                         )}
                       </div>
                       <div className="flex shrink-0 items-center gap-1.5 tabular-nums">
@@ -227,6 +236,8 @@ function EditBallDialog({
   const [extraType, setExtraType] = useState<ExtraType | "none">("none");
   const [extraRuns, setExtraRuns] = useState(0);
   const [dismissalType, setDismissalType] = useState<DismissalType | "none">("none");
+  const [bowlerId, setBowlerId] = useState<string | null>(null);
+  const [bowlerName, setBowlerName] = useState<string | null>(null);
 
   useEffect(() => {
     if (ball) {
@@ -234,6 +245,8 @@ function EditBallDialog({
       setExtraType((ball.extra_type as ExtraType) ?? "none");
       setExtraRuns(ball.extra_runs ?? 0);
       setDismissalType((ball.dismissal_type as DismissalType) ?? "none");
+      setBowlerId(ball.bowler_athlete_id ?? null);
+      setBowlerName(ball.bowler_name ?? null);
     }
   }, [ball]);
 
@@ -244,7 +257,18 @@ function EditBallDialog({
         <DialogHeader>
           <DialogTitle>Edit Delivery</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 overflow-y-auto max-h-[60vh] px-1">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right text-[12px] font-bold uppercase tracking-tight">
+              Bowler
+            </Label>
+            <div className="col-span-3 text-[13px] font-medium text-muted-foreground bg-muted/50 p-2 rounded-md">
+              {bowlerName || "Unknown Bowler"}
+              <div className="text-[10px] opacity-70 mt-0.5 italic">
+                (Bowler editing coming soon - currently showing metadata)
+              </div>
+            </div>
+          </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="runs" className="text-right text-[12px] font-bold uppercase tracking-tight">
               Runs
