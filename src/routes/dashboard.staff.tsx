@@ -354,7 +354,9 @@ function AdminPicker({
     onMutate: (userId) => setPendingId(userId),
     onSettled: () => setPendingId(null),
     onSuccess: () => {
-      toast.success("Admin added");
+      toast.success("Admin assigned successfully", {
+        description: "They now have access to scoring and attendance.",
+      });
       onDone();
       onOpenChange(false);
       setQuery("");
