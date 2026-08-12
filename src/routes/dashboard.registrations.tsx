@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { formatDistanceToNow } from "date-fns";
 import { useDashboard } from "@/lib/dashboard-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { fetchRegistrations, qk } from "@/lib/dashboard-queries";
 import { supabase } from "@/integrations/supabase/client";
 import { bulkApproveRegistrations } from "@/lib/bulk-ops";
@@ -97,13 +98,26 @@ function effectiveReviewStatus(r: any): string {
 
 function RegistrationsInbox() {
   const { tenant } = useDashboard();
+  const navigate = useNavigate();
+  const { can, isLoading: permLoading } = usePermissions();
+  const canView = can("canViewRegistrations");
+
+  useEffect(() => {
+    if (!permLoading && !canView) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [canView, permLoading, navigate]);
+
   const tenantId = tenant.id!;
-  const { tenant: dashboardTenant } = useDashboard(); // Re-binding or ensuring it's accessible
+  const { tenant: dashboardTenant } = useDashboard(); 
   const qc = useQueryClient();
-  const { data = [], isLoading } = useQuery({
+  const { data = [], isLoading: listLoading } = useQuery({
     queryKey: qk.regs(tenant.id),
     queryFn: () => fetchRegistrations(tenant.id),
+    enabled: !!canView,
   });
+  
+  const isLoading = listLoading || permLoading;
 
   const [openId, setOpenId] = useState<string | null>(null);
   const { data: allPlans = [] } = useQuery({

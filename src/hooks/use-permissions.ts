@@ -25,6 +25,7 @@ export type AppRole =
 
 export type PermissionFeature =
   | "canViewFees"
+  | "canViewRegistrations"
   | "canScoreMatch"
   | "canMarkAttendance"
   | "canManageAdmins"
@@ -42,29 +43,39 @@ export type PermissionFeature =
 const OWNER_ONLY: AppRole[] = ["owner"];
 const OWNER_ADMIN: AppRole[] = ["owner", "admin"];
 const OWNER_ADMIN_HEAD: AppRole[] = ["owner", "admin", "head_coach"];
-const OWNER_ADMIN_COACHES: AppRole[] = [
+const STAFF_CAN_SCORE: AppRole[] = [
   "owner",
   "admin",
   "head_coach",
   "coach",
   "assistant_coach",
+  "staff",
+];
+const STAFF_CAN_ATTENDANCE: AppRole[] = [
+  "owner",
+  "admin",
+  "head_coach",
+  "coach",
+  "assistant_coach",
+  "staff",
 ];
 
 const RULES: Record<PermissionFeature, AppRole[]> = {
   canViewFees: OWNER_ONLY,
-  canScoreMatch: OWNER_ADMIN_COACHES,
-  canMarkAttendance: OWNER_ADMIN_COACHES,
+  canScoreMatch: STAFF_CAN_SCORE,
+  canMarkAttendance: STAFF_CAN_ATTENDANCE,
   canManageAdmins: OWNER_ONLY,
   canManageWebsite: OWNER_ONLY,
   canManageSubscription: OWNER_ONLY,
   canManageStaff: OWNER_ADMIN,
   canInviteStaff: OWNER_ADMIN,
+  canViewRegistrations: OWNER_ADMIN,
   canViewCoachAnalytics: OWNER_ADMIN_HEAD,
-  canManageAssignedBatches: OWNER_ADMIN_COACHES,
+  canManageAssignedBatches: STAFF_CAN_ATTENDANCE,
   canSendAnnouncements: OWNER_ADMIN_HEAD,
   canViewBilling: OWNER_ONLY,
   canManageTenantSettings: OWNER_ONLY,
-  canViewPerformance: OWNER_ADMIN_COACHES,
+  canViewPerformance: STAFF_CAN_SCORE,
 };
 
 const COACH_ROLES: ReadonlySet<AppRole> = new Set([

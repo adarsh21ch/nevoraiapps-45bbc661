@@ -8,6 +8,10 @@ export function isCoach(profile: { role?: string | null } | null | undefined): b
   return profile?.role === "coach";
 }
 
+export function isOwnerOrAdmin(profile: { role?: string | null } | null | undefined): boolean {
+  return profile?.role === "owner" || profile?.role === "admin";
+}
+
 export function normalizeRole(role: string | null | undefined): UserRole {
   return role === "coach" ? "coach" : "owner";
 }
