@@ -130,7 +130,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         .in("id", [session.match.team_a_id, session.match.team_b_id].filter(Boolean));
       return data ?? [];
     },
-    staleTime: 1000 * 60 * 60, // 1 hour
+    staleTime: 1000 * 60, // 1 minute
+    refetchInterval: 10000, // 10 seconds to catch team name changes
   });
 
   // Squad names — resolve athlete_profile_id → student name
