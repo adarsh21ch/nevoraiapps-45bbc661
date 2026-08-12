@@ -242,26 +242,45 @@ export function useScoringSession(
   const strikerRef = useRef<CurrentBatterState>(striker);
   const nonStrikerRef = useRef<CurrentBatterState>(nonStriker);
   const bowlerRef = useRef<CurrentBowlerState>(bowler);
-  // Serialized network queue so rapid taps don't fire concurrent
-  // appendBallEvent calls (which would race on sequence_number). The
-  // optimistic UI update still happens synchronously on every call.
-  const netQueueRef = useRef<Promise<void>>(Promise.resolve());
-  useEffect(() => {
-    eventsRef.current = events;
-  }, [events]);
+  
+  // Persistent persistence helpers
+  const persistSelection = useCallback(
+    async (s: CurrentBatterState, ns: CurrentBatterState, b: CurrentBowlerState) => {
+      if (!matchId || !activeInnings || !opts.tenantId) return;
+      try {
+        await supabase.rpc("upsert_match_draft_selection", {
+          p_tenant_id: opts.tenantId,
+          p_match_id: matchId,
+          p_innings_id: activeInnings.id,
+          p_striker_athlete_id: s.athleteId,
+          p_striker_name: s.name,
+          p_non_striker_athlete_id: ns.athleteId,
+          p_non_striker_name: ns.name,
+          p_bowler_athlete_id: b.athleteId,
+          p_bowler_name: b.name,
+        });
+      } catch (err) {
+        console.warn("[scoring] Selection persistence failed", err);
+      }
+    },
+    [matchId, activeInnings, opts.tenantId],
+  );
 
   const setStriker = useCallback((b: CurrentBatterState) => {
     strikerRef.current = b;
     setStrikerState(b);
-  }, []);
+    void persistSelection(b, nonStrikerRef.current, bowlerRef.current);
+  }, [persistSelection]);
   const setNonStriker = useCallback((b: CurrentBatterState) => {
     nonStrikerRef.current = b;
     setNonStrikerState(b);
-  }, []);
+    void persistSelection(strikerRef.current, b, bowlerRef.current);
+  }, [persistSelection]);
   const setBowler = useCallback((b: CurrentBowlerState) => {
     bowlerRef.current = b;
     setBowlerState(b);
-  }, []);
+    void persistSelection(strikerRef.current, nonStrikerRef.current, b);
+  }, [persistSelection]);
 
   /* ---------- initial load ---------- */
 
