@@ -476,33 +476,19 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
   }, [pendingBallIntent, requiredPicker]);
   const handleUndo = async () => {
     try {
-      const removed = await session.undo();
-      if (removed) setRedoStack((s) => [...s, removed]);
+      await session.undo();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to undo");
     }
   };
   const handleRedo = async () => {
-    const next = redoStack[redoStack.length - 1];
-    if (!next) return;
-    setRedoStack((s) => s.slice(0, -1));
     try {
-      await session.submitBall({
-        runsOffBat: next.runs_off_bat ?? 0,
-        extraType: (next.extra_type ?? null) as ExtraType | null,
-        extraRuns: next.extra_runs ?? 0,
-        dismissalType: (next.dismissal_type ?? null) as DismissalType | null,
-        dismissedAthleteId: next.dismissed_athlete_id ?? null,
-        dismissedName: next.dismissed_name ?? null,
-        fielderAthleteId: next.fielder_athlete_id ?? null,
-        fielderName: next.fielder_name ?? null,
-        comment: next.comment ?? null,
-      });
+      await session.redo();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to redo");
-      setRedoStack((s) => [...s, next]);
     }
   };
+
 
   const onRun = (r: 0 | 1 | 2 | 3 | 4 | 5 | 6) => requestSubmit(ballHelpers.run(r));
 
@@ -961,7 +947,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           onOpenBowlerPicker={() => setPickBowlerOpen(true)}
           onUndo={() => void handleUndo()}
           onRedo={() => void handleRedo()}
-          canRedo={redoStack.length > 0}
+          canRedo={true} 
+
           onSwapStrike={() => {
             const s = { ...session.striker };
             session.setStriker({ ...session.nonStriker, onStrike: true });
