@@ -319,8 +319,7 @@ export const listTenantMembers = createServerFn({ method: "POST" })
       supabaseAdmin
         .from("registrations")
         .select("applicant_user_id, name, email, review_status, created_at, status")
-        .eq("tenant_id", data.tenantId)
-        .not("applicant_user_id", "is", null),
+        .eq("tenant_id", data.tenantId),
       supabaseAdmin
         .from("profiles")
         .select("user_id, role, created_at")
@@ -328,8 +327,7 @@ export const listTenantMembers = createServerFn({ method: "POST" })
       supabaseAdmin
         .from("students")
         .select("user_id, name, email, lifecycle_status, created_at")
-        .eq("tenant_id", data.tenantId)
-        .not("user_id", "is", null),
+        .eq("tenant_id", data.tenantId),
     ]);
 
     type MemberAcc = {
