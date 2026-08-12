@@ -650,6 +650,12 @@ export function useScoringSession(
   }, [activeInnings, setBowler, setStriker, setNonStriker]);
 
 
+      toast.success("Ball updated");
+      // Events will refresh via realtime listener
+    },
+    [],
+  );
+
   return {
     loading,
     error,
@@ -671,6 +677,8 @@ export function useScoringSession(
     startInnings,
     submitBall,
     undo,
+    deleteBall,
+    updateBall,
     reload: load,
   };
 }
