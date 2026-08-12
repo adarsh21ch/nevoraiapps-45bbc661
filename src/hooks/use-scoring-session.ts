@@ -519,5 +519,16 @@ export const ballHelpers = {
   noBall: (batRuns: number = 0, byes: number = 0) => ({ runsOffBat: batRuns, extraType: "no_ball" as const, extraRuns: byes }),
   bye: (runs: number) => ({ runsOffBat: 0, extraType: "bye" as const, extraRuns: runs }),
   legBye: (runs: number) => ({ runsOffBat: 0, extraType: "leg_bye" as const, extraRuns: runs }),
+  wicket: (kind: DismissalType, opts?: { fielderAthleteId?: string | null; fielderName?: string | null; dismissedAthleteId?: string | null; dismissedName?: string | null }) => ({
+    runsOffBat: 0,
+    extraType: null,
+    extraRuns: 0,
+    dismissalType: kind,
+    fielderAthleteId: opts?.fielderAthleteId,
+    fielderName: opts?.fielderName,
+    dismissedAthleteId: opts?.dismissedAthleteId,
+    dismissedName: opts?.dismissedName,
+  }),
 };
+
 
