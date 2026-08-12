@@ -369,6 +369,14 @@ export function useScoringSession(
           setBowlerState(b);
         }
       })
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "mc_matches",
+        filter: `id=eq.${matchId}`,
+      }, (payload) => {
+        setMatch(payload.new as MCMatch);
+      })
       .subscribe();
 
     return () => {

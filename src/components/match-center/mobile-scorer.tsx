@@ -120,6 +120,7 @@ export interface MobileScorerProps {
   onEndMatch: () => void;
   showFinishInnings?: boolean;
   hideEndMatch?: boolean;
+  onEditMatch?: () => void;
 
   onOpenScorecard?: () => void;
   onOpenScorebook?: () => void;
