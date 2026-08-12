@@ -24,7 +24,14 @@ import {
   type MatchState,
 } from "@/lib/mc-rules-engine";
 
-export type PersistentSelection = Database["public"]["Tables"]["mc_match_draft_selections"]["Row"];
+export interface PersistentSelection {
+  striker_athlete_id: string | null;
+  striker_name: string | null;
+  non_striker_athlete_id: string | null;
+  non_striker_name: string | null;
+  bowler_athlete_id: string | null;
+  bowler_name: string | null;
+}
 
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
