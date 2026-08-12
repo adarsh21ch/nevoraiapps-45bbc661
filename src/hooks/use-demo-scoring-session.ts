@@ -505,6 +505,10 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     // No-op — demo store is live via useSyncExternalStore subscribers.
   }, []);
 
+  const updateBallBowler = useCallback(async () => {
+    console.warn("Bowler editing not implemented for demo matches yet.");
+  }, []);
+
   return {
     loading: false,
     error: null,

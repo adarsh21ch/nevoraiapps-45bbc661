@@ -196,6 +196,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     else session.setBowler(payload);
   };
 
+  const handlePickBowler = (eventId: string, opt: { athleteId: string | null; name: string }) => {
+    void session.updateBallBowler(eventId, opt);
+  };
+
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
   const [caughtOpen, setCaughtOpen] = useState(false);

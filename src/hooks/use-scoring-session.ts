@@ -566,6 +566,7 @@ export function useScoringSession(
     redo,
     deleteBall,
     updateBall,
+    updateBallBowler,
     reload: load,
   };
 }
