@@ -188,12 +188,21 @@ function AthleteProfilePage() {
   return (
     <div>
       <div className="mb-4">
-        <Button variant="ghost" size="sm" asChild>
-          <Link to="/match-center/players">
-            <ArrowLeft className="size-4 mr-1.5" /> Athletes
-          </Link>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => {
+            if (window.history.length > 1) {
+              window.history.back();
+            } else {
+              navigate({ to: "/match-center/players" });
+            }
+          }}
+        >
+          <ArrowLeft className="size-4 mr-1.5" /> Athletes
         </Button>
       </div>
+
 
       {/* Header */}
       <div className="mb-6 overflow-hidden rounded-3xl border border-border bg-card">

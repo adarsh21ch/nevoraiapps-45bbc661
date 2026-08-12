@@ -178,12 +178,20 @@ function PlayerProfileRoute() {
     <div className="space-y-4 pb-8 max-w-3xl mx-auto">
       {/* Top bar */}
       <div className="flex items-center justify-between">
-        <Link
-          to="/dashboard/students"
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 1) {
+              window.history.back();
+            } else {
+              navigate({ to: "/dashboard/students" });
+            }
+          }}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="size-4" /> Players
-        </Link>
+        </button>
+
         <div className="flex items-center gap-1">
           <button
             onClick={handleShare}
