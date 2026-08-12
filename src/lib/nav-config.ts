@@ -7,6 +7,7 @@ import {
   Building2,
   Trophy,
   CreditCard,
+  Swords,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import type { AppRole } from "@/hooks/use-current-role";
@@ -29,14 +30,14 @@ export const navByRole: Record<AppRole, NavItem[]> = {
     { to: "/dashboard", label: "Home", icon: LayoutDashboard },
     { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
     { to: "/dashboard/fees", label: "Fees", icon: IndianRupee, requiresFeature: "fee_tracking" },
-    { to: "/dashboard/academy", label: "Manage", icon: Building2 },
+    { to: "/match-center/matches", label: "Matches", icon: Swords },
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],
   admin: [
     { to: "/dashboard", label: "Home", icon: LayoutDashboard },
     { to: "/dashboard/attendance", label: "Attendance", icon: ClipboardCheck },
-    { to: "/match-center/live", label: "Match Center", icon: Trophy },
-    { to: "/dashboard/academy", label: "Manage", icon: Building2 },
+    { to: "/match-center/matches", label: "Matches", icon: Swords },
+    { to: "/dashboard/students", label: "Students", icon: UserCircle },
     { to: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ],
   student: [
