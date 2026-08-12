@@ -415,7 +415,7 @@ export function useScoringSession(
         bowlerName: optimistic.bowler_name,
       });
       
-      const newStriker = applyStrikeAfterBall(currentStriker, currentNonStriker, result, optimistic.is_legal_delivery);
+      const newStriker = applyStrikeAfterBall({ striker: currentStriker, nonStriker: currentNonStriker }, result, optimistic.is_legal_delivery);
       setStriker({ ...newStriker.striker, onStrike: true });
       setNonStriker({ ...newStriker.nonStriker, onStrike: false });
       
