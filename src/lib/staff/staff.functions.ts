@@ -386,7 +386,7 @@ export const listTenantMembers = createServerFn({ method: "POST" })
         source: "student",
         email: r.email,
         name: r.name,
-        review_status: r.review_status as string | null,
+        review_status: (r.review_status || r.status) as string | null,
       });
     });
     (studsR.data ?? []).forEach((s) => {
