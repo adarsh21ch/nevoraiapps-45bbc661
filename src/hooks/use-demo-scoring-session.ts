@@ -505,6 +505,16 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     // No-op — demo store is live via useSyncExternalStore subscribers.
   }, []);
 
+  const updateBallBowler = useCallback(async (eventId: string, opt: { athleteId: string | null; name: string }) => {
+    if (!tenantId) return;
+    updateDemoData(tenantId, (d) => {
+      const ball = d.ballEvents.find((e) => e.id === eventId);
+      if (!ball) return;
+      ball.bowler_athlete_id = opt.athleteId;
+      ball.bowler_name = opt.name;
+    });
+  }, [tenantId]);
+
   return {
     loading: false,
     error: null,
@@ -525,6 +535,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     setBowler: setBowlerImmediate,
     startInnings,
     submitBall,
+    updateBallBowler,
     undo,
     redo: async () => null,
     deleteBall: async (id: string) => {

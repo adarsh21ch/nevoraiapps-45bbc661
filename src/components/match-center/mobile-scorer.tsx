@@ -110,6 +110,7 @@ export interface MobileScorerProps {
   onUndo: () => void;
   onDeleteBall?: (eventId: string) => void;
   onUpdateBall?: (input: any) => void;
+  onPickBowler?: (eventId: string, opt: { athleteId: string | null; name: string }) => void;
   allEvents?: MCBallEvent[];
   onRedo?: () => void;
   canRedo?: boolean;
@@ -509,15 +510,17 @@ export function MobileScorer(props: MobileScorerProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <OverHistorySheet
-        open={historyOpen}
-        onOpenChange={setHistoryOpen}
-        rows={props.overHistory ?? []}
-        inningsLabel={props.inningsLabel}
-        onDeleteBall={props.onDeleteBall}
-        onUpdateBall={props.onUpdateBall}
-        allEvents={props.allEvents}
-      />
+          <OverHistorySheet
+            open={historyOpen}
+            onOpenChange={setHistoryOpen}
+            rows={props.overHistory ?? []}
+            inningsLabel={props.inningsLabel}
+            onDeleteBall={props.onDeleteBall}
+            onUpdateBall={props.onUpdateBall}
+            onPickBowler={props.onPickBowler}
+            bowlingOptions={props.bowlingOptions}
+            allEvents={props.allEvents}
+          />
     </div>
   );
 }

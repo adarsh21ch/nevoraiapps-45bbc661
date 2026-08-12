@@ -129,6 +129,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
         .in("id", [session.match.team_a_id, session.match.team_b_id].filter(Boolean));
       return data ?? [];
     },
+    staleTime: 1000 * 60 * 60, // 1 hour
   });
 
   // Squad names — resolve athlete_profile_id → student name
@@ -195,6 +196,13 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     else session.setBowler(payload);
   };
 
+  const handlePickBowler = (eventId: string, opt: { athleteId: string | null; name: string }) => {
+    void session.updateBallBowler(eventId, opt);
+  };
+
+  const handleDeleteBall = (id: string) => void session.deleteBall(id);
+  const handleUpdateBall = (input: any) => void session.updateBall(input);
+
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
   const [caughtOpen, setCaughtOpen] = useState(false);
@@ -232,9 +240,13 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     const rs = session.matchState.innings.striker;
     const rn = session.matchState.innings.nonStriker;
     const rb = session.matchState.innings.bowler;
+    
+    // ONLY hydrate if local state is totally empty and rules engine has data
+    // This allows the persistent draft (loaded in useScoringSession) to take precedence
     const strikerEmpty = !session.striker.athleteId && !session.striker.name;
     const nonStrikerEmpty = !session.nonStriker.athleteId && !session.nonStriker.name;
     const bowlerEmpty = !session.bowler.athleteId && !session.bowler.name;
+
     if (strikerEmpty && (rs.athleteId || rs.name)) {
       const dismissed =
         (rs.athleteId && session.matchState.innings.dismissedIds.has(rs.athleteId)) ||
@@ -252,17 +264,7 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     if (bowlerEmpty && (rb.athleteId || rb.name) && !session.matchState.innings.awaitingNewBowler) {
       session.setBowler({ athleteId: rb.athleteId, name: rb.name });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    session.loading,
-    session.matchState.innings.striker.athleteId,
-    session.matchState.innings.striker.name,
-    session.matchState.innings.nonStriker.athleteId,
-    session.matchState.innings.nonStriker.name,
-    session.matchState.innings.bowler.athleteId,
-    session.matchState.innings.bowler.name,
-    session.matchState.innings.awaitingNewBowler,
-  ]);
+  }, [session.loading]); // Only run on initial load completion
 
   /* ---------- innings/match completion detection ---------- */
   useEffect(() => {
@@ -948,6 +950,10 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           onUndo={() => void handleUndo()}
           onRedo={() => void handleRedo()}
           canRedo={true}
+          onDeleteBall={(id) => void session.deleteBall(id)}
+          onUpdateBall={(input) => void session.updateBall(input)}
+          onPickBowler={handlePickBowler}
+          allEvents={session.events}
 
 
           onSwapStrike={() => {

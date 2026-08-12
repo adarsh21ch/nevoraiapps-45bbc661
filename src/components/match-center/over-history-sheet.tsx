@@ -33,6 +33,8 @@ export interface OverHistorySheetProps {
   inningsLabel?: string;
   onDeleteBall?: (eventId: string) => void;
   onUpdateBall?: (input: any) => void;
+  onPickBowler?: (eventId: string, opt: { athleteId: string | null; name: string }) => void;
+  bowlingOptions?: any[];
   allEvents?: MCBallEvent[];
 }
 
@@ -56,6 +58,8 @@ export function OverHistorySheet({
   inningsLabel,
   onDeleteBall,
   onUpdateBall,
+  onPickBowler,
+  bowlingOptions,
   allEvents,
 }: OverHistorySheetProps) {
   const [editingBall, setEditingBall] = useState<MCBallEvent | null>(null);
@@ -215,6 +219,12 @@ export function OverHistorySheet({
           }
           setEditingBall(null);
         }}
+        onPickBowler={(opt) => {
+          if (editingBall && onPickBowler) {
+            onPickBowler(editingBall.id, opt);
+          }
+        }}
+        bowlingOptions={bowlingOptions}
       />
 
     </>
@@ -225,12 +235,16 @@ function EditBallDialog({
   ball, 
   open, 
   onOpenChange, 
-  onSave 
+  onSave,
+  onPickBowler,
+  bowlingOptions
 }: { 
   ball: MCBallEvent | null; 
   open: boolean; 
   onOpenChange: (open: boolean) => void;
   onSave: (data: any) => void;
+  onPickBowler?: (opt: { athleteId: string | null; name: string }) => void;
+  bowlingOptions?: any[];
 }) {
   const [runs, setRuns] = useState(0);
   const [extraType, setExtraType] = useState<ExtraType | "none">("none");
@@ -262,11 +276,27 @@ function EditBallDialog({
             <Label className="text-right text-[12px] font-bold uppercase tracking-tight">
               Bowler
             </Label>
-            <div className="col-span-3 text-[13px] font-medium text-muted-foreground bg-muted/50 p-2 rounded-md">
-              {bowlerName || "Unknown Bowler"}
-              <div className="text-[10px] opacity-70 mt-0.5 italic">
-                (Bowler editing coming soon - currently showing metadata)
-              </div>
+            <div className="col-span-3">
+              <Select 
+                value={bowlerId || bowlerName || "none"} 
+                onValueChange={(v) => {
+                  const opt = bowlingOptions?.find(o => o.id === v || o.name === v);
+                  if (opt) {
+                    onPickBowler?.({ athleteId: opt.id.startsWith('ext:') ? null : opt.id, name: opt.name });
+                  }
+                }}
+              >
+                <SelectTrigger className="h-9 text-[13px]">
+                  <SelectValue placeholder="Select bowler" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bowlingOptions?.map(opt => (
+                    <SelectItem key={opt.id} value={opt.id.startsWith('ext:') ? opt.name : opt.id}>
+                      {opt.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

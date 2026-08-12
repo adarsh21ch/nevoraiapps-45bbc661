@@ -455,7 +455,7 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
 
   let inningsShouldEnd: MatchState["inningsShouldEnd"] = null;
   if (wickets >= maxWickets) inningsShouldEnd = "all_out";
-  else if (totalOvers != null && legalBalls >= totalOvers * 6 && curOverLegal >= 6) inningsShouldEnd = "overs_finished";
+  else if (totalOvers != null && legalBalls >= totalOvers * 6 && (curOverLegal === 0 || curOverLegal >= 6)) inningsShouldEnd = "overs_finished";
   else if (target != null && runs >= target) inningsShouldEnd = "target_achieved";
 
   const matchShouldEnd =
