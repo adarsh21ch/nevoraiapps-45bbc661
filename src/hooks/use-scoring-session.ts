@@ -416,8 +416,8 @@ export function useScoringSession(
       });
       
       const newStriker = applyStrikeAfterBall(currentStriker, currentNonStriker, result, optimistic.is_legal_delivery);
-      setStriker(newStriker.striker);
-      setNonStriker(newStriker.nonStriker);
+      setStriker({ ...newStriker.striker, onStrike: true });
+      setNonStriker({ ...newStriker.nonStriker, onStrike: false });
       
       return result;
     },
