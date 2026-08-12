@@ -150,7 +150,7 @@ export const expoPushAdapter: PushAdapter = {
     if (recipients.length === 0) {
       return { ok: true, adapter: "expo", items: [] };
     }
-    const accessToken = process.env.EXPO_ACCESS_TOKEN;
+    const accessToken = typeof process !== 'undefined' ? process.env.EXPO_ACCESS_TOKEN : undefined;
     const outgoing = recipients.map((r) => buildOutgoing(r, message));
     const chunks = chunk(outgoing, CHUNK_SIZE);
     const items: PushSendItemResult[] = [];

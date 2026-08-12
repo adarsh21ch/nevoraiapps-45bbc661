@@ -45,15 +45,16 @@ export interface MetaValidation {
 }
 
 function readConfig(): MetaConfig | null {
-  const accessToken = process.env.META_WA_ACCESS_TOKEN;
-  const phoneNumberId = process.env.META_WA_PHONE_NUMBER_ID;
+  const accessToken = typeof process !== 'undefined' ? process.env.META_WA_ACCESS_TOKEN : undefined;
+  const phoneNumberId = typeof process !== 'undefined' ? process.env.META_WA_PHONE_NUMBER_ID : undefined;
   if (!accessToken || !phoneNumberId) return null;
-  const t = Number(process.env.META_WA_TIMEOUT_MS);
+  const tStr = typeof process !== 'undefined' ? process.env.META_WA_TIMEOUT_MS : undefined;
+  const t = Number(tStr);
   return {
     accessToken,
     phoneNumberId,
-    businessAccountId: process.env.META_WA_BUSINESS_ACCOUNT_ID ?? null,
-    apiVersion: process.env.META_WA_API_VERSION ?? DEFAULT_API_VERSION,
+    businessAccountId: (typeof process !== 'undefined' ? process.env.META_WA_BUSINESS_ACCOUNT_ID : undefined) ?? null,
+    apiVersion: (typeof process !== 'undefined' ? process.env.META_WA_API_VERSION : undefined) ?? DEFAULT_API_VERSION,
     timeoutMs: Number.isFinite(t) && t > 0 ? t : DEFAULT_TIMEOUT_MS,
   };
 }
