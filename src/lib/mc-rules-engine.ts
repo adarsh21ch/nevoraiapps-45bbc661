@@ -417,6 +417,7 @@ export function replayInnings(events: MCBallEvent[], opts: ReplayOptions = {}): 
       curOverBowlerId = null;
       curOverBowlerName = null;
     } else {
+      // RESET awaitingNewBowler if the over is not yet complete (e.g. after a correction)
       awaitingNewBowler = false;
     }
   }

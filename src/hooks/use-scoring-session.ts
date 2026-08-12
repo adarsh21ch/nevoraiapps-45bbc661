@@ -290,20 +290,19 @@ export function useScoringSession(
         filter: `innings_id=eq.${activeInnings.id}`,
       }, (payload) => {
         setEvents((prev) => {
+          let next = [...prev];
           if (payload.eventType === "INSERT") {
             const row = payload.new as MCBallEvent;
-            if (prev.some((e) => e.id === row.id)) return prev;
-            return [...prev, row].sort((a, b) => a.sequence_number - b.sequence_number);
-          }
-          if (payload.eventType === "DELETE") {
+            if (next.some((e) => e.id === row.id)) return prev;
+            next.push(row);
+          } else if (payload.eventType === "DELETE") {
             const row = payload.old as MCBallEvent;
-            return prev.filter((e) => e.id !== row.id);
-          }
-          if (payload.eventType === "UPDATE") {
+            next = next.filter((e) => e.id !== row.id);
+          } else if (payload.eventType === "UPDATE") {
             const row = payload.new as MCBallEvent;
-            return prev.map((e) => (e.id === row.id ? row : e));
+            next = next.map((e) => (e.id === row.id ? row : e));
           }
-          return prev;
+          return next.sort((a, b) => a.sequence_number - b.sequence_number);
         });
       })
       .subscribe();
