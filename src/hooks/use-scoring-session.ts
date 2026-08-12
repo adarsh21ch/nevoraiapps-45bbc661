@@ -24,6 +24,15 @@ import {
   type MatchState,
 } from "@/lib/mc-rules-engine";
 
+export interface PersistentSelection {
+  striker_athlete_id: string | null;
+  striker_name: string | null;
+  non_striker_athlete_id: string | null;
+  non_striker_name: string | null;
+  bowler_athlete_id: string | null;
+  bowler_name: string | null;
+}
+
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
@@ -233,26 +242,55 @@ export function useScoringSession(
   const strikerRef = useRef<CurrentBatterState>(striker);
   const nonStrikerRef = useRef<CurrentBatterState>(nonStriker);
   const bowlerRef = useRef<CurrentBowlerState>(bowler);
+  
   // Serialized network queue so rapid taps don't fire concurrent
   // appendBallEvent calls (which would race on sequence_number). The
   // optimistic UI update still happens synchronously on every call.
   const netQueueRef = useRef<Promise<void>>(Promise.resolve());
+  
   useEffect(() => {
     eventsRef.current = events;
   }, [events]);
 
+  // Persistent persistence helpers
+  const persistSelection = useCallback(
+    async (s: CurrentBatterState, ns: CurrentBatterState, b: CurrentBowlerState) => {
+      if (!matchId || !activeInnings || !opts.tenantId) return;
+      try {
+        await supabase.from("mc_match_draft_selections" as any).upsert({
+          tenant_id: opts.tenantId,
+          match_id: matchId,
+          innings_id: activeInnings.id,
+          striker_athlete_id: s.athleteId,
+          striker_name: s.name,
+          non_striker_athlete_id: ns.athleteId,
+          non_striker_name: ns.name,
+          bowler_athlete_id: b.athleteId,
+          bowler_name: b.name,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'innings_id' });
+      } catch (err) {
+        console.warn("[scoring] Selection persistence failed", err);
+      }
+    },
+    [matchId, activeInnings, opts.tenantId],
+  );
+
   const setStriker = useCallback((b: CurrentBatterState) => {
     strikerRef.current = b;
     setStrikerState(b);
-  }, []);
+    void persistSelection(b, nonStrikerRef.current, bowlerRef.current);
+  }, [persistSelection]);
   const setNonStriker = useCallback((b: CurrentBatterState) => {
     nonStrikerRef.current = b;
     setNonStrikerState(b);
-  }, []);
+    void persistSelection(strikerRef.current, b, bowlerRef.current);
+  }, [persistSelection]);
   const setBowler = useCallback((b: CurrentBowlerState) => {
     bowlerRef.current = b;
     setBowlerState(b);
-  }, []);
+    void persistSelection(strikerRef.current, nonStrikerRef.current, b);
+  }, [persistSelection]);
 
   /* ---------- initial load ---------- */
 
