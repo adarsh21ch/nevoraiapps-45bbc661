@@ -24,6 +24,8 @@ import {
   type MatchState,
 } from "@/lib/mc-rules-engine";
 
+export type PersistentSelection = Database["public"]["Tables"]["mc_match_draft_selections"]["Row"];
+
 
 type MCMatch = Database["public"]["Tables"]["mc_matches"]["Row"];
 type MCMatchSquad = Database["public"]["Tables"]["mc_match_squads"]["Row"];
