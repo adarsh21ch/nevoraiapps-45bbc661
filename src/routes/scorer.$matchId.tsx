@@ -200,6 +200,9 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
     void session.updateBallBowler(eventId, opt);
   };
 
+  const handleDeleteBall = (id: string) => void session.deleteBall(id);
+  const handleUpdateBall = (input: any) => void session.updateBall(input);
+
   /* ---------- modal state ---------- */
   const [dismissOpen, setDismissOpen] = useState(false);
   const [caughtOpen, setCaughtOpen] = useState(false);
@@ -947,8 +950,8 @@ function LiveScorerPage({ matchId }: { matchId: string }) {
           onUndo={() => void handleUndo()}
           onRedo={() => void handleRedo()}
           canRedo={true}
-          onDeleteBall={handleDeleteBall}
-          onUpdateBall={handleUpdateBall}
+          onDeleteBall={(id) => void session.deleteBall(id)}
+          onUpdateBall={(input) => void session.updateBall(input)}
           onPickBowler={handlePickBowler}
           allEvents={session.events}
 

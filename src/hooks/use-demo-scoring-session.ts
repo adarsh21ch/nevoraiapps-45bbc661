@@ -535,6 +535,7 @@ export function useDemoScoringSession(matchId: string): ScoringSession & {
     setBowler: setBowlerImmediate,
     startInnings,
     submitBall,
+    updateBallBowler,
     undo,
     redo: async () => null,
     deleteBall: async (id: string) => {
