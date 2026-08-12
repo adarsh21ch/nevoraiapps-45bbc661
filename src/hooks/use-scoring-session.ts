@@ -293,7 +293,7 @@ export function useScoringSession(
 
         if (error) throw error;
         if (data) {
-          const d = data as PersistentSelection;
+          const d = data as unknown as PersistentSelection;
           setStrikerState({ athleteId: d.striker_athlete_id, name: d.striker_name, onStrike: true });
           setNonStrikerState({ athleteId: d.non_striker_athlete_id, name: d.non_striker_name, onStrike: false });
           setBowlerState({ athleteId: d.bowler_athlete_id, name: d.bowler_name });
