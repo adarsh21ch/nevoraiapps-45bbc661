@@ -57,7 +57,8 @@ export type RestrictedFeature =
   | "own-progress"
   | "own-attendance"
   | "own-matches"
-  | "staff-management";
+  | "staff-management"
+  | "registrations";
 
 /**
  * React hook — reads the current role from DashboardContext when available.
