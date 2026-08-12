@@ -187,6 +187,12 @@ export function useScoringSession(
   });
 
   const activeInnings = useMemo(() => pickActiveInnings(innings), [innings]);
+  const activeInningsRef = useRef<MCInnings | null>(null);
+  
+  useEffect(() => {
+    activeInningsRef.current = activeInnings;
+  }, [activeInnings]);
+
   const eventsRef = useRef<MCBallEvent[]>([]);
   const strikerRef = useRef<CurrentBatterState>(striker);
   const nonStrikerRef = useRef<CurrentBatterState>(nonStriker);
@@ -200,12 +206,13 @@ export function useScoringSession(
 
   const persistSelection = useCallback(
     async (s: CurrentBatterState, ns: CurrentBatterState, b: CurrentBowlerState) => {
-      if (!matchId || !activeInnings || !opts.tenantId) return;
+      const active = activeInningsRef.current;
+      if (!matchId || !active || !opts.tenantId) return;
       try {
         await supabase.from("mc_match_draft_selections" as any).upsert({
           tenant_id: opts.tenantId,
           match_id: matchId,
-          innings_id: activeInnings.id,
+          innings_id: active.id,
           striker_athlete_id: s.athleteId,
           striker_name: s.name,
           non_striker_athlete_id: ns.athleteId,
@@ -218,7 +225,7 @@ export function useScoringSession(
         console.warn("[scoring] Selection persistence failed", err);
       }
     },
-    [matchId, activeInnings, opts.tenantId],
+    [matchId, opts.tenantId],
   );
 
   const setStriker = useCallback((b: CurrentBatterState) => {
@@ -275,7 +282,47 @@ export function useScoringSession(
 
   useEffect(() => {
     if (!activeInnings?.id) return;
-    const channel = supabase
+
+    const fetchDraft = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("mc_match_draft_selections" as any)
+          .select("*")
+          .eq("innings_id", activeInnings.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (data) {
+          const d = data as PersistentSelection;
+          setStrikerState({ athleteId: d.striker_athlete_id, name: d.striker_name, onStrike: true });
+          setNonStrikerState({ athleteId: d.non_striker_athlete_id, name: d.non_striker_name, onStrike: false });
+          setBowlerState({ athleteId: d.bowler_athlete_id, name: d.bowler_name });
+          
+          strikerRef.current = { athleteId: d.striker_athlete_id, name: d.striker_name, onStrike: true };
+          nonStrikerRef.current = { athleteId: d.non_striker_athlete_id, name: d.non_striker_name, onStrike: false };
+          bowlerRef.current = { athleteId: d.bowler_athlete_id, name: d.bowler_name };
+        } else {
+          // Reset local state if no draft found for THIS innings
+          const resetB = { athleteId: null, name: null, onStrike: true };
+          const resetNS = { athleteId: null, name: null, onStrike: false };
+          const resetBowl = { athleteId: null, name: null };
+          
+          setStrikerState(resetB);
+          setNonStrikerState(resetNS);
+          setBowlerState(resetBowl);
+          
+          strikerRef.current = resetB;
+          nonStrikerRef.current = resetNS;
+          bowlerRef.current = resetBowl;
+        }
+      } catch (err) {
+        console.warn("[scoring] Failed to load draft selections", err);
+      }
+    };
+
+    void fetchDraft();
+
+    const ballChannel = supabase
       .channel(`mc_ball_events:${activeInnings.id}`)
       .on("postgres_changes", {
         event: "*",
@@ -301,8 +348,31 @@ export function useScoringSession(
         });
       })
       .subscribe();
+
+    const draftChannel = supabase
+      .channel(`mc_draft_selections:${activeInnings.id}`)
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "mc_match_draft_selections",
+        filter: `innings_id=eq.${activeInnings.id}`,
+      }, (payload) => {
+        if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+          const d = payload.new as any;
+          setStrikerState({ athleteId: d.striker_athlete_id, name: d.striker_name, onStrike: true });
+          setNonStrikerState({ athleteId: d.non_striker_athlete_id, name: d.non_striker_name, onStrike: false });
+          setBowlerState({ athleteId: d.bowler_athlete_id, name: d.bowler_name });
+          
+          strikerRef.current = { athleteId: d.striker_athlete_id, name: d.striker_name, onStrike: true };
+          nonStrikerRef.current = { athleteId: d.non_striker_athlete_id, name: d.non_striker_name, onStrike: false };
+          bowlerRef.current = { athleteId: d.bowler_athlete_id, name: d.bowler_name };
+        }
+      })
+      .subscribe();
+
     return () => {
-      void supabase.removeChannel(channel);
+      void supabase.removeChannel(ballChannel);
+      void supabase.removeChannel(draftChannel);
     };
   }, [activeInnings?.id]);
 
@@ -340,12 +410,13 @@ export function useScoringSession(
 
   const submitBall = useCallback<ScoringSession["submitBall"]>(
     async (partial) => {
-      if (!matchId || !opts.tenantId || !activeInnings) throw new Error("Invalid state");
+      const active = activeInningsRef.current;
+      if (!matchId || !opts.tenantId || !active) throw new Error("Invalid state");
       
       const latestMatchState = replayInnings(eventsRef.current, {
         totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
         maxWickets: 10,
-        target: activeInnings.target ?? null,
+        target: active.target ?? null,
       });
 
       const currentStriker = strikerRef.current;
@@ -364,7 +435,7 @@ export function useScoringSession(
         },
         matchStateForSelectedBatters(latestMatchState, currentStriker, currentNonStriker),
         {
-          innings: activeInnings,
+          innings: active,
           events: eventsRef.current,
           matchStatus: match?.status ?? null,
           totalOvers: (match as { overs?: number | null } | null)?.overs ?? null,
@@ -376,7 +447,7 @@ export function useScoringSession(
         id: makeClientEventId(),
         tenant_id: opts.tenantId,
         match_id: matchId,
-        innings_id: activeInnings.id,
+        innings_id: active.id,
         sequence_number: pos.sequenceNumber,
         over_number: pos.overNumber,
         ball_number: pos.ballNumber,
@@ -405,7 +476,7 @@ export function useScoringSession(
         ...partial, 
         tenantId: opts.tenantId,
         matchId,
-        inningsId: activeInnings.id,
+        inningsId: active.id,
         eventId: optimistic.id,
         strikerAthleteId: optimistic.striker_athlete_id,
         strikerName: optimistic.striker_name,
@@ -421,7 +492,7 @@ export function useScoringSession(
       
       return result;
     },
-    [matchId, opts.tenantId, opts.userId, activeInnings, match?.status, setStriker, setNonStriker],
+    [matchId, opts.tenantId, opts.userId, match?.status, setStriker, setNonStriker],
   );
 
   const undo = useCallback(async () => {
