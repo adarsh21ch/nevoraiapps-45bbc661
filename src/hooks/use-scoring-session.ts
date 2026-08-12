@@ -298,6 +298,18 @@ export function useScoringSession(
     void load();
   }, [load]);
 
+  // Phase 47 - Visibility sync
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible" && matchId) {
+        console.log("[scoring] Tab became visible, refreshing state...");
+        void load();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [load, matchId]);
+
   useEffect(() => {
     if (!activeInnings?.id) return;
 
@@ -314,6 +326,15 @@ export function useScoringSession(
           if (payload.eventType === "INSERT") {
             const row = payload.new as MCBallEvent;
             if (next.some((e) => e.id === row.id)) return prev;
+            
+            // Phase 47 - Gap detection: if we missed events, trigger a full reload
+            const lastKnownSeq = next.length > 0 ? next[next.length - 1].sequence_number : 0;
+            if (row.sequence_number > lastKnownSeq + 1) {
+              console.warn("[scoring] Gap detected in ball events, reloading...", { lastKnownSeq, received: row.sequence_number });
+              void load();
+              return prev;
+            }
+            
             next.push(row);
           } else if (payload.eventType === "DELETE") {
             const row = payload.old as MCBallEvent;
@@ -323,7 +344,7 @@ export function useScoringSession(
             next = next.map((e) => (e.id === row.id ? row : e));
           }
           const sorted = next.sort((a, b) => a.sequence_number - b.sequence_number);
-          eventsRef.current = sorted; // KEEP REF IN SYNC
+          eventsRef.current = sorted; 
           return sorted;
         });
       })
