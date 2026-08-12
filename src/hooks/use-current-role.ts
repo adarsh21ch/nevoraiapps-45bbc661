@@ -37,8 +37,9 @@ export function canAccess(role: AppRole, feature: RestrictedFeature): boolean {
       "match-center",
       "platform-admin",
       "staff-management",
+      "registrations",
     ]),
-    admin: new Set(["attendance", "players", "match-center", "staff-management"]),
+    admin: new Set(["attendance", "players", "match-center", "staff-management", "registrations"]),
     student: new Set(["own-progress", "own-attendance", "own-matches"]),
   };
   return rules[role].has(feature);

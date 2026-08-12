@@ -25,6 +25,7 @@ export type AppRole =
 
 export type PermissionFeature =
   | "canViewFees"
+  | "canViewRegistrations"
   | "canScoreMatch"
   | "canMarkAttendance"
   | "canManageAdmins"
@@ -68,6 +69,7 @@ const RULES: Record<PermissionFeature, AppRole[]> = {
   canManageSubscription: OWNER_ONLY,
   canManageStaff: OWNER_ADMIN,
   canInviteStaff: OWNER_ADMIN,
+  canViewRegistrations: OWNER_ADMIN,
   canViewCoachAnalytics: OWNER_ADMIN_HEAD,
   canManageAssignedBatches: STAFF_CAN_ATTENDANCE,
   canSendAnnouncements: OWNER_ADMIN_HEAD,

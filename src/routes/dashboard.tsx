@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import { DashboardProvider, useDashboard } from "@/lib/dashboard-context";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { LanguageProvider } from "@/lib/i18n";
-import { isCoach } from "@/lib/roles";
+import { isCoach, isOwnerOrAdmin } from "@/lib/roles";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -26,13 +26,15 @@ function CoachIndexRedirect({ children }: { children: React.ReactNode }) {
   const { profile } = useDashboard();
   const navigate = useNavigate();
   const location = useLocation();
+  const isStaff = isOwnerOrAdmin(profile);
   const shouldRedirect =
-    isCoach(profile) && location.pathname === "/dashboard";
+    (isCoach(profile) || isStaff) && location.pathname === "/dashboard";
   useEffect(() => {
     if (shouldRedirect) {
-      navigate({ to: "/dashboard/coach", replace: true });
+      const target = isStaff ? "/dashboard/attendance" : "/dashboard/coach";
+      navigate({ to: target, replace: true });
     }
-  }, [shouldRedirect, navigate]);
+  }, [shouldRedirect, navigate, isStaff]);
   if (shouldRedirect) {
     return null;
   }
