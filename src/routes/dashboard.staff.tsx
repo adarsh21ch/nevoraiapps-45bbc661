@@ -326,13 +326,11 @@ function AdminPicker({
   const eligible = useMemo(() => {
     return members.filter(
       (m) =>
-        // Exclude the owner
         !m.roles.includes("owner") &&
         m.profile_role !== "owner" &&
-        // Exclude those already promoted to staff roles
         !m.roles.some((r) =>
           ["admin", "staff", "coach", "head_coach", "assistant_coach"].includes(r),
-        )
+        ),
     );
   }, [members]);
 
@@ -354,9 +352,7 @@ function AdminPicker({
     onMutate: (userId) => setPendingId(userId),
     onSettled: () => setPendingId(null),
     onSuccess: () => {
-      toast.success("Admin assigned successfully", {
-        description: "They now have access to scoring and attendance.",
-      });
+      toast.success("Admin added");
       onDone();
       onOpenChange(false);
       setQuery("");
@@ -388,14 +384,12 @@ function AdminPicker({
         <div className="flex-1 overflow-y-auto px-3 pb-5">
           {filtered.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              {query ? "No matching students." : "'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                        \n                                            \n                                            also make sure owner dashboaerd should not change"}
+              {query ? "No matching students." : "No students available."}
             </div>
           ) : (
             <ul className="space-y-1">
               {filtered.map((m) => {
                 const isPending = pendingId === m.user_id;
-                const isApproved = m.review_status === "approved" || m.lifecycle_status === "active" || m.lifecycle_status === "imported";
-                
                 return (
                   <li key={m.user_id}>
                     <button
@@ -404,23 +398,14 @@ function AdminPicker({
                       disabled={promote.isPending}
                       className="w-full flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-muted/60 active:bg-muted transition-colors text-left disabled:opacity-60"
                     >
-                      <div className="size-10 rounded-full grid place-items-center bg-muted text-muted-foreground shrink-0 overflow-hidden">
-                        {isApproved ? (
-                          <div className="bg-emerald-500 size-full grid place-items-center text-white">
-                            <Users className="size-4" />
-                          </div>
-                        ) : (
-                          <Users className="size-4" />
-                        )}
+                      <div className="size-10 rounded-full grid place-items-center bg-muted text-muted-foreground shrink-0">
+                        <Users className="size-4" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate">
                           {m.name ?? m.email ?? `${m.user_id.slice(0, 8)}…`}
                         </div>
-                        <div className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
-                          {isApproved && (
-                            <span className="inline-flex size-1.5 rounded-full bg-emerald-500" title="Approved Student" />
-                          )}
+                        <div className="text-xs text-muted-foreground truncate">
                           {m.email ?? "—"}
                         </div>
                       </div>

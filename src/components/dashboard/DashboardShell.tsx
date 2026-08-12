@@ -31,7 +31,6 @@ import {
   Sparkles,
   LayoutGrid,
   Activity,
-  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getFeatures, tenantSiteUrl } from "@/lib/tenant";
@@ -72,7 +71,6 @@ const primaryNav: NavItem[] = [
     ownerOnly: true,
     tourId: "fees",
   },
-  { to: "/match-center/matches", label: "Match Center", icon: Swords, ownerOnly: false },
 ];
 
 // Everything below Match Center in the daily sidebar list.
@@ -80,7 +78,7 @@ const secondaryNav: NavItem[] = [
   { to: "/dashboard/registrations", label: "Registrations", icon: Inbox, tourId: "registrations" },
   { to: "/dashboard/activation", label: "Activation", icon: Users, ownerOnly: true },
   { to: "/dashboard/communications", label: "Communications", icon: Megaphone },
-  { to: "/dashboard/staff", label: "Admins", icon: ShieldCheck, adminOnly: false, ownerOnly: false, tourId: "staff" },
+  { to: "/dashboard/staff", label: "Staff", icon: Users, adminOnly: false, ownerOnly: false, tourId: "staff" },
   { to: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { to: "/dashboard/site", label: "Website", icon: ImageIcon, tourId: "site" },
   { to: "/dashboard/nevorai-health", label: "AI Health", icon: Activity, ownerOnly: true },
@@ -93,7 +91,7 @@ const secondaryNav: NavItem[] = [
 const matchCenterNav: NavItem[] = [
   { to: "/match-center/matches", label: "Matches", icon: Swords },
   { to: "/match-center/tournaments", label: "Tournaments", icon: Trophy },
-  { to: "/match-center/live", label: "Live Scorer", icon: Radio },
+  { to: "/match-center/live", label: "Live", icon: Radio },
   { to: "/match-center/leaderboards", label: "Statistics", icon: BarChart2 },
   { to: "/match-center/awards", label: "Awards", icon: Award },
 ];
