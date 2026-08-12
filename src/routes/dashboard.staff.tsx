@@ -332,7 +332,7 @@ function AdminPicker({
         // Exclude those already promoted to staff roles
         !m.roles.some((r) =>
           ["admin", "staff", "coach", "head_coach", "assistant_coach"].includes(r),
-        ),
+        )
     );
   }, [members]);
 
