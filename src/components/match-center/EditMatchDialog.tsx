@@ -70,7 +70,7 @@ export function EditMatchDialog({
       const { error: errM } = await supabase
         .from("mc_matches")
         .update({
-          overs: matchOvers ? parseInt(matchOvers, 10) : null,
+          overs: matchOvers ? parseInt(matchOvers, 10) : (null as any),
           match_format: format,
         })
         .eq("id", matchId);
