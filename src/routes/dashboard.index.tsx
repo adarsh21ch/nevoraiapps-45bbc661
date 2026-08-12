@@ -201,7 +201,6 @@ function DashboardHome() {
         <div className="min-w-0">
           <h1 className="text-lg font-semibold tracking-tight leading-tight truncate">
             {greeting}
-            <div className="hidden">'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                        \n                                            \n                                            home tab is not opning ..</div>
           </h1>
           <p className="text-[11px] text-muted-foreground leading-tight truncate">
             {format(now, "EEE, d MMM")} · {displayName}
