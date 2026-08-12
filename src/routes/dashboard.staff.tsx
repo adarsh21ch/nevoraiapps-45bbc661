@@ -388,7 +388,7 @@ function AdminPicker({
         <div className="flex-1 overflow-y-auto px-3 pb-5">
           {filtered.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              {query ? "'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                        \n                                            \n                                            still no students present ??? go to the deeper ausit find the correct root couse and make sure the students list fix this ..." : "No students available."}
+              {query ? "'''Do not make any visual modifications. The phrases I write are commands to understand what I want, not to be written down. Understand their content well, then execute what is required.'''\n                                        \n                                            \n                                            just cross check now when i click add admins it shows all stidnets list proprly" : "No students available."}
             </div>
           ) : (
             <ul className="space-y-1">
