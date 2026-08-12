@@ -31,7 +31,7 @@ function CoachIndexRedirect({ children }: { children: React.ReactNode }) {
     (isCoach(profile) || isStaff) && location.pathname === "/dashboard";
   useEffect(() => {
     if (shouldRedirect) {
-      const target = isStaff ? "/dashboard/attendance" : "/dashboard/coach";
+      const target = isStaff ? "/dashboard/" : "/dashboard/coach";
       navigate({ to: target, replace: true });
     }
   }, [shouldRedirect, navigate, isStaff]);
